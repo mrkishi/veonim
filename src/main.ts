@@ -1,8 +1,7 @@
-#!/usr/bin/env node
 process.title = 'veonim'
 
-import { attach } from './core/neovim'
-import './core/render'
+import { attach } from './neovim'
+import './render'
 
 attach(100, 80)
 

@@ -1,10 +1,8 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
 import { spawn } from 'child_process'
-import { log } from './logger'
-import { onFnCall, snakeCase } from './utils'
+import { log, Watcher, onFnCall, snakeCase } from './utils'
 import { Api } from './api'
 import { Functions } from './functions'
-import Watcher from './watcher'
 
 const wtf = class WHATTHEFUCK {
   public val: any

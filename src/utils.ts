@@ -1,3 +1,16 @@
+import { createWriteStream } from 'fs'
+
+const logger = createWriteStream('logs')
+const logmsg = (m: string) => logger.write(`${JSON.stringify(m)}\n`)
+
+// TODO: make log method either accept template string or function with string arg
+export const log = (str: TemplateStringsArray, ...v: any[]) => logmsg(str.map((s, ix) => s + (v[ix] || '')).join(''))
+//const log = (str: TemplateStringsArray, ...v: any[]) => [str, v]
+//
+// TODO: expose log, err, dev (debug) log levels to be toggled via cmd-line opts?
+
+process.on('unhandledRejection', logmsg)
+
 export const merge = Object.assign
 
 type TypeChecker = (thing: any) => boolean
@@ -31,3 +44,27 @@ export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string) => (
   const theFunctionToCall: Function = Reflect.get(o, name)
   theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
 }))
+
+export class Watcher extends Map<string, Set<Function>> {
+  constructor() {
+    super()
+  }
+
+  add(event: string, handler: Function) {
+    const handlers = this.get(event)
+    if (!handlers || !handlers.size) this.set(event, new Set<Function>([ handler ]))
+    else handlers.add(handler)
+  }
+
+  notify(event: string, ...args: any[]) {
+    const handlers = this.get(event)
+    if (!handlers || !handlers.size) return
+    handlers.forEach(cb => cb(...args))
+  }
+
+  remove(event: string, handler: Function) {
+    const handlers = this.get(event)
+    if (!handlers || !handlers.size) return
+    handlers.delete(handler)
+  }
+}

@@ -1,6 +1,5 @@
-import { log } from './logger'
 import { onRedraw, call, resize, input } from './neovim'
-import { is, merge } from './utils'
+import { is, merge, log } from './utils'
 
 type ScrollRegion = [number, number, number, number]
 
