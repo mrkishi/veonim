@@ -6,9 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf build",
-    "build": "tsc",
+    "build": "tsc && cp src/index.html build/index.html",
     "rebuild": "npm run clean && npm run build",
-    "run": "electron build/main.js",
+    "r": "npm run rebuild && electron build/main.js --dev",
+    "run": "electron build/main.js --dev",
     "gen-api": "node tools/gen-api.js"
   },
   "repository": {
