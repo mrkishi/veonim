@@ -8,7 +8,8 @@
     "clean": "rm -rf build",
     "build": "tsc",
     "rebuild": "npm run clean && npm run build",
-    "run": "electron build/main.js"
+    "run": "electron build/main.js",
+    "gen-api": "node tools/gen-api.js"
   },
   "repository": {
     "type": "git",

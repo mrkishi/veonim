@@ -2,17 +2,19 @@
 
 const { spawn } = require('child_process')
 const { stdin, stdout } = spawn('nvim', ['-N', '--embed', '--'])
-const p = require('msgpack5')()
-const encoder = p.encoder({ header: false })
-const decoder = p.decoder({ header: false })
+const { encode, decode, createEncodeStream, createDecodeStream } = require('msgpack-lite')
 const { createWriteStream } = require('fs')
-const out = createWriteStream('./src/api.ts')
+const out = createWriteStream('../src/api.ts')
 const leftPad = (str, amt) => Array(amt).fill(' ').join('') + str
 const write = (m = '', pad = 0) => out.write(leftPad(`${m}\n`, pad))
 const mix = (...a) => Object.assign({}, ...a)
 
+const stupidEncoder = createEncodeStream({ codec })
+const encoder = stupidEncoder.pipe(stdin)
+const toVim = m => encoder.write(encode(m)) // <-- lol wtf?!
+
+const decoder = createDecodeStream({ codec })
 stdout.pipe(decoder)
-encoder.pipe(stdin)
 
 const param = p => {
   const res = []
@@ -107,4 +109,4 @@ decoder.on('data', raw => {
   setTimeout(m => process.exit(0), 2e3)
 })
 
-encoder.write([0, 1, 'nvim_get_api_info', []])
+toVim([0, 1, 'nvim_get_api_info', []])

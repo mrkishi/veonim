@@ -3,11 +3,8 @@ process.title = 'veonim'
 
 import { attach } from './neovim'
 import './render'
-import { vimui } from './view'
 
-vimui.setIndex(1)
-vimui.focus()
-attach(vimui.width, vimui.height)
+attach(100, 80)
 
 // async plugin loading after (hopefully) initial render pass
 setImmediate(() => require('./plugins'))

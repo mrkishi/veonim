@@ -1,7 +1,5 @@
 import { log } from './logger'
 import { onRedraw, call, resize, input } from './neovim'
-import { body, vimui as ui, makeAttr as mkAttr } from './view'
-import { Decurse } from 'decurse'
 import { is, merge } from './utils'
 
 type ScrollRegion = [number, number, number, number]

@@ -1,7 +1,6 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
 import { spawn } from 'child_process'
 import { log } from './logger'
-import { body } from './view'
 import { onFnCall, snakeCase } from './utils'
 import { Api } from './api'
 import { Functions } from './functions'
@@ -28,11 +27,8 @@ codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
 const vimArgs = process.argv.slice(2)
 const { stdout, stdin } = spawn('nvim', ['--embed', ...vimArgs]).on('exit', (c: number) => {
-  body.destroy()
-  process.exit(c)
-  // TODO: why it no work? i want MAH CURSR PLS
-  //body.program.resetCursor()
-  //body.program.showCursor()
+  // TODO: kill it with fire
+  log `exit ${c}`
 })
 
 // TODO: figure out why people are morons
