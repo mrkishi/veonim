@@ -2,7 +2,6 @@ import { encode, decode, createEncodeStream, createDecodeStream, createCodec } f
 import { spawn } from 'child_process'
 import { dev, Watcher, onFnCall, snakeCase } from './utils'
 import { Api } from './api'
-import { Functions } from './functions'
 const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
 
 const wtf = class WHATTHEFUCK {
@@ -88,7 +87,6 @@ decoder.on('data', ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
 export const req: Api = onFnCall((name: string, args: any[] = []) => request(asVimFn(name), args))
 export const api: Api = onFnCall((name: string, args: any[]) => notify(asVimFn(name), args))
 export const on = (event: string, fn: Function) => watchers.add(event, fn)
-export const call: Functions = onFnCall((name: string, args: any[] = []) => req.callFunction(name, args))
 export const onRedraw = (fn: Function) => onRedrawFn = fn as { (m: any[]): any[] }
 export const onRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 export const subscribe = (event: string, fn: Function) => {

@@ -1,5 +1,6 @@
-import { req, api, on, call, onRedraw, onRequest, subscribe } from './transport'
-import { Watcher } from './utils'
+import { req, api, on, onRedraw, onRequest, subscribe } from './transport'
+import { Functions } from './functions'
+import { Watcher, onFnCall } from './utils'
 
 const watchers = new Watcher()
 
@@ -17,7 +18,8 @@ export const input = (m: string) => api.input(m)
 export const cmd = (m: string) => api.command(m)
 export const buffers = () => req.listBufs()
 export const action = (event: string, fn: Function) => watchers.add(event, fn)
+export const call: Functions = onFnCall((name: string, args: any[] = []) => req.callFunction(name, args))
 
 subscribe('veonim', ([ event, ...args ]) => watchers.notify(event, args))
 
-export { req, api, on, call, onRedraw, onRequest, subscribe }
+export { req, api, on, onRedraw, onRequest, subscribe }
