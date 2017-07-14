@@ -1,5 +1,5 @@
-import { app, BrowserWindow } from 'electron'
 const DEVMODE = process.argv.includes('--dev')
+import { app, BrowserWindow } from 'electron'
 
 let win
 app.setName('veonim')
