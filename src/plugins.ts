@@ -3,12 +3,13 @@ import getProjectFiles from './files'
 import { VimBuffer } from './functions'
 import { basename, dirname } from 'path'
 import { onFnCall, pascalCase } from './utils'
-import { search, colors, Colors } from './view'
 import { call, cmd, action } from './neovim'
 
 interface SearchEntry {
-  key: string,
-  text: string
+  name: string,
+  base: string,
+  modified?: boolean,
+  dir: string
 }
 
 const cc = (...a: any[]) => Promise.all(a)
@@ -53,19 +54,21 @@ const define: { [index: string]: Function } = onFnCall((name: string, [ fn ]: st
 })
 
 
-const getFiles = async (cwd: string, colors: Colors): Promise<SearchEntry[]> => {
+const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
   const [ currentFile, files ] = await cc(call.expand('%f'), getProjectFiles(cwd))
 
   return files
     .filter((m: string) => m !== currentFile)
     .map((name: string) => ({
+      name,
+      base: basename(name),
       key: name,
-      text: `{${colors.muted}-fg}${formatDir(dirname(name))}{/}${basename(name)}`
+      dir: formatDir(dirname(name))
     }))
 }
 
 
-const getBuffers = async (cwd: string, colors: Colors): Promise<SearchEntry[]> => {
+const getBuffers = async (cwd: string): Promise<SearchEntry[]> => {
   const buffers = await call.Buffers()
   if (!buffers) return []
   
@@ -73,33 +76,31 @@ const getBuffers = async (cwd: string, colors: Colors): Promise<SearchEntry[]> =
      .filter((m: VimBuffer, ix: number, arr: any[]) => arr.findIndex(e => e.name === m.name) === ix)
      .filter((m: VimBuffer) => !m.cur)
      .map(({ name, mod }) => ({
-       key: name,
-       text: `${
-         basename(name)
-       } ${
-         mod ? '+' : ''
-       }{|}{${colors.muted}-fg}${
-         cleanup(dirname(name), cwd)
-       }{/}`
+       name,
+       base: basename(name),
+       modified: mod,
+       dir: cleanup(dirname(name), cwd)
      }))
 }
 
 action('files', async () => {
-  search.setOptions(cache.files).capture()
-  cache.files = await getFiles(g.cwd, colors).catch(derp)
-  search.setOptions(cache.files)
+  //search.setOptions(cache.files).capture()
+  cache.files = await getFiles(g.cwd).catch(derp)
+  //search.setOptions(cache.files)
 
-  const file = await search.forSelection()
+  const file = 'derp'
+  //const file = await search.forSelection()
   if (!file) return
   cmd(`e ${file}`)
 })
 
 action('buffers', async () => {
-  search.setOptions(cache.buffers).capture()
-  cache.buffers = await getBuffers(g.cwd, colors).catch(derp)
-  search.setOptions(cache.buffers)
+  //search.setOptions(cache.buffers).capture()
+  cache.buffers = await getBuffers(g.cwd).catch(derp)
+  //search.setOptions(cache.buffers)
 
-  const buffer = await search.forSelection()
+  const buffer = 'derp'
+  //const buffer = await search.forSelection()
   if (!buffer) return
   cmd(`b ${buffer}`)
 })

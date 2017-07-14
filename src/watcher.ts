@@ -1,6 +1,6 @@
 export default class Watcher extends Map<string, Set<Function>> {
   constructor() {
-    super();
+    super()
   }
 
   add(event: string, handler: Function) {
