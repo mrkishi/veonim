@@ -8,8 +8,8 @@
     "clean": "rm -rf build",
     "build": "tsc && cp src/index.html build/index.html",
     "rebuild": "npm run clean && npm run build",
-    "r": "npm run rebuild && electron build/main.js --dev",
-    "run": "electron build/main.js --dev",
+    "r": "npm run rebuild && npm start",
+    "start": "electron build/main.js",
     "gen-api": "node tools/gen-api.js"
   },
   "repository": {

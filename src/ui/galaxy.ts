@@ -64,8 +64,8 @@ const r = new Proxy(api, {
 
 let lastScrollRegion: ScrollRegion | null = null
 const colors: Colors = {
-  fg: '#fff',
-  bg: '#000',
+  fg: '#ddd',
+  bg: '#222',
   sp: '#f00'
 }
 
@@ -75,9 +75,6 @@ const font: Font = {
   lineHeight: 1.2,
   face: 'Roboto Mono'
 }
-
-const cursor = extendGridToPixels({ row: 0, col: 0 })
-const grid = extendGridToPixels(sizeToGrid(winHeight, winWidth))
 
 const clearBlock = (col: number, row: number, width: number, height: number) =>
   fillBlock(col, row, width, height, colors.bg)
@@ -113,9 +110,10 @@ r.put = (m: any[]) => {
   }
 }
 
-// do the stuffs
 resizeCanvas(winHeight, winWidth)
 setFontSize(12)
+const cursor = extendGridToPixels({ row: 0, col: 0 })
+const grid = extendGridToPixels(sizeToGrid(winHeight, winWidth))
 
 onRedraw((m: any[]) => {
   const count = m.length

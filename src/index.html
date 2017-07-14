@@ -4,20 +4,30 @@
     <title>veonim</title>
     <style>
 body {
-  background: #444;
-  color: #eee;
+  margin: 0;
+  padding: 0;
+  background: #222;
+  color: #ddd;
+  font-size: 12px;
+  font-family: 'Roboto Mono';
+}
+
+#galaxy {
+  position: absolute;
+  left: 0;
+  top: 0;
 }
     </style>
   </head>
   <body>
-    <div id="galaxy">galaxy goes here</div>
+    <div id="galaxy">derp</div>
     <canvas id="nvim"></canvas>
     <script type="text/javascript">
       'use strict'
-      require('./ui/galaxy')
       document.body.addEventListener('keydown', e => {
         if (e.key === 'F' && e.shiftKey && e.metaKey) console.log('FULLSCREEN')
       })
+      require('./ui/galaxy')
     </script>
   </body>
 </html>

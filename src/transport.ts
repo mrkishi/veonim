@@ -32,6 +32,9 @@ const encoder = stupidEncoder.pipe(stdin)
 const decoder = createDecodeStream({ codec })
 stdout.pipe(decoder)
 
+stdout.on('error', (e: string) => dev(JSON.stringify(e)))
+stdin.on('error', (e: string) => dev(JSON.stringify(e)))
+
 const watchers = new Watchers()
 const pendingRequests = new Map()
 const requestHandlers = new Map<string, Function>()
