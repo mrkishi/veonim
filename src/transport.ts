@@ -1,6 +1,6 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
 import { spawn } from 'child_process'
-import { err, dev, Watcher, onFnCall, snakeCase } from './utils'
+import { dev, Watcher, onFnCall, snakeCase } from './utils'
 import { Api } from './api'
 import { Functions } from './functions'
 const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
@@ -24,7 +24,7 @@ codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
 const { stdout, stdin } = spawn('nvim', ['--embed', ...process.argv.slice(2)]).on('exit', (c: number) => {
   // TODO: kill it with fire
-  err `nvim exit ${c}`
+  dev `nvim exit ${c}`
 })
 
 // TODO: figure out why people are morons
@@ -32,9 +32,6 @@ const stupidEncoder = createEncodeStream({ codec })
 const encoder = stupidEncoder.pipe(stdin)
 const decoder = createDecodeStream({ codec })
 stdout.pipe(decoder)
-
-stdin.on('error', (e: Error) => err `STDIN ERROR ${e}`)
-stdout.on('error', (e: Error) => err `STDOUT ERROR ${e}`)
 
 const watchers = new Watcher()
 const pendingRequests = new Map()
@@ -53,46 +50,39 @@ const request = (name: string, args: any[]) => {
 
 const noRequestMethodFound = (id: number, method: string) => {
   send([1, id, 'no one was listening for your request, sorry', null])
-  err `vim made a request for ${method} but no handler was found`
+  dev `vim made a request for ${method} but no handler was found`
 }
 
-decoder.on('data', ([ type, ...data ]: [ number, any[] ]) => {
-  dev `--> [${[type, ...data]}]`
+const onVimRequest = (id: number, method: string, args: any[]) => {
+  const reqHandler = requestHandlers.get(method)
+  if (!reqHandler) return noRequestMethodFound(id, method)
 
-  // vim requests a reponse
-  if (type === 0) {
-    const [ id, method, args ] = data as [ number, string, any[] ]
+  const maybePromise = reqHandler(...args as any[])
 
-    const reqHandler = requestHandlers.get(method)
-    if (!reqHandler) return noRequestMethodFound(id, method)
+  if (maybePromise && maybePromise.then) maybePromise
+    .then((result: any) => send([1, id, null, result]))
+    .catch((err: string) => send([1, id, err, null]))
+}
 
-    const maybePromise = reqHandler(...args as any[])
+const onResponse = (id: number, error: string, result: any) => {
+  if (!pendingRequests.has(id)) return
 
-    if (maybePromise && maybePromise.then) maybePromise
-      .then((result: any) => send([1, id, null, result]))
-      .catch((err: string) => send([1, id, err, null]))
-  }
+  const { done, fail } = pendingRequests.get(id)
+  error ? fail(error) : done(result)
+  pendingRequests.delete(id)
+}
 
-  // received response from previous request
-  else if (type === 1) {
-    const [ id, error, result ] = data
-    if (!pendingRequests.has(id)) return
+const onNotification = (method: string, args: any[]) => method === 'redraw'
+  ? onRedrawFn(args)
+  : watchers.notify(method, args)
 
-    const { done, fail } = pendingRequests.get(id)
-    error ? fail(error) : done(result)
-    pendingRequests.delete(id)
-  }
+decoder.on('data', ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
+  dev `--> [${[type, ...d]}]`
 
-  // notification/event
-  else if (type === 2) {
-    const [ methodRaw, args ] = data
-    const method = methodRaw.toString()
-
-    if (method === 'redraw') onRedrawFn(args as any[])
-    else watchers.notify(method, args)
-  }
-
-  else err `i don't know how to handle this msg type: ${type}`
+  if (type === 0) onVimRequest(d[0] as number, d[1].toString(), d[2] as any[])
+  else if (type === 1) onResponse(d[0] as number, d[1] as string, d[2])
+  else if (type === 2) onNotification(d[0].toString(), d[1] as any[])
+  else dev `i don't know how to handle this msg type: ${type}`
 })
 
 export const req: Api = onFnCall((name: string, args: any[] = []) => request(asVimFn(name), args))
