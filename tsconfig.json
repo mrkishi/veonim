@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "outDir": "build",
+    "strict": true,
+    "lib": ["es2017"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}
