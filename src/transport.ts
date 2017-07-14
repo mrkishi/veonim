@@ -1,6 +1,6 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
+import { dev, Watchers, onFnCall, snakeCase } from './utils'
 import { spawn } from 'child_process'
-import { dev, Watcher, onFnCall, snakeCase } from './utils'
 import { Api } from './api'
 const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
 
@@ -32,7 +32,7 @@ const encoder = stupidEncoder.pipe(stdin)
 const decoder = createDecodeStream({ codec })
 stdout.pipe(decoder)
 
-const watchers = new Watcher()
+const watchers = new Watchers()
 const pendingRequests = new Map()
 const requestHandlers = new Map<string, Function>()
 

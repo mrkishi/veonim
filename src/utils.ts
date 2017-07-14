@@ -48,7 +48,7 @@ export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string) => (
   theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
 }))
 
-export class Watcher extends Map<string, Set<Function>> {
+export class Watchers extends Map<string, Set<Function>> {
   constructor() {
     super()
   }

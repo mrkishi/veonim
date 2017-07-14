@@ -1,11 +1,11 @@
 import { req, api, on, onRedraw, onRequest, subscribe } from './transport'
+import { Watchers, onFnCall } from './utils'
 import { Functions } from './functions'
-import { Watcher, onFnCall } from './utils'
 
-const watchers = new Watcher()
+const watchers = new Watchers()
 
 const baseAttachOpts = {
-  rgb: false,
+  rgb: true,
   ext_popupmenu: false,
   ext_tabline: false,
   ext_wildmenu: false,
