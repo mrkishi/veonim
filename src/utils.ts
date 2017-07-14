@@ -1,6 +1,5 @@
-import { createWriteStream } from 'fs'
-
 const DEVMODE = process.argv.includes('--dev')
+import { createWriteStream } from 'fs'
 
 export const noop = () => undefined
 export const merge = Object.assign
@@ -8,9 +7,9 @@ export const merge = Object.assign
 const logfile = createWriteStream('logs')
 const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
 
-const logger = (str: TemplateStringsArray | string, v: any[]) => is.string
-    ? writemsg(str as string)
-    : writemsg((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
+const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 'string'
+  ? writemsg(str as string)
+  : writemsg((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
 export const dev = (str: TemplateStringsArray | string, ...vars: any[]) => DEVMODE && logger(str, vars)
