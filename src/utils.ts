@@ -1,22 +1,21 @@
 import { createWriteStream } from 'fs'
 
+const DEVMODE = process.argv.includes('--dev')
+
 export const noop = () => undefined
+export const merge = Object.assign
+
 const logfile = createWriteStream('logs')
 const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
 
-// TODO: make log method either accept template string or function with string arg
-export const logger = (str: TemplateStringsArray, ...v: any[]) => writemsg(str.map((s, ix) => s + (v[ix] || '')).join(''))
-//const log = (str: TemplateStringsArray, ...v: any[]) => [str, v]
-//
-// TODO: expose log, err, dev (debug) log levels to be toggled via cmd-line opts?
+const logger = (str: TemplateStringsArray | string, v: any[]) => is.string
+    ? writemsg(str as string)
+    : writemsg((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
 
-export const log = logger
-export const err = logger
-export const dev = logger
+export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
+export const dev = (str: TemplateStringsArray | string, ...vars: any[]) => DEVMODE && logger(str, vars)
 
 process.on('unhandledRejection', writemsg)
-
-export const merge = Object.assign
 
 type TypeChecker = (thing: any) => boolean
 interface Types {
