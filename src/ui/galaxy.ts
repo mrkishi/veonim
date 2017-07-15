@@ -34,6 +34,7 @@ interface GridPos {
 
 const { devicePixelRatio: pxRatio, innerHeight: winHeight, innerWidth: winWidth } = window
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
+const cursorEl = document.getElementById('cursor') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
 
 const resizeCanvas = (cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D, height: number, width: number) => {
@@ -60,10 +61,11 @@ const setFontSize = (px: number) => {
   const { width } = ui.measureText('m')
   const height = Math.ceil(px * font.lineHeight)
   merge(font, { width, height })
+  merge(cursorEl.style, { width: `${width}px`, height: `${height}px` })
   // TODO do we need to resize canvas?
 }
 
-const updateCursor = ({ row, col, x, y }: GridPos) => console.log(`move cursor to row:${row} col:${col} x:${x} y:${y}`)
+const updateCursor = ({ x, y }: GridPos) => merge(cursorEl.style, { top: `${y - font.height}px`, left: `${x}px` })
 
 const api = new Map<string, Function>()
 const r = new Proxy(api, {
