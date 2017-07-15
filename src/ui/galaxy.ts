@@ -6,7 +6,7 @@ const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
 export const onProp = <T>(cb: Function): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
 
-import { attach, onRedraw } from '../neovim'
+import { attach, onRedraw, input } from '../neovim'
 const merge = Object.assign
 
 type ScrollRegion = [number, number, number, number]
@@ -104,7 +104,10 @@ r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg })
 r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp })
 r.set_scroll_region = (m: any[]) => lastScrollRegion = m[0]
 r.eol_clear = () => clearBlock(cursor.col, cursor.row, grid.col - cursor.col + 1, 1)
-r.clear = () => clearBlock(0, 0, grid.col, grid.row)
+r.clear = () => {
+  ui.fillStyle = colors.bg
+  ui.fillRect(0, 0, winWidth, winHeight)
+}
 
 r.put = (m: any[]) => {
   const total = m.length
@@ -144,3 +147,39 @@ onRedraw((m: any[]) => {
 })
 
 attach(grid.col, grid.row)
+
+const getMetaKey = (ctrl: boolean, shift: boolean, meta: boolean, alt: boolean): string => {
+  if (ctrl) return 'C'
+  if (shift) return 'S'
+  if (meta) return 'D'
+  if (alt) return 'A'
+  else return ''
+}
+
+const toVimKey = (key: string): string => {
+  if (key === 'Backspace') return 'BS'
+  if (key === '<') return 'LT'
+  if (key === 'Escape') return 'Esc'
+  if (key === 'Delete') return 'Del'
+  if (key === ' ') return 'Space'
+  else return key
+}
+
+const wrapKey = (key: string): string => key.length > 1 ? `<${key}>` : key
+
+const remaps = new Map<string, string>()
+remaps.set('C', 'D')
+remaps.set('D', 'C')
+
+const userRemaps = (key: string): string => remaps.get(key) || key
+
+document.addEventListener('keydown', (e) => {
+  const { key, ctrlKey: ctrl, shiftKey: shift, metaKey: meta, altKey: alt } = e
+  const inputSequence = ctrl || shift || meta || alt
+    ? `<${userRemaps(getMetaKey(ctrl, shift, meta, alt))}-${key}>`
+    : wrapKey(toVimKey(key))
+
+  console.log(`input: ${inputSequence}`)
+  e.preventDefault()
+  input(inputSequence)
+})
