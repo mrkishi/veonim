@@ -56,19 +56,11 @@ const extGridToPixels = (obj: { col: number, row: number }) => new Proxy(obj, { 
 }}) as GridPos
 
 const setFontSize = (px: number) => {
-  const { lineHeight, face } = font
-  console.log(pxRatio)
-  //const fontHeight = px * (pxRatio || 1)
-  const fontHeight = px
-  ui.font = `${fontHeight}px ${face}`
-
+  ui.font = `${px}px ${font.face}`
   const { width } = ui.measureText('m')
-  const height = Math.ceil(lineHeight === 1.2
-    ? width * 2
-    : fontHeight * lineHeight)
-
+  const height = Math.ceil(px * font.lineHeight)
   merge(font, { width, height })
-  // resize canvas?
+  // TODO do we need to resize canvas?
 }
 
 const updateCursor = ({ row, col, x, y }: GridPos) => console.log(`move cursor to row:${row} col:${col} x:${x} y:${y}`)
