@@ -31,12 +31,18 @@ interface GridPos {
   y: number
 }
 
+
 const { devicePixelRatio: pxRatio, innerHeight: winHeight, innerWidth: winWidth } = window
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
 
-const resizeCanvas = (height: number, width: number) => merge(canvas, { height, width })
-const updateCursor = ({ row, col, x, y }: GridPos) => console.log(`move cursor to row:${row} col:${col} x:${x} y:${y}`)
+const resizeCanvas = (cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D, height: number, width: number) => {
+  cvs.height = height * 2
+  cvs.width = width * 2
+  cvs.style.height = `${height}px`
+  cvs.style.width = `${width}px`
+  ctx.scale(pxRatio, pxRatio)
+}
 
 const sizeToGrid = (height: number, width: number) => ({
   row: Math.floor(height / font.height),
@@ -45,7 +51,7 @@ const sizeToGrid = (height: number, width: number) => ({
 
 const extGridToPixels = (obj: { col: number, row: number }) => new Proxy(obj, { get: (t, key) => {
   if (key === 'x') return t.col * font.width
-  if (key === 'y') return t.row * font.height
+  if (key === 'y') return t.row * font.height + font.height
   else return Reflect.get(t, key)
 }}) as GridPos
 
@@ -65,6 +71,8 @@ const setFontSize = (px: number) => {
   // resize canvas?
 }
 
+const updateCursor = ({ row, col, x, y }: GridPos) => console.log(`move cursor to row:${row} col:${col} x:${x} y:${y}`)
+
 const api = new Map<string, Function>()
 const r = new Proxy(api, {
   set: (_: any, name, fn) => {
@@ -75,7 +83,7 @@ const r = new Proxy(api, {
 
 let lastScrollRegion: ScrollRegion | null = null
 const colors: Colors = {
-  fg: '#ddd',
+  fg: '#ccc',
   bg: '#222',
   sp: '#f00'
 }
@@ -83,7 +91,7 @@ const colors: Colors = {
 const font: Font = {
   height: 0,
   width: 0,
-  lineHeight: 1.2,
+  lineHeight: 1.5,
   face: 'Roboto Mono'
 }
 
@@ -110,6 +118,7 @@ r.put = (m: any[]) => {
   clearBlock(cursor.col, cursor.row, total, 1)
 
   ui.fillStyle = colors.fg
+  ui.textBaseline = 'bottom'
 
   for (let ix = 0; ix < total; ix++) {
     ui.fillText(m[ix][0], cursor.x, cursor.y)
@@ -121,7 +130,7 @@ r.put = (m: any[]) => {
   }
 }
 
-resizeCanvas(winHeight, winWidth)
+resizeCanvas(canvas, ui, winHeight, winWidth)
 setFontSize(12)
 const cursor = extGridToPixels({ row: 0, col: 0 })
 const grid = extGridToPixels(sizeToGrid(winHeight, winWidth))
