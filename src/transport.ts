@@ -4,6 +4,10 @@ import { spawn } from 'child_process'
 import { Api } from './api'
 const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
 
+let reqId = 0
+let onRedrawFn = (m: any[]) => m
+let onExitFn = (code: number) => code
+
 const wtf = class WHATTHEFUCK {
   public val: any
   constructor (data: any) {
@@ -21,11 +25,8 @@ codec.addExtUnpacker(0, data => new wtf(decode(data)))
 codec.addExtUnpacker(1, data => new wtf(decode(data)))
 codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
-const { stdout, stdin } = spawn('nvim', ['--embed', 'package.json']).on('exit', (c: number) => {
+const { stdout, stdin } = spawn('nvim', ['--embed', 'package.json']).on('exit', (c: number) => onExitFn(c))
 //const { stdout, stdin } = spawn('nvim', ['--embed']).on('exit', (c: number) => {
-  // TODO: kill it with fire
-  dev `nvim exit ${c}`
-})
 
 // TODO: figure out why people are morons
 const stupidEncoder = createEncodeStream({ codec })
@@ -39,13 +40,8 @@ stdin.on('error', (e: string) => dev(JSON.stringify(e)))
 const watchers = new Watchers()
 const pendingRequests = new Map()
 const requestHandlers = new Map<string, Function>()
-
-let reqId = 0
-let onRedrawFn = (m: any[]) => m
-
 const send = (m: any[]) => encoder.write(encode(m)) && dev `<-- [${m}]`
 const notify = (name: string, args: any[]) => send([2, name, args])
-
 const request = (name: string, args: any[]) => {
   send([0, ++reqId, name, args])
   return new Promise((done, fail) => pendingRequests.set(reqId, { done, fail }))
@@ -91,6 +87,7 @@ decoder.on('data', ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
 export const req: Api = onFnCall((name: string, args: any[] = []) => request(asVimFn(name), args))
 export const api: Api = onFnCall((name: string, args: any[]) => notify(asVimFn(name), args))
 export const on = (event: string, fn: Function) => watchers.add(event, fn)
+export const onExit = (fn: Function) => onExitFn = fn as { (code: number): number }
 export const onRedraw = (fn: Function) => onRedrawFn = fn as { (m: any[]): any[] }
 export const onRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 export const subscribe = (event: string, fn: Function) => {

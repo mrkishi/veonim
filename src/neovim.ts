@@ -1,4 +1,4 @@
-import { req, api, on, onRedraw, onRequest, subscribe } from './transport'
+import { req, api, on, onRedraw, onExit, onRequest, subscribe } from './transport'
 import { Watchers, onFnCall } from './utils'
 import { Functions } from './functions'
 
@@ -22,4 +22,4 @@ export const call: Functions = onFnCall((name: string, args: any[] = []) => req.
 
 subscribe('veonim', ([ event, ...args ]) => watchers.notify(event, args))
 
-export { req, api, on, onRedraw, onRequest, subscribe }
+export { req, api, on, onRedraw, onExit, onRequest, subscribe }

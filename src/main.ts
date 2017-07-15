@@ -1,7 +1,8 @@
 const DEVMODE = process.env.VEONIM_DEV
 import { app, BrowserWindow } from 'electron'
+import { register } from './pubsub'
 
-let win
+let win: Electron.BrowserWindow
 app.setName('veonim')
 app.on('ready', () => {
   win = new BrowserWindow({
@@ -10,6 +11,8 @@ app.on('ready', () => {
     frame: false,
     backgroundColor: '#222'
   })
+
+  register(win)
   win.loadURL(`file:///${__dirname}/index.html`)
   DEVMODE && win.webContents.openDevTools()
 })

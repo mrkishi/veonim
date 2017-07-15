@@ -6,7 +6,8 @@ const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
 export const onProp = <T>(cb: Function): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
 
-import { attach, onRedraw, input } from '../neovim'
+import { attach, onRedraw, onExit, input } from '../neovim'
+import { remote } from 'electron'
 const merge = Object.assign
 
 type ScrollRegion = [number, number, number, number]
@@ -144,6 +145,11 @@ onRedraw((m: any[]) => {
 
   lastScrollRegion = null
   updateCursor(cursor)
+})
+
+onExit(() => {
+  console.log('goodbye see ya later')
+  remote.app.quit()
 })
 
 attach(grid.col, grid.row)
