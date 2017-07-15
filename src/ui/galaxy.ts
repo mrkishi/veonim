@@ -1,3 +1,11 @@
+// TODO: put somewhere else
+const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 'string'
+  ? console.log(str as string)
+  : console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
+
+export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
+export const onProp = <T>(cb: Function): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
+
 import { attach, onRedraw } from '../neovim'
 const merge = Object.assign
 
@@ -28,21 +36,24 @@ const canvas = document.getElementById('nvim') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
 
 const resizeCanvas = (height: number, width: number) => merge(canvas, { height, width })
-const updateCursor = ({ row, col }: GridPos) => console.log(`move cursor to ${row} ${col}`)
+const updateCursor = ({ row, col, x, y }: GridPos) => console.log(`move cursor to row:${row} col:${col} x:${x} y:${y}`)
 
 const sizeToGrid = (height: number, width: number) => ({
   row: Math.floor(height / font.height),
   col: Math.floor(width / font.width)
 })
 
-const extendGridToPixels = (obj: { col: number, row: number }): GridPos => merge(obj, {
-  get x() { return obj.col * font.width },
-  get y() { return obj.row * font.height }
-})
+const extGridToPixels = (obj: { col: number, row: number }) => new Proxy(obj, { get: (t, key) => {
+  if (key === 'x') return t.col * font.width
+  if (key === 'y') return t.row * font.height
+  else return Reflect.get(t, key)
+}}) as GridPos
 
 const setFontSize = (px: number) => {
   const { lineHeight, face } = font
-  const fontHeight = px * (pxRatio || 1)
+  console.log(pxRatio)
+  //const fontHeight = px * (pxRatio || 1)
+  const fontHeight = px
   ui.font = `${fontHeight}px ${face}`
 
   const { width } = ui.measureText('m')
@@ -85,10 +96,10 @@ const fillBlock = (col: number, row: number, width: number, height: number, colo
   ui.fillRect(col * fw, row * fh, width * fw, height * fh)
 }
 
-r.cursor_goto = (m: any[]) => merge(cursor, { x: m[0][1], y: m[0][1] })
-r.update_fg = ([ [ fg ] ]: number[][]) => fg > -1 && merge(colors, { fg })
-r.update_bg = ([ [ bg ] ]: number[][]) => bg > -1 && merge(colors, { bg })
-r.update_sp = ([ [ sp ] ]: number[][]) => sp > -1 && merge(colors, { sp })
+r.cursor_goto = (row: number, col: number) => merge(cursor, { col, row })
+r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg })
+r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg })
+r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp })
 r.set_scroll_region = (m: any[]) => lastScrollRegion = m[0]
 r.eol_clear = () => clearBlock(cursor.col, cursor.row, grid.col - cursor.col + 1, 1)
 r.clear = () => clearBlock(0, 0, grid.col, grid.row)
@@ -102,25 +113,27 @@ r.put = (m: any[]) => {
 
   for (let ix = 0; ix < total; ix++) {
     ui.fillText(m[ix][0], cursor.x, cursor.y)
-    cursor.row++
+    cursor.col++
     if (cursor.col > grid.col) {
-      cursor.row = 0
-      cursor.col++
+      cursor.col = 0
+      cursor.row++
     }
   }
 }
 
 resizeCanvas(winHeight, winWidth)
 setFontSize(12)
-const cursor = extendGridToPixels({ row: 0, col: 0 })
-const grid = extendGridToPixels(sizeToGrid(winHeight, winWidth))
+const cursor = extGridToPixels({ row: 0, col: 0 })
+const grid = extGridToPixels(sizeToGrid(winHeight, winWidth))
 
 onRedraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
-    const updates = m[ix]
-    const fn = api.get(updates[0])
-    fn && fn(updates.slice(1))
+    const [ method, ...args ] = m[ix]
+    const fn = api.get(method)
+    if (fn) method === 'put' 
+      ? fn(args)
+      : args.forEach((a: any[]) => fn(...a))
   }
 
   lastScrollRegion = null

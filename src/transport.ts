@@ -21,7 +21,8 @@ codec.addExtUnpacker(0, data => new wtf(decode(data)))
 codec.addExtUnpacker(1, data => new wtf(decode(data)))
 codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
-const { stdout, stdin } = spawn('nvim', ['--embed', ...process.argv.slice(2)]).on('exit', (c: number) => {
+const { stdout, stdin } = spawn('nvim', ['--embed', 'package.json']).on('exit', (c: number) => {
+//const { stdout, stdin } = spawn('nvim', ['--embed']).on('exit', (c: number) => {
   // TODO: kill it with fire
   dev `nvim exit ${c}`
 })

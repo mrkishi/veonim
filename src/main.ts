@@ -1,4 +1,4 @@
-const DEVMODE = process.argv.includes('--dev')
+const DEVMODE = process.env.VEONIM_DEV
 import { app, BrowserWindow } from 'electron'
 
 let win

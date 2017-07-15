@@ -1,4 +1,4 @@
-const DEVMODE = process.env.VEONIM_DEBUG
+const DEVMODE = process.env.VEONIM_DEV
 import { createWriteStream } from 'fs'
 
 export const noop = () => undefined
