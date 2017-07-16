@@ -1,3 +1,8 @@
+const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 'string'
+  ? console.log(str as string)
+  : console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
+
+export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
 const merge = Object.assign
 
 interface Font {
@@ -21,11 +26,17 @@ interface Cursor {
   col: number
 }
 
+export enum CursorShape {
+  block,
+  line,
+  underline,
+}
+
 interface Api {
   resize(pixelHeight: number, pixelWidth: number): Api,
-  changeCurosrColorAlpha(red: number, green: number, blue: number, alpha: number): Api,
-  changeCursorColor(color: string): Api,
-  changeCursorShape(type: string): Api,
+  setCursorColorAlpha(red: number, green: number, blue: number, alpha: number): Api,
+  setCursorColor(color: string): Api,
+  setCursorShape(type: CursorShape): Api,
   moveCursor(): Api,
   putImageData(data: ImageData, col: number, row: number): Api,
   getImageData(col: number, row: number, width: number, height: number): ImageData,
@@ -40,17 +51,17 @@ interface Api {
   cursor: Cursor
 }
 
-export default (canvasId: string, cursorId: string) => {
+export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) => {
   const cursorEl = document.getElementById(cursorId) as HTMLElement
   const canvas = document.getElementById(canvasId) as HTMLCanvasElement
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
   const ratio = window.devicePixelRatio
 
+  const font: Font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
   const actualSize: Cell = { width: 0, height: 0 }
-  const grid: Grid = { rows: 0, cols: 0 }
   const cell: Cell = { width: 0, height: 0 }
-  const font: Font = { face: 'Roboto Mono', size: 12, lineHeight: 1.5 }
   const cursor: Cursor = { row: 0, col: 0 }
+  const grid: Grid = { rows: 0, cols: 0 }
 
   const sizeToGrid = (height: number, width: number): Grid => ({
     rows: Math.floor(height / cell.height),
@@ -58,18 +69,34 @@ export default (canvasId: string, cursorId: string) => {
   })
 
   const rowToPx = (row: number) => {
-    return (row * cell.height) + cell.height
+    return row * cell.height
+    //return (row * cell.height) + cell.height
   }
 
   const colToPx = (col: number) => {
     return col * cell.width
   }
 
-  const api = {
+  const logDebugApi = ({ obj, logFn = true, logProp = true }: { obj: any, logFn?: boolean, logProp?: boolean}) => new Proxy(obj, {
+    get: (tar, key) => {
+      const val = Reflect.get(tar, key)
+      if (typeof val === 'function') return (...args: any[]) => {
+        logFn && console.log(`${key}(${args.map(a => JSON.stringify(a)).join(', ')})`)
+        return val(...args)
+      }
+      logProp && console.log(key)
+      return val
+    }
+  }) as Api
+
+  // const api = {
+  let api = {
     cursor,
     get cols () { return grid.cols },
     get rows () { return grid.rows }
   } as Api
+
+  api = logDebugApi({ obj: api, logProp: false, logFn: false })
 
   api.resize = (pixelHeight: number, pixelWidth: number) => {
     merge(actualSize, { width: pixelWidth, height: pixelHeight })
@@ -82,17 +109,17 @@ export default (canvasId: string, cursorId: string) => {
     ui.scale(ratio, ratio)
     merge(grid, sizeToGrid(pixelHeight, pixelWidth))
 
+    // setting canvas properties resets font. we need user to call setFont() first to
+    // be able to calculate sizeToGrid() based on font size. but because font is reset
+    // we will set the font again here
+    ui.font = `${font.size}px ${font.face}`
     return api
   }
 
   api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeight }) => {
-    merge(font, { size, face, lineHeight })
     ui.font = `${size}px ${face}`
-
-    const { width } = ui.measureText('m')
-    const height = Math.ceil(size * lineHeight)
-    merge(cell, { width, height })
-
+    merge(font, { size, face, lineHeight })
+    merge(cell, { width: ui.measureText('m').width, height: Math.ceil(size * lineHeight) })
     return api
   }
 
@@ -117,7 +144,7 @@ export default (canvasId: string, cursorId: string) => {
   }
 
   api.fillText = (text: string, col: number, row: number) => {
-    ui.fillText(text, colToPx(col), rowToPx(row))
+    ui.fillText(text, colToPx(col), rowToPx(row) + rowToPx(1))
     return api
   }  
 
@@ -132,23 +159,23 @@ export default (canvasId: string, cursorId: string) => {
 
   api.moveCursor = () => {
     merge(cursorEl.style, { top: `${rowToPx(cursor.row)}px`, left: `${colToPx(cursor.col)}px` })
-    console.log(`move cursor to row: ${cursor.row} col ${cursor.col}`)
+    // console.log(`move cursor to row: ${cursor.row} col ${cursor.col}`)
     return api
   }
 
-  api.changeCursorShape = (type: string) => {
-    if (type === 'block') merge(cursorEl.style, { height: `${rowToPx(1)}px`, width: `${rowToPx(1)}px` })
-    if (type === 'line') merge(cursorEl.style, { height: `${rowToPx(1)}px`, width: `${rowToPx(0.2)}px` })
-    if (type === 'underline') merge(cursorEl.style, { height: `${rowToPx(0.2)}px`, width: `${rowToPx(1)}px` })
+  api.setCursorShape = (type: CursorShape) => {
+    if (type === CursorShape.block) merge(cursorEl.style, { height: `${rowToPx(1)}px`, width: `${colToPx(1)}px` })
+    if (type === CursorShape.line) merge(cursorEl.style, { height: `${rowToPx(1)}px`, width: `${colToPx(0.2)}px` })
+    if (type === CursorShape.underline) merge(cursorEl.style, { height: `${rowToPx(0.2)}px`, width: `${colToPx(1)}px` })
     return api
   }
 
-  api.changeCursorColor = (color: string) => {
+  api.setCursorColor = (color: string) => {
     cursorEl.style.background = color
     return api
   }
 
-  api.changeCurosrColorAlpha = (red: number, green: number, blue: number, alpha: number) => {
+  api.setCursorColorAlpha = (red: number, green: number, blue: number, alpha: number) => {
     cursorEl.style.background = `rgba(${red}, ${green}, ${blue}, ${alpha})`
     return api
   }

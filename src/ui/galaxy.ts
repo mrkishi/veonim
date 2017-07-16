@@ -4,11 +4,11 @@ const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 
   : console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
-export const onProp = <T>(cb: Function): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
 
 import { attach, onRedraw, onExit, input } from '../neovim'
+import { pub } from './pubsub'
 import { remote } from 'electron'
-import CanvasGrid from './canvasgrid'
+import CanvasGrid, { CursorShape } from './canvasgrid'
 const merge = Object.assign
 
 interface ScrollRegion {
@@ -24,7 +24,7 @@ interface Colors {
   sp: string
 }
 
-const ui = CanvasGrid('nvim', 'cursor')
+const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
 
 const api = new Map<string, Function>()
 const r = new Proxy(api, {
@@ -34,34 +34,29 @@ const r = new Proxy(api, {
   }
 })
 
-let lastScrollRegion: ScrollRegion | null = null
 const colors: Colors = {
   fg: '#ccc',
   bg: '#222',
   sp: '#f00'
 }
 
-const defaultScrollRegion = (): ScrollRegion => ({
-  top: 0,
-  left: 0,
-  right: ui.cols,
-  bottom: ui.rows
-})
+let lastScrollRegion: ScrollRegion | null = null
+const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const slice = ui.getImageData(left, top, right, bottom)
   ui
-  .putImageData(slice, left, top + amount)
-  .setColor(colors.bg)
-  .fillRect(left, top, right, bottom)
+    .putImageData(slice, left, top + amount)
+    .setColor(colors.bg)
+    .fillRect(left, top, right, bottom)
 }
 
 const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const slice = ui.getImageData(left, top, right, bottom)
   ui
-  .putImageData(slice, left, top + amount)
-  .setColor(colors.bg)
-  .fillRect(left, top, right, bottom)
+    .putImageData(slice, left, top + amount)
+    .setColor(colors.bg)
+    .fillRect(left, top, right, bottom)
 }
 
 r.cursor_goto = (row: number, col: number) => merge(ui.cursor, { col, row })
@@ -70,16 +65,17 @@ r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg })
 r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp })
 r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
 r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, ui.cols - 1, 1)
-// r.eol_clear = () => clearBlock(cursor.col, cursor.row, ui.cols - cursor.col + 1, 1)
 r.clear = () => ui.setColor(colors.bg).clear()
 
 r.put = (m: any[]) => {
   const total = m.length
   if (!total) return
-  ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, total, 1)
 
-  // TODO: best baseline?
-  ui.setColor(colors.fg).setTextBaseline('bottom')
+  ui
+    .setColor(colors.bg)
+    .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
+    .setColor(colors.fg)
+    .setTextBaseline('bottom')
 
   for (let ix = 0; ix < total; ix++) {
     ui.fillText(m[ix][0], ui.cursor.col, ui.cursor.row)
@@ -102,7 +98,10 @@ r.scroll = (amount: number) => {
   lastScrollRegion = null
 }
 
-ui.setFont({ size: 12, face: 'Roboto Mono', lineHeight: 1.5 }).resize(window.innerHeight, window.innerWidth)
+ui
+  .setFont({ size: 12, face: 'Roboto Mono', lineHeight: 1.5 })
+  .setCursorShape(CursorShape.block)
+  .resize(window.innerHeight, window.innerWidth)
 
 onRedraw((m: any[]) => {
   const count = m.length
@@ -115,7 +114,7 @@ onRedraw((m: any[]) => {
   }
 
   lastScrollRegion = null
-  ui.moveCursor()
+  setTimeout(() => ui.moveCursor(), 0)
 })
 
 onExit(() => {
@@ -155,6 +154,11 @@ document.addEventListener('keydown', (e) => {
   const inputSequence = ctrl || shift || meta || alt
     ? `<${userRemaps(getMetaKey(ctrl, shift, meta, alt))}-${key}>`
     : wrapKey(toVimKey(key))
+
+  if (inputSequence === '<D-r>') {
+    pub('reload')
+    return
+  }
 
   console.log(`input: ${inputSequence}`)
   e.preventDefault()
