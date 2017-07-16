@@ -8,9 +8,15 @@ export const onProp = <T>(cb: Function): T => new Proxy({}, { get: (_, name) => 
 
 import { attach, onRedraw, onExit, input } from '../neovim'
 import { remote } from 'electron'
+import CanvasGrid from './canvas-grid'
 const merge = Object.assign
 
-type ScrollRegion = [number, number, number, number]
+interface ScrollRegion {
+  top: number,
+  bottom: number,
+  left: number,
+  right: number
+}
 
 interface Colors {
   fg: string,
@@ -18,54 +24,11 @@ interface Colors {
   sp: string
 }
 
-interface Font {
-  height: number,
-  width: number,
-  lineHeight: number,
-  face: string
-}
+const ui = new CanvasGrid('nvim')
+const { innerHeight: winHeight, innerWidth: winWidth } = window
+const cursorEl = document.getElementById('cursor') as HTMLElement
 
-interface GridPos {
-  col: number,
-  row: number,
-  x: number,
-  y: number
-}
-
-
-const { devicePixelRatio: pxRatio, innerHeight: winHeight, innerWidth: winWidth } = window
-const canvas = document.getElementById('nvim') as HTMLCanvasElement
-const cursorEl = document.getElementById('cursor') as HTMLCanvasElement
-const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
-
-const resizeCanvas = (cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D, height: number, width: number) => {
-  cvs.height = height * 2
-  cvs.width = width * 2
-  cvs.style.height = `${height}px`
-  cvs.style.width = `${width}px`
-  ctx.scale(pxRatio, pxRatio)
-}
-
-const sizeToGrid = (height: number, width: number) => ({
-  row: Math.floor(height / font.height),
-  col: Math.floor(width / font.width)
-})
-
-const extGridToPixels = (obj: { col: number, row: number }) => new Proxy(obj, { get: (t, key) => {
-  if (key === 'x') return t.col * font.width
-  if (key === 'y') return t.row * font.height + font.height
-  else return Reflect.get(t, key)
-}}) as GridPos
-
-const setFontSize = (px: number) => {
-  ui.font = `${px}px ${font.face}`
-  const { width } = ui.measureText('m')
-  const height = Math.ceil(px * font.lineHeight)
-  merge(font, { width, height })
-  merge(cursorEl.style, { width: `${width}px`, height: `${height}px` })
-  // TODO do we need to resize canvas?
-}
-
+// TODO: move cursor to canvasgrid
 const updateCursor = ({ x, y }: GridPos) => merge(cursorEl.style, { top: `${y - font.height}px`, left: `${x}px` })
 
 const api = new Map<string, Function>()
@@ -83,55 +46,105 @@ const colors: Colors = {
   sp: '#f00'
 }
 
-const font: Font = {
-  height: 0,
-  width: 0,
-  lineHeight: 1.5,
-  face: 'Roboto Mono'
-}
+const defaultScrollRegion = (): ScrollRegion => ({
+  top: 0,
+  left: 0,
+  right: ui.cols,
+  bottom: ui.rows
+})
 
 const clearBlock = (col: number, row: number, width: number, height: number) =>
   fillBlock(col, row, width, height, colors.bg)
 
 const fillBlock = (col: number, row: number, width: number, height: number, color: string) => {
-  const { width: fw, height: fh } = font
-  ui.fillStyle = color
-  ui.fillRect(col * fw, row * fh, width * fw, height * fh)
+  ui.setFillStyle(color).fillRect(col, row, width, height)
 }
+
+//const slideVertical = (top: number, height: number, origin: number, left: number, right: number) => {
+  //const { height: fh, width: fw } = font
+  //const slice = ui.getImageData(left * fw, top * fh, (right - left + 1) * fw, height * fh)
+  //ui.putImageData(slice, left * fw, origin * fh)
+//}
+
+//const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
+  //slideVertical(top + amount, bottom - (top + amount) + 1, top, left, right)
+  ////fillBlock(bottom - amount + 1, left, amount, right - left + 1, colors.bg)
+  //fillBlock(left, bottom - amount + 1, right - left + 1, amount, colors.bg)
+//}
+
+//const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
+  //slideVertical(top, bottom - (top + amount) + 1, top + amount, left, right)
+  ////fillBlock(top, left, amount, right - left + 1, colors.bg)
+  //fillBlock(left, top, right - left + 1, amount, colors.bg)
+//}
 
 r.cursor_goto = (row: number, col: number) => merge(cursor, { col, row })
 r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg })
 r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg })
 r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp })
-r.set_scroll_region = (m: any[]) => lastScrollRegion = m[0]
-r.eol_clear = () => clearBlock(cursor.col, cursor.row, grid.col - cursor.col + 1, 1)
-r.clear = () => {
-  ui.fillStyle = colors.bg
-  ui.fillRect(0, 0, winWidth, winHeight)
-}
+r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
+r.eol_clear = () => clearBlock(cursor.col, cursor.row, ui.cols - cursor.col + 1, 1)
+r.clear = () => ui.setFillStyle(colors.bg).clear()
 
 r.put = (m: any[]) => {
   const total = m.length
   if (!total) return
   clearBlock(cursor.col, cursor.row, total, 1)
 
-  ui.fillStyle = colors.fg
-  ui.textBaseline = 'bottom'
+  // TODO: best baseline?
+  ui.setFillStyle(colors.fg).setTextBaseLine('bottom')
 
   for (let ix = 0; ix < total; ix++) {
-    ui.fillText(m[ix][0], cursor.x, cursor.y)
+    ui.fillText(m[ix][0], cursor.col, cursor.row)
     cursor.col++
-    if (cursor.col > grid.col) {
+    if (cursor.col > ui.cols) {
       cursor.col = 0
       cursor.row++
     }
   }
 }
 
-resizeCanvas(canvas, ui, winHeight, winWidth)
-setFontSize(12)
-const cursor = extGridToPixels({ row: 0, col: 0 })
-const grid = extGridToPixels(sizeToGrid(winHeight, winWidth))
+r.scroll = (amount: number) => {
+  const { top: stop, bottom: sbottom, left: sleft, right: sright } = lastScrollRegion || defaultScrollRegion()
+
+  let dstTop = stop
+  let dstBottom = sbottom
+  let srcTop = stop
+  let srcBottom = sbottom
+
+  if (amount > 0) {
+    srcTop += amount
+    dstBottom -= amount
+    var clr_top = dstBottom + 1
+    var clr_bottom = srcBottom
+  } else {
+    srcBottom += amount
+    dstTop -= amount
+    var clr_top = srcTop
+    var clr_bottom = dstTop - 1
+  }
+
+  const slice = ui.getImageData(sleft, srcTop, (sright - sleft) + 1, (srcBottom - srcTop) + 1)
+
+  ui
+    .putImageData(slice, sleft, dstTop)
+    .setFillStyle(colors.bg)
+    .fillRect(sleft, clr_top, (sright - sleft) + 1, (clr_bottom - clr_top) + 1)
+}
+
+//r.scroll = (amount: number) => {
+   //docs dont specify what happens when scroll
+   //is called without 'set_scroll_region' first
+   //so... assume the full viewport?
+  //amount > 0
+    //? moveRegionUp(amount, lastScrollRegion || defaultScrollRegion())
+    //: moveRegionDown(amount, lastScrollRegion || defaultScrollRegion())
+
+  //lastScrollRegion = null
+//}
+
+ui.setFont({ size: 12, face: 'Roboto Mono', lineHeight: 1.5 }).resize(winHeight, winWidth)
+const cursor = { row: 0, col: 0 }
 
 onRedraw((m: any[]) => {
   const count = m.length
@@ -152,7 +165,7 @@ onExit(() => {
   remote.app.quit()
 })
 
-attach(grid.col, grid.row)
+attach(ui.cols, ui.rows)
 
 const getMetaKey = (ctrl: boolean, shift: boolean, meta: boolean, alt: boolean): string => {
   if (ctrl) return 'C'

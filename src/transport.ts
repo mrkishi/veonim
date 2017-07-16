@@ -25,7 +25,7 @@ codec.addExtUnpacker(0, data => new wtf(decode(data)))
 codec.addExtUnpacker(1, data => new wtf(decode(data)))
 codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
-const { stdout, stdin } = spawn('nvim', ['--embed', 'package.json']).on('exit', (c: number) => onExitFn(c))
+const { stdout, stdin } = spawn('nvim', ['--embed', 'build/ui/galaxy.js']).on('exit', (c: number) => onExitFn(c))
 //const { stdout, stdin } = spawn('nvim', ['--embed']).on('exit', (c: number) => {
 
 // TODO: figure out why people are morons
