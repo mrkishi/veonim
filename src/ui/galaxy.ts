@@ -24,6 +24,19 @@ interface Colors {
   sp: string
 }
 
+interface Attrs {
+  foreground?: number,
+  background?: number,
+  fg?: string,
+  bg?: string,
+  special?: string,
+  reverse?: string,
+  italic?: string,
+  bold?: string,
+  underline?: string,
+  undercurl?: string
+}
+
 const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
 
 const api = new Map<string, Function>()
@@ -41,6 +54,7 @@ const colors: Colors = {
 }
 
 let lastScrollRegion: ScrollRegion | null = null
+let nextAttrs: Attrs
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
@@ -59,22 +73,35 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
     .fillRect(left, top, right - left + 1, amount)
 }
 
+const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
+  const mask = 0xff << shift
+  const hex = ((color & mask) >> shift).toString(16)
+  return hex.length < 2 ? ('0' + hex) : hex
+}).join('')
+
 r.cursor_goto = (row: number, col: number) => merge(ui.cursor, { col, row })
-r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg })
-r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg })
-r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp })
+r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg: asColor(fg) })
+r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg: asColor(bg) })
+r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp: asColor(sp) })
 r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
 r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, ui.cols - 1, 1)
 r.clear = () => ui.setColor(colors.bg).clear()
+r.highlight_set = (attrs: Attrs) => {
+  if (!attrs || !Object.keys(attrs).length) return
+  if (attrs.background) attrs.bg = asColor(attrs.background)
+  if (attrs.foreground) attrs.fg = asColor(attrs.foreground)
+  nextAttrs = attrs
+  if (attrs.reverse) merge(nextAttrs, { bg: attrs.fg, fg: attrs.bg })
+}
 
 r.put = (m: any[]) => {
   const total = m.length
   if (!total) return
 
   ui
-    .setColor(colors.bg)
+    .setColor(nextAttrs.bg || colors.bg)
     .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
-    .setColor(colors.fg)
+    .setColor(nextAttrs.fg || colors.fg)
     .setTextBaseline('bottom')
 
   for (let ix = 0; ix < total; ix++) {
@@ -85,6 +112,8 @@ r.put = (m: any[]) => {
       ui.cursor.row++
     }
   }
+
+  nextAttrs = {}
 }
 
 r.scroll = (amount: number) => {
