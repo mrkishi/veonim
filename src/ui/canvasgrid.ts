@@ -68,35 +68,14 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     cols: Math.floor(width / cell.width)
   })
 
-  const rowToPx = (row: number) => {
-    return row * cell.height
-    //return (row * cell.height) + cell.height
-  }
+  const rowToPx = (row: number, scaled = false) => row * cell.height * (scaled ? ratio : 1)
+  const colToPx = (col: number, scaled = false) => col * cell.width * (scaled ? ratio : 1)
 
-  const colToPx = (col: number) => {
-    return col * cell.width
-  }
-
-  const logDebugApi = ({ obj, logFn = true, logProp = true }: { obj: any, logFn?: boolean, logProp?: boolean}) => new Proxy(obj, {
-    get: (tar, key) => {
-      const val = Reflect.get(tar, key)
-      if (typeof val === 'function') return (...args: any[]) => {
-        logFn && console.log(`${key}(${args.map(a => JSON.stringify(a)).join(', ')})`)
-        return val(...args)
-      }
-      logProp && console.log(key)
-      return val
-    }
-  }) as Api
-
-  // const api = {
-  let api = {
+  const api = {
     cursor,
     get cols () { return grid.cols },
     get rows () { return grid.rows }
   } as Api
-
-  api = logDebugApi({ obj: api, logProp: false, logFn: false })
 
   api.resize = (pixelHeight: number, pixelWidth: number) => {
     merge(actualSize, { width: pixelWidth, height: pixelHeight })
@@ -149,17 +128,16 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }  
 
   api.getImageData = (col: number, row: number, width: number, height: number): ImageData => {
-    return ui.getImageData(colToPx(col), rowToPx(row), colToPx(width), rowToPx(height))
+    return ui.getImageData(colToPx(col, true), rowToPx(row, true), colToPx(width, true), rowToPx(height, true))
   }
 
   api.putImageData = (data: ImageData, col: number, row: number) => {
-    ui.putImageData(data, col, row)
+    ui.putImageData(data, colToPx(col, true), rowToPx(row, true))
     return api
   }
 
   api.moveCursor = () => {
     merge(cursorEl.style, { top: `${rowToPx(cursor.row)}px`, left: `${colToPx(cursor.col)}px` })
-    // console.log(`move cursor to row: ${cursor.row} col ${cursor.col}`)
     return api
   }
 

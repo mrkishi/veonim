@@ -44,19 +44,19 @@ let lastScrollRegion: ScrollRegion | null = null
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const slice = ui.getImageData(left, top, right, bottom)
+  const slice = ui.getImageData(left, top + amount, right - left + 1, bottom - (top + amount) + 1)
   ui
-    .putImageData(slice, left, top + amount)
+    .putImageData(slice, left, top)
     .setColor(colors.bg)
-    .fillRect(left, top, right, bottom)
+    .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 }
 
 const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const slice = ui.getImageData(left, top, right, bottom)
+  const slice = ui.getImageData(left, top, right - left + 1, bottom - (top + amount) + 1)
   ui
     .putImageData(slice, left, top + amount)
     .setColor(colors.bg)
-    .fillRect(left, top, right, bottom)
+    .fillRect(left, top, right - left + 1, amount)
 }
 
 r.cursor_goto = (row: number, col: number) => merge(ui.cursor, { col, row })
@@ -93,7 +93,7 @@ r.scroll = (amount: number) => {
   // so... assume the full viewport?
   amount > 0
     ? moveRegionUp(amount, lastScrollRegion || defaultScrollRegion())
-    : moveRegionDown(amount, lastScrollRegion || defaultScrollRegion())
+    : moveRegionDown(-amount, lastScrollRegion || defaultScrollRegion())
 
   lastScrollRegion = null
 }
@@ -160,7 +160,6 @@ document.addEventListener('keydown', (e) => {
     return
   }
 
-  console.log(`input: ${inputSequence}`)
   e.preventDefault()
   input(inputSequence)
 })
