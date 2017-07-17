@@ -4,7 +4,6 @@ mode_change -> change cursor
 support cursor type + colors?
 input ÔÏŒ special chars to work correctly
 can we replace kr-el for semi maps? (since we have key down/up events)
-fix color bugs (esp on insert mode) / visual mode. instead of reseting attrs, reset on next highlight_set call (if no provide, use default_fg/bg
 fix rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
 perf improvements?
 

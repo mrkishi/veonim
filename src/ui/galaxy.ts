@@ -25,10 +25,10 @@ interface Colors {
 }
 
 interface Attrs {
+  fg: string,
+  bg: string,
   foreground?: number,
   background?: number,
-  fg?: string,
-  bg?: string,
   special?: string,
   reverse?: string,
   italic?: string,
@@ -79,41 +79,19 @@ const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
   return hex.length < 2 ? ('0' + hex) : hex
 }).join('')
 
-r.cursor_goto = (row: number, col: number) => merge(ui.cursor, { col, row })
+r.clear = () => ui.setColor(colors.bg).clear()
 r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg: asColor(fg) })
 r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg: asColor(bg) })
 r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp: asColor(sp) })
-r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
+r.cursor_goto = (row: number, col: number) => merge(ui.cursor, { col, row })
 r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, ui.cols - 1, 1)
-r.clear = () => ui.setColor(colors.bg).clear()
-r.highlight_set = (attrs: Attrs) => {
-  if (!attrs || !Object.keys(attrs).length) return
-  if (attrs.background) attrs.bg = asColor(attrs.background)
-  if (attrs.foreground) attrs.fg = asColor(attrs.foreground)
+r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
+
+r.highlight_set = (attrs: Attrs = { fg: '', bg: '' }) => {
+  attrs.fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
+  attrs.bg = attrs.background ? asColor(attrs.background) : colors.bg
   nextAttrs = attrs
   if (attrs.reverse) merge(nextAttrs, { bg: attrs.fg, fg: attrs.bg })
-}
-
-r.put = (m: any[]) => {
-  const total = m.length
-  if (!total) return
-
-  ui
-    .setColor(nextAttrs.bg || colors.bg)
-    .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
-    .setColor(nextAttrs.fg || colors.fg)
-    .setTextBaseline('bottom')
-
-  for (let ix = 0; ix < total; ix++) {
-    ui.fillText(m[ix][0], ui.cursor.col, ui.cursor.row)
-    ui.cursor.col++
-    if (ui.cursor.col > ui.cols) {
-      ui.cursor.col = 0
-      ui.cursor.row++
-    }
-  }
-
-  nextAttrs = {}
 }
 
 r.scroll = (amount: number) => {
@@ -125,6 +103,26 @@ r.scroll = (amount: number) => {
     : moveRegionDown(-amount, lastScrollRegion || defaultScrollRegion())
 
   lastScrollRegion = null
+}
+
+r.put = (m: any[]) => {
+  const total = m.length
+  if (!total) return
+
+  ui
+    .setColor(nextAttrs.bg)
+    .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
+    .setColor(nextAttrs.fg)
+    .setTextBaseline('bottom')
+
+  for (let ix = 0; ix < total; ix++) {
+    ui.fillText(m[ix][0], ui.cursor.col, ui.cursor.row)
+    ui.cursor.col++
+    if (ui.cursor.col > ui.cols) {
+      ui.cursor.col = 0
+      ui.cursor.row++
+    }
+  }
 }
 
 ui
