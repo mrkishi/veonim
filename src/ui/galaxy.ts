@@ -1,5 +1,5 @@
 import { remote } from 'electron'
-import { attach, onRedraw, onExit } from '../neovim'
+import { attach, onRedraw, onExit, expr, g } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
 import * as input from './input'
 const merge = Object.assign
@@ -29,6 +29,7 @@ interface Attrs {
   underline?: string,
   undercurl?: string
 }
+
 
 const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
 
@@ -122,11 +123,6 @@ r.put = (m: any[]) => {
 input.remapModifier('C', 'D')
 input.remapModifier('D', 'C')
 
-ui
-  .setFont({ size: 12, face: 'Roboto Mono', lineHeight: 1.5 })
-  .setCursorShape(CursorShape.block)
-  .resize(window.innerHeight, window.innerWidth)
-
 onRedraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
@@ -143,5 +139,27 @@ onRedraw((m: any[]) => {
 
 onExit(() => remote.app.quit())
 
-input.focus()
-attach(ui.cols, ui.rows)
+const parseGuiCursor = (opts: string) => {
+  console.log(opts)
+  return opts
+}
+
+;(async () => {
+  const [ cursorOpts, face, size, lineHeight ] = await Promise.all([
+    expr(`&guicursor`),
+    g.vn_font,
+    g.vn_font_size,
+    g.vn_line_height
+  ]).catch(e => e)
+
+  const cursor = parseGuiCursor(cursorOpts)
+  console.log(cursor)
+
+  ui
+    .setFont({ face, size, lineHeight })
+    .setCursorShape(CursorShape.block)
+    .resize(window.innerHeight, window.innerWidth)
+
+  input.focus()
+  attach(ui.cols, ui.rows)
+})()
