@@ -1,16 +1,12 @@
-keydown event listener NOT on document, but on vim canvas
-move input to separate file
+mode_change -> change cursor (defined via vim guicursor)
+support cursor colors?
+
 resize window
 fullscreen
-move window
 add window/canvas render padding
-mode_change -> change cursor
-support cursor type + colors?
-fix rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
-perf improvements?
-
-can we replace kr-el for semi maps? (since we have key down/up events)
 
 render offline/background for multi neovim instances
 
-∆˚∆˚∆˚∆ÔÔÔÔ
+can we replace kr-el for semi maps? (since we have key down/up events)
+fix rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
+perf improvements?

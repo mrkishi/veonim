@@ -1,15 +1,7 @@
-// TODO: put somewhere else
-const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 'string'
-  ? console.log(str as string)
-  : console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
-
-export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
-const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
-
-import { attach, onRedraw, onExit, input } from '../neovim'
-import { pub } from './pubsub'
 import { remote } from 'electron'
+import { attach, onRedraw, onExit } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
+import * as input from './input'
 const merge = Object.assign
 
 interface ScrollRegion {
@@ -126,6 +118,10 @@ r.put = (m: any[]) => {
   }
 }
 
+// TODO: make these friendly names?
+input.remapModifier('C', 'D')
+input.remapModifier('D', 'C')
+
 ui
   .setFont({ size: 12, face: 'Roboto Mono', lineHeight: 1.5 })
   .setCursorShape(CursorShape.block)
@@ -145,62 +141,7 @@ onRedraw((m: any[]) => {
   setTimeout(() => ui.moveCursor(), 0)
 })
 
-onExit(() => {
-  console.log('goodbye see ya later')
-  remote.app.quit()
-})
+onExit(() => remote.app.quit())
 
+input.focus()
 attach(ui.cols, ui.rows)
-
-const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey }: KeyboardEvent) => {
-  const mods: string[] = []
-  // macos sends these fancy unicodes instead Ô∆ß on alt/alt+shift
-  const notCmdOrCtrl = !metaKey && !ctrlKey
-  const macOSUnicode = process.platform === 'darwin' 
-    && (altKey && notCmdOrCtrl)
-    || (altKey && shiftKey && notCmdOrCtrl)
-
-  if (macOSUnicode) return mods
-  if (ctrlKey) mods.push('C')
-  if (shiftKey) mods.push('S')
-  if (metaKey) mods.push('D')
-  if (altKey) mods.push('A')
-  return mods
-}
-
-const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
-const bypassEmptyMod = (key: string) => modifiers.includes(key) ? '' : key
-
-const toVimKey = (key: string): string => {
-  if (key === 'Backspace') return 'BS'
-  if (key === '<') return 'LT'
-  if (key === 'Escape') return 'Esc'
-  if (key === 'Delete') return 'Del'
-  if (key === ' ') return 'Space'
-  else return key
-}
-
-const wrapKey = (key: string): string => key.length > 1 ? `<${key}>` : key
-const combineModsWithKey = (mods: string, key: string) => mods.length ? `${mods}-${key}` : key
-const formatInput = $(combineModsWithKey, wrapKey)
-
-const remaps = new Map<string, string>()
-remaps.set('C', 'D')
-remaps.set('D', 'C')
-
-const userModRemaps = (mods: string[]) => mods.map(m => remaps.get(m) || m)
-const joinModsWithDash = (mods: string[]) => mods.join('-')
-
-const mapMods = $(handleMods, userModRemaps, joinModsWithDash)
-const mapKey = $(bypassEmptyMod, toVimKey)
-
-document.addEventListener('keydown', e => {
-  const key = bypassEmptyMod(e.key)
-  if (!key) return
-
-  const inputKeys = formatInput(mapMods(e), mapKey(e.key))
-  if (inputKeys === '<D-r>') return pub('reload')
-
-  e.preventDefault()
-  input(inputKeys)
-})

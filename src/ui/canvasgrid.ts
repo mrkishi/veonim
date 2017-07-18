@@ -1,8 +1,3 @@
-const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 'string'
-  ? console.log(str as string)
-  : console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
-
-export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
 const merge = Object.assign
 
 interface Font {
