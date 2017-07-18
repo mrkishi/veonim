@@ -4,6 +4,7 @@ const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 
   : console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
+const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
 
 import { attach, onRedraw, onExit, input } from '../neovim'
 import { pub } from './pubsub'
@@ -151,13 +152,24 @@ onExit(() => {
 
 attach(ui.cols, ui.rows)
 
-const getMetaKey = (ctrl: boolean, shift: boolean, meta: boolean, alt: boolean): string => {
-  if (ctrl) return 'C'
-  if (shift) return 'S'
-  if (meta) return 'D'
-  if (alt) return 'A'
-  else return ''
+const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey }: KeyboardEvent) => {
+  const mods: string[] = []
+  // macos sends these fancy unicodes instead Ô∆ß on alt/alt+shift
+  const notCmdOrCtrl = !metaKey && !ctrlKey
+  const macOSUnicode = process.platform === 'darwin' 
+    && (altKey && notCmdOrCtrl)
+    || (altKey && shiftKey && notCmdOrCtrl)
+
+  if (macOSUnicode) return mods
+  if (ctrlKey) mods.push('C')
+  if (shiftKey) mods.push('S')
+  if (metaKey) mods.push('D')
+  if (altKey) mods.push('A')
+  return mods
 }
+
+const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
+const bypassEmptyMod = (key: string) => modifiers.includes(key) ? '' : key
 
 const toVimKey = (key: string): string => {
   if (key === 'Backspace') return 'BS'
@@ -169,24 +181,26 @@ const toVimKey = (key: string): string => {
 }
 
 const wrapKey = (key: string): string => key.length > 1 ? `<${key}>` : key
+const combineModsWithKey = (mods: string, key: string) => mods.length ? `${mods}-${key}` : key
+const formatInput = $(combineModsWithKey, wrapKey)
 
 const remaps = new Map<string, string>()
 remaps.set('C', 'D')
 remaps.set('D', 'C')
 
-const userRemaps = (key: string): string => remaps.get(key) || key
+const userModRemaps = (mods: string[]) => mods.map(m => remaps.get(m) || m)
+const joinModsWithDash = (mods: string[]) => mods.join('-')
 
-document.addEventListener('keydown', (e) => {
-  const { key, ctrlKey: ctrl, shiftKey: shift, metaKey: meta, altKey: alt } = e
-  const inputSequence = ctrl || shift || meta || alt
-    ? `<${userRemaps(getMetaKey(ctrl, shift, meta, alt))}-${key}>`
-    : wrapKey(toVimKey(key))
+const mapMods = $(handleMods, userModRemaps, joinModsWithDash)
+const mapKey = $(bypassEmptyMod, toVimKey)
 
-  if (inputSequence === '<D-r>') {
-    pub('reload')
-    return
-  }
+document.addEventListener('keydown', e => {
+  const key = bypassEmptyMod(e.key)
+  if (!key) return
+
+  const inputKeys = formatInput(mapMods(e), mapKey(e.key))
+  if (inputKeys === '<D-r>') return pub('reload')
 
   e.preventDefault()
-  input(inputSequence)
+  input(inputKeys)
 })
