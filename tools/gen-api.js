@@ -9,11 +9,11 @@ const leftPad = (str, amt) => Array(amt).fill(' ').join('') + str
 const write = (m = '', pad = 0) => out.write(leftPad(`${m}\n`, pad))
 const mix = (...a) => Object.assign({}, ...a)
 
-const stupidEncoder = createEncodeStream({ codec })
+const stupidEncoder = createEncodeStream()
 const encoder = stupidEncoder.pipe(stdin)
 const toVim = m => encoder.write(encode(m)) // <-- lol wtf?!
 
-const decoder = createDecodeStream({ codec })
+const decoder = createDecodeStream()
 stdout.pipe(decoder)
 
 const param = p => {
@@ -42,6 +42,8 @@ const toJSTypes = type => ({
   Dictionary: 'object',
 })[type] || wildcard(type)
 
+const asPromise = m => m === 'void' ? m : `Promise<${m}>`
+
 const group = (fns, prefix) => fns
   .filter(m => m.name.startsWith(prefix))
   .map(m => {
@@ -56,7 +58,7 @@ const group = (fns, prefix) => fns
   .map(m => ({
     name: m.name,
     params: m.parameters.map(([ type, name ]) => ({ name, type: toJSTypes(type) })),
-    returns: toJSTypes(m.return_type)
+    returns: asPromise(toJSTypes(m.return_type))
   }))
 
 const asParam = ({ name, type }) => `${name}: ${type}`
