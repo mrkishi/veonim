@@ -18,7 +18,8 @@ interface Grid {
 
 interface Cursor {
   row: number,
-  col: number
+  col: number,
+  color: string
 }
 
 export enum CursorShape {
@@ -29,7 +30,6 @@ export enum CursorShape {
 
 interface Api {
   resize(pixelHeight: number, pixelWidth: number): Api,
-  setCursorColorAlpha(red: number, green: number, blue: number, alpha: number): Api,
   setCursorColor(color: string): Api,
   setCursorShape(type: CursorShape, size?: number): Api,
   moveCursor(): Api,
@@ -55,7 +55,7 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   const font: Font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
   const actualSize: Cell = { width: 0, height: 0 }
   const cell: Cell = { width: 0, height: 0 }
-  const cursor: Cursor = { row: 0, col: 0 }
+  const cursor: Cursor = { row: 0, col: 0, color: '#ddd' }
   const grid: Grid = { rows: 0, cols: 0 }
 
   const sizeToGrid = (height: number, width: number): Grid => ({
@@ -136,19 +136,27 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     return api
   }
 
+  const gradient = (deg: number, color1: string, fade1: number, color2: string, fade2: number) => `linear-gradient(${deg}deg, ${color1} ${fade1}%, ${color2} ${fade2}%)`
+
   api.setCursorShape = (type: CursorShape, size = 20) => {
     if (type === CursorShape.block) merge(cursorEl.style, {
+      'mix-blend-mode': 'overlay',
+      background: cursor.color,
       height: `${rowToPx(1)}px`,
       width: `${colToPx(1)}px`
     })
 
     if (type === CursorShape.line) merge(cursorEl.style, {
+      'mix-blend-mode': 'normal',
+      background: cursor.color,
       height: `${rowToPx(1)}px`,
       width: `${colToPx(+(size / 100).toFixed(2))}px`
     })
 
     if (type === CursorShape.underline) merge(cursorEl.style, {
-      height: `${rowToPx(+(size / 100).toFixed(2))}px`,
+      'mix-blend-mode': 'normal',
+      background: gradient(0, cursor.color, size, 'rgba(0,0,0,0)', 0),
+      height: `${rowToPx(1)}px`,
       width: `${colToPx(1)}px`
     })
 
@@ -156,12 +164,8 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }
 
   api.setCursorColor = (color: string) => {
+    cursor.color = color
     cursorEl.style.background = color
-    return api
-  }
-
-  api.setCursorColorAlpha = (red: number, green: number, blue: number, alpha: number) => {
-    cursorEl.style.background = `rgba(${red}, ${green}, ${blue}, ${alpha})`
     return api
   }
 

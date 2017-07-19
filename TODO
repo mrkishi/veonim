@@ -1,6 +1,8 @@
 cursor shape underline starts from TOP. needs to anchor BOTTOM
 support cursor colors - almost there: issue in getting color for id
 
+use transform: translateZ() + will-change on cursor move (gpu)
+
 fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
 
 preload vim with autocmd and global var
