@@ -1,19 +1,25 @@
+cursor shape underline starts from TOP. needs to anchor BOTTOM
+support cursor colors - almost there: issue in getting color for id
+
 fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
 
 preload vim with autocmd and global var
 
-mode_change -> change cursor (defined via vim guicursor)
-support cursor colors?
 
 resize window
 fullscreen
 add window/canvas render padding
 
-fix error messages display scroll out of bounds
+fix error messages display scroll out of bounds 
   -> modify file -> dont save -> :q
+  not getting cleared because shit is out of grid-bounds
+  i think when we do putimagedata/getimage? we should crop width/height to GRID area and not full canvas
 
 render offline/background for multi neovim instances
 
 can we replace kr-el for semi maps? (since we have key down/up events)
 fix rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
 perf improvements?
+
+
+KARABINER: FIX SHIFT;;;;;;;

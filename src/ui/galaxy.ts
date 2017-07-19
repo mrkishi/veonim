@@ -31,7 +31,7 @@ interface Attrs {
 }
 
 interface Mode {
-  shape?: string,
+  shape: CursorShape,
   size?: number,
   color?: number,
 }
@@ -93,6 +93,13 @@ const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
   return hex.length < 2 ? ('0' + hex) : hex
 }).join('')
 
+const cursorShapeType = (type: string | undefined) => {
+  if (type === 'block') return CursorShape.block
+  if (type === 'horizontal') return CursorShape.underline
+  if (type === 'vertical') return CursorShape.line
+  else return CursorShape.block
+}
+
 r.clear = () => ui.setColor(colors.bg).clear()
 r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg: asColor(fg) })
 r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg: asColor(bg) })
@@ -102,24 +109,25 @@ r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row
 r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
 
 r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
-  const opt = {
-    shape: mi.cursor_shape,
+  const info = {
+    shape: cursorShapeType(mi.cursor_shape),
     size: mi.cell_percentage
   }
 
   if (mi.hl_id) {
     const { bg } = await getColor(mi.hl_id)
-    console.log(`COLOR FOR ${mi.name} -> ${asColor(bg)}`)
-    merge(opt, { color: bg ? asColor(bg) : colors.fg })
+    console.log(`COLOR FOR ${mi.name} (${mi.hl_id}) -> ${asColor(bg)}`)
+    merge(info, { color: bg ? asColor(bg) : colors.fg })
   }
 
-  modes.set(mi.name, opt)
+  modes.set(mi.name, info)
 })
 
 r.mode_change = (mode: string) => {
   console.log('mode', mode)
   const info = modes.get(mode)
   console.log(info)
+  if (info) ui.setCursorShape(info.shape, info.size)
 }
 
 r.highlight_set = (attrs: Attrs = { fg: '', bg: '' }) => {

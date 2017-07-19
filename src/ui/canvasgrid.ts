@@ -31,7 +31,7 @@ interface Api {
   resize(pixelHeight: number, pixelWidth: number): Api,
   setCursorColorAlpha(red: number, green: number, blue: number, alpha: number): Api,
   setCursorColor(color: string): Api,
-  setCursorShape(type: CursorShape): Api,
+  setCursorShape(type: CursorShape, size?: number): Api,
   moveCursor(): Api,
   putImageData(data: ImageData, col: number, row: number): Api,
   getImageData(col: number, row: number, width: number, height: number): ImageData,
@@ -136,10 +136,22 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     return api
   }
 
-  api.setCursorShape = (type: CursorShape) => {
-    if (type === CursorShape.block) merge(cursorEl.style, { height: `${rowToPx(1)}px`, width: `${colToPx(1)}px` })
-    if (type === CursorShape.line) merge(cursorEl.style, { height: `${rowToPx(1)}px`, width: `${colToPx(0.2)}px` })
-    if (type === CursorShape.underline) merge(cursorEl.style, { height: `${rowToPx(0.2)}px`, width: `${colToPx(1)}px` })
+  api.setCursorShape = (type: CursorShape, size = 20) => {
+    if (type === CursorShape.block) merge(cursorEl.style, {
+      height: `${rowToPx(1)}px`,
+      width: `${colToPx(1)}px`
+    })
+
+    if (type === CursorShape.line) merge(cursorEl.style, {
+      height: `${rowToPx(1)}px`,
+      width: `${colToPx(+(size / 100).toFixed(2))}px`
+    })
+
+    if (type === CursorShape.underline) merge(cursorEl.style, {
+      height: `${rowToPx(+(size / 100).toFixed(2))}px`,
+      width: `${colToPx(1)}px`
+    })
+
     return api
   }
 
