@@ -1,5 +1,7 @@
 fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
 
+preload vim with autocmd and global var
+
 mode_change -> change cursor (defined via vim guicursor)
 support cursor colors?
 

@@ -1,5 +1,5 @@
 import { remote } from 'electron'
-import { attach, onRedraw, onExit, g } from '../neovim'
+import { attach, onRedraw, onExit, g, getColor } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
 import * as input from './input'
 const merge = Object.assign
@@ -102,13 +102,18 @@ r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row
 r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
 
 r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
-  // const color = await getColor(modeInfo.hl_id).bg
-  modes.set(mi.name, {
-    color: mi.hl_id,
-    // color,
+  const opt = {
     shape: mi.cursor_shape,
-    size: mi.cell_percentage,
-  })
+    size: mi.cell_percentage
+  }
+
+  if (mi.hl_id) {
+    const { bg } = await getColor(mi.hl_id)
+    console.log(`COLOR FOR ${mi.name} -> ${asColor(bg)}`)
+    merge(opt, { color: bg ? asColor(bg) : colors.fg })
+  }
+
+  modes.set(mi.name, opt)
 })
 
 r.mode_change = (mode: string) => {
