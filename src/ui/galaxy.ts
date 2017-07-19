@@ -1,6 +1,7 @@
 import { remote } from 'electron'
 import { attach, onRedraw, onExit, expr, g } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
+import * as cursorArg from './cursorarg'
 import * as input from './input'
 const merge = Object.assign
 
@@ -139,10 +140,7 @@ onRedraw((m: any[]) => {
 
 onExit(() => remote.app.quit())
 
-const parseGuiCursor = (opts: string) => {
-  console.log(opts)
-  return opts
-}
+const config = {}
 
 ;(async () => {
   const [ cursorOpts, face, size, lineHeight ] = await Promise.all([
@@ -152,8 +150,8 @@ const parseGuiCursor = (opts: string) => {
     g.vn_line_height
   ]).catch(e => e)
 
-  const cursor = parseGuiCursor(cursorOpts)
-  console.log(cursor)
+  // TODO: get hex color value for highlight group specified in cursor args
+  merge(config, { face, size, lineHeight, cursor: cursorArg.parse(cursorOpts) })
 
   ui
     .setFont({ face, size, lineHeight })

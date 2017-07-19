@@ -8,6 +8,7 @@ let reqId = 0
 let onRedrawFn = (m: any[]) => m
 let onExitFn = (code: number) => code
 
+// TODO: actually implement this lol
 const wtf = class WHATTHEFUCK {
   public val: any
   constructor (data: any) {
