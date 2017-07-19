@@ -55,7 +55,7 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   const font: Font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
   const actualSize: Cell = { width: 0, height: 0 }
   const cell: Cell = { width: 0, height: 0 }
-  const cursor: Cursor = { row: 0, col: 0, color: '#ddd' }
+  const cursor: Cursor = { row: 0, col: 0, color: '#fff' }
   const grid: Grid = { rows: 0, cols: 0 }
 
   const sizeToGrid = (height: number, width: number): Grid => ({

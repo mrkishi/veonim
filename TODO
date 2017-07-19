@@ -2,6 +2,10 @@ cursor shape underline starts from TOP. needs to anchor BOTTOM
 support cursor colors - almost there: issue in getting color for id
 
 use transform: translateZ() + will-change on cursor move (gpu)
+consider using canvas cursor to do better blend with vim canvas (what about cursor for inputs?)
+
+https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+https://github.com/Phrogz/context-blender
 
 fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
 

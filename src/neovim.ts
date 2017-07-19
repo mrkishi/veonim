@@ -34,8 +34,8 @@ export const action = (event: string, fn: Function) => watchers.add(event, fn)
 export const call: Functions = onFnCall((name: string, args: any[] = []) => req.callFunction(name, args))
 export const getColor = async (id: number) => {
   const [ fg = 0, bg = 0 ] = await Promise.all([
-    call.synIDattr(id, 'fg'),
-    call.synIDattr(id, 'bg')
+    call.synIDattr(id, 'fg#'),
+    call.synIDattr(id, 'bg#')
   ]).catch(e => e)
 
   return { fg, bg }

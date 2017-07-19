@@ -116,7 +116,7 @@ r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
 
   if (mi.hl_id) {
     const { bg } = await getColor(mi.hl_id)
-    console.log(`COLOR FOR ${mi.name} (${mi.hl_id}) -> ${asColor(bg)}`)
+    console.log(`COLOR FOR ${mi.name} (${mi.hl_id}) [${bg}] -> ${asColor(bg)}`)
     merge(info, { color: bg ? asColor(bg) : colors.fg })
   }
 
