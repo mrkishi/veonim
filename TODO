@@ -1,9 +1,14 @@
+fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
+
 mode_change -> change cursor (defined via vim guicursor)
 support cursor colors?
 
 resize window
 fullscreen
 add window/canvas render padding
+
+fix error messages display scroll out of bounds
+  -> modify file -> dont save -> :q
 
 render offline/background for multi neovim instances
 

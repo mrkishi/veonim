@@ -1,7 +1,6 @@
 import { remote } from 'electron'
-import { attach, onRedraw, onExit, expr, g } from '../neovim'
+import { attach, onRedraw, onExit, g } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
-import * as cursorArg from './cursorarg'
 import * as input from './input'
 const merge = Object.assign
 
@@ -31,6 +30,24 @@ interface Attrs {
   undercurl?: string
 }
 
+interface Mode {
+  shape?: string,
+  size?: number,
+  color?: number,
+}
+
+interface ModeInfo {
+  blinkoff?: number,
+  blinkon?: number,
+  blinkwait?: number,
+  cell_percentage?: number,
+  cursor_shape?: string,
+  hl_id?: number,
+  id_lm?: number,
+  mouse_shape?: number,
+  name: string,
+  short_name: string
+}
 
 const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
 
@@ -47,6 +64,8 @@ const colors: Colors = {
   bg: '#222',
   sp: '#f00'
 }
+
+const modes = new Map<string, Mode>()
 
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
@@ -81,6 +100,22 @@ r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp: asColor(sp) })
 r.cursor_goto = (row: number, col: number) => merge(ui.cursor, { col, row })
 r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, ui.cols - 1, 1)
 r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
+
+r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
+  // const color = await getColor(modeInfo.hl_id).bg
+  modes.set(mi.name, {
+    color: mi.hl_id,
+    // color,
+    shape: mi.cursor_shape,
+    size: mi.cell_percentage,
+  })
+})
+
+r.mode_change = (mode: string) => {
+  console.log('mode', mode)
+  const info = modes.get(mode)
+  console.log(info)
+}
 
 r.highlight_set = (attrs: Attrs = { fg: '', bg: '' }) => {
   attrs.fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
@@ -140,18 +175,12 @@ onRedraw((m: any[]) => {
 
 onExit(() => remote.app.quit())
 
-const config = {}
-
 ;(async () => {
-  const [ cursorOpts, face, size, lineHeight ] = await Promise.all([
-    expr(`&guicursor`),
+  const [ face, size, lineHeight ] = await Promise.all([
     g.vn_font,
     g.vn_font_size,
     g.vn_line_height
   ]).catch(e => e)
-
-  // TODO: get hex color value for highlight group specified in cursor args
-  merge(config, { face, size, lineHeight, cursor: cursorArg.parse(cursorOpts) })
 
   ui
     .setFont({ face, size, lineHeight })
