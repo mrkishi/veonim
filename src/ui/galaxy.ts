@@ -204,8 +204,7 @@ window.addEventListener('resize', debounce(() => {
   ]).catch(e => e)
 
   ui
-    .setDefaultColor(colors.bg)
-    .setMargins({ left: 25, right: 25, top: 25, bottom: 25 })
+    .setMargins({ left: 6, right: 6, top: 2, bottom: 2 })
     .setFont({ face, size, lineHeight })
     .setCursorShape(CursorShape.block)
     .resize(window.innerHeight, window.innerWidth)

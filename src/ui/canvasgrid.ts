@@ -9,14 +9,12 @@ interface Font { face: string, size: number, lineHeight: number }
 interface Cell { width: number, height: number }
 interface Grid { rows: number, cols: number }
 interface Cursor { row: number, col: number, color: string }
-interface Colors { bg: string }
 interface Margins { top: number, bottom: number, left: number, right: number }
 type MarginParams = { left?: number, right?: number, top?: number, bottom?: number }
 export enum CursorShape { block, line, underline }
 
 interface Api {
   setMargins(margins: MarginParams): Api,
-  setDefaultColor(color: string): Api,
   resize(pixelHeight: number, pixelWidth: number): Api,
   setCursorColor(color: string): Api,
   setCursorShape(type: CursorShape, size?: number): Api,
@@ -45,7 +43,6 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   const cell: Cell = { width: 0, height: 0 }
   const cursor: Cursor = { row: 0, col: 0, color: '#fff' }
   const grid: Grid = { rows: 0, cols: 0 }
-  const colors: Colors = { bg: '#222' }
   const margins: Margins = { top: 6, bottom: 6, left: 6, right: 6 }
 
   const sizeToGrid = (height: number, width: number): Grid => ({
@@ -57,30 +54,12 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   const px = {
     row: {
       height: (row: number, scaled = false) => row * cell.height * (scaled ? ratio : 1),
-      y: (rows: number, scaled = false) => px.row.height(rows, scaled) + margins.top
+      y: (rows: number, scaled = false) => px.row.height(rows, scaled) + (margins.top * (scaled ? ratio : 1))
     },
     col: {
       width: (col: number, scaled = false) => col * cell.width * (scaled ? ratio : 1),
-      x: (cols: number, scaled = false) => px.col.width(cols, scaled) + margins.left
+      x: (cols: number, scaled = false) => px.col.width(cols, scaled) + (margins.left * (scaled ? ratio : 1))
     }
-  }
-
-  const clearMargins = () => {
-    // const gridHeight = px.row.height(grid.rows)
-    // const gridWidth = px.col.width(grid.cols)
-    // const bottomGap = actualSize.height - (margins.top + gridHeight)
-    // const rightGap = actualSize.width - (margins.left + gridWidth)
-
-    // ui.fillStyle = colors.bg
-    // ui.fillStyle = '#d0ff00'
-    // top
-    // ui.fillRect(0, 0, actualSize.width, margins.top)
-    // left
-    // ui.fillRect(0, 0, margins.left, actualSize.height)
-    // bottom
-    // ui.fillRect(0, actualSize.height - bottomGap, actualSize.width, bottomGap)
-    // right
-    // ui.fillRect(actualSize.width - rightGap, 0, rightGap, actualSize.height)
   }
 
   const api = {
@@ -88,8 +67,6 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     get cols () { return grid.cols },
     get rows () { return grid.rows }
   } as Api
-
-  api.setDefaultColor = (color: string) => (colors.bg = color, api)
 
   api.setMargins = ({ left, right, top, bottom }: MarginParams) => {
     mergeValid(margins, { left, right, top, bottom })
@@ -151,9 +128,8 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }
 
   api.putImageData = (data: ImageData, col: number, row: number, width: number, height: number) => {
-    ui.putImageData(data, px.col.x(col, true), px.row.y(row, true), 0, 0, px.col.width(width, true), px.row.height(height, true))
-    // ui.putImageData(data, px.col.x(col, true), px.row.y(row, true))
-    clearMargins()
+    const safeHeight = row + height >= grid.rows ? grid.rows - row : height
+    ui.putImageData(data, px.col.x(col, true), px.row.y(row, true), 0, 0, px.col.width(width, true), px.row.height(safeHeight, true))
     return api
   }
 

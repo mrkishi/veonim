@@ -1,10 +1,5 @@
 TS sourcemaps pls?
 
-fix error messages display scroll out of bounds 
-  -> modify file -> dont save -> :q
-  not getting cleared because shit is out of grid-bounds
-  i think when we do putimagedata/getimage? we should crop width/height to GRID area and not full canvas
-
 use transform: translateZ() + will-change on cursor move (gpu)
 
 setup electron build/package and publish to npm - have release + dev builds at the same time on machine
@@ -27,4 +22,4 @@ actually - could get char from canvas at x/y (under cursor) and then render it i
 
 -- tried, failed, gave up
 preload vim with autocmd and global var - setting --cmd but not taking effect. try simple example to start nvim from node script and see if it works.
-support cursor colors - almost there: issue in getting color for id
+support cursor colors - almost there: issue in getting color for id (synIDattr does not return val even in nvim)
