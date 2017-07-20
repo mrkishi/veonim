@@ -125,9 +125,7 @@ r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
 })
 
 r.mode_change = (mode: string) => {
-  console.log('mode', mode)
   const info = modes.get(mode)
-  console.log(info)
   if (info) ui.setCursorShape(info.shape, info.size)
 }
 

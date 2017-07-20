@@ -3,40 +3,23 @@
   <head>
     <title>veonim</title>
     <style>
-body {
-  margin: 0;
-  padding: 0;
-  background: #222;
-  color: #ddd;
-  font-size: 12px;
-  font-family: 'Roboto Mono';
-}
+      body {
+        margin: 0;
+        padding: 0;
+        background: #222;
+        color: #ddd;
+        font-size: 12px;
+        font-family: 'Roboto Mono';
+      }
 
-#galaxy {
-  position: absolute;
-  left: 260px;
-  top: 20px;
-}
-
-#cursor {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.6);
-  width: 3px;
-  height: 10px;
-  top: 0;
-  left: 0;
-}
+      #cursor {
+        position: absolute;
+      }
     </style>
   </head>
   <body>
     <div id="cursor"></div>
     <canvas id="nvim"></canvas>
-    <script type="text/javascript">
-      'use strict'
-      document.body.addEventListener('keydown', e => {
-        if (e.key === 'F' && e.shiftKey && e.metaKey) console.log('FULLSCREEN')
-      })
-      require('./ui/galaxy')
-    </script>
+    <script type="text/javascript">require('./ui/galaxy')</script>
   </body>
 </html>

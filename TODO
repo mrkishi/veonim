@@ -1,4 +1,3 @@
-fullscreen
 
 fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
   and in cmdline """"""""""
@@ -11,16 +10,22 @@ fix error messages display scroll out of bounds
 
 use transform: translateZ() + will-change on cursor move (gpu)
 
+setup electron build/package and publish to npm - have release + dev builds at the same time on machine
+hot reload/plain ole' reload on change/
+
 render offline/background for multi neovim instances
+
 
 -- maybe
 KARABINER: FIX SHIFT;;;;;;;
 can we replace kr-el for semi maps? (since we have key down/up events)
 fix rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
 perf improvements?
+
 consider using canvas cursor to do better blend with vim canvas (what about cursor for inputs?)
 https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
 https://github.com/Phrogz/context-blender
+actually - could get char from canvas at x/y (under cursor) and then render it in the cursor el but inverted (if block cursor)
 
 
 -- tried, failed, gave up

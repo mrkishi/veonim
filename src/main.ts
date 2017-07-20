@@ -14,6 +14,7 @@ app.on('ready', () => {
 
   register(win)
   sub('reload', () => win.webContents.reload())
+  sub('fullscreen', () => win.setFullScreen(!win.isFullScreen()))
   win.loadURL(`file:///${__dirname}/index.html`)
   DEVMODE && win.webContents.openDevTools()
 })

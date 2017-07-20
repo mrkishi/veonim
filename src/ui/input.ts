@@ -1,5 +1,5 @@
 import { input } from '../neovim'
-// import { pub } from './pubsub'
+import { pub } from './pubsub'
 
 const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
 
@@ -51,6 +51,7 @@ window.addEventListener('keydown', e => {
   if (!key) return
 
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
+  if (inputKeys === '<S-C-F>') return pub('fullscreen')
 
   e.preventDefault()
   input(inputKeys)
