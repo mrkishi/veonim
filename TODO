@@ -1,4 +1,5 @@
-add window/canvas render padding
+TS sourcemaps pls?
+
 fix error messages display scroll out of bounds 
   -> modify file -> dont save -> :q
   not getting cleared because shit is out of grid-bounds

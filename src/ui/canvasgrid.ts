@@ -1,34 +1,22 @@
 const merge = Object.assign
+const mergeValid = (target: any, source: any) => Object.keys(source).reduce((tar, key) => {
+  const val = Reflect.get(source, key)
+  if (val !== null && val !== undefined && val !== '') Reflect.set(tar, key, val)
+  return tar
+}, target)
 
-interface Font {
-  face: string,
-  size: number,
-  lineHeight: number
-}
-
-interface Cell {
-  width: number,
-  height: number
-}
-
-interface Grid {
-  rows: number,
-  cols: number
-}
-
-interface Cursor {
-  row: number,
-  col: number,
-  color: string
-}
-
-export enum CursorShape {
-  block,
-  line,
-  underline,
-}
+interface Font { face: string, size: number, lineHeight: number }
+interface Cell { width: number, height: number }
+interface Grid { rows: number, cols: number }
+interface Cursor { row: number, col: number, color: string }
+interface Colors { bg: string }
+interface Margins { top: number, bottom: number, left: number, right: number }
+type MarginParams = { left?: number, right?: number, top?: number, bottom?: number }
+export enum CursorShape { block, line, underline }
 
 interface Api {
+  setMargins(margins: MarginParams): Api,
+  setDefaultColor(color: string): Api,
   resize(pixelHeight: number, pixelWidth: number): Api,
   setCursorColor(color: string): Api,
   setCursorShape(type: CursorShape, size?: number): Api,
@@ -57,20 +45,39 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   const cell: Cell = { width: 0, height: 0 }
   const cursor: Cursor = { row: 0, col: 0, color: '#fff' }
   const grid: Grid = { rows: 0, cols: 0 }
+  const colors: Colors = { bg: '#222' }
+  const margins: Margins = { top: 6, bottom: 6, left: 6, right: 6 }
 
   const sizeToGrid = (height: number, width: number): Grid => ({
-    rows: Math.floor(height / cell.height),
-    cols: Math.floor(width / cell.width)
+    rows: Math.floor((height - (margins.top + margins.bottom)) / cell.height),
+    cols: Math.floor((width - (margins.left + margins.right)) / cell.width)
   })
 
-  const rowToPx = (row: number, scaled = false) => row * cell.height * (scaled ? ratio : 1)
-  const colToPx = (col: number, scaled = false) => col * cell.width * (scaled ? ratio : 1)
+  // TODO: memoize
+  const px = {
+    row: {
+      height: (row: number, scaled = false) => row * cell.height * (scaled ? ratio : 1),
+      y: (rows: number, scaled = false) => px.row.height(rows, scaled) + margins.top
+    },
+    col: {
+      width: (col: number, scaled = false) => col * cell.width * (scaled ? ratio : 1),
+      x: (cols: number, scaled = false) => px.col.width(cols, scaled) + margins.left
+    }
+  }
+
 
   const api = {
     cursor,
     get cols () { return grid.cols },
     get rows () { return grid.rows }
   } as Api
+
+  api.setDefaultColor = (color: string) => (colors.bg = color, api)
+
+  api.setMargins = ({ left, right, top, bottom }: MarginParams) => {
+    mergeValid(margins, { left, right, top, bottom })
+    return api
+  }
 
   api.resize = (pixelHeight: number, pixelWidth: number) => {
     merge(actualSize, { width: pixelWidth, height: pixelHeight })
@@ -113,26 +120,27 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }
 
   api.fillRect = (col: number, row: number, width: number, height: number) => {
-    ui.fillRect(colToPx(col), rowToPx(row), colToPx(width), rowToPx(height))
+    ui.fillRect(px.col.x(col), px.row.y(row), px.col.width(width), px.row.height(height))
     return api
   }
 
   api.fillText = (text: string, col: number, row: number) => {
-    ui.fillText(text, colToPx(col), rowToPx(row) + rowToPx(1))
+    ui.fillText(text, px.col.x(col), px.row.y(row) + px.row.height(1))
     return api
   }  
 
   api.getImageData = (col: number, row: number, width: number, height: number): ImageData => {
-    return ui.getImageData(colToPx(col, true), rowToPx(row, true), colToPx(width, true), rowToPx(height, true))
+    return ui.getImageData(px.col.x(col, true), px.row.y(row, true), px.col.width(width, true), px.row.height(height, true))
   }
 
   api.putImageData = (data: ImageData, col: number, row: number) => {
-    ui.putImageData(data, colToPx(col, true), rowToPx(row, true))
+    ui.putImageData(data, px.col.x(col, true), px.row.y(row, true))
     return api
   }
 
   api.moveCursor = () => {
-    merge(cursorEl.style, { top: `${rowToPx(cursor.row)}px`, left: `${colToPx(cursor.col)}px` })
+    // TODO: use transform: translateZ and will-change props for hw accel (gpu)
+    merge(cursorEl.style, { top: `${px.row.y(cursor.row)}px`, left: `${px.col.x(cursor.col)}px` })
     return api
   }
 
@@ -142,22 +150,22 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     if (type === CursorShape.block) merge(cursorEl.style, {
       'mix-blend-mode': 'overlay',
       background: cursor.color,
-      height: `${rowToPx(1)}px`,
-      width: `${colToPx(1)}px`
+      height: `${px.row.height(1)}px`,
+      width: `${px.col.width(1)}px`
     })
 
     if (type === CursorShape.line) merge(cursorEl.style, {
       'mix-blend-mode': 'normal',
       background: cursor.color,
-      height: `${rowToPx(1)}px`,
-      width: `${colToPx(+(size / 100).toFixed(2))}px`
+      height: `${px.row.height(1)}px`,
+      width: `${px.col.width(+(size / 100).toFixed(2))}px`
     })
 
     if (type === CursorShape.underline) merge(cursorEl.style, {
       'mix-blend-mode': 'normal',
       background: gradient(0, cursor.color, size, 'rgba(0,0,0,0)', 0),
-      height: `${rowToPx(1)}px`,
-      width: `${colToPx(1)}px`
+      height: `${px.row.height(1)}px`,
+      width: `${px.col.width(1)}px`
     })
 
     return api

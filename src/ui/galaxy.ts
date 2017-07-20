@@ -200,6 +200,7 @@ window.addEventListener('resize', debounce(() => {
   ]).catch(e => e)
 
   ui
+    .setMargins({ left: 5, right: 5, top: 5, bottom: 5 })
     .setFont({ face, size, lineHeight })
     .setCursorShape(CursorShape.block)
     .resize(window.innerHeight, window.innerWidth)
