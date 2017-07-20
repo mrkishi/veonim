@@ -30,6 +30,8 @@ interface Types {
   set: TypeChecker
 }
 
+export const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
+
 export const type = (m: any) => {
   const [ , type ] = Object.prototype.toString.call(m).match(/^\[object (\w+)\]/g)
   return (type || 'undefined').toLowerCase()
@@ -47,6 +49,21 @@ export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string) => (
   const theFunctionToCall: Function = Reflect.get(o, name)
   theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
 }))
+
+export const mergeValid = (target: any, source: any) => Object.keys(source).reduce((tar, key) => {
+  const val = Reflect.get(source, key)
+  if (val !== null && val !== undefined && val !== '') Reflect.set(tar, key, val)
+  return tar
+}, target)
+
+export function debounce (fn: Function, wait = 1) {
+  let timeout: NodeJS.Timer
+  return function(this: any, ...args: any[]) {
+    const ctx = this
+    clearTimeout(timeout)
+    timeout = setTimeout(() => fn.apply(ctx, args), wait)
+  }
+}
 
 export class Watchers extends Map<string, Set<Function>> {
   constructor() {

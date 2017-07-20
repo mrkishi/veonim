@@ -1,5 +1,5 @@
 import { gradient, translate } from './css'
-import { merge, mergeValid } from './utils'
+import { merge, mergeValid } from '../utils'
 
 interface Font { face: string, size: number, lineHeight: number }
 interface Cell { width: number, height: number }

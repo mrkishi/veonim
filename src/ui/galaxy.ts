@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import { attach, onRedraw, onExit, g, getColor, resize } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
 import * as input from './input'
-import { merge, debounce } from './utils'
+import { merge, debounce } from '../utils'
 
 interface ScrollRegion { top: number, bottom: number, left: number, right: number }
 interface Colors { fg: string, bg: string, sp: string }

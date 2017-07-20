@@ -1,6 +1,6 @@
 import { input } from '../neovim'
 import { pub } from './pubsub'
-import { $ } from './utils'
+import { $ } from '../utils'
 
 let isCapturing = false
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
