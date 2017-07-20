@@ -1,7 +1,3 @@
-
-fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
-  and in cmdline """"""""""
-
 add window/canvas render padding
 fix error messages display scroll out of bounds 
   -> modify file -> dont save -> :q

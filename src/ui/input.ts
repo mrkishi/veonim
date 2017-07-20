@@ -7,14 +7,17 @@ let isCapturing = false
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
 
-const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey }: KeyboardEvent) => {
+const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
+const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
   const mods: string[] = []
   // macos sends these fancy unicodes instead Ô∆ß on alt/alt+shift
+  const onlyShift = shiftKey && !ctrlKey && !metaKey && !altKey
   const notCmdOrCtrl = !metaKey && !ctrlKey
   const macOSUnicode = process.platform === 'darwin' 
     && (altKey && notCmdOrCtrl)
     || (altKey && shiftKey && notCmdOrCtrl)
 
+  if (onlyShift && isStandardAscii(key)) return mods
   if (macOSUnicode) return mods
   if (ctrlKey) mods.push('C')
   if (shiftKey) mods.push('S')
