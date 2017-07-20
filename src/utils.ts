@@ -37,8 +37,8 @@ export const type = (m: any) => {
 
 export const is = new Proxy<Types>({} as Types, { get: (_, key) => (val: any) => type(val) === key })
 
-export const onProp = <T>(cb: Function): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
-export const onFnCall = <T>(cb: Function): T => new Proxy({}, { get: (_, name) => (...args: any[]) => cb(name, args) }) as T
+export const onProp = <T>(cb: (name: PropertyKey) => void): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
+export const onFnCall = <T>(cb: (name: PropertyKey, args: any[]) => void): T => new Proxy({}, { get: (_, name) => (...args: any[]) => cb(name, args) }) as T
 
 export const pascalCase = (m: string) => m[0].toUpperCase() + m.slice(1)
 export const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
