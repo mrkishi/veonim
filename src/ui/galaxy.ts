@@ -73,17 +73,21 @@ let nextAttrs: Attrs
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const slice = ui.getImageData(left, top + amount, right - left + 1, bottom - (top + amount) + 1)
+  const width = right - left + 1
+  const height = bottom - (top + amount) + 1
+  const slice = ui.getImageData(left, top + amount, width, height)
   ui
-    .putImageData(slice, left, top)
+    .putImageData(slice, left, top, width, height)
     .setColor(colors.bg)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 }
 
 const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const slice = ui.getImageData(left, top, right - left + 1, bottom - (top + amount) + 1)
+  const width = right - left + 1
+  const height = bottom - (top + amount) + 1
+  const slice = ui.getImageData(left, top, width, height)
   ui
-    .putImageData(slice, left, top + amount)
+    .putImageData(slice, left, top + amount, width, height)
     .setColor(colors.bg)
     .fillRect(left, top, right - left + 1, amount)
 }
@@ -200,7 +204,8 @@ window.addEventListener('resize', debounce(() => {
   ]).catch(e => e)
 
   ui
-    .setMargins({ left: 5, right: 5, top: 5, bottom: 5 })
+    .setDefaultColor(colors.bg)
+    .setMargins({ left: 25, right: 25, top: 25, bottom: 25 })
     .setFont({ face, size, lineHeight })
     .setCursorShape(CursorShape.block)
     .resize(window.innerHeight, window.innerWidth)

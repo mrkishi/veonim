@@ -21,7 +21,7 @@ interface Api {
   setCursorColor(color: string): Api,
   setCursorShape(type: CursorShape, size?: number): Api,
   moveCursor(): Api,
-  putImageData(data: ImageData, col: number, row: number): Api,
+  putImageData(data: ImageData, col: number, row: number, width: number, height: number): Api,
   getImageData(col: number, row: number, width: number, height: number): ImageData,
   fillText(text: string, col: number, row: number): Api,
   fillRect(col: number, row: number, width: number, height: number): Api,
@@ -65,6 +65,23 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     }
   }
 
+  const clearMargins = () => {
+    // const gridHeight = px.row.height(grid.rows)
+    // const gridWidth = px.col.width(grid.cols)
+    // const bottomGap = actualSize.height - (margins.top + gridHeight)
+    // const rightGap = actualSize.width - (margins.left + gridWidth)
+
+    // ui.fillStyle = colors.bg
+    // ui.fillStyle = '#d0ff00'
+    // top
+    // ui.fillRect(0, 0, actualSize.width, margins.top)
+    // left
+    // ui.fillRect(0, 0, margins.left, actualSize.height)
+    // bottom
+    // ui.fillRect(0, actualSize.height - bottomGap, actualSize.width, bottomGap)
+    // right
+    // ui.fillRect(actualSize.width - rightGap, 0, rightGap, actualSize.height)
+  }
 
   const api = {
     cursor,
@@ -133,8 +150,10 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     return ui.getImageData(px.col.x(col, true), px.row.y(row, true), px.col.width(width, true), px.row.height(height, true))
   }
 
-  api.putImageData = (data: ImageData, col: number, row: number) => {
-    ui.putImageData(data, px.col.x(col, true), px.row.y(row, true))
+  api.putImageData = (data: ImageData, col: number, row: number, width: number, height: number) => {
+    ui.putImageData(data, px.col.x(col, true), px.row.y(row, true), 0, 0, px.col.width(width, true), px.row.height(height, true))
+    // ui.putImageData(data, px.col.x(col, true), px.row.y(row, true))
+    clearMargins()
     return api
   }
 
