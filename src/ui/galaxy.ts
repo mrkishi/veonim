@@ -1,7 +1,8 @@
 import { remote } from 'electron'
-import { attach, onRedraw, onExit, g, getColor } from '../neovim'
+import { attach, onRedraw, onExit, g, getColor, resize } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
 import * as input from './input'
+import { debounce } from './utils'
 const merge = Object.assign
 
 interface ScrollRegion {
@@ -187,6 +188,11 @@ onRedraw((m: any[]) => {
 })
 
 onExit(() => remote.app.quit())
+
+window.addEventListener('resize', debounce(() => {
+  ui.resize(window.innerHeight, window.innerWidth)
+  resize(ui.cols, ui.rows)
+}, 500))
 
 ;(async () => {
   const [ face, size, lineHeight ] = await Promise.all([

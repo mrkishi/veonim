@@ -1,31 +1,28 @@
-cursor shape underline starts from TOP. needs to anchor BOTTOM
-support cursor colors - almost there: issue in getting color for id
-
-use transform: translateZ() + will-change on cursor move (gpu)
-consider using canvas cursor to do better blend with vim canvas (what about cursor for inputs?)
-
-https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
-https://github.com/Phrogz/context-blender
+fullscreen
 
 fix shfit+1234... in easymotion search prompt (because we are sending <S-char>? should just send char alone?)
+  and in cmdline """"""""""
 
-preload vim with autocmd and global var
-
-
-resize window
-fullscreen
 add window/canvas render padding
-
 fix error messages display scroll out of bounds 
   -> modify file -> dont save -> :q
   not getting cleared because shit is out of grid-bounds
   i think when we do putimagedata/getimage? we should crop width/height to GRID area and not full canvas
 
+use transform: translateZ() + will-change on cursor move (gpu)
+
 render offline/background for multi neovim instances
 
+-- maybe
+KARABINER: FIX SHIFT;;;;;;;
 can we replace kr-el for semi maps? (since we have key down/up events)
 fix rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
 perf improvements?
+consider using canvas cursor to do better blend with vim canvas (what about cursor for inputs?)
+https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+https://github.com/Phrogz/context-blender
 
 
-KARABINER: FIX SHIFT;;;;;;;
+-- tried, failed, gave up
+preload vim with autocmd and global var - setting --cmd but not taking effect. try simple example to start nvim from node script and see if it works.
+support cursor colors - almost there: issue in getting color for id
