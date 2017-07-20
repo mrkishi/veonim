@@ -145,6 +145,7 @@ r.put = (m: any[]) => {
 }
 
 // TODO: make these friendly names?
+// TODO: read from vim config
 input.remapModifier('C', 'D')
 input.remapModifier('D', 'C')
 

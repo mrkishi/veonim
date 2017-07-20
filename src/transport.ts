@@ -28,7 +28,7 @@ codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
 const { stdout, stdin } = spawn('nvim', [
   '--cmd',
-  `"let g:veonim-1"`,
+  `"let g:veonim=1"`,
   '--cmd',
   `"command! -nargs=1 Veonim call rpcnotify(0, 'veonim', <f-args>)"`,
   '--embed',

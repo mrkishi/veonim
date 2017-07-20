@@ -1,11 +1,10 @@
-TS sourcemaps pls?
-
-use transform: translateZ() + will-change on cursor move (gpu)
-
-setup electron build/package and publish to npm - have release + dev builds at the same time on machine
-hot reload/plain ole' reload on change/
-
 render offline/background for multi neovim instances
+
+-- later
+setup electron build/package and publish to npm - have release + dev builds at the same time on machine
+  just copy local to another folder and create alias to it - create wrapper to override env_vars
+hot reload/plain ole' reload on change/
+  run tsc on watch. manually reload
 
 chokidar file reload
 
