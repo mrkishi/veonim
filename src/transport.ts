@@ -26,8 +26,13 @@ codec.addExtUnpacker(0, data => new wtf(decode(data)))
 codec.addExtUnpacker(1, data => new wtf(decode(data)))
 codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
-const { stdout, stdin } = spawn('nvim', ['--embed', 'build/ui/galaxy.js']).on('exit', (c: number) => onExitFn(c))
-//const { stdout, stdin } = spawn('nvim', ['--embed']).on('exit', (c: number) => {
+const { stdout, stdin } = spawn('nvim', [
+  '--cmd',
+  `"let g:veonim-1"`,
+  '--cmd',
+  `"command! -nargs=1 Veonim call rpcnotify(0, 'veonim', <f-args>)"`,
+  '--embed',
+]).on('exit', (c: number) => onExitFn(c))
 
 // TODO: figure out why people are morons
 const stupidEncoder = createEncodeStream({ codec })
