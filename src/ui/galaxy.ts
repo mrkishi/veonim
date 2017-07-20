@@ -2,21 +2,11 @@ import { remote } from 'electron'
 import { attach, onRedraw, onExit, g, getColor, resize } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
 import * as input from './input'
-import { debounce } from './utils'
-const merge = Object.assign
+import { merge, debounce } from './utils'
 
-interface ScrollRegion {
-  top: number,
-  bottom: number,
-  left: number,
-  right: number
-}
-
-interface Colors {
-  fg: string,
-  bg: string,
-  sp: string
-}
+interface ScrollRegion { top: number, bottom: number, left: number, right: number }
+interface Colors { fg: string, bg: string, sp: string }
+interface Mode { shape: CursorShape, size?: number, color?: number }
 
 interface Attrs {
   fg: string,
@@ -29,12 +19,6 @@ interface Attrs {
   bold?: string,
   underline?: string,
   undercurl?: string
-}
-
-interface Mode {
-  shape: CursorShape,
-  size?: number,
-  color?: number,
 }
 
 interface ModeInfo {
@@ -50,27 +34,28 @@ interface ModeInfo {
   short_name: string
 }
 
-const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
-
-const api = new Map<string, Function>()
-const r = new Proxy(api, {
-  set: (_: any, name, fn) => {
-    api.set(name as string, fn)
-    return true
-  }
-})
-
-const colors: Colors = {
-  fg: '#ccc',
-  bg: '#222',
-  sp: '#f00'
-}
-
-const modes = new Map<string, Mode>()
-
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
+const api = new Map<string, Function>()
+const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, fn), true) })
+const modes = new Map<string, Mode>()
+const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
+const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
+
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
+
+const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
+  const mask = 0xff << shift
+  const hex = ((color & mask) >> shift).toString(16)
+  return hex.length < 2 ? ('0' + hex) : hex
+}).join('')
+
+const cursorShapeType = (type: string | undefined) => {
+  if (type === 'block') return CursorShape.block
+  if (type === 'horizontal') return CursorShape.underline
+  if (type === 'vertical') return CursorShape.line
+  else return CursorShape.block
+}
 
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const width = right - left + 1
@@ -92,19 +77,6 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
     .fillRect(left, top, right - left + 1, amount)
 }
 
-const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
-  const mask = 0xff << shift
-  const hex = ((color & mask) >> shift).toString(16)
-  return hex.length < 2 ? ('0' + hex) : hex
-}).join('')
-
-const cursorShapeType = (type: string | undefined) => {
-  if (type === 'block') return CursorShape.block
-  if (type === 'horizontal') return CursorShape.underline
-  if (type === 'vertical') return CursorShape.line
-  else return CursorShape.block
-}
-
 r.clear = () => ui.setColor(colors.bg).clear()
 r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg: asColor(fg) })
 r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg: asColor(bg) })
@@ -120,8 +92,9 @@ r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
   }
 
   if (mi.hl_id) {
+    // TODO: figure out why synIDAttr not returing color values for highligh group id
     const { bg } = await getColor(mi.hl_id)
-    console.log(`COLOR FOR ${mi.name} (${mi.hl_id}) [${bg}] -> ${asColor(bg)}`)
+    // console.log(`COLOR FOR ${mi.name} (${mi.hl_id}) [${bg}] -> ${asColor(bg)}`)
     merge(info, { color: bg ? asColor(bg) : colors.fg })
   }
 

@@ -1,7 +1,6 @@
 import { input } from '../neovim'
 import { pub } from './pubsub'
-
-const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
+import { $ } from './utils'
 
 let isCapturing = false
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
@@ -10,7 +9,6 @@ const remaps = new Map<string, string>()
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
   const mods: string[] = []
-  // macos sends these fancy unicodes instead Ô∆ß on alt/alt+shift
   const onlyShift = shiftKey && !ctrlKey && !metaKey && !altKey
   const notCmdOrCtrl = !metaKey && !ctrlKey
   const macOSUnicode = process.platform === 'darwin' 

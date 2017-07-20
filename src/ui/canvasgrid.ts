@@ -1,9 +1,5 @@
-const merge = Object.assign
-const mergeValid = (target: any, source: any) => Object.keys(source).reduce((tar, key) => {
-  const val = Reflect.get(source, key)
-  if (val !== null && val !== undefined && val !== '') Reflect.set(tar, key, val)
-  return tar
-}, target)
+import { gradient, translate } from './css'
+import { merge, mergeValid } from './utils'
 
 interface Font { face: string, size: number, lineHeight: number }
 interface Cell { width: number, height: number }
@@ -133,13 +129,11 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
     return api
   }
 
+
   api.moveCursor = () => {
-    // TODO: use transform: translateZ and will-change props for hw accel (gpu)
-    merge(cursorEl.style, { top: `${px.row.y(cursor.row)}px`, left: `${px.col.x(cursor.col)}px` })
+    cursorEl.style.transform = translate(px.col.x(cursor.col), px.row.y(cursor.row))
     return api
   }
-
-  const gradient = (deg: number, color1: string, fade1: number, color2: string, fade2: number) => `linear-gradient(${deg}deg, ${color1} ${fade1}%, ${color2} ${fade2}%)`
 
   api.setCursorShape = (type: CursorShape, size = 20) => {
     if (type === CursorShape.block) merge(cursorEl.style, {
