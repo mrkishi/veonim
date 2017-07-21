@@ -14,7 +14,9 @@ render offline/background for multi neovim instances
     instead: IO/plugins thread <-> UI
       - disadvantges - increased latency as data has to be copied between threads (transferrable not great for POJO)
       - advantages - move as much as possible out of UI thread to not block ui
-        - allow to scale to n+ threads in the future if needed
+        - allow to scale to n+ threads in the future if needed (maybe IO thread should be on its own, so rendering/input paths get clear passthru to UI thread)
+
+
 
 
 -- later

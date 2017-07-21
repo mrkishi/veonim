@@ -48,7 +48,14 @@ export const focus = () => isCapturing = true
 export const blur = () => isCapturing = false
 
 let myui: Api
-export const setUI = (ui: any) => myui = ui
+let io: Worker
+export const setUI = (ui: any, iop: Worker) => {
+  myui = ui
+  io = iop
+  io.onmessage = e => {
+    console.log('recv', e.data)
+  }
+}
 
 let init2 = false
 let vim = 1
@@ -58,18 +65,18 @@ window.addEventListener('keydown', e => {
   const key = bypassEmptyMod(e.key)
   if (!key) return
 
+
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
+  io.postMessage({ key: inputKeys })
   if (inputKeys === '<S-C-F>') return pub('fullscreen')
 
   if (inputKeys === '<S-C-T>') {
     if (vim === 1) {
-      myui.setColor('#222222').clear()
       switch2()
       if (!init2) attach(myui.cols, myui.rows)
       resize(myui.cols, myui.rows)
       vim = 2
     } else if (vim === 2) {
-      myui.setColor('#222222').clear()
       switch1()
       resize(myui.cols, myui.rows)
       vim = 1

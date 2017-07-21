@@ -1,14 +1,13 @@
 {
-  "exclude": [
-    "node_modules",
+  "include": [
     "src/workers/*.ts"
   ],
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
-    "outDir": "build",
+    "outDir": "build/workers",
     "strict": true,
-    "lib": ["es2017", "dom"],
+    "lib": ["es2017", "scripthost", "webworker"],
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "sourceMap": true

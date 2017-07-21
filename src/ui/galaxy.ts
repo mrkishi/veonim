@@ -36,12 +36,14 @@ interface ModeInfo {
 
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
+const io = new Worker(`${__dirname}/../workers/io.js`)
 const api = new Map<string, Function>()
 const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, fn), true) })
 const modes = new Map<string, Mode>()
 const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
 const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
-input.setUI(ui)
+input.setUI(ui, io)
+
 
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 

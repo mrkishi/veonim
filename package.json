@@ -4,9 +4,11 @@
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
+    "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf build",
-    "build": "tsc && cp src/index.html build/index.html",
+    "tsc": "tsc && tsc -p tsconfig.workers.json",
+    "build": "npm run tsc && npm run fixexp && cp src/index.html build/index.html",
     "rebuild": "npm run clean && npm run build",
     "r": "npm run rebuild && npm start",
     "start": "electron build/main.js",
@@ -31,6 +33,6 @@
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "8.0.12",
     "electron": "1.6.11",
-    "typescript": "2.4.1"
+    "typescript": "2.4.2"
   }
 }
