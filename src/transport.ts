@@ -34,14 +34,33 @@ const { stdout, stdin } = spawn('nvim', [
   '--embed',
 ]).on('exit', (c: number) => onExitFn(c))
 
+const { stdout: stdout2, stdin: stdin2 } = spawn('nvim', ['--embed']).on('exit', () => dev `second vim derped`)
+
 // TODO: figure out why people are morons
 const stupidEncoder = createEncodeStream({ codec })
-const encoder = stupidEncoder.pipe(stdin)
+let encoder = stupidEncoder.pipe(stdin)
 const decoder = createDecodeStream({ codec })
 stdout.pipe(decoder)
 
 stdout.on('error', (e: string) => dev(JSON.stringify(e)))
 stdin.on('error', (e: string) => dev(JSON.stringify(e)))
+
+export const switch2 = () => {
+  stupidEncoder.unpipe()
+  encoder = stupidEncoder.pipe(stdin2)
+  stdout.unpipe()
+  stdout2.pipe(decoder)
+  // stdout2.resume()
+}
+
+export const switch1 = () => {
+  stupidEncoder.unpipe()
+  encoder = stupidEncoder.pipe(stdin)
+  stdout2.unpipe()
+  stdout.pipe(decoder)
+  // stdout.resume()
+}
+
 
 const watchers = new Watchers()
 const pendingRequests = new Map()

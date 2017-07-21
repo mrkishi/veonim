@@ -6,10 +6,13 @@ let win: Electron.BrowserWindow
 app.setName('veonim')
 app.on('ready', () => {
   win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 800,
+    height: 400,
     frame: false,
-    backgroundColor: '#222'
+    backgroundColor: '#222',
+    webPreferences: {
+      nodeIntegrationInWorker: true
+    }
   })
 
   register(win)

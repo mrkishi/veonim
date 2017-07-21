@@ -1,6 +1,7 @@
-import { input } from '../neovim'
+import { input, resize, attach, switch1, switch2 } from '../neovim'
 import { pub } from './pubsub'
 import { $ } from '../utils'
+import { Api } from './canvasgrid'
 
 let isCapturing = false
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
@@ -46,6 +47,12 @@ export const remapModifier = (from: string, to: string) => remaps.set(from, to)
 export const focus = () => isCapturing = true
 export const blur = () => isCapturing = false
 
+let myui: Api
+export const setUI = (ui: any) => myui = ui
+
+let init2 = false
+let vim = 1
+
 window.addEventListener('keydown', e => {
   if (!isCapturing) return
   const key = bypassEmptyMod(e.key)
@@ -53,6 +60,23 @@ window.addEventListener('keydown', e => {
 
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
   if (inputKeys === '<S-C-F>') return pub('fullscreen')
+
+  if (inputKeys === '<S-C-T>') {
+    if (vim === 1) {
+      myui.setColor('#222222').clear()
+      switch2()
+      if (!init2) attach(myui.cols, myui.rows)
+      resize(myui.cols, myui.rows)
+      vim = 2
+    } else if (vim === 2) {
+      myui.setColor('#222222').clear()
+      switch1()
+      resize(myui.cols, myui.rows)
+      vim = 1
+    }
+
+    return
+  }
 
   e.preventDefault()
   input(inputKeys)

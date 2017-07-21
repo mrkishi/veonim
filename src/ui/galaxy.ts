@@ -41,6 +41,7 @@ const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, f
 const modes = new Map<string, Mode>()
 const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
 const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
+input.setUI(ui)
 
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 

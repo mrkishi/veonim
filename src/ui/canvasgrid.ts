@@ -9,7 +9,7 @@ interface Margins { top: number, bottom: number, left: number, right: number }
 type MarginParams = { left?: number, right?: number, top?: number, bottom?: number }
 export enum CursorShape { block, line, underline }
 
-interface Api {
+export interface Api {
   setMargins(margins: MarginParams): Api,
   resize(pixelHeight: number, pixelWidth: number): Api,
   setCursorColor(color: string): Api,
@@ -70,6 +70,7 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }
 
   api.resize = (pixelHeight: number, pixelWidth: number) => {
+    console.log('resize')
     merge(actualSize, { width: pixelWidth, height: pixelHeight })
 
     canvas.height = pixelHeight * 2
@@ -100,6 +101,7 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }
 
   api.clear = () => {
+    console.log('clear')
     ui.fillRect(0, 0, actualSize.width, actualSize.height)
     return api
   }
