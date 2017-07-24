@@ -70,7 +70,6 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }
 
   api.resize = (pixelHeight: number, pixelWidth: number) => {
-    console.log('resize')
     merge(actualSize, { width: pixelWidth, height: pixelHeight })
 
     canvas.height = pixelHeight * 2
@@ -101,7 +100,6 @@ export default ({ canvasId, cursorId }: { canvasId: string, cursorId: string }) 
   }
 
   api.clear = () => {
-    console.log('clear')
     ui.fillRect(0, 0, actualSize.width, actualSize.height)
     return api
   }

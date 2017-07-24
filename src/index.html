@@ -15,11 +15,32 @@
       #cursor {
         position: absolute;
       }
+
+      #query {
+        display: none;
+        position: absolute;
+        bottom: 0;
+        right: 10px;
+        background: #444;
+        color: #ddd;
+        outline: none;
+        border: none;
+        padding: 3px;
+      }
+
+      #sessions {
+        position: absolute;
+        bottom: 2px;
+        left: 3px;
+        color: #ffd000;
+      }
     </style>
   </head>
   <body>
+    <input id="query"/>
     <div id="cursor"></div>
     <canvas id="nvim"></canvas>
+    <div id="sessions"></div>
     <script type="text/javascript">require('./ui/galaxy')</script>
   </body>
 </html>

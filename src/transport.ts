@@ -1,12 +1,4 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
-import { dev, Watchers, onFnCall, snakeCase } from './utils'
-import { spawn } from 'child_process'
-import { Api } from './api'
-const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
-
-let reqId = 0
-let onRedrawFn = (m: any[]) => m
-let onExitFn = (code: number) => code
 
 // TODO: actually implement this lol
 const wtf = class WHATTHEFUCK {
@@ -26,97 +18,14 @@ codec.addExtUnpacker(0, data => new wtf(decode(data)))
 codec.addExtUnpacker(1, data => new wtf(decode(data)))
 codec.addExtUnpacker(2, data => new wtf(decode(data)))
 
-const { stdout, stdin } = spawn('nvim', [
-  '--cmd',
-  `"let g:veonim=1"`,
-  '--cmd',
-  `"command! -nargs=1 Veonim call rpcnotify(0, 'veonim', <f-args>)"`,
-  '--embed',
-]).on('exit', (c: number) => onExitFn(c))
+// TODO: figure out why peoples parents dropped them as babies
+let crustyJugglers: NodeJS.WritableStream // WTF x 8
+const cheekyBuffoons = createEncodeStream({ codec }) // WTF x 1
 
-const { stdout: stdout2, stdin: stdin2 } = spawn('nvim', ['--embed']).on('exit', () => dev `second vim derped`)
-
-// TODO: figure out why people are morons
-const stupidEncoder = createEncodeStream({ codec })
-let encoder = stupidEncoder.pipe(stdin)
-const decoder = createDecodeStream({ codec })
-stdout.pipe(decoder)
-
-stdout.on('error', (e: string) => dev(JSON.stringify(e)))
-stdin.on('error', (e: string) => dev(JSON.stringify(e)))
-
-export const switch2 = () => {
-  stupidEncoder.unpipe()
-  encoder = stupidEncoder.pipe(stdin2)
-  stdout.unpipe()
-  stdout2.pipe(decoder)
-  // stdout2.resume()
+export const encoder = {
+  unpipe: () => cheekyBuffoons.unpipe(),
+  pipe: (stdin: NodeJS.WritableStream) => crustyJugglers = cheekyBuffoons.pipe(stdin), // WTF x 999
+  write: (data: any) => crustyJugglers.write(encode(data)) // WTF x 524
 }
 
-export const switch1 = () => {
-  stupidEncoder.unpipe()
-  encoder = stupidEncoder.pipe(stdin)
-  stdout2.unpipe()
-  stdout.pipe(decoder)
-  // stdout.resume()
-}
-
-
-const watchers = new Watchers()
-const pendingRequests = new Map()
-const requestHandlers = new Map<string, Function>()
-const send = (m: any[]) => encoder.write(encode(m)) && dev `<-- [${m}]`
-const notify = (name: string, args: any[]) => send([2, name, args])
-const request = (name: string, args: any[]) => {
-  send([0, ++reqId, name, args])
-  return new Promise((done, fail) => pendingRequests.set(reqId, { done, fail }))
-}
-
-const noRequestMethodFound = (id: number, method: string) => {
-  send([1, id, 'no one was listening for your request, sorry', null])
-  dev `vim made a request for ${method} but no handler was found`
-}
-
-const onVimRequest = (id: number, method: string, args: any[]) => {
-  const reqHandler = requestHandlers.get(method)
-  if (!reqHandler) return noRequestMethodFound(id, method)
-
-  const maybePromise = reqHandler(...args as any[])
-
-  if (maybePromise && maybePromise.then) maybePromise
-    .then((result: any) => send([1, id, null, result]))
-    .catch((err: string) => send([1, id, err, null]))
-}
-
-const onResponse = (id: number, error: string, result: any) => {
-  if (!pendingRequests.has(id)) return
-
-  const { done, fail } = pendingRequests.get(id)
-  error ? fail(error) : done(result)
-  pendingRequests.delete(id)
-}
-
-const onNotification = (method: string, args: any[]) => method === 'redraw'
-  ? onRedrawFn(args)
-  : watchers.notify(method, args)
-
-decoder.on('data', ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
-  dev `--> [${[type, ...d]}]`
-
-  if (type === 0) onVimRequest(d[0] as number, d[1].toString(), d[2] as any[])
-  else if (type === 1) onResponse(d[0] as number, d[1] as string, d[2])
-  else if (type === 2) onNotification(d[0].toString(), d[1] as any[])
-  else dev `i don't know how to handle this msg type: ${type}`
-})
-
-export const req: Api = onFnCall((name: string, args: any[] = []) => request(asVimFn(name), args))
-export const api: Api = onFnCall((name: string, args: any[]) => notify(asVimFn(name), args))
-export const on = (event: string, fn: Function) => watchers.add(event, fn)
-export const onExit = (fn: Function) => onExitFn = fn as { (code: number): number }
-export const onRedraw = (fn: Function) => onRedrawFn = fn as { (m: any[]): any[] }
-export const onRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
-export const subscribe = (event: string, fn: Function) => {
-  api.subscribe(event)
-  watchers.add(event, fn)
-  return () => api.unsubscribe(event) && watchers.remove(event, fn)
-}
+export const decoder = createDecodeStream({ codec })

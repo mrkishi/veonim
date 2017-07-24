@@ -1,11 +1,10 @@
-import { input, resize, attach, switch1, switch2 } from '../neovim'
-import { pub } from './pubsub'
+import { notify } from './neovim-client'
 import { $ } from '../utils'
-import { Api } from './canvasgrid'
 
-let isCapturing = false
+const { input } = notify
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
+let isCapturing = false
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -42,48 +41,20 @@ const joinModsWithDash = (mods: string[]) => mods.join('-')
 const mapMods = $(handleMods, userModRemaps, joinModsWithDash)
 const mapKey = $(bypassEmptyMod, toVimKey)
 const formatInput = $(combineModsWithKey, wrapKey)
+const shortcuts = new Map<string, Function>()
 
 export const remapModifier = (from: string, to: string) => remaps.set(from, to)
 export const focus = () => isCapturing = true
 export const blur = () => isCapturing = false
-
-let myui: Api
-let io: Worker
-export const setUI = (ui: any, iop: Worker) => {
-  myui = ui
-  io = iop
-  io.onmessage = e => {
-    console.log('recv', e.data)
-  }
-}
-
-let init2 = false
-let vim = 1
+export const registerShortcut = (keys: string, cb: Function) => shortcuts.set(`<${keys.toUpperCase()}>`, cb)
 
 window.addEventListener('keydown', e => {
   if (!isCapturing) return
   const key = bypassEmptyMod(e.key)
   if (!key) return
 
-
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
-  io.postMessage({ key: inputKeys })
-  if (inputKeys === '<S-C-F>') return pub('fullscreen')
-
-  if (inputKeys === '<S-C-T>') {
-    if (vim === 1) {
-      switch2()
-      if (!init2) attach(myui.cols, myui.rows)
-      resize(myui.cols, myui.rows)
-      vim = 2
-    } else if (vim === 2) {
-      switch1()
-      resize(myui.cols, myui.rows)
-      vim = 1
-    }
-
-    return
-  }
+  if (shortcuts.has(inputKeys)) return shortcuts.get(inputKeys)!()
 
   e.preventDefault()
   input(inputKeys)

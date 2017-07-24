@@ -1,11 +1,10 @@
-console.log('worker started wohoo')
-import { spawn } from 'child_process'
+import neovim from '../neovim'
+import Channel from '../channel'
 
-setInterval(() => {
-  const ls = spawn('ls', ['-l', '/Users/a/Documents/projects'])
-  ls.stdout.on('data', e => postMessage(e.toString()))
-}, 5e3)
+const { publishApi, Notifier, onRecv } = Channel((e, msg, id) => postMessage([e, msg, id]))
+onmessage = onRecv
+publishApi(neovim)
 
-onmessage = e => {
-  console.log('worker recv', e.data)
-}
+const pub = Notifier()
+neovim.on.redraw(m => pub.redraw(m))
+neovim.on.exit((id, code) => pub.exit(id, code))

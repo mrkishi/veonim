@@ -1,12 +1,14 @@
+import { pub } from '../pubsub'
 import { remote } from 'electron'
-import { attach, onRedraw, onExit, g, getColor, resize } from '../neovim'
 import CanvasGrid, { CursorShape } from './canvasgrid'
-import * as input from './input'
+import * as uiInput from './input'
 import { merge, debounce } from '../utils'
+import { on, notify, request } from './neovim-client'
 
 interface ScrollRegion { top: number, bottom: number, left: number, right: number }
 interface Colors { fg: string, bg: string, sp: string }
 interface Mode { shape: CursorShape, size?: number, color?: number }
+interface Vim { name: string, active: boolean }
 
 interface Attrs {
   fg: string,
@@ -36,14 +38,33 @@ interface ModeInfo {
 
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
-const io = new Worker(`${__dirname}/../workers/io.js`)
+const { resize, attach, switchTo } = notify
+const { create, getColor, getVar } = request
 const api = new Map<string, Function>()
 const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, fn), true) })
 const modes = new Map<string, Mode>()
 const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
 const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
-input.setUI(ui, io)
+const vims = new Map<number, Vim>()
 
+// TODO: separate module?
+// const createVim = async (name: string) => {
+//   const id = await create()
+//   attach(id)
+//   switchTo(id)
+//   vims.set(id, { name, active: true })
+// }
+
+const switchVim = async (id: number) => {
+  if (!vims.has(id)) return
+  switchTo(id)
+  vims.get(id)!.active = true
+}
+
+// const renameVim = (id: number, newName: string) => {
+//   if (!vims.has(id)) return
+//   vims.get(id)!.name = newName
+// }
 
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 
@@ -149,10 +170,10 @@ r.put = (m: any[]) => {
 
 // TODO: make these friendly names?
 // TODO: read from vim config
-input.remapModifier('C', 'D')
-input.remapModifier('D', 'C')
+uiInput.remapModifier('C', 'D')
+uiInput.remapModifier('D', 'C')
 
-onRedraw((m: any[]) => {
+on.redraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
     const [ method, ...args ] = m[ix]
@@ -166,26 +187,43 @@ onRedraw((m: any[]) => {
   setTimeout(() => ui.moveCursor(), 0)
 })
 
-onExit(() => remote.app.quit())
+on.exit((id: number) => {
+  if (!vims.has(id)) return
+  vims.delete(id)
+  if (!vims.size) return remote.app.quit()
+
+  const next = Math.max(...vims.keys())
+  switchVim(next)
+})
+
+uiInput.registerShortcut('s-c-f', () => pub('fullscreen'))
+uiInput.registerShortcut('s-c-q', () => remote.app.quit())
 
 window.addEventListener('resize', debounce(() => {
   ui.resize(window.innerHeight, window.innerWidth)
   resize(ui.cols, ui.rows)
 }, 500))
 
-;(async () => {
+const main = async () => {
+  const vimId = await create()
+
+  // TODO: find better way to load configs
   const [ face, size, lineHeight ] = await Promise.all([
-    g.vn_font,
-    g.vn_font_size,
-    g.vn_line_height
+    getVar('vn_font'),
+    getVar('vn_font_size'),
+    getVar('vn_line_height')
   ]).catch(e => e)
 
   ui
-    .setMargins({ left: 6, right: 6, top: 2, bottom: 2 })
     .setFont({ face, size, lineHeight })
+    .setMargins({ left: 6, right: 6, top: 2, bottom: 2 })
     .setCursorShape(CursorShape.block)
     .resize(window.innerHeight, window.innerWidth)
 
-  input.focus()
-  attach(ui.cols, ui.rows)
-})()
+  uiInput.focus()
+  resize(ui.cols, ui.rows)
+  attach(vimId)
+  vims.set(vimId, { name: 'main', active: true })
+}
+
+main().catch(e => console.log(e))

@@ -1,33 +1,44 @@
-render offline/background for multi neovim instances
-  - have method with unpipe/pipe and clear+resize to switch vim instances
-  the question though: 
-    node integration shares the same UI thread. so expensive ops will block UI.
-    that would be unfortunate as it would be the same as vim (no gui/async advantage). 
-    so expensive ops should go into another thread/process. Options (ranked in probable order of speed):
-      - web worker with node integration - use postmessage(obj) (via clonining) to pass stdout/stdin to ui
-      - other renderer process - use ipc
-      - other processes - use sockets
+call actions from vim
+  -hookup registered actions && callbacks with io.ts/channel
 
-    the problem is that plugins need access to neovim instance to talk to it. aka access to stdout/stdin
-    so out/in needs to live outside of UI thread
-    or... ui -> plugins thread -> ui.neovim -> plugins thread -> ui (seems expensive)
-    instead: IO/plugins thread <-> UI
-      - disadvantges - increased latency as data has to be copied between threads (transferrable not great for POJO)
-      - advantages - move as much as possible out of UI thread to not block ui
-        - allow to scale to n+ threads in the future if needed (maybe IO thread should be on its own, so rendering/input paths get clear passthru to UI thread)
+move all rendering logic to separate file?
 
-  "nno dj /\S<cr>:noh<cr>0d``==
-  "nno dk ?\S<cr>:noh<cr>jd``==
+setup staging build (figure out how to remove process.env.DEV_MODE from production build. codemod?)
+  - use custom node launcher script to inject env var = devmode, remove global env
+setup watch/reload for faster ui iteration (tsc watch, etc.)
+setup hyperapp ui framework
+
+create rename current window
+create fuzzy list switcher
+create input for creating window
+create buffer switcher
+create file switcher
+create directory/file browser (two modes? one for cwd and another for files)
+
+change cwd in vim instance (set to $HOME by default?)
+  - two different shortcuts. one default: create new vim instance at $HOME
+  - another the ctrl+t+p (like in tmux) list projects and open vim in provided working dir
+
+do we really need to expose listVimInstances from master-control? (list will be maintained in galaxy)
+
+reconsider how configs will be loaded from vim (because we have multiple vims now + howto hot reload)
+  // we only need this once... do we want to support multi configs per different instances?
+  // i think not. this means that we need at least one instance BOUND to get vars
+  // every other time we will just use the vars from the first instance.
+  // would it be simpler just to FS parse vimrc for these options? assuming no dynamic shenanigans...
+  // could use a separate process/thread to get configs in parallel while ui and nvim instances are started
+  // what about configs changing. chokidar on vimrc?
+  // what about different vimrc locations? always assume ~/.config/neovim/init.vim?
+  // what about spawning a separate process and dummy spawning nvim instance just to read vars? or read vimrc location? what's the advantage then of just calling it this way?
 
 
-
--- later
-setup electron build/package and publish to npm - have release + dev builds at the same time on machine
-  just copy local to another folder and create alias to it - create wrapper to override env_vars
-hot reload/plain ole' reload on change/
-  run tsc on watch. manually reload
+concurrency methods:
+child_process -> alone, good for adhoc (list files, ripgrep, etc)
+web worker -> will need to hook into socket server from neovim. don't have shared worker
 
 chokidar file reload vim buffers
+
+how to "zoom" vim pane? create new tab with selected buffer only? unzoom destroy tab and go back to prev tab?
 
 -- maybe
 KARABINER: FIX SHIFT;;;;;;;
@@ -40,7 +51,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/global
 https://github.com/Phrogz/context-blender
 actually - could get char from canvas at x/y (under cursor) and then render it in the cursor el but inverted (if block cursor)
 
+git view: overlay on left (like vscode) - select files and open in new vim tab git diff split view via fugitive
 
 -- tried, failed, gave up
-preload vim with autocmd and global var - setting --cmd but not taking effect. try simple example to start nvim from node script and see if it works.
 support cursor colors - almost there: issue in getting color for id (synIDattr does not return val even in nvim)

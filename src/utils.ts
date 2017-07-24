@@ -37,10 +37,12 @@ export const type = (m: any) => {
   return (type || 'undefined').toLowerCase()
 }
 
+export const ID = (val = 0) => ({ next: () => (val++, val) })
+
 export const is = new Proxy<Types>({} as Types, { get: (_, key) => (val: any) => type(val) === key })
 
 export const onProp = <T>(cb: (name: PropertyKey) => void): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
-export const onFnCall = <T>(cb: (name: PropertyKey, args: any[]) => void): T => new Proxy({}, { get: (_, name) => (...args: any[]) => cb(name, args) }) as T
+export const onFnCall = <T>(cb: (name: string, args: any[]) => void): T => new Proxy({}, { get: (_, name) => (...args: any[]) => cb(name as string, args) }) as T
 
 export const pascalCase = (m: string) => m[0].toUpperCase() + m.slice(1)
 export const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
@@ -70,21 +72,19 @@ export class Watchers extends Map<string, Set<Function>> {
     super()
   }
 
-  add(event: string, handler: Function) {
-    const handlers = this.get(event)
-    if (!handlers || !handlers.size) this.set(event, new Set<Function>([ handler ]))
-    else handlers.add(handler)
+  add(event: string, handler: (data: any) => void) {
+    this.has(event) ? this.get(event)!.add(handler) : this.set(event, new Set<Function>([ handler ]))
   }
 
   notify(event: string, ...args: any[]) {
-    const handlers = this.get(event)
-    if (!handlers || !handlers.size) return
-    handlers.forEach(cb => cb(...args))
+    this.has(event) && this.get(event)!.forEach(cb => cb(...args))
+  }
+
+  notifyFn(event: string, fn: (handler: Function) => void) {
+    this.has(event) && this.get(event)!.forEach(cb => fn(cb))
   }
 
   remove(event: string, handler: Function) {
-    const handlers = this.get(event)
-    if (!handlers || !handlers.size) return
-    handlers.delete(handler)
+    this.has(event) && this.get(event)!.delete(handler)
   }
 }
