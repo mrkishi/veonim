@@ -3,7 +3,8 @@ import { remote } from 'electron'
 import CanvasGrid, { CursorShape } from './canvasgrid'
 import * as uiInput from './input'
 import { merge, debounce } from '../utils'
-import { on, notify, request } from './neovim-client'
+import { on, sub, notify, request } from './neovim-client'
+import './plugins'
 
 interface ScrollRegion { top: number, bottom: number, left: number, right: number }
 interface Colors { fg: string, bg: string, sp: string }
@@ -38,6 +39,7 @@ interface ModeInfo {
 
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
+const action = sub('action')
 const { resize, attach, switchTo } = notify
 const { create, getColor, getVar } = request
 const api = new Map<string, Function>()
@@ -47,6 +49,17 @@ const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
 const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
 const vims = new Map<number, Vim>()
 
+action('vim-rename', () => {
+  console.log('rename vim')
+})
+
+action('vim-create', () => {
+  console.log('create new vim')
+})
+
+action('vim-switch', () => {
+  console.log('switch to vim')
+})
 // TODO: separate module?
 // const createVim = async (name: string) => {
 //   const id = await create()

@@ -1,5 +1,4 @@
-call actions from vim
-  -hookup registered actions && callbacks with io.ts/channel
+investigate rendering glitches (not only in sessions) like cursorline getting stuck last block on some lines
 
 move all rendering logic to separate file?
 
@@ -39,6 +38,8 @@ web worker -> will need to hook into socket server from neovim. don't have share
 chokidar file reload vim buffers
 
 how to "zoom" vim pane? create new tab with selected buffer only? unzoom destroy tab and go back to prev tab?
+
+embed binaries in release build
 
 -- maybe
 KARABINER: FIX SHIFT;;;;;;;
