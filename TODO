@@ -3,9 +3,11 @@ investigate rendering glitches (not only in sessions) like cursorline getting st
 move all rendering logic to separate file?
 
 setup staging build (figure out how to remove process.env.DEV_MODE from production build. codemod?)
-  - use custom node launcher script to inject env var = devmode, remove global env
+  - use custom node launcher script to inject env var = devmode, remove global env- not work electron
 setup watch/reload for faster ui iteration (tsc watch, etc.)
 setup hyperapp ui framework
+  - vla for hyperapp
+  - each component in separate div? or all shared? all shared might mean too much rerender entire root tree
 
 create rename current window
 create fuzzy list switcher
@@ -15,10 +17,8 @@ create file switcher
 create directory/file browser (two modes? one for cwd and another for files)
 
 change cwd in vim instance (set to $HOME by default?)
-  - two different shortcuts. one default: create new vim instance at $HOME
-  - another the ctrl+t+p (like in tmux) list projects and open vim in provided working dir
-
-do we really need to expose listVimInstances from master-control? (list will be maintained in galaxy)
+  - two different shortcuts. one default: create new vim instance at $HOME (with terms only?)
+  - another the ctrl+t+p (like in tmux) list projects and open vim in provided working dir (term/vim split?)
 
 reconsider how configs will be loaded from vim (because we have multiple vims now + howto hot reload)
   // we only need this once... do we want to support multi configs per different instances?
@@ -30,12 +30,16 @@ reconsider how configs will be loaded from vim (because we have multiple vims no
   // what about different vimrc locations? always assume ~/.config/neovim/init.vim?
   // what about spawning a separate process and dummy spawning nvim instance just to read vars? or read vimrc location? what's the advantage then of just calling it this way?
 
+  // loading configs via api takes ~75ms. WAY TOO LONG
+  // i think FS read might be cleanest (esp for reload) (think about multi vim sessions too)
+    - should benchmark speed. (could be slower on non-ssd, but can be parallel)
 
 concurrency methods:
 child_process -> alone, good for adhoc (list files, ripgrep, etc)
 web worker -> will need to hook into socket server from neovim. don't have shared worker
 
 chokidar file reload vim buffers
+  - how handle multi sessions
 
 how to "zoom" vim pane? create new tab with selected buffer only? unzoom destroy tab and go back to prev tab?
 
@@ -44,7 +48,12 @@ embed binaries in release build
 -- maybe
 KARABINER: FIX SHIFT;;;;;;;
 can we replace kr-el for semi maps? (since we have key down/up events)
-fix rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
+  - could, but using kr-el binds elsewhere (system ctrls, could remap)
+  - remap left cmd to something else (system ctrls...?)
+  - caps lock -> left cmd
+    - veonim -> cmd/esc
+    - other apps -> left cmd (caps lock) + other modifier == esc? or cmd[?
+fix tiny rendering glitches when typing? are we rounding somwhere or losing precision in calculations?
 perf improvements?
 
 consider using canvas cursor to do better blend with vim canvas (what about cursor for inputs?)

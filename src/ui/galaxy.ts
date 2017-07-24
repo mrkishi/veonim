@@ -220,12 +220,14 @@ window.addEventListener('resize', debounce(() => {
 const main = async () => {
   const vimId = await create()
 
+  console.time('config')
   // TODO: find better way to load configs
   const [ face, size, lineHeight ] = await Promise.all([
     getVar('vn_font'),
     getVar('vn_font_size'),
     getVar('vn_line_height')
   ]).catch(e => e)
+  console.timeEnd('config')
 
   ui
     .setFont({ face, size, lineHeight })
