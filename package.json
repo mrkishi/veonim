@@ -26,6 +26,7 @@
   "homepage": "https://github.com/deomitrus/veonim#readme",
   "dependencies": {
     "globby": "6.1.0",
+    "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26"
   },
   "devDependencies": {

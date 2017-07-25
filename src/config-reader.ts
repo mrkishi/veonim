@@ -4,6 +4,7 @@ import { promisify } from 'util'
 
 const exists = promisify(stat)
 const $HOME = homedir()
+// $XDG_CONFIG_HOME or $HOME/config
 // /^(?:"|')(.*)(?:"|')$/.replace($1)
 
 const possibleLocations = [
