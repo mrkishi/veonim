@@ -34,6 +34,15 @@
         position: absolute;
       }
 
+      #gui-cursor {
+        display: none;
+        position: absolute;
+        z-index: 42;
+        color: transparent;
+        background: #ddd;
+        line-height: var(--line-height);
+      }
+
       #plugins {
         position: absolute;
         display: flex;
@@ -44,6 +53,7 @@
   </head>
   <body>
     <div id="cursor"></div>
+    <div id="gui-cursor">m</div>
     <div id="plugins"></div>
     <canvas id="nvim"></canvas>
     <script type="text/javascript">require('./ui/galaxy')</script>

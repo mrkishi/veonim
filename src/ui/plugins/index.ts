@@ -1,6 +1,7 @@
 import { sub } from '../neovim-client'
 const action = sub('action')
 
+import './cursor'
 import files from './files'
 action('files', files)
 

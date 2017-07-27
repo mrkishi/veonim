@@ -6,10 +6,13 @@ interface Cursor { row: number, col: number, color: string }
 export enum CursorShape { block, line, underline }
 
 export interface CanvasGrid {
+  getCursorWidth(): number,
   setMargins(margins: { left?: number, right?: number, top?: number, bottom?: number }): CanvasGrid,
   resize(pixelHeight: number, pixelWidth: number): CanvasGrid,
   setCursorColor(color: string): CanvasGrid,
   setCursorShape(type: CursorShape, size?: number): CanvasGrid,
+  hideCursor(): CanvasGrid,
+  showCursor(): CanvasGrid,
   moveCursor(): CanvasGrid,
   putImageData(data: ImageData, col: number, row: number, width: number, height: number): CanvasGrid,
   getImageData(col: number, row: number, width: number, height: number): ImageData,
@@ -56,15 +59,10 @@ const px = {
 const api = {
   cursor,
   get cols () { return grid.cols },
-  get rows () { return grid.rows }
+  get rows () { return grid.rows },
 } as CanvasGrid
 
-api.setMargins = (newMargins) => {
-  mergeValid(margins, newMargins)
-  return api
-}
-
-api.resize = (pixelHeight: number, pixelWidth: number) => {
+api.resize = (pixelHeight, pixelWidth) => {
   merge(actualSize, { width: pixelWidth, height: pixelHeight })
 
   canvas.height = pixelHeight * 2
@@ -92,47 +90,25 @@ api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeigh
   return api
 }
 
-api.setColor = (color: string) => {
-  ui.fillStyle = color
-  return api
-}
+api.getCursorWidth = () => px.col.width(1),
+api.setMargins = newMargins => (mergeValid(margins, newMargins), api)
+api.setColor = color => (ui.fillStyle = color, api)
+api.clear = () => (ui.fillRect(0, 0, actualSize.width, actualSize.height), api)
+api.setTextBaseline = mode => (ui.textBaseline = mode, api)
+api.fillText = (m, c, r) => (ui.fillText(m, px.col.x(c), px.row.y(r) + px.row.height(1)), api)
+api.fillRect = (c, r, w, h) => (ui.fillRect(px.col.x(c), px.row.y(r), px.col.width(w), px.row.height(h)), api)
 
-api.clear = () => {
-  ui.fillRect(0, 0, actualSize.width, actualSize.height)
-  return api
-}
-
-api.setTextBaseline = (mode: string) => {
-  ui.textBaseline = mode
-  return api
-}
-
-api.fillRect = (col: number, row: number, width: number, height: number) => {
-  ui.fillRect(px.col.x(col), px.row.y(row), px.col.width(width), px.row.height(height))
-  return api
-}
-
-api.fillText = (text: string, col: number, row: number) => {
-  ui.fillText(text, px.col.x(col), px.row.y(row) + px.row.height(1))
-  return api
-}  
-
-api.getImageData = (col: number, row: number, width: number, height: number): ImageData => {
+api.getImageData = (col, row, width, height) => {
   return ui.getImageData(px.col.x(col, true), px.row.y(row, true), px.col.width(width, true), px.row.height(height, true))
 }
 
-api.putImageData = (data: ImageData, col: number, row: number, width: number, height: number) => {
+api.putImageData = (data, col, row, width, height) => {
   const safeHeight = row + height >= grid.rows ? grid.rows - row : height
   ui.putImageData(data, px.col.x(col, true), px.row.y(row, true), 0, 0, px.col.width(width, true), px.row.height(safeHeight, true))
   return api
 }
 
-api.moveCursor = () => {
-  cursorEl.style.transform = translate(px.col.x(cursor.col), px.row.y(cursor.row))
-  return api
-}
-
-api.setCursorShape = (type: CursorShape, size = 20) => {
+api.setCursorShape = (type, size = 20) => {
   if (type === CursorShape.block) merge(cursorEl.style, {
     'mix-blend-mode': 'overlay',
     background: cursor.color,
@@ -157,10 +133,9 @@ api.setCursorShape = (type: CursorShape, size = 20) => {
   return api
 }
 
-api.setCursorColor = (color: string) => {
-  cursor.color = color
-  cursorEl.style.background = color
-  return api
-}
+api.setCursorColor = c => (cursor.color = c, cursorEl.style.background = c, api)
+api.hideCursor = () => (merge(cursorEl.style, { display: 'none' }), api)
+api.showCursor = () => (merge(cursorEl.style, { display: 'block' }), api)
+api.moveCursor = () => (cursorEl.style.transform = translate(px.col.x(cursor.col), px.row.y(cursor.row)), api)
 
 export default api

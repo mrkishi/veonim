@@ -1,6 +1,8 @@
 import { call, notify } from '../neovim-client'
 import { cc } from '../../utils'
+import vim from '../canvasgrid'
 import * as uiInput from '../input'
+import cursor from './cursor'
 import * as glob from 'globby'
 import { basename, dirname } from 'path'
 import * as Fuse from 'fuse.js'
@@ -43,6 +45,8 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
     }))
 }
 
+const getpad = (el: Element, a: string) => parseFloat(window.getComputedStyle(el).getPropertyValue(a))
+
 let filesList: Fuse
 let filesRay: any[]
 
@@ -53,6 +57,12 @@ const state = {
 }
 
 let elRef: any
+
+const getElementPosition = (el: Element) => {
+  const { top, left } = el.getBoundingClientRect()
+  const pad = { y: getpad(elRef, 'padding-top'), x: getpad(elRef, 'padding-left') }
+  return { x: pad.x + left, y: pad.y + top }
+}
 
 const hidden = { display: 'none' }
 const container = {
@@ -85,14 +95,27 @@ const view = ({ val, files, vis }: any, { update, hide }: any) => h('#files', {
 const actions = {
   show: (s: any) => {
     uiInput.blur()
-    setTimeout(() => elRef && elRef.focus && elRef.focus())
+    vim.hideCursor()
+    setTimeout(() => {
+      elRef.focus()
+      const { x, y } = getElementPosition(elRef)
+      cursor.show().moveTo(x, y)
+    })
     return { ...s, vis: true, files: filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length) }
   },
   hide: (s: any) => {
     setImmediate(() => uiInput.focus())
+    vim.showCursor()
+    cursor.hide()
     return { ...s, val: '', vis: false }
   },
   update: (s: any, a: any, e: KeyboardEvent) => {
+    const { x, y } = getElementPosition(elRef)
+    const ww = cursor.width()
+    const diff = e.key.length === 1 ? 1 : -1
+    const left = x + 1 + (Math.max(elRef.selectionStart + diff, 0) * ww)
+    cursor.moveTo(left, y)
+
     if (e.key === 'Escape') return a.hide()
 
     if (e.key === 'Enter') {
