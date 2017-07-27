@@ -1,6 +1,6 @@
 import { pub } from '../pubsub'
 import { remote } from 'electron'
-import CanvasGrid, { CursorShape } from './canvasgrid'
+import ui, { CursorShape } from './canvasgrid'
 import * as uiInput from './input'
 import { merge, debounce } from '../utils'
 import { on, sub, notify, request } from './neovim-client'
@@ -47,7 +47,6 @@ const api = new Map<string, Function>()
 const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, fn), true) })
 const modes = new Map<string, Mode>()
 const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
-const ui = CanvasGrid({ canvasId: 'nvim', cursorId: 'cursor' })
 const vims = new Map<number, Vim>()
 
 action('vim-rename', () => {
@@ -152,9 +151,6 @@ r.highlight_set = (attrs: Attrs = { fg: '', bg: '' }) => {
 }
 
 r.scroll = (amount: number) => {
-  // docs dont specify what happens when scroll
-  // is called without 'set_scroll_region' first
-  // so... assume the full viewport?
   amount > 0
     ? moveRegionUp(amount, lastScrollRegion || defaultScrollRegion())
     : moveRegionDown(-amount, lastScrollRegion || defaultScrollRegion())
@@ -181,11 +177,6 @@ r.put = (m: any[]) => {
     }
   }
 }
-
-// TODO: make these friendly names?
-// TODO: read from vim config
-uiInput.remapModifier('C', 'D')
-uiInput.remapModifier('D', 'C')
 
 on.redraw((m: any[]) => {
   const count = m.length
@@ -232,6 +223,10 @@ on.config((c: Config) => {
   configLoaded()
 })
 
+// TODO: make these friendly names?
+// TODO: read from vim config
+uiInput.remapModifier('C', 'D')
+uiInput.remapModifier('D', 'C')
 uiInput.registerShortcut('s-c-f', () => pub('fullscreen'))
 uiInput.registerShortcut('s-c-q', () => remote.app.quit())
 
