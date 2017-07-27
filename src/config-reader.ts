@@ -1,36 +1,22 @@
 import { createReadStream } from 'fs'
-//import { promisify } from 'util'
-import { homedir } from 'os'
-import { watch } from 'chokidar'
 import { debounce } from './utils'
-
-//TODO: check through possible locations if file exists
-//const exists = promisify(stat)
-// TODO: check if file exists
-//const checks = await Promise.all(possibleLocations.map(p => exists(p)))
-//const file = checks.find(a => a)
-const $HOME = homedir()
-// /^(?:"|')(.*)(?:"|')$/.replace($1)
-
-// TODO: $XDG_CONFIG_HOME or $HOME/config
-const possibleLocations = [
-  `${$HOME}/.config/nvim/init.vim`,
-  `${$HOME}/.vimrc`,
-]
+import { watch } from 'chokidar'
+import { homedir } from 'os'
 
 type Config = Map<string, any>
 
-let userCallback: Function
+const $HOME = homedir()
+const base = process.env.XDG_CONFIG_HOME || (process.platform === 'win32'
+  ? `${$HOME}/AppData/Local`
+  : `${$HOME}/.config`)
 
-const loadConfig = () => {
-  // TODO: find first
-  const path = possibleLocations[0]
+const loadConfig = async (path: string, notify: Function) => {
   const file = createReadStream(path)
+  let buf = ''
 
-  // TODO: could be multiple buffer parts. use split module?
-  file.on('data', (e: Buffer) => {
-    const config = e
-      .toString()
+  file.on('data', (e: Buffer) => buf += e)
+  file.on('end', () => {
+    const config = buf
       .split('\n')
       .filter((line: string) => /^let g:vn_/.test(line))
       .reduce((map: Config, line: string) => {
@@ -40,15 +26,12 @@ const loadConfig = () => {
         return map
       }, new Map() as Config)
 
-    // TODO: should call on 'end' because of multiple parts
-    userCallback(config)
+      notify(config)
   })
 }
 
-
-export default (cb: (config: Map<string, any>) => void) => {
-  userCallback = cb
-  loadConfig()
-  // TODO: again, find the first existing one. should be at load time or dynamically on reload?
-  watch(possibleLocations[0]).on('change', debounce(loadConfig, 10))
+export default (location: string, cb: (config: Config) => void) => {
+  const path = `${base}/${location}`
+  loadConfig(path, cb).catch(e => console.log(e))
+  watch(path).on('change', debounce(() => loadConfig(path, cb), 10))
 }
