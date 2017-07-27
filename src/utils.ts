@@ -27,6 +27,7 @@ interface Types {
   set: TypeChecker
 }
 
+export const merge = Object.assign
 export const cc = (...a: any[]) => Promise.all(a)
 export const ID = (val = 0) => ({ next: () => (val++, val) })
 export const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
@@ -36,7 +37,7 @@ export const onProp = <T>(cb: (name: PropertyKey) => void): T => new Proxy({}, {
 export const onFnCall = <T>(cb: (name: string, args: any[]) => void): T => new Proxy({}, { get: (_, name) => (...args: any[]) => cb(name as string, args) }) as T
 export const pascalCase = (m: string) => m[0].toUpperCase() + m.slice(1)
 export const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
-export const merge = (target, source) => Object.entries(source).reduce((tar, [k, v]) => (v && Reflect.set(tar, k, v), tar), target)
+export const mergeValid = (target: any, source: any) => Object.entries(source).reduce((tar, [k, v]) => (v && Reflect.set(tar, k, v), tar), target)
 
 export function debounce (fn: Function, wait = 1) {
   let timeout: NodeJS.Timer

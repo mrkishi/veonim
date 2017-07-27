@@ -4,8 +4,10 @@ import * as uiInput from '../input'
 import * as glob from 'globby'
 import { basename, dirname } from 'path'
 import * as Fuse from 'fuse.js'
-const { h, app } = require('hyperapp')
+import huu from 'huu'
+const { h: hs, app } = require('hyperapp')
 const { cmd } = notify
+const h = huu(hs)
 
 const formatDir = (dir: string) => dir === '.' ? '' : `${dir}/`
 
@@ -57,9 +59,8 @@ export default (getElement: Function) => {
 
   let elRef: any
 
-  const view = ({ val, files }: any, { update, reset }: any) => h('div', null, [
-    h('input', { 
-      class: 'input',
+  const view = ({ val, files }: any, { update, reset }: any) => h('div', [
+    h('input.input', {
       oninsert: (e: any) => elRef = e,
       placeholder: 'files',
       value: val,
@@ -70,7 +71,7 @@ export default (getElement: Function) => {
         uiInput.focus()
       }
     }),
-    h('ul', null, files.slice(0, 10).map((f: any) => h('li', null, f.name))),
+    h('ul', files.slice(0, 10).map((f: any) => h('li', f.name))),
   ])
 
   const actions = {
