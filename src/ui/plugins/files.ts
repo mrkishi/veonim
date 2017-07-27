@@ -4,6 +4,7 @@ import vim from '../canvasgrid'
 import * as uiInput from '../input'
 import cursor from './cursor'
 import * as glob from 'globby'
+import { prop } from '../css'
 import { basename, dirname } from 'path'
 import * as Fuse from 'fuse.js'
 import huu from 'huu'
@@ -45,8 +46,6 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
     }))
 }
 
-const getpad = (el: Element, a: string) => parseFloat(window.getComputedStyle(el).getPropertyValue(a))
-
 let filesList: Fuse
 let filesRay: any[]
 
@@ -60,7 +59,7 @@ let elRef: any
 
 const getElementPosition = (el: Element) => {
   const { top, left } = el.getBoundingClientRect()
-  const pad = { y: getpad(elRef, 'padding-top'), x: getpad(elRef, 'padding-left') }
+  const pad = { y: prop(elRef, 'padding-top'), x: prop(elRef, 'padding-left') }
   return { x: pad.x + left, y: pad.y + top }
 }
 
