@@ -13,30 +13,35 @@
       }
 
       input {
+        width: 100%;
+        box-sizing: border-box;
         font-family: 'Roboto Mono';
         font-size: 12px;
         color: transparent;
         text-shadow: 0 0 0 #ddd;
         outline: none;
         border: none;
-        background: #444;
-        padding: 2px;
+        background: #222;
+        padding: 4px;
+        padding-left: 10px;
+        padding-right: 10px;
       }
 
       #cursor {
         position: absolute;
       }
 
-      .plugin {
+      #plugins {
         position: absolute;
-        display: none;
-        top: 50%;
-        left: 50%;
+        display: flex;
+        height: 100vh;
+        width: 100vw;
       }
     </style>
   </head>
   <body>
     <div id="cursor"></div>
+    <div id="plugins"></div>
     <canvas id="nvim"></canvas>
     <script type="text/javascript">require('./ui/galaxy')</script>
   </body>

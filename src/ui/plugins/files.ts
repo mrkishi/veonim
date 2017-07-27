@@ -32,7 +32,6 @@ const getProjectFiles = (cwd: string): Promise<string[]> => glob('**', {
 
 const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
   const [ currentFile, files ] = await cc(call.expand('%f'), getProjectFiles(cwd))
-  console.log('current', currentFile)
 
   return files
     .filter((m: string) => m !== currentFile)
@@ -44,104 +43,100 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
     }))
 }
 
-export default (getElement: Function) => {
-  console.log('loaded files')
+let filesList: Fuse
+let filesRay: any[]
 
-  const el = getElement('files')
+const state = {
+  val: '',
+  files: [],
+  vis: false
+}
 
-  let filesList: Fuse
-  let filesRay: any[]
+let elRef: any
 
-  const state = {
-    val: '',
-    files: []
-  }
+const hidden = { display: 'none' }
+const container = {
+  display: 'flex',
+  width: '100%',
+  'justify-content': 'center',
+  'align-items': 'flex-start',
+}
 
-  let elRef: any
+const pretty = {
+  width: '400px',
+  background: '#333',
+  'margin-top': '15%'
+}
 
-  const view = ({ val, files }: any, { update, reset }: any) => h('div', [
-    h('input.input', {
+const view = ({ val, files, vis }: any, { update, hide }: any) => h('#files', {
+  style: vis ? container : hidden
+}, [
+  h('div', { style: pretty }, [
+    h('input', {
       oninsert: (e: any) => elRef = e,
-      placeholder: 'files',
       value: val,
       onkeydown: update,
-      onblur: () => {
-        reset()
-        el.deactivate()
-        uiInput.focus()
-      }
+      onblur: hide,
     }),
     h('ul', files.slice(0, 10).map((f: any) => h('li', f.name))),
   ])
+])
 
-  const actions = {
-    reset: (s: any) => ({ ...s, val: '' }),
-    update: (s: any, a:any, e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        el.deactivate()
-        uiInput.focus()
-        return a.reset()
-      }
+const actions = {
+  show: (s: any) => {
+    uiInput.blur()
+    setTimeout(() => elRef && elRef.focus && elRef.focus())
+    return { ...s, vis: true, files: filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length) }
+  },
+  hide: (s: any) => {
+    setImmediate(() => uiInput.focus())
+    return { ...s, val: '', vis: false }
+  },
+  update: (s: any, a: any, e: KeyboardEvent) => {
+    if (e.key === 'Escape') return a.hide()
 
-      if (e.key === 'Enter') {
-        if (s.val) cmd(`e ${s.files[0].name}`)
-        console.log(s.files[0].name)
+    if (e.key === 'Enter') {
+      if (s.val) cmd(`e ${s.files[0].name}`)
+      return a.hide()
+    }
 
-        el.deactivate()
-        setImmediate(() => {
-          uiInput.focus()
-        })
-        return a.reset()
-      }
-
-      if (e.key === 'Backspace') return { ...s, val: s.val.slice(0, -1) }
-      if (e.metaKey && e.key === 'w') {
-        const val = s.val.split(' ').slice(0, -1).join(' ')
-        return { ...s, val, files: val 
-          ? s.files 
+    if (e.key === 'Backspace') return { ...s, val: s.val.slice(0, -1) }
+    if (e.metaKey && e.key === 'w') {
+      const val = s.val.split(' ').slice(0, -1).join(' ')
+      return {
+        ...s, val, files: val
+          ? s.files
           : filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length)
-        }
       }
+    }
 
-      const key = e.key.length > 1 ? '' : e.key
-      const val = s.val + key
-      if (val) {
-        const files = filesList.search(val)
-        return { ...s, val, files }
-      }
-      const files = filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length)
+    const key = e.key.length > 1 ? '' : e.key
+    const val = s.val + key
+    if (val) {
+      const files = filesList.search(val)
       return { ...s, val, files }
     }
+    const files = filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length)
+    return { ...s, val, files }
   }
+}
 
-  const events = {
-    hydrate: (s: any, _a: any, data: any) => {
-      console.log('hydrate', data)
-      return { ...s, files: data }
-    }
-  }
+const events = {
+  show: (_s: any, actions: any) => actions.show()
+}
 
-  app({ state, view, actions, events, root: el.el })
-  // const emit = app({ state, view, actions, events, root: el.el })
+const emit = app({ state, view, actions, events, root: document.getElementById('plugins') })
 
-  return async () => {
-    const cwd = await call.getcwd().catch(e => console.log(e))
-    if (!cwd) return console.log('wtf no cwd')
-    const files = await getFiles(cwd).catch(e => console.log(e))
+export default async () => {
+  const cwd = await call.getcwd().catch(e => console.log(e))
+  if (!cwd) return
+  const files = await getFiles(cwd).catch(e => console.log(e))
 
-    filesRay = files || []
-    filesList = new Fuse(files || [], { keys: ['name'] })
-    // other opts to consider:
-    // includeMatches (for highlighting)
-    // fine tune other params to be more like sequential search
+  filesRay = files || []
+  filesList = new Fuse(files || [], { keys: ['name'] })
+  // other opts to consider:
+  // includeMatches (for highlighting)
+  // fine tune other params to be more like sequential search
 
-    // use emit if we are going to get buffer/part updates of files list
-    // emit/set state will trigger ui re-render
-    // emit('hydrate', files)
-
-    uiInput.blur()
-    el.activate()
-
-    elRef && elRef.focus && elRef.focus()
-  }
+  emit('show')
 }
