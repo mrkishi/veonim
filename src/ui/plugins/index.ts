@@ -1,40 +1,27 @@
 import { sub } from '../neovim-client'
 const action = sub('action')
 
-// TODO: is this the best strategy for housing hyperapp element? seems like we could just control
-// position and visibility from within hyperapp state
-export const getElement = (name: string) => {
-  const exist = document.getElementById(name)
-  if (exist) document.body.removeChild(exist)
-
-  const fresh = document.createElement('div')
-  fresh.setAttribute('id', name)
-  fresh.setAttribute('class', 'plugin')
-  document.body.appendChild(fresh)
-
-  return {
-    el: fresh,
-    activate: () => fresh.style.display = 'block',
-    deactivate: () => fresh.style.display = 'none'
-  }
-}
-
-
 import files from './files'
-
-action('files', files(getElement))
+action('files', files)
 
 if (process.env.VEONIM_DEV) {
-  const { watch } = require('chokidar')
-  const reload = require('require-reload')(require)
-
   const plugins = [
     'files'
   ]
 
+  const cleanup = (name: string) => {
+    const el = document.getElementById(name)
+    if (!el) return console.log('did not find', name)
+    el.parentNode && el.parentNode.removeChild(el)
+  }
+
+  const { watch } = require('chokidar')
+  const reload = require('require-reload')(require)
+
   plugins.forEach(p => watch(`${__dirname}/${p}.js`).on('change', () => {
+    cleanup(p)
     const mod = reload(`./${p}`).default
     console.log(`reloading ${p}`)
-    action(p, mod(getElement))
+    action(p, mod)
   }))
 }
