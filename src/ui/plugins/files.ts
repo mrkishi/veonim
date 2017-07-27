@@ -1,11 +1,12 @@
-import { call } from '../neovim-client'
+import { call, notify } from '../neovim-client'
+import { cc } from '../../utils'
 import * as uiInput from '../input'
 import * as glob from 'globby'
 import { basename, dirname } from 'path'
+import * as Fuse from 'fuse.js'
 const { h, app } = require('hyperapp')
+const { cmd } = notify
 
-// TODO: utils
-const cc = (...a: any[]) => Promise.all(a)
 const formatDir = (dir: string) => dir === '.' ? '' : `${dir}/`
 
 interface SearchEntry {
@@ -29,6 +30,7 @@ const getProjectFiles = (cwd: string): Promise<string[]> => glob('**', {
 
 const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
   const [ currentFile, files ] = await cc(call.expand('%f'), getProjectFiles(cwd))
+  console.log('current', currentFile)
 
   return files
     .filter((m: string) => m !== currentFile)
@@ -40,15 +42,13 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
     }))
 }
 
-
-  //const file = await search.forSelection()
-  // if (!file) return
-  // cmd(`e ${file}`)
-
 export default (getElement: Function) => {
   console.log('loaded files')
 
   const el = getElement('files')
+
+  let filesList: Fuse
+  let filesRay: any[]
 
   const state = {
     val: '',
@@ -57,10 +57,9 @@ export default (getElement: Function) => {
 
   let elRef: any
 
-  const view = ({ val }: any, { update, reset }: any) => h('div', null, [
-    h('span', null, val),
-    h('p', null, 'files'),
+  const view = ({ val, files }: any, { update, reset }: any) => h('div', null, [
     h('input', { 
+      class: 'input',
       oninsert: (e: any) => elRef = e,
       placeholder: 'files',
       value: val,
@@ -70,30 +69,47 @@ export default (getElement: Function) => {
         el.deactivate()
         uiInput.focus()
       }
-    })
+    }),
+    h('ul', null, files.slice(0, 10).map((f: any) => h('li', null, f.name))),
   ])
 
   const actions = {
     reset: (s: any) => ({ ...s, val: '' }),
-    update: (s: any, _a:any, e: KeyboardEvent) => {
+    update: (s: any, a:any, e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         el.deactivate()
         uiInput.focus()
-        return
+        return a.reset()
       }
 
       if (e.key === 'Enter') {
-        console.log('open:', s.val)
+        if (s.val) cmd(`e ${s.files[0].name}`)
+        console.log(s.files[0].name)
+
+        el.deactivate()
+        setImmediate(() => {
+          uiInput.focus()
+        })
+        return a.reset()
       }
 
       if (e.key === 'Backspace') return { ...s, val: s.val.slice(0, -1) }
-      if (e.metaKey && e.key === 'w') return {
-        ...s, val: s.val.split(' ').slice(0, -1).join(' ')
+      if (e.metaKey && e.key === 'w') {
+        const val = s.val.split(' ').slice(0, -1).join(' ')
+        return { ...s, val, files: val 
+          ? s.files 
+          : filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length)
+        }
       }
 
       const key = e.key.length > 1 ? '' : e.key
       const val = s.val + key
-      return { ...s, val }
+      if (val) {
+        const files = filesList.search(val)
+        return { ...s, val, files }
+      }
+      const files = filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length)
+      return { ...s, val, files }
     }
   }
 
@@ -104,19 +120,20 @@ export default (getElement: Function) => {
     }
   }
 
-  const emit = app({ state, view, actions, events, root: el.el })
+  app({ state, view, actions, events, root: el.el })
+  // const emit = app({ state, view, actions, events, root: el.el })
 
   return async () => {
     const cwd = await call.getcwd().catch(e => console.log(e))
     if (!cwd) return console.log('wtf no cwd')
     const files = await getFiles(cwd).catch(e => console.log(e))
 
-    console.log('files', files)
+    filesRay = files || []
+    filesList = new Fuse(files || [], { keys: ['name'] })
 
-    // if getFiles is a one-time operation (i.e. not buffer results) then should store
-    // result in local scope variable instead of calling emit/set state as that will cause
-    // the UI to be re-rendered
-    emit('hydrate', files)
+    // use emit if we are going to get buffer/part updates of files list
+    // emit/set state will trigger ui re-render
+    // emit('hydrate', files)
 
     uiInput.blur()
     el.activate()

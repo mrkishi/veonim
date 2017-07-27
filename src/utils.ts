@@ -30,6 +30,7 @@ interface Types {
   set: TypeChecker
 }
 
+export const cc = (...a: any[]) => Promise.all(a)
 export const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
 
 export const type = (m: any) => {
