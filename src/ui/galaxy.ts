@@ -212,7 +212,25 @@ on.exit((id: number) => {
 
 let configLoaded: Function
 const initalConfig = new Promise(done => configLoaded = done)
-on.config((c: Config) => configLoaded(c))
+on.config((c: Config) => {
+  ui.setFont({
+    face: c.get('font'),
+    size: c.get('font_size')-0,
+    lineHeight: c.get('line_height')-0
+  })
+
+  const margins = c.get('margins')-0
+  if (margins) ui.setMargins({ left: margins, right: margins, top: margins, bottom: margins })
+
+  ui.setMargins({
+    left: c.get('margin_left')-0,
+    right: c.get('margin_right')-0,
+    top: c.get('margin_top')-0,
+    bottom: c.get('margin_bottom')-0
+  })
+
+  configLoaded()
+})
 
 uiInput.registerShortcut('s-c-f', () => pub('fullscreen'))
 uiInput.registerShortcut('s-c-q', () => remote.app.quit())
@@ -223,19 +241,9 @@ window.addEventListener('resize', debounce(() => {
 }, 500))
 
 const main = async () => {
-  const config = await initalConfig as Config
-
-  ui
-    .setFont({
-      face: config.get('font'),
-      size: config.get('font_size'),
-      lineHeight: config.get('line_height')
-    })
-    .setMargins({ left: 6, right: 6, top: 2, bottom: 2 })
-    .setCursorShape(CursorShape.block)
-    .resize(window.innerHeight, window.innerWidth)
-
   const vimId = await create()
+  await initalConfig
+  ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
   uiInput.focus()
   resize(ui.cols, ui.rows)
   attach(vimId)
