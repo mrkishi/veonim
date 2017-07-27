@@ -1,9 +1,6 @@
 const DEVMODE = process.env.VEONIM_DEV
 import { createWriteStream } from 'fs'
 
-export const noop = () => undefined
-export const merge = Object.assign
-
 const logfile = createWriteStream('logs')
 const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
 
@@ -53,11 +50,7 @@ export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string) => (
   theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
 }))
 
-export const mergeValid = (target: any, source: any) => Object.keys(source).reduce((tar, key) => {
-  const val = Reflect.get(source, key)
-  if (val !== null && val !== undefined && val !== '') Reflect.set(tar, key, val)
-  return tar
-}, target)
+export const merge = (target, source) => Object.entries(source).reduce((tar, [k, v]) => (v && Reflect.set(tar, k, v), tar), target)
 
 export function debounce (fn: Function, wait = 1) {
   let timeout: NodeJS.Timer
