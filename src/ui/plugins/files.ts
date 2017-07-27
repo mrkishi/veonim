@@ -130,6 +130,9 @@ export default (getElement: Function) => {
 
     filesRay = files || []
     filesList = new Fuse(files || [], { keys: ['name'] })
+    // other opts to consider:
+    // includeMatches (for highlighting)
+    // fine tune other params to be more like sequential search
 
     // use emit if we are going to get buffer/part updates of files list
     // emit/set state will trigger ui re-render
