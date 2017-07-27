@@ -1,9 +1,11 @@
-import { req, api, onRedraw, onExit, subscribe, attachToVim, switchToVim, newVim, resize } from './master-control'
+import { req, api, onRedraw, onConfig, onExit, subscribe, attachToVim, switchToVim, newVim, resize } from './master-control'
 import { Watchers } from './utils'
+import { ConfigCallback } from './config-reader'
 
 type GenericCallback = (...args: any[]) => void
 
 export interface NeovimEvents {
+  config(fn: ConfigCallback): void,
   redraw(fn: (instructions: any[]) => void): void,
   exit(fn: (id: number, code: number) => void): void
 }
@@ -57,6 +59,7 @@ a.getColor = async id => {
 }
 
 a.on = {
+  config: fn => onConfig(fn),
   redraw: fn => onRedraw(fn),
   exit: fn => onExit(fn)
 }

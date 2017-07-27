@@ -3,14 +3,15 @@ import { debounce } from './utils'
 import { watch } from 'chokidar'
 import { homedir } from 'os'
 
-type Config = Map<string, any>
+export type Config = Map<string, any>
+export type ConfigCallback = (config: Config) => void
 
 const $HOME = homedir()
 const base = process.env.XDG_CONFIG_HOME || (process.platform === 'win32'
   ? `${$HOME}/AppData/Local`
   : `${$HOME}/.config`)
 
-const loadConfig = async (path: string, notify: Function) => {
+const loadConfig = async (path: string, notify: ConfigCallback) => {
   const file = createReadStream(path)
   let buf = ''
 
@@ -24,14 +25,14 @@ const loadConfig = async (path: string, notify: Function) => {
         const cleanVal = dirtyVal.replace(/^(?:"|')(.*)(?:"|')$/, '$1')
         map.set(key, cleanVal)
         return map
-      }, new Map() as Config)
+      }, new Map<string, any>())
 
       notify(config)
   })
 }
 
-export default (location: string, cb: (config: Config) => void) => {
+export default (location: string, cb: ConfigCallback, handleErr: (err: string) => void) => {
   const path = `${base}/${location}`
-  loadConfig(path, cb).catch(e => console.log(e))
-  watch(path).on('change', debounce(() => loadConfig(path, cb), 10))
+  loadConfig(path, cb).catch(e => handleErr(e))
+  watch(path).on('change', debounce(() => loadConfig(path, cb).catch(e => handleErr(e)), 10))
 }

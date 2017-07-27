@@ -6,5 +6,6 @@ onmessage = onRecv
 publishApi(neovim)
 
 const pub = Notifier()
+neovim.on.config(c => pub.config(c))
 neovim.on.redraw(m => pub.redraw(m))
 neovim.on.exit((id, code) => pub.exit(id, code))

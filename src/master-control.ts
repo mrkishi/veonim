@@ -1,6 +1,7 @@
 import { ID, dev, log, Watchers, onFnCall, snakeCase, merge } from './utils'
 import { spawn, ChildProcess } from 'child_process'
 import { encoder, decoder } from './transport'
+import configReader, { ConfigCallback } from './config-reader'
 import { Api } from './api'
 
 interface VimInstance { id: number, proc: ChildProcess, attached: boolean }
@@ -129,6 +130,7 @@ export const on = (event: string, fn: (data: any) => void) => watchers.add(event
 export const onRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => { onRedrawFn = fn }
+export const onConfig = (fn: ConfigCallback) => configReader('nvim/init.vim', fn, e => console.log(e))
 
 export const resize = (width: number, height: number) => {
   merge(clientSize, { width, height })

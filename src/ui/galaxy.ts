@@ -4,6 +4,7 @@ import CanvasGrid, { CursorShape } from './canvasgrid'
 import * as uiInput from './input'
 import { merge, debounce } from '../utils'
 import { on, sub, notify, request } from './neovim-client'
+import { Config } from '../config-reader'
 import './plugins'
 
 interface ScrollRegion { top: number, bottom: number, left: number, right: number }
@@ -41,7 +42,7 @@ let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
 const action = sub('action')
 const { resize, attach, switchTo } = notify
-const { create, getColor, getVar } = request
+const { create, getColor } = request
 const api = new Map<string, Function>()
 const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, fn), true) })
 const modes = new Map<string, Mode>()
@@ -209,6 +210,10 @@ on.exit((id: number) => {
   switchVim(next)
 })
 
+let configLoaded: Function
+const initalConfig = new Promise(done => configLoaded = done)
+on.config((c: Config) => configLoaded(c))
+
 uiInput.registerShortcut('s-c-f', () => pub('fullscreen'))
 uiInput.registerShortcut('s-c-q', () => remote.app.quit())
 
@@ -218,23 +223,19 @@ window.addEventListener('resize', debounce(() => {
 }, 500))
 
 const main = async () => {
-  const vimId = await create()
-
-  console.time('config')
-  // TODO: find better way to load configs
-  const [ face, size, lineHeight ] = await Promise.all([
-    getVar('vn_font'),
-    getVar('vn_font_size'),
-    getVar('vn_line_height')
-  ]).catch(e => e)
-  console.timeEnd('config')
+  const config = await initalConfig as Config
 
   ui
-    .setFont({ face, size, lineHeight })
+    .setFont({
+      face: config.get('font'),
+      size: config.get('font_size'),
+      lineHeight: config.get('line_height')
+    })
     .setMargins({ left: 6, right: 6, top: 2, bottom: 2 })
     .setCursorShape(CursorShape.block)
     .resize(window.innerHeight, window.innerWidth)
 
+  const vimId = await create()
   uiInput.focus()
   resize(ui.cols, ui.rows)
   attach(vimId)
