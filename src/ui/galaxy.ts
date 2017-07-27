@@ -61,23 +61,23 @@ action('vim-switch', () => {
   console.log('switch to vim')
 })
 // TODO: separate module?
-// const createVim = async (name: string) => {
-//   const id = await create()
-//   attach(id)
-//   switchTo(id)
-//   vims.set(id, { name, active: true })
-// }
+export const createVim = async (name: string) => {
+  const id = await create()
+  attach(id)
+  switchTo(id)
+  vims.set(id, { name, active: true })
+}
 
-const switchVim = async (id: number) => {
+export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
   switchTo(id)
   vims.get(id)!.active = true
 }
 
-// const renameVim = (id: number, newName: string) => {
-//   if (!vims.has(id)) return
-//   vims.get(id)!.name = newName
-// }
+export const renameVim = (id: number, newName: string) => {
+  if (!vims.has(id)) return
+  vims.get(id)!.name = newName
+}
 
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 

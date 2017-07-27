@@ -8,6 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf build",
     "typescript": "tsc -p tsconfig.json && tsc -p tsconfig.workers.json",
+    "watch": "tsc -p tsconfig.json --watch",
     "build": "npm run typescript && npm run fixexp && cp src/index.html build/index.html",
     "rebuild": "npm run clean && npm run build",
     "r": "npm run rebuild && npm start",
@@ -25,15 +26,19 @@
   },
   "homepage": "https://github.com/deomitrus/veonim#readme",
   "dependencies": {
+    "chokidar": "1.7.0",
+    "fuse.js": "3.0.5",
     "globby": "6.1.0",
     "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26"
   },
   "devDependencies": {
+    "@types/chokidar": "1.7.1",
     "@types/globby": "0.6.0",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "8.0.12",
     "electron": "1.6.11",
+    "require-reload": "0.2.2",
     "typescript": "2.4.2"
   }
 }

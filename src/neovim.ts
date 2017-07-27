@@ -1,6 +1,5 @@
 import { req, api, onRedraw, onExit, subscribe, attachToVim, switchToVim, newVim, resize } from './master-control'
-import { Watchers, onFnCall } from './utils'
-import { Functions } from './functions'
+import { Watchers } from './utils'
 
 type GenericCallback = (...args: any[]) => void
 
@@ -18,7 +17,7 @@ export interface Neovim {
   action(event: string, cb: GenericCallback): void,
   getColor(id: number): Promise<{ fg: number, bg: number }>,
   subscribe(event: string, cb: GenericCallback): void,
-  call: Functions,
+  call(name: string, args: any[]): any,
   switchTo(id: number): void,
   create(): Promise<number>,
   attach(id: number): void,
@@ -37,7 +36,7 @@ a.ex = m => req.commandOutput(m)
 a.expr = m => req.eval(m)
 a.action = (e, cb) => watchers.add(e, cb)
 a.subscribe = (e, cb) => subscribe(e, cb)
-a.call = onFnCall((name: string, args: any[] = []) => req.callFunction(name, args))
+a.call = (name, args) => req.callFunction(name, args)
 a.switchTo = id => switchToVim(id),
 a.create = () => Promise.resolve(newVim()),
 a.attach = id => attachToVim(id),
@@ -50,8 +49,8 @@ a.getVar = async key => {
 
 a.getColor = async id => {
   const [ fg = 0, bg = 0 ] = await Promise.all([
-    a.call.synIDattr(id, 'fg#'),
-    a.call.synIDattr(id, 'bg#')
+    a.call('synIDattr', [ id, 'fg#' ]),
+    a.call('synIDattr', [ id, 'bg#' ])
   ]).catch(e => e)
 
   return { fg, bg }

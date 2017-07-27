@@ -6,7 +6,7 @@ export interface VimBuffer {
 
 export interface Functions {
   Buffers(): VimBuffer[],
-  getcwd(): string,
+  getcwd(): Promise<string>,
   expand(type: string): string,
-  synIDattr(id: number, type: string): number
+  synIDattr(id: number, type: string): Promise<number>
 }
