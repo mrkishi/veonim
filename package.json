@@ -29,7 +29,7 @@
     "chokidar": "1.7.0",
     "fuse.js": "3.0.5",
     "globby": "6.1.0",
-    "huu": "1.0.2",
+    "huu": "1.1.2",
     "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26"
   },
