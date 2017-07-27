@@ -21,6 +21,8 @@ interface SearchEntry {
   dir: string
 }
 
+// TODO: separate process to not block ui thread
+// investigate other options? (rg, ag, find) if many files, we want to stream as found
 const getProjectFiles = (cwd: string): Promise<string[]> => glob('**', {
   cwd,
   nosort: true,
@@ -48,13 +50,6 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
 
 let filesList: Fuse
 let filesRay: any[]
-
-const state = {
-  val: '',
-  files: [],
-  vis: false
-}
-
 let elRef: any
 
 const getElementPosition = (el: Element) => {
@@ -62,6 +57,8 @@ const getElementPosition = (el: Element) => {
   const pad = { y: prop(elRef, 'padding-top'), x: prop(elRef, 'padding-left') }
   return { x: pad.x + left, y: pad.y + top }
 }
+
+const state = { val: '', files: [], vis: false, cw: 0 }
 
 const hidden = { display: 'none' }
 const container = {
@@ -92,13 +89,15 @@ const view = ({ val, files, vis }: any, { update, hide }: any) => h('#files', {
 ])
 
 const actions = {
-  show: (s: any) => {
+  setCursorWidth: (s: any, _a: any, cw: number) => ({ ...s, cw }),
+  show: (s: any, actions: any) => {
     uiInput.blur()
     vim.hideCursor()
     setTimeout(() => {
       elRef.focus()
       const { x, y } = getElementPosition(elRef)
       cursor.show().moveTo(x, y)
+      actions.setCursorWidth(cursor.width())
     })
     return { ...s, vis: true, files: filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length) }
   },
@@ -110,8 +109,6 @@ const actions = {
   },
   update: (s: any, a: any, e: KeyboardEvent) => {
     const { x, y } = getElementPosition(elRef)
-    // TODO: this shouldn't change on every stroke. cache it on show only
-    const ww = cursor.width()
 
     if (e.key === 'Escape') return a.hide()
 
@@ -122,13 +119,13 @@ const actions = {
 
     if (e.key === 'Backspace') {
       const val = s.val.slice(0, -1)
-      cursor.moveTo(x + val.length * ww, y)
+      cursor.moveTo(x + val.length * s.cw, y)
       return { ...s, val }
     }
 
     if (e.metaKey && e.key === 'w') {
       const val = s.val.split(' ').slice(0, -1).join(' ')
-      cursor.moveTo(x + val.length * ww, y)
+      cursor.moveTo(x + val.length * s.cw, y)
       return {
         ...s, val, files: val
           ? s.files
@@ -138,7 +135,7 @@ const actions = {
 
     const key = e.key.length > 1 ? '' : e.key
     const val = s.val + key
-    cursor.moveTo(x + val.length * ww, y)
+    cursor.moveTo(x + val.length * s.cw, y)
 
     if (val) {
       const files = filesList.search(val)
