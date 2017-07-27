@@ -110,10 +110,8 @@ const actions = {
   },
   update: (s: any, a: any, e: KeyboardEvent) => {
     const { x, y } = getElementPosition(elRef)
+    // TODO: this shouldn't change on every stroke. cache it on show only
     const ww = cursor.width()
-    const diff = e.key.length === 1 ? 1 : -1
-    const left = x + 1 + (Math.max(elRef.selectionStart + diff, 0) * ww)
-    cursor.moveTo(left, y)
 
     if (e.key === 'Escape') return a.hide()
 
@@ -122,9 +120,15 @@ const actions = {
       return a.hide()
     }
 
-    if (e.key === 'Backspace') return { ...s, val: s.val.slice(0, -1) }
+    if (e.key === 'Backspace') {
+      const val = s.val.slice(0, -1)
+      cursor.moveTo(x + val.length * ww, y)
+      return { ...s, val }
+    }
+
     if (e.metaKey && e.key === 'w') {
       const val = s.val.split(' ').slice(0, -1).join(' ')
+      cursor.moveTo(x + val.length * ww, y)
       return {
         ...s, val, files: val
           ? s.files
@@ -134,6 +138,8 @@ const actions = {
 
     const key = e.key.length > 1 ? '' : e.key
     const val = s.val + key
+    cursor.moveTo(x + val.length * ww, y)
+
     if (val) {
       const files = filesList.search(val)
       return { ...s, val, files }
