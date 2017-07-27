@@ -4,27 +4,30 @@
     <title>veonim</title>
     <style>
       body {
+        --font: 'Courier New';
+        --font-size: 12;
+        --line-height: 1.5;
+        font-family: var(--font);
+        font-size: calc(var(--font-size) * 1px);
         margin: 0;
         padding: 0;
         background: #222;
         color: #ddd;
-        font-size: 12px;
-        font-family: 'Roboto Mono';
       }
 
       input {
+        font-family: var(--font);
+        font-size: calc(var(--font-size) * 1px);
         width: 100%;
         box-sizing: border-box;
-        font-family: 'Roboto Mono';
-        font-size: 12px;
         color: transparent;
         text-shadow: 0 0 0 #ddd;
         outline: none;
         border: none;
         background: #222;
-        padding: 4px;
-        padding-left: 10px;
-        padding-right: 10px;
+        line-height: var(--line-height);
+        padding-left: 8px;
+        padding-right: 8px;
       }
 
       #cursor {

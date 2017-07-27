@@ -1,4 +1,4 @@
-import { gradient, translate } from './css'
+import { gradient, translate, setVar } from './css'
 import { merge, mergeValid } from '../utils'
 
 interface Grid { rows: number, cols: number }
@@ -84,6 +84,9 @@ api.resize = (pixelHeight: number, pixelWidth: number) => {
 
 api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeight }) => {
   ui.font = `${size}px ${face}`
+  setVar('font', face)
+  setVar('font-size', size)
+  setVar('line-height', lineHeight)
   merge(font, { size, face, lineHeight })
   merge(cell, { width: ui.measureText('m').width, height: Math.ceil(size * lineHeight) })
   return api
