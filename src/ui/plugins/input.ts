@@ -4,13 +4,15 @@ const h = huu(hyperscript)
 
 type Props = {
   val: string,
-  focus: boolean,
-  onchange: (val: string) => void,
-  onselect: (val: string) => void,
-  oncancel: () => void,
+  focus?: boolean,
+  onchange?: (val: string) => void,
+  onselect?: (val: string) => void,
+  oncancel?: () => void,
 }
 
-export default ({ val, focus: shouldFocus, onchange, oncancel, onselect }: Props) => h('.gui-input', [
+const nop = function () {}
+
+export default ({ val, focus: shouldFocus = false, onchange = nop, oncancel = nop, onselect = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
