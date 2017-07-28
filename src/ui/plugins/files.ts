@@ -94,6 +94,7 @@ const actions = {
   },
 
   select: (s: any, a: any, val: string) => {
+    // TODO: why it not select on initial list?
     if (val) cmd(`e ${s.files[s.ix].name}`)
     a.cancel()
   },

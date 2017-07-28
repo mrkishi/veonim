@@ -35,10 +35,7 @@ const createNewVimInstance = (): number => {
   proc.on('error', e => log `vim ${id} err ${e}`)
   proc.stdout.on('error', e => log `vim ${id} stdout err ${(JSON.stringify(e))}`)
   proc.stdin.on('error', e => log `vim ${id} stdin err ${(JSON.stringify(e))}`)
-  proc.on('exit', c => {
-    dev `vim ${id} exited ${c}`
-    onExitFn(id, c)
-  })
+  proc.on('exit', c => onExitFn(id, c))
 
   return id
 }
