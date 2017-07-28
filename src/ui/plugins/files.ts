@@ -48,7 +48,7 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
 }
 
 const files: { raw: any[], fuse: Fuse } = { raw: [], fuse: new Fuse([], {}) }
-const state = { val: '', files: [], vis: false, }
+const state = { val: '', files: [], vis: false, ix: 0 }
 
 const hidden = { display: 'none' }
 const container = {
@@ -64,61 +64,19 @@ const pretty = {
   'margin-top': '15%'
 }
 
-const segreateParts = (text: string, slices: number[][]) => slices.length ? slices.reduce((res, [s,e], ix, arr) => {
-  const prevEnd = (arr[ix - 1] || [])[1] + 1 || 0
-  const l = text.slice(prevEnd, s)
-  const u = text.slice(s, e + 1)
-  res.push({ str: l, match: false })
-  res.push({ str: u, match: true })
-  if (ix === arr.length - 1) res.push({ str: text.slice(e + 1), match: false })
-  return res
-}, [] as any[]) : [{ str: text, match: false }]
-
-const colorMatches = (matches: any[], dir: string, file: string) => {
-  const fstart = dir.length
-  const fend = dir.length + file.length - 1
-
-  const fileHi = matches
-    .filter((m: any[]) => m[0] >= fstart && m[1] <= fend)
-    .map((m: any[]) => [ m[0] - fstart, m[1] - fend ])
-
-  const dirHi = matches.filter((m: any[]) => m[0] <= fstart && m[1] <= fstart)
-
-  const dirSpans = segreateParts(dir, dirHi).map(({ str, match }) => h('span', {
-    style: { color: match ? '#b7a126' : '#666' }
-  }, str))
-
-  const fileSpans = segreateParts(file, fileHi).map(({ str, match }) => h('span', {
-    style: { color: match ? '#b7a126' : '#999' }
-  }, str))
-
-  return [...dirSpans, ...fileSpans]
-}
-
-const listResults = (f: any) => f.matches
-  ? colorMatches(f.matches[0].indices, f.item.dir, f.item.base)
-  : [
-    h('span', { style: { color: '#666' } }, f.dir),
-    h('span', f.base)
-  ]
-
-const view = ({ val, files, vis }: any, { change, select }: any) => h('#files', {
+const view = ({ val, files, vis, ix }: any, { change, cancel, select, next, prev }: any) => h('#files', {
   style: vis ? container : hidden
 }, [
   h('div', { style: pretty }, [
-    TermInput({
-      val,
-      focus: true,
-      onchange: change,
-      // oncancel: cancel,
-      onselect: select,
-    }),
+    TermInput({ focus: true, val, next, prev, change, cancel, select }),
 
     h('div', files.map((f: any, key: number) => h('.row', {
       key,
-      // TODO: need to keep track of selected item
-      css: { active: key === 0 },
-    }, listResults(f)))),
+      css: { active: key === ix },
+    }, [
+      h('span', { style: { color: '#666' } }, f.dir),
+      h('span', f.base)
+    ]))),
   ])
 ])
 
@@ -132,11 +90,11 @@ const actions = {
   cancel: (s: any) => {
     setImmediate(() => viminput.focus())
     vim.showCursor()
-    return { ...s, val: '', vis: false }
+    return { ...s, val: '', vis: false, ix: 0 }
   },
 
   select: (s: any, a: any, val: string) => {
-    if (val) cmd(`e ${s.files[0].name}`)
+    if (val) cmd(`e ${s.files[s.ix].name}`)
     a.cancel()
   },
 
@@ -144,6 +102,9 @@ const actions = {
     ? files.fuse.search(val).slice(0, 10)
     : files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length
   )}),
+
+  next: (s: any) => ({ ...s, ix: s.ix + 1 > 9 ? 0 : s.ix + 1 }),
+  prev: (s: any) => ({ ...s, ix: s.ix - 1 < 0 ? 9 : s.ix - 1 }),
 }
 
 const events = {
@@ -158,7 +119,7 @@ export default async () => {
   const fileResults = await getFiles(cwd).catch(e => console.log(e))
 
   files.raw = fileResults || []
-  files.fuse = new Fuse(fileResults || [], { keys: ['name'], includeMatches: true, minMatchCharLength: 2 })
+  files.fuse = new Fuse(fileResults || [], { keys: ['name'] })
 
   emit('show')
 }

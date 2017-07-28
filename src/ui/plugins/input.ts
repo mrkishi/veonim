@@ -5,14 +5,16 @@ const h = huu(hyperscript)
 type Props = {
   val: string,
   focus?: boolean,
-  onchange?: (val: string) => void,
-  onselect?: (val: string) => void,
-  oncancel?: () => void,
+  change?: (val: string) => void,
+  select?: (val: string) => void,
+  cancel?: () => void,
+  next?: () => void,
+  prev?: () => void,
 }
 
 const nop = function () {}
 
-export default ({ val, focus: shouldFocus = false, onchange = nop, oncancel = nop, onselect = nop }: Props) => h('.gui-input', [
+export default ({ val, focus: shouldFocus = false, change = nop, cancel = nop, select = nop, next = nop, prev = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -37,14 +39,16 @@ export default ({ val, focus: shouldFocus = false, onchange = nop, oncancel = no
 
   h('input', {
     value: val,
-    onblur: () => oncancel(),
+    onblur: () => cancel(),
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeydown: (e: KeyboardEvent) => {
-      if (e.key === 'Escape') return oncancel()
-      if (e.key === 'Enter') return onselect(val)
-      if (e.key === 'Backspace') return onchange(val.slice(0, -1))
-      if (e.metaKey && e.key === 'w') return onchange(val.split(' ').slice(0, -1).join(' '))
-      return onchange(val + (e.key.length > 1 ? '' : e.key))
+      if (e.key === 'Escape') return cancel()
+      if (e.key === 'Enter') return select(val)
+      if (e.key === 'Backspace') return change(val.slice(0, -1))
+      if (e.metaKey && e.key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
+      if (e.metaKey && (e.key === 'j' || e.key === 'n')) return next()
+      if (e.metaKey && (e.key === 'k' || e.key === 'p')) return prev()
+      return change(val + (e.key.length > 1 ? '' : e.key))
     }
   }),
 ])
