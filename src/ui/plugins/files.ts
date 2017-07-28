@@ -76,7 +76,14 @@ const view = ({ val, files, vis }: any, { change, cancel, select }: any) => h('#
       onselect: select,
     }),
 
-    h('ul', files.slice(0, 10).map((f: any) => h('li', f.name))),
+    h('div', files.map((f: SearchEntry, key: number) => h('.row', {
+      key,
+      // TODO: need to keep track of selected item
+      css: { active: key === 0 },
+    }, [
+      h('span', { style: { color: '#666' } }, f.dir),
+      h('span', f.base),
+    ]))),
   ])
 ])
 
@@ -98,10 +105,20 @@ const actions = {
     a.cancel()
   },
 
-  change: (s: any, _a: any, val: string) => ({ ...s, val, files: val
-    ? files.fuse.search(val).slice(0, 10)
-    : files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length
-  )}),
+  // change: (s: any, _a: any, val: string) => ({ ...s, val, files: val
+  //   ? files.fuse.search(val).slice(0, 10)
+  //   : files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length
+  // )}),
+
+  change: (s: any, _a: any, val: string) => {
+    const res = files.fuse.search(val)
+    console.log(res)
+    
+    return { ...s, val, files: val 
+      ? files.fuse.search(val).slice(0, 10)
+      : files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length) 
+    }
+  }
 }
 
 const events = {
@@ -117,6 +134,7 @@ export default async () => {
 
   files.raw = fileResults || []
   files.fuse = new Fuse(fileResults || [], { keys: ['name'] })
+  // files.fuse = new Fuse(fileResults || [], { keys: ['name'], includeMatches: true })
   // other opts to consider:
   // includeMatches (for highlighting)
   // fine tune other params to be more like sequential search
