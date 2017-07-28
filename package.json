@@ -27,13 +27,14 @@
   "homepage": "https://github.com/deomitrus/veonim#readme",
   "dependencies": {
     "chokidar": "1.7.0",
-    "fuse.js": "3.0.5",
+    "fuzzaldrin-plus": "0.4.1",
     "globby": "6.1.0",
     "huu": "1.1.2",
     "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26"
   },
   "devDependencies": {
+    "@types/fuzzaldrin-plus": "0.0.1",
     "@types/chokidar": "1.7.1",
     "@types/globby": "0.6.0",
     "@types/msgpack-lite": "0.1.4",

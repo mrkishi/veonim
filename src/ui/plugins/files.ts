@@ -4,9 +4,9 @@ import vim from '../canvasgrid'
 import * as viminput from '../input'
 import * as glob from 'globby'
 import { basename, dirname } from 'path'
-import * as Fuse from 'fuse.js'
 import huu from 'huu'
 import TermInput from './input'
+import { filter } from 'fuzzaldrin-plus'
 const { h: hs, app } = require('hyperapp')
 const { cmd } = notify
 const h = huu(hs)
@@ -22,6 +22,7 @@ interface SearchEntry {
 
 // TODO: separate process to not block ui thread
 // investigate other options? (rg, ag, find) if many files, we want to stream as found
+// TODO: respect .gitignore?
 const getProjectFiles = (cwd: string): Promise<string[]> => glob('**', {
   cwd,
   nosort: true,
@@ -47,7 +48,8 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
     }))
 }
 
-const files: { raw: any[], fuse: Fuse } = { raw: [], fuse: new Fuse([], {}) }
+type FuzzyFind = (query: string) => any[]
+const files: { raw: any[], fuzzy: FuzzyFind } = { fuzzy: () => [], raw: [] }
 const state = { val: '', files: [], vis: false, ix: 0 }
 
 const hidden = { display: 'none' }
@@ -93,14 +95,14 @@ const actions = {
     return { ...s, val: '', vis: false, ix: 0 }
   },
 
-  select: (s: any, a: any, val: string) => {
-    // TODO: why it not select on initial list?
-    if (val) cmd(`e ${s.files[s.ix].name}`)
+  select: (s: any, a: any) => {
+    const file = s.files[s.ix].name
+    if (file) cmd (`e ${file}`)
     a.cancel()
   },
 
   change: (s: any, _a: any, val: string) => ({ ...s, val, files: val
-    ? files.fuse.search(val).slice(0, 10)
+    ? files.fuzzy(val).slice(0, 10)
     : files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length
   )}),
 
@@ -108,19 +110,16 @@ const actions = {
   prev: (s: any) => ({ ...s, ix: s.ix - 1 < 0 ? 9 : s.ix - 1 }),
 }
 
-const events = {
-  show: (_s: any, actions: any) => actions.show()
-}
-
+const events = { show: (_s: any, actions: any) => actions.show() }
 const emit = app({ state, view, actions, events, root: document.getElementById('plugins') })
 
 export default async () => {
   const cwd = await call.getcwd().catch(e => console.log(e))
   if (!cwd) return
-  const fileResults = await getFiles(cwd).catch(e => console.log(e))
+  const fileResults = await getFiles(cwd).catch(e => console.log(e)) || []
 
   files.raw = fileResults || []
-  files.fuse = new Fuse(fileResults || [], { keys: ['name'] })
+  files.fuzzy = q => filter(fileResults, q, { key: 'name' })
 
   emit('show')
 }
