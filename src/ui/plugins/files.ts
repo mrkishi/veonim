@@ -1,13 +1,12 @@
 import { call, notify } from '../neovim-client'
 import { cc } from '../../utils'
 import vim from '../canvasgrid'
-import * as uiInput from '../input'
-import cursor from './cursor'
+import * as viminput from '../input'
 import * as glob from 'globby'
-import { prop } from '../css'
 import { basename, dirname } from 'path'
 import * as Fuse from 'fuse.js'
 import huu from 'huu'
+import TermInput from './input'
 const { h: hs, app } = require('hyperapp')
 const { cmd } = notify
 const h = huu(hs)
@@ -48,17 +47,8 @@ const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
     }))
 }
 
-let filesList: Fuse
-let filesRay: any[]
-let elRef: any
-
-const getElementPosition = (el: Element) => {
-  const { top, left } = el.getBoundingClientRect()
-  const pad = { y: prop(elRef, 'padding-top'), x: prop(elRef, 'padding-left') }
-  return { x: pad.x + left, y: pad.y + top }
-}
-
-const state = { val: '', files: [], vis: false, cw: 0 }
+const files: { raw: any[], fuse: Fuse } = { raw: [], fuse: new Fuse([], {}) }
+const state = { val: '', files: [], vis: false, }
 
 const hidden = { display: 'none' }
 const container = {
@@ -74,76 +64,44 @@ const pretty = {
   'margin-top': '15%'
 }
 
-const view = ({ val, files, vis }: any, { update, hide }: any) => h('#files', {
+const view = ({ val, files, vis }: any, { change, cancel, select }: any) => h('#files', {
   style: vis ? container : hidden
 }, [
   h('div', { style: pretty }, [
-    h('input', {
-      oninsert: (e: any) => elRef = e,
-      value: val,
-      onkeydown: update,
-      onblur: hide,
+    TermInput({
+      val,
+      focus: true,
+      onchange: change,
+      oncancel: cancel,
+      onselect: select,
     }),
+
     h('ul', files.slice(0, 10).map((f: any) => h('li', f.name))),
   ])
 ])
 
 const actions = {
-  setCursorWidth: (s: any, _a: any, cw: number) => ({ ...s, cw }),
-  show: (s: any, actions: any) => {
-    uiInput.blur()
+  show: (s: any) => {
+    viminput.blur()
     vim.hideCursor()
-    setTimeout(() => {
-      elRef.focus()
-      const { x, y } = getElementPosition(elRef)
-      cursor.show().moveTo(x, y)
-      actions.setCursorWidth(cursor.width())
-    })
-    return { ...s, vis: true, files: filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length) }
+    return { ...s, vis: true, files: files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length) }
   },
-  hide: (s: any) => {
-    setImmediate(() => uiInput.focus())
+
+  cancel: (s: any) => {
+    setImmediate(() => viminput.focus())
     vim.showCursor()
-    cursor.hide()
     return { ...s, val: '', vis: false }
   },
-  update: (s: any, a: any, e: KeyboardEvent) => {
-    const { x, y } = getElementPosition(elRef)
 
-    if (e.key === 'Escape') return a.hide()
+  select: (s: any, a: any, val: string) => {
+    if (val) cmd(`e ${s.files[0].name}`)
+    a.cancel()
+  },
 
-    if (e.key === 'Enter') {
-      if (s.val) cmd(`e ${s.files[0].name}`)
-      return a.hide()
-    }
-
-    if (e.key === 'Backspace') {
-      const val = s.val.slice(0, -1)
-      cursor.moveTo(x + val.length * s.cw, y)
-      return { ...s, val }
-    }
-
-    if (e.metaKey && e.key === 'w') {
-      const val = s.val.split(' ').slice(0, -1).join(' ')
-      cursor.moveTo(x + val.length * s.cw, y)
-      return {
-        ...s, val, files: val
-          ? s.files
-          : filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length)
-      }
-    }
-
-    const key = e.key.length > 1 ? '' : e.key
-    const val = s.val + key
-    cursor.moveTo(x + val.length * s.cw, y)
-
-    if (val) {
-      const files = filesList.search(val)
-      return { ...s, val, files }
-    }
-    const files = filesRay.slice(0, 10).sort((a, b) => a.name.length - b.name.length)
-    return { ...s, val, files }
-  }
+  change: (s: any, _a: any, val: string) => ({ ...s, val, files: val
+    ? files.fuse.search(val).slice(0, 10)
+    : files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length
+  )}),
 }
 
 const events = {
@@ -155,10 +113,10 @@ const emit = app({ state, view, actions, events, root: document.getElementById('
 export default async () => {
   const cwd = await call.getcwd().catch(e => console.log(e))
   if (!cwd) return
-  const files = await getFiles(cwd).catch(e => console.log(e))
+  const fileResults = await getFiles(cwd).catch(e => console.log(e))
 
-  filesRay = files || []
-  filesList = new Fuse(files || [], { keys: ['name'] })
+  files.raw = fileResults || []
+  files.fuse = new Fuse(fileResults || [], { keys: ['name'] })
   // other opts to consider:
   // includeMatches (for highlighting)
   // fine tune other params to be more like sequential search
