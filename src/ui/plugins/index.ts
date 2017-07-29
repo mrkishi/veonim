@@ -1,6 +1,9 @@
 import { sub } from '../neovim-client'
 const action = sub('action')
 
+const hostElement = document.getElementById('plugins')
+export const getHostElement = () => hostElement as HTMLElement
+
 import files from './files'
 action('files', files)
 

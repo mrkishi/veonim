@@ -1,14 +1,17 @@
 import { load, cancel, onResults, query, getInitial, whenDone } from './deep-fuzzy-files'
 import { call, notify } from '../neovim-client'
-import { h, ui, delay } from '../../utils'
+import { h, ui, delay, Actions, Events } from '../../utils'
 import { basename, dirname } from 'path'
+import { getHostElement } from './index'
 import * as viminput from '../input'
 import TermInput from './input'
 import vim from '../canvasgrid'
 const { cmd } = notify
 
-const formatDir = (dir: string) => dir === '.' ? '' : `${dir}/`
+interface FileDir { dir: string, file: string }
+interface State { val: string, files: FileDir[], cache: FileDir[], vis: boolean, ix: number, currentFile: string, loading: boolean }
 
+const formatDir = (dir: string) => dir === '.' ? '' : `${dir}/`
 const asDirFile = (files: string[], currentFile: string) => files
   .filter(m => m !== currentFile)
   .map(path => ({
@@ -16,7 +19,7 @@ const asDirFile = (files: string[], currentFile: string) => files
     file: basename(path),
   }))
 
-const state = { val: '', files: [], cache: [], vis: false, ix: 0, currentFile: '', loading: false }
+const state: State = { val: '', files: [], cache: [], vis: false, ix: 0, currentFile: '', loading: false }
 
 const hidden = { display: 'none' }
 const container = {
@@ -48,55 +51,53 @@ const view = ({ val, files, vis, ix, loading }: any, { change, cancel, select, n
   ])
 ])
 
-const actions = {
-  show: (s: any, a: any, currentFile: string) => {
-    viminput.blur()
-    vim.hideCursor()
-    a.loading()
-    return { vis: true, currentFile, files: s.cache }
-  },
+const a: Actions<State> = {}
 
-  cancel: () => {
-    cancel()
-    setImmediate(() => viminput.focus())
-    vim.showCursor()
-    return { val: '', vis: false, ix: 0, loading: false }
-  },
-
-  select: (s: any, a: any) => {
-    const { dir, file } = s.files[s.ix]
-    if (file) cmd (`e ${dir}${file}`)
-    a.cancel()
-  },
-
-  change: (_s: any, _a: any, val: string) => {
-    query(val)
-    return { val }
-  },
-
-  // TODO: why not work?
-  loading: async () => {
-    console.log('loading async pls?')
-    await delay(200)
-    console.log('load=true')
-    return { loading: true }
-  },
-
-  done: () => ({ loading: false }),
-  initial: (s: any, _a: any, files: string[]) => ({ cache: asDirFile(files, s.currentFile) }),
-  results: (s: any, _a: any, files: string[]) => ({ files: asDirFile(files, s.currentFile) }),
-  next: (s: any) => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 }),
-  prev: (s: any) => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 }),
+a.show = (s, a, currentFile: string) => {
+  viminput.blur()
+  vim.hideCursor()
+  a.loading()
+  return { vis: true, currentFile, files: s.cache }
 }
 
-const events = {
-  show: (_s: any, actions: any, currentFile: string) => actions.show(currentFile),
-  initial: (_s: any, actions: any, files: string[]) => actions.initial(files),
-  results: (_s: any, actions: any, files: string[]) => actions.results(files),
-  done: (_s: any, actions: any) => actions.done(),
+a.cancel = () => {
+  cancel()
+  setImmediate(() => viminput.focus())
+  vim.showCursor()
+  return { val: '', vis: false, ix: 0, loading: false }
 }
 
-const emit = ui({ state, view, actions, events, root: document.getElementById('plugins') })
+a.select = (s, a) => {
+  const { dir, file } = s.files[s.ix]
+  if (file) cmd (`e ${dir}${file}`)
+  a.cancel()
+}
+
+a.change = (_s, _a, val: string) => {
+  query(val)
+  return { val }
+}
+
+// TODO: why not work?
+a.loading = async () => {
+  await delay(200)
+  return { loading: true }
+}
+
+a.done = () => ({ loading: false })
+a.initial = (s, _a, files: string[]) => ({ cache: asDirFile(files, s.currentFile) })
+a.results = (s, _a, files: string[]) => ({ files: asDirFile(files, s.currentFile) })
+a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
+a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
+
+const e: Events<State> = {}
+
+e.show = (_s, a, currentFile: string) => a.show(currentFile)
+e.initial = (_s, a, files: string[]) => a.initial(files)
+e.results = (_s, a, files: string[]) => a.results(files)
+e.done = (_s, a) => a.done()
+
+const emit = ui({ state, view, actions: a, events: e, root: getHostElement() })
 
 export default async () => {
   const cwd = await call.getcwd()
