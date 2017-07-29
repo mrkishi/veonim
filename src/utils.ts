@@ -7,6 +7,7 @@ import huu from 'huu'
 const { h: hs, app } = require('hyperapp')
 export const h = huu(hs)
 export const ui = app
+
 export interface ActionCaller { [index: string]: (data?: any) => void }
 export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
 export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }

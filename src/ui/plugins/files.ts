@@ -1,6 +1,6 @@
 import { load, cancel, onResults, query, getInitial, whenDone } from './deep-fuzzy-files'
-import { call, notify } from '../neovim-client'
 import { h, ui, delay, Actions, Events } from '../../utils'
+import { call, notify } from '../neovim-client'
 import { basename, dirname } from 'path'
 import { getHostElement } from './index'
 import * as viminput from '../input'
