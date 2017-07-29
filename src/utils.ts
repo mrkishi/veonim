@@ -7,6 +7,9 @@ import huu from 'huu'
 const { h: hs, app } = require('hyperapp')
 export const h = huu(hs)
 export const ui = app
+export interface ActionCaller { [index: string]: (data?: any) => void }
+export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
+export const BindEventsToActions = <T>(obj: T & object) => new Proxy({}, { get: (_, method) => Reflect.get(obj, method) })
 
 const logfile = createWriteStream('logs')
 const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
