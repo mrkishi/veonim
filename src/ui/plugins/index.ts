@@ -5,11 +5,15 @@ const hostElement = document.getElementById('plugins')
 export const getHostElement = () => hostElement as HTMLElement
 
 import files from './files'
+import buffers from './buffers'
+
 action('files', files)
+action('buffers', buffers)
 
 if (process.env.VEONIM_DEV) {
   const plugins = [
-    'files'
+    'files',
+    'buffers'
   ]
 
   const cleanup = (name: string) => {

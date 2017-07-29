@@ -35,7 +35,7 @@ const pretty = {
   'margin-top': '15%'
 }
 
-const view = ({ val, files, vis, ix, loading }: any, { change, cancel, select, next, prev }: any) => h('#files', {
+const view = ({ val, files, vis, ix, loading }: State, { change, cancel, select, next, prev }: any) => h('#files', {
   style: vis ? container : hidden
 }, [
   h('div', { style: pretty }, [
