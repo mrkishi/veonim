@@ -4,6 +4,7 @@ const h = huu(hyperscript)
 
 type Props = {
   val: string,
+  loading?: boolean,
   focus?: boolean,
   change?: (val: string) => void,
   select?: (val: string) => void,
@@ -14,7 +15,7 @@ type Props = {
 
 const nop = function () {}
 
-export default ({ val, focus: shouldFocus = false, change = nop, cancel = nop, select = nop, next = nop, prev = nop }: Props) => h('.gui-input', [
+export default ({ val, loading = false, focus: shouldFocus = false, change = nop, cancel = nop, select = nop, next = nop, prev = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -51,4 +52,8 @@ export default ({ val, focus: shouldFocus = false, change = nop, cancel = nop, s
       return change(val + (e.key.length > 1 ? '' : e.key))
     }
   }),
+
+  h('div', { render: loading }, [
+    h('.loader'),
+  ]),
 ])

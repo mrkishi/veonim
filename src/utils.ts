@@ -2,6 +2,11 @@ const DEVMODE = process.env.VEONIM_DEV
 import { createWriteStream } from 'fs'
 import * as through from 'through'
 import { StringDecoder } from 'string_decoder'
+import huu from 'huu'
+// TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
+const { h: hs, app } = require('hyperapp')
+export const h = huu(hs)
+export const ui = app
 
 const logfile = createWriteStream('logs')
 const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
@@ -31,6 +36,7 @@ interface Types {
 
 export const merge = Object.assign
 export const cc = (...a: any[]) => Promise.all(a)
+export const delay = (t: number) => new Promise(d => setTimeout(d, t))
 export const ID = (val = 0) => ({ next: () => (val++, val) })
 export const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
 export const type = (m :any) => (Object.prototype.toString.call(m).match(/^\[object (\w+)\]/) || [])[1].toLowerCase()
