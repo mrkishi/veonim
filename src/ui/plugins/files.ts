@@ -41,7 +41,7 @@ const view = ({ val, files, vis, ix, loading }: State, { change, cancel, select,
   h('div', { style: pretty }, [
     TermInput({ focus: true, val, next, prev, change, cancel, select, loading }),
 
-    h('div', files.map((f: any, key: number) => h('.row', {
+    h('div', files.map((f: FileDir, key: number) => h('.row', {
       key,
       css: { active: key === ix },
     }, [
@@ -69,7 +69,7 @@ a.cancel = () => {
 
 a.select = (s, a) => {
   const { dir, file } = s.files[s.ix]
-  if (file) cmd (`e ${dir}${file}`)
+  if (file) cmd(`e ${dir}${file}`)
   a.cancel()
 }
 

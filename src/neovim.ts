@@ -33,6 +33,7 @@ const a: Neovim = {} as Neovim
 
 a.resize = (w, h) => resize(w, h)
 a.input = m => api.input(m)
+// TODO: allow fancy template string def when move to ui level
 a.cmd = m => api.command(m)
 a.ex = m => req.commandOutput(m)
 a.expr = m => req.eval(m)

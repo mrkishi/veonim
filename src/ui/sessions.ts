@@ -6,14 +6,21 @@ const { create } = request
 
 interface Vim { name: string, active: boolean }
 const vims = new Map<number, Vim>()
+const onReady = new Set<Function>()
+const notifyReady = () => onReady.forEach(cb => cb())
 
-export default (id: number) => vims.set(id, { name: 'main', active: true })
+export const onVimCreate = (fn: Function) => onReady.add(fn)
+export default (id: number) => {
+  vims.set(id, { name: 'main', active: true })
+  notifyReady()
+}
 
 const createVim = async (name: string) => {
   const id = await create()
   attach(id)
   switchTo(id)
   vims.set(id, { name, active: true })
+  notifyReady()
 }
 
 const switchVim = async (id: number) => {

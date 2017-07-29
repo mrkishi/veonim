@@ -1,6 +1,6 @@
 import { Neovim } from '../neovim'
 import Channel from '../channel'
-import { onFnCall, pascalCase } from '../utils'
+import { onFnCall, onProp, pascalCase } from '../utils'
 import { Functions } from '../functions'
 
 const io = new Worker(`${__dirname}/../workers/io.js`)
@@ -14,7 +14,9 @@ export const call: Functions = onFnCall((name, args) => request.call(name, args)
 
 const { cmd } = notify
 
-export const define: { [index: string]: (fnBody: string) => void } = onFnCall((name: string, [ fn ]: string[]) => {
+type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
+
+export const define: DefineFunction = onProp((name: string) => (fn: TemplateStringsArray) => {
   const expr = fn[0]
     .split('\n')
     .filter(m => m)
