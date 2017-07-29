@@ -1,5 +1,7 @@
 const DEVMODE = process.env.VEONIM_DEV
 import { createWriteStream } from 'fs'
+import * as through from 'through'
+import { StringDecoder } from 'string_decoder'
 
 const logfile = createWriteStream('logs')
 const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
@@ -68,4 +70,35 @@ export class Watchers extends Map<string, Set<Function>> {
   remove(event: string, handler: Function) {
     this.has(event) && this.get(event)!.delete(handler)
   }
+}
+
+export function NewlineSplitter () {
+  const decoder = new StringDecoder()
+  const matcher = /\r?\n/
+  let soFar = ''
+
+  function emit (stream: any, piece: any) {
+    stream.queue(piece)
+  }
+
+  function next (stream: any, buffer: any) {
+    const pieces = ((soFar != null ? soFar : '') + buffer).split(matcher)
+    soFar = pieces.pop() || ''
+
+    let totalPieces = pieces.length
+    for (var i = 0; i < totalPieces; i++) {
+      emit(stream, pieces[i])
+    }
+  }
+
+  return through(
+    function (this: any, b: any) {
+      next(this, decoder.write(b))
+    },
+    function (this: any) {
+      if (decoder.end) next(this, decoder.end())
+      if (soFar != null) emit(this, soFar)
+      this.queue(null)
+    }
+  )
 }

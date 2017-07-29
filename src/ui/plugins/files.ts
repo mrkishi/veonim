@@ -1,56 +1,24 @@
 import { call, notify } from '../neovim-client'
-import { cc } from '../../utils'
 import vim from '../canvasgrid'
 import * as viminput from '../input'
-import * as glob from 'globby'
 import { basename, dirname } from 'path'
 import huu from 'huu'
 import TermInput from './input'
-import { filter } from 'fuzzaldrin-plus'
+import { load, cancel, onResults, query, getInitial } from './deep-fuzzy-files'
 const { h: hs, app } = require('hyperapp')
 const { cmd } = notify
 const h = huu(hs)
 
 const formatDir = (dir: string) => dir === '.' ? '' : `${dir}/`
 
-interface SearchEntry {
-  name: string,
-  base: string,
-  modified?: boolean,
-  dir: string
-}
+const asDirFile = (files: string[], currentFile: string) => files
+  .filter(m => m !== currentFile)
+  .map(path => ({
+    dir: formatDir(dirname(path)),
+    file: basename(path),
+  }))
 
-// TODO: separate process to not block ui thread
-// investigate other options? (rg, ag, find) if many files, we want to stream as found
-// TODO: respect .gitignore?
-const getProjectFiles = (cwd: string): Promise<string[]> => glob('**', {
-  cwd,
-  nosort: true,
-  nodir: true,
-  ignore: [
-    '**/node_modules/**',
-    '**/*.png',
-    '**/*.jpg',
-    '**/*.gif',
-  ]
-})
-
-const getFiles = async (cwd: string): Promise<SearchEntry[]> => {
-  const [ currentFile, files ] = await cc(call.expand('%f'), getProjectFiles(cwd))
-
-  return files
-    .filter((m: string) => m !== currentFile)
-    .map((name: string) => ({
-      name,
-      base: basename(name),
-      key: name,
-      dir: formatDir(dirname(name))
-    }))
-}
-
-type FuzzyFind = (query: string) => any[]
-const files: { raw: any[], fuzzy: FuzzyFind } = { fuzzy: () => [], raw: [] }
-const state = { val: '', files: [], vis: false, ix: 0 }
+const state = { val: '', files: [], cache: [], vis: false, ix: 0, currentFile: '' }
 
 const hidden = { display: 'none' }
 const container = {
@@ -77,49 +45,60 @@ const view = ({ val, files, vis, ix }: any, { change, cancel, select, next, prev
       css: { active: key === ix },
     }, [
       h('span', { style: { color: '#666' } }, f.dir),
-      h('span', f.base)
+      h('span', f.file)
     ]))),
   ])
 ])
 
 const actions = {
-  show: (s: any) => {
+  show: (s: any, _a: any, currentFile: string) => {
     viminput.blur()
     vim.hideCursor()
-    return { ...s, vis: true, files: files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length) }
+    return { ...s, vis: true, currentFile, files: s.cache }
   },
 
   cancel: (s: any) => {
+    cancel()
     setImmediate(() => viminput.focus())
     vim.showCursor()
     return { ...s, val: '', vis: false, ix: 0 }
   },
 
   select: (s: any, a: any) => {
-    const file = s.files[s.ix].name
-    if (file) cmd (`e ${file}`)
+    const { dir, file } = s.files[s.ix]
+    if (file) cmd (`e ${dir}${file}`)
     a.cancel()
   },
 
-  change: (s: any, _a: any, val: string) => ({ ...s, val, files: val
-    ? files.fuzzy(val).slice(0, 10)
-    : files.raw.slice(0, 10).sort((a, b) => a.name.length - b.name.length
-  )}),
+  change: (s: any, _a: any, val: string) => {
+    query(val)
+    return { ...s, val }
+  },
 
+  initial: (s: any, _a: any, files: string[]) => ({ ...s, cache: asDirFile(files, s.currentFile) }),
+  results: (s: any, _a: any, files: string[]) => ({ ...s, files: asDirFile(files, s.currentFile) }),
   next: (s: any) => ({ ...s, ix: s.ix + 1 > 9 ? 0 : s.ix + 1 }),
   prev: (s: any) => ({ ...s, ix: s.ix - 1 < 0 ? 9 : s.ix - 1 }),
 }
 
-const events = { show: (_s: any, actions: any) => actions.show() }
+const events = {
+  show: (_s: any, actions: any, currentFile: string) => actions.show(currentFile),
+  initial: (_s: any, actions: any, files: string[]) => actions.initial(files),
+  results: (_s: any, actions: any, files: string[]) => actions.results(files),
+}
 const emit = app({ state, view, actions, events, root: document.getElementById('plugins') })
 
 export default async () => {
-  const cwd = await call.getcwd().catch(e => console.log(e))
+  const cwd = await call.getcwd()
   if (!cwd) return
-  const fileResults = await getFiles(cwd).catch(e => console.log(e)) || []
 
-  files.raw = fileResults || []
-  files.fuzzy = q => filter(fileResults, q, { key: 'name' })
+  load(cwd)
+  onResults(files => emit('results', files))
+  // TODO: show spinner, stop spinner for loading
+  // whenDone(() => emit('stop-spinner'))
+  const currentFile = await call.expand('%f')
+  emit('show', currentFile)
 
-  emit('show')
+  const first = await getInitial()
+  emit('initial', first)
 }
