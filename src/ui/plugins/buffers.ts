@@ -1,4 +1,4 @@
-import { h, ui, Actions, Events } from '../../utils'
+import { h, ui, Actions, Events, merge } from '../../utils'
 import { call, notify, define } from '../neovim-client'
 import { VimBuffer } from '../../functions'
 import { basename, dirname } from 'path'
@@ -10,7 +10,7 @@ import TermInput from './input'
 import vim from '../canvasgrid'
 const { cmd } = notify
 
-interface BufferInfo { name: string, base: string, modified?: boolean, dir: string }
+interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
 interface State { val: string, buffers: BufferInfo[], vis: boolean, ix: number }
 
 onVimCreate(() => define.Buffers`
@@ -36,6 +36,12 @@ const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
        modified: mod,
        dir: cleanup(dirname(name), cwd)
      }))
+    .map((m, ix, arr) => merge(m, {
+      duplicate: arr.some((n, ixf) => ixf !== ix && n.base === m.base)
+    }))
+    .map(m => merge(m, {
+      name: m.duplicate ? `${m.dir}/${m.base}` : m.base,
+    }))
 }
 
 const state: State = { val: '', buffers: [], vis: false, ix: 0 }
@@ -64,15 +70,18 @@ const view = ({ val, buffers, vis, ix }: State, { change, cancel, select, next, 
       key,
       css: { active: key === ix },
     }, [
-      h('span', f.name)
-      // h('span', { style: { color: '#666' } }, f.dir),
-      // h('span', f.base)
+      h('span', {
+        render: f.duplicate,
+        style: { color: '#666' },
+      }, `${f.dir}/`),
+      h('span', f.duplicate ? f.base : f.name),
     ]))),
   ])
 ])
 
 const a: Actions<State> = {}
 
+// TODO: use middleware beforeAction/afterAction?
 a.show = (_s, _a, buffers: BufferInfo[]) => {
   // TODO: move this to common
   viminput.blur()
@@ -94,6 +103,7 @@ a.select = (s, a) => {
 }
 
 a.change = (s, _a, val: string) => {
+  // TODO: why uh why need cache?
   const buffers = val
     ? filter(s.buffers, val, { key: 'name' }).slice(0, 10)
     : s.buffers.slice(0, 10)
