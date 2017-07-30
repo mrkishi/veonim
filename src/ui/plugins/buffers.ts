@@ -11,7 +11,7 @@ import vim from '../canvasgrid'
 const { cmd } = notify
 
 interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
-interface State { val: string, buffers: BufferInfo[], vis: boolean, ix: number }
+interface State { val: string, buffers: BufferInfo[], cache: BufferInfo[], vis: boolean, ix: number }
 
 onVimCreate(() => define.Buffers`
   let current = bufnr('%')
@@ -44,7 +44,7 @@ const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
     }))
 }
 
-const state: State = { val: '', buffers: [], vis: false, ix: 0 }
+const state: State = { val: '', buffers: [], cache: [], vis: false, ix: 0 }
 
 const hidden = { display: 'none' }
 const container = {
@@ -86,7 +86,7 @@ a.show = (_s, _a, buffers: BufferInfo[]) => {
   // TODO: move this to common
   viminput.blur()
   vim.hideCursor()
-  return { buffers, vis: true }
+  return { buffers, cache: buffers, vis: true }
 }
 
 a.cancel = () => {
@@ -102,13 +102,10 @@ a.select = (s, a) => {
   a.cancel()
 }
 
-a.change = (s, _a, val: string) => {
-  // TODO: why uh why need cache?
-  const buffers = val
-    ? filter(s.buffers, val, { key: 'name' }).slice(0, 10)
-    : s.buffers.slice(0, 10)
-  return { val, buffers }
-}
+a.change = (s, _a, val: string) => ({ val, buffers: val
+  ? filter(s.buffers, val, { key: 'name' }).slice(0, 10)
+  : s.cache.slice(0, 10)
+})
 
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
