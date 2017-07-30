@@ -11,7 +11,7 @@ const state: State = { val: '', vis: false, list: [], cache: [], ix: 0 }
 const view = ({ val, vis, list, ix }: State, { select, hide, change }: any) => h('#vim-switch.plugin', {
   hide: !vis
 }, [
-  h('.dialog.large', [
+  h('.dialog.small', [
     TermInput({ focus: true, val, select, hide, change }),
 
     h('.row', { render: !list.length }, 'no other sessions :('),

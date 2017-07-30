@@ -47,7 +47,7 @@ const state: State = { val: '', buffers: [], cache: [], vis: false, ix: 0 }
 const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#buffers.plugin', {
   hide: !vis
 }, [
-  h('.dialog.large', [
+  h('.dialog.medium', [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
     h('.row', { render: !buffers.length }, 'no other buffers :('),
