@@ -1,5 +1,5 @@
-import { load, cancel, onResults, query, getInitial, whenDone } from './deep-fuzzy-files'
-import { delay, Actions, Events } from '../../utils'
+import { load, cancel, onResults, query, getInitial } from './deep-fuzzy-files'
+import { Actions, Events } from '../../utils'
 import { call, notify } from '../neovim-client'
 import { basename, dirname } from 'path'
 import { h, app } from './plugins'
@@ -19,11 +19,11 @@ const asDirFile = (files: string[], currentFile: string) => files
 
 const state: State = { val: '', files: [], cache: [], vis: false, ix: 0, currentFile: '', loading: false }
 
-const view = ({ val, files, vis, ix, loading }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
+const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
   hide: !vis
 }, [
   h('.dialog.large', [
-    TermInput({ focus: true, val, next, prev, change, hide, select, loading }),
+    TermInput({ focus: true, val, next, prev, change, hide, select }),
 
     h('div', files.map((f, key) => h('.row', {
       key,
@@ -37,10 +37,7 @@ const view = ({ val, files, vis, ix, loading }: State, { change, hide, select, n
 
 const a: Actions<State> = {}
 
-a.show = (s, a, currentFile: string) => {
-  a.loading()
-  return { vis: true, currentFile, files: s.cache }
-}
+a.show = (s, _a, currentFile: string) => ({ vis: true, currentFile, files: s.cache })
 
 a.hide = () => {
   cancel()
@@ -59,13 +56,6 @@ a.change = (_s, _a, val: string) => {
   return { val }
 }
 
-// TODO: why not work?
-a.loading = async () => {
-  await delay(200)
-  return { loading: true }
-}
-
-a.done = () => ({ loading: false })
 a.initial = (s, _a, files: string[]) => ({ cache: asDirFile(files, s.currentFile) })
 a.results = (s, _a, files: string[]) => ({ files: asDirFile(files, s.currentFile) })
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
@@ -76,7 +66,6 @@ const e: Events<State> = {}
 e.show = (_s, a, currentFile: string) => a.show(currentFile)
 e.initial = (_s, a, files: string[]) => a.initial(files)
 e.results = (_s, a, files: string[]) => a.results(files)
-e.done = (_s, a) => a.done()
 
 const emit = app({ state, view, actions: a, events: e })
 
@@ -86,7 +75,6 @@ export default async () => {
 
   load(cwd)
   onResults(files => emit('results', files))
-  whenDone(() => emit('done'))
   const currentFile = await call.expand('%f')
   emit('show', currentFile)
 
