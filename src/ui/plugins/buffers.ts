@@ -1,13 +1,11 @@
-import { h, ui, Actions, Events, merge } from '../../utils'
+import { Actions, Events, merge } from '../../utils'
 import { call, notify, define } from '../neovim-client'
 import { VimBuffer } from '../../functions'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
-import { getHostElement } from './index'
 import { onVimCreate } from '../sessions'
-import * as viminput from '../input'
+import { h, app } from './plugins'
 import TermInput from './input'
-import vim from '../canvasgrid'
 const { cmd } = notify
 
 interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
@@ -60,11 +58,11 @@ const pretty = {
   'margin-top': '15%'
 }
 
-const view = ({ val, buffers, vis, ix }: State, { change, cancel, select, next, prev }: any) => h('#files', {
+const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files', {
   style: vis ? container : hidden
 }, [
   h('div', { style: pretty }, [
-    TermInput({ focus: true, val, next, prev, change, cancel, select }),
+    TermInput({ focus: true, val, next, prev, change, hide, select }),
 
     h('div', buffers.map((f: BufferInfo, key: number) => h('.row', {
       key,
@@ -81,25 +79,18 @@ const view = ({ val, buffers, vis, ix }: State, { change, cancel, select, next, 
 
 const a: Actions<State> = {}
 
-// TODO: use middleware beforeAction/afterAction?
 a.show = (_s, _a, buffers: BufferInfo[]) => {
-  // TODO: move this to common
-  viminput.blur()
-  vim.hideCursor()
   return { buffers, cache: buffers, vis: true }
 }
 
-a.cancel = () => {
-  // TODO: move this to common
-  setImmediate(() => viminput.focus())
-  vim.showCursor()
+a.hide = () => {
   return { val: '', vis: false, ix: 0 }
 }
 
 a.select = (s, a) => {
   const { name } = s.buffers[s.ix]
   if (name) cmd(`b ${name}`)
-  a.cancel()
+  a.hide()
 }
 
 a.change = (s, _a, val: string) => ({ val, buffers: val
@@ -114,7 +105,7 @@ const e: Events<State> = {}
 
 e.show = (_s, a, buffers: BufferInfo[]) => a.show(buffers)
 
-const emit = ui({ state, view, actions: a, events: e, root: getHostElement() })
+const emit = app({ state, view, actions: a, events: e })
 
 export default async () => {
   // TODO: can we just set this globally somewhere whenever cwd is changed and ref here?

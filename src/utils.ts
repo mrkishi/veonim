@@ -1,12 +1,6 @@
-const DEVMODE = process.env.VEONIM_DEV
 import { createWriteStream } from 'fs'
 import * as through from 'through'
 import { StringDecoder } from 'string_decoder'
-import huu from 'huu'
-// TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
-const { h: hs, app } = require('hyperapp')
-export const h = huu(hs)
-export const ui = app
 
 export interface ActionCaller { [index: string]: (data?: any) => void }
 export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
@@ -21,7 +15,9 @@ const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 
   : writemsg((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
-export const dev = (str: TemplateStringsArray | string, ...vars: any[]) => DEVMODE && logger(str, vars)
+export const dev = (str: TemplateStringsArray | string, ...vars: any[]) => {
+  if (process.env.VEONIM_DEV) logger(str, vars)
+}
 
 process.on('unhandledRejection', writemsg)
 

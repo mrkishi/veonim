@@ -1,6 +1,4 @@
-const { h: hyperscript } = require('hyperapp')
-import huu from 'huu'
-const h = huu(hyperscript)
+import { h } from './plugins'
 
 type Props = {
   val: string,
@@ -8,14 +6,14 @@ type Props = {
   focus?: boolean,
   change?: (val: string) => void,
   select?: (val: string) => void,
-  cancel?: () => void,
+  hide?: () => void,
   next?: () => void,
   prev?: () => void,
 }
 
 const nop = function () {}
 
-export default ({ val, loading = false, focus: shouldFocus = false, change = nop, cancel = nop, select = nop, next = nop, prev = nop }: Props) => h('.gui-input', [
+export default ({ val, loading = false, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -40,10 +38,10 @@ export default ({ val, loading = false, focus: shouldFocus = false, change = nop
 
   h('input', {
     value: val,
-    onblur: () => cancel(),
+    onblur: () => hide(),
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeydown: (e: KeyboardEvent) => {
-      if (e.key === 'Escape') return cancel()
+      if (e.key === 'Escape') return hide()
       if (e.key === 'Enter') return select(val)
       if (e.key === 'Backspace') return change(val.slice(0, -1))
       if (e.metaKey && e.key === 'w') return change(val.split(' ').slice(0, -1).join(' '))

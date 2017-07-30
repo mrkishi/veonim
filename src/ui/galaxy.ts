@@ -7,7 +7,7 @@ import { on, notify, request } from './neovim-client'
 import { Config } from '../config-reader'
 import setDefaultSession from './sessions'
 import './render'
-import './plugins'
+import './plugins/plugins'
 
 const { resize, attach } = notify
 const { create } = request

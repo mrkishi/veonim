@@ -1,11 +1,9 @@
 import { load, cancel, onResults, query, getInitial, whenDone } from './deep-fuzzy-files'
-import { h, ui, delay, Actions, Events } from '../../utils'
+import { delay, Actions, Events } from '../../utils'
 import { call, notify } from '../neovim-client'
 import { basename, dirname } from 'path'
-import { getHostElement } from './index'
-import * as viminput from '../input'
+import { h, app } from './plugins'
 import TermInput from './input'
-import vim from '../canvasgrid'
 const { cmd } = notify
 
 interface FileDir { dir: string, file: string }
@@ -35,11 +33,11 @@ const pretty = {
   'margin-top': '15%'
 }
 
-const view = ({ val, files, vis, ix, loading }: State, { change, cancel, select, next, prev }: any) => h('#files', {
+const view = ({ val, files, vis, ix, loading }: State, { change, hide, select, next, prev }: any) => h('#files', {
   style: vis ? container : hidden
 }, [
   h('div', { style: pretty }, [
-    TermInput({ focus: true, val, next, prev, change, cancel, select, loading }),
+    TermInput({ focus: true, val, next, prev, change, hide, select, loading }),
 
     h('div', files.map((f: FileDir, key: number) => h('.row', {
       key,
@@ -54,23 +52,19 @@ const view = ({ val, files, vis, ix, loading }: State, { change, cancel, select,
 const a: Actions<State> = {}
 
 a.show = (s, a, currentFile: string) => {
-  viminput.blur()
-  vim.hideCursor()
   a.loading()
   return { vis: true, currentFile, files: s.cache }
 }
 
-a.cancel = () => {
+a.hide = () => {
   cancel()
-  setImmediate(() => viminput.focus())
-  vim.showCursor()
   return { val: '', vis: false, ix: 0, loading: false }
 }
 
 a.select = (s, a) => {
   const { dir, file } = s.files[s.ix]
   if (file) cmd(`e ${dir}${file}`)
-  a.cancel()
+  a.hide()
 }
 
 a.change = (_s, _a, val: string) => {
@@ -97,7 +91,7 @@ e.initial = (_s, a, files: string[]) => a.initial(files)
 e.results = (_s, a, files: string[]) => a.results(files)
 e.done = (_s, a) => a.done()
 
-const emit = ui({ state, view, actions: a, events: e, root: getHostElement() })
+const emit = app({ state, view, actions: a, events: e })
 
 export default async () => {
   const cwd = await call.getcwd()

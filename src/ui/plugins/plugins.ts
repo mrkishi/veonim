@@ -1,8 +1,34 @@
 import { sub } from '../neovim-client'
-const action = sub('action')
+import * as viminput from '../input'
+import { merge } from '../../utils'
+import vim from '../canvasgrid'
+import huu from 'huu'
+// TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
+const { h: hs, app: makeApp } = require('hyperapp')
+export const h = huu(hs)
 
+const action = sub('action')
 const hostElement = document.getElementById('plugins')
 export const getHostElement = () => hostElement as HTMLElement
+
+// TOOD: because mixins and events.beforeAction dont work in the current npm release of hyperapp
+export const app = (appParts: any) => {
+  const { show, hide } = appParts.actions
+
+  appParts.actions.show = (s: any, a: any, d: any) => {
+    viminput.blur()
+    vim.hideCursor()
+    return show(s, a, d)
+  }
+
+  appParts.actions.hide = (s: any, a: any, d: any) => {
+    setImmediate(() => viminput.focus())
+    vim.showCursor()
+    return hide(s, a, d)
+  }
+
+  return makeApp(merge(appParts, { root: hostElement }))
+}
 
 import files from './files'
 import buffers from './buffers'
