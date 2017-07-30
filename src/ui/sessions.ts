@@ -4,14 +4,14 @@ const action = sub('action')
 const { attach, switchTo } = notify
 const { create } = request
 
-interface Vim { name: string, active: boolean }
+interface Vim { id: number, name: string, active: boolean }
 const vims = new Map<number, Vim>()
 const onReady = new Set<Function>()
 const notifyReady = () => onReady.forEach(cb => cb())
 
 export const onVimCreate = (fn: Function) => onReady.add(fn)
 export default (id: number) => {
-  vims.set(id, { name: 'main', active: true })
+  vims.set(id, { id, name: 'main', active: true })
   notifyReady()
 }
 
@@ -19,7 +19,7 @@ export const createVim = async (name: string) => {
   const id = await create()
   attach(id)
   switchTo(id)
-  vims.set(id, { name, active: true })
+  vims.set(id, { id, name, active: true })
   notifyReady()
 }
 
@@ -34,10 +34,18 @@ export const renameVim = (id: number, newName: string) => {
   vims.get(id)!.name = newName
 }
 
-action('vim-rename', () => {
-  console.log('rename vim')
-  renameVim(1, 'lol')
-})
+export const getNameForSession = (id: number) => vims.has(id) && vims.get(id)!.name
+
+export const getCurrentName = () => {
+  const active = [...vims.values()].find(a => a.active)
+  return active ? active.name : ''
+}
+
+export const renameCurrent = (name: string) => {
+  const active = [...vims.values()].find(a => a.active)
+  if (!active) return
+  renameVim(active.id, name)
+}
 
 action('vim-switch', () => {
   console.log('switch to vim')

@@ -34,12 +34,14 @@ export const app = (appParts: any) => {
 import files from './files'
 import buffers from './buffers'
 import vimCreate from './vim-create'
+import vimRename from './vim-rename'
 
 // TODO: any way the plugin can declare for itself what actions to listen to?
 // or just bind actions directly in plugin?
 action('files', files)
 action('buffers', buffers)
 action('vim-create', vimCreate)
+action('vim-rename', vimRename)
 
 if (process.env.VEONIM_DEV) {
   const plugins = [
