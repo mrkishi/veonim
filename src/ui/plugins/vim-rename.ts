@@ -21,7 +21,7 @@ const pretty = {
 }
 
 // TODO: create wrapper for this same pattern in every plugin
-const view = ({ val, vis, current }: State, { select, hide, change }: any) => h('#vim-create', {
+const view = ({ val, vis, current }: State, { select, hide, change }: any) => h('#vim-rename', {
   style: vis ? container : hidden
 }, [
   h('div', { style: pretty }, [

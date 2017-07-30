@@ -64,7 +64,9 @@ const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, pr
   h('div', { style: pretty }, [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
-    h('div', buffers.map((f: BufferInfo, key: number) => h('.row', {
+    h('.row', { render: !buffers.length }, 'no other buffers :('),
+
+    h('div', buffers.map((f, key) => h('.row', {
       key,
       css: { active: key === ix },
     }, [

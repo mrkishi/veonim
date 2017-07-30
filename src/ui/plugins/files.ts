@@ -39,7 +39,7 @@ const view = ({ val, files, vis, ix, loading }: State, { change, hide, select, n
   h('div', { style: pretty }, [
     TermInput({ focus: true, val, next, prev, change, hide, select, loading }),
 
-    h('div', files.map((f: FileDir, key: number) => h('.row', {
+    h('div', files.map((f, key) => h('.row', {
       key,
       css: { active: key === ix },
     }, [

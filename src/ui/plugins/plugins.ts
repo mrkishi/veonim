@@ -35,6 +35,7 @@ import files from './files'
 import buffers from './buffers'
 import vimCreate from './vim-create'
 import vimRename from './vim-rename'
+import vimSwitch from './vim-switch'
 
 // TODO: any way the plugin can declare for itself what actions to listen to?
 // or just bind actions directly in plugin?
@@ -42,11 +43,15 @@ action('files', files)
 action('buffers', buffers)
 action('vim-create', vimCreate)
 action('vim-rename', vimRename)
+action('vim-switch', vimSwitch)
 
 if (process.env.VEONIM_DEV) {
   const plugins = [
     'files',
-    'buffers'
+    'buffers',
+    'vim-create',
+    'vim-rename',
+    'vim-switch',
   ]
 
   const cleanup = (name: string) => {
