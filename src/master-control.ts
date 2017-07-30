@@ -50,7 +50,8 @@ export const switchToVim = (id: number) => {
   }
 
   encoder.pipe(proc.stdin)
-  proc.stdout.pipe(decoder)
+  // don't kill decoder stream when this stdout stream ends (need for other stdouts)
+  proc.stdout.pipe(decoder, { end: false })
   ids.activeVim = id
 
   // sending resize (even of the same size) makes vim instance clear/redraw screen
