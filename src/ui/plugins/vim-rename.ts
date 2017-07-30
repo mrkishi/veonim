@@ -42,7 +42,7 @@ a.show = (_s, _a, current: string) => ({ current, vis: true }),
 a.hide = () => ({ val: '', vis: false })
 a.change = (_s, _a, val: string) => ({ val })
 a.select = (s, a) => {
-  renameCurrent(s.val)
+  s.val && renameCurrent(s.val)
   a.hide()
 }
 

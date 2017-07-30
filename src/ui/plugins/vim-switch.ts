@@ -49,6 +49,7 @@ a.change = (s, _a, val: string) => ({ val, list: val
 })
 
 a.select = (s, a) => {
+  if (!s.list.length) return a.hide()
   const { id } = s.list[s.ix]
   if (id) switchVim(id)
   a.hide()

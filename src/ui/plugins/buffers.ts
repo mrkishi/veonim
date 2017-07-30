@@ -82,6 +82,7 @@ const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, pr
 const a: Actions<State> = {}
 
 a.select = (s, a) => {
+  if (!s.buffers.length) return a.hide()
   const { name } = s.buffers[s.ix]
   if (name) cmd(`b ${name}`)
   a.hide()

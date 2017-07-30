@@ -62,6 +62,7 @@ a.hide = () => {
 }
 
 a.select = (s, a) => {
+  if (!s.files.length) return a.hide()
   const { dir, file } = s.files[s.ix]
   if (file) cmd(`e ${dir}${file}`)
   a.hide()

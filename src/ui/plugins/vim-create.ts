@@ -40,7 +40,7 @@ a.show = () => ({ vis: true }),
 a.hide = () => ({ val: '', vis: false })
 a.change = (_s, _a, val: string) => ({ val })
 a.select = (s, a) => {
-  createVim(s.val)
+  s.val && createVim(s.val)
   a.hide()
 }
 
