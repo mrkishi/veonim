@@ -30,11 +30,16 @@ export const app = (appParts: any) => {
   return makeApp(merge(appParts, { root: hostElement }))
 }
 
+// TODO: require all in plugins dir (dynamically)?
 import files from './files'
 import buffers from './buffers'
+import vimCreate from './vim-create'
 
+// TODO: any way the plugin can declare for itself what actions to listen to?
+// or just bind actions directly in plugin?
 action('files', files)
 action('buffers', buffers)
+action('vim-create', vimCreate)
 
 if (process.env.VEONIM_DEV) {
   const plugins = [

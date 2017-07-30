@@ -15,7 +15,7 @@ export default (id: number) => {
   notifyReady()
 }
 
-const createVim = async (name: string) => {
+export const createVim = async (name: string) => {
   const id = await create()
   attach(id)
   switchTo(id)
@@ -23,13 +23,13 @@ const createVim = async (name: string) => {
   notifyReady()
 }
 
-const switchVim = async (id: number) => {
+export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
   switchTo(id)
   vims.get(id)!.active = true
 }
 
-const renameVim = (id: number, newName: string) => {
+export const renameVim = (id: number, newName: string) => {
   if (!vims.has(id)) return
   vims.get(id)!.name = newName
 }
@@ -37,11 +37,6 @@ const renameVim = (id: number, newName: string) => {
 action('vim-rename', () => {
   console.log('rename vim')
   renameVim(1, 'lol')
-})
-
-action('vim-create', () => {
-  console.log('create new vim')
-  createVim('another lol')
 })
 
 action('vim-switch', () => {
