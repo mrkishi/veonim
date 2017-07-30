@@ -19,24 +19,10 @@ const asDirFile = (files: string[], currentFile: string) => files
 
 const state: State = { val: '', files: [], cache: [], vis: false, ix: 0, currentFile: '', loading: false }
 
-const hidden = { display: 'none' }
-const container = {
-  display: 'flex',
-  width: '100%',
-  'justify-content': 'center',
-  'align-items': 'flex-start',
-}
-
-const pretty = {
-  width: '400px',
-  background: '#333',
-  'margin-top': '15%'
-}
-
-const view = ({ val, files, vis, ix, loading }: State, { change, hide, select, next, prev }: any) => h('#files', {
-  style: vis ? container : hidden
+const view = ({ val, files, vis, ix, loading }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
+  hide: !vis
 }, [
-  h('div', { style: pretty }, [
+  h('.dialog.large', [
     TermInput({ focus: true, val, next, prev, change, hide, select, loading }),
 
     h('div', files.map((f, key) => h('.row', {

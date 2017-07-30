@@ -8,26 +8,10 @@ interface Session { id: number, name: string }
 interface State { val: string, vis: boolean, list: Session[], cache: Session[], ix: number }
 const state: State = { val: '', vis: false, list: [], cache: [], ix: 0 }
 
-// TODO: make into css classes pls
-const hidden = { display: 'none' }
-const container = {
-  display: 'flex',
-  width: '100%',
-  'justify-content': 'center',
-  'align-items': 'flex-start',
-}
-
-const pretty = {
-  width: '400px',
-  background: '#333',
-  'margin-top': '15%'
-}
-
-// TODO: create wrapper for this same pattern in every plugin
-const view = ({ val, vis, list, ix }: State, { select, hide, change }: any) => h('#vim-switch', {
-  style: vis ? container : hidden
+const view = ({ val, vis, list, ix }: State, { select, hide, change }: any) => h('#vim-switch.plugin', {
+  hide: !vis
 }, [
-  h('div', { style: pretty }, [
+  h('.dialog.large', [
     TermInput({ focus: true, val, select, hide, change }),
 
     h('.row', { render: !list.length }, 'no other sessions :('),

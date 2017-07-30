@@ -44,24 +44,10 @@ const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
 
 const state: State = { val: '', buffers: [], cache: [], vis: false, ix: 0 }
 
-const hidden = { display: 'none' }
-const container = {
-  display: 'flex',
-  width: '100%',
-  'justify-content': 'center',
-  'align-items': 'flex-start',
-}
-
-const pretty = {
-  width: '400px',
-  background: '#333',
-  'margin-top': '15%'
-}
-
-const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files', {
-  style: vis ? container : hidden
+const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#buffers.plugin', {
+  hide: !vis
 }, [
-  h('div', { style: pretty }, [
+  h('.dialog.large', [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
     h('.row', { render: !buffers.length }, 'no other buffers :('),

@@ -29,7 +29,7 @@
     "chokidar": "1.7.0",
     "fuzzaldrin-plus": "0.4.1",
     "glob": "7.1.2",
-    "huu": "1.1.2",
+    "huu": "2.0.1",
     "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26",
     "through": "2.3.8"
