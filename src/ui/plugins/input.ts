@@ -20,11 +20,13 @@ interface Props {
   onkey?: (event: Key) => void,
   down?: () => void,
   up?: () => void,
+  top?: () => void,
+  bottom?: () => void,
 }
 
 const nop = function () {}
 
-export default ({ val = '', desc, focus: shouldFocus = false, onkey = nop, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop }: Props) => h('.gui-input', [
+export default ({ val = '', desc, focus: shouldFocus = false, onkey = nop, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop, top = nop, bottom = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -62,6 +64,8 @@ export default ({ val = '', desc, focus: shouldFocus = false, onkey = nop, chang
       if (e.metaKey && (e.key === 'k' || e.key === 'p')) return prev()
       if (e.metaKey && e.key === 'd') return down()
       if (e.metaKey && e.key === 'u') return up()
+      if (e.metaKey && e.shiftKey && e.key === 'D') return bottom()
+      if (e.metaKey && e.shiftKey && e.key === 'U') return top()
 
       onkey({ val: e.key, ctrl: e.ctrlKey, alt: e.altKey, meta: e.metaKey, shift: e.shiftKey })
       change(val + (e.key.length > 1 ? '' : e.key))

@@ -10,8 +10,6 @@ const { cmd } = notify
 const $HOME = homedir()
 
 // TODO: handle paths outside of $HOME (fstat issues?)
-// TODO: put dirs up at the top, then files
-// TODO: scroll top/bottom aka gg/G
 // TODO: filter .git dir and some other?
 
 interface FileDir { name: string, file: boolean, dir: boolean  }
@@ -21,17 +19,23 @@ const state: State = { val: '', cwd: '', path: '',  paths: [], cache: [], vis: f
 const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~') : path
 const relativeToCwd = (path: string, cwd: string) => path.includes(cwd) ? path.replace(cwd, '').replace(/^\//, '') : path
 
+const sortDirFiles = (filedirs: FileDir[]) => {
+  const dirs = filedirs.filter(f => f.dir)
+  const files = filedirs.filter(f => f.file)
+  return [...dirs, ...files]
+}
+
 let listElRef: HTMLElement
 
-const view = ({ val, path, paths, vis, ix }: State, { onkey, change, hide, select, next, prev, scrollDown, scrollUp }: any) => h('#explorer.plugin', {
+const view = ({ val, path, paths, vis, ix }: State, { onkey, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom }: any) => h('#explorer.plugin', {
   hide: !vis
 }, [
   h('.dialog.large', [
-    TermInput({ focus: true, val, next, prev, change, hide, select, onkey, down: scrollDown, up: scrollUp }),
-
-    h('.row', { render: !paths.length }, `it's empty here :(`),
+    TermInput({ focus: true, val, next, prev, change, hide, select, onkey, down: scrollDown, up: scrollUp, top, bottom }),
 
     h('.row.important', shorten(path)),
+
+    h('.row', { render: !paths.length }, `it's empty here :(`),
 
     h('div', {
       onupdate: (e: HTMLElement) => listElRef = e,
@@ -60,7 +64,7 @@ a.select = (s, a) => {
 }
 
 a.change = (s, _a, val: string) => ({ val, paths: val
-  ? filter(s.paths, val, { key: 'name' })
+  ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
   : s.cache
 })
 
@@ -72,14 +76,14 @@ a.onkey = (_s, a, { val, meta, ctrl }) => {
 
 a.down = (s, a, next) => {
   const path = join(s.path, next)
-  getDirFiles(path).then(paths => a.show({ paths, path }))
+  getDirFiles(path).then(paths => a.show({ path, paths: sortDirFiles(paths) }))
 }
 
 a.up = (s, a) => {
   const next = s.path.split(sep)
   next.pop()
   const path = join(sep, ...next)
-  getDirFiles(path).then(paths => a.show({ paths, path }))
+  getDirFiles(path).then(paths => a.show({ path, paths: sortDirFiles(paths) }))
 }
 
 a.show = (s, _a, { paths, path, cwd = s.cwd }) => ({
@@ -90,6 +94,8 @@ a.show = (s, _a, { paths, path, cwd = s.cwd }) => ({
 })
 
 // TODO: be more precise than this? also depends on scaled devices
+a.top = () => { listElRef.scrollTop = 0 }
+a.bottom = () => { listElRef.scrollTop = listElRef.scrollHeight }
 a.scrollDown = () => { listElRef.scrollTop += 300 }
 a.scrollUp = () => { listElRef.scrollTop -= 300 }
 a.hide = () => ({ val: '', path: '', vis: false, ix: 0 })
@@ -106,6 +112,7 @@ export default async () => {
   const cwd = await call.getcwd()
   if (!cwd) return
 
-  const paths = await getDirFiles(cwd)
+  const filedirs = await getDirFiles(cwd)
+  const paths = sortDirFiles(filedirs)
   emit('show', { paths, cwd, path: cwd })
 }
