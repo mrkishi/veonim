@@ -1,13 +1,15 @@
 import { ID, dev, log, Watchers, onFnCall, snakeCase, merge } from './utils'
+import configReader, { ConfigCallback } from './config-reader'
 import { spawn, ChildProcess } from 'child_process'
 import { encoder, decoder } from './transport'
-import configReader, { ConfigCallback } from './config-reader'
+import { homedir } from 'os'
 import { Api } from './api'
 
 interface VimInstance { id: number, proc: ChildProcess, attached: boolean }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
+const $HOME = homedir()
 const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
 const vimOptions = { rgb: true, ext_popupmenu: false, ext_tabline: false, ext_wildmenu: false, ext_cmdline: false }
 const ids = { vim: ID(), req: ID(), activeVim: -1 }
@@ -22,7 +24,7 @@ const spawnVimInstance = () => spawn('nvim', [
   '--cmd',
   `command! -nargs=1 Veonim call rpcnotify(0, 'veonim', <f-args>)`,
   '--embed',
-])
+], { cwd: $HOME })
 
 const vimInstances = new Map<number, VimInstance>()
 
