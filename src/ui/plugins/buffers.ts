@@ -50,7 +50,7 @@ const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, pr
   h('.dialog.medium', [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
-    h('.row', { render: !buffers.length }, 'no other buffers :('),
+    h('.row', { render: !buffers.length }, '...'),
 
     h('div', buffers.map((f, key) => h('.row', {
       key,

@@ -25,6 +25,8 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
   h('.dialog.large', [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
+    h('.row', { render: !files.length }, '...'),
+
     h('div', files.map((f, key) => h('.row', {
       key,
       css: { active: key === ix },

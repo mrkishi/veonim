@@ -11,6 +11,7 @@ const $HOME = homedir()
 
 // TODO: handle paths outside of $HOME (fstat issues?)
 // TODO: filter .git dir and some other?
+// TODO: ctrl + i to jump history back from ctrl + d jumps?
 
 interface FileDir { name: string, file: boolean, dir: boolean  }
 interface State { val: string, cwd: string, path: string, paths: FileDir[], cache: FileDir[], vis: boolean, ix: number }
@@ -35,7 +36,7 @@ const view = ({ val, path, paths, vis, ix }: State, { onkey, change, hide, selec
 
     h('.row.important', shorten(path)),
 
-    h('.row', { render: !paths.length }, `it's empty here :(`),
+    h('.row', { render: !paths.length }, `...`),
 
     h('div', {
       onupdate: (e: HTMLElement) => listElRef = e,

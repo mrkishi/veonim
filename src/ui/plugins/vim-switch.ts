@@ -14,7 +14,7 @@ const view = ({ val, vis, list, ix }: State, { select, hide, change }: any) => h
   h('.dialog.small', [
     TermInput({ focus: true, val, select, hide, change }),
 
-    h('.row', { render: !list.length }, 'no other sessions :('),
+    h('.row', { render: !list.length }, '...'),
 
     h('div', list.map((s, key: number) => h('.row', {
       key,
