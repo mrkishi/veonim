@@ -1,6 +1,14 @@
 import { h } from './plugins'
 
-type Props = {
+interface Key {
+  val: string,
+  alt: boolean,
+  ctrl: boolean,
+  meta: boolean,
+  shift: boolean,
+}
+
+interface Props {
   val: string,
   desc?: string,
   focus?: boolean,
@@ -9,11 +17,12 @@ type Props = {
   hide?: () => void,
   next?: () => void,
   prev?: () => void,
+  onkey?: (event: Key) => void,
 }
 
 const nop = function () {}
 
-export default ({ val, desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop }: Props) => h('.gui-input', [
+export default ({ val, desc, focus: shouldFocus = false, onkey = nop, change = nop, hide = nop, select = nop, next = nop, prev = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -48,7 +57,9 @@ export default ({ val, desc, focus: shouldFocus = false, change = nop, hide = no
       if (e.metaKey && e.key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
       if (e.metaKey && (e.key === 'j' || e.key === 'n')) return next()
       if (e.metaKey && (e.key === 'k' || e.key === 'p')) return prev()
-      return change(val + (e.key.length > 1 ? '' : e.key))
+
+      onkey({ val: e.key, ctrl: e.ctrlKey, alt: e.altKey, meta: e.metaKey, shift: e.shiftKey })
+      change(val + (e.key.length > 1 ? '' : e.key))
     }
   }),
 ])

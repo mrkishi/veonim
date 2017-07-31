@@ -33,6 +33,7 @@ export const app = (appParts: any) => {
 // TODO: require all in plugins dir (dynamically)?
 import files from './files'
 import buffers from './buffers'
+import explorer from './explorer'
 import vimCreate from './vim-create'
 import vimRename from './vim-rename'
 import vimSwitch from './vim-switch'
@@ -41,6 +42,7 @@ import vimSwitch from './vim-switch'
 // or just bind actions directly in plugin?
 action('files', files)
 action('buffers', buffers)
+action('explorer', explorer)
 action('vim-create', vimCreate)
 action('vim-rename', vimRename)
 action('vim-switch', vimSwitch)

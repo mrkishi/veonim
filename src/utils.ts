@@ -1,13 +1,14 @@
-import { createWriteStream } from 'fs'
-import * as through from 'through'
 import { StringDecoder } from 'string_decoder'
+import * as through from 'through'
+import { join } from 'path'
+import * as fs from 'fs'
 
 export interface ActionCaller { [index: string]: (data?: any) => void }
 export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
 export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
 export const BindEventsToActions = <T>(obj: T & object) => new Proxy(obj, { get: (tar, method) => Reflect.get(tar, method) })
 
-const logfile = createWriteStream('logs')
+const logfile = fs.createWriteStream('logs')
 const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
 
 const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 'string'
@@ -47,6 +48,21 @@ export const onFnCall = <T>(cb: (name: string, args: any[]) => void): T => new P
 export const pascalCase = (m: string) => m[0].toUpperCase() + m.slice(1)
 export const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
 export const mergeValid = (target: any, source: any) => Object.entries(source).reduce((tar, [k, v]) => (v && Reflect.set(tar, k, v), tar), target)
+export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
+  const theFunctionToCall: Function = Reflect.get(o, name)
+  theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
+}))
+
+const { readdir, stat } = promisifyApi(fs)
+
+export const getDirFiles = async (path: string) => {
+  const paths = await readdir(path) as string[]
+  const filepaths = paths.map(f => ({ name: f, path: join(path, f) }))
+  const filesreq = await Promise.all(filepaths.map(async f => ({ name: f.name, stats: await stat(f.path) })))
+  return filesreq
+    .map(({ name, stats }) => ({ name, dir: stats.isDirectory(), file: stats.isFile() }))
+    .filter(m => m.dir || m.file)
+}
 
 export function debounce (fn: Function, wait = 1) {
   let timeout: NodeJS.Timer

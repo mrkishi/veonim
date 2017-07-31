@@ -7,10 +7,10 @@ Menu.setApplicationMenu(new Menu())
 
 app.on('ready', () => {
   win = new BrowserWindow({
-    x: 100,
-    y: 100,
-    width: 800,
-    height: 500,
+    x: 0,
+    y: 0,
+    width: 700,
+    height: 800,
     frame: false,
     backgroundColor: '#222',
     webPreferences: {
