@@ -10,7 +10,8 @@ const { cmd } = notify
 const $HOME = homedir()
 
 // TODO: handle paths outside of $HOME (fstat issues?)
-// TODO: handle scroll down/up (populate all and overflow? keys scroll div?)
+// TODO: put dirs up at the top, then files
+// TODO: scroll top/bottom aka gg/G
 // TODO: filter .git dir and some other?
 
 interface FileDir { name: string, file: boolean, dir: boolean  }
@@ -20,24 +21,28 @@ const state: State = { val: '', cwd: '', path: '',  paths: [], cache: [], vis: f
 const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~') : path
 const relativeToCwd = (path: string, cwd: string) => path.includes(cwd) ? path.replace(cwd, '').replace(/^\//, '') : path
 
-const view = ({ val, path, paths, vis, ix }: State, { onkey, change, hide, select, next, prev }: any) => h('#explorer.plugin', {
+let listElRef: HTMLElement
+
+const view = ({ val, path, paths, vis, ix }: State, { onkey, change, hide, select, next, prev, scrollDown, scrollUp }: any) => h('#explorer.plugin', {
   hide: !vis
 }, [
   h('.dialog.large', [
-    TermInput({ focus: true, val, next, prev, change, hide, select, onkey }),
+    TermInput({ focus: true, val, next, prev, change, hide, select, onkey, down: scrollDown, up: scrollUp }),
 
     h('.row', { render: !paths.length }, `it's empty here :(`),
 
     h('.row.important', shorten(path)),
 
-    h('div', paths.map(({ name, dir }, key) => h('.row', {
+    h('div', {
+      onupdate: (e: HTMLElement) => listElRef = e,
+      style: {
+        'max-height': '70vh',
+        'overflow-y': 'hidden',
+      }
+    }, paths.map(({ name, dir }, key) => h('.row', {
       key,
-      css: { active: key === ix },
-    }, [
-      h('span', { style: {
-        color: dir ? '#888' : 'inherit'
-      } }, name),
-    ]))),
+      css: { active: key === ix, dim: dir },
+    }, name))),
   ])
 ])
 
@@ -54,11 +59,11 @@ a.select = (s, a) => {
   a.down(name)
 }
 
-// TODO: instead of slice, need to scroll up/down
 a.change = (s, _a, val: string) => ({ val, paths: val
-  ? filter(s.paths, val, { key: 'name' }).slice(0, 20)
-  : s.cache.slice(0, 20)
+  ? filter(s.paths, val, { key: 'name' })
+  : s.cache
 })
+
 
 a.onkey = (_s, a, { val, meta, ctrl }) => {
   // because on mac cmd === meta && cmd is like ctrl on win/linux
@@ -78,14 +83,15 @@ a.up = (s, a) => {
 }
 
 a.show = (s, _a, { paths, path, cwd = s.cwd }) => ({
-  cwd,
-  path,
+  cwd, path, paths,
   val: '',
   vis: true,
   cache: paths,
-  paths: paths.slice(0, 20),
 })
 
+// TODO: be more precise than this? also depends on scaled devices
+a.scrollDown = () => { listElRef.scrollTop += 300 }
+a.scrollUp = () => { listElRef.scrollTop -= 300 }
 a.hide = () => ({ val: '', path: '', vis: false, ix: 0 })
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
