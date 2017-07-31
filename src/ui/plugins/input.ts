@@ -15,11 +15,12 @@ interface Props {
   bottom?: () => void,
   jumpPrev?: () => void,
   jumpNext?: () => void,
+  tab?: () => void,
 }
 
 const nop = function () {}
 
-export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop }: Props) => h('.gui-input', [
+export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop, tab = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -48,9 +49,13 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
     onblur: () => hide(),
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeydown: (e: KeyboardEvent) => {
+      e.preventDefault()
+
+      if (e.key === 'Tab') return tab()
       if (e.key === 'Escape') return hide()
       if (e.key === 'Enter') return select(val)
       if (e.key === 'Backspace') return change(val.slice(0, -1))
+
       const cm = e.ctrlKey || e.metaKey
       if (cm && e.key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
       if (cm && (e.key === 'j' || e.key === 'n')) return next()

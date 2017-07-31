@@ -34,6 +34,7 @@ export const app = (appParts: any) => {
 import files from './files'
 import buffers from './buffers'
 import explorer from './explorer'
+import changeDir from './change-dir'
 import vimCreate from './vim-create'
 import vimRename from './vim-rename'
 import vimSwitch from './vim-switch'
@@ -46,6 +47,7 @@ action('explorer', explorer)
 action('vim-create', vimCreate)
 action('vim-rename', vimRename)
 action('vim-switch', vimSwitch)
+action('change-dir', changeDir)
 
 if (process.env.VEONIM_DEV) {
   const plugins = [

@@ -17,21 +17,16 @@ const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~'
 const relativeToCwd = (path: string, cwd: string) => path.includes(cwd) ? path.replace(cwd, '').replace(/^\//, '') : path
 
 // TODO: common place? load via vimrc?
-const ignored = { dirs: ['.git'], files: ['.DS_Store'] }
-
-const sortDirFiles = (filedirs: FileDir[]) => {
-  const dirs = filedirs.filter(f => f.dir && !ignored.dirs.includes(f.name))
-  const files = filedirs.filter(f => f.file && !ignored.files.includes(f.name))
-  return [...dirs, ...files]
-}
+const ignored = ['.git']
+const filterDirs = (filedirs: FileDir[]) => filedirs.filter(f => f.dir && !ignored.includes(f.name))
 
 let listElRef: HTMLElement
 
-const view = ({ val, path, paths, vis, ix }: State, { jumpPrev, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom }: any) => h('#explorer.plugin', {
+const view = ({ val, path, paths, vis, ix }: State, { jumpPrev, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom, tab }: any) => h('#change-dir.plugin', {
   hide: !vis
 }, [
-  h('.dialog.large', [
-    TermInput({ focus: true, val, next, prev, change, hide, select, jumpPrev, down: scrollDown, up: scrollUp, top, bottom }),
+  h('.dialog.medium', [
+    TermInput({ focus: true, val, next, prev, change, hide, select, jumpPrev, down: scrollDown, up: scrollUp, top, bottom, tab }),
 
     h('.row.important', shorten(path)),
 
@@ -54,30 +49,30 @@ const a: Actions<State> = {}
 
 a.select = (s, a) => {
   if (!s.paths.length) return a.hide()
-  const { name, file } = s.paths[s.ix]
+  const { name } = s.paths[s.ix]
   if (!name) return
-  if (file) {
-    cmd(`e ${relativeToCwd(join(s.path, name), s.cwd)}`)
-    return a.hide()
-  }
-  a.down(name)
+  cmd(`cd ${relativeToCwd(join(s.path, name), s.cwd)}`)
+  return a.hide()
 }
 
 a.change = (s, _a, val: string) => ({ val, paths: val
-  ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
+  ? filterDirs(filter(s.paths, val, { key: 'name' }))
   : s.cache
 })
 
-a.down = (s, a, next) => {
-  const path = join(s.path, next)
-  getDirFiles(path).then(paths => a.show({ path, paths: sortDirFiles(paths) }))
+a.tab = (s, a) => {
+  if (!s.paths.length) return a.hide()
+  const { name } = s.paths[s.ix]
+  if (!name) return
+  const path = join(s.path, name)
+  getDirFiles(path).then(paths => a.show({ path, paths: filterDirs(paths) }))
 }
 
 a.jumpPrev = (s, a) => {
   const next = s.path.split(sep)
   next.pop()
   const path = join(sep, ...next)
-  getDirFiles(path).then(paths => a.show({ path, paths: sortDirFiles(paths) }))
+  getDirFiles(path).then(paths => a.show({ path, paths: filterDirs(paths) }))
 }
 
 a.show = (s, _a, { paths, path, cwd = s.cwd }) => ({
@@ -116,6 +111,6 @@ export default async () => {
   if (!cwd) return
 
   const filedirs = await getDirFiles(cwd)
-  const paths = sortDirFiles(filedirs)
+  const paths = filterDirs(filedirs)
   emit('show', { paths, cwd, path: cwd })
 }
