@@ -1,13 +1,5 @@
 import { h } from './plugins'
 
-interface Key {
-  val: string,
-  alt: boolean,
-  ctrl: boolean,
-  meta: boolean,
-  shift: boolean,
-}
-
 interface Props {
   val: string,
   desc?: string,
@@ -17,16 +9,17 @@ interface Props {
   hide?: () => void,
   next?: () => void,
   prev?: () => void,
-  onkey?: (event: Key) => void,
   down?: () => void,
   up?: () => void,
   top?: () => void,
   bottom?: () => void,
+  jumpPrev?: () => void,
+  jumpNext?: () => void,
 }
 
 const nop = function () {}
 
-export default ({ val = '', desc, focus: shouldFocus = false, onkey = nop, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop, top = nop, bottom = nop }: Props) => h('.gui-input', [
+export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -58,16 +51,18 @@ export default ({ val = '', desc, focus: shouldFocus = false, onkey = nop, chang
       if (e.key === 'Escape') return hide()
       if (e.key === 'Enter') return select(val)
       if (e.key === 'Backspace') return change(val.slice(0, -1))
-      // TODO: handle ctrl on win/linux?
-      if (e.metaKey && e.key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
-      if (e.metaKey && (e.key === 'j' || e.key === 'n')) return next()
-      if (e.metaKey && (e.key === 'k' || e.key === 'p')) return prev()
-      if (e.metaKey && e.key === 'd') return down()
-      if (e.metaKey && e.key === 'u') return up()
-      if (e.metaKey && e.shiftKey && e.key === 'D') return bottom()
-      if (e.metaKey && e.shiftKey && e.key === 'U') return top()
+      const cm = e.ctrlKey || e.metaKey
+      if (cm && e.key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
+      if (cm && (e.key === 'j' || e.key === 'n')) return next()
+      if (cm && (e.key === 'k' || e.key === 'p')) return prev()
+      if (cm && e.key === 'd') return down()
+      if (cm && e.key === 'u') return up()
+      if (cm && e.shiftKey && e.key === 'D') return bottom()
+      if (cm && e.shiftKey && e.key === 'U') return top()
+      if (cm && e.shiftKey && e.key === 'U') return top()
+      if (cm && e.key === 'i') return jumpNext()
+      if (cm && e.key === 'o') return jumpPrev()
 
-      onkey({ val: e.key, ctrl: e.ctrlKey, alt: e.altKey, meta: e.metaKey, shift: e.shiftKey })
       change(val + (e.key.length > 1 ? '' : e.key))
     }
   }),

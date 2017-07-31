@@ -55,10 +55,15 @@ export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args
 
 const { readdir, stat } = promisifyApi(fs)
 
+const emptyStat = { isDirectory: () => false, isFile: () => false }
+
 export const getDirFiles = async (path: string) => {
   const paths = await readdir(path) as string[]
   const filepaths = paths.map(f => ({ name: f, path: join(path, f) }))
-  const filesreq = await Promise.all(filepaths.map(async f => ({ name: f.name, stats: await stat(f.path) })))
+  const filesreq = await Promise.all(filepaths.map(async f => ({
+    name: f.name,
+    stats: await stat(f.path).catch((_e: string) => emptyStat)
+  })))
   return filesreq
     .map(({ name, stats }) => ({ name, dir: stats.isDirectory(), file: stats.isFile() }))
     .filter(m => m.dir || m.file)
