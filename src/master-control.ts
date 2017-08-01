@@ -24,7 +24,12 @@ const spawnVimInstance = () => spawn('nvim', [
   '--cmd',
   `command! -nargs=1 Veonim call rpcnotify(0, 'veonim', <f-args>)`,
   '--embed',
-], { cwd: $HOME })
+], {
+  cwd: $HOME,
+  env: Object.assign({}, process.env, {
+    NVIM_LISTEN_ADDRESS: '127.0.0.1:9890 nvim'
+  })
+})
 
 const vimInstances = new Map<number, VimInstance>()
 
