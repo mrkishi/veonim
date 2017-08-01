@@ -75,7 +75,7 @@ a.select = (s, a) => {
 }
 
 a.change = (s, _a, val: string) => ({ val, buffers: val
-  ? filter(s.buffers, val, { key: 'name' }).slice(0, 10)
+  ? filter(s.cache, val, { key: 'name' }).slice(0, 10)
   : s.cache.slice(0, 10)
 })
 

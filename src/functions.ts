@@ -5,7 +5,7 @@ export interface VimBuffer {
 }
 
 export interface Functions {
-  ListCommandsStartingWith(val: string): Promise<string[]>,
+  Commands(): Promise<string[]>,
   Buffers(): VimBuffer[],
   getcwd(): Promise<string>,
   expand(type: string): string,
