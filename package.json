@@ -4,6 +4,7 @@
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
+    "pack": "electron-builder -m",
     "fetch-bin-deps": "node tools/bins.js",
     "unzip-bin-deps": "cd bin && find . -maxdepth 1 -type f \\( -iname '*.gz' -o -iname '*.zip' \\) -exec tar xzf '{}' \\;",
     "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
@@ -16,6 +17,40 @@
     "r": "npm run rebuild && npm start",
     "start": "electron build/main.js",
     "gen-api": "node tools/gen-api.js"
+  },
+  "build": {
+    "productName": "veonim",
+    "appId": "com.deomitrus.veonim",
+    "files": [
+      "build/**",
+      "!**/*.map"
+    ],
+    "asar": false,
+    "mac": {
+      "artifactName": "${productName}-${version}-macos.${ext}",
+      "category": "public.app-category.developer-tools",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "files": [
+        "bin/macos/**/*"
+      ]
+    },
+    "linux": {
+      "artifactName": "${productName}-${version}-${arch}-linux.${ext}",
+      "maintainer": "deomitrus",
+      "target": [
+        "tar.gz",
+        "deb",
+        "rpm"
+      ]
+    },
+    "win": {
+      "target": [
+        "zip"
+      ]
+    }
   },
   "repository": {
     "type": "git",
@@ -43,6 +78,7 @@
     "@types/through": "0.0.28",
     "axios": "0.16.2",
     "electron": "1.6.11",
+    "electron-builder": "19.18.1",
     "jsonfile": "3.0.1",
     "require-reload": "0.2.2",
     "typescript": "2.4.2"
