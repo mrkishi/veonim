@@ -58,7 +58,7 @@ r.update_fg = (fg: number) => fg > -1 && merge(colors, { fg: asColor(fg) })
 r.update_bg = (bg: number) => bg > -1 && merge(colors, { bg: asColor(bg) })
 r.update_sp = (sp: number) => sp > -1 && merge(colors, { sp: asColor(sp) })
 r.cursor_goto = (row: number, col: number) => merge(ui.cursor, { col, row })
-r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, ui.cols - 1, 1)
+r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, ui.cols, 1)
 r.set_scroll_region = (top: number, bottom: number, left: number, right: number) => lastScrollRegion = { top, bottom, left, right }
 
 r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {

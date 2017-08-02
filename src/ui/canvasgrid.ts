@@ -126,7 +126,6 @@ api.setCursorShape = (type, size = 20) => {
   if (type === CursorShape.underline) merge(cursorEl.style, {
     'mix-blend-mode': 'normal',
     background: partialFill('horizontal', cursor.color, size),
-    // background: gradient(0, cursor.color, size, 'rgba(0,0,0,0)', 0),
     height: `${px.row.height(1)}px`,
     width: `${px.col.width(1)}px`
   })
