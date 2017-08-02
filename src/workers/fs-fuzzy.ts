@@ -1,6 +1,6 @@
-import { filter } from 'fuzzaldrin-plus'
-import { spawn } from 'child_process'
 import { NewlineSplitter } from '../utils'
+import { filter } from 'fuzzaldrin-plus'
+import Ripgrep from '@veonim/ripgrep'
 
 let results: string[] = []
 let query: string = ''
@@ -18,7 +18,7 @@ const getFiles = (dir: string) => {
   let alive = true
   let initialSent = false
   const timer = setInterval(() => sendResults(), 250)
-  const rg = spawn('rg', ['--files'], { cwd: dir })
+  const rg = Ripgrep(['--files'], { cwd: dir })
 
   rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => {
     if (!initialSent && results.length > 9) (initialSent = true, sendInitial())

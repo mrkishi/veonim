@@ -1,7 +1,8 @@
 import { ID, dev, log, Watchers, onFnCall, snakeCase, merge } from './utils'
 import configReader, { ConfigCallback } from './config-reader'
-import { spawn, ChildProcess } from 'child_process'
+import { ChildProcess } from 'child_process'
 import { encoder, decoder } from './transport'
+import Neovim from '@veonim/neovim'
 import { homedir } from 'os'
 import { Api } from './api'
 
@@ -18,7 +19,7 @@ const clientSize = { width: 0, height: 0 }
 let onRedrawFn: RedrawFn = function () {}
 let onExitFn: ExitFn = function () {}
 
-const spawnVimInstance = ({ askCd = false }) => spawn('nvim', [
+const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
   `let g:veonim=1`,
   '--cmd',
