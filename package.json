@@ -4,6 +4,8 @@
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
+    "fetch-bin-deps": "node tools/bins.js",
+    "unzip-bin-deps": "cd bin && find . -maxdepth 1 -type f \\( -iname '*.gz' -o -iname '*.zip' \\) -exec tar xzf '{}' \\;",
     "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf build",
@@ -39,8 +41,20 @@
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "8.0.12",
     "@types/through": "0.0.28",
+    "axios": "0.16.2",
     "electron": "1.6.11",
+    "jsonfile": "3.0.1",
     "require-reload": "0.2.2",
     "typescript": "2.4.2"
-  }
+  },
+  "binDependencies": [
+    {
+      "repo": "neovim/neovim",
+      "version": "0.2.0"
+    },
+    {
+      "repo": "burntsushi/ripgrep",
+      "version": "0.5.2"
+    }
+  ]
 }
