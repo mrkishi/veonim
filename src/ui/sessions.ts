@@ -14,8 +14,8 @@ export default (id: number) => {
   notifyReady()
 }
 
-export const createVim = async (name: string) => {
-  const id = await create()
+export const createVim = async (name: string, nameAfterDir = false) => {
+  const id = await create({ askCd: nameAfterDir })
   attach(id)
   switchTo(id)
   vims.forEach(v => v.active = false)

@@ -18,11 +18,13 @@ const clientSize = { width: 0, height: 0 }
 let onRedrawFn: RedrawFn = function () {}
 let onExitFn: ExitFn = function () {}
 
-const spawnVimInstance = () => spawn('nvim', [
+const spawnVimInstance = ({ askCd = false }) => spawn('nvim', [
   '--cmd',
   `let g:veonim=1`,
   '--cmd',
-  `command! -nargs=1 Veonim call rpcnotify(0, 'veonim', <f-args>)`,
+  `let g:vn_ask_cd=${<any>askCd | 0}`,
+  '--cmd',
+  `command! -nargs=* Veonim call rpcnotify(0, 'veonim', <f-args>)`,
   '--embed',
 ], {
   cwd: $HOME,
@@ -33,8 +35,8 @@ const spawnVimInstance = () => spawn('nvim', [
 
 const vimInstances = new Map<number, VimInstance>()
 
-const createNewVimInstance = (): number => {
-  const proc = spawnVimInstance()
+const createNewVimInstance = ({ askCd = false } = {}): number => {
+  const proc = spawnVimInstance({ askCd })
   const id = ids.vim.next()
 
   vimInstances.set(id, { id, proc, attached: false })
@@ -69,8 +71,8 @@ export const switchToVim = (id: number) => {
   ;[...watchers.keys()].forEach(event => api.subscribe(event))
 }
 
-export const newVim = (): number => {
-  const id = createNewVimInstance()
+export const newVim = ({ askCd = false } = {}): number => {
+  const id = createNewVimInstance({ askCd })
   switchToVim(id)
   return id
 }

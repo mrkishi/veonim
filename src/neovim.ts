@@ -10,6 +10,10 @@ export interface NeovimEvents {
   exit(fn: (id: number, code: number) => void): void
 }
 
+export interface VimOptions {
+  askCd: boolean
+}
+
 export interface Neovim {
   resize(width: number, height: number): void,
   input(keys: string): void,
@@ -21,7 +25,7 @@ export interface Neovim {
   subscribe(event: string, cb: GenericCallback): void,
   call(name: string, args: any[]): any,
   switchTo(id: number): void,
-  create(): Promise<number>,
+  create(opts?: VimOptions): Promise<number>,
   attach(id: number): void,
   getVar(key: string): Promise<any>,
   setVar(key: string, val: any): void,
@@ -41,7 +45,7 @@ a.action = (e, cb) => watchers.add(e, cb)
 a.subscribe = (e, cb) => subscribe(e, cb)
 a.call = (name, args) => req.callFunction(name, args)
 a.switchTo = id => switchToVim(id),
-a.create = () => Promise.resolve(newVim()),
+a.create = (opts?: VimOptions) => Promise.resolve(newVim(opts)),
 a.attach = id => attachToVim(id),
 a.setVar = (key, val) => api.setVar(key, val),
 
@@ -65,6 +69,6 @@ a.on = {
   exit: fn => onExit(fn)
 }
 
-subscribe('veonim', ([ event, ...args ]) => watchers.notify(event, args))
+subscribe('veonim', ([ event, ...args ]) => watchers.notify(event, ...args))
 
 export default a

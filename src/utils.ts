@@ -54,6 +54,7 @@ export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args
 }))
 
 const { readdir, stat } = promisifyApi(fs)
+export const exists = (path: string) => new Promise(fin => fs.access(path, e => fin(!e)))
 
 const emptyStat = { isDirectory: () => false, isFile: () => false }
 

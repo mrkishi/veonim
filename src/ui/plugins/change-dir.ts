@@ -1,5 +1,6 @@
-import { Actions, Events, getDirFiles } from '../../utils'
+import { Actions, Events, getDirFiles, exists } from '../../utils'
 import { call, notify } from '../neovim-client'
+import { renameCurrent } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
 import { join, sep } from 'path'
@@ -10,11 +11,16 @@ const { cmd } = notify
 const $HOME = homedir()
 
 interface FileDir { name: string, file: boolean, dir: boolean  }
-interface State { val: string, cwd: string, path: string, paths: FileDir[], cache: FileDir[], vis: boolean, ix: number }
-const state: State = { val: '', cwd: '', path: '',  paths: [], cache: [], vis: false, ix: 0 }
+interface State { val: string, cwd: string, path: string, paths: FileDir[], cache: FileDir[], vis: boolean, ix: number, renameToDir: boolean }
+const state: State = { val: '', cwd: '', path: '',  paths: [], cache: [], vis: false, ix: 0, renameToDir: false }
 
 const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~') : path
-const relativeToCwd = (path: string, cwd: string) => path.includes(cwd) ? path.replace(cwd, '').replace(/^\//, '') : path
+const absPath = (path = '') => path.startsWith('~') ? join($HOME, path.slice(1)) : path
+const validPath = async (path = '') => {
+  if (!path) return ''
+  const fullpath = absPath(path)
+  return await exists(fullpath) ? fullpath : ''
+}
 
 // TODO: common place? load via vimrc?
 const ignored = ['.git']
@@ -51,7 +57,8 @@ a.select = (s, a) => {
   if (!s.paths.length) return a.hide()
   const { name } = s.paths[s.ix]
   if (!name) return
-  cmd(`cd ${relativeToCwd(join(s.path, name), s.cwd)}`)
+  cmd(`cd ${join(s.path, name)}`)
+  if (s.renameToDir) renameCurrent(name)
   return a.hide()
 }
 
@@ -75,8 +82,8 @@ a.jumpPrev = (s, a) => {
   getDirFiles(path).then(paths => a.show({ path, paths: filterDirs(paths) }))
 }
 
-a.show = (s, _a, { paths, path, cwd = s.cwd }) => ({
-  cwd, path, paths,
+a.show = (s, _a, { paths, path, cwd = s.cwd, renameToDir }) => ({
+  cwd, path, paths, renameToDir,
   ix: 0,
   val: '',
   vis: true,
@@ -106,11 +113,11 @@ e.show = (_s, a, d) => a.show(d)
 
 const emit = app({ state, view, actions: a, events: e })
 
-export default async () => {
-  const cwd = await call.getcwd()
+export default async (userPath: string, renameToDir = false) => {
+  const cwd = await validPath(userPath) || await call.getcwd()
   if (!cwd) return
 
   const filedirs = await getDirFiles(cwd)
   const paths = filterDirs(filedirs)
-  emit('show', { paths, cwd, path: cwd })
+  emit('show', { paths, cwd, path: cwd, renameToDir })
 }

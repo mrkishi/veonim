@@ -1,4 +1,5 @@
 import { sub } from '../neovim-client'
+import { createVim } from '../sessions'
 import * as viminput from '../input'
 import { merge } from '../../utils'
 import vim from '../canvasgrid'
@@ -48,8 +49,10 @@ action('explorer', explorer)
 action('vim-create', vimCreate)
 action('vim-rename', vimRename)
 action('vim-switch', vimSwitch)
-action('change-dir', changeDir)
 action('commands', commands)
+action('vim-create-dir', () => createVim('dir-unnamed', true))
+action('change-dir', (path = '') => changeDir(path, false))
+action('init-dir', (path = '') => changeDir(path, true))
 
 if (process.env.VEONIM_DEV) {
   const plugins = [
