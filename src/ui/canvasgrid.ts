@@ -47,11 +47,11 @@ const sizeToGrid = (height: number, width: number): Grid => ({
 // TODO: memoize
 const px = {
   row: {
-    height: (row: number, scaled = false) => row * cell.height * (scaled ? ratio : 1),
+    height: (row: number, scaled = false) => Math.floor(row * cell.height * (scaled ? ratio : 1)),
     y: (rows: number, scaled = false) => px.row.height(rows, scaled) + (margins.top * (scaled ? ratio : 1))
   },
   col: {
-    width: (col: number, scaled = false) => col * cell.width * (scaled ? ratio : 1),
+    width: (col: number, scaled = false) => Math.floor(col * cell.width * (scaled ? ratio : 1)),
     x: (cols: number, scaled = false) => px.col.width(cols, scaled) + (margins.left * (scaled ? ratio : 1))
   }
 }
@@ -86,7 +86,7 @@ api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeigh
   setVar('font-size', size)
   setVar('line-height', lineHeight)
   merge(font, { size, face, lineHeight })
-  merge(cell, { width: ui.measureText('m').width, height: Math.ceil(size * lineHeight) })
+  merge(cell, { width: Math.floor(ui.measureText('m').width), height: Math.floor(size * lineHeight) })
   return api
 }
 
