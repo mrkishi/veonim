@@ -52,18 +52,21 @@ export const registerShortcut = (keys: string, cb: Function) => shortcuts.set(`<
 
 type Transformer = (input: KeyboardEvent) => KeyboardEvent
 const xforms = new Map<string, Transformer>()
+const upforms = new Map<string, Transformer>()
 
 const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].filter(a => a).join('')
 
 export const addTransformerDown = (e: KeyboardEvent, fn: Transformer) => xforms.set(keToStr(e), fn)
+export const addTransformUp = (e: KeyboardEvent, fn: Transformer) => upforms.set(keToStr(e), fn)
 
 const defkey = {...new KeyboardEvent('keydown'), key: '', ctrlKey: false, metaKey: false, altKey: false, shiftKey: false}
 addTransformerDown({...defkey, key: `'`}, e => ({...e, key: '@' + e.key}))
-
-// TODO: add transform for alone (down + up => new key) aka ctrl/esc
+addTransformUp({...defkey, key: `'`}, e => ({...e, key: 'Escape'}))
 
 window.addEventListener('keydown', e => {
+  e.preventDefault()
   if (!isCapturing) return
+
   const strKey = keToStr(e)
 
   if (xforms.has(strKey) && down === strKey) return
@@ -77,13 +80,19 @@ window.addEventListener('keydown', e => {
   const inputKeys = formatInput(mapMods(ev), mapKey(ev.key))
   if (shortcuts.has(inputKeys)) return shortcuts.get(inputKeys)!()
 
-  e.preventDefault()
   input(inputKeys)
 })
 
-// no keyup events will be triggered for input value - slow anyways/vim doesn't care
 window.addEventListener('keyup', e => {
-  if (!isCapturing) return
   e.preventDefault()
-  if (down === keToStr(e)) down = ''
+  if (!isCapturing) return
+
+  if (down === keToStr(e)) {
+    if (upforms.has(down)) {
+      const ev = upforms.get(down)!(e)
+      const inputKeys = formatInput(mapMods(ev), mapKey(ev.key))
+      input(inputKeys)
+    }
+    down = ''
+  }
 })
