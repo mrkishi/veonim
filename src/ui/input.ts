@@ -34,8 +34,9 @@ const toVimKey = (key: string): string => {
   else return key
 }
 
+const isUpper = (char: string) => char.toLowerCase() !== char
 const bypassEmptyMod = (key: string) => modifiers.includes(key) ? '' : key
-const wrapKey = (key: string): string => key.length > 1 && key[0].toUpperCase() === key[0] ? `<${key}>` : key
+const wrapKey = (key: string): string => key.length > 1 && isUpper(key[0]) ? `<${key}>` : key
 const combineModsWithKey = (mods: string, key: string) => mods.length ? `${mods}-${key}` : key
 const userModRemaps = (mods: string[]) => mods.map(m => remaps.get(m) || m)
 const joinModsWithDash = (mods: string[]) => mods.join('-')
@@ -54,21 +55,16 @@ const xforms = new Map<string, Transformer>()
 
 const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].filter(a => a).join('')
 
-export const addTransformer = (e: KeyboardEvent, fn: Transformer) => xforms.set(keToStr(e), fn)
+export const addTransformerDown = (e: KeyboardEvent, fn: Transformer) => xforms.set(keToStr(e), fn)
 
 const defkey = {...new KeyboardEvent('keydown'), key: '', ctrlKey: false, metaKey: false, altKey: false, shiftKey: false}
-addTransformer({...defkey, key: ';'}, e => ({...e, key: ';' + e.key}))
-// TODO: add transform for alone (down + up => new key) aka ctrl/esc
+addTransformerDown({...defkey, key: `'`}, e => ({...e, key: '@' + e.key}))
 
-console.log(xforms)
+// TODO: add transform for alone (down + up => new key) aka ctrl/esc
 
 window.addEventListener('keydown', e => {
   if (!isCapturing) return
   const strKey = keToStr(e)
-
-  console.log('strkey', strKey)
-  console.log('down', down)
-  if (xforms.has(down)) console.log(xforms.get(down)!(e))
 
   if (xforms.has(strKey) && down === strKey) return
 
@@ -81,9 +77,6 @@ window.addEventListener('keydown', e => {
   const inputKeys = formatInput(mapMods(ev), mapKey(ev.key))
   if (shortcuts.has(inputKeys)) return shortcuts.get(inputKeys)!()
 
-    // TODO: xform ; to ;s ;n ;e (as two chars) doesnt work because it gets wrapped in <>
-    // refactor key.length > 1 logic to not trigger on transforms. maybe look at length and first char uppercase?
-    console.log(inputKeys)
   e.preventDefault()
   input(inputKeys)
 })
