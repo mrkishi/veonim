@@ -8,19 +8,14 @@ export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller,
 export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
 export const BindEventsToActions = <T>(obj: T & object) => new Proxy(obj, { get: (tar, method) => Reflect.get(tar, method) })
 
-const logfile = fs.createWriteStream('logs')
-const writemsg = (m: string) => logfile.write(`${JSON.stringify(m)}\n`)
-
+// like old version of IE lol
 const logger = (str: TemplateStringsArray | string, v: any[]) => typeof str === 'string'
-  ? writemsg(str as string)
-  : writemsg((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
+  ? console.log(str as string)
+  : console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
-export const dev = (str: TemplateStringsArray | string, ...vars: any[]) => {
-  if (process.env.VEONIM_DEV) logger(str, vars)
-}
 
-process.on('unhandledRejection', writemsg)
+process.on('unhandledRejection', e => console.log(e))
 
 type TypeChecker = (thing: any) => boolean
 interface Types {

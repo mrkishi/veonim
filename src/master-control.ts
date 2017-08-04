@@ -1,4 +1,4 @@
-import { ID, dev, log, Watchers, onFnCall, snakeCase, merge } from './utils'
+import { ID, log, Watchers, onFnCall, snakeCase, merge } from './utils'
 import configReader, { ConfigCallback } from './config-reader'
 import { ChildProcess } from 'child_process'
 import { encoder, decoder } from './transport'
@@ -97,14 +97,11 @@ const request = (name: string, args: any[]) => {
   return new Promise((done, fail) => pendingRequests.set(reqId, { done, fail }))
 }
 
-const noRequestMethodFound = (id: number, method: string) => {
-  send([1, id, 'no one was listening for your request, sorry', null])
-  dev `vim ${ids.activeVim} made a request for ${method} but no handler was found`
-}
+const noRequestMethodFound = (id: number) => send([1, id, 'no one was listening for your request, sorry', null])
 
 const onVimRequest = (id: number, method: string, args: any[]) => {
   const reqHandler = requestHandlers.get(method)
-  if (!reqHandler) return noRequestMethodFound(id, method)
+  if (!reqHandler) return noRequestMethodFound(id)
 
   const maybePromise = reqHandler(...args as any[])
 
@@ -129,7 +126,6 @@ decoder.on('data', ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
   if (type === 0) onVimRequest(d[0] as number, d[1].toString(), d[2] as any[])
   else if (type === 1) onResponse(d[0] as number, d[1] as string, d[2])
   else if (type === 2) onNotification(d[0].toString(), d[1] as any[])
-  else dev `i don't know how to handle this msg type: ${type} from ${ids.activeVim}`
 })
 
 export const req: Api = onFnCall((name: string, args: any[] = []) => request(asVimFn(name), args))
@@ -138,7 +134,7 @@ export const on = (event: string, fn: (data: any) => void) => watchers.add(event
 export const onRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => { onRedrawFn = fn }
-export const onConfig = (fn: ConfigCallback) => configReader('nvim/init.vim', fn, e => console.log(e))
+export const onConfig = (fn: ConfigCallback) => configReader('nvim/init.vim', fn, log)
 
 export const resize = (width: number, height: number) => {
   merge(clientSize, { width, height })

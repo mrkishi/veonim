@@ -1,7 +1,7 @@
 import { remote } from 'electron'
 import ui, { CursorShape } from './canvasgrid'
 import * as uiInput from './input'
-import { debounce } from '../utils'
+import { debounce, log } from '../utils'
 import { on, notify, request } from './neovim-client'
 import { Config } from '../config-reader'
 import setDefaultSession from './sessions'
@@ -60,4 +60,4 @@ const main = async () => {
   setDefaultSession(vimId)
 }
 
-main().catch(e => console.log(e))
+main().catch(log)

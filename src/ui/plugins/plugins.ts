@@ -41,7 +41,7 @@ import vimCreate from './vim-create'
 import vimRename from './vim-rename'
 import vimSwitch from './vim-switch'
 
-// TODO: any way the plugin can declare for itself what actions to listen to?
+// TODO: should the plugin declare for itself what actions to listen to?
 // or just bind actions directly in plugin?
 action('files', files)
 action('buffers', buffers)
@@ -53,29 +53,3 @@ action('commands', commands)
 action('vim-create-dir', () => createVim('dir-unnamed', true))
 action('change-dir', (path = '') => changeDir(path, false))
 action('init-dir', (path = '') => changeDir(path, true))
-
-if (process.env.VEONIM_DEV) {
-  const plugins = [
-    'files',
-    'buffers',
-    'vim-create',
-    'vim-rename',
-    'vim-switch',
-  ]
-
-  const cleanup = (name: string) => {
-    const el = document.getElementById(name)
-    if (!el) return console.log('did not find', name)
-    el.parentNode && el.parentNode.removeChild(el)
-  }
-
-  const { watch } = require('chokidar')
-  const reload = require('require-reload')(require)
-
-  plugins.forEach(p => watch(`${__dirname}/${p}.js`).on('change', () => {
-    cleanup(p)
-    const mod = reload(`./${p}`).default
-    console.log(`reloading ${p}`)
-    action(p, mod)
-  }))
-}
