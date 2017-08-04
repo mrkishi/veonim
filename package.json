@@ -24,7 +24,7 @@
   },
   "build": {
     "productName": "veonim",
-    "appId": "com.deomitrus.veonim",
+    "appId": "com.veonim.veonim",
     "files": [
       "build/**",
       "!**/*.map"
@@ -45,7 +45,7 @@
     },
     "linux": {
       "artifactName": "${productName}-${version}-${arch}-linux.${ext}",
-      "maintainer": "deomitrus",
+      "maintainer": "veonim",
       "target": [
         "tar.gz"
       ],
@@ -70,14 +70,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deomitrus/veonim.git"
+    "url": "git+https://github.com/veonim/veonim.git"
   },
   "author": "Deomitrus",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/deomitrus/veonim/issues"
+    "url": "https://github.com/veonim/veonim/issues"
   },
-  "homepage": "https://github.com/deomitrus/veonim#readme",
+  "homepage": "https://github.com/veonim/veonim#readme",
   "dependencies": {
     "chokidar": "1.7.0",
     "fuzzaldrin-plus": "0.4.1",
