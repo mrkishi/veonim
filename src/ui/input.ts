@@ -68,7 +68,8 @@ let transforming = false
 const sendKeys = (e: KeyboardEvent) => {
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
   if (shortcuts.has(inputKeys)) return shortcuts.get(inputKeys)!()
-  input(inputKeys)
+  if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
+  else input(inputKeys)
 }
 
 window.addEventListener('keydown', e => {
@@ -76,7 +77,6 @@ window.addEventListener('keydown', e => {
   if (!isCapturing) return
   const strKey = keToStr(e)
 
-  console.log('down', strKey)
   if (xforms.has(strKey)) {
     holding = strKey
     return
