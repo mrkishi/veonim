@@ -14,7 +14,7 @@
     "gen-api": "node tools/gen-api.js",
     "create-bin-dirs": "mkdir bindeps && mkdir bindeps/mac bindeps/linux bindeps/win",
     "dl-all-bins": "npm i @veonim/neovim@0.0.5-mac --prefix ./bindeps/mac && npm i @veonim/neovim@0.0.5-linux --prefix ./bindeps/linux && npm i @veonim/neovim@0.0.5-win --prefix ./bindeps/win",
-    "copy-icons": "cp icons/icon.icns icons/icon.ico build",
+    "copy-icons": "cp art/icon.icns art/icon.ico build",
     "pack-mac": "npm run copy-icons && electron-builder -m",
     "pack-win": "npm run copy-icons && electron-builder -w",
     "pack-linux": "npm run copy-icons && electron-builder -l",
