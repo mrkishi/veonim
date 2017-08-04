@@ -5,7 +5,9 @@ const { input } = notify
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
 let isCapturing = false
-let holding: string
+let holding = ''
+let xformed = false
+let lastDown = ''
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -45,10 +47,21 @@ const mapKey = $(bypassEmptyMod, toVimKey)
 const formatInput = $(combineModsWithKey, wrapKey)
 const shortcuts = new Map<string, Function>()
 
-export const remapModifier = (from: string, to: string) => remaps.set(from, to)
-export const focus = () => isCapturing = true
-export const blur = () => isCapturing = false
 export const registerShortcut = (keys: string, cb: Function) => shortcuts.set(`<${keys.toUpperCase()}>`, cb)
+export const remapModifier = (from: string, to: string) => remaps.set(from, to)
+export const focus = () => {
+  isCapturing = true
+  xformed = false
+  lastDown = ''
+  holding = ''
+}
+
+export const blur = () => {
+  isCapturing = false
+  xformed = false
+  lastDown = ''
+  holding = ''
+}
 
 type Transformer = (input: KeyboardEvent) => KeyboardEvent
 const xfrmHold = new Map<string, Transformer>()
@@ -85,9 +98,6 @@ const sendKeys = (e: KeyboardEvent) => {
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else input(inputKeys)
 }
-
-let xformed = false
-let lastDown = ''
 
 window.addEventListener('keydown', e => {
   e.preventDefault()
