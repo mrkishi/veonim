@@ -51,76 +51,82 @@ export const blur = () => isCapturing = false
 export const registerShortcut = (keys: string, cb: Function) => shortcuts.set(`<${keys.toUpperCase()}>`, cb)
 
 type Transformer = (input: KeyboardEvent) => KeyboardEvent
-const xforms = new Map<string, Transformer>()
-const upforms = new Map<string, Transformer>()
+const xfrmHold = new Map<string, Transformer>()
+const xfrmUp = new Map<string, Transformer>()
+const xfrmDown = new Map<string, Transformer>()
 
 const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
 
-export const addTransformerDown = (e: KeyboardEvent, fn: Transformer) => xforms.set(keToStr(e), fn)
-export const addTransformUp = (e: KeyboardEvent, fn: Transformer) => upforms.set(keToStr(e), fn)
-
 const defkey = {...new KeyboardEvent('keydown'), key: '', ctrlKey: false, metaKey: false, altKey: false, shiftKey: false}
-addTransformerDown({...defkey, key: `;`}, e => ({...e, key: ';' + e.key}))
-// addTransformUp({...defkey, key: 'Meta'}, e => ({...e, key: 'Escape'}))
 
-let transforming = false
+// TODO:
+// -technically there are two kinds of remapping that a user would think of
+// i want to remap key A -> key B
+// i want to remap key A -> key B HOWEVER, when key A (holding) -> key C
+// is there a case where you would want ONLY a keyup remap?
+// aka. hold + up should be combined together
+// hold: A -> A (default, optional) + A(hold) -> C
+// holdfull: A -> B + A(hold) -> C
+export const transform = {
+  hold: (e: any, fn: Transformer) => xfrmHold.set(keToStr({...defkey, ...e}), fn),
+  down: (e: any, fn: Transformer) => xfrmDown.set(keToStr({...defkey, ...e}), fn),
+  // TODO: set the before condition?
+  // up: (before: any, now: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
+  up: (e: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
+}
+
+transform.hold({ key: ';' }, e => ({ ...e, key: ';' + e.key }))
 
 const sendKeys = (e: KeyboardEvent) => {
+  const key = bypassEmptyMod(e.key)
+  if (!key) return
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
   if (shortcuts.has(inputKeys)) return shortcuts.get(inputKeys)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else input(inputKeys)
 }
 
+let xformed = false
+let lastDown = ''
+
 window.addEventListener('keydown', e => {
   e.preventDefault()
   if (!isCapturing) return
-  const strKey = keToStr(e)
+  const es = keToStr(e)
 
-  if (xforms.has(strKey)) {
-    holding = strKey
+  lastDown = es
+
+  if (xfrmDown.has(es)) {
+    const remapped = xfrmDown.get(holding)!(e)
+    sendKeys(remapped)
     return
   }
 
-  if (!xforms.has(holding)) {
-    holding = strKey
-    transforming = false
+  if (xfrmHold.has(es)) {
+    holding = es
+    return
   }
-  else transforming = true
 
-  const ev = xforms.has(holding) ? xforms.get(holding)!(e) : e
-  const key = bypassEmptyMod(ev.key)
-  if (!key) return
+  if (xfrmHold.has(holding)) {
+    const remapped = xfrmHold.get(holding)!(e)
+    sendKeys(remapped)
+    xformed = true
+    return
+  }
 
-  sendKeys(ev)
+  sendKeys(e)
 })
 
 window.addEventListener('keyup', e => {
   e.preventDefault()
   if (!isCapturing) return
-  const strKey = keToStr(e)
-  
-  // TODO: Lol this is maximum dirty hack
-  // TODO: after hold + transform, need to release so we can type again
-  // aka xform on ; -> ; + key
-  // then this happens
-  // <alone>;;;;<holding>;s;d;s<let go><TRY-alone-BUT-FAIL>;
-  // only if type another char that is not ; then it resets back
-  if (keToStr(e) === 'Meta0000' && holding === 'Meta0100') return input(`<Esc>`)
+  const es = keToStr(e)
 
-  if (holding === strKey) {
-    if (xforms.has(holding) && !transforming) sendKeys(e)
+  if (keToStr(e) === 'Meta0000' && lastDown === 'Meta0100') return input(`<Esc>`)
 
-    else if (upforms.has(holding)) {
-      const ev = upforms.get(holding)!(e)
-      sendKeys(ev)
-    }
-
+  if (holding === es) {
+    if (!xformed) sendKeys(e)
+    xformed = false
     holding = ''
   }
-
-  // else if (upforms.has(strKey)) {
-  //   const ev = upforms.get(strKey)!(e)
-  //   sendKeys(ev)
-  // }
 })
