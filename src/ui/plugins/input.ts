@@ -18,6 +18,8 @@ interface Props {
   tab?: () => void,
 }
 
+let lastDown = ''
+const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
 const nop = function () {}
 
 export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop, tab = nop }: Props) => h('.gui-input', [
@@ -48,8 +50,13 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
     placeholder: desc,
     onblur: () => hide(),
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
+    onkeyup: (e: KeyboardEvent) => {
+      // TODO: make it better. support ctrl?
+      if (lastDown === 'Meta0100' && keToStr(e) === 'Meta0000') return hide()
+    },
     onkeydown: (e: KeyboardEvent) => {
       e.preventDefault()
+      lastDown = keToStr(e)
 
       if (e.key === 'Tab') return tab()
       if (e.key === 'Escape') return hide()

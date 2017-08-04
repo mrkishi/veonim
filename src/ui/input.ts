@@ -122,7 +122,8 @@ window.addEventListener('keyup', e => {
   if (!isCapturing) return
   const es = keToStr(e)
 
-  if (keToStr(e) === 'Meta0000' && lastDown === 'Meta0100') return input(`<Esc>`)
+  // TODO: temp dirty hack
+  if (lastDown === 'Meta0100' && keToStr(e) === 'Meta0000') return input(`<Esc>`)
 
   if (holding === es) {
     if (!xformed) sendKeys(e)
