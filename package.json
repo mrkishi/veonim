@@ -4,19 +4,21 @@
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
-    "pack": "electron-builder -m",
-    "fetch-bin-deps": "node tools/bins.js",
-    "unzip-bin-deps": "cd bin && find . -maxdepth 1 -type f \\( -iname '*.gz' -o -iname '*.zip' \\) -exec tar xzf '{}' \\;",
-    "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf build",
+    "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
     "typescript": "tsc -p tsconfig.json && tsc -p tsconfig.workers.json",
     "watch": "tsc -p tsconfig.json --watch",
     "build": "npm run typescript && npm run fixexp && cp src/index.html build/index.html",
     "rebuild": "npm run clean && npm run build",
-    "r": "npm run rebuild && npm start",
     "start": "electron build/main.js",
-    "gen-api": "node tools/gen-api.js"
+    "gen-api": "node tools/gen-api.js",
+    "create-bin-dirs": "mkdir bindeps && mkdir bindeps/mac bindeps/linux bindeps/win",
+    "dl-all-bins": "npm i @veonim/neovim@0.0.5-mac --prefix ./bindeps/mac && npm i @veonim/neovim@0.0.5-linux --prefix ./bindeps/linux && npm i @veonim/neovim@0.0.5-win --prefix ./bindeps/win",
+    "pack-mac": "electron-builder -m",
+    "pack-win": "electron-builder -w",
+    "pack-linux": "electron-builder -l",
+    "pack": "electron-builder -mwl",
+    "release": "npm run create-bin-dirs && npm run dl-all-bins && npm run pack"
   },
   "build": {
     "productName": "veonim",
@@ -30,25 +32,37 @@
       "artifactName": "${productName}-${version}-macos.${ext}",
       "category": "public.app-category.developer-tools",
       "target": [
-        "dmg",
-        "zip"
+        "dmg"
       ],
       "files": [
-        "bin/macos/**/*"
+        {
+          "from": "bindeps/mac/node_modules",
+          "to": "node_modules"
+        }
       ]
     },
     "linux": {
       "artifactName": "${productName}-${version}-${arch}-linux.${ext}",
       "maintainer": "deomitrus",
       "target": [
-        "tar.gz",
-        "deb",
-        "rpm"
+        "tar.gz"
+      ],
+      "files": [
+        {
+          "from": "bindeps/linux/node_modules",
+          "to": "node_modules"
+        }
       ]
     },
     "win": {
       "target": [
         "zip"
+      ],
+      "files": [
+        {
+          "from": "bindeps/win/node_modules",
+          "to": "node_modules"
+        }
       ]
     }
   },
