@@ -1,4 +1,3 @@
-import { pub } from '../pubsub'
 import { remote } from 'electron'
 import ui, { CursorShape } from './canvasgrid'
 import * as uiInput from './input'
@@ -38,8 +37,13 @@ on.config((c: Config) => {
 // TODO: read from vim config
 uiInput.remapModifier('C', 'D')
 uiInput.remapModifier('D', 'C')
-uiInput.registerShortcut('s-c-f', () => pub('fullscreen'))
-uiInput.registerShortcut('s-c-q', () => remote.app.quit())
+uiInput.registerShortcut('s-c-|', () => remote.getCurrentWebContents().toggleDevTools())
+uiInput.registerShortcut('s-c-x', () => remote.app.quit())
+uiInput.registerShortcut('s-c-f', () => {
+  // TODO: why no work?
+  const win = remote.getCurrentWindow()
+  win.setFullScreen(!win.isFullScreen())
+})
 
 window.addEventListener('resize', debounce(() => {
   ui.resize(window.innerHeight, window.innerWidth)
