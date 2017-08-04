@@ -5,6 +5,7 @@
   "main": "build/main.js",
   "scripts": {
     "clean": "rm -rf build",
+    "clean-all": "npm run clean && rm -rf dist && rm -rf bindeps",
     "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
     "typescript": "tsc -p tsconfig.json && tsc -p tsconfig.workers.json",
     "watch": "tsc -p tsconfig.json --watch",
@@ -13,13 +14,13 @@
     "start": "electron build/main.js",
     "gen-api": "node tools/gen-api.js",
     "create-bin-dirs": "mkdir bindeps && mkdir bindeps/mac bindeps/linux bindeps/win",
-    "dl-all-bins": "npm i @veonim/neovim@0.0.5-mac --prefix ./bindeps/mac && npm i @veonim/neovim@0.0.5-linux --prefix ./bindeps/linux && npm i @veonim/neovim@0.0.5-win --prefix ./bindeps/win",
+    "dl-all-bins": "npm i @veonim/neovim@0.0.5-mac --prefix ./bindeps/mac && npm i @veonim/neovim@0.0.5-linux --prefix ./bindeps/linux && npm i @veonim/neovim@0.0.5-win --prefix ./bindeps/win && npm i @veonim/ripgrep@0.0.1-mac --prefix ./bindeps/mac && npm i @veonim/ripgrep@0.0.1-linux --prefix ./bindeps/linux && npm i @veonim/ripgrep@0.0.1-win --prefix ./bindeps/win",
     "copy-icons": "cp art/icon.icns art/icon.ico build",
     "pack-mac": "npm run copy-icons && electron-builder -m",
     "pack-win": "npm run copy-icons && electron-builder -w",
     "pack-linux": "npm run copy-icons && electron-builder -l",
     "pack": "npm run copy-icons && electron-builder -mwl",
-    "release": "npm run rebuild && npm run create-bin-dirs && npm run dl-all-bins && npm run pack"
+    "release": "npm run clean-all && npm run build && npm run create-bin-dirs && npm run dl-all-bins && npm run pack"
   },
   "build": {
     "productName": "veonim",

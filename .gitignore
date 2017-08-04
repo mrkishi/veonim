@@ -5,3 +5,4 @@ logs
 bin
 dist
 .vscode
+.DS_Store
