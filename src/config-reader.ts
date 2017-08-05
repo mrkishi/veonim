@@ -1,6 +1,5 @@
 import { createReadStream } from 'fs'
-import { debounce } from './utils'
-import { watch } from 'chokidar'
+const watch = require('node-watch')
 import { homedir } from 'os'
 
 export type Config = Map<string, any>
@@ -34,5 +33,5 @@ const loadConfig = async (path: string, notify: ConfigCallback) => {
 export default (location: string, cb: ConfigCallback, handleErr: (err: string) => void) => {
   const path = `${base}/${location}`
   loadConfig(path, cb).catch(e => handleErr(e))
-  watch(path).on('change', debounce(() => loadConfig(path, cb).catch(e => handleErr(e)), 10))
+  watch(path, () => loadConfig(path, cb).catch(e => handleErr(e)))
 }
