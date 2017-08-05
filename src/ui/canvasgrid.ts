@@ -31,7 +31,6 @@ const cursorEl = document.getElementById('cursor') as HTMLElement
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
 const ratio = window.devicePixelRatio
-
 const font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
 const actualSize = { width: 0, height: 0 }
 const cell = { width: 0, height: 0 }
