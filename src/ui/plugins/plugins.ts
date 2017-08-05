@@ -40,6 +40,7 @@ import changeDir from './change-dir'
 import vimCreate from './vim-create'
 import vimRename from './vim-rename'
 import vimSwitch from './vim-switch'
+import colorPicker from './color-picker'
 
 // TODO: should the plugin declare for itself what actions to listen to?
 // or just bind actions directly in plugin?
@@ -53,3 +54,4 @@ action('commands', commands)
 action('vim-create-dir', () => createVim('dir-unnamed', true))
 action('change-dir', (path = '') => changeDir(path, false))
 action('init-dir', (path = '') => changeDir(path, true))
+action('pick-color', colorPicker)
