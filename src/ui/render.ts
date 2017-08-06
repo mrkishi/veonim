@@ -127,5 +127,5 @@ on.redraw((m: any[]) => {
   }
 
   lastScrollRegion = null
-  setTimeout(() => ui.moveCursor(), 0)
+  ui.moveCursor()
 })
