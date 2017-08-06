@@ -35,6 +35,5 @@ const emit = app({ state, view, actions: a, events: e })
 
 export default async () => {
   const word = await call.expand('<cword>')
-  console.log('cwrod', word)
   emit('show', word)
 }

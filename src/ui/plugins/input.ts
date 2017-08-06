@@ -52,7 +52,10 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeyup: (e: KeyboardEvent) => {
       // TODO: make it better. support ctrl?
-      if (lastDown === 'Meta0100' && keToStr(e) === 'Meta0000') return hide()
+      if (lastDown === 'Meta0100' && keToStr(e) === 'Meta0000') {
+        lastDown = ''
+        return hide()
+      }
     },
     onkeydown: (e: KeyboardEvent) => {
       e.preventDefault()
