@@ -23,9 +23,13 @@ const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
   `let g:veonim=1`,
   '--cmd',
+  `let g:vn_loaded=0`,
+  '--cmd',
   `let g:vn_ask_cd=${<any>askCd | 0}`,
   '--cmd',
-  `command! -nargs=* Veonim call rpcnotify(0, 'veonim', <f-args>)`,
+  `exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
+  '--cmd',
+  `com! -nargs=+ Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call timer_start(1, {-> Veonim(<f-args>)}) | endif`,
   '--embed',
 ], {
   cwd: $HOME,
@@ -75,6 +79,7 @@ export const switchToVim = (id: number) => {
 export const newVim = ({ askCd = false } = {}): number => {
   const id = createNewVimInstance({ askCd })
   switchToVim(id)
+  api.command(`let g:vn_loaded=1`)
   return id
 }
 

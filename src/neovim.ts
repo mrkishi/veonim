@@ -69,6 +69,6 @@ a.on = {
   exit: fn => onExit(fn)
 }
 
-subscribe('veonim', ([ event, ...args ]) => watchers.notify(event, ...args))
+subscribe('veonim', ([ event, args = [] ]) => watchers.notify(event, ...args))
 
 export default a
