@@ -1,10 +1,13 @@
-import { autocmd, notify, define } from '../neovim-client'
+import { autocmd, notify, define, request } from '../neovim-client'
 import { onVimCreate } from '../sessions'
 //import ui from './canvasgrid'
 const { cmd } = notify
+const { expr } = request
 
 // TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
 onVimCreate(() => {
+  cmd(`aug Veonim | au! | aug END`)
+
   define.VeonimComplete`
     return a:1 ? g:veonim_complete_pos : g:veonim_completions
   `
@@ -24,27 +27,20 @@ onVimCreate(() => {
 
   cmd(`set completefunc=VeonimComplete`)
 
-  cmd(`let g:veonim_completing=0`)
-  cmd(`let g:veonim_complete_pos=1`)
-  cmd(`let g:veonim_completions=['luke', 'leia', 'rey', 'kenobi']`)
+  cmd(`let g:veonim_completing = 0`)
+  cmd(`let g:veonim_complete_pos = 1`)
+  cmd(`let g:veonim_completions = ['luke', 'leia', 'rey', 'kenobi']`)
 
   cmd(`ino <expr> <tab> CompleteScroll(1)`)
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
 
-  autocmd('WinEnter', () => {
+  autocmd.winEnter(() => {
     console.log('entered a window, i think...')
   })
+
+  autocmd.completeDone(async () => {
+    cmd(`let g:veonim_completing = 0`)
+    const { word } = await expr(`v:completed_item`)
+    console.log('completed word:', word)
+  })
 })
-
-
-
-// TODO: how to autocmd?
-  //autocmd.completeDone(async m => {
-    //ex(`let g:vimtron_completing = 0`)
-    //const { word } = await expr(`v:completed_item`)
-    //console.log('completed word:', word)
-  //})
-
-
-
-
