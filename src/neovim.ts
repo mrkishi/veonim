@@ -29,6 +29,7 @@ export interface Neovim {
   attach(id: number): void,
   getVar(key: string): Promise<any>,
   setVar(key: string, val: any): void,
+  getCurrentLine(): Promise<string>,
   on: NeovimEvents
 }
 
@@ -44,10 +45,11 @@ a.expr = m => req.eval(m)
 a.action = (e, cb) => watchers.add(e, cb)
 a.subscribe = (e, cb) => subscribe(e, cb)
 a.call = (name, args) => req.callFunction(name, args)
-a.switchTo = id => switchToVim(id),
-a.create = (opts?: VimOptions) => Promise.resolve(newVim(opts)),
-a.attach = id => attachToVim(id),
-a.setVar = (key, val) => api.setVar(key, val),
+a.switchTo = id => switchToVim(id)
+a.create = (opts?: VimOptions) => Promise.resolve(newVim(opts))
+a.attach = id => attachToVim(id)
+a.setVar = (key, val) => api.setVar(key, val)
+a.getCurrentLine = () => req.getCurrentLine()
 
 a.getVar = async key => {
   const val = await req.getVar(key as string).catch(e => e)

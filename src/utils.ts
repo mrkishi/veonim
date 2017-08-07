@@ -42,10 +42,17 @@ export const onFnCall = <T>(cb: (name: string, args: any[]) => void): T => new P
 export const pascalCase = (m: string) => m[0].toUpperCase() + m.slice(1)
 export const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
 export const mergeValid = (target: any, source: any) => Object.entries(source).reduce((tar, [k, v]) => (v && Reflect.set(tar, k, v), tar), target)
+
 export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
   const theFunctionToCall: Function = Reflect.get(o, name)
   theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
 }))
+
+export const findIndexRight = (line: string, pattern: RegExp, start: number) => {
+  for (let ix = start || line.length; ix > 0; ix--) {
+    if (pattern.test(line[ix])) return ix
+  }
+}
 
 const { readdir, stat } = promisifyApi(fs)
 export const exists = (path: string) => new Promise(fin => fs.access(path, e => fin(!e)))
