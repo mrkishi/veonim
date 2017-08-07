@@ -20,7 +20,7 @@ interface Props {
 
 let lastDown = ''
 const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
-const nop = function () {}
+const nop = () => {}
 
 export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop, tab = nop }: Props) => h('.gui-input', [
   h('div', {
