@@ -1,6 +1,7 @@
 import { call, autocmd, notify, define, request } from '../neovim-client'
 import { findIndexRight } from '../../utils'
 import { onVimCreate } from '../sessions'
+import { sub } from '../../dispatch'
 const { cmd, setVar } = notify
 const { expr, getCurrentLine } = request
 
@@ -129,5 +130,17 @@ onVimCreate(() => {
     //current.filetype = await expr(`&filetype`)
     ////updateServer()
   //}, 100))
+
+  sub('pmenu.show', ({ items, selIx, row, col }) => {
+    console.log('show', items, 'sel', selIx, 'at', row, col)
+  })
+
+  sub('pmenu.select', ix => {
+    console.log('selected', ix)
+  })
+
+  sub('pmenu.hide', () => {
+    console.log('hide')
+  })
 
 })

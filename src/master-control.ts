@@ -12,7 +12,7 @@ type ExitFn = (id: number, code: number) => void
 
 const $HOME = homedir()
 const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
-const vimOptions = { rgb: true, ext_popupmenu: false, ext_tabline: false, ext_wildmenu: false, ext_cmdline: false }
+const vimOptions = { rgb: true, ext_popupmenu: true, ext_tabline: false, ext_wildmenu: false, ext_cmdline: false }
 const ids = { vim: ID(), req: ID(), activeVim: -1 }
 const clientSize = { width: 0, height: 0 }
 

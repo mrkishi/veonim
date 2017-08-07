@@ -1,5 +1,6 @@
 import ui, { CursorShape } from './canvasgrid'
 import { request, on } from './neovim-client'
+import * as dispatch from '../dispatch'
 import { merge } from '../utils'
 
 const { getColor } = request
@@ -9,6 +10,7 @@ interface Mode { shape: CursorShape, size?: number, color?: number }
 interface ScrollRegion { top: number, bottom: number, left: number, right: number }
 interface Attrs { fg: string, bg: string, foreground?: number, background?: number, special?: string, reverse?: string, italic?: string, bold?: string, underline?: string, undercurl?: string }
 interface ModeInfo { blinkoff?: number, blinkon?: number, blinkwait?: number, cell_percentage?: number, cursor_shape?: string, hl_id?: number, id_lm?: number, mouse_shape?: number, name: string, short_name: string }
+interface PMenuItem { word: string, kind: string, menu: string, info: string }
 
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
@@ -115,6 +117,11 @@ r.put = (m: any[]) => {
     }
   }
 }
+
+r.popupmenu_hide = () => dispatch.pub('pmenu.hide')
+r.popupmenu_select = (selIx: number) => dispatch.pub('pmenu.select', selIx)
+r.popupmenu_show = (items: PMenuItem[], selIx: number, row: number, col: number) =>
+  dispatch.pub('pmenu.show', { items, selIx, row, col })
 
 on.redraw((m: any[]) => {
   const count = m.length
