@@ -34,7 +34,7 @@ const wildcard = t => {
 }
 
 const toJSTypes = type => ({
-  Object: 'object',
+  Object: 'any',
   Array: 'any[]',
   Integer: 'number',
   Boolean: 'boolean',

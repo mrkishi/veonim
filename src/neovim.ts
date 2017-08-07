@@ -29,6 +29,8 @@ export interface Neovim {
   attach(id: number): void,
   getVar(key: string): Promise<any>,
   setVar(key: string, val: any): void,
+  getOption(name: string): Promise<any>,
+  setOption(key: string, value: any): void,
   getCurrentLine(): Promise<string>,
   on: NeovimEvents
 }
@@ -49,6 +51,8 @@ a.switchTo = id => switchToVim(id)
 a.create = (opts?: VimOptions) => Promise.resolve(newVim(opts))
 a.attach = id => attachToVim(id)
 a.setVar = (key, val) => api.setVar(key, val)
+a.getOption = key => req.getOption(key)
+a.setOption = (key, val) => api.setOption(key, val)
 a.getCurrentLine = () => req.getCurrentLine()
 
 a.getVar = async key => {

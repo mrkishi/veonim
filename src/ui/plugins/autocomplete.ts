@@ -1,8 +1,7 @@
-import { autocmd, notify, define, request } from '../neovim-client'
+import { call, autocmd, notify, define, request } from '../neovim-client'
 import { findIndexRight } from '../../utils'
 import { onVimCreate } from '../sessions'
-//import ui from './canvasgrid'
-const { cmd } = notify
+const { cmd, setVar } = notify
 const { expr, getCurrentLine } = request
 
 // TODO: get from lang server
@@ -11,7 +10,10 @@ completionTriggers.set('javascript', /[^\w\$]/)
 
 // TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
 onVimCreate(() => {
-  let startIndex = 0
+  const g = {
+    startIndex: 0,
+    completionItems: ['luke', 'leia', 'rey', 'kenobi', 'lol']
+  }
 
   cmd(`aug Veonim | au! | aug END`)
 
@@ -32,18 +34,13 @@ onVimCreate(() => {
     return a:1 ? "\\<tab>" : "\\<c-w>"
   `
 
+  setVar('veonim_completing', 0)
+  setVar('veonim_complete_pos', 1)
+  setVar('veonim_completions', g.completionItems)
+
   cmd(`set completefunc=VeonimComplete`)
-
-  cmd(`let g:veonim_completing = 0`)
-  cmd(`let g:veonim_complete_pos = 1`)
-  cmd(`let g:veonim_completions = ['luke', 'leia', 'rey', 'kenobi']`)
-
   cmd(`ino <expr> <tab> CompleteScroll(1)`)
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
-
-  autocmd.winEnter(() => {
-    console.log('entered a window, i think...')
-  })
 
   autocmd.completeDone(async () => {
     cmd(`let g:veonim_completing = 0`)
@@ -52,7 +49,7 @@ onVimCreate(() => {
   })
 
   autocmd.insertLeave(() => {
-    startIndex = 0
+    g.startIndex = 0
   })
 
   const findQuery = (filetype: string, line: string, column: number) => {
@@ -65,10 +62,24 @@ onVimCreate(() => {
     return { startIndex, query, leftChar }
   }
 
+  const getPos = async () => {
+    // TODO: use nvim_window_* api instead
+    const [ buffer, line, column, offset ] = await call.getpos('.')
+    return { buffer, line, column, offset }
+  }
+
+  const update = (items: string[]) => {
+    // TODO: make sure to validate the right data being sent
+    // TODO: send more than just strings. send rich data with id metadata.
+    // that way when we get external popup menu notifications we can hook into local
+    // richer metadata to populate ui completion menu
+    setVar('veonim_completions', items)
+  }
+
   const getCompletions = async () => {
     const line = await getCurrentLine()
-    const { startIndex, query, leftChar } = findQuery('javascript', line, ui.cursor.col)
-    // TODO: when leftChar is ( startIndex goes -1 one too far
+    const { column } = await getPos()
+    const { startIndex, query } = findQuery('javascript', line, column)
 
     //console.log(`      `)
     //console.log('startIndex:', startIndex)
@@ -80,22 +91,43 @@ onVimCreate(() => {
     if (query.length) {
       // TODO: call keywords + semantic = combine -> filter against query
       // use subsequence matching with case sensitivy priority
-      // YCM has a good algo. maybe fzy too
+      // YCM has a good algo. maybe fzy too. USE FUZZALDRIN? pretty goooooood
       // TODO: only call this if query has changed 
-      //update(g.completionItems)
+      update(g.completionItems)
 
       // TODO: do we always need to update this?
       // TODO: cache last position in insert session
       // only update vim if (changed) 
       // use cache - if (same) dont re-ask for keyword/semantic completions from avo
-      if (g.startIndex !== startIndex || !g.visible) {
-        console.log(`showing cmenu`)
-        cmd(`let g:veonim_complete_pos = ${startIndex}`)
-        const { x, y } = await getScreenCursorPos()
-        show(Math.max(0, startIndex - 1), vim.column, x, y)
-      }
+      //if (g.startIndex !== startIndex || !g.visible) {
+        //console.log(`showing cmenu`)
+        //cmd(`let g:veonim_complete_pos = ${startIndex}`)
+        //const { x, y } = await getScreenCursorPos()
+        //show(Math.max(0, startIndex - 1), vim.column, x, y)
+      //}
+      cmd(`let g:veonim_complete_pos = ${startIndex}`)
     } else {
       console.log('no query, wtf lol')
     }
   }
+
+  const refreshPosition = async (mode: string) => {
+    //const { buffer, line, column, offset } = await getPos()
+    //merge(current, { buffer, line, column, offset, mode })
+    if (mode !== 'insert') return
+    getCompletions()
+    //findSignatureHint()
+  }
+
+  autocmd.cursorMoved(() => refreshPosition('normal'))
+  autocmd.cursorMovedI(() => refreshPosition('insert'))
+
+  // TODO: yeah good idea, but hook up in neovim instance class
+  //autocmd.bufEnter(debounce(async m => {
+    //current.file = await call.expand('%f')
+    //// TODO: use filetype for js-langs
+    //current.filetype = await expr(`&filetype`)
+    ////updateServer()
+  //}, 100))
+
 })
