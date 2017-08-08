@@ -52,7 +52,7 @@ e.show = (_s, a, stuff) => a.show(stuff)
 e.hide = (_s, a) => a.hide()
 e.select = (_s, a, ix: number) => a.select(ix)
 
-const emit = app({ state, view, actions: a, events: e }, false)
+const pluginUI = app({ state, view, actions: a, events: e }, false)
 
 const tempSource = ['saveUserAccount', 'suave', 'getUserVar', 'gurilla', 'geuro', 'guvion', 'yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins', 'error']
 
@@ -95,13 +95,14 @@ onVimCreate(() => {
   autocmd.completeDone(async () => {
     setVar('veonim_completing', 0)
     const { word } = await expr(`v:completed_item`)
+    // TODO: do what with completed word? mru cache?
     console.log('completed word:', word)
-    update([])
+    updateVim([])
   })
 
   autocmd.insertLeave(() => {
     g.startIndex = 0
-    emit('hide')
+    pluginUI('hide')
   })
 
   const findQuery = (filetype: string, line: string, column: number) => {
@@ -120,7 +121,7 @@ onVimCreate(() => {
     return { buffer, line, column, offset }
   }
 
-  const update = (items: string[]) => {
+  const updateVim = (items: string[]) => {
     g.completionItems = items
     // TODO: make sure to validate the right data being sent
     // TODO: send more than just strings. send rich data with id metadata.
@@ -143,20 +144,25 @@ onVimCreate(() => {
     // set complete_pos
     if (query.length) {
       // TODO: call keywords + semantic = combine -> filter against query
-      // use subsequence matching with case sensitivy priority
-      // YCM has a good algo. maybe fzy too. USE FUZZALDRIN?
-      // TODO: fuzzaldrin is not that great here because we need to filter from start of word only...
       // TODO: only call this if query has changed 
 
       // query.toUpperCase() allows the filter engine to rank camel case functions higher
       // aka: saveUserAccount > suave for query: 'sua'
       const completions = filter(tempSource, query.toUpperCase(), { maxResults: 8 }) 
+
+      if (!completions.length) {
+        updateVim([])
+        pluginUI('hide')
+        return
+      }
+
       const orderedCompletions = orderCompletions(completions, query)
-      update(orderedCompletions)
+      updateVim(orderedCompletions)
+
       const options = orderedCompletions.map((text, id) => ({ id, text }))
       const y = ui.rowToY(line)
       const x = ui.colToX(Math.max(0, startIndex - 1))
-      if (orderedCompletions.length) emit('show', { options, ix: -1, x, y })
+      pluginUI('show', { options, ix: -1, x, y })
 
       // TODO: do we always need to update this?
       // TODO: cache last position in insert session
@@ -170,15 +176,17 @@ onVimCreate(() => {
       //}
       setVar('veonim_complete_pos', startIndex)
     } else {
-      emit('hide')
-      update([])
+      pluginUI('hide')
+      updateVim([])
     }
   }
 
   autocmd.cursorMovedI(() => getCompletions())
 
-  sub('pmenu.select', ix => emit('select', ix))
-  sub('pmenu.hide', () => emit('hide'))
+  sub('pmenu.show', ({ items }) => console.log(items))
+
+  sub('pmenu.select', ix => pluginUI('select', ix))
+  sub('pmenu.hide', () => pluginUI('hide'))
 
   // TODO: yeah good idea, but hook up in neovim instance class
   // get filetype (used to determine separator used for finding startIndex. each lang might be different)
