@@ -50,7 +50,7 @@ e.select = (_s, a, ix: number) => a.select(ix)
 
 const emit = app({ state, view, actions: a, events: e }, false)
 
-const tempSource = ['yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins']
+const tempSource = ['saveUserAccount', 'suave', 'getUserVar', 'gurilla', 'geuro', 'guvion', 'yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins']
 
 interface G { startIndex: number, completionItems: string[] }
 
@@ -143,7 +143,9 @@ onVimCreate(() => {
       // YCM has a good algo. maybe fzy too. USE FUZZALDRIN?
       // TODO: fuzzaldrin is not that great here because we need to filter from start of word only...
       // TODO: only call this if query has changed 
-      g.completionItems = filter(tempSource, query, { maxResults: 8 })
+      // query.toUpperCase() allows the filter engine to rank camel case functions higher
+      // aka: saveUserAccount > suave for query: 'sua'
+      g.completionItems = filter(tempSource, query.toUpperCase(), { maxResults: 8 })
       update(g.completionItems)
       const options = g.completionItems.map((text, id) => ({ id, text }))
       const y = ui.rowToY(line)
