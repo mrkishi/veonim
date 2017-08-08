@@ -18,7 +18,7 @@ const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) 
     && (altKey && notCmdOrCtrl)
     || (altKey && shiftKey && notCmdOrCtrl)
 
-  if (onlyShift && isStandardAscii(key)) return mods
+  if (onlyShift && isStandardAscii(key) && key.length === 1) return mods
   if (macOSUnicode) return mods
   if (ctrlKey) mods.push('C')
   if (shiftKey) mods.push('S')
@@ -33,6 +33,10 @@ const toVimKey = (key: string): string => {
   if (key === 'Escape') return 'Esc'
   if (key === 'Delete') return 'Del'
   if (key === ' ') return 'Space'
+  if (key === 'ArrowUp') return 'Up'
+  if (key === 'ArrowDown') return 'Down'
+  if (key === 'ArrowLeft') return 'Left'
+  if (key === 'ArrowRight') return 'Right'
   else return key
 }
 
