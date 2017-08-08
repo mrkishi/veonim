@@ -1,10 +1,10 @@
 import { call, autocmd, notify, define, request } from '../neovim-client'
-import { Actions, Events, findIndexRight } from '../../utils'
-import { translate } from '../css'
+import { cc, Actions, Events, findIndexRight } from '../../utils'
 import { onVimCreate } from '../sessions'
-import { h, app } from './plugins'
 import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
+import { translate } from '../css'
+import { h, app } from './plugins'
 import ui from '../canvasgrid'
 const { cmd, setVar } = notify
 const { expr, getCurrentLine } = request
@@ -23,7 +23,6 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete.plugin', {
   style: { 'justify-content': 'flex-start' }
 }, [
   h('div', { style: {
-    // TODO: use flex for min/max?
     'min-width': '100px',
     'max-width': '300px',
     position: 'absolute',
@@ -93,10 +92,13 @@ onVimCreate(() => {
     cmd(`let g:veonim_completing = 0`)
     const { word } = await expr(`v:completed_item`)
     console.log('completed word:', word)
+    g.completionItems = []
+    update(g.completionItems)
   })
 
   autocmd.insertLeave(() => {
     g.startIndex = 0
+    emit('hide')
   })
 
   const findQuery = (filetype: string, line: string, column: number) => {
@@ -124,9 +126,9 @@ onVimCreate(() => {
   }
 
   const getCompletions = async () => {
-    const line = await getCurrentLine()
-    const { column } = await getPos()
-    const { startIndex, query } = findQuery('javascript', line, column)
+    // TODO: use neovim api built-ins? better perf? line is slowest. could use ui.cursor pos instead of getPos()
+    const [ lineData, { line, column } ] = await cc(getCurrentLine(), getPos())
+    const { startIndex, query } = findQuery('javascript', lineData, column)
 
     //console.log(`      `)
     //console.log('startIndex:', startIndex)
@@ -138,11 +140,15 @@ onVimCreate(() => {
     if (query.length) {
       // TODO: call keywords + semantic = combine -> filter against query
       // use subsequence matching with case sensitivy priority
-      // YCM has a good algo. maybe fzy too. USE FUZZALDRIN? pretty goooooood
-      // TODO: only call this if query has changed 
+      // YCM has a good algo. maybe fzy too. USE FUZZALDRIN?
       // TODO: fuzzaldrin is not that great here because we need to filter from start of word only...
-      g.completionItems = filter(tempSource, query).slice(0, 8)
+      // TODO: only call this if query has changed 
+      g.completionItems = filter(tempSource, query, { maxResults: 8 })
       update(g.completionItems)
+      const options = g.completionItems.map((text, id) => ({ id, text }))
+      const y = ui.rowToY(line)
+      const x = ui.colToX(Math.max(0, startIndex - 1))
+      if (g.completionItems.length) emit('show', { options, ix: -1, x, y })
 
       // TODO: do we always need to update this?
       // TODO: cache last position in insert session
@@ -156,43 +162,23 @@ onVimCreate(() => {
       //}
       cmd(`let g:veonim_complete_pos = ${startIndex}`)
     } else {
-      console.log('no query, wtf lol')
+      emit('hide')
+      g.completionItems = []
+      update(g.completionItems)
     }
   }
 
-  const refreshPosition = async (mode: string) => {
-    //const { buffer, line, column, offset } = await getPos()
-    //merge(current, { buffer, line, column, offset, mode })
-    if (mode !== 'insert') return
-    getCompletions()
-    //findSignatureHint()
-  }
+  autocmd.cursorMovedI(() => getCompletions())
 
-  autocmd.cursorMoved(() => refreshPosition('normal'))
-  autocmd.cursorMovedI(() => refreshPosition('insert'))
+  sub('pmenu.select', ix => emit('select', ix))
+  sub('pmenu.hide', () => emit('hide'))
 
   // TODO: yeah good idea, but hook up in neovim instance class
+  // get filetype (used to determine separator used for finding startIndex. each lang might be different)
   //autocmd.bufEnter(debounce(async m => {
     //current.file = await call.expand('%f')
     //// TODO: use filetype for js-langs
     //current.filetype = await expr(`&filetype`)
     ////updateServer()
   //}, 100))
-
-  // TODO: nice, but pmenu should show up automagically. kthx
-  sub('pmenu.show', ({ ix, row, col }) => {
-    const options = g.completionItems.map((text, id) => ({ id, text }))
-    const y = ui.rowToY(row + 1)
-    const x = ui.colToX(col)
-    emit('show', { options, ix, x, y })
-  })
-
-  sub('pmenu.select', ix => {
-    emit('select', ix)
-  })
-
-  sub('pmenu.hide', () => {
-    emit('hide')
-  })
-
 })

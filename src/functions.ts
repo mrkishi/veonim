@@ -4,7 +4,7 @@ export interface VimBuffer {
   mod: boolean
 }
 
-type WindowPosition = [ string, string, number, number ]
+type WindowPosition = [ string, number, number, number ]
 
 export interface Functions {
   Commands(): Promise<string[]>,
