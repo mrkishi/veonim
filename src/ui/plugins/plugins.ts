@@ -12,17 +12,18 @@ const action = sub('action')
 const hostElement = document.getElementById('plugins')
 export const getHostElement = () => hostElement as HTMLElement
 
-// TOOD: because mixins and events.beforeAction dont work in the current npm release of hyperapp
-export const app = (appParts: any) => {
+// TODO: because mixins and events.beforeAction dont work in the current npm release of hyperapp
+// TODO: formalize the wrappings in huu module?
+export const app = (appParts: any, switchFocus = true) => {
   const { show, hide } = appParts.actions
 
-  appParts.actions.show = (s: any, a: any, d: any) => {
+  if (switchFocus) appParts.actions.show = (s: any, a: any, d: any) => {
     viminput.blur()
     vim.hideCursor()
     return show(s, a, d)
   }
 
-  appParts.actions.hide = (s: any, a: any, d: any) => {
+  if (switchFocus) appParts.actions.hide = (s: any, a: any, d: any) => {
     setImmediate(() => viminput.focus())
     vim.showCursor()
     return hide(s, a, d)

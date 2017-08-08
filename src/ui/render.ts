@@ -119,9 +119,9 @@ r.put = (m: any[]) => {
 }
 
 r.popupmenu_hide = () => dispatch.pub('pmenu.hide')
-r.popupmenu_select = (selIx: number) => dispatch.pub('pmenu.select', selIx)
-r.popupmenu_show = (items: PMenuItem[], selIx: number, row: number, col: number) =>
-  dispatch.pub('pmenu.show', { items, selIx, row, col })
+r.popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
+r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
+  dispatch.pub('pmenu.show', { items, ix, row, col })
 
 on.redraw((m: any[]) => {
   const count = m.length

@@ -1,7 +1,11 @@
 import { call, autocmd, notify, define, request } from '../neovim-client'
-import { findIndexRight } from '../../utils'
+import { Actions, Events, findIndexRight } from '../../utils'
+import { translate } from '../css'
 import { onVimCreate } from '../sessions'
+import { h, app } from './plugins'
+import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
+import ui from '../canvasgrid'
 const { cmd, setVar } = notify
 const { expr, getCurrentLine } = request
 
@@ -9,11 +13,53 @@ const { expr, getCurrentLine } = request
 const completionTriggers = new Map<string, RegExp>()
 completionTriggers.set('javascript', /[^\w\$]/)
 
+interface CompletionOption { id: number, text: string }
+interface State { options: CompletionOption[], vis: boolean, ix: number, x: number, y: number }
+
+const state: State = { options: [], vis: false, ix: 0, x: 0, y: 0 }
+
+const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete.plugin', {
+  hide: !vis,
+  style: { 'justify-content': 'flex-start' }
+}, [
+  h('div', { style: {
+    // TODO: use flex for min/max?
+    'min-width': '100px',
+    'max-width': '300px',
+    position: 'absolute',
+    transform: translate(x, y),
+  }}, options.map(({ id, text }) => h('.row', {
+    key: id,
+    css: { active: id === ix },
+  }, [
+    h('span', text)
+  ])))
+])
+
+const a: Actions<State> = {}
+
+a.show = (_s, _a, { options, ix, x, y }) => ({ options, ix, x, y, vis: true })
+a.hide = () => ({ vis: false, ix: 0 })
+a.select = (_s, _a, ix: number) => ({ ix })
+
+const e: Events<State> = {}
+
+// TODO: can we pls bind events to actions? it's always duplicate...
+e.show = (_s, a, stuff) => a.show(stuff)
+e.hide = (_s, a) => a.hide()
+e.select = (_s, a, ix: number) => a.select(ix)
+
+const emit = app({ state, view, actions: a, events: e }, false)
+
+const tempSource = ['yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins']
+
+interface G { startIndex: number, completionItems: string[] }
+
 // TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
 onVimCreate(() => {
-  const g = {
+  const g: G = {
     startIndex: 0,
-    completionItems: ['luke', 'leia', 'rey', 'kenobi', 'lol']
+    completionItems: []
   }
 
   cmd(`aug Veonim | au! | aug END`)
@@ -94,6 +140,8 @@ onVimCreate(() => {
       // use subsequence matching with case sensitivy priority
       // YCM has a good algo. maybe fzy too. USE FUZZALDRIN? pretty goooooood
       // TODO: only call this if query has changed 
+      // TODO: fuzzaldrin is not that great here because we need to filter from start of word only...
+      g.completionItems = filter(tempSource, query).slice(0, 8)
       update(g.completionItems)
 
       // TODO: do we always need to update this?
@@ -131,16 +179,20 @@ onVimCreate(() => {
     ////updateServer()
   //}, 100))
 
-  sub('pmenu.show', ({ items, selIx, row, col }) => {
-    console.log('show', items, 'sel', selIx, 'at', row, col)
+  // TODO: nice, but pmenu should show up automagically. kthx
+  sub('pmenu.show', ({ ix, row, col }) => {
+    const options = g.completionItems.map((text, id) => ({ id, text }))
+    const y = ui.rowToY(row + 1)
+    const x = ui.colToX(col)
+    emit('show', { options, ix, x, y })
   })
 
   sub('pmenu.select', ix => {
-    console.log('selected', ix)
+    emit('select', ix)
   })
 
   sub('pmenu.hide', () => {
-    console.log('hide')
+    emit('hide')
   })
 
 })

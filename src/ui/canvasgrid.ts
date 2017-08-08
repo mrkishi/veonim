@@ -6,7 +6,8 @@ interface Cursor { row: number, col: number, color: string }
 export enum CursorShape { block, line, underline }
 
 export interface CanvasGrid {
-  getCursorWidth(): number,
+  rowToY(row: number): number,
+  colToX(col: number): number,
   setMargins(margins: { left?: number, right?: number, top?: number, bottom?: number }): CanvasGrid,
   resize(pixelHeight: number, pixelWidth: number): CanvasGrid,
   setCursorColor(color: string): CanvasGrid,
@@ -65,6 +66,9 @@ const api = {
   get rows () { return grid.rows },
 } as CanvasGrid
 
+api.rowToY = row => px.row.y(row)
+api.colToX = col => px.col.x(col)
+
 api.resize = (pixelHeight, pixelWidth) => {
   merge(actualSize, { width: pixelWidth, height: pixelHeight })
 
@@ -93,7 +97,6 @@ api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeigh
   return api
 }
 
-api.getCursorWidth = () => px.col.width(1),
 api.setMargins = newMargins => (mergeValid(margins, newMargins), api)
 api.setColor = color => (ui.fillStyle = color, api)
 api.clear = () => (ui.fillRect(0, 0, actualSize.width, actualSize.height), api)
