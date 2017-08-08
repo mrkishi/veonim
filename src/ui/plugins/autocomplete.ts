@@ -1,5 +1,5 @@
 import { call, autocmd, notify, define, request } from '../neovim-client'
-import { cc, Actions, Events, findIndexRight } from '../../utils'
+import { cc, Actions, Events, findIndexRight, hasUpperCase } from '../../utils'
 import { onVimCreate } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
@@ -9,9 +9,13 @@ import ui from '../canvasgrid'
 const { cmd, setVar } = notify
 const { expr, getCurrentLine } = request
 
+const orderCompletions = (m: string[], query: string) =>
+  m.slice().sort(a => hasUpperCase(a) ? -1 : a.startsWith(query) ? -1 : 1)
+
 // TODO: get from lang server
 const completionTriggers = new Map<string, RegExp>()
-completionTriggers.set('javascript', /[^\w\$]/)
+// TODO: $$$$ sign, reallY?
+completionTriggers.set('javascript', /[^\w\$\-]/)
 
 interface CompletionOption { id: number, text: string }
 interface State { options: CompletionOption[], vis: boolean, ix: number, x: number, y: number }
@@ -50,7 +54,7 @@ e.select = (_s, a, ix: number) => a.select(ix)
 
 const emit = app({ state, view, actions: a, events: e }, false)
 
-const tempSource = ['saveUserAccount', 'suave', 'getUserVar', 'gurilla', 'geuro', 'guvion', 'yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins']
+const tempSource = ['saveUserAccount', 'suave', 'getUserVar', 'gurilla', 'geuro', 'guvion', 'yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins', 'error']
 
 interface G { startIndex: number, completionItems: string[] }
 
@@ -89,11 +93,10 @@ onVimCreate(() => {
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
 
   autocmd.completeDone(async () => {
-    cmd(`let g:veonim_completing = 0`)
+    setVar('veonim_completing', 0)
     const { word } = await expr(`v:completed_item`)
     console.log('completed word:', word)
-    g.completionItems = []
-    update(g.completionItems)
+    update([])
   })
 
   autocmd.insertLeave(() => {
@@ -102,7 +105,7 @@ onVimCreate(() => {
   })
 
   const findQuery = (filetype: string, line: string, column: number) => {
-    const pattern = completionTriggers.get(filetype) || /[^\w]/
+    const pattern = completionTriggers.get(filetype) || /[^\w\-]/
     const start = findIndexRight(line, pattern, column - 2) || 0
     const startIndex = start ? start + 1 : 0
     const query = line.slice(startIndex, column - 1) || ''
@@ -118,6 +121,7 @@ onVimCreate(() => {
   }
 
   const update = (items: string[]) => {
+    g.completionItems = items
     // TODO: make sure to validate the right data being sent
     // TODO: send more than just strings. send rich data with id metadata.
     // that way when we get external popup menu notifications we can hook into local
@@ -143,14 +147,16 @@ onVimCreate(() => {
       // YCM has a good algo. maybe fzy too. USE FUZZALDRIN?
       // TODO: fuzzaldrin is not that great here because we need to filter from start of word only...
       // TODO: only call this if query has changed 
+
       // query.toUpperCase() allows the filter engine to rank camel case functions higher
       // aka: saveUserAccount > suave for query: 'sua'
-      g.completionItems = filter(tempSource, query.toUpperCase(), { maxResults: 8 })
-      update(g.completionItems)
-      const options = g.completionItems.map((text, id) => ({ id, text }))
+      const completions = filter(tempSource, query.toUpperCase(), { maxResults: 8 }) 
+      const orderedCompletions = orderCompletions(completions, query)
+      update(orderedCompletions)
+      const options = orderedCompletions.map((text, id) => ({ id, text }))
       const y = ui.rowToY(line)
       const x = ui.colToX(Math.max(0, startIndex - 1))
-      if (g.completionItems.length) emit('show', { options, ix: -1, x, y })
+      if (orderedCompletions.length) emit('show', { options, ix: -1, x, y })
 
       // TODO: do we always need to update this?
       // TODO: cache last position in insert session
@@ -162,11 +168,10 @@ onVimCreate(() => {
         //const { x, y } = await getScreenCursorPos()
         //show(Math.max(0, startIndex - 1), vim.column, x, y)
       //}
-      cmd(`let g:veonim_complete_pos = ${startIndex}`)
+      setVar('veonim_complete_pos', startIndex)
     } else {
       emit('hide')
-      g.completionItems = []
-      update(g.completionItems)
+      update([])
     }
   }
 
