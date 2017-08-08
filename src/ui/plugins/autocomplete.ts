@@ -1,5 +1,5 @@
 import { call, autocmd, notify, define, request } from '../neovim-client'
-import { cc, Actions, Events, findIndexRight, hasUpperCase } from '../../utils'
+import { cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
 import { onVimCreate } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
@@ -16,6 +16,7 @@ const orderCompletions = (m: string[], query: string) =>
 const completionTriggers = new Map<string, RegExp>()
 // TODO: $$$$ sign, reallY?
 completionTriggers.set('javascript', /[^\w\$\-]/)
+completionTriggers.set('typescript', /[^\w\$\-]/)
 
 interface CompletionOption { id: number, text: string }
 interface State { options: CompletionOption[], vis: boolean, ix: number, x: number, y: number }
@@ -56,14 +57,11 @@ const pluginUI = app({ state, view, actions: a, events: e }, false)
 
 const tempSource = ['saveUserAccount', 'suave', 'getUserVar', 'gurilla', 'geuro', 'guvion', 'yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins', 'error']
 
-interface G { startIndex: number, completionItems: string[] }
+interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string }
 
 // TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
 onVimCreate(() => {
-  const g: G = {
-    startIndex: 0,
-    completionItems: []
-  }
+  const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '' }
 
   cmd(`aug Veonim | au! | aug END`)
 
@@ -86,7 +84,7 @@ onVimCreate(() => {
 
   setVar('veonim_completing', 0)
   setVar('veonim_complete_pos', 1)
-  setVar('veonim_completions', g.completionItems)
+  setVar('veonim_completions', [])
 
   cmd(`set completefunc=VeonimComplete`)
   cmd(`ino <expr> <tab> CompleteScroll(1)`)
@@ -101,7 +99,7 @@ onVimCreate(() => {
   })
 
   autocmd.insertLeave(() => {
-    g.startIndex = 0
+    cache.startIndex = 0
     pluginUI('hide')
   })
 
@@ -116,34 +114,25 @@ onVimCreate(() => {
   }
 
   const getPos = async () => {
-    // TODO: use nvim_window_* api instead
+    // TODO: use nvim_window_* api instead or ui.cursor position?
     const [ buffer, line, column, offset ] = await call.getpos('.')
     return { buffer, line, column, offset }
   }
 
   const updateVim = (items: string[]) => {
-    g.completionItems = items
-    // TODO: make sure to validate the right data being sent
-    // TODO: send more than just strings. send rich data with id metadata.
-    // that way when we get external popup menu notifications we can hook into local
-    // richer metadata to populate ui completion menu
+    cache.completionItems = items
     setVar('veonim_completions', items)
   }
 
   const getCompletions = async () => {
     // TODO: use neovim api built-ins? better perf? line is slowest. could use ui.cursor pos instead of getPos()
     const [ lineData, { line, column } ] = await cc(getCurrentLine(), getPos())
-    const { startIndex, query } = findQuery('javascript', lineData, column)
+    const { startIndex, query } = findQuery(cache.filetype, lineData, column)
 
-    //console.log(`      `)
-    //console.log('startIndex:', startIndex)
-    //console.log('query:', JSON.stringify(query))
-    //console.log('leftChar:', leftChar)
-    // TODO: if (left char is .) we need to do semantic completions
-    // left char is === completionTriggers regex
-    // set complete_pos
+    // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
     if (query.length) {
       // TODO: call keywords + semantic = combine -> filter against query
+      // TODO: call once per startIndex. don't repeat call if startIndex didn't change?
       // TODO: only call this if query has changed 
 
       // query.toUpperCase() allows the filter engine to rank camel case functions higher
@@ -168,11 +157,9 @@ onVimCreate(() => {
       // TODO: cache last position in insert session
       // only update vim if (changed) 
       // use cache - if (same) dont re-ask for keyword/semantic completions from avo
-      //if (g.startIndex !== startIndex || !g.visible) {
-        //console.log(`showing cmenu`)
-        //cmd(`let g:veonim_complete_pos = ${startIndex}`)
-        //const { x, y } = await getScreenCursorPos()
-        //show(Math.max(0, startIndex - 1), vim.column, x, y)
+      //if (cache.startIndex !== startIndex) {
+        //setVar('veonim_complete_pos', startIndex)
+        //pluginUI('show')
       //}
       setVar('veonim_complete_pos', startIndex)
     } else {
@@ -181,19 +168,12 @@ onVimCreate(() => {
     }
   }
 
-  autocmd.cursorMovedI(() => getCompletions())
-
-  sub('pmenu.show', ({ items }) => console.log(items))
-
   sub('pmenu.select', ix => pluginUI('select', ix))
   sub('pmenu.hide', () => pluginUI('hide'))
 
-  // TODO: yeah good idea, but hook up in neovim instance class
-  // get filetype (used to determine separator used for finding startIndex. each lang might be different)
-  //autocmd.bufEnter(debounce(async m => {
-    //current.file = await call.expand('%f')
-    //// TODO: use filetype for js-langs
-    //current.filetype = await expr(`&filetype`)
-    ////updateServer()
-  //}, 100))
+  autocmd.cursorMovedI(() => getCompletions())
+  autocmd.bufEnter(debounce(async () => {
+    cache.file = await call.expand(`%f`)
+    cache.filetype = await expr(`&filetype`)
+  }, 100))
 })
