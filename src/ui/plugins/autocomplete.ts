@@ -1,5 +1,6 @@
 import { call, autocmd, notify, define, request } from '../neovim-client'
 import { cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
+import * as harvester from './keyword-harvester'
 import { onVimCreate } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
@@ -57,11 +58,14 @@ const pluginUI = app({ state, view, actions: a, events: e }, false)
 
 const tempSource = ['saveUserAccount', 'suave', 'getUserVar', 'gurilla', 'geuro', 'guvion', 'yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins', 'error']
 
-interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string }
+interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string, revision: number }
+
+// TODO: toggle this when renaming or performing other 'non-update' changes to buffer
+let pauseUpdate = false
 
 // TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
 onVimCreate(() => {
-  const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '' }
+  const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '', revision: -1 }
 
   cmd(`aug Veonim | au! | aug END`)
 
@@ -176,4 +180,22 @@ onVimCreate(() => {
     cache.file = await call.expand(`%f`)
     cache.filetype = await expr(`&filetype`)
   }, 100))
+
+  const updateServer = async (lineChange: boolean) => {
+    // TODO: use nvim_* api for getting line/buffer
+    if (lineChange) harvester.update.line(await call.getline('.') as string)
+    else harvester.update.buffer(await call.getline(1, '$') as string[])
+  }
+
+  const attemptUpdate = async (lineChange: boolean) => {
+    if (pauseUpdate) return
+    const chg = await expr('b:changedtick')
+    if (chg > cache.revision) updateServer(lineChange)
+    cache.revision = chg
+  }
+
+
+  // TODO: move to a more generic location once other users need buffer changes
+  autocmd.textChanged(debounce(attemptUpdate, 200))
+  autocmd.textChangedI(() => attemptUpdate(true))
 })

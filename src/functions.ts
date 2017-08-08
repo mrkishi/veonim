@@ -10,6 +10,7 @@ export interface Functions {
   Commands(): Promise<string[]>,
   Buffers(): VimBuffer[],
   getcwd(): Promise<string>,
+  getline(type: string | number, end?: string): Promise<string | string[]>,
   expand(type: string): string,
   synIDattr(id: number, type: string): Promise<number>,
   getpos(where: string): Promise<WindowPosition>,
