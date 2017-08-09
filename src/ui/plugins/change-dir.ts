@@ -58,6 +58,7 @@ a.select = (s, a) => {
   const { name } = s.paths[s.ix]
   if (!name) return
   cmd(`cd ${join(s.path, name)}`)
+  cmd(`pwd`)
   if (s.renameToDir) renameCurrent(name)
   return a.hide()
 }
