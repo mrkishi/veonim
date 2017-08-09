@@ -96,8 +96,8 @@ onVimCreate(() => {
   autocmd.completeDone(async () => {
     setVar('veonim_completing', 0)
     const { word } = await expr(`v:completed_item`)
-    // TODO: do what with completed word? mru cache?
-    console.log('completed word:', word)
+    // TODO: do what else with completed word? mru cache?
+    harvester.addWord(cache.cwd, cache.file, word)
     updateVim([])
   })
 
@@ -128,13 +128,13 @@ onVimCreate(() => {
   }
 
   const getCompletions = async () => {
-    // TODO: use neovim api built-ins? better perf? line is slowest. could use ui.cursor pos instead of getPos()
+    // TODO: use neovim api built-ins? better perf? line is slowest. ui.cursor not work as it's global
     const [ lineData, { column } ] = await cc(getCurrentLine(), getPos())
     const { startIndex, query } = findQuery(cache.filetype, lineData, column)
 
     // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
     if (query.length) {
-      const words = harvester.getKeywords(cache.cwd, cache.file)
+      const words = await harvester.getKeywords(cache.cwd, cache.file)
       if (!words || !words.length) return
       // TODO: call keywords + semantic = combine -> filter against query
       // TODO: call once per startIndex. don't repeat call if startIndex didn't change?
@@ -192,7 +192,7 @@ onVimCreate(() => {
 
   const updateServer = async (lineChange = false) => {
     // TODO: use nvim_* api for getting line/buffer
-    // TODO: update line changes for other LS stuffz
+    // TODO: update line changes for other lang serv stuffz
     if (lineChange) {
       //await call.getline('.')
       return
