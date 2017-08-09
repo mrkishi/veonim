@@ -128,14 +128,12 @@ onVimCreate(() => {
 
   const getCompletions = async () => {
     // TODO: use neovim api built-ins? better perf? line is slowest. could use ui.cursor pos instead of getPos()
-    const [ lineData, { line, column } ] = await cc(getCurrentLine(), getPos())
+    const [ lineData, { column } ] = await cc(getCurrentLine(), getPos())
     const { startIndex, query } = findQuery(cache.filetype, lineData, column)
 
     // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
     if (query.length) {
-      console.time('getKW')
       const words = harvester.getKeywords(cache.cwd, cache.file)
-      console.timeEnd('getKW')
       if (!words || !words.length) return
       // TODO: call keywords + semantic = combine -> filter against query
       // TODO: call once per startIndex. don't repeat call if startIndex didn't change?
@@ -155,7 +153,9 @@ onVimCreate(() => {
       updateVim(orderedCompletions)
 
       const options = orderedCompletions.map((text, id) => ({ id, text }))
-      const y = ui.rowToY(line)
+      // TODO: if options.length goes out of bounds, anchor above current row
+      // display order remains same if displayed above row
+      const y = ui.rowToY(ui.cursor.row + 1)
       const x = ui.colToX(Math.max(0, startIndex - 1))
       pluginUI('show', { options, ix: -1, x, y })
 
