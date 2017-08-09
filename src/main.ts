@@ -10,6 +10,7 @@ app.on('ready', () => {
     height: 600,
     frame: false,
     backgroundColor: '#222',
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegrationInWorker: true
     }
