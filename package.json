@@ -1,6 +1,6 @@
 {
   "name": "veonim",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
@@ -14,8 +14,8 @@
     "start": "electron build/main.js",
     "gen-api": "node tools/gen-api.js",
     "mkdir-bin": "mkdir bindeps && mkdir bindeps/mac bindeps/linux bindeps/win",
-    "bins-mac": "npm i @veonim/neovim@0.0.5-mac @veonim/ripgrep@0.0.1-win --prefix ./bindeps/mac",
-    "bins-linux": "npm i @veonim/neovim@0.0.5-linux @veonim/ripgrep@0.0.1-win --prefix ./bindeps/linux",
+    "bins-mac": "npm i @veonim/neovim@0.0.5-mac @veonim/ripgrep@0.0.1-mac --prefix ./bindeps/mac",
+    "bins-linux": "npm i @veonim/neovim@0.0.5-linux @veonim/ripgrep@0.0.1-linux --prefix ./bindeps/linux",
     "bins-win": "npm i @veonim/neovim@0.0.5-win @veonim/ripgrep@0.0.1-win --prefix ./bindeps/win",
     "bins": "npm run bins-mac && npm run bins-win && npm run bins-linux",
     "pack-mac": "npm run bins-mac && electron-builder -m",
