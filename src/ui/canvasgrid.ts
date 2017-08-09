@@ -38,10 +38,10 @@ const cell = { width: 0, height: 0 }
 const cursor = { row: 0, col: 0, color: '#fff' }
 const grid = { rows: 0, cols: 0 }
 const margins = { top: 6, bottom: 6, left: 6, right: 6 }
+ui.imageSmoothingEnabled = false
 
 // TODO: explore:
 // -- setTransform for scaling? might remove manual scaling calcs?
-// -- set imageSmoothingEnabled = false?
 
 const sizeToGrid = (height: number, width: number): Grid => ({
   rows: Math.floor((height - (margins.top + margins.bottom)) / cell.height),
