@@ -22,6 +22,7 @@ completionTriggers.set('typescript', /[^\w\$\-]/)
 interface CompletionOption { id: number, text: string }
 interface State { options: CompletionOption[], vis: boolean, ix: number, x: number, y: number }
 
+const maxResults = 8
 const state: State = { options: [], vis: false, ix: 0, x: 0, y: 0 }
 
 const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete.plugin', {
@@ -141,7 +142,7 @@ onVimCreate(() => {
 
       // query.toUpperCase() allows the filter engine to rank camel case functions higher
       // aka: saveUserAccount > suave for query: 'sua'
-      const completions = filter(words, query.toUpperCase(), { maxResults: 8 }) 
+      const completions = filter(words, query.toUpperCase(), { maxResults })
 
       if (!completions.length) {
         updateVim([])
@@ -153,9 +154,10 @@ onVimCreate(() => {
       updateVim(orderedCompletions)
 
       const options = orderedCompletions.map((text, id) => ({ id, text }))
-      // TODO: if we hook above row, and we have completion that will fit below
-      // (as we are narrowing down results) still bind it above (better UX so it's not jumping around)
-      const row = ui.cursor.row + 1 + options.length > ui.rows
+      // anchor menu above row if the maximum results are going to spill out of bounds.
+      // why maxResults instead of the # of items in options? because having the menu jump
+      // around over-under as you narrow down results by typing or undo is kinda annoying
+      const row = ui.cursor.row + maxResults > ui.rows
         ? ui.cursor.row - options.length
         : ui.cursor.row + 1
 
