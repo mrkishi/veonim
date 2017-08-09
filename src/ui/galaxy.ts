@@ -1,10 +1,10 @@
-import { remote } from 'electron'
-import ui, { CursorShape } from './canvasgrid'
-import * as uiInput from './input'
-import { debounce, log } from '../utils'
 import { on, notify, request } from './neovim-client'
-import { Config } from '../config-reader'
+import { debounce, log, delay as timeout } from '../utils'
+import ui, { CursorShape } from './canvasgrid'
 import setDefaultSession from './sessions'
+import { Config } from '../config-reader'
+import * as uiInput from './input'
+import { remote } from 'electron'
 import './render'
 import './plugins/plugins'
 
@@ -12,7 +12,7 @@ const { resize, attach } = notify
 const { create } = request
 
 let configLoaded: Function
-const initalConfig = new Promise(done => configLoaded = done)
+const initialConfig = new Promise(done => configLoaded = done)
 on.config((c: Config) => {
   ui.setFont({
     face: c.get('font'),
@@ -52,7 +52,7 @@ window.addEventListener('resize', debounce(() => {
 
 const main = async () => {
   const vimId = await create()
-  await initalConfig
+  await Promise.race([ initialConfig, timeout(500) ])
   ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
   uiInput.focus()
   resize(ui.cols, ui.rows)

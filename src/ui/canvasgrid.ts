@@ -144,4 +144,7 @@ api.hideCursor = () => (merge(cursorEl.style, { display: 'none' }), api)
 api.showCursor = () => (merge(cursorEl.style, { display: 'block' }), api)
 api.moveCursor = () => (cursorEl.style.transform = translate(px.col.x(cursor.col), px.row.y(cursor.row)), api)
 
+// TODO: ghetto constructor... lol
+api.setFont({})
+
 export default api
