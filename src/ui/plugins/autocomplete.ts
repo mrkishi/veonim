@@ -153,9 +153,13 @@ onVimCreate(() => {
       updateVim(orderedCompletions)
 
       const options = orderedCompletions.map((text, id) => ({ id, text }))
-      // TODO: if options.length goes out of bounds, anchor above current row
-      // display order remains same if displayed above row
-      const y = ui.rowToY(ui.cursor.row + 1)
+      // TODO: if we hook above row, and we have completion that will fit below
+      // (as we are narrowing down results) still bind it above (better UX so it's not jumping around)
+      const row = ui.cursor.row + 1 + options.length > ui.rows
+        ? ui.cursor.row - options.length
+        : ui.cursor.row + 1
+
+      const y = ui.rowToY(row)
       const x = ui.colToX(Math.max(0, startIndex - 1))
       pluginUI('show', { options, ix: -1, x, y })
 
