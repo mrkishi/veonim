@@ -72,8 +72,8 @@ api.colToX = col => px.col.x(col)
 api.resize = (pixelHeight, pixelWidth) => {
   merge(actualSize, { width: pixelWidth, height: pixelHeight })
 
-  canvas.height = pixelHeight * 2
-  canvas.width = pixelWidth * 2
+  canvas.height = pixelHeight * ratio
+  canvas.width = pixelWidth * ratio
   canvas.style.height = `${pixelHeight}px`
   canvas.style.width = `${pixelWidth}px`
 
