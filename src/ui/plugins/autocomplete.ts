@@ -1,5 +1,5 @@
 import { call, autocmd, notify, define, request } from '../neovim-client'
-import { cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
+import { merge, cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
 import * as harvester from './keyword-harvester'
 import { onVimCreate } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
@@ -33,7 +33,7 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete.plugin', {
     'max-width': '300px',
     position: 'absolute',
     transform: translate(x, y),
-  }}, options.map(({ id, text }) => h('.row', {
+  }}, options.map(({ id, text }) => h('.row.complete', {
     key: id,
     css: { active: id === ix },
   }, [
@@ -56,16 +56,14 @@ e.select = (_s, a, ix: number) => a.select(ix)
 
 const pluginUI = app({ state, view, actions: a, events: e }, false)
 
-const tempSource = ['saveUserAccount', 'suave', 'getUserVar', 'gurilla', 'geuro', 'guvion', 'yoda', 'obi-wan', 'luke', 'anakin', 'qui-gon', 'leia', 'rey', 'padme', 'vader', 'emperor', 'jar-jar', 'han', 'threepio', 'artoo', 'lando', 'porkins', 'error']
-
-interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string, revision: number }
+interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string, revision: number, cwd: string }
 
 // TODO: toggle this when renaming or performing other 'non-update' changes to buffer
 let pauseUpdate = false
 
 // TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
 onVimCreate(() => {
-  const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '', revision: -1 }
+  const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '', revision: -1, cwd: '' }
 
   cmd(`aug Veonim | au! | aug END`)
 
@@ -135,13 +133,17 @@ onVimCreate(() => {
 
     // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
     if (query.length) {
+      console.time('getKW')
+      const words = harvester.getKeywords(cache.cwd, cache.file)
+      console.timeEnd('getKW')
+      if (!words || !words.length) return
       // TODO: call keywords + semantic = combine -> filter against query
       // TODO: call once per startIndex. don't repeat call if startIndex didn't change?
       // TODO: only call this if query has changed 
 
       // query.toUpperCase() allows the filter engine to rank camel case functions higher
       // aka: saveUserAccount > suave for query: 'sua'
-      const completions = filter(tempSource, query.toUpperCase(), { maxResults: 8 }) 
+      const completions = filter(words, query.toUpperCase(), { maxResults: 8 }) 
 
       if (!completions.length) {
         updateVim([])
@@ -177,14 +179,20 @@ onVimCreate(() => {
 
   autocmd.cursorMovedI(() => getCompletions())
   autocmd.bufEnter(debounce(async () => {
-    cache.file = await call.expand(`%f`)
-    cache.filetype = await expr(`&filetype`)
+    const [ cwd, file, filetype ] = await cc(call.getcwd(), call.expand(`%f`), expr(`&filetype`))
+    merge(cache, { cwd, file, filetype, revision: -1 })
+    updateServer()
   }, 100))
 
-  const updateServer = async (lineChange: boolean) => {
+  const updateServer = async (lineChange = false) => {
     // TODO: use nvim_* api for getting line/buffer
-    if (lineChange) harvester.update.line(await call.getline('.') as string)
-    else harvester.update.buffer(await call.getline(1, '$') as string[])
+    // TODO: update line changes for other LS stuffz
+    if (lineChange) {
+      //await call.getline('.')
+      return
+    }
+
+    harvester.update(cache.cwd, cache.file, await call.getline(1, '$') as string[])
   }
 
   const attemptUpdate = async (lineChange: boolean) => {
@@ -193,7 +201,6 @@ onVimCreate(() => {
     if (chg > cache.revision) updateServer(lineChange)
     cache.revision = chg
   }
-
 
   // TODO: move to a more generic location once other users need buffer changes
   autocmd.textChanged(debounce(attemptUpdate, 200))
