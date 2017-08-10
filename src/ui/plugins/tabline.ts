@@ -11,6 +11,8 @@ interface State { tabs: TabInfo[], active: number }
 
 const state = { tabs: [], active: -1 }
 
+// TODO: need to resize canvasgrid (smaller) so tabline does not overlay
+// TODO: allow options to relocate tabline?
 const view = ({ tabs, active }: State) => h('#tabline', {
   style: {
     position: 'absolute',
