@@ -152,8 +152,8 @@ onVimCreate(() => {
 
       const orderedCompletions = orderCompletions(completions, query)
       updateVim(orderedCompletions)
-
       const options = orderedCompletions.map((text, id) => ({ id, text }))
+
       // anchor menu above row if the maximum results are going to spill out of bounds.
       // why maxResults instead of the # of items in options? because having the menu jump
       // around over-under as you narrow down results by typing or undo is kinda annoying
@@ -161,8 +161,11 @@ onVimCreate(() => {
         ? ui.cursor.row - options.length
         : ui.cursor.row + 1
 
+      const start = Math.max(0, startIndex)
+      const col = ui.cursor.col - (column - start)
       const y = ui.rowToY(row)
-      const x = ui.colToX(Math.max(0, startIndex - 1))
+      const x = ui.colToX(col)
+
       pluginUI('show', { options, ix: -1, x, y })
 
       // TODO: do we always need to update this?
