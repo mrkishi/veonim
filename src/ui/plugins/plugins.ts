@@ -43,6 +43,7 @@ import vimRename from './vim-rename'
 import vimSwitch from './vim-switch'
 import colorPicker from './color-picker'
 import './autocomplete'
+import './tabline'
 
 // TODO: should the plugin declare for itself what actions to listen to?
 // or just bind actions directly in plugin?

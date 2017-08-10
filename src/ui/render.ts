@@ -11,6 +11,8 @@ interface ScrollRegion { top: number, bottom: number, left: number, right: numbe
 interface Attrs { fg: string, bg: string, foreground?: number, background?: number, special?: string, reverse?: string, italic?: string, bold?: string, underline?: string, undercurl?: string }
 interface ModeInfo { blinkoff?: number, blinkon?: number, blinkwait?: number, cell_percentage?: number, cursor_shape?: string, hl_id?: number, id_lm?: number, mouse_shape?: number, name: string, short_name: string }
 interface PMenuItem { word: string, kind: string, menu: string, info: string }
+interface Tabpage { val: number }
+interface Tab { tab: Tabpage, name: string }
 
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
@@ -122,6 +124,9 @@ r.popupmenu_hide = () => dispatch.pub('pmenu.hide')
 r.popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
 r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
   dispatch.pub('pmenu.show', { items, ix, row, col })
+
+
+r.tabline_update = (curtab: Tabpage, tabs: Tab[]) => dispatch.pub('tabs', { curtab, tabs })
 
 on.redraw((m: any[]) => {
   const count = m.length
