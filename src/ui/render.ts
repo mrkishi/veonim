@@ -111,12 +111,8 @@ r.put = (m: any[]) => {
     .setTextBaseline('bottom')
 
   for (let ix = 0; ix < total; ix++) {
-    ui.fillText(m[ix][0], ui.cursor.col, ui.cursor.row)
+    if (m[ix][0] !== ' ') ui.fillText(m[ix][0], ui.cursor.col, ui.cursor.row)
     ui.cursor.col++
-    if (ui.cursor.col > ui.cols) {
-      ui.cursor.col = 0
-      ui.cursor.row++
-    }
   }
 }
 
