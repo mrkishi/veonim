@@ -1,12 +1,16 @@
-console.log('nothing to do here')
-//import neovim from '../neovim'
-//import Channel from '../channel'
+import { encoder, decoder } from '../transport'
+import { createConnection as connect } from 'net'
 
-//const { publishApi, Notifier, onRecv } = Channel((e, msg, id) => postMessage([e, msg, id]))
-//onmessage = onRecv
-//publishApi(neovim)
+// TODO: hook into socket name
+const cli = connect({ port: 8442 }, () => {
+  console.log('connected to blarg')
+})
 
-//const pub = Notifier()
-//neovim.on.config(c => pub.config(c))
-//neovim.on.redraw(m => pub.redraw(m))
-//neovim.on.exit((id, code) => pub.exit(id, code))
+cli.on('end', () => console.log('blarg quit'))
+
+// TODO: are we going to swap pipes or route?
+encoder.pipe(cli)
+cli.pipe(decoder)
+
+onmessage = ({ data }: MessageEvent) => encoder.write(data)
+decoder.on('data', postMessage)

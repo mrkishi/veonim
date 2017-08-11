@@ -1,4 +1,5 @@
 import { Neovim } from '../neovim'
+import { sub } from '../dispatch'
 import Channel from '../channel'
 import { onFnCall, onProp, pascalCase } from '../utils'
 import { Functions } from '../functions'

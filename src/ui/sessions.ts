@@ -1,23 +1,24 @@
 import { on, attach, switchTo, create } from '../neovim'
+import { pub } from '../dispatch'
 import { remote } from 'electron'
 
-interface Vim { id: number, name: string, active: boolean }
+interface Vim { id: number, name: string, active: boolean, socket: string }
 const vims = new Map<number, Vim>()
 const onReady = new Set<Function>()
 const notifyReady = () => onReady.forEach(cb => cb())
 
 export const onVimCreate = (fn: Function) => onReady.add(fn)
-export default (id: number) => {
-  vims.set(id, { id, name: 'main', active: true })
+export default (id: number, socket: string) => {
+  vims.set(id, { id, socket, name: 'main', active: true })
   notifyReady()
 }
 
 export const createVim = async (name: string, nameAfterDir = false) => {
-  const id = await create({ askCd: nameAfterDir })
+  const { id, socket } = await create({ askCd: nameAfterDir })
   attach(id)
   switchTo(id)
   vims.forEach(v => v.active = false)
-  vims.set(id, { id, name, active: true })
+  vims.set(id, { id, socket, name, active: true })
   notifyReady()
 }
 

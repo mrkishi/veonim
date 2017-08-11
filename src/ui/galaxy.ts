@@ -48,13 +48,13 @@ window.addEventListener('resize', debounce(() => {
 }, 500))
 
 const main = async () => {
-  const vimId = await create()
+  const { id, socket } = await create()
   await Promise.race([ initialConfig, timeout(500) ])
   ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
   uiInput.focus()
   resize(ui.cols, ui.rows)
-  attach(vimId)
-  setDefaultSession(vimId)
+  attach(id)
+  setDefaultSession(id, socket)
 }
 
 main().catch(log)

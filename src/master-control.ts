@@ -7,7 +7,8 @@ import { homedir } from 'os'
 import { Api } from './api'
 import setupRPC from './rpc'
 
-interface VimInstance { id: number, proc: ChildProcess, attached: boolean }
+interface VimInstance { id: number, proc: ChildProcess, attached: boolean, socket?: string}
+export interface NewVimResponse { id: number, socket: string }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
@@ -33,9 +34,9 @@ const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--embed',
 ], {
   cwd: $HOME,
-  env: Object.assign({}, process.env, {
-    NVIM_LISTEN_ADDRESS: '127.0.0.1:9890 nvim'
-  })
+  //env: Object.assign({}, process.env, {
+    //NVIM_LISTEN_ADDRESS: '127.0.0.1:9890 nvim'
+  //})
 })
 
 const createNewVimInstance = ({ askCd = false } = {}): number => {
@@ -76,11 +77,13 @@ export const switchToVim = (id: number) => {
   //;[...watchers.keys()].forEach(event => api.subscribe(event))
 }
 
-export const newVim = ({ askCd = false } = {}): number => {
+export const newVim = async ({ askCd = false } = {}): Promise<NewVimResponse> => {
   const id = createNewVimInstance({ askCd })
   switchToVim(id)
   api.command(`let g:vn_loaded=1`)
-  return id
+  const socket = await req.eval('v:servername')
+  vimInstances.get(id)!.socket = socket
+  return { id, socket }
 }
 
 export const attachToVim = (id: number) => {
@@ -91,7 +94,8 @@ export const attachToVim = (id: number) => {
   vim.attached = true
 }
 
-const { notify, request, on: onEvent, handleRequest } = setupRPC(encoder, decoder)
+const { notify, request, on: onEvent, handleRequest, onData } = setupRPC(m => encoder.write(m))
+decoder.on('data', onData)
 
 export const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
 export const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))

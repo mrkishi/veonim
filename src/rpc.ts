@@ -1,18 +1,11 @@
 import { ID, Watchers, snakeCase } from './utils'
-import { DecodeStream } from 'msgpack-lite'
-import { Encoder } from './transport'
-
 const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
 
-export default (encoder: Encoder, decoder: DecodeStream) => {
+export default (send: (data: any[]) => void) => {
   const requestHandlers = new Map<string, Function>()
   const pendingRequests = new Map()
   const watchers = new Watchers()
   const id = ID()
-  const send = (m: any[]) => {
-    console.log('-->', m)
-    encoder.write(m)
-  }
   let onRedrawFn = (_a: any[]) => {}
 
   const noRequestMethodFound = (id: number) => send([1, id, 'no one was listening for your request, sorry', null])
@@ -56,12 +49,11 @@ export default (encoder: Encoder, decoder: DecodeStream) => {
 
   const handleRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 
-  decoder.on('data', ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
-    console.log('<--', d)
+  const onData = ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
     if (type === 0) onVimRequest(d[0] as number, d[1].toString(), d[2] as any[])
     else if (type === 1) onResponse(d[0] as number, d[1] as string, d[2])
     else if (type === 2) onNotification(d[0].toString(), d[1] as any[])
-  })
+  }
 
-  return { notify, request, on, handleRequest }
+  return { notify, request, on, handleRequest, onData }
 }

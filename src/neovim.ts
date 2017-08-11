@@ -1,4 +1,4 @@
-import { req, api, onRedraw, onConfig, onExit, subscribe, attachToVim, switchToVim, newVim, resize } from './master-control'
+import { req, api, onRedraw, onConfig, onExit, subscribe, attachToVim, switchToVim, newVim, resize, NewVimResponse } from './master-control'
 import { Watchers, onFnCall, onProp, pascalCase } from './utils'
 import { ConfigCallback } from './config-reader'
 import { Functions } from './functions'
@@ -28,7 +28,7 @@ export interface Neovim {
   subscribe(event: string, cb: GenericCallback): void,
   call(name: string, args: any[]): any,
   switchTo(id: number): void,
-  create(opts?: VimOptions): Promise<number>,
+  create(opts?: VimOptions): Promise<NewVimResponse>,
   attach(id: number): void,
   getVar(key: string): Promise<any>,
   setVar(key: string, val: any): void,
@@ -51,7 +51,7 @@ a.action = (e, cb) => watchers.add(e, cb)
 a.subscribe = (e, cb) => subscribe(e, cb)
 a.call = (name, args) => req.callFunction(name, args)
 a.switchTo = id => switchToVim(id)
-a.create = (opts?: VimOptions) => Promise.resolve(newVim(opts))
+a.create = (opts?: VimOptions) => newVim(opts)
 a.attach = id => attachToVim(id)
 a.setVar = (key, val) => api.setVar(key, val)
 a.getOption = key => req.getOption(key)
