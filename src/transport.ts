@@ -1,5 +1,11 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
 
+export interface Encoder {
+  unpipe(): NodeJS.WritableStream,
+  pipe(stdin: NodeJS.WritableStream): NodeJS.WritableStream,
+  write(data: any): boolean,
+}
+
 // TODO: actually implement this lol
 const wtf = class WHATTHEFUCK {
   public val: any
@@ -22,7 +28,7 @@ codec.addExtUnpacker(2, data => new wtf(decode(data)))
 let crustyJugglers: NodeJS.WritableStream // WTF x 8
 const cheekyBuffoons = createEncodeStream({ codec }) // WTF x 1
 
-export const encoder = {
+export const encoder: Encoder = {
   unpipe: () => cheekyBuffoons.unpipe(),
   pipe: (stdin: NodeJS.WritableStream) => crustyJugglers = cheekyBuffoons.pipe(stdin), // WTF x 999
   write: (data: any) => crustyJugglers.write(encode(data)) // WTF x 524
