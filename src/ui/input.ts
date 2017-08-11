@@ -1,8 +1,6 @@
-//import { notify } from './neovim-client'
 import { input } from '../neovim'
 import { $ } from '../utils'
 
-//const { input } = notify
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
 let isCapturing = false

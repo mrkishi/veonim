@@ -1,6 +1,6 @@
-import { exists } from './utils'
 import { createReadStream } from 'fs'
 const watch = require('node-watch')
+import { exists } from './utils'
 import { homedir } from 'os'
 
 export type Config = Map<string, any>

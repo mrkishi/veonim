@@ -1,6 +1,5 @@
-//import { on, notify, request } from './neovim-client'
-import { on, resize, attach, create } from '../neovim'
 import { debounce, log, delay as timeout } from '../utils'
+import { on, resize, attach, create } from '../neovim'
 import ui, { CursorShape } from './canvasgrid'
 import setDefaultSession from './sessions'
 import { Config } from '../config-reader'
@@ -8,9 +7,6 @@ import * as uiInput from './input'
 import { remote } from 'electron'
 import './render'
 import './plugins/plugins'
-
-//const { resize, attach } = notify
-//const { create } = request
 
 let configLoaded: Function
 const initialConfig = new Promise(done => configLoaded = done)
