@@ -1,4 +1,5 @@
-import { sub } from '../neovim-client'
+import { action } from '../../neovim'
+//import { sub } from '../neovim-client'
 import { createVim } from '../sessions'
 import * as viminput from '../input'
 import { merge } from '../../utils'
@@ -8,7 +9,7 @@ import huu from 'huu'
 const { h: hs, app: makeApp } = require('hyperapp')
 export const h = huu(hs)
 
-const action = sub('action')
+//const action = sub('action')
 const hostElement = document.getElementById('plugins')
 export const getHostElement = () => hostElement as HTMLElement
 

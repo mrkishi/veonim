@@ -1,12 +1,13 @@
 import { Actions, Events, merge } from '../../utils'
-import { call, notify, define } from '../neovim-client'
+//import { call, notify, define } from '../neovim-client'
+import { call, cmd, define } from '../../neovim'
 import { VimBuffer } from '../../functions'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
 import { onVimCreate } from '../sessions'
 import { h, app } from './plugins'
 import TermInput from './input'
-const { cmd } = notify
+//const { cmd } = notify
 
 interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
 interface State { val: string, buffers: BufferInfo[], cache: BufferInfo[], vis: boolean, ix: number }

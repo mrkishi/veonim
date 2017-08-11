@@ -1,10 +1,11 @@
 import { load, cancel, onResults, query, getInitial } from './deep-fuzzy-files'
 import { Actions, Events } from '../../utils'
-import { call, notify } from '../neovim-client'
+//import { call, notify } from '../neovim-client'
+import { call, cmd } from '../../neovim'
 import { basename, dirname } from 'path'
 import { h, app } from './plugins'
 import TermInput from './input'
-const { cmd } = notify
+//const { cmd } = notify
 
 interface FileDir { dir: string, file: string }
 interface State { val: string, files: FileDir[], cache: FileDir[], vis: boolean, ix: number, currentFile: string, loading: boolean }

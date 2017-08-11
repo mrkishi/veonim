@@ -1,10 +1,11 @@
 import { Actions, Events } from '../../utils'
-import { call, notify, define } from '../neovim-client'
+//import { call, notify, define } from '../neovim-client'
+import { call, cmd, define } from '../../neovim'
 import { filter } from 'fuzzaldrin-plus'
 import { onVimCreate } from '../sessions'
 import { h, app } from './plugins'
 import TermInput from './input'
-const { cmd } = notify
+//const { cmd } = notify
 
 onVimCreate(() => define.Commands`
   silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"

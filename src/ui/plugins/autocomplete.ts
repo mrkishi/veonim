@@ -1,4 +1,5 @@
-import { call, autocmd, notify, define, request } from '../neovim-client'
+//import { call, autocmd, notify, define, request } from '../neovim-client'
+import { call, autocmd, cmd, setVar, expr, getCurrentLine, define } from '../../neovim'
 import { merge, cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
 import * as harvester from './keyword-harvester'
 import { onVimCreate } from '../sessions'
@@ -7,8 +8,8 @@ import { sub } from '../../dispatch'
 import { translate } from '../css'
 import { h, app } from './plugins'
 import ui from '../canvasgrid'
-const { cmd, setVar } = notify
-const { expr, getCurrentLine } = request
+//const { cmd, setVar } = notify
+//const { expr, getCurrentLine } = request
 
 const orderCompletions = (m: string[], query: string) =>
   m.slice().sort(a => hasUpperCase(a) ? -1 : a.startsWith(query) ? -1 : 1)

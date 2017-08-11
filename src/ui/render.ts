@@ -1,9 +1,10 @@
 import ui, { CursorShape } from './canvasgrid'
-import { request, on } from './neovim-client'
+//import { request, on } from './neovim-client'
 import * as dispatch from '../dispatch'
 import { merge } from '../utils'
+import { on, getColor } from '../neovim'
 
-const { getColor } = request
+//const { getColor } = request
 
 interface Colors { fg: string, bg: string, sp: string }
 interface Mode { shape: CursorShape, size?: number, color?: number }

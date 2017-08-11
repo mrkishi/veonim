@@ -1,8 +1,11 @@
 import { req, api, onRedraw, onConfig, onExit, subscribe, attachToVim, switchToVim, newVim, resize } from './master-control'
-import { Watchers } from './utils'
+import { Watchers, onFnCall, onProp, pascalCase } from './utils'
 import { ConfigCallback } from './config-reader'
+import { Functions } from './functions'
 
+type StrFnObj = { [index: string]: (callback: () => void) => void }
 type GenericCallback = (...args: any[]) => void
+type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 
 export interface NeovimEvents {
   config(fn: ConfigCallback): void,
@@ -77,4 +80,40 @@ a.on = {
 
 subscribe('veonim', ([ event, args = [] ]) => watchers.notify(event, ...args))
 
-export default a
+// TODO: lol
+export { resize, subscribe }
+export const input = a.input
+export const cmd = a.cmd
+export const ex = a.ex
+export const expr = a.expr
+export const action = a.action
+//export const call = a.call
+export const call: Functions = onFnCall((name, args) => a.call(name, args))
+export const switchTo = a.switchTo
+export const create = a.create
+export const attach = a.attach
+export const setVar = a.setVar
+export const getOption = a.getOption
+export const setOption = a.setOption
+export const getCurrentLine = a.getCurrentLine
+export const on = a.on
+export const getColor = a.getColor
+
+export const define: DefineFunction = onProp((name: string) => (fn: TemplateStringsArray) => {
+  const expr = fn[0]
+    .split('\n')
+    .filter(m => m)
+    .join('\\n')
+    .replace(/"/g, '\\"')
+
+  a.cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`)
+})
+
+export const autocmd: StrFnObj = onFnCall((name, args) => {
+  const ev = pascalCase(name)
+  // TODO: make autocmds on internal event namespace i.e. veonim:internal
+  a.cmd(`au Veonim ${ev} * call rpcnotify(0, 'veonim', 'autocmd:${ev}')`)
+  // TODO: move this to lower level. don't use actions namespace
+  watchers.add(`autocmd:${ev}`, args[0])
+  //action(`autocmd:${ev}`, args[0])
+})

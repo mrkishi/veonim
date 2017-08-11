@@ -1,7 +1,8 @@
 import { Actions, Events } from '../../utils'
 import { h, app } from './plugins'
-import { notify, call } from '../neovim-client'
-const { cmd } = notify
+//import { notify, call } from '../neovim-client'
+import { call, cmd } from '../../neovim'
+//const { cmd } = notify
 
 interface State { val: string, vis: boolean }
 const state = { val: '', vis: false }

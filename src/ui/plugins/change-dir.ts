@@ -1,5 +1,6 @@
 import { Actions, Events, getDirFiles, exists } from '../../utils'
-import { call, notify } from '../neovim-client'
+//import { call, notify } from '../neovim-client'
+import { call, cmd } from '../../neovim'
 import { renameCurrent } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
@@ -7,7 +8,7 @@ import { join, sep } from 'path'
 import { homedir } from 'os'
 import TermInput from './input'
 
-const { cmd } = notify
+//const { cmd } = notify
 const $HOME = homedir()
 
 interface FileDir { name: string, file: boolean, dir: boolean  }
