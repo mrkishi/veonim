@@ -1,7 +1,8 @@
-import { on, request, notify } from './neovim-client'
+//import { on, request, notify } from './neovim-client'
+import { on, attach, switchTo, create } from '../neovim'
 import { remote } from 'electron'
-const { attach, switchTo } = notify
-const { create } = request
+//const { attach, switchTo } = notify
+//const { create } = request
 
 interface Vim { id: number, name: string, active: boolean }
 const vims = new Map<number, Vim>()
