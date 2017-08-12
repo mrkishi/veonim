@@ -15,26 +15,27 @@ export default (id: number, path: string) => {
   vims.set(id, { id, path, name: 'main', active: true })
   notifyReady()
   pub(Session.create, { id, path })
+  pub(Session.switch, id)
 }
 
 export const onVimCreate = (fn: Function) => onReady.add(fn)
 
 export const createVim = async (name: string, nameAfterDir = false) => {
   const { id, path } = await create({ askCd: nameAfterDir })
+  pub(Session.create, { id, path })
   attach(id)
   switchTo(id)
   vims.forEach(v => v.active = false)
   vims.set(id, { id, path, name, active: true })
   notifyReady()
-  pub(Session.create, { id, path })
 }
 
 export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
   switchTo(id)
+  pub(Session.switch, id)
   vims.forEach(v => v.active = false)
   vims.get(id)!.active = true
-  pub(Session.switch, id)
 }
 
 export const renameVim = (id: number, newName: string) => {
