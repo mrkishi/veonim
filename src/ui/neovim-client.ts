@@ -1,5 +1,6 @@
 import { onFnCall, onProp, Watchers, pascalCase } from '../utils'
 import { Functions } from '../functions'
+import { Session } from  './sessions'
 import { sub } from '../dispatch'
 import setupRPC from '../rpc'
 import { Api } from '../api'
@@ -9,17 +10,21 @@ type StrFnObj = { [index: string]: (callback: () => void) => void }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 
 const actionWatchers = new Watchers()
-const io = new Worker(`${__dirname}/../workers/io.js`)
-const { notify, request, on, onData } = setupRPC(io.postMessage)
+const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
+const { notify, request, on, onData } = setupRPC(m => io.postMessage(m))
+
 io.onmessage = ({ data }: MessageEvent) => onData(data[0], data[1])
-sub('sessions:create', m => io.postMessage([66, m]))
+sub(Session.create, m => io.postMessage([65, m]))
+sub(Session.switch, m => io.postMessage([66, m]))
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
 const subscribe = (event: string, fn: (data: any) => void) => (on(event, fn), api.subscribe(event))
 
+// TODO: buffer these calls: action/sub/define/autocmd until connected. don't make the client have to do it...
 // TODO: and... how do we subscribe to all vim instances?
-subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+// TODO: on sessions: create run this
+//subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
 
 export const action = (event: string, cb: GenericCallback): void => actionWatchers.add(event, cb)
 export const input = (keys: string) => api.input(keys)

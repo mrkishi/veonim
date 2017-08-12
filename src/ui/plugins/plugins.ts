@@ -1,6 +1,6 @@
 import { action } from '../../neovim'
-//import { sub } from '../neovim-client'
-import { createVim } from '../sessions'
+import { expr } from '../neovim-client'
+import { createVim, onVimCreate } from '../sessions'
 import * as viminput from '../input'
 import { merge } from '../../utils'
 import vim from '../canvasgrid'
@@ -8,6 +8,13 @@ import huu from 'huu'
 // TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
 const { h: hs, app: makeApp } = require('hyperapp')
 export const h = huu(hs)
+
+onVimCreate(() => {
+  console.log('VIM CREATED LOL')
+  setTimeout(() => {
+    expr(`v:servername`).then(s => console.log('server name:', s))
+  }, 1000)
+})
 
 //const action = sub('action')
 const hostElement = document.getElementById('plugins')

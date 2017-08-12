@@ -48,13 +48,13 @@ window.addEventListener('resize', debounce(() => {
 }, 500))
 
 const main = async () => {
-  const { id, socket } = await create()
+  const { id, path } = await create()
   await Promise.race([ initialConfig, timeout(500) ])
   ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
   uiInput.focus()
   resize(ui.cols, ui.rows)
   attach(id)
-  setDefaultSession(id, socket)
+  setDefaultSession(id, path)
 }
 
 main().catch(log)

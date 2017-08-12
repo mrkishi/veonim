@@ -7,8 +7,8 @@ import { homedir } from 'os'
 import { Api } from './api'
 import setupRPC from './rpc'
 
-interface VimInstance { id: number, proc: ChildProcess, attached: boolean, socket?: string}
-export interface NewVimResponse { id: number, socket: string }
+interface VimInstance { id: number, proc: ChildProcess, attached: boolean, path?: string}
+export interface NewVimResponse { id: number, path: string }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
@@ -81,9 +81,9 @@ export const newVim = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
   const id = createNewVimInstance({ askCd })
   switchToVim(id)
   api.command(`let g:vn_loaded=1`)
-  const socket = await req.eval('v:servername')
-  vimInstances.get(id)!.socket = socket
-  return { id, socket }
+  const path = await req.eval('v:servername')
+  vimInstances.get(id)!.path = path
+  return { id, path }
 }
 
 export const attachToVim = (id: number) => {

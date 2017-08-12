@@ -2,25 +2,31 @@ import { on, attach, switchTo, create } from '../neovim'
 import { pub } from '../dispatch'
 import { remote } from 'electron'
 
-interface Vim { id: number, name: string, active: boolean, socket: string }
+interface Vim { id: number, name: string, active: boolean, path: string }
 const vims = new Map<number, Vim>()
 const onReady = new Set<Function>()
 const notifyReady = () => onReady.forEach(cb => cb())
-
-export const onVimCreate = (fn: Function) => onReady.add(fn)
-export default (id: number, socket: string) => {
-  vims.set(id, { id, socket, name: 'main', active: true })
-  notifyReady()
+export enum Session {
+  create = 'session:create',
+  switch = 'session:switch',
 }
 
+export default (id: number, path: string) => {
+  vims.set(id, { id, path, name: 'main', active: true })
+  notifyReady()
+  pub(Session.create, { id, path })
+}
+
+export const onVimCreate = (fn: Function) => onReady.add(fn)
+
 export const createVim = async (name: string, nameAfterDir = false) => {
-  const { id, socket } = await create({ askCd: nameAfterDir })
+  const { id, path } = await create({ askCd: nameAfterDir })
   attach(id)
   switchTo(id)
   vims.forEach(v => v.active = false)
-  vims.set(id, { id, socket, name, active: true })
+  vims.set(id, { id, path, name, active: true })
   notifyReady()
-  pub('session:create', { id, socket })
+  pub(Session.create, { id, path })
 }
 
 export const switchVim = async (id: number) => {
@@ -28,7 +34,7 @@ export const switchVim = async (id: number) => {
   switchTo(id)
   vims.forEach(v => v.active = false)
   vims.get(id)!.active = true
-  pub('session:switch', id)
+  pub(Session.switch, id)
 }
 
 export const renameVim = (id: number, newName: string) => {
