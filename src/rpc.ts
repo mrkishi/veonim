@@ -49,7 +49,7 @@ export default (send: (data: any[]) => void) => {
 
   const handleRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 
-  const onData = ([ type, ...d ]: [ number, string | Buffer | any[] ]) => {
+  const onData = (type: number, d: any) => {
     if (type === 0) onVimRequest(d[0] as number, d[1].toString(), d[2] as any[])
     else if (type === 1) onResponse(d[0] as number, d[1] as string, d[2])
     else if (type === 2) onNotification(d[0].toString(), d[1] as any[])

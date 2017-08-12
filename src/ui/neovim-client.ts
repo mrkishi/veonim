@@ -1,25 +1,40 @@
-import { Neovim } from '../neovim'
-import { sub } from '../dispatch'
-import Channel from '../channel'
-import { onFnCall, onProp, pascalCase } from '../utils'
+import { onFnCall, onProp, Watchers, pascalCase } from '../utils'
 import { Functions } from '../functions'
+import { sub } from '../dispatch'
+import setupRPC from '../rpc'
+import { Api } from '../api'
 
-const io = new Worker(`${__dirname}/../workers/io.js`)
-const { on, sub, Notifier, Requester, onRecv } = Channel((e, msg, id) => io.postMessage([ e, msg, id ]))
-io.onmessage = onRecv
-
-export { on, sub }
-export const notify = Notifier<Neovim>()
-export const request = Requester<Neovim>()
-export const call: Functions = onFnCall((name, args) => request.call(name, args))
-
-const { cmd } = notify
+type GenericCallback = (...args: any[]) => void
 type StrFnObj = { [index: string]: (callback: () => void) => void }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 
-const action = sub('action')
+const actionWatchers = new Watchers()
+const io = new Worker(`${__dirname}/../workers/io.js`)
+const { notify, request, on, onData } = setupRPC(io.postMessage)
+io.onmessage = ({ data }: MessageEvent) => onData(data[0], data[1])
+sub('sessions:create', m => io.postMessage([66, m]))
 
-// TODO: make ready onVimCreate
+const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
+const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
+const subscribe = (event: string, fn: (data: any) => void) => (on(event, fn), api.subscribe(event))
+
+// TODO: and... how do we subscribe to all vim instances?
+subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+
+export const action = (event: string, cb: GenericCallback): void => actionWatchers.add(event, cb)
+export const input = (keys: string) => api.input(keys)
+export const cmd = (command: string) => api.command(command)
+export const ex = (command: string) => req.commandOutput(command)
+export const expr = (expression: string) => req.eval(expression)
+export const call: Functions = onFnCall((name, args) => req.callFunction(name, args))
+export const getCurrentLine = () => req.getCurrentLine()
+
+export const g = new Proxy({}, {
+  get: (_t, name: string) => req.getVar(name),
+  set: (_t, name: string, val: any) => (api.setVar(name, val), true),
+})
+
+// TODO: and... how do we define in all vim instances?
 export const define: DefineFunction = onProp((name: string) => (fn: TemplateStringsArray) => {
   const expr = fn[0]
     .split('\n')
@@ -30,11 +45,10 @@ export const define: DefineFunction = onProp((name: string) => (fn: TemplateStri
   cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`)
 })
 
-// TODO: make ready onVimCreate
+// TODO: setup in all vim instances
+// TODO: define augroup first
 export const autocmd: StrFnObj = onFnCall((name, args) => {
   const ev = pascalCase(name)
-  // TODO: make autocmds on internal event namespace i.e. veonim:internal
-  cmd(`au Veonim ${ev} * call rpcnotify(0, 'veonim', 'autocmd:${ev}')`)
-  // TODO: move this to lower level. don't use actions namespace
-  action(`autocmd:${ev}`, args[0])
+  cmd(`au Veonim ${ev} * call rpcnotify(0, 'autocmd:${ev}')`)
+  subscribe(`autocmd:${ev}`, args[0])
 })

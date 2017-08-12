@@ -12,5 +12,11 @@ cli.on('end', () => console.log('blarg quit'))
 encoder.pipe(cli)
 cli.pipe(decoder)
 
-onmessage = ({ data }: MessageEvent) => encoder.write(data)
-decoder.on('data', postMessage)
+onmessage = ({ data }: MessageEvent) => {
+  if (Array.isArray(data) && data[0][0] === 66) {
+    console.log('need to update status', data[0][1])
+  }
+  else encoder.write(data)
+}
+
+decoder.on('data', ([type, ...d]: [number, any]) => postMessage([ type, d ]))

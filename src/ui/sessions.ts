@@ -20,6 +20,7 @@ export const createVim = async (name: string, nameAfterDir = false) => {
   vims.forEach(v => v.active = false)
   vims.set(id, { id, socket, name, active: true })
   notifyReady()
+  pub('session:create', { id, socket })
 }
 
 export const switchVim = async (id: number) => {
@@ -27,6 +28,7 @@ export const switchVim = async (id: number) => {
   switchTo(id)
   vims.forEach(v => v.active = false)
   vims.get(id)!.active = true
+  pub('session:switch', id)
 }
 
 export const renameVim = (id: number, newName: string) => {
