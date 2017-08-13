@@ -1,7 +1,7 @@
 import { createVim } from '../sessions'
 import * as viminput from '../input'
 import { merge } from '../../utils'
-import { action } from '../neovim'
+import { action, listBuffers } from '../neovim'
 import vim from '../canvasgrid'
 import huu from 'huu'
 // TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
@@ -46,3 +46,7 @@ import './autocomplete'
 import './tabline'
 
 action('vim-create-dir', () => createVim('dir-unnamed', true))
+action('lol', async () => {
+  const res = await listBuffers()
+  console.log('buffers', res)
+})

@@ -1,4 +1,5 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
+import { Buffer, Window, Tabpage } from './ui/neovim'
 
 export interface Encoder {
   unpipe(): NodeJS.WritableStream,
@@ -6,24 +7,12 @@ export interface Encoder {
   write(data: any): boolean,
 }
 
-// TODO: actually implement this lol
-const wtf = class WHATTHEFUCK {
-  public val: any
-  constructor (data: any) {
-    this.val = data
-  }
-}
-
 export default () => {
   const codec = createCodec()
 
-  codec.addExtPacker(0, wtf, (data: any) => encode(data))
-  codec.addExtPacker(1, wtf, (data: any) => encode(data))
-  codec.addExtPacker(2, wtf, (data: any) => encode(data))
-
-  codec.addExtUnpacker(0, data => new wtf(decode(data)))
-  codec.addExtUnpacker(1, data => new wtf(decode(data)))
-  codec.addExtUnpacker(2, data => new wtf(decode(data)))
+  codec.addExtUnpacker(0, data => new Buffer(decode(data)))
+  codec.addExtUnpacker(1, data => new Window(decode(data)))
+  codec.addExtUnpacker(2, data => new Tabpage(decode(data)))
 
   // TODO: figure out why peoples parents dropped them as babies
   let crustyJugglers: NodeJS.WritableStream // WTF x 8

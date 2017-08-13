@@ -30,6 +30,7 @@ interface Types {
   set: TypeChecker
 }
 
+export const prefixWith = (prefix: string) => (m: string) => `${prefix}${snakeCase(m)}`
 export const merge = Object.assign
 export const cc = (...a: any[]) => Promise.all(a)
 export const delay = (t: number) => new Promise(d => setTimeout(d, t))

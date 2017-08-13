@@ -1,9 +1,9 @@
-import { ID, log, onFnCall, merge } from './utils'
-import CreateTransport from './transport'
+import { ID, log, onFnCall, merge, prefixWith } from './utils'
 import { ChildProcess } from 'child_process'
+import CreateTransport from './transport'
+import { Api, Prefixes } from './api'
 import Neovim from '@veonim/neovim'
 import { homedir } from 'os'
-import { Api } from './api'
 import SetupRPC from './rpc'
 
 interface VimInstance { id: number, proc: ChildProcess, attached: boolean, path?: string}
@@ -11,6 +11,7 @@ export interface NewVimResponse { id: number, path: string }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
+const prefix = { core: prefixWith(Prefixes.Core) }
 const { encoder, decoder } = CreateTransport()
 const $HOME = homedir()
 const vimOptions = { rgb: true, ext_popupmenu: true, ext_tabline: true, ext_wildmenu: false, ext_cmdline: false }
@@ -87,8 +88,8 @@ export const attachTo = (id: number) => {
 const { notify, request, on: onEvent, onData } = SetupRPC(encoder.write)
 decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
-const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
-const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
+const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args))
+const api: Api = onFnCall((name: string, args: any[]) => notify(prefix.core(name), args))
 
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => onEvent('redraw', fn)

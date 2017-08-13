@@ -50,22 +50,22 @@ export interface Api {
 }
 
 export interface Buffer {
-  lineCount(buffer: Buffer): Promise<number>,
-  getLines(buffer: Buffer, start: number, end: number, strict_indexing: boolean): Promise<string[]>,
-  setLines(buffer: Buffer, start: number, end: number, strict_indexing: boolean, replacement: string[]): void,
-  getVar(buffer: Buffer, name: string): Promise<any>,
-  getChangedtick(buffer: Buffer): Promise<number>,
-  setVar(buffer: Buffer, name: string, value: any): void,
-  delVar(buffer: Buffer, name: string): void,
-  getOption(buffer: Buffer, name: string): Promise<any>,
-  setOption(buffer: Buffer, name: string, value: any): void,
-  getNumber(buffer: Buffer): Promise<number>,
-  getName(buffer: Buffer): Promise<string>,
-  setName(buffer: Buffer, name: string): void,
-  isValid(buffer: Buffer): Promise<boolean>,
-  getMark(buffer: Buffer, name: string): Promise<number[]>,
-  addHighlight(buffer: Buffer, src_id: number, hl_group: string, line: number, col_start: number, col_end: number): Promise<number>,
-  clearHighlight(buffer: Buffer, src_id: number, line_start: number, line_end: number): void,
+  lineCount(this: Buffer): Promise<number>,
+  getLines(this: Buffer, start: number, end: number, strict_indexing: boolean): Promise<string[]>,
+  setLines(this: Buffer, start: number, end: number, strict_indexing: boolean, replacement: string[]): void,
+  getVar(this: Buffer, name: string): Promise<any>,
+  getChangedtick(this: Buffer): Promise<number>,
+  setVar(this: Buffer, name: string, value: any): void,
+  delVar(this: Buffer, name: string): void,
+  getOption(this: Buffer, name: string): Promise<any>,
+  setOption(this: Buffer, name: string, value: any): void,
+  getNumber(this: Buffer): Promise<number>,
+  getName(this: Buffer): Promise<string>,
+  setName(this: Buffer, name: string): void,
+  isValid(this: Buffer): Promise<boolean>,
+  getMark(this: Buffer, name: string): Promise<number[]>,
+  addHighlight(this: Buffer, src_id: number, hl_group: string, line: number, col_start: number, col_end: number): Promise<number>,
+  clearHighlight(this: Buffer, src_id: number, line_start: number, line_end: number): void,
 }
 
 export interface Window {

@@ -1,5 +1,4 @@
-import { ID, Watchers, snakeCase } from './utils'
-const asVimFn = (m: string) => `nvim_${snakeCase(m)}`
+import { ID, Watchers } from './utils'
 
 export default (send: (data: any[]) => void) => {
   const requestHandlers = new Map<string, Function>()
@@ -35,11 +34,11 @@ export default (send: (data: any[]) => void) => {
 
   const request = (name: string, args: any[]) => {
     const reqId = id.next()
-    send([0, reqId, asVimFn(name), args])
+    send([0, reqId, name, args])
     return new Promise((done, fail) => pendingRequests.set(reqId, { done, fail }))
   }
 
-  const notify = (name: string, args: any[]) => send([2, asVimFn(name), args])
+  const notify = (name: string, args: any[]) => send([2, name, args])
 
   // why === redraw? because there will only be one redraw fn and since it's a hot
   // path for perf, there is no need to iterate through the watchers to call redraw
