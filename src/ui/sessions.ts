@@ -6,10 +6,7 @@ interface Vim { id: number, name: string, active: boolean, path: string }
 const vims = new Map<number, Vim>()
 const onReady = new Set<Function>()
 const notifyReady = () => onReady.forEach(cb => cb())
-export enum Session {
-  create = 'session:create',
-  switch = 'session:switch',
-}
+export enum Session { create = 'session:create', switch = 'session:switch' }
 
 export default (id: number, path: string) => {
   vims.set(id, { id, path, name: 'main', active: true })

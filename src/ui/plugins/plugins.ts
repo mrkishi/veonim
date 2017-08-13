@@ -1,6 +1,5 @@
 import { action } from '../../neovim'
-import { expr } from '../neovim-client'
-import { createVim, switchVim, onVimCreate } from '../sessions'
+import { createVim } from '../sessions'
 import * as viminput from '../input'
 import { merge } from '../../utils'
 import vim from '../canvasgrid'
@@ -9,25 +8,6 @@ import huu from 'huu'
 const { h: hs, app: makeApp } = require('hyperapp')
 export const h = huu(hs)
 
-let ix = 0
-onVimCreate(() => {
-  ix++
-  console.log('MA: VIM CREATED LOL')
-  setInterval(() => {
-    expr(`v:servername`).then(s => console.log('MA: server name:', s, 'ix', ix))
-  }, 1000)
-
-})
-
-  setTimeout(() => {
-    console.log('MA: create next')
-    createVim('derp')
-  }, 5000)
-setTimeout(() => {
-  console.log('SWITCHBACK')
-  switchVim(1)
-}, 9000)
-//const action = sub('action')
 const hostElement = document.getElementById('plugins')
 export const getHostElement = () => hostElement as HTMLElement
 

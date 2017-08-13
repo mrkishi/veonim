@@ -9,6 +9,9 @@ type GenericCallback = (...args: any[]) => void
 type StrFnObj = { [index: string]: (callback: () => void) => void }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 
+const onReady = new Set<Function>()
+const notifyReady = () => onReady.forEach(cb => cb())
+
 const actionWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on, onData } = setupRPC(m => io.postMessage(m))
@@ -16,6 +19,8 @@ const { notify, request, on, onData } = setupRPC(m => io.postMessage(m))
 io.onmessage = ({ data }: MessageEvent) => onData(data[0], data[1])
 sub(Session.create, m => io.postMessage([65, m]))
 sub(Session.switch, m => io.postMessage([66, m]))
+sub(Session.create, () => notifyReady())
+sub(Session.switch, () => notifyReady())
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
