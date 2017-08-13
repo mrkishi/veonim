@@ -10,7 +10,6 @@ let buffer: any[] = []
 let connected = false
 
 const connectTo = ({ id, path }: { id: number, path: string }) => {
-  console.log(`create connect ${id}`)
   connected = false
   const socket = createConnection(path)
   socket.on('end', () => clients.delete(id))
@@ -18,7 +17,6 @@ const connectTo = ({ id, path }: { id: number, path: string }) => {
 }
 
 const switchTo = (id: number) => {
-  console.log(`switch to ${id}`)
   if (!clients.has(id)) return
   const { socket } = clients.get(id)!
 
@@ -32,21 +30,9 @@ const switchTo = (id: number) => {
   socket.pipe(decoder, { end: false })
 
   if (buffer.length) {
-    console.log('unbuf', buffer)
     buffer.forEach(data => encoder.write(data))
     buffer = []
   }
-  console.log(`hooked up pipes for ${id}`)
-  //socket.on('connect', () => {
-    //console.log(`socket ${id} is hooked up now!`)
-    //console.log(`connected = ${connected}`)
-  //})
-  //if (!connected) socket.on('connect', () => {
-    //console.log('unbuf', buffer)
-    //buffer.forEach(data => encoder.write(data))
-    //buffer = []
-    //connected = true
-  //})
 
   connected = true
   config.current = id
@@ -55,7 +41,6 @@ const switchTo = (id: number) => {
 onmessage = ({ data }: MessageEvent) => {
   if (Array.isArray(data) && data[0] === 65) return connectTo(data[1])
   if (Array.isArray(data) && data[0] === 66) return switchTo(data[1])
-  console.log(connected ? 'W':'B', '-->', ...data)
   if (!connected) buffer.push(data)
   else encoder.write(data)
 }

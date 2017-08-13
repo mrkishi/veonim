@@ -16,7 +16,7 @@ export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
 const actionWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
-const { notify, request, on, onData } = setupRPC(m => io.postMessage(m))
+const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 
 io.onmessage = ({ data }: MessageEvent) => onData(data[0], data[1])
 sub(Session.create, m => io.postMessage([65, m]))
@@ -25,7 +25,10 @@ sub(Session.create, () => notifyCreated())
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
-const subscribe = (event: string, fn: (data: any) => void) => (on(event, fn), api.subscribe(event))
+const subscribe = (event: string, fn: (data: any) => void) => {
+  if (!hasEvent(event)) on(event, fn)
+  api.subscribe(event)
+}
 
 export const action = (event: string, cb: GenericCallback): void => actionWatchers.add(event, cb)
 export const input = (keys: string) => api.input(keys)
@@ -61,11 +64,5 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
   onCreate(() => subscribe(`autocmd:${ev}`, args[0]))()
 })
 
-onCreate(() => {
-  console.log('on create called')
-})
-onCreate(() => {
-  console.log('sub veonim pls')
-  subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
-})
+onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))

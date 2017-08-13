@@ -89,6 +89,7 @@ e.show = (_s, a, buffers: BufferInfo[]) => a.show(buffers)
 const emit = app({ state, view, actions: a, events: e })
 
 action('buffers', async () => {
+  console.log('buffffffffff')
   const cwd = await call.getcwd()
   if (!cwd) return
 

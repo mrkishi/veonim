@@ -47,6 +47,7 @@ export default (send: (data: any[]) => void) => {
     ? onRedrawFn = fn
     : watchers.add(event, fn)
 
+  const hasEvent = (event: string) => watchers.has(event)
   const handleRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 
   const onData = (type: number, d: any) => {
@@ -55,5 +56,5 @@ export default (send: (data: any[]) => void) => {
     else if (type === 2) onNotification(d[0].toString(), d[1] as any[])
   }
 
-  return { notify, request, on, handleRequest, onData }
+  return { notify, request, on, handleRequest, onData, hasEvent }
 }
