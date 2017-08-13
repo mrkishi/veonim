@@ -11,7 +11,7 @@ type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void 
 type KeyVal = { [index: string]: any }
 
 const onReady = new Set<Function>()
-const notifyReady = () => onReady.forEach(cb => cb())
+const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
 const actionWatchers = new Watchers()
@@ -21,8 +21,7 @@ const { notify, request, on, onData } = setupRPC(m => io.postMessage(m))
 io.onmessage = ({ data }: MessageEvent) => onData(data[0], data[1])
 sub(Session.create, m => io.postMessage([65, m]))
 sub(Session.switch, m => io.postMessage([66, m]))
-sub(Session.create, () => notifyReady())
-sub(Session.switch, () => notifyReady())
+sub(Session.create, () => notifyCreated())
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
@@ -62,5 +61,8 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
   onCreate(() => subscribe(`autocmd:${ev}`, args[0]))()
 })
 
+onCreate(() => {
+  console.log('on create called')
+})
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
