@@ -1,16 +1,17 @@
 import { ID, log, onFnCall, merge } from './utils'
-import { encoder, decoder } from './transport'
+import CreateTransport from './transport'
 import { ChildProcess } from 'child_process'
 import Neovim from '@veonim/neovim'
 import { homedir } from 'os'
 import { Api } from './api'
-import setupRPC from './rpc'
+import SetupRPC from './rpc'
 
 interface VimInstance { id: number, proc: ChildProcess, attached: boolean, path?: string}
 export interface NewVimResponse { id: number, path: string }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
+const { encoder, decoder } = CreateTransport()
 const $HOME = homedir()
 const vimOptions = { rgb: true, ext_popupmenu: true, ext_tabline: true, ext_wildmenu: false, ext_cmdline: false }
 const ids = { vim: ID(), activeVim: -1 }
@@ -83,7 +84,7 @@ export const attachTo = (id: number) => {
   vim.attached = true
 }
 
-const { notify, request, on: onEvent, onData } = setupRPC(encoder.write)
+const { notify, request, on: onEvent, onData } = SetupRPC(encoder.write)
 decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))

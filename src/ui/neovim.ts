@@ -64,5 +64,8 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
 onCreate(() => {
   console.log('on create called')
 })
-onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
+onCreate(() => {
+  console.log('sub veonim pls')
+  subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+})
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
