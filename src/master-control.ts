@@ -1,5 +1,4 @@
 import { ID, log, onFnCall, merge } from './utils'
-import configReader, { ConfigCallback } from './config-reader'
 import { encoder, decoder } from './transport'
 import { ChildProcess } from 'child_process'
 import Neovim from '@veonim/neovim'
@@ -84,32 +83,20 @@ export const attachTo = (id: number) => {
   vim.attached = true
 }
 
-const { notify, request, on: onEvent, handleRequest, onData } = setupRPC(encoder.write)
+const { notify, request, on: onEvent, onData } = setupRPC(encoder.write)
 decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
-export const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
-export const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
-// TODO: not used?
-export const on = (event: string, fn: (data: any) => void) => onEvent(event, fn)
-// TODO: not used?
-export const onRequest = (event: string, fn: Function) => handleRequest(event, fn)
+const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
+const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
+
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => onEvent('redraw', fn)
-// TODO: move to galaxy?
-export const onConfig = (fn: ConfigCallback) => configReader('nvim/init.vim', fn, log)
+export const input = (keys: string) => api.input(keys)
 
 export const resize = (width: number, height: number) => {
   merge(clientSize, { width, height })
   if (ids.activeVim > -1) api.uiTryResize(width, height)
 }
-
-// TODO: not used?
-export const subscribe = (event: string, fn: (data: any) => void) => {
-  onEvent(event, fn)
-  if (ids.activeVim > -1) api.subscribe(event)
-}
-
-export const input = (keys: string) => api.input(keys)
 
 export const getColor = async (id: number) => {
   const [ fg = 0, bg = 0 ] = await Promise.all([

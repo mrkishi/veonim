@@ -1,6 +1,6 @@
 import { createReadStream } from 'fs'
+import { log, exists } from './utils'
 const watch = require('node-watch')
-import { exists } from './utils'
 import { homedir } from 'os'
 
 export type Config = Map<string, any>
@@ -11,9 +11,9 @@ const base = process.env.XDG_CONFIG_HOME || (process.platform === 'win32'
   ? `${$HOME}/AppData/Local`
   : `${$HOME}/.config`)
 
-const loadConfig = async (path: string, notify: ConfigCallback, log: Function) => {
+const loadConfig = async (path: string, notify: ConfigCallback) => {
   const pathExists = await exists(path)
-  if (!pathExists) return log(`config file at ${path} not found`)
+  if (!pathExists) return log `config file at ${path} not found`
 
   const file = createReadStream(path)
   let buf = ''
@@ -34,11 +34,11 @@ const loadConfig = async (path: string, notify: ConfigCallback, log: Function) =
   })
 }
 
-export default async (location: string, cb: ConfigCallback, handleErr: (err: string) => void) => {
+export default async (location: string, cb: ConfigCallback) => {
   const path = `${base}/${location}`
   const pathExists = await exists(path)
-  if (!pathExists) return handleErr(`config file at ${path} not found`)
+  if (!pathExists) return log `config file at ${path} not found`
 
-  loadConfig(path, cb, handleErr).catch(e => handleErr(e))
-  watch(path, () => loadConfig(path, cb, handleErr).catch(e => handleErr(e)))
+  loadConfig(path, cb).catch(e => log(e))
+  watch(path, () => loadConfig(path, cb).catch(e => log(e)))
 }

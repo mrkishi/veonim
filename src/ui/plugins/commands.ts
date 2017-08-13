@@ -1,14 +1,13 @@
 import { action, call, cmd, define } from '../neovim'
 import { Actions, Events } from '../../utils'
-import { onVimCreate } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
 import TermInput from './input'
 
-onVimCreate(() => define.Commands`
+define.Commands`
   silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"
   return split(cmds, '\\\\s\\\\+')
-`)
+`
 
 interface State { val: string, cmds: string[], cache: string[], vis: boolean, ix: number }
 const state: State = { val: '', cmds: [], cache: [], vis: false, ix: 0 }

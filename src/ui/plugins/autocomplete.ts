@@ -1,15 +1,11 @@
-//import { call, autocmd, notify, define, request } from '../neovim-client'
-import { call, autocmd, cmd, setVar, expr, getCurrentLine, define } from '../../neovim'
+import { call, autocmd, cmd, g, expr, getCurrentLine, define, onCreate } from '../neovim'
 import { merge, cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
 import * as harvester from './keyword-harvester'
-import { onVimCreate } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
 import { translate } from '../css'
 import { h, app } from './plugins'
 import ui from '../canvasgrid'
-//const { cmd, setVar } = notify
-//const { expr, getCurrentLine } = request
 
 const orderCompletions = (m: string[], query: string) =>
   m.slice().sort(a => hasUpperCase(a) ? -1 : a.startsWith(query) ? -1 : 1)
@@ -63,39 +59,37 @@ interface Cache { startIndex: number, completionItems: string[], filetype: strin
 // TODO: toggle this when renaming or performing other 'non-update' changes to buffer
 let pauseUpdate = false
 
-// TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
-onVimCreate(() => {
-  const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '', revision: -1, cwd: '' }
+define.VeonimComplete`
+  return a:1 ? g:veonim_complete_pos : g:veonim_completions
+`
 
-  cmd(`aug Veonim | au! | aug END`)
-
-  define.VeonimComplete`
-    return a:1 ? g:veonim_complete_pos : g:veonim_completions
-  `
-
-  define.CompleteScroll`
-    if len(g:veonim_completions)
-      if g:veonim_completing
-        return a:1 ? "\\<c-n>" : "\\<c-p>"
-      endif
-
-      let g:veonim_completing = 1
-      return a:1 ? "\\<c-x>\\<c-u>" : "\\<c-x>\\<c-u>\\<c-p>\\<c-p>"
+define.CompleteScroll`
+  if len(g:veonim_completions)
+    if g:veonim_completing
+      return a:1 ? "\\<c-n>" : "\\<c-p>"
     endif
 
-    return a:1 ? "\\<tab>" : "\\<c-w>"
-  `
+    let g:veonim_completing = 1
+    return a:1 ? "\\<c-x>\\<c-u>" : "\\<c-x>\\<c-u>\\<c-p>\\<c-p>"
+  endif
 
-  setVar('veonim_completing', 0)
-  setVar('veonim_complete_pos', 1)
-  setVar('veonim_completions', [])
+  return a:1 ? "\\<tab>" : "\\<c-w>"
+`
+
+// TODO: i wonder if it might be more prudent to create a veonim plugin and install once...
+onCreate(() => {
+  const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '', revision: -1, cwd: '' }
+
+  g.veonim_completing = 0
+  g.veonim_complete_pos = 1
+  g.veonim_completions = []
 
   cmd(`set completefunc=VeonimComplete`)
   cmd(`ino <expr> <tab> CompleteScroll(1)`)
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
 
   autocmd.completeDone(async () => {
-    setVar('veonim_completing', 0)
+    g.veonim_completing = 0
     const { word } = await expr(`v:completed_item`)
     // TODO: do what else with completed word? mru cache?
     harvester.addWord(cache.cwd, cache.file, word)
@@ -125,7 +119,7 @@ onVimCreate(() => {
 
   const updateVim = (items: string[]) => {
     cache.completionItems = items
-    setVar('veonim_completions', items)
+    g.veonim_completions = items
   }
 
   const getCompletions = async () => {
@@ -177,7 +171,7 @@ onVimCreate(() => {
         //setVar('veonim_complete_pos', startIndex)
         //pluginUI('show')
       //}
-      setVar('veonim_complete_pos', startIndex)
+      g.veonim_complete_pos = startIndex
     } else {
       pluginUI('hide')
       updateVim([])

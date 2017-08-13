@@ -70,6 +70,7 @@ e.results = (_s, a, files: string[]) => a.results(files)
 
 const emit = app({ state, view, actions: a, events: e })
 
+// TODO: why getting duplicates?
 action('files', async () => {
   const cwd = await call.getcwd()
   if (!cwd) return

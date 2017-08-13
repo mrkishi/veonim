@@ -3,18 +3,17 @@ import { Actions, Events, merge } from '../../utils'
 import { VimBuffer } from '../../functions'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
-import { onVimCreate } from '../sessions'
 import { h, app } from './plugins'
 import TermInput from './input'
 
 interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
 interface State { val: string, buffers: BufferInfo[], cache: BufferInfo[], vis: boolean, ix: number }
 
-onVimCreate(() => define.Buffers`
+define.Buffers`
   let current = bufnr('%')
   let bufs = filter(range(0, bufnr('$')), 'buflisted(v:val)')
   return map(bufs, {key, val -> { 'name': bufname(val), 'cur': val == current, 'mod': getbufvar(val, '&mod') }})
-`)
+`
 
 const cleanup = (fullpath: string, cwd: string) => fullpath.includes(cwd)
   ? fullpath.split(cwd + '/')[1]

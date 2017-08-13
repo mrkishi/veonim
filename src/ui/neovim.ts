@@ -8,6 +8,7 @@ import { Api } from '../api'
 type GenericCallback = (...args: any[]) => void
 type StrFnObj = { [index: string]: (callback: () => void) => void }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
+type KeyVal = { [index: string]: any }
 
 const onReady = new Set<Function>()
 const notifyReady = () => onReady.forEach(cb => cb())
@@ -35,7 +36,12 @@ export const expr = (expression: string) => req.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.callFunction(name, args))
 export const getCurrentLine = () => req.getCurrentLine()
 
-export const g = new Proxy({}, {
+// TODO: test vars and see if we need below logic from old neovim-client
+//a.getVar = async key => {
+  //const val = await req.getVar(key as string).catch(e => e)
+  //if (!Array.isArray(val) && val[1] !== 'Key not found') return val
+//}
+export const g = new Proxy({} as KeyVal, {
   get: (_t, name: string) => req.getVar(name),
   set: (_t, name: string, val: any) => (api.setVar(name, val), true),
 })

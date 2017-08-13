@@ -1,16 +1,17 @@
+import { resize, attachTo, create } from '../master-control'
 import { debounce, log, delay as timeout } from '../utils'
-import { on, resize, attach, create } from '../neovim'
 import ui, { CursorShape } from './canvasgrid'
+import configReader from '../config-reader'
 import setDefaultSession from './sessions'
-import { Config } from '../config-reader'
 import * as uiInput from './input'
 import { remote } from 'electron'
 import './render'
 import './plugins/plugins'
 
+// TODO: just have config reader return promise for initialConfig?
 let configLoaded: Function
 const initialConfig = new Promise(done => configLoaded = done)
-on.config((c: Config) => {
+configReader('nvim/init.vim', c => {
   ui.setFont({
     face: c.get('font'),
     size: c.get('font_size')-0,
@@ -53,7 +54,7 @@ const main = async () => {
   ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
   uiInput.focus()
   resize(ui.cols, ui.rows)
-  attach(id)
+  attachTo(id)
   setDefaultSession(id, path)
 }
 
