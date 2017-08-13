@@ -7,9 +7,9 @@ const clients = new Map<number, Client>()
 const config = { current: -1 }
 
 const connectTo = ({ id, path }: { id: number, path: string }) => {
-  console.log(`trying to connect vim ${id} @ ${path}`)
+  console.log(`WW: trying to connect vim ${id} @ ${path}`)
   const socket = createConnection(path, () => {
-    console.log(`connected to vim ${id}`)
+    console.log(`WW: connected to vim ${id} @ ${path}`)
   })
 
   socket.on('end', () => console.log('blarg quit'))
@@ -18,9 +18,9 @@ const connectTo = ({ id, path }: { id: number, path: string }) => {
 
 const switchTo = (id: number) => {
   if (!clients.has(id)) return
-  const { socket } = clients.get(id)!
+  const { socket, path } = clients.get(id)!
 
-  console.log(`switching to vim ${id}`)
+  console.log(`WW: SWITching to vim ${id} on ${path}`)
 
   if (config.current > -1) {
     encoder.unpipe()

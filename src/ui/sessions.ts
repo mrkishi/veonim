@@ -25,6 +25,7 @@ export const createVim = async (name: string, nameAfterDir = false) => {
   pub(Session.create, { id, path })
   attach(id)
   switchTo(id)
+  pub(Session.switch, id)
   vims.forEach(v => v.active = false)
   vims.set(id, { id, path, name, active: true })
   notifyReady()
