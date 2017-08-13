@@ -12,7 +12,10 @@ let connected = false
 const connectTo = ({ id, path }: { id: number, path: string }) => {
   connected = false
   const socket = createConnection(path)
-  socket.on('end', () => clients.delete(id))
+  socket.on('end', () => {
+    socket.unpipe()
+    clients.delete(id)
+  })
   clients.set(id, { id, path, socket })
 }
 
@@ -23,7 +26,7 @@ const switchTo = (id: number) => {
   if (config.current > -1) {
     encoder.unpipe()
     const socketMaybe = clients.get(config.current)
-    if (socketMaybe) socket.unpipe()
+    if (socketMaybe) socketMaybe.socket.unpipe()
   }
 
   encoder.pipe(socket)
