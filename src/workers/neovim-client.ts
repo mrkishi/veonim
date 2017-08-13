@@ -9,14 +9,7 @@ let buffer: any[] = []
 let connected = false
 
 const connectTo = ({ id, path }: { id: number, path: string }) => {
-  const socket = createConnection(path, () => {
-    if (!connected) {
-      buffer.forEach(data => encoder.write(data))
-      buffer = []
-      connected = true
-    }
-  })
-
+  const socket = createConnection(path)
   socket.on('end', () => clients.delete(id))
   clients.set(id, { id, path, socket })
 }
@@ -33,6 +26,11 @@ const switchTo = (id: number) => {
 
   encoder.pipe(socket)
   socket.pipe(decoder, { end: false })
+  if (!connected) socket.on('connect', () => {
+    buffer.forEach(data => encoder.write(data))
+    buffer = []
+    connected = true
+  })
 
   config.current = id
 }
