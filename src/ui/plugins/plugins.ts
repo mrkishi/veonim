@@ -37,9 +37,9 @@ import buffers from './buffers'
 import explorer from './explorer'
 import commands from './commands'
 import changeDir from './change-dir'
-import vimCreate from './vim-create'
-import vimRename from './vim-rename'
-import vimSwitch from './vim-switch'
+import './vim-create'
+import './vim-rename'
+import './vim-switch'
 import colorPicker from './color-picker'
 import './autocomplete'
 import './tabline'
@@ -49,9 +49,9 @@ import './tabline'
 action('files', files)
 action('buffers', buffers)
 action('explorer', explorer)
-action('vim-create', vimCreate)
-action('vim-rename', vimRename)
-action('vim-switch', vimSwitch)
+//nextGenAction('vim-create', vimCreate)
+//nextGenAction('vim-rename', vimRename)
+//nextGenAction('vim-switch', vimSwitch)
 action('commands', commands)
 action('vim-create-dir', () => createVim('dir-unnamed', true))
 action('change-dir', (path = '') => changeDir(path, false))

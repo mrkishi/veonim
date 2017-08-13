@@ -1,4 +1,5 @@
 import { Actions, Events } from '../../utils'
+import { action } from '../neovim-client'
 import { createVim } from '../sessions'
 import { h, app } from './plugins'
 import TermInput from './input'
@@ -28,5 +29,4 @@ const e: Events<State> = {}
 e.show = (_s, a) => a.show()
 
 const emit = app({ state, view, actions: a, events: e })
-
-export default () => emit('show')
+action('vim-create', () => emit('show'))

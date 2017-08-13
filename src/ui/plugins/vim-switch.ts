@@ -1,5 +1,6 @@
 import { Actions, Events } from '../../utils'
 import { list, switchVim } from '../sessions'
+import { action } from '../neovim-client'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
 import TermInput from './input'
@@ -43,5 +44,4 @@ const e: Events<State> = {}
 e.show = (_s, a, d: Session[]) => a.show(d)
 
 const emit = app({ state, view, actions: a, events: e })
-
-export default () => emit('show', list())
+action('vim-switch', () => emit('show', list()))

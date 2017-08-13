@@ -23,11 +23,12 @@ const connectTo = ({ id, path }: { id: number, path: string }) => {
 
 const switchTo = (id: number) => {
   if (!clients.has(id)) return
-  const { socket, path } = clients.get(id)!
+  const { socket } = clients.get(id)!
 
   if (config.current > -1) {
     encoder.unpipe()
-    clients.get(config.current)!.socket.unpipe()
+    const socketMaybe = clients.get(config.current)
+    if (socketMaybe) socket.unpipe()
   }
 
   encoder.pipe(socket)

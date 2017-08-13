@@ -1,5 +1,6 @@
-import { Actions, Events } from '../../utils'
 import { renameCurrent, getCurrentName } from '../sessions'
+import { Actions, Events } from '../../utils'
+import { action } from '../neovim-client'
 import { h, app } from './plugins'
 import TermInput from './input'
 
@@ -28,5 +29,4 @@ const e: Events<State> = {}
 e.show = (_s, a, current: string) => a.show(current)
 
 const emit = app({ state, view, actions: a, events: e })
-
-export default () => emit('show', getCurrentName())
+action('vim-rename', () => emit('show', getCurrentName()))
