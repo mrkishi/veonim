@@ -1,4 +1,4 @@
-import { input } from '../neovim'
+import { input } from '../master-control'
 import { $ } from '../utils'
 
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']

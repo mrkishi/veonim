@@ -1,7 +1,7 @@
-import { action } from '../../neovim'
 import { createVim } from '../sessions'
 import * as viminput from '../input'
 import { merge } from '../../utils'
+import { action } from '../neovim'
 import vim from '../canvasgrid'
 import huu from 'huu'
 // TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
@@ -13,6 +13,7 @@ export const getHostElement = () => hostElement as HTMLElement
 
 // TODO: because mixins and events.beforeAction dont work in the current npm release of hyperapp
 // TODO: formalize the wrappings in huu module?
+// TODO: don't export Action/Event from utils and this from plugin. put in central organized place...
 export const app = (appParts: any, switchFocus = true) => {
   const { show, hide } = appParts.actions
 
@@ -32,28 +33,16 @@ export const app = (appParts: any, switchFocus = true) => {
 }
 
 // TODO: require all in plugins dir (dynamically)?
-import files from './files'
-import buffers from './buffers'
-import explorer from './explorer'
-import commands from './commands'
-import changeDir from './change-dir'
+import './files'
+import './buffers'
+import './explorer'
+import './commands'
+import './change-dir'
 import './vim-create'
 import './vim-rename'
 import './vim-switch'
-import colorPicker from './color-picker'
+import './color-picker'
 import './autocomplete'
 import './tabline'
 
-// TODO: should the plugin declare for itself what actions to listen to?
-// or just bind actions directly in plugin?
-action('files', files)
-action('buffers', buffers)
-action('explorer', explorer)
-//nextGenAction('vim-create', vimCreate)
-//nextGenAction('vim-rename', vimRename)
-//nextGenAction('vim-switch', vimSwitch)
-action('commands', commands)
 action('vim-create-dir', () => createVim('dir-unnamed', true))
-action('change-dir', (path = '') => changeDir(path, false))
-action('init-dir', (path = '') => changeDir(path, true))
-action('pick-color', colorPicker)

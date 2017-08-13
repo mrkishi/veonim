@@ -63,14 +63,6 @@ a.getVar = async key => {
   if (!Array.isArray(val) && val[1] !== 'Key not found') return val
 }
 
-a.getColor = async id => {
-  const [ fg = 0, bg = 0 ] = await Promise.all([
-    a.call('synIDattr', [ id, 'fg#' ]),
-    a.call('synIDattr', [ id, 'bg#' ])
-  ]).catch(e => e)
-
-  return { fg, bg }
-}
 
 a.on = {
   config: fn => onConfig(fn),

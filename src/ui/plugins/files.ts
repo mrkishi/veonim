@@ -1,11 +1,9 @@
 import { load, cancel, onResults, query, getInitial } from './deep-fuzzy-files'
 import { Actions, Events } from '../../utils'
-//import { call, notify } from '../neovim-client'
-import { call, cmd } from '../../neovim'
+import { action, call, cmd } from '../neovim'
 import { basename, dirname } from 'path'
 import { h, app } from './plugins'
 import TermInput from './input'
-//const { cmd } = notify
 
 interface FileDir { dir: string, file: string }
 interface State { val: string, files: FileDir[], cache: FileDir[], vis: boolean, ix: number, currentFile: string, loading: boolean }
@@ -72,7 +70,7 @@ e.results = (_s, a, files: string[]) => a.results(files)
 
 const emit = app({ state, view, actions: a, events: e })
 
-export default async () => {
+action('files', async () => {
   const cwd = await call.getcwd()
   if (!cwd) return
 
@@ -83,4 +81,4 @@ export default async () => {
 
   const first = await getInitial()
   emit('initial', first)
-}
+})

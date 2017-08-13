@@ -1,11 +1,9 @@
+import { action, call, cmd, define } from '../neovim'
 import { Actions, Events } from '../../utils'
-//import { call, notify, define } from '../neovim-client'
-import { call, cmd, define } from '../../neovim'
-import { filter } from 'fuzzaldrin-plus'
 import { onVimCreate } from '../sessions'
+import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
 import TermInput from './input'
-//const { cmd } = notify
 
 onVimCreate(() => define.Commands`
   silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"
@@ -60,7 +58,7 @@ e.show = (_s, a, d: string[]) => a.show(d)
 
 const emit = app({ state, view, actions: a, events: e })
 
-export default async () => {
+action('commands', async () => {
   const cmds = await call.Commands()
   emit('show', cmds)
-}
+})

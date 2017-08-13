@@ -1,5 +1,5 @@
+import { onRedraw, getColor } from '../master-control'
 import ui, { CursorShape } from './canvasgrid'
-import { on, getColor } from '../neovim'
 import * as dispatch from '../dispatch'
 import { merge } from '../utils'
 
@@ -119,10 +119,9 @@ r.popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
 r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
   dispatch.pub('pmenu.show', { items, ix, row, col })
 
-
 r.tabline_update = (curtab: Tabpage, tabs: Tab[]) => dispatch.pub('tabs', { curtab, tabs })
 
-on.redraw((m: any[]) => {
+onRedraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
     const [ method, ...args ] = m[ix]

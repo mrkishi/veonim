@@ -32,12 +32,7 @@ const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
   `com! -nargs=+ Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call timer_start(1, {-> Veonim(<f-args>)}) | endif`,
   '--embed',
-], {
-  cwd: $HOME,
-  //env: Object.assign({}, process.env, {
-    //NVIM_LISTEN_ADDRESS: '127.0.0.1:9890 nvim'
-  //})
-})
+], { cwd: $HOME })
 
 const createNewVimInstance = ({ askCd = false } = {}): number => {
   const proc = spawnVimInstance({ askCd })
@@ -53,7 +48,7 @@ const createNewVimInstance = ({ askCd = false } = {}): number => {
   return id
 }
 
-export const switchToVim = (id: number) => {
+export const switchTo = (id: number) => {
   if (!vimInstances.has(id)) return
   const { proc, attached } = vimInstances.get(id)!
 
@@ -70,23 +65,18 @@ export const switchToVim = (id: number) => {
   // sending resize (even of the same size) makes vim instance clear/redraw screen
   // this is how to repaint the UI with the new vim instance. not the most obvious...
   if (attached) api.uiTryResize(clientSize.width, clientSize.height)
-
-  // TODO: problem if subscribe called multiple times for same event?
-  // TODO: move this to userland... onVimCreate...
-  // TODO: wait do we have to re-register all events on every reattach?!?!
-  //;[...watchers.keys()].forEach(event => api.subscribe(event))
 }
 
-export const newVim = async ({ askCd = false } = {}): Promise<NewVimResponse> => {
+export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> => {
   const id = createNewVimInstance({ askCd })
-  switchToVim(id)
+  switchTo(id)
   api.command(`let g:vn_loaded=1`)
   const path = await req.eval('v:servername')
   vimInstances.get(id)!.path = path
   return { id, path }
 }
 
-export const attachToVim = (id: number) => {
+export const attachTo = (id: number) => {
   if (!vimInstances.has(id)) return
   const vim = vimInstances.get(id)!
   if (vim.attached) return
@@ -99,10 +89,13 @@ decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
 export const req: Api = onFnCall((name: string, args: any[] = []) => request(name, args))
 export const api: Api = onFnCall((name: string, args: any[]) => notify(name, args))
+// TODO: not used?
 export const on = (event: string, fn: (data: any) => void) => onEvent(event, fn)
+// TODO: not used?
 export const onRequest = (event: string, fn: Function) => handleRequest(event, fn)
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => onEvent('redraw', fn)
+// TODO: move to galaxy?
 export const onConfig = (fn: ConfigCallback) => configReader('nvim/init.vim', fn, log)
 
 export const resize = (width: number, height: number) => {
@@ -110,7 +103,19 @@ export const resize = (width: number, height: number) => {
   if (ids.activeVim > -1) api.uiTryResize(width, height)
 }
 
+// TODO: not used?
 export const subscribe = (event: string, fn: (data: any) => void) => {
   onEvent(event, fn)
   if (ids.activeVim > -1) api.subscribe(event)
+}
+
+export const input = (keys: string) => api.input(keys)
+
+export const getColor = async (id: number) => {
+  const [ fg = 0, bg = 0 ] = await Promise.all([
+    req.callFunction('synIDattr', [ id, 'fg#' ]),
+    req.callFunction('synIDattr', [ id, 'bg#' ]),
+  ]).catch(e => e)
+
+  return { fg, bg }
 }

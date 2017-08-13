@@ -1,13 +1,11 @@
 import { Actions, Events, getDirFiles } from '../../utils'
-//import { call, notify } from '../neovim-client'
-import { call, cmd } from '../../neovim'
+import { action, call, cmd } from '../neovim'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
 import { join, sep } from 'path'
 import { homedir } from 'os'
 import TermInput from './input'
 
-//const { cmd } = notify
 const $HOME = homedir()
 
 interface FileDir { name: string, file: boolean, dir: boolean  }
@@ -112,11 +110,11 @@ e.show = (_s, a, d) => a.show(d)
 
 const emit = app({ state, view, actions: a, events: e })
 
-export default async () => {
+action('explorer', async () => {
   const cwd = await call.getcwd()
   if (!cwd) return
 
   const filedirs = await getDirFiles(cwd)
   const paths = sortDirFiles(filedirs)
   emit('show', { paths, cwd, path: cwd })
-}
+})

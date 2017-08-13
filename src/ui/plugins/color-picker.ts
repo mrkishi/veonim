@@ -1,8 +1,6 @@
 import { Actions, Events } from '../../utils'
+import { action, call, cmd } from '../neovim'
 import { h, app } from './plugins'
-//import { notify, call } from '../neovim-client'
-import { call, cmd } from '../../neovim'
-//const { cmd } = notify
 
 interface State { val: string, vis: boolean }
 const state = { val: '', vis: false }
@@ -34,7 +32,7 @@ e.show = (_s, a, current: string) => a.show(current)
 
 const emit = app({ state, view, actions: a, events: e })
 
-export default async () => {
+action('pick-color', async () => {
   const word = await call.expand('<cword>')
   emit('show', word)
-}
+})

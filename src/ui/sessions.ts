@@ -1,4 +1,4 @@
-import { on, attach, switchTo, create } from '../neovim'
+import { onExit, attachTo, switchTo, create } from '../master-control'
 import { pub } from '../dispatch'
 import { remote } from 'electron'
 
@@ -20,7 +20,7 @@ export const onVimCreate = (fn: Function) => onReady.add(fn)
 export const createVim = async (name: string, nameAfterDir = false) => {
   const { id, path } = await create({ askCd: nameAfterDir })
   pub(Session.create, { id, path })
-  attach(id)
+  attachTo(id)
   switchTo(id)
   pub(Session.switch, id)
   vims.forEach(v => v.active = false)
@@ -56,7 +56,7 @@ export const renameCurrent = (name: string) => {
 
 export const list = () => [...vims.values()].filter(v => !v.active).map(v => ({ id: v.id, name: v.name }))
 
-on.exit((id: number) => {
+onExit((id: number) => {
   if (!vims.has(id)) return
   vims.delete(id)
   if (!vims.size) return remote.app.quit()

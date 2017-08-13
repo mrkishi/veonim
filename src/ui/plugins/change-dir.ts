@@ -1,6 +1,5 @@
 import { Actions, Events, getDirFiles, exists } from '../../utils'
-//import { call, notify } from '../neovim-client'
-import { call, cmd } from '../../neovim'
+import { action, call, cmd } from '../neovim'
 import { renameCurrent } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
@@ -8,7 +7,6 @@ import { join, sep } from 'path'
 import { homedir } from 'os'
 import TermInput from './input'
 
-//const { cmd } = notify
 const $HOME = homedir()
 
 interface FileDir { name: string, file: boolean, dir: boolean  }
@@ -115,7 +113,7 @@ e.show = (_s, a, d) => a.show(d)
 
 const emit = app({ state, view, actions: a, events: e })
 
-export default async (userPath: string, renameToDir = false) => {
+const go = async (userPath: string, renameToDir = false) => {
   const cwd = await validPath(userPath) || await call.getcwd()
   if (!cwd) return
 
@@ -123,3 +121,6 @@ export default async (userPath: string, renameToDir = false) => {
   const paths = filterDirs(filedirs)
   emit('show', { paths, cwd, path: cwd, renameToDir })
 }
+
+action('change-dir', (path = '') => go(path, false))
+action('init-dir', (path = '') => go(path, true))

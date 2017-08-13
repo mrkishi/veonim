@@ -1,7 +1,7 @@
 import { Actions, Events } from '../../utils'
 import { list, switchVim } from '../sessions'
-import { action } from '../neovim-client'
 import { filter } from 'fuzzaldrin-plus'
+import { action } from '../neovim'
 import { h, app } from './plugins'
 import TermInput from './input'
 

@@ -1,6 +1,6 @@
 import { renameCurrent, getCurrentName } from '../sessions'
 import { Actions, Events } from '../../utils'
-import { action } from '../neovim-client'
+import { action } from '../neovim'
 import { h, app } from './plugins'
 import TermInput from './input'
 
