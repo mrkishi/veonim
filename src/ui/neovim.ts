@@ -65,18 +65,18 @@ export const ex = (command: string) => req.core.commandOutput(command)
 export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
 export const getCurrentLine = () => req.core.getCurrentLine()
-export const listBuffers = () => as.bufl(req.core.listBufs())
-export const listWindows = () => as.winl(req.core.listWins())
-export const listTabs = () => as.tabl(req.core.listTabpages())
+export const list = {
+  get buffers() { return as.bufl(req.core.listBufs()) },
+  get windows() { return as.winl(req.core.listWins()) },
+  get tabs() { return as.tabl(req.core.listTabpages()) },
+}
+
 export const current = {
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
   get window() { return as.win(req.core.getCurrentWin()) },
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
-
   //set buffer(buffer: VBuffer) { req.core.setCurrentBuf(buffer.id) }
 }
-
-
 
 // TODO: test vars and see if we need below logic from old neovim-client
 //a.getVar = async key => {
@@ -180,11 +180,11 @@ const VWindow = class VWindow {
   public id: any
   constructor (id: any) { this.id = id }
 
-  getBuf() {
+  get buffer() {
     return req.win.getBuf(this.id)
   }
 
-  getCursor() {
+  get cursor() {
     return req.win.getCursor(this.id)
   }
 
@@ -192,7 +192,7 @@ const VWindow = class VWindow {
     api.win.setCursor(this.id, pos)
   }
 
-  getHeight() {
+  get height() {
     return req.win.getHeight(this.id)
   }
 
@@ -200,7 +200,7 @@ const VWindow = class VWindow {
     api.win.setHeight(this.id, height)
   }
 
-  getWidth() {
+  get width() {
     return req.win.getWidth(this.id)
   }
 
@@ -228,15 +228,15 @@ const VWindow = class VWindow {
     api.win.setOption(this.id, name, value)
   }
 
-  getPosition() {
+  get position() {
     return req.win.getPosition(this.id)
   }
 
-  getTabpage() {
+  get tab() {
     return req.win.getTabpage(this.id)
   }
 
-  getNumber() {
+  get number() {
     return req.win.getNumber(this.id)
   }
 
