@@ -1,6 +1,6 @@
 {
   "name": "veonim",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
@@ -99,8 +99,8 @@
     "@types/through": "0.0.28",
     "@veonim/neovim": "0.0.5-mac",
     "@veonim/ripgrep": "0.0.1-mac",
-    "electron": "1.6.11",
-    "electron-builder": "19.18.1",
+    "electron": "1.7.5",
+    "electron-builder": "19.22.1",
     "typescript": "2.4.2"
   }
 }
