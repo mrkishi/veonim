@@ -75,16 +75,13 @@ export const current = {
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
   get window() { return as.win(req.core.getCurrentWin()) },
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
-  //set buffer(buffer: VBuffer) { req.core.setCurrentBuf(buffer.id) }
 }
 
-// TODO: test vars and see if we need below logic from old neovim-client
-//a.getVar = async key => {
-  //const val = await req.getVar(key as string).catch(e => e)
-  //if (!Array.isArray(val) && val[1] !== 'Key not found') return val
-//}
 export const g = new Proxy({} as KeyVal, {
-  get: (_t, name: string) => req.core.getVar(name),
+  get: async (_t, name: string) => {
+    const val = await req.core.getVar(name as string).catch(e => e)
+    if (!Array.isArray(val) && val[1] !== 'Key not found') return val
+  },
   set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
 })
 
@@ -127,7 +124,7 @@ const VBuffer = class VBuffer {
     return req.buf.getVar(this.id, name)
   }
 
-  getChangedtick() {
+  get changedtick() {
     return req.buf.getChangedtick(this.id)
   }
 
@@ -147,7 +144,7 @@ const VBuffer = class VBuffer {
     api.buf.setOption(this.id, name, value)
   }
 
-  getNumber() {
+  get number() {
     return req.buf.getNumber(this.id)
   }
 
@@ -184,28 +181,28 @@ const VWindow = class VWindow {
     return req.win.getBuf(this.id)
   }
 
-  get cursor() {
+  get cursor(): number[] | Promise<number[]> {
     return req.win.getCursor(this.id)
   }
 
-  setCursor(pos: number[]) {
-    api.win.setCursor(this.id, pos)
+  set cursor(pos: number[] | Promise<number[]>) {
+    api.win.setCursor(this.id, pos as number[])
   }
 
-  get height() {
+  get height(): number | Promise<number> {
     return req.win.getHeight(this.id)
   }
 
-  setHeight(height: number) {
-    api.win.setHeight(this.id, height)
+  set height(height: number | Promise<number>) {
+    api.win.setHeight(this.id, height as number)
   }
 
-  get width() {
+  get width(): number | Promise<number> {
     return req.win.getWidth(this.id)
   }
 
-  setWidth(width: number) {
-    api.win.setWidth(this.id, width)
+  set width(width: number | Promise<number>) {
+    api.win.setWidth(this.id, width as number)
   }
 
   getVar(name: string) {
@@ -233,7 +230,7 @@ const VWindow = class VWindow {
   }
 
   get tab() {
-    return req.win.getTabpage(this.id)
+    return as.tab(req.win.getTabpage(this.id))
   }
 
   get number() {
@@ -249,8 +246,8 @@ const VTabpage = class VTabpage {
   public id: any
   constructor (id: any) { this.id = id }
 
-  listWins() {
-    return req.tab.listWins(this.id)
+  get windows() {
+    return as.winl(req.tab.listWins(this.id))
   }
 
   getVar(name: string) {
@@ -265,11 +262,11 @@ const VTabpage = class VTabpage {
     api.tab.delVar(this.id, name)
   }
 
-  getWin() {
-    return req.tab.getWin(this.id)
+  get win() {
+    return as.win(req.tab.getWin(this.id))
   }
 
-  getNumber() {
+  get number() {
     return req.tab.getNumber(this.id)
   }
 
