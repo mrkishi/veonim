@@ -24,7 +24,7 @@ export const createVim = async (name: string, nameAfterDir = false) => {
 export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
   switchTo(id)
-  pub('session.switch', id)
+  pub('session:switch', id)
   vims.forEach(v => v.active = false)
   vims.get(id)!.active = true
 }

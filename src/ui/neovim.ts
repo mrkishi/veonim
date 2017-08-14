@@ -44,7 +44,7 @@ const api = {
 }
 
 // trying to do dyanmic introspection (obj vs arr) messy with typings. (also a bit slower)
-const as = {
+export const as = {
   buf: (p: Promise<ExtContainer>) => p.then(e => new VBuffer(e.id)),
   bufl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VBuffer(e.id))),
   win: (p: Promise<ExtContainer>) => p.then(e => new VWindow(e.id)),
@@ -104,7 +104,7 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
 
-const VBuffer = class VBuffer {
+export const VBuffer = class VBuffer {
   public id: any
   constructor (id: any) { this.id = id }
 
@@ -173,7 +173,7 @@ const VBuffer = class VBuffer {
   }
 }
 
-const VWindow = class VWindow {
+export const VWindow = class VWindow {
   public id: any
   constructor (id: any) { this.id = id }
 
@@ -242,7 +242,7 @@ const VWindow = class VWindow {
   }
 }
 
-const VTabpage = class VTabpage {
+export const VTabpage = class VTabpage {
   public id: any
   constructor (id: any) { this.id = id }
 

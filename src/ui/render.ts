@@ -1,6 +1,7 @@
 import { onRedraw, getColor } from '../master-control'
 import ui, { CursorShape } from './canvasgrid'
 import * as dispatch from '../dispatch'
+import { ExtContainer } from '../api'
 import { merge } from '../utils'
 
 interface Colors { fg: string, bg: string, sp: string }
@@ -119,7 +120,7 @@ r.popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
 r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
   dispatch.pub('pmenu.show', { items, ix, row, col })
 
-r.tabline_update = (curtab: Tabpage, tabs: Tab[]) => dispatch.pub('tabs', { curtab, tabs })
+r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => dispatch.pub('tabs', { curtab, tabs })
 
 onRedraw((m: any[]) => {
   const count = m.length
