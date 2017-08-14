@@ -84,19 +84,145 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
   onCreate(() => subscribe(`autocmd:${ev}`, args[0]))()
 })
 
-export class Buffer implements IBuffer {
+onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
+onCreate(() => cmd(`aug Veonim | au! | aug END`))
+
+export class Buffer {
   public id: any
   constructor (id: any) { this.id = id }
 
-  lineCount(buffer = this.id) {
-    console.log('buffer', this.prefix)
-    return Promise.resolve(1)
+  lineCount() {
+    return req.buf.lineCount(this.id)
+  }
+
+  getLines(start: number, end: number, strict_indexing: boolean) {
+    return req.buf.getLines(this.id, start, end, strict_indexing)
+  }
+
+  setLines(start: number, end: number, strict_indexing: boolean, replacement: string[]) {
+    api.buf.setLines(this.id, start, end, strict_indexing, replacement)
+  }
+
+  getVar(name: string) {
+    return req.buf.getVar(this.id, name)
+  }
+
+  getChangedtick() {
+    return req.buf.getChangedtick(this.id)
+  }
+
+  setVar(name: string, value: any) {
+    api.buf.setVar(this.id, name, value)
+  }
+
+  delVar(name: string) {
+    api.buf.delVar(this.id, name)
+  }
+
+  getOption(name: string) {
+    return req.buf.getOption(this.id, name)
+  }
+
+  setOption(name: string, value: any) {
+    api.buf.setOption(this.id, name, value)
+  }
+
+  getNumber() {
+    return req.buf.getNumber(this.id)
+  }
+
+  getName() {
+    return req.buf.getName(this.id)
+  }
+
+  setName(name: string) {
+    api.buf.setName(this.id, name)
+  }
+
+  isValid() {
+    return req.buf.isValid(this.id)
+  }
+
+  getMark(name: string) {
+    return req.buf.getMark(this.id, name)
+  }
+
+  addHighlight(src_id: number, hl_group: string, line: number, col_start: number, col_end: number) {
+    return req.buf.addHighlight(this.id, src_id, hl_group, line, col_start, col_end)
+  }
+
+  clearHighlight(src_id: number, line_start: number, line_end: number) {
+    api.buf.clearHighlight(this.id, src_id, line_start, line_end)
   }
 }
 
-export class Window implements IWindow {
+export class Window {
   public id: any
   constructor (id: any) { this.id = id }
+
+  getBuf() {
+    return req.win.getBuf(this.id)
+  }
+
+  getCursor() {
+    return req.win.getCursor(this.id)
+  }
+
+  setCursor(pos: number[]) {
+    api.win.setCursor(this.id, pos)
+  }
+
+  getHeight() {
+    return req.win.getHeight(this.id)
+  }
+
+  setHeight(height: number) {
+    api.win.setHeight(this.id, height)
+  }
+
+  getWidth() {
+    return req.win.getWidth(this.id)
+  }
+
+  setWidth(width: number) {
+    api.win.setWidth(this.id, width)
+  }
+
+  getVar(name: string) {
+    return req.win.getVar(this.id, name)
+  }
+
+  setVar(name: string, value: any) {
+    api.win.setVar(this.id, name, value)
+  }
+
+  delVar(name: string) {
+    api.win.delVar(this.id, name)
+  }
+
+  getOption(name: string) {
+    return req.win.getOption(this.id, name)
+  }
+
+  setOption(name: string, value: any) {
+    api.win.setOption(this.id, name, value)
+  }
+
+  getPosition() {
+    return req.win.getPosition(this.id)
+  }
+
+  getTabpage() {
+    return req.win.getTabpage(this.id)
+  }
+
+  getNumber() {
+    return req.win.getNumber(this.id)
+  }
+
+  isValid() {
+    return req.win.isValid(this.id)
+  }
 }
 
 export class Tabpage {
@@ -131,6 +257,3 @@ export class Tabpage {
     return req.tab.isValid(this.id)
   }
 }
-
-onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
-onCreate(() => cmd(`aug Veonim | au! | aug END`))
