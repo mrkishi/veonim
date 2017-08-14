@@ -15,10 +15,9 @@ const keywords = (() => {
 
 const harvest = (buffer: string[]) => {
   const keywords = new Set<string>()
+  const totalol = buffer.length
 
-  for (let ix = 0; ix < buffer.length; ix++) {
-    // TODO: make less restrictive. this doesnt even cover valid JS identifiers
-    // (although valid identifiers will be collected from AST)
+  for (let ix = 0; ix < totalol; ix++) {
     const words = buffer[ix].match(/[A-Za-z]\w+/g) || []
     const wordsTotal = words.length
 
