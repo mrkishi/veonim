@@ -20,9 +20,9 @@ const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
 const mapIntoExt = (m: any) => {
-  if (m.kind === ExtType.Buffer) return new Buffer(m.val)
-  if (m.kind === ExtType.Window) return new Window(m.val)
-  if (m.kind === ExtType.Tabpage) return new Tabpage(m.val)
+  if (m.kind === ExtType.Buffer) return new VBuffer(m.val)
+  if (m.kind === ExtType.Window) return new VWindow(m.val)
+  if (m.kind === ExtType.Tabpage) return new VTabpage(m.val)
   return m
 }
 
@@ -62,7 +62,6 @@ const subscribe = (event: string, fn: (data: any) => void) => {
   api.core.subscribe(event)
 }
 
-export const listBuffers = () => req.core.listBufs()
 export const action = (event: string, cb: GenericCallback): void => actionWatchers.add(event, cb)
 export const input = (keys: string) => api.core.input(keys)
 export const cmd = (command: string) => api.core.command(command)
@@ -100,11 +99,31 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
 
-const Buffer = class Buffer {
+interface VimBuffer {
+  id: any,
+  length: Promise<number>,
+  name: string | Promise<string>,
+  getLines(start: number, end: number, strict_indexing: boolean): Promise<string[]>,
+  setLines(start: number, end: number, strict_indexing: boolean, replacement: string[]): void,
+  getVar(name: string): Promise<any>,
+  getChangedtick(): Promise<number>,
+  setVar(name: string, value: any): void,
+  delVar(name: string): void,
+  getOption(name: string): Promise<any>,
+  setOption(name: string, value: any): void,
+  getNumber(): Promise<number>,
+  isValid(): Promise<boolean>,
+  getMark(name: string): Promise<number[]>,
+  addHighlight(src_id: number, hl_group: string, line: number, col_start: number, col_end: number): Promise<number>,
+  clearHighlight(src_id: number, line_start: number, line_end: number): void,
+}
+
+// yeah wtf i hate classes and typescript wtf wtf
+const VBuffer = class VBuffer implements VimBuffer {
   public id: any
   constructor (id: any) { this.id = id }
 
-  lineCount() {
+  get length() {
     return req.buf.lineCount(this.id)
   }
 
@@ -144,12 +163,12 @@ const Buffer = class Buffer {
     return req.buf.getNumber(this.id)
   }
 
-  getName() {
+  get name(): string | Promise<string> {
     return req.buf.getName(this.id)
   }
 
-  setName(name: string) {
-    api.buf.setName(this.id, name)
+  set name(value: string | Promise<string>) {
+    api.buf.setName(this.id, value as string)
   }
 
   isValid() {
@@ -169,7 +188,7 @@ const Buffer = class Buffer {
   }
 }
 
-const Window = class Window {
+const VWindow = class VWindow {
   public id: any
   constructor (id: any) { this.id = id }
 
@@ -238,7 +257,7 @@ const Window = class Window {
   }
 }
 
-const Tabpage = class Tabpage {
+const VTabpage = class VTabpage {
   public id: any
   constructor (id: any) { this.id = id }
 
@@ -269,4 +288,9 @@ const Tabpage = class Tabpage {
   isValid() {
     return req.tab.isValid(this.id)
   }
+}
+
+export const listBuffers = () => {
+  const res: any = req.core.listBufs()
+  return res as Promise<VimBuffer[]>
 }

@@ -48,5 +48,11 @@ import './tabline'
 action('vim-create-dir', () => createVim('dir-unnamed', true))
 action('lol', async () => {
   const res = await listBuffers()
-  console.log('buffers', res)
+  res.forEach(async buffer => {
+    const name = await buffer.name
+    const lines = await buffer.length
+    console.log('name:', name)
+    console.log('line count:', lines)
+  })
+  // console.log('buffers', res)
 })
