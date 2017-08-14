@@ -1,5 +1,17 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
-import { Buffer, Window, Tabpage } from './ui/neovim'
+import { ExtType } from './api'
+
+const ExtContainer = class ExtContainer {
+  public extContainer: boolean
+  public kind: number
+  public val: any
+
+  constructor(kind: number, val: any) {
+    this.extContainer = true
+    this.kind = kind
+    this.val = val
+  }
+}
 
 export interface Encoder {
   unpipe(): NodeJS.WritableStream,
@@ -10,9 +22,9 @@ export interface Encoder {
 export default () => {
   const codec = createCodec()
 
-  codec.addExtUnpacker(0, data => new Buffer(decode(data)))
-  codec.addExtUnpacker(1, data => new Window(decode(data)))
-  codec.addExtUnpacker(2, data => new Tabpage(decode(data)))
+  codec.addExtUnpacker(ExtType.Buffer, data => new ExtContainer(ExtType.Buffer, decode(data)))
+  codec.addExtUnpacker(ExtType.Window, data => new ExtContainer(ExtType.Window, decode(data)))
+  codec.addExtUnpacker(ExtType.Tabpage, data => new ExtContainer(ExtType.Tabpage, decode(data)))
 
   // TODO: figure out why peoples parents dropped them as babies
   let crustyJugglers: NodeJS.WritableStream // WTF x 8

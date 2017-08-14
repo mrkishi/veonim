@@ -4,20 +4,19 @@ import { remote } from 'electron'
 
 interface Vim { id: number, name: string, active: boolean, path: string }
 const vims = new Map<number, Vim>()
-export enum Session { create = 'session:create', switch = 'session:switch' }
 
 export default (id: number, path: string) => {
   vims.set(id, { id, path, name: 'main', active: true })
-  pub(Session.create, { id, path })
-  pub(Session.switch, id)
+  pub('session:create', { id, path })
+  pub('session:switch', id)
 }
 
 export const createVim = async (name: string, nameAfterDir = false) => {
   const { id, path } = await create({ askCd: nameAfterDir })
-  pub(Session.create, { id, path })
+  pub('session:create', { id, path })
   attachTo(id)
   switchTo(id)
-  pub(Session.switch, id)
+  pub('session:switch', id)
   vims.forEach(v => v.active = false)
   vims.set(id, { id, path, name, active: true })
 }
@@ -25,7 +24,7 @@ export const createVim = async (name: string, nameAfterDir = false) => {
 export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
   switchTo(id)
-  pub(Session.switch, id)
+  pub('session.switch', id)
   vims.forEach(v => v.active = false)
   vims.get(id)!.active = true
 }

@@ -1,10 +1,8 @@
-import { Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
+import { Api, Prefixes, ExtType, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
+import { is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { Functions } from '../functions'
-import { Session } from  './sessions'
 import { sub } from '../dispatch'
 import setupRPC from '../rpc'
-import { Api } from '../api'
 
 type GenericCallback = (...args: any[]) => void
 type StrFnObj = { [index: string]: (callback: () => void) => void }
@@ -21,14 +19,29 @@ const onReady = new Set<Function>()
 const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
+const mapIntoExt = (m: any) => {
+  if (m.kind === ExtType.Buffer) return new Buffer(m.val)
+  if (m.kind === ExtType.Window) return new Window(m.val)
+  if (m.kind === ExtType.Tabpage) return new Tabpage(m.val)
+  return m
+}
+
+const xformExt = (data: any) => {
+  if (!data) return data
+  if (is.object(data) && data.extContainer) return mapIntoExt(data)
+  if (is.array(data) && data.every((m: any) => m.extContainer)) return data.map(mapIntoExt)
+  return data
+}
+
 const actionWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 
-io.onmessage = ({ data }: MessageEvent) => onData(data[0], data[1])
-sub(Session.create, m => io.postMessage([65, m]))
-sub(Session.switch, m => io.postMessage([66, m]))
-sub(Session.create, () => notifyCreated())
+io.onmessage = ({ data: [kind, [d1, d2, d3]] }: MessageEvent) => onData(kind, [d1, d2, xformExt(d3)])
+
+sub('session:create', m => io.postMessage([65, m]))
+sub('session:switch', m => io.postMessage([66, m]))
+sub('session:create', () => notifyCreated())
 
 const req = {
   core: onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args)) as Api,
@@ -87,7 +100,7 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
 
-export class Buffer {
+const Buffer = class Buffer {
   public id: any
   constructor (id: any) { this.id = id }
 
@@ -156,7 +169,7 @@ export class Buffer {
   }
 }
 
-export class Window {
+const Window = class Window {
   public id: any
   constructor (id: any) { this.id = id }
 
@@ -225,7 +238,7 @@ export class Window {
   }
 }
 
-export class Tabpage {
+const Tabpage = class Tabpage {
   public id: any
   constructor (id: any) { this.id = id }
 
