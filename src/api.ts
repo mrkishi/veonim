@@ -1,6 +1,12 @@
 // AUTO-GENERATED! This file automagically generated with gen-api.js
 // Neovim version: 0.2.0
 
+export interface ExtContainer {
+  extContainer: boolean,
+  kind: number,
+  id: any,
+}
+
 export interface Api {
   uiAttach(width: number, height: number, options: object): void,
   uiDetach(): void,
@@ -28,14 +34,14 @@ export interface Api {
   outWrite(str: string): void,
   errWrite(str: string): void,
   errWriteln(str: string): void,
-  listBufs(): Promise<Buffer[]>,
-  getCurrentBuf(): Promise<Buffer>,
+  listBufs(): Promise<ExtContainer[]>,
+  getCurrentBuf(): Promise<ExtContainer>,
   setCurrentBuf(buffer: Buffer): void,
-  listWins(): Promise<Window[]>,
-  getCurrentWin(): Promise<Window>,
+  listWins(): Promise<ExtContainer[]>,
+  getCurrentWin(): Promise<ExtContainer>,
   setCurrentWin(window: Window): void,
-  listTabpages(): Promise<Tabpage[]>,
-  getCurrentTabpage(): Promise<Tabpage>,
+  listTabpages(): Promise<ExtContainer[]>,
+  getCurrentTabpage(): Promise<ExtContainer>,
   setCurrentTabpage(tabpage: Tabpage): void,
   subscribe(event: string): void,
   unsubscribe(event: string): void,
@@ -69,7 +75,7 @@ export interface Buffer {
 }
 
 export interface Window {
-  getBuf(window: Window): Promise<Buffer>,
+  getBuf(window: Window): Promise<ExtContainer>,
   getCursor(window: Window): Promise<number[]>,
   setCursor(window: Window, pos: number[]): void,
   getHeight(window: Window): Promise<number>,
@@ -82,17 +88,17 @@ export interface Window {
   getOption(window: Window, name: string): Promise<any>,
   setOption(window: Window, name: string, value: any): void,
   getPosition(window: Window): Promise<number[]>,
-  getTabpage(window: Window): Promise<Tabpage>,
+  getTabpage(window: Window): Promise<ExtContainer>,
   getNumber(window: Window): Promise<number>,
   isValid(window: Window): Promise<boolean>,
 }
 
 export interface Tabpage {
-  listWins(tabpage: Tabpage): Promise<Window[]>,
+  listWins(tabpage: Tabpage): Promise<ExtContainer[]>,
   getVar(tabpage: Tabpage, name: string): Promise<any>,
   setVar(tabpage: Tabpage, name: string, value: any): void,
   delVar(tabpage: Tabpage, name: string): void,
-  getWin(tabpage: Tabpage): Promise<Window>,
+  getWin(tabpage: Tabpage): Promise<ExtContainer>,
   getNumber(tabpage: Tabpage): Promise<number>,
   isValid(tabpage: Tabpage): Promise<boolean>,
 }

@@ -1,5 +1,5 @@
-import { Api, Prefixes, ExtType, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
+import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
+import { onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { Functions } from '../functions'
 import { sub } from '../dispatch'
 import setupRPC from '../rpc'
@@ -19,25 +19,11 @@ const onReady = new Set<Function>()
 const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
-const mapIntoExt = (m: any) => {
-  if (m.kind === ExtType.Buffer) return new VBuffer(m.val)
-  if (m.kind === ExtType.Window) return new VWindow(m.val)
-  if (m.kind === ExtType.Tabpage) return new VTabpage(m.val)
-  return m
-}
-
-const xformExt = (data: any) => {
-  if (!data) return data
-  if (is.object(data) && data.extContainer) return mapIntoExt(data)
-  if (is.array(data) && data.every((m: any) => m.extContainer)) return data.map(mapIntoExt)
-  return data
-}
-
 const actionWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 
-io.onmessage = ({ data: [kind, [d1, d2, d3]] }: MessageEvent) => onData(kind, [d1, d2, xformExt(d3)])
+io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
 sub('session:create', m => io.postMessage([65, m]))
 sub('session:switch', m => io.postMessage([66, m]))
@@ -57,6 +43,16 @@ const api = {
   tab: onFnCall((name: string, args: any[]) => notify(prefix.tabpage(name), args)) as ITabpage,
 }
 
+// trying to do dyanmic introspection (obj vs arr) messy with typings. (also a bit slower)
+const as = {
+  buf: (p: Promise<ExtContainer>) => p.then(e => new VBuffer(e.id)),
+  bufl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VBuffer(e.id))),
+  win: (p: Promise<ExtContainer>) => p.then(e => new VWindow(e.id)),
+  winl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VWindow(e.id))),
+  tab: (p: Promise<ExtContainer>) => p.then(e => new VTabpage(e.id)),
+  tabl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VTabpage(e.id))),
+}
+
 const subscribe = (event: string, fn: (data: any) => void) => {
   if (!hasEvent(event)) on(event, fn)
   api.core.subscribe(event)
@@ -69,6 +65,18 @@ export const ex = (command: string) => req.core.commandOutput(command)
 export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
 export const getCurrentLine = () => req.core.getCurrentLine()
+export const listBuffers = () => as.bufl(req.core.listBufs())
+export const listWindows = () => as.winl(req.core.listWins())
+export const listTabs = () => as.tabl(req.core.listTabpages())
+export const current = {
+  get buffer() { return as.buf(req.core.getCurrentBuf()) },
+  get window() { return as.win(req.core.getCurrentWin()) },
+  get tab() { return as.tab(req.core.getCurrentTabpage()) },
+
+  //set buffer(buffer: VBuffer) { req.core.setCurrentBuf(buffer.id) }
+}
+
+
 
 // TODO: test vars and see if we need below logic from old neovim-client
 //a.getVar = async key => {
@@ -99,27 +107,7 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
 
-interface VimBuffer {
-  id: any,
-  length: Promise<number>,
-  name: string | Promise<string>,
-  getLines(start: number, end: number, strict_indexing: boolean): Promise<string[]>,
-  setLines(start: number, end: number, strict_indexing: boolean, replacement: string[]): void,
-  getVar(name: string): Promise<any>,
-  getChangedtick(): Promise<number>,
-  setVar(name: string, value: any): void,
-  delVar(name: string): void,
-  getOption(name: string): Promise<any>,
-  setOption(name: string, value: any): void,
-  getNumber(): Promise<number>,
-  isValid(): Promise<boolean>,
-  getMark(name: string): Promise<number[]>,
-  addHighlight(src_id: number, hl_group: string, line: number, col_start: number, col_end: number): Promise<number>,
-  clearHighlight(src_id: number, line_start: number, line_end: number): void,
-}
-
-// yeah wtf i hate classes and typescript wtf wtf
-const VBuffer = class VBuffer implements VimBuffer {
+const VBuffer = class VBuffer {
   public id: any
   constructor (id: any) { this.id = id }
 
@@ -288,9 +276,4 @@ const VTabpage = class VTabpage {
   isValid() {
     return req.tab.isValid(this.id)
   }
-}
-
-export const listBuffers = () => {
-  const res: any = req.core.listBufs()
-  return res as Promise<VimBuffer[]>
 }
