@@ -38,3 +38,5 @@ sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
   const mtabs: TabInfo[] = tabs.map(t => ({ id: t.tab.id, name: t.name }))
   mtabs.length > 1 && pluginUI('updateTabs', { active: curtab.id, tabs: mtabs })
 })
+
+sub('session:switch', () => pluginUI('updateTabs', { active: -1, tabs: [] }))
