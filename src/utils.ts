@@ -44,6 +44,7 @@ export const pascalCase = (m: string) => m[0].toUpperCase() + m.slice(1)
 export const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
 export const mergeValid = (target: any, source: any) => Object.entries(source).reduce((tar, [k, v]) => (v && Reflect.set(tar, k, v), tar), target)
 export const hasUpperCase = (m: string) => m.toLowerCase() !== m
+export const proxyFn = (cb: (name: string, data?: any) => void) => new Proxy({}, { get: (_, name) => (data?: any) => cb(name as string, data) }) as { [index: string]: (data?: any) => void }
 
 export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
   const theFunctionToCall: Function = Reflect.get(o, name)
