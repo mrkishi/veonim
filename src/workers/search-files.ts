@@ -5,10 +5,11 @@ import Ripgrep from '@veonim/ripgrep'
 interface Result { path: string, line: number, col: number, text: string }
 const INTERVAL = 250
 const AMOUNT = 10
+const TIMEOUT = 10e3
 let results: Result[] = []
 let filterQuery = ''
 
-const sendResults = ({ noFilter = false } = {}) => postMessage(['results', !noFilter && filterQuery
+const sendResults = () => postMessage(['results', filterQuery
   ? filter(results, filterQuery, { key: 'path' }).slice(0, AMOUNT)
   : results.slice(0, AMOUNT)
 ])
@@ -17,25 +18,25 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
   results = []
   filterQuery = ''
   let alive = true
-  let initialSent = false
   const timer = setInterval(() => sendResults(), INTERVAL)
-  const rg = Ripgrep([query], { cwd })
+  const rg = Ripgrep([query, '--vimgrep'], { cwd })
+
+  // because you probably ran a query wayyy too big and now your system is hanging...
+  setTimeout(() => alive && rg.kill(), TIMEOUT)
 
   rg.stdout.pipe(NewlineSplitter()).on('data', (m: string) => {
-    if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ noFilter: true }))
     const [ , path = '', line = 0, col = 0, text = '' ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/) || []
-    results.push({ path, text, line: <any>line-0, col: <any>col-0 })
+    path && results.push({ path, text, line: <any>line-0, col: <any>col-0 })
   })
 
   rg.on('exit', () => {
     alive = false
-    if (!initialSent) (initialSent = true, sendResults({ noFilter: true }))
     clearInterval(timer)
     sendResults()
     postMessage(['done'])
   })
 
-  setImmediate(() => sendResults({ noFilter: true }))
+  setImmediate(() => sendResults())
   return () => alive && rg.kill()
 }
 

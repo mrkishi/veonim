@@ -5,10 +5,10 @@ import Worker from '../../worker'
 import TermInput from './input'
 
 interface SearchResult { path: string, line: number, col: number, text: string }
-interface State { val: string, cwd: string, results: SearchResult[], cache: SearchResult[], vis: boolean, ix: number, loading: boolean }
+interface State { val: string, cwd: string, results: SearchResult[], vis: boolean, ix: number, loading: boolean }
 
 const { on, go } = Worker('search-files')
-const state: State = { val: '', cwd: '', results: [], cache: [], vis: false, ix: 0, loading: false }
+const state: State = { val: '', cwd: '', results: [], vis: false, ix: 0, loading: false }
 
 const view = ({ val, results, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#grep.plugin', {
   hide: !vis
@@ -19,12 +19,10 @@ const view = ({ val, results, vis, ix }: State, { change, hide, select, next, pr
     h('.row', { render: !results.length }, '...'),
 
     h('div', results.map((f, pos) => h('.row', {
-      key: f.path,
       css: { active: pos === ix },
     }, [
       h('span', f.path),
       h('span', f.line),
-      h('span', f.col),
       h('span', f.text),
     ]))),
   ])
@@ -32,11 +30,11 @@ const view = ({ val, results, vis, ix }: State, { change, hide, select, next, pr
 
 const a: Actions<State> = {}
 
-a.show = (s, _a, cwd: string) => ({ cwd, vis: true, files: s.cache })
+a.show = (_s, _a, cwd: string) => ({ cwd, vis: true })
 
 a.hide = () => {
-  go.cancel()
-  return { val: '', vis: false, ix: 0, loading: false, cache: [], results: [] }
+  go.stop()
+  return { val: '', vis: false, ix: 0, loading: false, results: [] }
 }
 
 a.select = (s, a) => {
@@ -52,11 +50,7 @@ a.change = (s, _a, val: string) => {
   return { val }
 }
 
-a.results = (s, _a, results: SearchResult[]) => ({
-  results,
-  cache: !s.cache.length ? results.slice(0, 10) : s.cache,
-})
-
+a.results = (_s, _a, results: SearchResult[]) => ({ results })
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 

@@ -43,7 +43,7 @@ const a: Actions<State> = {}
 a.show = (s, _a, currentFile: string) => ({ vis: true, currentFile, files: s.cache })
 
 a.hide = () => {
-  go.cancel()
+  go.stop()
   return { val: '', vis: false, ix: 0, loading: false, cache: [], files: [] }
 }
 
