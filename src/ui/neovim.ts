@@ -67,6 +67,7 @@ export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
 export const getCurrentLine = () => req.core.getCurrentLine()
 export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
+export const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
 export const list = {
   get buffers() { return as.bufl(req.core.listBufs()) },
   get windows() { return as.winl(req.core.listWins()) },
