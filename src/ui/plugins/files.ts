@@ -1,5 +1,5 @@
+import { action, cwdir, call, cmd } from '../neovim'
 import { Actions, Events } from '../../utils'
-import { action, call, cmd } from '../neovim'
 import { basename, dirname } from 'path'
 import { h, app } from './plugins'
 import Worker from '../../worker'
@@ -76,9 +76,7 @@ const emit = app({ state, view, actions: a, events: e })
 on.results((files: string[]) => emit('results', files))
 
 action('files', async () => {
-  const cwd = await call.getcwd()
-  if (!cwd) return
-
+  const cwd = await cwdir()
   go.load(cwd)
   const currentFile = await call.expand('%f')
   emit('show', currentFile)

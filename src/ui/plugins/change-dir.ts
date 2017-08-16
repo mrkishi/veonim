@@ -1,5 +1,5 @@
 import { Actions, Events, getDirFiles, exists } from '../../utils'
-import { action, call, cmd } from '../neovim'
+import { action, cwdir, cmd } from '../neovim'
 import { renameCurrent } from '../sessions'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
@@ -114,9 +114,7 @@ e.show = (_s, a, d) => a.show(d)
 const emit = app({ state, view, actions: a, events: e })
 
 const go = async (userPath: string, renameToDir = false) => {
-  const cwd = await validPath(userPath) || await call.getcwd()
-  if (!cwd) return
-
+  const cwd = await validPath(userPath) || await cwdir()
   const filedirs = await getDirFiles(cwd)
   const paths = filterDirs(filedirs)
   emit('show', { paths, cwd, path: cwd, renameToDir })

@@ -1,4 +1,4 @@
-import { call, autocmd, cmd, g, expr, getCurrentLine, define, onCreate } from '../neovim'
+import { call, cwdir, autocmd, cmd, g, expr, getCurrentLine, define, onCreate } from '../neovim'
 import { merge, cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
 import * as harvester from './keyword-harvester'
 import { filter } from 'fuzzaldrin-plus'
@@ -179,7 +179,7 @@ sub('pmenu.hide', () => pluginUI('hide'))
 
 autocmd.cursorMovedI(() => getCompletions())
 autocmd.bufEnter(debounce(async () => {
-  const [ cwd, file, filetype ] = await cc(call.getcwd(), call.expand(`%f`), expr(`&filetype`))
+  const [ cwd, file, filetype ] = await cc(cwdir(), call.expand(`%f`), expr(`&filetype`))
   merge(cache, { cwd, file, filetype, revision: -1 })
   updateServer()
 }, 100))

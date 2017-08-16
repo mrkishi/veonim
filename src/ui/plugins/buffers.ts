@@ -1,4 +1,4 @@
-import { action, call, cmd, define } from '../neovim'
+import { action, cwdir, call, cmd, define } from '../neovim'
 import { Actions, Events, merge } from '../../utils'
 import { VimBuffer } from '../../functions'
 import { basename, dirname } from 'path'
@@ -89,9 +89,7 @@ e.show = (_s, a, buffers: BufferInfo[]) => a.show(buffers)
 const emit = app({ state, view, actions: a, events: e })
 
 action('buffers', async () => {
-  const cwd = await call.getcwd()
-  if (!cwd) return
-
+  const cwd = await cwdir()
   const buffers = await getBuffers(cwd)
   emit('show', buffers)
 })

@@ -1,5 +1,5 @@
 import { Actions, Events, getDirFiles } from '../../utils'
-import { action, call, cmd } from '../neovim'
+import { action, cwdir, cmd } from '../neovim'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from './plugins'
 import { join, sep } from 'path'
@@ -111,9 +111,7 @@ e.show = (_s, a, d) => a.show(d)
 const emit = app({ state, view, actions: a, events: e })
 
 action('explorer', async () => {
-  const cwd = await call.getcwd()
-  if (!cwd) return
-
+  const cwd = await cwdir()
   const filedirs = await getDirFiles(cwd)
   const paths = sortDirFiles(filedirs)
   emit('show', { paths, cwd, path: cwd })
