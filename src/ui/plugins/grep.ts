@@ -1,4 +1,4 @@
-import { action, call, cwdir, feedkeys, expr } from '../neovim'
+import { action, cmd, call, cwdir, feedkeys, expr } from '../neovim'
 import { cc, Actions, Events } from '../../utils'
 import { h, app } from './plugins'
 import Worker from '../../worker'
@@ -39,9 +39,11 @@ a.hide = () => {
 
 a.select = (s, a) => {
   if (!s.results.length) return a.hide()
-  //TODO: JUST DO IT!!!!!!
-  //const { dir, file } = s.results[s.ix]
-  //if (file) cmd(`e ${dir}${file}`)
+  const { path, line } = s.results[s.ix]
+  if (path) {
+    cmd(`e ${path}`)
+    feedkeys(`${line}Gzz`)
+  }
   a.hide()
 }
 
