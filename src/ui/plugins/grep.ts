@@ -1,5 +1,5 @@
-import { Actions, Events } from '../../utils'
 import { action, call, cwdir, feedkeys, expr } from '../neovim'
+import { cc, Actions, Events } from '../../utils'
 import { h, app } from './plugins'
 import Worker from '../../worker'
 import TermInput from './input'
@@ -69,8 +69,7 @@ action('grep', async (query: string) => {
 })
 
 action('grep-word', async () => {
-  const query = await call.expand('<cword>')
-  const cwd = await cwdir()
+  const [ cwd, query ] = await cc(cwdir(), call.expand('<cword>'))
   emit('show', { cwd, val: query })
   go.query({ query, cwd })
 })
