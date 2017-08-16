@@ -23,7 +23,7 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
 
   rg.stdout.pipe(NewlineSplitter()).on('data', (m: string) => {
     if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ noFilter: true }))
-    const [ , path, line, col, text ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/)
+    const [ , path = '', line = 0, col = 0, text = '' ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/) || []
     results.push({ path, text, line: <any>line-0, col: <any>col-0 })
   })
 
