@@ -1,5 +1,5 @@
 import { Actions, Events } from '../../utils'
-import { action, call } from '../neovim'
+import { action, call, cwdir, feedkeys, expr } from '../neovim'
 import { h, app } from './plugins'
 import Worker from '../../worker'
 import TermInput from './input'
@@ -30,7 +30,7 @@ const view = ({ val, results, vis, ix }: State, { change, hide, select, next, pr
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, cwd: string) => ({ cwd, vis: true })
+a.show = (_s, _a, { cwd, val }) => ({ cwd, val, vis: true })
 
 a.hide = () => {
   go.stop()
@@ -46,8 +46,8 @@ a.select = (s, a) => {
 }
 
 a.change = (s, _a, val: string) => {
-  go.query({ query: val, cwd: s.cwd })
-  return { val }
+  val && go.query({ query: val, cwd: s.cwd })
+  return val ? { val } : { val, results: [], ix: 0 }
 }
 
 a.results = (_s, _a, results: SearchResult[]) => ({ results })
@@ -56,19 +56,30 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 
 const e: Events<State> = {}
 
-e.show = (_s, a, cwd: string) => a.show(cwd)
+e.show = (_s, a, d) => a.show(d)
 e.results = (_s, a, results: SearchResult[]) => a.results(results)
 
 const emit = app({ state, view, actions: a, events: e })
-on.results((results: SearchResult[]) => {
-  console.log('results', results)
-  emit('results', results)
-})
+on.results((results: SearchResult[]) => emit('results', results))
 
 action('grep', async (query: string) => {
-  const cwd = await call.getcwd()
-  if (!cwd) return
-
-  emit('show', cwd)
+  const cwd = await cwdir()
+  emit('show', { cwd })
   query && go.query({ query, cwd })
+})
+
+action('grep-word', async () => {
+  const query = await call.expand('<cword>')
+  const cwd = await cwdir()
+  emit('show', { cwd, val: query })
+  go.query({ query, cwd })
+})
+
+action('grep-selection', async () => {
+  await feedkeys('gv"zy')
+  const selection = await expr('@z')
+  const [ query ] = selection.split('\n')
+  const cwd = await cwdir()
+  emit('show', { cwd, val: query })
+  go.query({ query, cwd })
 })

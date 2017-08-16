@@ -15,6 +15,11 @@ const sendResults = () => postMessage(['results', filterQuery
 ])
 
 const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
+  if (!query || !cwd) {
+    postMessage(['done'])
+    return () => {}
+  }
+
   results = []
   filterQuery = ''
   let alive = true

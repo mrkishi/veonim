@@ -58,6 +58,7 @@ const subscribe = (event: string, fn: (data: any) => void) => {
   api.core.subscribe(event)
 }
 
+export const cwdir = (): Promise<string> => req.core.callFunction('getcwd', [])
 export const action = (event: string, cb: GenericCallback): void => actionWatchers.add(event, cb)
 export const input = (keys: string) => api.core.input(keys)
 export const cmd = (command: string) => api.core.command(command)
@@ -65,6 +66,7 @@ export const ex = (command: string) => req.core.commandOutput(command)
 export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
 export const getCurrentLine = () => req.core.getCurrentLine()
+export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
 export const list = {
   get buffers() { return as.bufl(req.core.listBufs()) },
   get windows() { return as.winl(req.core.listWins()) },
