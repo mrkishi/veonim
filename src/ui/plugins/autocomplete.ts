@@ -167,7 +167,7 @@ const updateServer = async (lineChange = false) => {
   harvester.update(cache.cwd, cache.file, await call.getline(1, '$') as string[])
 }
 
-const attemptUpdate = async (lineChange: boolean) => {
+const attemptUpdate = async (lineChange = false) => {
   if (pauseUpdate) return
   const chg = await expr('b:changedtick')
   if (chg > cache.revision) updateServer(lineChange)
@@ -185,7 +185,7 @@ autocmd.bufEnter(debounce(async () => {
 }, 100))
 
 // TODO: move to a more generic location once other users need buffer changes
-autocmd.textChanged(debounce(attemptUpdate, 200))
+autocmd.textChanged(debounce(() => attemptUpdate(), 200))
 autocmd.textChangedI(() => attemptUpdate(true))
 
 autocmd.completeDone(async () => {
@@ -199,6 +199,7 @@ autocmd.completeDone(async () => {
 autocmd.insertLeave(() => {
   cache.startIndex = 0
   pluginUI('hide')
+  updateServer()
 })
 
 onCreate(() => {
