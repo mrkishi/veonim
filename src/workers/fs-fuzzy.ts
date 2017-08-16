@@ -21,9 +21,6 @@ const getFiles = (cwd: string) => {
   const timer = setInterval(() => sendResults(), INTERVAL)
   const rg = Ripgrep(['--files'], { cwd })
 
-  // because you probably ran a query wayyy too big and now your system is hanging...
-  setTimeout(() => alive && rg.kill(), TIMEOUT)
-
   rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => {
     if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ noFilter: true }))
     results.push(path)
@@ -37,8 +34,16 @@ const getFiles = (cwd: string) => {
     postMessage(['done'])
   })
 
+  const stop = () => {
+    if (alive) rg.kill()
+    clearInterval(timer)
+    query = ''
+    results = []
+  }
+
   setImmediate(() => sendResults({ noFilter: true }))
-  return () => alive && rg.kill()
+  setTimeout(() => stop(), TIMEOUT)
+  return () => stop()
 }
 
 onmessage = ({ data: [e, data] }: MessageEvent) => {
