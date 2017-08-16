@@ -2,27 +2,29 @@ import { NewlineSplitter } from '../utils'
 import { filter } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
 
+interface Result { path: string, line: number, col: number, text: string }
 const INTERVAL = 250
 const AMOUNT = 10
-let results: string[] = []
-let query = ''
+let results: Result[] = []
+let filterQuery = ''
 
-const sendResults = ({ noFilter = false } = {}) => postMessage(['results', !noFilter && query
-  ? filter(results, query).slice(0, AMOUNT)
+const sendResults = ({ noFilter = false } = {}) => postMessage(['results', !noFilter && filterQuery
+  ? filter(results, filterQuery, { key: 'path' }).slice(0, AMOUNT)
   : results.slice(0, AMOUNT)
 ])
 
-const getFiles = (cwd: string) => {
+const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
   results = []
-  query = ''
+  filterQuery = ''
   let alive = true
   let initialSent = false
   const timer = setInterval(() => sendResults(), INTERVAL)
-  const rg = Ripgrep(['--files'], { cwd })
+  const rg = Ripgrep([query], { cwd })
 
-  rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => {
+  rg.stdout.pipe(NewlineSplitter()).on('data', (m: string) => {
     if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ noFilter: true }))
-    results.push(path)
+    const [ , path, line, col, text ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/)
+    results.push({ path, text, line: <any>line-0, col: <any>col-0 })
   })
 
   rg.on('exit', () => {
@@ -40,6 +42,6 @@ const getFiles = (cwd: string) => {
 onmessage = ({ data: [e, data] }: MessageEvent) => {
   let stopSearch = () => {}
   if (e === 'stop') return stopSearch()
-  if (e === 'load') return (stopSearch = getFiles(data))
-  if (e === 'query') return (query = data, sendResults())
+  if (e === 'query') return (stopSearch(), stopSearch = searchFiles(data))
+  if (e === 'filter') return (filterQuery = data, sendResults())
 }

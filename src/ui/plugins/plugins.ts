@@ -44,5 +44,6 @@ import './vim-switch'
 import './color-picker'
 import './autocomplete'
 import './tabline'
+import './grep'
 
 action('vim-create-dir', () => createVim('dir-unnamed', true))

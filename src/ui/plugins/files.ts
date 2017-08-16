@@ -28,6 +28,7 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
     h('.row', { render: !files.length }, '...'),
 
     h('div', files.map((f, key) => h('.row', {
+      // TODO: lol nope
       key,
       css: { active: key === ix },
     }, [
