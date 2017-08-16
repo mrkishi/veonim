@@ -4,6 +4,7 @@ import Ripgrep from '@veonim/ripgrep'
 
 const INTERVAL = 250
 const AMOUNT = 10
+const TIMEOUT = 15e3
 let results: string[] = []
 let query = ''
 
@@ -19,6 +20,9 @@ const getFiles = (cwd: string) => {
   let initialSent = false
   const timer = setInterval(() => sendResults(), INTERVAL)
   const rg = Ripgrep(['--files'], { cwd })
+
+  // because you probably ran a query wayyy too big and now your system is hanging...
+  setTimeout(() => alive && rg.kill(), TIMEOUT)
 
   rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => {
     if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ noFilter: true }))
