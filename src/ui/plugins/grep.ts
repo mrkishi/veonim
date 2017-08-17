@@ -21,7 +21,7 @@ const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, n
 
     h('.row', { render: !results.length }, '...'),
 
-    // TODO: render keys?
+    // TODO: render keys? idk about keys they seem to not work like in react...
     h('div', {
       onupdate: (e: HTMLElement) => elref = e,
       style: {
@@ -70,6 +70,7 @@ a.change = (s, _a, val: string) => {
 a.results = (_s, _a, results: Result[]) => ({ results })
 
 a.nextGroup = s => {
+  // TODO: this works - now make it clean
   const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
   requestAnimationFrame(() => {
     const { height, bottom: containerBottom, top: containerTop } = elref.getBoundingClientRect()
@@ -111,6 +112,7 @@ a.prev = s => {
 }
 
 a.scrollDown = () => {
+  // TODO: use nextGroup scroll math wizardry and calculate scroll percentage. make it precise
   elref.scrollTop += 300
 }
 a.scrollUp = () => {
@@ -135,7 +137,6 @@ const openResult = (path: string, line: number) => {
 }
 
 const emit = app({ state, view, actions: a, events: e })
-// TODO: highlight matched word in result line
 on.results((results: Result[]) => emit('results', results))
 
 action('grep', async (query: string) => {
