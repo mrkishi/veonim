@@ -10,18 +10,24 @@ interface State { val: string, cwd: string, results: Result[], vis: boolean, ix:
 
 const { on, go } = Worker('search-files')
 const state: State = { val: '', cwd: '', results: [], vis: false, ix: 0, subix: -1, loading: false }
+let elref: HTMLElement
 
-const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, next, prev, nextGroup, prevGroup }: any) => h('#grep.plugin.right', {
+const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#grep.plugin.right', {
   hide: !vis
 }, [
   h('.dialog.top.xlarge', [
-    TermInput({ focus: true, val, next, prev, nextGroup, prevGroup, change, hide, select }),
+    TermInput({ focus: true, val, next, prev, nextGroup, prevGroup, change, hide: () => 0 && hide(), select, down: scrollDown, up: scrollUp }),
 
     h('.row', { render: !results.length }, '...'),
 
-    // TODO: scroll up/down
-    // TODO: keys?
-    h('div', results.map(([ path, items ], pos) => h('div', [
+    // TODO: render keys?
+    h('div', {
+      onupdate: (e: HTMLElement) => elref = e,
+      style: {
+        'max-height': '100%',
+        'overflow-y': 'hidden',
+      },
+    }, results.map(([ path, items ], pos) => h('div', [
       h('.row.header', {
         css: { active: pos === ix }
       }, [
@@ -56,6 +62,7 @@ a.change = (s, _a, val: string) => {
   return val ? { val } : { val, results: [], ix: 0, subix: 0 }
 }
 
+// TODO: perf check
 // TODO: render only visible (if waaaaayyyy more out of viewport, buffer)?
 a.results = (_s, _a, results: Result[]) => ({ results })
 
@@ -64,13 +71,22 @@ a.nextGroup = s => ({ subix: -1, ix: s.ix + 1 > s.results.length - 1 ? 0 : s.ix 
 a.prevGroup = s => ({ subix: -1, ix: s.ix - 1 < 0 ? s.results.length - 1 : s.ix - 1 })
 
 a.next = s => {
-  selectResult(s.results, s.ix, s.subix + 1)
-  return { subix: s.subix + 1 > s.results[s.ix][1].length - 1 ? 0 : s.subix + 1 }
+  const next = s.subix + 1 < s.results[s.ix][1].length ? s.subix + 1 : 0
+  selectResult(s.results, s.ix, next)
+  return { subix: next }
 }
 
 a.prev = s => {
-  selectResult(s.results, s.ix, s.subix - 1)
-  return { subix: s.subix - 1 < 0 ? s.results[s.ix][1].length - 1 : s.subix - 1 }
+  const prev = s.subix - 1 < 0 ? s.results[s.ix][1].length - 1 : s.subix - 1
+  selectResult(s.results, s.ix, prev)
+  return { subix: prev }
+}
+
+a.scrollDown = () => {
+  elref.scrollTop += 300
+}
+a.scrollUp = () => {
+  elref.scrollTop -= 300
 }
 
 const e: Events<State> = {}
