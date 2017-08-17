@@ -66,24 +66,29 @@ a.change = (s, _a, val: string) => {
 
 // TODO: perf check
 // TODO: render only visible (if waaaaayyyy more out of viewport, buffer)?
+// TODO: or render in smaller batches/chunks?
 a.results = (_s, _a, results: Result[]) => ({ results })
 
-// TODO: scroll if out of bounds
-// TODO: lol dirty hack (yeah, if we had el ref, we could get pos in dom much more easy. idk about the overhead tho)
-//const ROW_SIZE = 17
 a.nextGroup = s => {
-  //const topRowInView = Math.floor(elref.scrollTop / 17)
   const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
-  //const nextRowPos = s.results.slice(0, next).reduce((count, [ , items ]) => count += items.length, 0) + next
   requestAnimationFrame(() => {
-    const { bottom: containerBottom } = elref.getBoundingClientRect()
+    const { height, bottom: containerBottom, top: containerTop } = elref.getBoundingClientRect()
     const e = els.get(next)
     if (!e) return console.log('wut not found', next)
     const { top } = e.getBoundingClientRect()
 
-    if (top + 50 > containerBottom) {
-      console.log('this el is out of the visible area!')
-      elref.scrollTop += 300
+    const maxBottomSizeBeforeScroll = 100
+    const scrollFromBottom = ((percent: number) => height - Math.floor(height * percent))(0.35)
+
+    if (top + maxBottomSizeBeforeScroll > containerBottom) {
+      const offset = (top + maxBottomSizeBeforeScroll) - containerBottom
+      const scrollAmt = height - scrollFromBottom
+      const nd = offset < 0 ? scrollAmt - offset : scrollAmt + offset
+      elref.scrollTop += nd
+    }
+
+    else if (top < containerTop) {
+      elref.scrollTop = 0
     }
   })
   return { subix: -1, ix: next }
