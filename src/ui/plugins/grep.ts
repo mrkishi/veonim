@@ -10,6 +10,7 @@ interface State { val: string, cwd: string, results: Result[], vis: boolean, ix:
 
 const { on, go } = Worker('search-files')
 const state: State = { val: '', cwd: '', results: [], vis: false, ix: 0, subix: -1, loading: false }
+const els = new Map<number, HTMLElement>()
 let elref: HTMLElement
 
 const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#grep.plugin.right', {
@@ -29,6 +30,7 @@ const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, n
       },
     }, results.map(([ path, items ], pos) => h('div', [
       h('.row.header', {
+        oncreate: (e: HTMLElement) => els.set(pos, e),
         css: { active: pos === ix }
       }, [
         h('span', path),
@@ -67,8 +69,29 @@ a.change = (s, _a, val: string) => {
 a.results = (_s, _a, results: Result[]) => ({ results })
 
 // TODO: scroll if out of bounds
-a.nextGroup = s => ({ subix: -1, ix: s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1 })
-a.prevGroup = s => ({ subix: -1, ix: s.ix - 1 < 0 ? s.results.length - 1 : s.ix - 1 })
+// TODO: lol dirty hack (yeah, if we had el ref, we could get pos in dom much more easy. idk about the overhead tho)
+//const ROW_SIZE = 17
+a.nextGroup = s => {
+  //const topRowInView = Math.floor(elref.scrollTop / 17)
+  const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
+  //const nextRowPos = s.results.slice(0, next).reduce((count, [ , items ]) => count += items.length, 0) + next
+  requestAnimationFrame(() => {
+    const { bottom: containerBottom } = elref.getBoundingClientRect()
+    const e = els.get(next)
+    if (!e) return console.log('wut not found', next)
+    const { top } = e.getBoundingClientRect()
+
+    if (top + 50 > containerBottom) {
+      console.log('this el is out of the visible area!')
+      elref.scrollTop += 300
+    }
+  })
+  return { subix: -1, ix: next }
+}
+
+a.prevGroup = s => {
+  return { subix: -1, ix: s.ix - 1 < 0 ? s.results.length - 1 : s.ix - 1 }
+}
 
 a.next = s => {
   const next = s.subix + 1 < s.results[s.ix][1].length ? s.subix + 1 : 0
