@@ -3,15 +3,20 @@ import { filter } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
 
 interface Result { path: string, line: number, col: number, text: string }
+interface ResultPart { line: number, col: number, text: string }
 const INTERVAL = 250
-const AMOUNT = 10
 const TIMEOUT = 10e3
 let results: Result[] = []
 let filterQuery = ''
 
-const sendResults = () => postMessage(['results', filterQuery
-  ? filter(results, filterQuery, { key: 'path' }).slice(0, AMOUNT)
-  : results.slice(0, AMOUNT)
+const groupResults = (m: Result[]) => [...m.reduce((map, { path, text, line, col }: Result) => {
+  if (!map.has(path)) return (map.set(path, [{ text, line, col }]), map)
+  return (map.get(path)!.push({ text, line, col }), map)
+}, new Map<string, ResultPart[]>())]
+
+const sendResults = () => results.length && postMessage(['results', filterQuery
+  ? groupResults(filter(results, filterQuery, { key: 'path' }))
+  : groupResults(results)
 ])
 
 const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
@@ -28,7 +33,7 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
 
   rg.stdout.pipe(NewlineSplitter()).on('data', (m: string) => {
     const [ , path = '', line = 0, col = 0, text = '' ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/) || []
-    path && results.push({ path, text, line: <any>line-0, col: <any>col-0 })
+    path && results.push({ path, text: text.trim(), line: <any>line-0, col: <any>col-0 })
   })
 
   rg.on('exit', () => {
