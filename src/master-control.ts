@@ -20,18 +20,18 @@ const clientSize = { width: 0, height: 0 }
 const vimInstances = new Map<number, VimInstance>()
 
 let onExitFn: ExitFn = function () {}
+// TODO: make it dynamic...
+const actions = ['files', 'buffers', 'explorer', 'commands', 'change-dir', 'init-dir', 'vim-create', 'vim-rename', 'vim-switch', 'pick-color', 'grep', 'grep-word', 'grep-selection'].join(`\\\\n`)
 
 const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
-  `let g:veonim=1`,
-  '--cmd',
-  `let g:vn_loaded=0`,
-  '--cmd',
-  `let g:vn_ask_cd=${<any>askCd | 0}`,
+  `let g:veonim=1 | let g:vn_loaded=0 | let g:vn_ask_cd=${<any>askCd | 0}`,
   '--cmd',
   `exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
   '--cmd',
-  `com! -nargs=+ -range Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call timer_start(1, {-> Veonim(<f-args>)}) | endif`,
+  `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call timer_start(1, {-> Veonim(<f-args>)}) | endif`,
+  '--cmd',
+  `exe ":fun! VeonimCmdCompletions(...)\\n return \\"${actions}\\" \\n endfun"`,
   '--embed',
 ], { cwd: $HOME })
 
