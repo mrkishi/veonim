@@ -38,12 +38,15 @@ const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, n
         h('span.bubble', { style: { 'margin-left': '12px' } }, items.length),
       ]),
 
-      h('.row-group', items.map((f, itemPos) => h('.row.dim', {
+      // not using 'render: false' because don't want to evaluate items.map AT ALL
+      pos === ix ? h('.row-group', items.map((f, itemPos) => h('.row.dim', {
         css: { active: pos === ix && itemPos === subix },
       }, highlightPattern(f.text, val, {
         normal: m => h('span', m),
-        special: m => h('span.highlight', m),
-      })))),
+        special: m => h('span.highlight', {
+          css: { active: pos === ix && itemPos === subix },
+        }, m),
+      })))) : undefined,
     ]))),
   ])
 ])
@@ -68,13 +71,12 @@ a.change = (s, _a, val: string) => {
   return val ? { val } : { val, results: [], ix: 0, subix: 0 }
 }
 
-// TODO: perf check
-// TODO: render only visible (if waaaaayyyy more out of viewport, buffer)?
-// TODO: or render in smaller batches/chunks?
 a.results = (_s, _a, results: Result[]) => ({ results })
 
 a.nextGroup = s => {
   // TODO: this works - now make it clean
+  // TODO: this almost works - now that only one section is expanded at a time,
+  // might need to scroll negative (top < scrollTop) => scroll into view (not 0)
   const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
   requestAnimationFrame(() => {
     const { height, bottom: containerBottom, top: containerTop } = elref.getBoundingClientRect()
