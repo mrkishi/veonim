@@ -5,6 +5,7 @@ import Worker from '../../worker'
 import TermInput from './input'
 
 interface SearchResult { line: number, col: number, text: string }
+type TextTransformer = (text: string) => string
 type Result = [string, SearchResult[]]
 interface State { val: string, cwd: string, results: Result[], vis: boolean, ix: number, subix: number, loading: boolean }
 
@@ -39,7 +40,10 @@ const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, n
 
       h('.row-group', items.map((f, itemPos) => h('.row.dim', {
         css: { active: pos === ix && itemPos === subix },
-      }, f.text))),
+      }, highlightPattern(f.text, val, {
+        normal: m => h('span', m),
+        special: m => h('span.highlight', m),
+      })))),
     ]))),
   ])
 ])
@@ -134,6 +138,18 @@ const selectResult = (results: Result[], ix: number, subix: number) => {
 const openResult = (path: string, line: number) => {
   cmd(`e ${path}`)
   feedkeys(`${line}Gzz`)
+}
+
+const highlightPattern = (text: string, pattern: string, { normal, special }: { normal: TextTransformer, special: TextTransformer }) => {
+  const stext = special(pattern)
+  return text
+    .split(pattern)
+    .reduce((grp, part, ix) => {
+      if (!part && ix) return (grp.push(stext), grp)
+      if (!part) return grp
+      ix ? grp.push(stext, normal(part)) : grp.push(normal(part))
+      return grp
+    }, [] as string[])
 }
 
 const emit = app({ state, view, actions: a, events: e })
