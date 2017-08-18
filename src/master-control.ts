@@ -31,7 +31,7 @@ const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
   `exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
   '--cmd',
-  `com! -nargs=+ Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call timer_start(1, {-> Veonim(<f-args>)}) | endif`,
+  `com! -nargs=+ -range Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call timer_start(1, {-> Veonim(<f-args>)}) | endif`,
   '--embed',
 ], { cwd: $HOME })
 
