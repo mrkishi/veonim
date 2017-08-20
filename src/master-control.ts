@@ -32,6 +32,9 @@ const spawnVimInstance = ({ askCd = false }) => Neovim([
   `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call timer_start(1, {-> Veonim(<f-args>)}) | endif`,
   '--cmd',
   `exe ":fun! VeonimCmdCompletions(...)\\n return \\"${actions}\\" \\n endfun"`,
+  '--cmd',
+  // sometimes this doesn't happen automatically... idk why
+  `call serverstart()`,
   '--embed',
 ], { cwd: $HOME })
 
