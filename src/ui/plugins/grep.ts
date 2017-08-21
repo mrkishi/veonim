@@ -9,10 +9,53 @@ type TextTransformer = (text: string) => string
 type Result = [string, SearchResult[]]
 interface State { val: string, cwd: string, results: Result[], vis: boolean, ix: number, subix: number, loading: boolean }
 
+const SCROLL_AMOUNT = 0.25
 const { on, go } = Worker('search-files')
 const state: State = { val: '', cwd: '', results: [], vis: false, ix: 0, subix: -1, loading: false }
 const els = new Map<number, HTMLElement>()
 let elref: HTMLElement
+
+// scroll after next section has been rendered as expanded (a little hacky)
+const scrollIntoView = (next: number) => setTimeout(() => {
+  const { top: containerTop, bottom: containerBottom } = elref.getBoundingClientRect()
+  const e = els.get(next)
+  if (!e) return
+
+  const { top, height } = e.getBoundingClientRect()
+
+  if (top + height > containerBottom) {
+    const offset = top - containerBottom
+
+    if (offset < containerTop) elref.scrollTop += top - containerTop
+    else elref.scrollTop += offset + height + containerTop + 50
+  }
+
+  else if (top < containerTop) elref.scrollTop += top - containerTop
+}, 1)
+
+const selectResult = (results: Result[], ix: number, subix: number) => {
+  if (subix < 0) return
+  const [ path, items ] = results[ix]
+  const { line } = items[subix]
+  openResult(path, line)
+}
+
+const openResult = (path: string, line: number) => {
+  cmd(`e ${path}`)
+  feedkeys(`${line}Gzz`)
+}
+
+const highlightPattern = (text: string, pattern: string, { normal, special }: { normal: TextTransformer, special: TextTransformer }) => {
+  const stext = special(pattern)
+  return text
+    .split(pattern)
+    .reduce((grp, part, ix) => {
+      if (!part && ix) return (grp.push(stext), grp)
+      if (!part) return grp
+      ix ? grp.push(stext, normal(part)) : grp.push(normal(part))
+      return grp
+    }, [] as string[])
+}
 
 const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#grep.plugin.right', {
   hide: !vis
@@ -29,9 +72,10 @@ const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, n
         'max-height': '100%',
         'overflow-y': 'hidden',
       },
-    }, results.map(([ path, items ], pos) => h('div', [
+    }, results.map(([ path, items ], pos) => h('div', {
+      oncreate: (e: HTMLElement) => els.set(pos, e),
+    }, [
       h('.row.header', {
-        oncreate: (e: HTMLElement) => els.set(pos, e),
         css: { active: pos === ix }
       }, [
         h('span', path),
@@ -74,35 +118,15 @@ a.change = (s, _a, val: string) => {
 a.results = (_s, _a, results: Result[]) => ({ results })
 
 a.nextGroup = s => {
-  // TODO: this works - now make it clean
-  // TODO: this almost works - now that only one section is expanded at a time,
-  // might need to scroll negative (top < scrollTop) => scroll into view (not 0)
   const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
-  requestAnimationFrame(() => {
-    const { height, bottom: containerBottom, top: containerTop } = elref.getBoundingClientRect()
-    const e = els.get(next)
-    if (!e) return console.log('wut not found', next)
-    const { top } = e.getBoundingClientRect()
-
-    const maxBottomSizeBeforeScroll = 100
-    const scrollFromBottom = ((percent: number) => height - Math.floor(height * percent))(0.35)
-
-    if (top + maxBottomSizeBeforeScroll > containerBottom) {
-      const offset = (top + maxBottomSizeBeforeScroll) - containerBottom
-      const scrollAmt = height - scrollFromBottom
-      const nd = offset < 0 ? scrollAmt - offset : scrollAmt + offset
-      elref.scrollTop += nd
-    }
-
-    else if (top < containerTop) {
-      elref.scrollTop = 0
-    }
-  })
+  scrollIntoView(next)
   return { subix: -1, ix: next }
 }
 
 a.prevGroup = s => {
-  return { subix: -1, ix: s.ix - 1 < 0 ? s.results.length - 1 : s.ix - 1 }
+  const next = s.ix - 1 < 0 ? s.results.length - 1 : s.ix - 1
+  scrollIntoView(next)
+  return { subix: -1, ix: next }
 }
 
 a.next = s => {
@@ -118,41 +142,18 @@ a.prev = s => {
 }
 
 a.scrollDown = () => {
-  // TODO: use nextGroup scroll math wizardry and calculate scroll percentage. make it precise
-  elref.scrollTop += 300
+  const { height } = elref.getBoundingClientRect()
+  elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
 }
 a.scrollUp = () => {
-  elref.scrollTop -= 300
+  const { height } = elref.getBoundingClientRect()
+  elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
 }
 
 const e: Events<State> = {}
 
 e.show = (_s, a, d) => a.show(d)
 e.results = (_s, a, results: Result[]) => a.results(results)
-
-const selectResult = (results: Result[], ix: number, subix: number) => {
-  if (subix < 0) return
-  const [ path, items ] = results[ix]
-  const { line } = items[subix]
-  openResult(path, line)
-}
-
-const openResult = (path: string, line: number) => {
-  cmd(`e ${path}`)
-  feedkeys(`${line}Gzz`)
-}
-
-const highlightPattern = (text: string, pattern: string, { normal, special }: { normal: TextTransformer, special: TextTransformer }) => {
-  const stext = special(pattern)
-  return text
-    .split(pattern)
-    .reduce((grp, part, ix) => {
-      if (!part && ix) return (grp.push(stext), grp)
-      if (!part) return grp
-      ix ? grp.push(stext, normal(part)) : grp.push(normal(part))
-      return grp
-    }, [] as string[])
-}
 
 const emit = app({ state, view, actions: a, events: e })
 on.results((results: Result[]) => emit('results', results))
