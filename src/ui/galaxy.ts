@@ -6,6 +6,7 @@ import setDefaultSession from './sessions'
 import * as uiInput from './input'
 import { remote } from 'electron'
 import './render'
+// TODO: lazy load some of this shit?
 import './plugins/plugins'
 
 // TODO: just have config reader return promise for initialConfig?
