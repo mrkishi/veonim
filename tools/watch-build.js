@@ -20,3 +20,10 @@ tsc('tsconfig.workers.json').stdout.on('data', m => {
     npmrun('fixexp')
   }
 })
+
+setTimeout(() => {
+  console.log('copying runtime files')
+  npmrun('runtime')
+  console.log('copying html')
+  npmrun('html')
+}, 2e3)

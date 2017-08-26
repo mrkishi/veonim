@@ -11,6 +11,7 @@ export interface NewVimResponse { id: number, path: string }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
+const { platform: os } = process
 const prefix = { core: prefixWith(Prefixes.Core) }
 const { encoder, decoder } = CreateTransport()
 const $HOME = homedir()
@@ -25,7 +26,7 @@ const actions = ['files', 'buffers', 'explorer', 'commands', 'change-dir', 'init
 
 const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
-  `let g:veonim=1 | let g:vn_loaded=0 | let g:vn_ask_cd=${<any>askCd | 0}`,
+  `let g:veonim=1 | let g:vn_loaded=0 | let g:vn_ask_cd=${<any>askCd | 0} | let $PATH .= ':${__dirname}/runtime/${os}'`,
   '--cmd',
   `exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
   '--cmd',
