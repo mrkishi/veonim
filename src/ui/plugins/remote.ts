@@ -1,8 +1,13 @@
-import { cmd, cwdir } from '../neovim'
+import { ex, cmd, cwdir } from '../neovim'
 import { relative, join } from 'path'
-import { createServer } from 'http'
+import HttpServer from '../../http-server'
 
-const load = async ({ cwd, file }: { cwd: string, file: string }) => {
+interface RemoteRequest {
+  cwd: string,
+  file: string,
+}
+
+const load = async ({ cwd, file }: RemoteRequest) => {
   if (!file) return
   const vimCwd = await cwdir()
   const base = cwd.includes(vimCwd) ? relative(vimCwd, cwd) : cwd
@@ -10,11 +15,8 @@ const load = async ({ cwd, file }: { cwd: string, file: string }) => {
   cmd(`e ${path}`)
 }
 
-createServer((req, res) => {
-  let buf = ''
-  req.on('data', m => buf += m)
-  req.on('end', async () => { try { load(JSON.parse(buf)) } catch (e) {} })
-  res.writeHead(200)
-  res.end()
-// TODO: port in use? will at least happen on release + debug concurrent
-}).listen(process.env.NEOVIM_REMOTE_PORT || 42320)
+HttpServer(42320).then(({ port, onJsonRequest }) => {
+  process.env.VEONIM_REMOTE_PORT = port + ''
+  ex(`let $VEONIM_REMOTE_PORT='${port}'`)
+  onJsonRequest<RemoteRequest>((data, reply) => (load(data), reply(201)))
+})
