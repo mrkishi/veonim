@@ -1,13 +1,11 @@
+import { requireDir, debounce, log, delay as timeout } from '../utils'
 import { resize, attachTo, create } from '../master-control'
-import { debounce, log, delay as timeout } from '../utils'
 import ui, { CursorShape } from './canvasgrid'
 import configReader from '../config-reader'
 import setDefaultSession from './sessions'
 import * as uiInput from './input'
 import { remote } from 'electron'
 import './render'
-// TODO: lazy load some of this shit?
-import './plugins/plugins'
 
 // TODO: just have config reader return promise for initialConfig?
 let configLoaded: Function
@@ -57,6 +55,7 @@ const main = async () => {
   resize(ui.cols, ui.rows)
   attachTo(id)
   setDefaultSession(id, path)
+  setTimeout(() => requireDir(`${__dirname}/plugins`), 1)
 }
 
 main().catch(log)

@@ -1,18 +1,6 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
 import { ExtType } from './api'
 
-// const ExtContainer = class ExtContainer {
-//   public extContainer: boolean
-//   public kind: number
-//   public val: any
-
-//   constructor(kind: number, val: any) {
-//     this.extContainer = true
-//     this.kind = kind
-//     this.val = val
-//   }
-// }
-
 const ExtContainer = (kind: number, id: any) => ({ kind, id, extContainer: true })
 
 export interface Encoder {

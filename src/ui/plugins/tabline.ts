@@ -1,6 +1,6 @@
 import { h, app, Actions } from '../uikit'
 import { ExtContainer } from '../../api'
-import { sub } from '../../dispatch'
+import { sub, processAnyBuffered } from '../../dispatch'
 
 interface Tab { tab: ExtContainer, name: string }
 interface TabInfo { id: number, name: string }
@@ -34,3 +34,5 @@ sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
 })
 
 sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
+
+setImmediate(() => processAnyBuffered('tabs'))

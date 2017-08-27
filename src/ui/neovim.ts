@@ -1,7 +1,7 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
 import { onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { Functions } from '../functions'
-import { sub } from '../dispatch'
+import { sub, processAnyBuffered } from '../dispatch'
 import setupRPC from '../rpc'
 
 type GenericCallback = (...args: any[]) => void
@@ -28,6 +28,11 @@ io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 sub('session:create', m => io.postMessage([65, m]))
 sub('session:switch', m => io.postMessage([66, m]))
 sub('session:create', () => notifyCreated())
+
+setImmediate(() => {
+  processAnyBuffered('session:create')
+  processAnyBuffered('session:switch')
+})
 
 const req = {
   core: onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args)) as Api,

@@ -1,6 +1,6 @@
 import { StringDecoder } from 'string_decoder'
+import { join, extname } from 'path'
 import * as through from 'through'
-import { join } from 'path'
 import * as fs from 'fs'
 
 const logger = (str: TemplateStringsArray | string, v: any[]) => Array.isArray(str)
@@ -50,12 +50,23 @@ export const getDirFiles = async (path: string) => {
   const paths = await readdir(path) as string[]
   const filepaths = paths.map(f => ({ name: f, path: join(path, f) }))
   const filesreq = await Promise.all(filepaths.map(async f => ({
+    path: f.path,
     name: f.name,
     stats: await stat(f.path).catch((_e: string) => emptyStat)
   })))
   return filesreq
-    .map(({ name, stats }) => ({ name, dir: stats.isDirectory(), file: stats.isFile() }))
+    .map(({ name, path, stats }) => ({ name, path, dir: stats.isDirectory(), file: stats.isFile() }))
     .filter(m => m.dir || m.file)
+}
+
+export const requireDir = async (path: string) => {
+  const dirFiles = await getDirFiles(path)
+  dirFiles
+    .filter(m => m.file)
+    .filter(m => extname(m.name) === '.js')
+    .forEach(m => require(m.path))
+    //.map(m => relative(__dirname, m.path))
+    //.forEach(m => require(`./${m}`))
 }
 
 export function debounce (fn: Function, wait = 1) {
