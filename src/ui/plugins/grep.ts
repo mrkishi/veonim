@@ -61,7 +61,7 @@ const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, n
   hide: !vis
 }, [
   h('.dialog.top.xlarge', [
-    TermInput({ focus: true, val, next, prev, nextGroup, prevGroup, change, hide: () => 0 && hide(), select, down: scrollDown, up: scrollUp }),
+    TermInput({ focus: true, val, next, prev, nextGroup, prevGroup, change, hide, select, down: scrollDown, up: scrollUp }),
 
     h('.row', { render: !results.length }, '...'),
 
