@@ -55,6 +55,7 @@ const main = async () => {
   resize(ui.cols, ui.rows)
   attachTo(id)
   setDefaultSession(id, path)
+  remote.getCurrentWindow().show()
   setTimeout(() => requireDir(`${__dirname}/plugins`), 1)
 }
 

@@ -6,6 +6,7 @@ Menu.setApplicationMenu(new Menu())
 
 app.on('ready', () => {
   win = new BrowserWindow({
+    show: false,
     width: 800,
     height: 600,
     frame: false,
