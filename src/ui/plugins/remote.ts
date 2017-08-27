@@ -1,11 +1,8 @@
+import HttpServer from '../../http-server'
 import { ex, cmd, cwdir } from '../neovim'
 import { relative, join } from 'path'
-import HttpServer from '../../http-server'
 
-interface RemoteRequest {
-  cwd: string,
-  file: string,
-}
+interface RemoteRequest { cwd: string, file: string }
 
 const load = async ({ cwd, file }: RemoteRequest) => {
   if (!file) return

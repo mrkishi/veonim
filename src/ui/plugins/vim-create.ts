@@ -1,7 +1,6 @@
-import { Actions, Events } from '../../utils'
+import { h, app, Actions } from '../uikit'
 import { createVim } from '../sessions'
 import { action } from '../neovim'
-import { h, app } from './plugins'
 import TermInput from './input'
 
 interface State { val: string, vis: boolean }
@@ -25,8 +24,6 @@ a.select = (s, a) => {
   a.hide()
 }
 
-const e: Events<State> = {}
-e.show = (_s, a) => a.show()
-
-const emit = app({ state, view, actions: a, events: e })
-action('vim-create', () => emit('show'))
+const ui = app({ state, view, actions: a })
+action('vim-create', () => ui.show())
+action('vim-create-dir', () => createVim('dir-unnamed', true))

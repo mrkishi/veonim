@@ -1,7 +1,7 @@
 import { action, cmd, call, cwdir, feedkeys, expr } from '../neovim'
-import { cc, Actions, Events } from '../../utils'
-import { h, app } from './plugins'
+import { h, app, Actions } from '../uikit'
 import Worker from '../../worker'
+import { cc } from '../../utils'
 import TermInput from './input'
 
 interface SearchResult { line: number, col: number, text: string }
@@ -145,28 +145,24 @@ a.scrollDown = () => {
   const { height } = elref.getBoundingClientRect()
   elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
 }
+
 a.scrollUp = () => {
   const { height } = elref.getBoundingClientRect()
   elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
 }
 
-const e: Events<State> = {}
-
-e.show = (_s, a, d) => a.show(d)
-e.results = (_s, a, results: Result[]) => a.results(results)
-
-const emit = app({ state, view, actions: a, events: e })
-on.results((results: Result[]) => emit('results', results))
+const ui = app({ state, view, actions: a })
+on.results((results: Result[]) => ui.results(results))
 
 action('grep', async (query: string) => {
   const cwd = await cwdir()
-  emit('show', { cwd })
+  ui.show({ cwd })
   query && go.query({ query, cwd })
 })
 
 action('grep-word', async () => {
   const [ cwd, query ] = await cc(cwdir(), call.expand('<cword>'))
-  emit('show', { cwd, val: query })
+  ui.show({ cwd, val: query })
   go.query({ query, cwd })
 })
 
@@ -175,6 +171,6 @@ action('grep-selection', async () => {
   const selection = await expr('@z')
   const [ query ] = selection.split('\n')
   const cwd = await cwdir()
-  emit('show', { cwd, val: query })
+  ui.show({ cwd, val: query })
   go.query({ query, cwd })
 })

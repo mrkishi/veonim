@@ -1,9 +1,9 @@
 import { action, cwdir, call, cmd, define } from '../neovim'
-import { Actions, Events, merge } from '../../utils'
+import { h, app, Actions } from '../uikit'
 import { VimBuffer } from '../../functions'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from './plugins'
+import { merge } from '../../utils'
 import TermInput from './input'
 
 interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
@@ -82,14 +82,10 @@ a.hide = () => ({ val: '', vis: false, ix: 0 })
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 
-const e: Events<State> = {}
-
-e.show = (_s, a, buffers: BufferInfo[]) => a.show(buffers)
-
-const emit = app({ state, view, actions: a, events: e })
+const ui = app({ state, view, actions: a })
 
 action('buffers', async () => {
   const cwd = await cwdir()
   const buffers = await getBuffers(cwd)
-  emit('show', buffers)
+  ui.show(buffers)
 })

@@ -1,10 +1,10 @@
-import { Actions, Events, getDirFiles } from '../../utils'
 import { action, cwdir, cmd } from '../neovim'
+import { h, app, Actions } from '../uikit'
+import { getDirFiles } from '../../utils'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from './plugins'
 import { join, sep } from 'path'
-import { homedir } from 'os'
 import TermInput from './input'
+import { homedir } from 'os'
 
 const $HOME = homedir()
 
@@ -104,15 +104,11 @@ a.hide = () => ({ val: '', path: '', vis: false, ix: 0 })
 a.next = s => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 })
 
-const e: Events<State> = {}
-
-e.show = (_s, a, d) => a.show(d)
-
-const emit = app({ state, view, actions: a, events: e })
+const ui = app({ state, view, actions: a })
 
 action('explorer', async () => {
   const cwd = await cwdir()
   const filedirs = await getDirFiles(cwd)
   const paths = sortDirFiles(filedirs)
-  emit('show', { paths, cwd, path: cwd })
+  ui.show({ paths, cwd, path: cwd })
 })

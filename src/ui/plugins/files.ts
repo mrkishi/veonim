@@ -1,7 +1,6 @@
 import { action, cwdir, call, cmd } from '../neovim'
-import { Actions, Events } from '../../utils'
+import { h, app, Actions } from '../uikit'
 import { basename, dirname } from 'path'
-import { h, app } from './plugins'
 import Worker from '../../worker'
 import TermInput from './input'
 
@@ -67,17 +66,12 @@ a.results = (s, _a, files: string[]) => ({
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 
-const e: Events<State> = {}
-
-e.show = (_s, a, currentFile: string) => a.show(currentFile)
-e.results = (_s, a, files: string[]) => a.results(files)
-
-const emit = app({ state, view, actions: a, events: e })
-on.results((files: string[]) => emit('results', files))
+const ui = app({ state, view, actions: a })
+on.results((files: string[]) => ui.results(files))
 
 action('files', async () => {
   const cwd = await cwdir()
   go.load(cwd)
   const currentFile = await call.expand('%f')
-  emit('show', currentFile)
+  ui.show(currentFile)
 })

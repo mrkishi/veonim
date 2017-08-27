@@ -1,7 +1,6 @@
 import { action, call, cmd, define } from '../neovim'
-import { Actions, Events } from '../../utils'
+import { h, app, Actions } from '../uikit'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from './plugins'
 import TermInput from './input'
 
 define.Commands`
@@ -51,13 +50,9 @@ a.hide = () => ({ val: '', vis: false, ix: 0 })
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 
-const e: Events<State> = {}
-
-e.show = (_s, a, d: string[]) => a.show(d)
-
-const emit = app({ state, view, actions: a, events: e })
+const ui = app({ state, view, actions: a })
 
 action('commands', async () => {
   const cmds = await call.Commands()
-  emit('show', cmds)
+  ui.show(cmds)
 })

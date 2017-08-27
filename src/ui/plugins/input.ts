@@ -1,4 +1,4 @@
-import { h } from './plugins'
+import { h } from '../uikit'
 
 interface Props {
   val: string,

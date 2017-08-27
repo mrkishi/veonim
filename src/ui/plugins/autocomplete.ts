@@ -1,11 +1,11 @@
 import { call, cwdir, autocmd, cmd, g, expr, getCurrentLine, define, onCreate } from '../neovim'
-import { merge, cc, Actions, Events, findIndexRight, hasUpperCase, debounce } from '../../utils'
+import { merge, cc, findIndexRight, hasUpperCase, debounce } from '../../utils'
 import * as harvester from './keyword-harvester'
+import { h, app, Actions } from '../uikit'
 import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
 import { translate } from '../css'
-import { h, app } from './plugins'
-import ui from '../canvasgrid'
+import vimUI from '../canvasgrid'
 
 const orderCompletions = (m: string[], query: string) =>
   m.slice().sort(a => hasUpperCase(a) ? -1 : a.startsWith(query) ? -1 : 1)
@@ -45,14 +45,7 @@ a.show = (_s, _a, { options, x, y, ix = -1 }) => ({ options, ix, x, y, vis: true
 a.hide = () => ({ vis: false, ix: 0 })
 a.select = (_s, _a, ix: number) => ({ ix })
 
-const e: Events<State> = {}
-
-// TODO: can we pls bind events to actions? it's always duplicate...
-e.show = (_s, a, stuff) => a.show(stuff)
-e.hide = (_s, a) => a.hide()
-e.select = (_s, a, ix: number) => a.select(ix)
-
-const pluginUI = app({ state, view, actions: a, events: e }, false)
+const ui = app({ state, view, actions: a }, false)
 
 interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string, revision: number, cwd: string }
 
@@ -103,13 +96,13 @@ const calcMenuPosition = (startIndex: number, column: number, count: number) => 
   // anchor menu above row if the maximum results are going to spill out of bounds.
   // why maxResults instead of the # of items in options? because having the menu jump
   // around over-under as you narrow down results by typing or undo is kinda annoying
-  const row = ui.cursor.row + maxResults > ui.rows
-    ? ui.cursor.row - count
-    : ui.cursor.row + 1
+  const row = vimUI.cursor.row + maxResults > vimUI.rows
+    ? vimUI.cursor.row - count
+    : vimUI.cursor.row + 1
 
   const start = Math.max(0, startIndex)
-  const col = ui.cursor.col - (column - start)
-  return { y: ui.rowToY(row), x: ui.colToX(col) }
+  const col = vimUI.cursor.col - (column - start)
+  return { y: vimUI.rowToY(row), x: vimUI.colToX(col) }
 }
 
 const getCompletions = async () => {
@@ -131,7 +124,7 @@ const getCompletions = async () => {
 
     if (!completions.length) {
       updateVim([])
-      pluginUI('hide')
+      ui.hide()
       return
     }
 
@@ -139,7 +132,7 @@ const getCompletions = async () => {
     updateVim(orderedCompletions)
     const options = orderedCompletions.map((text, id) => ({ id, text }))
     const { x, y } = calcMenuPosition(startIndex, column, options.length)
-    pluginUI('show', { options, x, y })
+    ui.show({ options, x, y })
 
     // TODO: do we always need to update this?
     // TODO: cache last position in insert session
@@ -147,11 +140,11 @@ const getCompletions = async () => {
     // use cache - if (same) dont re-ask for keyword/semantic completions from avo
     //if (cache.startIndex !== startIndex) {
       //setVar('veonim_complete_pos', startIndex)
-      //pluginUI('show')
+      //ui.show()
     //}
     g.veonim_complete_pos = startIndex
   } else {
-    pluginUI('hide')
+    ui.hide()
     updateVim([])
   }
 }
@@ -174,8 +167,8 @@ const attemptUpdate = async (lineChange = false) => {
   cache.revision = chg
 }
 
-sub('pmenu.select', ix => pluginUI('select', ix))
-sub('pmenu.hide', () => pluginUI('hide'))
+sub('pmenu.select', ix => ui.select(ix))
+sub('pmenu.hide', () => ui.hide())
 
 autocmd.cursorMovedI(() => getCompletions())
 autocmd.bufEnter(debounce(async () => {
@@ -198,7 +191,7 @@ autocmd.completeDone(async () => {
 
 autocmd.insertLeave(() => {
   cache.startIndex = 0
-  pluginUI('hide')
+  ui.hide()
   updateServer()
 })
 

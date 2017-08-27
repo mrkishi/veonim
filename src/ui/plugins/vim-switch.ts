@@ -1,8 +1,7 @@
-import { Actions, Events } from '../../utils'
 import { list, switchVim } from '../sessions'
+import { h, app, Actions } from '../uikit'
 import { filter } from 'fuzzaldrin-plus'
 import { action } from '../neovim'
-import { h, app } from './plugins'
 import TermInput from './input'
 
 interface Session { id: number, name: string }
@@ -40,8 +39,5 @@ a.select = (s, a) => {
   a.hide()
 }
 
-const e: Events<State> = {}
-e.show = (_s, a, d: Session[]) => a.show(d)
-
-const emit = app({ state, view, actions: a, events: e })
-action('vim-switch', () => emit('show', list()))
+const ui = app({ state, view, actions: a })
+action('vim-switch', () => ui.show(list()))

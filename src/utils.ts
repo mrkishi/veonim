@@ -3,11 +3,6 @@ import * as through from 'through'
 import { join } from 'path'
 import * as fs from 'fs'
 
-export interface ActionCaller { [index: string]: (data?: any) => void }
-export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
-export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
-export const BindEventsToActions = <T>(obj: T & object) => new Proxy(obj, { get: (tar, method) => Reflect.get(tar, method) })
-
 const logger = (str: TemplateStringsArray | string, v: any[]) => Array.isArray(str)
   ? console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
   : console.log(str as string)
@@ -17,18 +12,7 @@ export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logge
 process.on('unhandledRejection', e => console.log(e))
 
 type TypeChecker = (thing: any) => boolean
-interface Types {
-  string: TypeChecker,
-  number: TypeChecker,
-  array: TypeChecker,
-  object: TypeChecker,
-  null: TypeChecker,
-  asyncfunction: TypeChecker,
-  function: TypeChecker,
-  promise: TypeChecker,
-  map: TypeChecker,
-  set: TypeChecker
-}
+interface Types { string: TypeChecker, number: TypeChecker, array: TypeChecker, object: TypeChecker, null: TypeChecker, asyncfunction: TypeChecker, function: TypeChecker, promise: TypeChecker, map: TypeChecker, set: TypeChecker }
 
 export const prefixWith = (prefix: string) => (m: string) => `${prefix}${snakeCase(m)}`
 export const merge = Object.assign

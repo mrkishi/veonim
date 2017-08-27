@@ -1,7 +1,6 @@
 import { renameCurrent, getCurrentName } from '../sessions'
-import { Actions, Events } from '../../utils'
+import { h, app, Actions } from '../uikit'
 import { action } from '../neovim'
-import { h, app } from './plugins'
 import TermInput from './input'
 
 interface State { val: string, vis: boolean }
@@ -25,8 +24,5 @@ a.select = (s, a) => {
   a.hide()
 }
 
-const e: Events<State> = {}
-e.show = (_s, a, current: string) => a.show(current)
-
-const emit = app({ state, view, actions: a, events: e })
-action('vim-rename', () => emit('show', getCurrentName()))
+const ui = app({ state, view, actions: a })
+action('vim-rename', () => ui.show(getCurrentName()))
