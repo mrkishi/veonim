@@ -1,29 +1,27 @@
-import { cmd, autocmd, call, define } from '../neovim'
+import { cmd, onFile } from '../neovim'
+import { sub } from '../../dispatch'
 const watch = require('node-watch')
 
-define.OpenPaths`
-  return map(filter(range(0, bufnr('$')), 'buflisted(v:val)'), {k, buf -> fnamemodify(bufname(buf), ':p')})\\n
-`
+const sessions = new Map<number, Set<string>>()
+const watchers = new Map<string, any>()
+let currentSession: Set<string>
 
-const open = new Set<string>()
-
-autocmd.bufCreate(async () => {
-  const openPaths = await call.OpenPaths()
-  const newPaths = openPaths
-    .filter(p => !open.has(p))
-    .filter((p, ix, arr) => arr.indexOf(p) === ix)
-
-  newPaths.forEach(path => {
-    open.add(path)
-    watch(path, () => {
-      console.log(`${path} changed!`)
-      // TODO: only auto-watch if set autoread is set? this won't actually reload file...?
-      cmd(`checktime ${path}`)
-    })
-  })
+sub('session:switch', (id: number) => {
+  if (sessions.has(id)) currentSession = sessions.get(id)!
+  else sessions.set(id, currentSession = new Set<string>())
+  cmd(`checktime`)
 })
 
-// TODO: yeah i think it might be more efficient to watch dirs if multi files in same place?
-//on session switch, cache open buffers (per session).
-//on buf change, register pendings for bg session. 
-//when switchback, load all register pendings. (or... just call :checktime...)
+onFile.load(file => {
+  if (!file) return
+  currentSession.add(file)
+  const w = watch(file, () => currentSession.has(file) && cmd(`checktime ${file}`))
+  watchers.set(file, w)
+})
+
+onFile.unload(file => {
+  if (!file) return
+  currentSession.delete(file)
+  // TODO: other sessions could have a watcher on this file...
+  //watchers.has(file) && watchers.get(file)!.close()
+})

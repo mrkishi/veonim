@@ -112,6 +112,17 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
 
+export const onFile = {
+  load: (cb: (file: string) => void) => {
+    onCreate(() => cmd(`au Veonim BufAdd * call rpcnotify(0, 'file:load', expand('<afile>:p'))`))()
+    onCreate(() => subscribe(`file:load`, cb))()
+  },
+  unload: (cb: (file: string) => void) => {
+    onCreate(() => cmd(`au Veonim BufDelete * call rpcnotify(0, 'file:unload', expand('<afile>:p'))`))()
+    onCreate(() => subscribe(`file:unload`, cb))()
+  }
+}
+
 export const VBuffer = class VBuffer {
   public id: any
   constructor (id: any) { this.id = id }
