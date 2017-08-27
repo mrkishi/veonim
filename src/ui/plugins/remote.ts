@@ -1,5 +1,5 @@
 import HttpServer from '../../http-server'
-import { ex, cmd, cwdir } from '../neovim'
+import { cmd, cwdir } from '../neovim'
 import { relative, join } from 'path'
 
 interface RemoteRequest { cwd: string, file: string }
@@ -14,6 +14,6 @@ const load = async ({ cwd, file }: RemoteRequest) => {
 
 HttpServer(42320).then(({ port, onJsonRequest }) => {
   process.env.VEONIM_REMOTE_PORT = port + ''
-  ex(`let $VEONIM_REMOTE_PORT='${port}'`)
+  cmd(`let $VEONIM_REMOTE_PORT='${port}'`)
   onJsonRequest<RemoteRequest>((data, reply) => (load(data), reply(201)))
 })

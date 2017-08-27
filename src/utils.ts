@@ -65,8 +65,6 @@ export const requireDir = async (path: string) => {
     .filter(m => m.file)
     .filter(m => extname(m.name) === '.js')
     .forEach(m => require(m.path))
-    //.map(m => relative(__dirname, m.path))
-    //.forEach(m => require(`./${m}`))
 }
 
 export function debounce (fn: Function, wait = 1) {
