@@ -115,11 +115,11 @@ onCreate(() => cmd(`aug Veonim | au! | aug END`))
 export const onFile = {
   load: (cb: (file: string) => void) => {
     onCreate(() => cmd(`au Veonim BufAdd * call rpcnotify(0, 'file:load', expand('<afile>:p'))`))()
-    onCreate(() => subscribe(`file:load`, cb))()
+    onCreate(() => subscribe(`file:load`, ((a: any[]) => cb(a[0]))))()
   },
   unload: (cb: (file: string) => void) => {
     onCreate(() => cmd(`au Veonim BufDelete * call rpcnotify(0, 'file:unload', expand('<afile>:p'))`))()
-    onCreate(() => subscribe(`file:unload`, cb))()
+    onCreate(() => subscribe(`file:unload`, ((a: any[]) => cb(a[0]))))()
   }
 }
 

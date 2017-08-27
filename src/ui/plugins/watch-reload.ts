@@ -6,6 +6,8 @@ const sessions = new Map<number, Set<string>>()
 const watchers = new Map<string, any>()
 let currentSession: Set<string>
 
+const anySessionsHaveFile = (file: string) => [...sessions.values()].some(s => s.has(file))
+
 sub('session:switch', (id: number) => {
   if (sessions.has(id)) currentSession = sessions.get(id)!
   else sessions.set(id, currentSession = new Set<string>())
@@ -22,6 +24,7 @@ onFile.load(file => {
 onFile.unload(file => {
   if (!file) return
   currentSession.delete(file)
-  // TODO: other sessions could have a watcher on this file...
-  //watchers.has(file) && watchers.get(file)!.close()
+  if (anySessionsHaveFile(file)) return
+  watchers.has(file) && watchers.get(file)!.close()
 })
+
