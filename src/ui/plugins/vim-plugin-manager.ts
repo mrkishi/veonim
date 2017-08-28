@@ -1,8 +1,8 @@
 import { read as readPluginsFromVimrc, install, remove, removeExtraneous, Plugin } from '@veonim/plugin-manager'
 import { watchConfig } from '../../config-reader'
 import { h, app, Actions } from '../uikit'
+import { action, cmd } from '../neovim'
 import { delay } from '../../utils'
-import { action } from '../neovim'
 
 interface State { ready: number, total: number, vis: boolean, loading: boolean }
 const state = { ready: 0, total: 0, vis: false, loading: false }
@@ -37,6 +37,7 @@ const installPlugins = async (plugins: Plugin[], { reinstall = false } = {}) => 
   await Promise.all(plugins.map(p => install(p).then(() => ui.installTick())))
   ui.done()
   removeExtraneous()
+  cmd(`packloadall`)
   await delay(3e3)
   ui.hide()
 }
