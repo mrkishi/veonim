@@ -22,7 +22,7 @@ const vimInstances = new Map<number, VimInstance>()
 
 let onExitFn: ExitFn = function () {}
 // TODO: make it dynamic...
-// TODO: whenever call action in plugin, register and create VeonimCmdCompletions fun with data
+// TODO: whenever call action in plugin, register and create VeonimCmdCompletions fun with data. JUST UPDATE GLOBAL VAR WITH OPTIONS!!
 const actions = ['files', 'buffers', 'explorer', 'commands', 'change-dir', 'init-dir', 'vim-create', 'vim-rename', 'vim-switch', 'pick-color', 'grep', 'grep-word', 'grep-selection'].join(`\\\\n`)
 
 const spawnVimInstance = ({ askCd = false }) => Neovim([

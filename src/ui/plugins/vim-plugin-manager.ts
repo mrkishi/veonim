@@ -1,10 +1,12 @@
-import { read, install } from '@veonim/plugin-manager'
+import { read as readPluginsFromVimrc, install, remove, removeExtraneous, Plugin } from '@veonim/plugin-manager'
 import { h, app, Actions } from '../uikit'
+import { delay } from '../../utils'
+import { action } from '../neovim'
 
 interface State { ready: number, total: number, vis: boolean, loading: boolean }
 const state = { ready: 0, total: 0, vis: false, loading: false }
 
-const view = ({ ready, total, vis, loading }: State, { hide }: any) => h('#vim-plugins.plugin.top', {
+const view = ({ ready, total, loading, vis }: State, { hide }: any) => h('#vim-plugins.plugin.top', {
   hide: !vis
 }, [
   h('.alert', [
@@ -14,7 +16,7 @@ const view = ({ ready, total, vis, loading }: State, { hide }: any) => h('#vim-p
       h('button', {
         onclick: hide,
         style: { 'flex': 1, }
-      }, 'Whatever'),
+      }, 'ok, whatever'),
     ]),
   ])
 ])
@@ -27,11 +29,18 @@ a.done = () => ({ loading: false })
 
 const ui = app({ state, view, actions: a }, false)
 
-read().then(async plugins => {
-  const toInstall = plugins.filter(p => !p.installed)
-  if (!toInstall.length) return
-  ui.show(toInstall.length)
-  await Promise.all(toInstall.map(p => install(p).then(() => ui.installTick())))
+const installPlugins = async (plugins: Plugin[], { reinstall = false } = {}) => {
+  if (!plugins.length) return removeExtraneous()
+  ui.show(plugins.length)
+  if (reinstall) await remove(plugins)
+  await Promise.all(plugins.map(p => install(p).then(() => ui.installTick())))
   ui.done()
-  setTimeout(() => ui.hide(), 3e3)
-})
+  removeExtraneous()
+  await delay(3e3)
+  ui.hide()
+}
+
+readPluginsFromVimrc().then(async plugins => installPlugins(plugins.filter(p => !p.installed)))
+action('reinstall-plugins', () => readPluginsFromVimrc().then(plugins => installPlugins(plugins, { reinstall: true })))
+
+// TODO: support other plugin host sites besides github.com?
