@@ -37,7 +37,7 @@ const installPlugins = async (plugins: Plugin[], { reinstall = false } = {}) => 
   await Promise.all(plugins.map(p => install(p).then(() => ui.installTick())))
   ui.done()
   removeExtraneous()
-  cmd(`packloadall`)
+  cmd(`packloadall!`)
   await delay(3e3)
   ui.hide()
 }
