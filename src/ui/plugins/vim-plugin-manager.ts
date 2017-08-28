@@ -1,4 +1,5 @@
 import { read as readPluginsFromVimrc, install, remove, removeExtraneous, Plugin } from '@veonim/plugin-manager'
+import { watchConfig } from '../../config-reader'
 import { h, app, Actions } from '../uikit'
 import { delay } from '../../utils'
 import { action } from '../neovim'
@@ -40,7 +41,10 @@ const installPlugins = async (plugins: Plugin[], { reinstall = false } = {}) => 
   ui.hide()
 }
 
-readPluginsFromVimrc().then(async plugins => installPlugins(plugins.filter(p => !p.installed)))
+const refreshPlugins = () => readPluginsFromVimrc().then(async plugins => installPlugins(plugins.filter(p => !p.installed)))
 action('reinstall-plugins', () => readPluginsFromVimrc().then(plugins => installPlugins(plugins, { reinstall: true })))
+
+refreshPlugins()
+watchConfig('nvim/init.vim', () => refreshPlugins())
 
 // TODO: support other plugin host sites besides github.com?

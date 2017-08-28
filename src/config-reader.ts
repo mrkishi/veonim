@@ -42,3 +42,10 @@ export default async (location: string, cb: ConfigCallback) => {
   loadConfig(path, cb).catch(e => log(e))
   watch(path, () => loadConfig(path, cb).catch(e => log(e)))
 }
+
+export const watchConfig = async (location: string, cb: Function) => {
+  const path = `${base}/${location}`
+  const pathExists = await exists(path)
+  if (!pathExists) return log `config file at ${path} not found`
+  watch(path, () => cb())
+}
