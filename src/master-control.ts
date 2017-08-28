@@ -37,6 +37,8 @@ const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
   // sometimes this doesn't happen automatically... idk why
   `call serverstart()`,
+  '--cmd',
+  'com! -nargs=* Plug 1',
   '--embed',
 ], { cwd: $HOME })
 
