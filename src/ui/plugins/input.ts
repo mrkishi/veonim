@@ -18,7 +18,7 @@ interface Props {
   jumpPrev?: () => void,
   jumpNext?: () => void,
   tab?: () => void,
-  ctrlH: () => void,
+  ctrlH?: () => void,
 }
 
 let lastDown = ''
