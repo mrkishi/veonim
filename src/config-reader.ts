@@ -1,5 +1,4 @@
-import { createReadStream } from 'fs'
-import { log, exists } from './utils'
+import { log, exists, readFile } from './utils'
 const watch = require('node-watch')
 import { homedir } from 'os'
 
@@ -15,23 +14,19 @@ const loadConfig = async (path: string, notify: ConfigCallback) => {
   const pathExists = await exists(path)
   if (!pathExists) return log `config file at ${path} not found`
 
-  const file = createReadStream(path)
-  let buf = ''
+  const data = await readFile(path)
+  const config = data
+    .toString()
+    .split('\n')
+    .filter((line: string) => /^let g:vn_/.test(line))
+    .reduce((map: Config, line: string) => {
+      const [ , key = '', dirtyVal = '' ] = line.match(/^let g:vn_(\S+)(?:\s*)\=(?:\s*)([\S\ ]+)/) || []
+      const cleanVal = dirtyVal.replace(/^(?:"|')(.*)(?:"|')$/, '$1')
+      map.set(key, cleanVal)
+      return map
+    }, new Map<string, any>())
 
-  file.on('data', (e: Buffer) => buf += e)
-  file.on('end', () => {
-    const config = buf
-      .split('\n')
-      .filter((line: string) => /^let g:vn_/.test(line))
-      .reduce((map: Config, line: string) => {
-        const [ , key = '', dirtyVal = '' ] = line.match(/^let g:vn_(\S+)(?:\s*)\=(?:\s*)([\S\ ]+)/) || []
-        const cleanVal = dirtyVal.replace(/^(?:"|')(.*)(?:"|')$/, '$1')
-        map.set(key, cleanVal)
-        return map
-      }, new Map<string, any>())
-
-      notify(config)
-  })
+  notify(config)
 }
 
 export default async (location: string, cb: ConfigCallback) => {

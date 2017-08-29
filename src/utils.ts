@@ -41,7 +41,7 @@ export const findIndexRight = (line: string, pattern: RegExp, start: number) => 
   }
 }
 
-const { readdir, stat } = promisifyApi(fs)
+export const { readdir, stat, readFile } = promisifyApi(fs)
 export const exists = (path: string) => new Promise(fin => fs.access(path, e => fin(!e)))
 
 const emptyStat = { isDirectory: () => false, isFile: () => false }
