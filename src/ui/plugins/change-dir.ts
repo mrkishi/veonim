@@ -2,6 +2,7 @@ import { getDirFiles, exists } from '../../utils'
 import { action, cwdir, cmd } from '../neovim'
 import { renameCurrent } from '../sessions'
 import { h, app, Actions } from '../uikit'
+import config from '../../config-service'
 import { filter } from 'fuzzaldrin-plus'
 import { join, sep } from 'path'
 import TermInput from './input'
@@ -21,8 +22,7 @@ const validPath = async (path = '') => {
   return await exists(fullpath) ? fullpath : ''
 }
 
-// TODO: common place? load via vimrc?
-const ignored = ['.git']
+let ignored = config('explorer.ignore.dirs', m => ignored = m)
 const filterDirs = (filedirs: FileDir[]) => filedirs.filter(f => f.dir && !ignored.includes(f.name))
 
 let listElRef: HTMLElement

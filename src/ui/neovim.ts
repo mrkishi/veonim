@@ -92,7 +92,7 @@ export const current = {
 export const g = new Proxy({} as KeyVal, {
   get: async (_t, name: string) => {
     const val = await req.core.getVar(name as string).catch(e => e)
-    if (!Array.isArray(val) && val[1] !== 'Key not found') return val
+    return Array.isArray(val) && val[1] === 'Key not found' ? undefined : val
   },
   set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
 })

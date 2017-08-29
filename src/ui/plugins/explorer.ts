@@ -1,6 +1,7 @@
 import { action, cwdir, cmd } from '../neovim'
 import { h, app, Actions } from '../uikit'
 import { getDirFiles } from '../../utils'
+import config from '../../config-service'
 import { filter } from 'fuzzaldrin-plus'
 import { join, sep } from 'path'
 import TermInput from './input'
@@ -15,8 +16,10 @@ const state: State = { val: '', cwd: '', path: '',  paths: [], cache: [], vis: f
 const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~') : path
 const relativeToCwd = (path: string, cwd: string) => path.includes(cwd) ? path.replace(cwd, '').replace(/^\//, '') : path
 
-// TODO: common place? load via vimrc?
-const ignored = { dirs: ['.git'], files: ['.DS_Store'] }
+const ignored: { dirs: string[], files: string[] } = {
+  dirs: config('explorer.ignore.dirs', m => ignored.dirs = m),
+  files: config('explorer.ignore.files', m => ignored.files = m),
+}
 
 const sortDirFiles = (filedirs: FileDir[]) => {
   const dirs = filedirs.filter(f => f.dir && !ignored.dirs.includes(f.name))

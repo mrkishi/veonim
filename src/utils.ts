@@ -76,6 +76,15 @@ export function debounce (fn: Function, wait = 1) {
   }
 }
 
+const pathGet = (obj: any, paths: string[]): any => {
+  if (!paths.length) return obj
+  const next = Reflect.get(obj, paths[0])
+  if (next == null) return obj
+  return pathGet(next, paths.slice(1))
+}
+
+export const getInObjectByPath = (obj: any, path: string) => pathGet(obj, path.split('.'))
+
 export class Watchers extends Map<string, Set<Function>> {
   constructor() {
     super()
