@@ -1,4 +1,4 @@
-import { action, cwdir, cmd } from '../neovim'
+import { action, cwdir, call, cmd } from '../neovim'
 import { h, app, Actions } from '../uikit'
 import { getDirFiles } from '../../utils'
 import config from '../../config-service'
@@ -29,11 +29,11 @@ const sortDirFiles = (filedirs: FileDir[]) => {
 
 let listElRef: HTMLElement
 
-const view = ({ val, path, paths, vis, ix }: State, { jumpPrev, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom }: any) => h('#explorer.plugin', {
+const view = ({ val, path, paths, vis, ix }: State, { jumpPrev, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom, jumpHome }: any) => h('#explorer.plugin', {
   hide: !vis
 }, [
   h('.dialog.large', [
-    TermInput({ focus: true, val, next, prev, change, hide, select, jumpPrev, down: scrollDown, up: scrollUp, top, bottom }),
+    TermInput({ focus: true, val, next, prev, change, hide, select, jumpPrev, down: scrollDown, up: scrollUp, top, bottom, ctrlH: jumpHome }),
 
     h('.row.important', shorten(path)),
 
@@ -75,6 +75,13 @@ a.down = (s, a, next) => {
   getDirFiles(path).then(paths => a.show({ path, paths: sortDirFiles(paths) }))
 }
 
+a.jumpHome = async (_s, a) => {
+  const cwd = await cwdir()
+  const filedirs = await getDirFiles(cwd)
+  const paths = sortDirFiles(filedirs)
+  a.show({ paths, cwd, path: cwd })
+}
+
 a.jumpPrev = (s, a) => {
   const next = s.path.split(sep)
   next.pop()
@@ -110,7 +117,7 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 })
 const ui = app({ state, view, actions: a })
 
 action('explorer', async () => {
-  const cwd = await cwdir()
+  const cwd = await call.expand(`%:p:h`)
   const filedirs = await getDirFiles(cwd)
   const paths = sortDirFiles(filedirs)
   ui.show({ paths, cwd, path: cwd })

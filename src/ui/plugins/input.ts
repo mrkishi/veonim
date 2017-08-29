@@ -18,13 +18,14 @@ interface Props {
   jumpPrev?: () => void,
   jumpNext?: () => void,
   tab?: () => void,
+  ctrlH: () => void,
 }
 
 let lastDown = ''
 const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
 const nop = () => {}
 
-export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, nextGroup = nop, prevGroup = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop, tab = nop }: Props) => h('.gui-input', [
+export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, nextGroup = nop, prevGroup = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop, tab = nop, ctrlH = nop }: Props) => h('.gui-input', [
   h('div', {
     style: {
       'pointer-events': 'none',
@@ -71,6 +72,7 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
 
       const cm = ctrl || meta
       if (cm && key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
+      if (cm && key === 'h') return ctrlH()
       if (cm && key === 'j') return next()
       if (cm && key === 'k') return prev()
       if (cm && key === 'n') return nextGroup()
