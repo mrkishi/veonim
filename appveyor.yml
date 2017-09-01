@@ -1,0 +1,35 @@
+environment:
+  nodejs_version: "8"
+
+os: unstable
+
+platform:
+    - x64
+
+install:
+  - ps: Install-Product node $env:nodejs_version
+  - npm install
+
+test_script:
+  - node --version
+  - npm --version
+  - npm run build
+
+artifacts:
+    - path: dist/*.exe
+      name: SetupExe
+
+    - path: dist/*.zip
+      name: ProductZip
+
+deploy:
+    provider: GitHub
+    auth_token:
+        secure: v/U4AfMwTB+O0COfYK45SVK6Nu3/JlRe/jRIES0x4sCc+CAwBuZ8k9i6suDq8B+w
+    draft: false
+    prerelease: false
+    force_update: true
+    on:
+        appveyor_repo_tag: true
+
+build: off
