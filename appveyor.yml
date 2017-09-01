@@ -4,7 +4,7 @@ environment:
 os: unstable
 
 platform:
-    - x64
+  - x64
 
 install:
   - ps: Install-Product node $env:nodejs_version
@@ -16,20 +16,27 @@ test_script:
   - npm run build
 
 artifacts:
-    - path: dist/*.exe
-      name: SetupExe
+  - path: dist/*.exe
+    name: SetupExe
 
-    - path: dist/*win.zip
-      name: ProductZip
+  - path: dist/*win.zip
+    name: ProductZip
+
+before_deploy:
+  - npm run release
 
 deploy:
-    provider: GitHub
-    auth_token:
-        secure: v/U4AfMwTB+O0COfYK45SVK6Nu3/JlRe/jRIES0x4sCc+CAwBuZ8k9i6suDq8B+w
-    draft: false
-    prerelease: false
-    force_update: true
-    on:
-        appveyor_repo_tag: true
+  provider: GitHub
+  auth_token:
+    secure: v/U4AfMwTB+O0COfYK45SVK6Nu3/JlRe/jRIES0x4sCc+CAwBuZ8k9i6suDq8B+w
+  draft: false
+  prerelease: false
+  force_update: true
+  on:
+    appveyor_repo_tag: true
+
+cache:
+  - node_modules
+  - $HOME/.electron
 
 build: off
