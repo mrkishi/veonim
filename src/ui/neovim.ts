@@ -110,10 +110,7 @@ export const define: DefineFunction = onProp((name: string) => (fn: TemplateStri
 
 const registerAutocmd = (event: string) => {
   onCreate(() => cmd(`au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}')`))()
-  onCreate(() => subscribe(`autocmd:${event}`, () => {
-    console.log(`autocmd fired: ${event}`)
-    autocmdWatchers.notify(event)
-  }))()
+  onCreate(() => subscribe(`autocmd:${event}`, () => autocmdWatchers.notify(event)))()
 }
 
 export const autocmd: StrFnObj = onFnCall((name, [cb]) => {
