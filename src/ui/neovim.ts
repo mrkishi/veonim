@@ -116,6 +116,13 @@ export const autocmd: StrFnObj = onFnCall((name, args) => {
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
 onCreate(() => cmd(`aug Veonim | au! | aug END`))
 
+onCreate(async () => {
+  const bufferedActions = await g.vn_rpc_buf
+  if (!bufferedActions.length) return
+  bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
+  g.vn_rpc_buf = []
+})
+
 export const onFile = {
   load: (cb: (file: string) => void) => {
     onCreate(() => cmd(`au Veonim BufAdd * call rpcnotify(0, 'file:load', expand('<afile>:p'))`))()
