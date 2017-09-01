@@ -19,7 +19,7 @@ artifacts:
     - path: dist/*.exe
       name: SetupExe
 
-    - path: dist/*.zip
+    - path: dist/*win.zip
       name: ProductZip
 
 deploy:
