@@ -37,6 +37,5 @@ deploy:
 
 cache:
   - node_modules
-  - $HOME/.electron
 
 build: off
