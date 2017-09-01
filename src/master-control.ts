@@ -3,6 +3,7 @@ import { ChildProcess } from 'child_process'
 import CreateTransport from './transport'
 import { Api, Prefixes } from './api'
 import Neovim from '@veonim/neovim'
+import { pub } from './dispatch'
 import { homedir } from 'os'
 import SetupRPC from './rpc'
 
@@ -75,6 +76,19 @@ export const switchTo = (id: number) => {
 export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> => {
   const id = createNewVimInstance({ askCd })
   switchTo(id)
+
+  // TODO: this getMode/blocking/input/capture :messages is kinda hack.
+  // when neovim implements external dialogs, please revisit
+  const { blocking } = await req.getMode()
+  if (blocking) {
+    api.input(`<Enter>`)
+    const errors = await req.commandOutput(`messages`)
+    pub('notification:error', {
+      title: 'Neovim startup problem',
+      message: errors.split('\n').filter(e => e),
+    })
+  }
+
   api.command(`let g:vn_loaded=1`)
   const path = await req.eval('v:servername')
   vimInstances.get(id)!.path = path

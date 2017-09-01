@@ -16,18 +16,6 @@ body {
   overflow: hidden;
 }
 
-.alert {
-  display: flex;
-  background: #444;
-}
-
-.alert .message {
-  padding-top: 6px;
-  padding-bottom: 6px;
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
 button {
   padding-left: 12px;
   padding-right: 12px;
@@ -51,6 +39,78 @@ input {
   background: none;
   line-height: var(--line-height);
   padding: 0;
+}
+
+.close {
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 18px;
+  line-height: 0;
+  opacity: 0.4;
+}
+
+.close:hover {
+  pointer: cursor;
+  opacity: 1;
+}
+
+#notifications {
+  position: absolute;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  top: 10px;
+  right: 10px;
+}
+
+.notification {
+  margin-bottom: 10px;
+}
+
+.notification .header {
+  display: flex;
+  justify-content: space-between;
+  color: #fff;
+}
+
+.notification .title {
+  padding: 10px;
+}
+
+.notification .message {
+  padding: 10px;
+}
+
+.notification .message .line {
+  margin-bottom: 8px;
+}
+
+.notification .message .line:last-child {
+  margin-bottom: 0;
+}
+
+.notification.error {
+  background: #332424;
+  color: #eab3b3;
+}
+
+.notification.error .header {
+  background: #962727;
+}
+
+.alert {
+  display: flex;
+  background: #444;
+}
+
+.alert .message {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .highlight {
