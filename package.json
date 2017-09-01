@@ -8,7 +8,7 @@
     "runtime": "cp -r runtime build/runtime",
     "clean": "rm -rf build",
     "clean-all": "npm run clean && rm -rf dist && rm -rf bindeps",
-    "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
+    "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' ./build/workers/*.js",
     "typescript": "tsc -p tsconfig.json && tsc -p tsconfig.workers.json",
     "watch": "node tools/watch-build.js",
     "build": "npm run typescript && npm run fixexp && npm run html && npm run runtime",
