@@ -80,6 +80,7 @@ r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
 r.mode_change = (mode: string) => {
   const info = modes.get(mode)
   if (info) ui.setCursorShape(info.shape, info.size)
+  dispatch.pub('mode', mode)
 }
 
 r.highlight_set = (attrs: Attrs = { fg: '', bg: '' }) => {
