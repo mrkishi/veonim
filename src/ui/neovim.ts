@@ -20,6 +20,7 @@ const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
 const actionWatchers = new Watchers()
+const autocmdWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 
@@ -107,10 +108,18 @@ export const define: DefineFunction = onProp((name: string) => (fn: TemplateStri
   onCreate(() => cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`))()
 })
 
-export const autocmd: StrFnObj = onFnCall((name, args) => {
+const registerAutocmd = (event: string) => {
+  onCreate(() => cmd(`au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}')`))()
+  onCreate(() => subscribe(`autocmd:${event}`, () => {
+    console.log(`autocmd fired: ${event}`)
+    autocmdWatchers.notify(event)
+  }))()
+}
+
+export const autocmd: StrFnObj = onFnCall((name, [cb]) => {
   const ev = pascalCase(name)
-  onCreate(() => cmd(`au Veonim ${ev} * call rpcnotify(0, 'autocmd:${ev}')`))()
-  onCreate(() => subscribe(`autocmd:${ev}`, args[0]))()
+  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
+  autocmdWatchers.add(ev, cb)
 })
 
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
