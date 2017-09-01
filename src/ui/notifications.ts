@@ -27,8 +27,8 @@ a.notify = (s, _a, notification: Notification) => ({ notifications: [...s.notifi
 
 const ui = app({ state, view, actions: a }, false)
 
-// TODO: add styles for warning, info, success
 sub('notification:error', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.error }))
 sub('notification:warning', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.warning }))
 sub('notification:info', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.info }))
 sub('notification:success', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.success }))
+// TODO: add styles for warning, info, success
