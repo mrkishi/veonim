@@ -8,10 +8,10 @@
     "runtime": "cp -r runtime build/runtime",
     "clean": "rm -rf build",
     "clean-all": "npm run clean && rm -rf dist && rm -rf bindeps",
-    "fixexp": "sed -i '' -e 's/Object.defineProperty(exports, \"__esModule\", { value: true });//g' build/workers/*.js",
+    "fixexp": "jscodeshift -t tools/dummy-exports.js build/workers",
     "typescript": "tsc -p tsconfig.json && tsc -p tsconfig.workers.json",
     "watch": "node tools/watch-build.js",
-    "build": "npm run typescript && ls -l && ls -l build && ls -l build/workers && npm run fixexp && npm run html && npm run runtime",
+    "build": "npm run typescript && npm run fixexp && npm run html && npm run runtime",
     "rebuild": "npm run clean && npm run build",
     "start": "electron build/main.js",
     "gen-api": "node tools/gen-api.js",
@@ -103,6 +103,7 @@
     "@veonim/ripgrep": "0.0.1-mac",
     "electron": "1.7.5",
     "electron-builder": "19.22.1",
+    "jscodeshift": "0.3.32",
     "typescript": "2.4.2"
   }
 }
