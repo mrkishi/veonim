@@ -1,0 +1,29 @@
+sudo: false
+language: node_js
+node_js:
+- stable
+addons:
+  apt:
+    packages:
+    - wine
+before_script:
+- npm install
+script:
+- npm run release
+before_deploy:
+- gulp package
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: lol
+  file:
+    - dist/veonim-darwin-x64.zip
+    - dist/veonim-win32-ia32.zip
+    - dist/veonim-win32-x64.zip
+  on:
+    tags: true
+cache:
+  directories:
+  - node_modules
+  - $HOME/.electron
