@@ -13,6 +13,7 @@ process.on('unhandledRejection', e => console.log(e))
 type TypeChecker = (thing: any) => boolean
 interface Types { string: TypeChecker, number: TypeChecker, array: TypeChecker, object: TypeChecker, null: TypeChecker, asyncfunction: TypeChecker, function: TypeChecker, promise: TypeChecker, map: TypeChecker, set: TypeChecker }
 
+export const toJSON = (m: any) => JSON.stringify(m)
 export const prefixWith = (prefix: string) => (m: string) => `${prefix}${snakeCase(m)}`
 export const merge = Object.assign
 export const cc = (...a: any[]) => Promise.all(a)
