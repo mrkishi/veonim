@@ -1,10 +1,18 @@
 import { textDocument, workspace } from './director'
 import { update, getLine, getFile } from './files'
 import { dirname, basename, extname } from 'path'
+import { merge } from '../utils'
 
 process.on('unhandledRejection', e => console.error(e))
 
-const toProtocol = (data, more) => {
+interface VimInfo {
+  cwd: string,
+  file: string,
+  line: number,
+  column: number
+}
+
+const toProtocol = (data: VimInfo, more: any) => {
   const { cwd, file, line: vimLine, column } = data
   const uri = 'file://' + cwd + '/' + file
 
@@ -27,12 +35,12 @@ const toProtocol = (data, more) => {
   return more ? merge(base, more) : base
 }
 
-const uriToPath = m => m.replace(/^\S+:\/\//, '')
+const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 const asCwd = (m = '') => dirname(uriToPath(m)) 
 const asFile = (m = '') => basename(uriToPath(m)) 
-const toVimLocation = ({ line, character }) => ({ line: line + 1, column: character + 1 })
+const toVimLocation = ({ line, character }: { line: number, character: number }) => ({ line: line + 1, column: character + 1 })
 const samePos = (s, e) => s.line === e.line && s.character === e.character
-const makePatch = (cwd, file) => ({ newText, range: { start, end } }) => {
+const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }) => {
   const line = start.line + 1
 
   if (!newText) return { op: 'delete', line }
@@ -64,7 +72,7 @@ const partialUpdate = (cwd, file, change, line) => {
   return patched.join('\n')
 }
 
-on.bufferChanged(data => {
+export const bufferChanged = (data: any) => {
   const { cwd, file, change, lineChange, line } = data
 
   const text = lineChange
@@ -82,16 +90,16 @@ on.bufferChanged(data => {
 
   const req = toProtocol(data, { contentChanges: [ content ] })
   textDocument.didChange(req)
-})
+}
 
-on.definition(async data => {
+export const definition = async (data: VimInfo) => {
   const req = toProtocol(data)
   const result = await textDocument.definition(req)
   if (!result) return
   return asQfList(result)
-})
+}
 
-on.references(async data => {
+export const references = async (data: VimInfo) => {
   const req = toProtocol(data, {
     context: {
       includeDeclaration: true
@@ -100,9 +108,9 @@ on.references(async data => {
 
   const references = await textDocument.references(req)
   return references.map(asQfList)
-})
+}
 
-on.rename(async data => {
+export const rename = async (data: VimInfo & { newName: string }) => {
   const req = toProtocol(data, {
     newName: data.newName
   })
@@ -119,17 +127,17 @@ on.rename(async data => {
   // TODO: handle { changes }
   // changes array is indexed by the uri?
   // changes[main.js] = { range, newText }
-})
+}
 
 // TODO: get completions from language server. auto trigger is handled by vimtron
-on.completions(async data => {
+export const completions = async (_data: VimInfo) => {
 
-})
+}
 
 // TODO: get signature hint from language server. figure out if (all langs) need position to
 // be over the function or can be inside parens. if (can be inside parens) then migrate
 // logic to js-langs to find function call
-on.signatureHint(async data => {
+export const signatureHint = async (data: VimInfo) => {
   const req = toProtocol(data)
   const hint = await textDocument.signatureHelp(req)
 
@@ -145,20 +153,4 @@ on.signatureHint(async data => {
     //activeSignature?: 0,
     //activeParameter?: 0
   //}
-})
-
-on.identifiers(async data => getKeywords(data.cwd, data.file))
-
-// TODO: hook up workspace/applyEdit listener
-on.inlineVar(async data => workspace.executeCommand({
-  command: 'inline-var',
-  arguments: [toProtocol(data)]
-}))
-
-// TODO: hook up workspace/applyEdit listener
-on.wrap(async data => workspace.executeCommand({
-  command: 'wrap-anon-fn',
-  arguments: [toProtocol(data)]
-}))
-
-listen(process.env.AVOCADOS_PORT || 29902)
+}
