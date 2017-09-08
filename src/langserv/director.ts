@@ -1,21 +1,16 @@
-// TODO: TS pls?
-const jayson = require('jayson')
-import { getType } from './files'
-const { getPort } = require('portfinder')
-import { spawn } from 'child_process'
+import { onFnCall, merge, toJSON } from '../utils'
+import { startServerFor, Server } from './servers'
 import defaultCapabs from './capabilities'
-import { onFnCall, merge, toJSON } from './utils'
+import { getPort } from 'portfinder'
+
+const getOpenPort = m => new Promise((ok, no) => getPort((e, r) => e ? no(e) : ok(r)))
 
 const servers = new Map()
-const serverConfigs = new Map()
+
 const getServer = (cwd, type) => servers.get(`${cwd}::${type}`)
 const setServer = (cwd, type, stuff) => servers.set(`${cwd}::${type}`, stuff)
 
 const derp = (e: any) => console.error(e)
-export const register = (type, cmd) => serverConfigs.set(type, cmd)
-const getOpenPort = m => new Promise((ok, no) => getPort((e, r) => e ? no(e) : ok(r)))
-
-const sleep = t => new Promise(d => setTimeout(d, t))
 
 const startServer = async (cwd, type) => {
   if (!serverConfigs.has(type)) throw `no language server configured for ${type}`

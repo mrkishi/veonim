@@ -93,6 +93,8 @@
     "jayson": "2.0.4",
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.5"
+    "portfinder": "1.0.13",
+    "through": "2.3.8"
   },
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",
