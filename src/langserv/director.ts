@@ -1,71 +1,74 @@
-import { onFnCall, merge, toJSON } from '../utils'
-import { startServerFor, Server } from './servers'
+import { startServerFor, hasServerFor } from './servers'
 import defaultCapabs from './capabilities'
 import { getPort } from 'portfinder'
+import { onFnCall } from '../utils'
+import { Server } from './channel'
 
-const getOpenPort = m => new Promise((ok, no) => getPort((e, r) => e ? no(e) : ok(r)))
+const getOpenPort = (): Promise<number> => new Promise((ok, no) => getPort((e, r) => e ? no(e) : ok(r)))
+
+interface ActiveServer extends Server {
+  canDo: {
+    result: {
+      capabilities: any[]
+    }
+  }
+}
 
 const servers = new Map()
-
-const getServer = (cwd, type) => servers.get(`${cwd}::${type}`)
-const setServer = (cwd, type, stuff) => servers.set(`${cwd}::${type}`, stuff)
+const runningServers = {
+  get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
+  add: (cwd: string, type: string, server: ActiveServer) => servers.set(`${cwd}::${type}`, server),
+}
 
 const derp = (e: any) => console.error(e)
 
-const startServer = async (cwd, type) => {
-  if (!serverConfigs.has(type)) throw `no language server configured for ${type}`
+const startServer = async (cwd: string, type: string): Promise<ActiveServer> => {
+  if (!hasServerFor(type)) throw `no language server configured for ${type}`
 
-  const cmd = serverConfigs.get(type)
+  // TODO: might not be able to connect to server right away, do incremental backoff on client connect
   const port = await getOpenPort().catch(derp)
-  const patchedCmd = cmd.replace('$$$$', port).split(' ')
-  const [ program, ...args ] = patchedCmd
-  const serverProcess = spawn(program, args)
+  if (!port) throw `failed to get open port wtf lol`
+  const server = startServerFor(type, port)
+  const { request, notify, on, onError } = server
 
-  serverProcess.stdout.pipe(process.stdout)
-  serverProcess.stderr.pipe(process.stderr)
+  const res = await request('initialize', defaultCapabs(cwd)).catch(derp)
+  if (!res) throw `failed to initalize server ${type}`
+  if (res.error) throw `initalize err: ${JSON.stringify(res.error)}`
+  notify('initialized')
 
-  await sleep(2000)
-
-  const rpc = jayson.client.tcp({ port })
-  const call = (m, ...a) => new Promise((y, n) => rpc.request(m, a, (e, r) => e ? n(e) : y(r)))
-
-  const res = await call('initialize', defaultCapabs(cwd)).catch(derp)
-  if (!res) throw 'failed to initalize server ${cmd}'
-  if (res.error) throw `initalize err: ${toJSON(res.error)}`
-  call('initialized')
-
-  return { serverProcess, rpc, call, canDo: res.result.capabilities }
+  return { request, notify, on, onError, canDo: res.result.capabilities }
 }
 
-const loadServer = async (cwd, type) => {
+const loadServer = async (cwd: string, type: string) => {
   const server = await startServer(cwd, type).catch(derp)
-  setServer(cwd, type, server)
+  if (!server) return
+  runningServers.add(cwd, type, server)
   return server
 }
 
+const saveOpts = new Map<string, string>([
+  ['textDocument/didOpen', 'openClose'],
+  ['textDocument/didClose', 'openClose'],
+  ['textDocument/didChange', 'change'],
+  ['textDocument/didSave', 'save'],
+  ['textDocument/willSave', 'willSave'],
+  ['textDocument/willSaveWaitUntil', 'willSaveWaitUntil'],
+])
+
 // TODO: multiple servers can serve the same lang. should query multiple
 // i.e. tern for basic, maybe typescript for some stuff, eslint for formatting/errors (all JS)
-const canDoMethod = ({ canDo }, ns, fn) => {
-  const saveOpts = {
-    'textDocument/didOpen': 'openClose',
-    'textDocument/didClose': 'openClose',
-    'textDocument/didChange': 'change',
-    'textDocument/didSave': 'save',
-    'textDocument/willSave': 'willSave',
-    'textDocument/willSaveWaitUntil': 'willSaveWaitUntil'
-  }
-
-  const save = saveOpts[`${ns}/${fn}`]
+const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
+  const save = saveOpts.get(`${ns}/${fn}`)
 
   return canDo[`${fn}Provider`]
     || canDo[`${ns + fn}Provider`]
     || save && (canDo || {}).textDocumentSync[save]
 }
 
-const registerDynamicCaller = namespace => onFnCall(async (method, req) => {
+const registerDynamicCaller = (namespace: string) => onFnCall(async (method, req: any) => {
   const { cwd, language } = req
 
-  const server = getServer(cwd, language) || await loadServer(cwd, language)
+  const server = runningServers.get(cwd, language) || await loadServer(cwd, language)
   if (!server) {
     derp(`could not load server type:${language} cwd:${cwd}`)
     return {}
@@ -77,11 +80,12 @@ const registerDynamicCaller = namespace => onFnCall(async (method, req) => {
   }
 
   const { error, result } = await server.call(`${namespace}/${method}`, req).catch(derp)
-  if (error) derp(`failed ${namespace}/${method} with error: ${toJSON(error)}`)
+  if (error) derp(`failed ${namespace}/${method} with error: ${JSON.stringify(error)}`)
   return result
 })
 
-export const cancelRequest = m => call('$/cancelRequest', m)
+//TODO: lolwut???
+//export const cancelRequest = (id: string | number) => call('$/cancelRequest', id)
 export const client = registerDynamicCaller('client')
 export const workspace = registerDynamicCaller('workspace')
 export const completionItem = registerDynamicCaller('completionItem')

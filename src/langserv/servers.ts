@@ -24,9 +24,4 @@ servers.set('typescript', port => {
 
 
 export const hasServerFor = (type: string) => servers.has(type)
-
-export const startServerFor = (type: string, port: number) => {
-  const starter = servers.get(type)
-  if (!starter) return
-  return starter(port)
-}
+export const startServerFor = (type: string, port: number) => servers.get(type)!(port)

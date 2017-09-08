@@ -4,8 +4,8 @@ import { createConnection } from 'net'
 type OnErrorCallback = (error: any) => void
 
 export interface Server {
-  request(method: string, params: any[]): Promise<any>,
-  notify(method: string, params: any[]): void,
+  request(method: string, params?: any): Promise<any>,
+  notify(method: string, params?: any): void,
   on(method: string, cb: (params: any[]) => any): void,
   onError(cb: OnErrorCallback): void,
 }
@@ -56,13 +56,13 @@ export const connect = (port: number): Server => {
 
   const api = {} as Server
 
-  api.request = (method, params = []) => {
+  api.request = (method, ...params: any[]) => {
     const id = uuid.next()
     client.write(encodeJsonRpc({ method, params, id }))
     return new Promise((done, fail) => pendingRequests.set(id, { done, fail }))
   }
 
-  api.notify = (method, params = []) => client.write(encodeJsonRpc({ method, params }))
+  api.notify = (method, ...params: any[]) => client.write(encodeJsonRpc({ method, params }))
   api.on = (method, cb) => watchers.add(method, cb)
   api.onError = cb => errCb = cb
 
