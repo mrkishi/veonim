@@ -4,14 +4,17 @@ import { getPort } from 'portfinder'
 import { onFnCall } from '../utils'
 import { Server } from './channel'
 
+type ProxyFn = { [index: string]: Function }
+type QueryableObject = { [index: string]: any }
+
 const getOpenPort = (): Promise<number> => new Promise((ok, no) => getPort((e, r) => e ? no(e) : ok(r)))
 
+interface Result {
+  capabilities: QueryableObject
+}
+
 interface ActiveServer extends Server {
-  canDo: {
-    result: {
-      capabilities: any[]
-    }
-  }
+  canDo: Result & QueryableObject
 }
 
 const servers = new Map()
@@ -65,7 +68,7 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
     || save && (canDo || {}).textDocumentSync[save]
 }
 
-const registerDynamicCaller = (namespace: string) => onFnCall(async (method, req: any) => {
+const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, req: any) => {
   const { cwd, language } = req
 
   const server = runningServers.get(cwd, language) || await loadServer(cwd, language)
@@ -84,8 +87,6 @@ const registerDynamicCaller = (namespace: string) => onFnCall(async (method, req
   return result
 })
 
-//TODO: lolwut???
-//export const cancelRequest = (id: string | number) => call('$/cancelRequest', id)
 export const client = registerDynamicCaller('client')
 export const workspace = registerDynamicCaller('workspace')
 export const completionItem = registerDynamicCaller('completionItem')
@@ -94,3 +95,7 @@ export const documentLink = registerDynamicCaller('documentLink')
 export const window = registerDynamicCaller('window')
 export const textDocument = registerDynamicCaller('textDocument')
 export const telemetry = registerDynamicCaller('telemetry')
+export const cancelRequest = (cwd: string, language: string, id: string | number) => {
+  const m = registerDynamicCaller('$')
+  m.cancelRequest({ cwd, language, id })
+}

@@ -12,16 +12,17 @@ servers.set('javascript', port => {
   return connectToServerOn(port)
 })
 
-servers.set('typescript', port => {
-  spawn('node', [
-    'node_modules/javascript-typescript-langserver/lib/language-server.js',
-    '-p',
-    port + ''
-  ])
+// TODO: soon. TS server sends requests for files from workspace that need to be fulfilled
+//servers.set('typescript', port => {
+  //spawn('node', [
+    //'node_modules/javascript-typescript-langserver/lib/language-server.js',
+    //'-p',
+    //port + ''
+  //])
 
-  return connectToServerOn(port)
-})
+  //return connectToServerOn(port)
+//})
 
 
-export const hasServerFor = (type: string) => servers.has(type)
-export const startServerFor = (type: string, port: number) => servers.get(type)!(port)
+export const hasServerFor = (language: string) => servers.has(language)
+export const startServerFor = (language: string, port: number) => servers.get(language)!(port)
