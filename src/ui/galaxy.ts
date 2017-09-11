@@ -46,7 +46,7 @@ uiInput.registerShortcut('s-c-f', () => {
 window.addEventListener('resize', debounce(() => {
   ui.resize(window.innerHeight, window.innerWidth)
   resize(ui.cols, ui.rows)
-}, 500))
+}, 150))
 
 const main = async () => {
   const { id, path } = await create()
