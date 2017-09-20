@@ -1,13 +1,10 @@
 import { startServerFor, hasServerFor } from './servers'
+import { onFnCall, getOpenPort } from '../utils'
 import defaultCapabs from './capabilities'
-import { getPort } from 'portfinder'
-import { onFnCall } from '../utils'
 import { Server } from './channel'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }
-
-const getOpenPort = (): Promise<number> => new Promise((ok, no) => getPort((e, r) => e ? no(e) : ok(r)))
 
 interface Result {
   capabilities: QueryableObject

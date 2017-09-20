@@ -9,7 +9,7 @@ interface VimInfo {
   cwd: string,
   file: string,
   line: number,
-  column: number,
+  column?: number,
 }
 
 interface Position {
@@ -41,9 +41,11 @@ const toProtocol = (data: VimInfo, more?: any) => {
 
   const base = {
     cwd,
+    // TODO: use vim filetype instead?
     language: extname(file).replace('.', ''),
     textDocument: {
       uri,
+      // TODO: send b:changedtick instead? does it matter? yes? if undo/redo, etc (revision?)
       version: Date.now()
     }
   }
@@ -88,6 +90,9 @@ const fullUpdate = (cwd: string, file: string, change: string[]) => {
   return change.join('\n')
 }
 
+// TODO: let vim send partial updates, and then:
+// if server wants full - merge
+// if server can support partial - send only partial change
 const partialUpdate = (cwd: string, file: string, change: string, line: number) => {
   const buffer = getFile(cwd, file) || []
   const patched = buffer.slice().splice(line, 1, change)
@@ -95,24 +100,33 @@ const partialUpdate = (cwd: string, file: string, change: string, line: number) 
   return patched.join('\n')
 }
 
-// TODO: nope
-export const bufferChanged = (data: any) => {
-  const { cwd, file, change, lineChange, line } = data
+interface BufferChange {
+  cwd: string,
+  file: string,
+  buffer: string[],
+  line: number,
+  column: number,
+  filetype: string,
+  revision: number,
+}
 
-  const text = lineChange
-    ? partialUpdate(cwd, file, change, line)
-    : fullUpdate(cwd, file, change)
+export const fullBufferUpdate = ({ cwd, file, buffer, line }: BufferChange) => {
+  const content = { text: fullUpdate(cwd, file, buffer) }
+  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ] })
+  textDocument.didChange(req)
+}
 
-  const content = { text }
-
-  if (lineChange) merge(content, {
+export const partialBufferUpdate = ({ cwd, file, buffer, line }: BufferChange) => {
+  // TODO: be sensitive if language server can support partial updates
+  const content = {
+    text: partialUpdate(cwd, file, buffer[0], line),
     range: {
       start: { line: line - 1, character: 0 },
-      end: { line: line - 1, character: lineChange.length - 1 }
+      end: { line: line - 1, character: buffer.length - 1 }
     }
-  })
+  }
 
-  const req = toProtocol(data, { contentChanges: [ content ] })
+  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ] })
   textDocument.didChange(req)
 }
 

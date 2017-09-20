@@ -1,5 +1,6 @@
 import { join, extname } from 'path'
 import { Transform } from 'stream'
+import { createServer } from 'net'
 import * as fs from 'fs'
 
 const logger = (str: TemplateStringsArray | string, v: any[]) => Array.isArray(str)
@@ -84,6 +85,16 @@ const pathGet = (obj: any, paths: string[]): any => {
 }
 
 export const getInObjectByPath = (obj: any, path: string) => pathGet(obj, path.split('.'))
+
+export const getOpenPort = (): Promise<number> => new Promise((done, fail) => {
+	const server = createServer()
+	server.unref()
+  server.on('error', () => fail(0))
+	server.listen(0, () => {
+		const port = server.address().port
+		server.close(() => done(port))
+	})
+})
 
 export class Watchers extends Map<string, Set<Function>> {
   constructor() {

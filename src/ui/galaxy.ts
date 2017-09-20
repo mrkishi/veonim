@@ -58,6 +58,7 @@ const main = async () => {
   setDefaultSession(id, path)
   remote.getCurrentWindow().show()
   setTimeout(() => requireDir(`${__dirname}/plugins`), 1)
+  setTimeout(() => require('../ai'), 2)
 }
 
 main().catch(log)
