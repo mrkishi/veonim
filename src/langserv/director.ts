@@ -65,12 +65,12 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
     || save && (canDo || {}).textDocumentSync[save]
 }
 
-const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, req: any) => {
-  const { cwd, language } = req
+const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, args: any[]) => {
+  const { cwd, filetype } = args[0]
 
-  const server = runningServers.get(cwd, language) || await loadServer(cwd, language)
+  const server = runningServers.get(cwd, filetype) || await loadServer(cwd, filetype)
   if (!server) {
-    derp(`could not load server type:${language} cwd:${cwd}`)
+    derp(`could not load server type:${filetype} cwd:${cwd}`)
     return {}
   }
 
@@ -79,7 +79,7 @@ const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (me
     return {}
   }
 
-  const { error, result } = await server.call(`${namespace}/${method}`, req).catch(derp)
+  const { error, result } = await server.request(`${namespace}/${method}`, args).catch(derp)
   if (error) derp(`failed ${namespace}/${method} with error: ${JSON.stringify(error)}`)
   return result
 })

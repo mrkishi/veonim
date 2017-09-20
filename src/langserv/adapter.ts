@@ -1,6 +1,6 @@
 import { textDocument } from './director'
 import { update, getLine, getFile } from './files'
-import { dirname, basename, extname } from 'path'
+import { dirname, basename } from 'path'
 import { merge } from '../utils'
 
 process.on('unhandledRejection', e => console.error(e))
@@ -42,7 +42,7 @@ const toProtocol = (data: VimInfo, more?: any) => {
   const base = {
     cwd,
     // TODO: use vim filetype instead?
-    language: extname(file).replace('.', ''),
+    //language: extname(file).replace('.', ''),
     textDocument: {
       uri,
       // TODO: send b:changedtick instead? does it matter? yes? if undo/redo, etc (revision?)
@@ -110,13 +110,13 @@ interface BufferChange {
   revision: number,
 }
 
-export const fullBufferUpdate = ({ cwd, file, buffer, line }: BufferChange) => {
+export const fullBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferChange) => {
   const content = { text: fullUpdate(cwd, file, buffer) }
-  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ] })
+  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ], filetype })
   textDocument.didChange(req)
 }
 
-export const partialBufferUpdate = ({ cwd, file, buffer, line }: BufferChange) => {
+export const partialBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferChange) => {
   // TODO: be sensitive if language server can support partial updates
   const content = {
     text: partialUpdate(cwd, file, buffer[0], line),
@@ -126,7 +126,7 @@ export const partialBufferUpdate = ({ cwd, file, buffer, line }: BufferChange) =
     }
   }
 
-  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ] })
+  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ], filetype })
   textDocument.didChange(req)
 }
 
