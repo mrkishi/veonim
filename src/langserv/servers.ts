@@ -1,14 +1,18 @@
 import { connect as connectToServerOn, Server } from './channel'
 import { spawn } from 'child_process'
+import { delay } from '../utils'
 
-const servers = new Map<string, (port: number) => Server>()
+const servers = new Map<string, (port: number) => Promise<Server>>()
 
-servers.set('javascript', port => {
+servers.set('javascript', async port => {
   spawn('node', [
     require.resolve('js-langs'),
     port + ''
   ])
 
+  // TODO: have channel client buffer requests until server has started. need hook to know when server is running
+  // TODO: implement client reconnect and server restart (if fail)
+  await delay(1e3)
   return connectToServerOn(port)
 })
 

@@ -25,18 +25,16 @@ const derp = (e: any) => console.error(e)
 const startServer = async (cwd: string, type: string): Promise<ActiveServer> => {
   if (!hasServerFor(type)) throw `no language server configured for ${type}`
 
-  // TODO: might not be able to connect to server right away, do incremental backoff on client connect
   const port = await getOpenPort().catch(derp)
   if (!port) throw `failed to get open port wtf lol`
-  const server = startServerFor(type, port)
-  const { request, notify, on, onError } = server
+  const { request, notify, on, onError } = await startServerFor(type, port)
 
   const res = await request('initialize', defaultCapabs(cwd)).catch(derp)
   if (!res) throw `failed to initalize server ${type}`
   if (res.error) throw `initalize err: ${JSON.stringify(res.error)}`
   notify('initialized')
 
-  return { request, notify, on, onError, canDo: res.result.capabilities }
+  return { request, notify, on, onError, canDo: res.capabilities }
 }
 
 const loadServer = async (cwd: string, type: string) => {
@@ -68,6 +66,8 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
 const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, args: any[]) => {
   const { cwd, filetype } = args[0]
 
+  // TODO: could start multiple servers while waiting for server to load
+  // FIX THIS FOOLISHNESS
   const server = runningServers.get(cwd, filetype) || await loadServer(cwd, filetype)
   if (!server) {
     derp(`could not load server type:${filetype} cwd:${cwd}`)
