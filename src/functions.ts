@@ -4,6 +4,18 @@ export interface VimBuffer {
   mod: boolean
 }
 
+export interface QuickFixList {
+  text: string,
+  lnum: number,
+  col: number,
+  vcol?: number,
+  pattern?: string,
+  nr?: number,
+  bufnr?: number,
+  filename?: string,
+  type?: string,
+}
+
 type WindowPosition = [ string, number, number, number ]
 
 export interface Functions {
@@ -15,4 +27,5 @@ export interface Functions {
   expand(type: string): string,
   synIDattr(id: number, type: string): Promise<number>,
   getpos(where: string): Promise<WindowPosition>,
+  setloclist(window: number, list: QuickFixList[]): Promise<void>,
 }

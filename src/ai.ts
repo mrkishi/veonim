@@ -1,5 +1,5 @@
 import { fullBufferUpdate, partialBufferUpdate, references } from './langserv/adapter'
-import { action, autocmd, cwdir, call, expr, getCurrentLine } from './ui/neovim'
+import { ex, action, autocmd, cwdir, call, expr, getCurrentLine } from './ui/neovim'
 import { cc, debounce, merge } from './utils'
 
 // TODO: when renaming and such
@@ -45,8 +45,15 @@ autocmd.textChanged(debounce(() => attemptUpdate(), 200))
 autocmd.textChangedI(() => attemptUpdate(true))
 
 action('references', async () => {
-  console.log('get refs')
   const [ , line, column ] = await call.getpos('.')
-  const res = await references({ ...cache, line, column })
-  console.log('refs', res)
+  const refs = await references({ ...cache, line, column })
+
+  await call.setloclist(0, refs.map(m => ({
+    lnum: m.line,
+    col: m.column,
+    text: m.desc
+  })))
+
+  ex('lopen')
+  ex('wincmd p')
 })

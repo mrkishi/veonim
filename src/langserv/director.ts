@@ -80,8 +80,11 @@ const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (me
     return {}
   }
 
-  const { error, result } = await server.request(`${namespace}/${method}`, args).catch(derp)
-  if (error) derp(`failed ${namespace}/${method} with error: ${JSON.stringify(error)}`)
+  // TODO: why no { error, result } object? is error caught in channel wrapper?
+  //const { error, result } = await server.request(`${namespace}/${method}`, ...args).catch(derp)
+  //if (error) derp(`failed ${namespace}/${method} with error: ${JSON.stringify(error)}`)
+
+  const result = await server.request(`${namespace}/${method}`, ...args).catch(derp)
   console.log(`LS <-- ${result}`)
   return result
 })

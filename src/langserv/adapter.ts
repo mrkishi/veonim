@@ -77,7 +77,15 @@ const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end
   return { op: 'replace', line, val }
 }
 
-const asQfList = ({ uri, range }: { uri: string, range: Range }) => {
+interface VimQFItem {
+  cwd: string,
+  file: string,
+  line: number,
+  column: number,
+  desc: string,
+}
+
+const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line, column } = toVimLocation(range.start)
   const cwd = asCwd(uri)
   const file = asFile(uri)
@@ -139,7 +147,7 @@ export const definition = async (data: VimInfo) => {
 }
 
 // TODO: use a better thingy type thingy pls k thx
-export const references = async (data: VimInfo) => {
+export const references = async (data: VimInfo): Promise<VimQFItem[]> => {
   const req = toProtocol(data, {
     context: {
       includeDeclaration: true
