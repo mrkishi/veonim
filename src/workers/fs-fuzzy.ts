@@ -21,7 +21,7 @@ const getFiles = (cwd: string) => {
   const timer = setInterval(() => sendResults(), INTERVAL)
   const rg = Ripgrep(['--files'], { cwd })
 
-  rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => {
+  rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
     if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ noFilter: true }))
     results.push(path)
   })

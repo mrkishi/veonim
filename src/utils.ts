@@ -1,6 +1,5 @@
-import { StringDecoder } from 'string_decoder'
 import { join, extname } from 'path'
-import * as through from 'through'
+import { Transform } from 'stream'
 import * as fs from 'fs'
 
 const logger = (str: TemplateStringsArray | string, v: any[]) => Array.isArray(str)
@@ -107,33 +106,18 @@ export class Watchers extends Map<string, Set<Function>> {
   }
 }
 
-export function NewlineSplitter () {
-  const decoder = new StringDecoder()
-  const matcher = /\r?\n/
-  let soFar = ''
+export class NewlineSplitter extends Transform {
+  private buffer: string
 
-  function emit (stream: any, piece: any) {
-    stream.queue(piece)
+  constructor() {
+    super({ encoding: 'utf8' })
+    this.buffer = ''
   }
 
-  function next (stream: any, buffer: any) {
-    const pieces = ((soFar != null ? soFar : '') + buffer).split(matcher)
-    soFar = pieces.pop() || ''
-
-    let totalPieces = pieces.length
-    for (var i = 0; i < totalPieces; i++) {
-      emit(stream, pieces[i])
-    }
+  _transform(chunk: string, _: any, done: Function) {
+    const pieces = ((this.buffer != null ? this.buffer : '') + chunk).split(/\r?\n/)
+    this.buffer = pieces.pop() || ''
+    pieces.forEach(line => this.push(line))
+    done()
   }
-
-  return through(
-    function (this: any, b: any) {
-      next(this, decoder.write(b))
-    },
-    function (this: any) {
-      if (decoder.end) next(this, decoder.end())
-      if (soFar != null) emit(this, soFar)
-      this.queue(null)
-    }
-  )
 }

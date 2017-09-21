@@ -31,7 +31,7 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
   const timer = setInterval(() => sendResults(), INTERVAL)
   const rg = Ripgrep([query, '--vimgrep'], { cwd })
 
-  rg.stdout.pipe(NewlineSplitter()).on('data', (m: string) => {
+  rg.stdout.pipe(new NewlineSplitter()).on('data', (m: string) => {
     const [ , path = '', line = 0, col = 0, text = '' ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/) || []
     path && results.push({ path, text: text.trim(), line: <any>line-0, col: <any>col-0 })
   })
