@@ -5,11 +5,14 @@ import { delay } from '../utils'
 const servers = new Map<string, (port: number) => Promise<Server>>()
 
 servers.set('javascript', async port => {
-  spawn('node', [
+  const proc = spawn('node', [
     require.resolve('js-langs'),
     port + ''
   ])
 
+  proc.on('error', e => console.log(e))
+  proc.stdout.pipe(process.stdout)
+  proc.stderr.pipe(process.stderr)
   // TODO: have channel client buffer requests until server has started. need hook to know when server is running
   // TODO: implement client reconnect and server restart (if fail)
   await delay(1e3)

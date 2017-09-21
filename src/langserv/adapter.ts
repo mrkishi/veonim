@@ -5,11 +5,14 @@ import { merge } from '../utils'
 
 process.on('unhandledRejection', e => console.error(e))
 
+// TODO: revise to be the best interface that it can be. i believe in you. you can do it
 interface VimInfo {
   cwd: string,
   file: string,
   line: number,
   column?: number,
+  filetype?: string,
+  revision?: number,
 }
 
 interface Position {
@@ -36,17 +39,15 @@ interface DocumentChange {
 
 // TODO: get typings for valid requests?
 const toProtocol = (data: VimInfo, more?: any) => {
-  const { cwd, file, line: vimLine, column } = data
+  const { cwd, filetype, file, line: vimLine, column, revision } = data
   const uri = 'file://' + cwd + '/' + file
 
   const base = {
     cwd,
-    // TODO: use vim filetype instead?
-    //language: extname(file).replace('.', ''),
+    filetype,
     textDocument: {
       uri,
-      // TODO: send b:changedtick instead? does it matter? yes? if undo/redo, etc (revision?)
-      version: Date.now()
+      version: revision || Date.now()
     }
   }
 
@@ -137,6 +138,7 @@ export const definition = async (data: VimInfo) => {
   return asQfList(result)
 }
 
+// TODO: use a better thingy type thingy pls k thx
 export const references = async (data: VimInfo) => {
   const req = toProtocol(data, {
     context: {

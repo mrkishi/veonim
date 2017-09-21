@@ -1,5 +1,5 @@
-import { fullBufferUpdate, partialBufferUpdate } from './langserv/adapter'
-import { autocmd, cwdir, call, expr, getCurrentLine } from './ui/neovim'
+import { fullBufferUpdate, partialBufferUpdate, references } from './langserv/adapter'
+import { action, autocmd, cwdir, call, expr, getCurrentLine } from './ui/neovim'
 import { cc, debounce, merge } from './utils'
 
 // TODO: when renaming and such
@@ -43,3 +43,10 @@ autocmd.bufEnter(debounce(async () => {
 
 autocmd.textChanged(debounce(() => attemptUpdate(), 200))
 autocmd.textChangedI(() => attemptUpdate(true))
+
+action('references', async () => {
+  console.log('get refs')
+  const [ , line, column ] = await call.getpos('.')
+  const res = await references({ ...cache, line, column })
+  console.log('refs', res)
+})

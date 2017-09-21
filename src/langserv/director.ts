@@ -64,6 +64,7 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
 }
 
 const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, args: any[]) => {
+  console.log(`LS --> ${method} ${JSON.stringify(args)}`)
   const { cwd, filetype } = args[0]
 
   // TODO: could start multiple servers while waiting for server to load
@@ -81,6 +82,7 @@ const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (me
 
   const { error, result } = await server.request(`${namespace}/${method}`, args).catch(derp)
   if (error) derp(`failed ${namespace}/${method} with error: ${JSON.stringify(error)}`)
+  console.log(`LS <-- ${result}`)
   return result
 })
 
