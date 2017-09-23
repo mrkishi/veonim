@@ -1,7 +1,7 @@
-import { startServerFor, hasServerFor } from './servers'
-import { onFnCall, getOpenPort } from '../utils'
+import { startServerFor, hasServerFor } from './server-loader'
 import defaultCapabs from './capabilities'
-import { Server } from './channel'
+import { Server } from '@veonim/jsonrpc'
+import { onFnCall } from '../utils'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }
@@ -14,36 +14,10 @@ interface ActiveServer extends Server {
   canDo: Result & QueryableObject
 }
 
-const servers = new Map()
-const runningServers = {
-  get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
-  add: (cwd: string, type: string, server: ActiveServer) => servers.set(`${cwd}::${type}`, server),
-}
-
 const derp = (e: any) => console.error(e)
-
-const startServer = async (cwd: string, type: string): Promise<ActiveServer> => {
-  if (!hasServerFor(type)) throw `no language server configured for ${type}`
-
-  const port = await getOpenPort().catch(derp)
-  if (!port) throw `failed to get open port wtf lol`
-  const { request, notify, on, onError } = await startServerFor(type, port)
-
-  const res = await request('initialize', defaultCapabs(cwd)).catch(derp)
-  if (!res) throw `failed to initalize server ${type}`
-  if (res.error) throw `initalize err: ${JSON.stringify(res.error)}`
-  notify('initialized')
-
-  return { request, notify, on, onError, canDo: res.capabilities }
-}
-
-const loadServer = async (cwd: string, type: string) => {
-  const server = await startServer(cwd, type).catch(derp)
-  if (!server) return
-  runningServers.add(cwd, type, server)
-  return server
-}
-
+const servers = new Map<string, ActiveServer>()
+const startingServers = new Set<string>()
+const serverStartCallbacks = new Set<Function>()
 const saveOpts = new Map<string, string>([
   ['textDocument/didOpen', 'openClose'],
   ['textDocument/didClose', 'openClose'],
@@ -53,8 +27,23 @@ const saveOpts = new Map<string, string>([
   ['textDocument/willSaveWaitUntil', 'willSaveWaitUntil'],
 ])
 
-// TODO: multiple servers can serve the same lang. should query multiple
-// i.e. tern for basic, maybe typescript for some stuff, eslint for formatting/errors (all JS)
+const runningServers = {
+  get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
+  add: (cwd: string, type: string, server: ActiveServer) => servers.set(`${cwd}::${type}`, server),
+}
+
+const startServer = async (cwd: string, filetype: string): Promise<ActiveServer> => {
+  startingServers.add(cwd + filetype)
+  const server = await startServerFor(filetype)
+  const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
+  if (error) throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
+  server.notify.initialized()
+  runningServers.add(cwd, filetype, { ...server, canDo })
+  startingServers.delete(cwd + filetype)
+  serverStartCallbacks.forEach(fn => fn(filetype))
+  return { ...server, canDo }
+}
+
 const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
   const save = saveOpts.get(`${ns}/${fn}`)
 
@@ -66,29 +55,18 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
 const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, args: any[]) => {
   console.log(`LS --> ${method} ${JSON.stringify(args)}`)
   const { cwd, filetype } = args[0]
+  if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
-  // TODO: could start multiple servers while waiting for server to load
-  // FIX THIS FOOLISHNESS
-  const server = runningServers.get(cwd, filetype) || await loadServer(cwd, filetype)
-  if (!server) {
-    derp(`could not load server type:${filetype} cwd:${cwd}`)
-    return {}
-  }
+  const server = runningServers.get(cwd, filetype) || await startServer(cwd, filetype)
+  if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
+  if (!canDoMethod(server, namespace, method)) return derp(`server does not support ${namespace}/${method}`)
 
-  if (!canDoMethod(server, namespace, method)) {
-    derp(`server does not support ${namespace}/${method}`)
-    return {}
-  }
-
-  // TODO: why no { error, result } object? is error caught in channel wrapper?
-  //const { error, result } = await server.request(`${namespace}/${method}`, ...args).catch(derp)
-  //if (error) derp(`failed ${namespace}/${method} with error: ${JSON.stringify(error)}`)
-
-  const result = await server.request(`${namespace}/${method}`, ...args).catch(derp)
+  const result = await server.request[`${namespace}/${method}`](...args).catch(derp)
   console.log(`LS <-- ${result}`)
   return result
 })
 
+export const onServerStart = (fn: (filetype: string) => void) => serverStartCallbacks.add(fn)
 export const client = registerDynamicCaller('client')
 export const workspace = registerDynamicCaller('workspace')
 export const completionItem = registerDynamicCaller('completionItem')

@@ -1,10 +1,15 @@
-import { connect as connectToServerOn, Server } from './channel'
+import { connect, Server } from '@veonim/jsonrpc'
+import { getOpenPort } from '../utils'
 import { spawn } from 'child_process'
-import { delay } from '../utils'
 
-const servers = new Map<string, (port: number) => Promise<Server>>()
+const servers = new Map<string, () => Promise<Server>>()
+const derp = (e: any) => console.error(e)
 
-servers.set('javascript', async port => {
+// this is all temporary as lang servers will be registered via extensions
+servers.set('javascript', async () => {
+  const port = await getOpenPort().catch(derp)
+  if (!port) throw `failed to get an open port. will not be able to start javascript server`
+
   const proc = spawn('node', [
     require.resolve('js-langs'),
     port + ''
@@ -13,10 +18,8 @@ servers.set('javascript', async port => {
   proc.on('error', e => console.log(e))
   proc.stdout.pipe(process.stdout)
   proc.stderr.pipe(process.stderr)
-  // TODO: have channel client buffer requests until server has started. need hook to know when server is running
-  // TODO: implement client reconnect and server restart (if fail)
-  await delay(1e3)
-  return connectToServerOn(port)
+  // TODO: implement server restart (if fail)
+  return connect.tcp(port)
 })
 
 // TODO: soon. TS server sends requests for files from workspace that need to be fulfilled
@@ -32,4 +35,4 @@ servers.set('javascript', async port => {
 
 
 export const hasServerFor = (language: string) => servers.has(language)
-export const startServerFor = (language: string, port: number) => servers.get(language)!(port)
+export const startServerFor = (language: string) => servers.get(language)!()
