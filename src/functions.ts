@@ -28,4 +28,5 @@ export interface Functions {
   synIDattr(id: number, type: string): Promise<number>,
   getpos(where: string): Promise<WindowPosition>,
   setloclist(window: number, list: QuickFixList[]): Promise<void>,
+  cursor(line: number, column: number): Promise<void>,
 }

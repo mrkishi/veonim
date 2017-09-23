@@ -1,4 +1,4 @@
-import { fullBufferUpdate, partialBufferUpdate, references } from './langserv/adapter'
+import { fullBufferUpdate, partialBufferUpdate, references, definition } from './langserv/adapter'
 import { ex, action, autocmd, cwdir, call, expr, getCurrentLine } from './ui/neovim'
 import { cc, debounce, merge } from './utils'
 
@@ -56,4 +56,11 @@ action('references', async () => {
 
   ex('lopen')
   ex('wincmd p')
+})
+
+action('definition', async () => {
+  const [ , line, column ] = await call.getpos('.')
+  const loc = await definition({ ...cache, line, column })
+  if (!loc || !loc.line || !loc.column) return
+  await call.cursor(loc.line, loc.column)
 })
