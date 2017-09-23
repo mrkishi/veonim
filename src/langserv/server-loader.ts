@@ -15,7 +15,7 @@ servers.set('javascript', async () => {
     port + ''
   ])
 
-  proc.on('error', e => console.log(e))
+  proc.on('error', derp)
   proc.stdout.pipe(process.stdout)
   proc.stderr.pipe(process.stderr)
   // TODO: implement server restart (if fail)

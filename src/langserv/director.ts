@@ -53,7 +53,6 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
 }
 
 const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, args: any[]) => {
-  console.log(`LS --> ${method} ${JSON.stringify(args)}`)
   const { cwd, filetype } = args[0]
   if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
@@ -61,6 +60,7 @@ const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (me
   if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
   if (!canDoMethod(server, namespace, method)) return derp(`server does not support ${namespace}/${method}`)
 
+  console.log(`LS --> ${method} ${JSON.stringify(args)}`)
   const result = await server.request[`${namespace}/${method}`](...args).catch(derp)
   console.log(`LS <-- ${result}`)
   return result
