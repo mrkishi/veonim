@@ -204,7 +204,7 @@ export const completions = async (_data: VimInfo) => {
 // TODO: get signature hint from language server. figure out if (all langs) need position to
 // be over the function or can be inside parens. if (can be inside parens) then migrate
 // logic to js-langs to find function call
-export const signatureHint = async (data: VimInfo) => {
+export const signatureHelp = async (data: VimInfo) => {
   const req = toProtocol(data)
   const hint = await textDocument.signatureHelp(req)
   console.log(hint)

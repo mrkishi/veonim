@@ -1,5 +1,5 @@
+import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
-import { fullBufferUpdate, partialBufferUpdate, references, definition, rename } from './langserv/adapter'
 import { cc, debounce, merge } from './utils'
 
 let pauseUpdate = false
@@ -89,6 +89,11 @@ action('rename', async () => {
   pauseUpdate = false
   const patches = await rename({ ...cache, line, column, newName })
   // TODO: change other files besides current buffer
-  console.log(patches)
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
+})
+
+action('hint', async () => {
+  const [ , line, column ] = await call.getpos('.')
+  const hint = await signatureHelp({ ...cache, line, column })
+  console.log(hint)
 })
