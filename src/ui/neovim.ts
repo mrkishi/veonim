@@ -6,6 +6,7 @@ import setupRPC from '../rpc'
 
 type GenericCallback = (...args: any[]) => void
 type StrFnObj = { [index: string]: (callback: () => void) => void }
+type ProxyToPromise = { [index: string]: () => Promise<any> }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 type KeyVal = { [index: string]: any }
 
@@ -117,6 +118,15 @@ export const autocmd: StrFnObj = onFnCall((name, [cb]) => {
   const ev = pascalCase(name)
   if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
   autocmdWatchers.add(ev, cb)
+})
+
+export const until: ProxyToPromise = onFnCall(name => {
+  const ev = pascalCase(name)
+  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
+  return new Promise(fin => {
+    const whenDone = () => (fin(), autocmdWatchers.remove(ev, whenDone))
+    autocmdWatchers.add(ev, whenDone)
+  })
 })
 
 onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))

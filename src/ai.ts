@@ -1,10 +1,24 @@
-import { fullBufferUpdate, partialBufferUpdate, references, definition } from './langserv/adapter'
-import { ex, action, autocmd, cwdir, call, expr, getCurrentLine } from './ui/neovim'
+import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
+import { fullBufferUpdate, partialBufferUpdate, references, definition, rename } from './langserv/adapter'
 import { cc, debounce, merge } from './utils'
 
-// TODO: when renaming and such
 let pauseUpdate = false
 const cache = { filetype: '', file: '', revision: -1, cwd: '' }
+
+define.PatchCurrentBuffer`
+  let pos = getcurpos()
+  let patch = a:1
+  for chg in patch
+    if chg.op == 'delete'
+      exec chg.line . 'd'
+    elseif chg.op == 'replace'
+      call setline(chg.line, chg.val)
+    elseif chg.op == 'append'
+      call append(chg.line, chg.val)
+    end
+  endfor
+  call cursor(pos[1:])
+`
 
 const updateServer = async (lineChange = false) => {
   // TODO: better, more async
@@ -63,4 +77,18 @@ action('definition', async () => {
   const loc = await definition({ ...cache, line, column })
   if (!loc || !loc.line || !loc.column) return
   await call.cursor(loc.line, loc.column)
+})
+
+action('rename', async () => {
+  const [ , line, column ] = await call.getpos('.')
+  pauseUpdate = true
+  await feedkeys('ciw')
+  await until.insertLeave()
+  const newName = await expr('@.')
+  await feedkeys('u')
+  pauseUpdate = false
+  const patches = await rename({ ...cache, line, column, newName })
+  // TODO: change other files besides current buffer
+  console.log(patches)
+  patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
 })

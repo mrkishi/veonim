@@ -1,3 +1,5 @@
+import { PatchOperation } from './langserv/adapter'
+
 export interface VimBuffer {
   name: string,
   cur: boolean,
@@ -29,4 +31,5 @@ export interface Functions {
   getpos(where: string): Promise<WindowPosition>,
   setloclist(window: number, list: QuickFixList[]): Promise<void>,
   cursor(line: number, column: number): Promise<void>,
+  PatchCurrentBuffer(patchOperations: PatchOperation[]): Promise<void>,
 }

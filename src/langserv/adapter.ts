@@ -37,6 +37,18 @@ interface DocumentChange {
   edits: TextEdit[]
 }
 
+export interface PatchOperation {
+  op: string,
+  line: number,
+  val?: string,
+}
+
+export interface Patch {
+  cwd: string,
+  file: string,
+  operations: PatchOperation[],
+}
+
 // TODO: get typings for valid requests?
 const toProtocol = (data: VimInfo, more?: any) => {
   const { cwd, filetype, file, line: vimLine, column } = data
@@ -64,12 +76,13 @@ const toProtocol = (data: VimInfo, more?: any) => {
   return more ? merge(base, more) : base
 }
 
+
 const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 const asCwd = (m = '') => dirname(uriToPath(m)) 
 const asFile = (m = '') => basename(uriToPath(m)) 
 const toVimLocation = ({ line, character }: Position) => ({ line: line + 1, column: character + 1 })
 const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character
-const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }: TextEdit) => {
+const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }: TextEdit): PatchOperation => {
   const line = start.line + 1
 
   if (!newText) return { op: 'delete', line }
@@ -161,20 +174,23 @@ export const references = async (data: VimInfo): Promise<VimQFItem[]> => {
   return references.map(asQfList)
 }
 
-export const rename = async (data: VimInfo & { newName: string }) => {
+export const rename = async (data: VimInfo & { newName: string }): Promise<Patch[]> => {
   const req = toProtocol(data, {
     newName: data.newName
   })
 
-  const { changes, documentChanges } = await textDocument.rename(req)
+  const { /*changes,*/ documentChanges } = await textDocument.rename(req)
 
   if (documentChanges) return (documentChanges as DocumentChange[]).map(({ textDocument, edits }) => {
     const cwd = asCwd(textDocument.uri)
     const file = asFile(textDocument.uri)
-    return { cwd, file, patch: edits.map(makePatch(cwd, file)) }
+    return { cwd, file, operations: edits.map(makePatch(cwd, file)) }
   })
 
-  changes && console.error('rename needs to support .changes for patch')
+  return []
+
+  // TODO: handle legacy 'changes' property.
+  // LSP supports both changes and documentChanges. thanks microsoft
   // TODO: handle { changes }
   // changes array is indexed by the uri?
   // changes[main.js] = { range, newText }
