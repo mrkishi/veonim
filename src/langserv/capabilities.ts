@@ -2,6 +2,8 @@ export default (cwd: string) => ({
   rootPath: cwd,
   rootUri: 'cwd://' + cwd,
   capabilities: {
+    xfilesProvider: true,
+    xcontentProvider: true,
     workspace: {
       applyEdit: true,
       workspaceEdit: {

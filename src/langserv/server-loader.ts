@@ -22,16 +22,13 @@ servers.set('javascript', async () => {
   return connect.tcp(port)
 })
 
-// TODO: soon. TS server sends requests for files from workspace that need to be fulfilled
-//servers.set('typescript', port => {
-  //spawn('node', [
-    //'node_modules/javascript-typescript-langserver/lib/language-server.js',
-    //'-p',
-    //port + ''
-  //])
+servers.set('typescript', async () => {
+  const { stdout, stdin } = spawn('node', [
+    'node_modules/javascript-typescript-langserver/lib/language-server-stdio.js',
+  ])
 
-  //return connectToServerOn(port)
-//})
+  return connect.ipc(stdout, stdin)
+})
 
 
 export const hasServerFor = (language: string) => servers.has(language)

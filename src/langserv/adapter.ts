@@ -1,4 +1,5 @@
-import { textDocument } from './director'
+import { Position, Range, TextEdit, TextDocumentEdit } from 'vscode-languageserver-types'
+import { textDocument, onServerRequest } from './director'
 import { update, getLine, getFile } from './files'
 import { dirname, basename } from 'path'
 import { merge } from '../utils'
@@ -13,28 +14,6 @@ interface VimInfo {
   column?: number,
   filetype?: string,
   revision?: number,
-}
-
-interface Position {
-  line: number,
-  character: number,
-}
-
-interface Range {
-  start: Position,
-  end: Position,
-}
-
-interface TextEdit {
-  newText: string,
-  range: Range,
-}
-
-interface DocumentChange {
-  textDocument: {
-    uri: string
-  },
-  edits: TextEdit[]
 }
 
 export interface PatchOperation {
@@ -181,7 +160,7 @@ export const rename = async (data: VimInfo & { newName: string }): Promise<Patch
 
   const { /*changes,*/ documentChanges } = await textDocument.rename(req)
 
-  if (documentChanges) return (documentChanges as DocumentChange[]).map(({ textDocument, edits }) => {
+  if (documentChanges) return (documentChanges as TextDocumentEdit[]).map(({ textDocument, edits }) => {
     const cwd = asCwd(textDocument.uri)
     const file = asFile(textDocument.uri)
     return { cwd, file, operations: edits.map(makePatch(cwd, file)) }
@@ -222,3 +201,5 @@ export const signatureHelp = async (data: VimInfo) => {
     //activeParameter?: 0
   //}
 }
+
+export { onServerRequest }

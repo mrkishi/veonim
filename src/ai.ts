@@ -1,5 +1,6 @@
-import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp } from './langserv/adapter'
+import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
+import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import { cc, debounce, merge } from './utils'
 
 let pauseUpdate = false
@@ -96,4 +97,31 @@ action('hint', async () => {
   const [ , line, column ] = await call.getpos('.')
   const hint = await signatureHelp({ ...cache, line, column })
   console.log(hint)
+})
+
+interface ContentParams {
+  textDocument: TextDocumentIdentifier
+}
+
+interface FilesParam {
+  base?: string
+}
+
+onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
+  // TODO: lol nope
+  return {
+    uri: textDocument.uri,
+    languageId: 'typescript',
+    version: Date.now(),
+    text: 'buffer of the document'
+  }
+})
+
+onServerRequest<FilesParam, TextDocumentIdentifier[]>('workspace/xfiles', async ({ base }: { base?: string }) => {
+  const cwd = base || await cwdir()
+  return [{
+    uri: 'file:///users/wut/one.ts' + cwd,
+  }, {
+    uri: 'file:///users/wut/two.ts' + cwd,
+  }]
 })
