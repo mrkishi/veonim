@@ -1,7 +1,8 @@
 import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
-import { cc, debounce, merge } from './utils'
+import { cc, debounce, merge, NewlineSplitter } from './utils'
+import Ripgrep from '@veonim/ripgrep'
 
 let pauseUpdate = false
 const cache = { filetype: '', file: '', revision: -1, cwd: '' }
@@ -108,7 +109,8 @@ interface FilesParam {
 }
 
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
-  // TODO: lol nope
+  // TODO: get content of the document requested. if open buffer in vim session, send buffer.
+  // otherwise read from fs
   return {
     uri: textDocument.uri,
     languageId: 'typescript',
@@ -117,11 +119,62 @@ onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async 
   }
 })
 
+
+// example request
+//{
+  //"jsonrpc": "2.0",
+  //"id": 1,
+  //"method": "workspace/xfiles"
+//}
+//
+// response
+//{
+//"jsonrpc": "2.0",
+  //"id": 1,
+  //"result": [
+    //{"uri": "file:///some/project/.gitignore"},
+    //{"uri": "file:///some/project/composer.json"}
+    //{"uri": "file:///some/project/folder/1.php"},
+    //{"uri": "file:///some/project/folder/folder/2.php"}
+  //]
+//}
+//
+// REQ
+//{
+  //"jsonrpc": "2.0",
+  //"id": 1,
+  //"method": "workspace/xfiles",
+  //"params": {
+    //"base": "file:///usr/local/go"
+  //}
+//}
+//
+// RES
+//{
+  //"jsonrpc": "2.0",
+  //"id": 1,
+  //"result": [
+    //{"uri": "file:///usr/local/go/1.go"},
+    //{"uri": "file:///usr/local/go/folder/"},
+    //{"uri": "file:///usr/local/go/folder/2.go"},
+    //{"uri": "file:///usr/local/go/folder/folder/"},
+    //{"uri": "file:///usr/local/go/folder/folder/3.go"}
+  //]
+//}
+
 onServerRequest<FilesParam, TextDocumentIdentifier[]>('workspace/xfiles', async ({ base }: { base?: string }) => {
+  // TODO: also return directories
+  // glob or ... needs to respect .gitignore or whatever ripgrep uses = .ignore?
   const cwd = base || await cwdir()
-  return [{
-    uri: 'file:///users/wut/one.ts' + cwd,
-  }, {
-    uri: 'file:///users/wut/two.ts' + cwd,
-  }]
+  let completeDone = () => {}
+  const loadResults = new Promise(fin => completeDone = fin)
+
+  const results: string[] = []
+  const rg = Ripgrep(['--files'], { cwd })
+  rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => results.push(path))
+  rg.on('exit', () => completeDone())
+
+  await loadResults
+
+  return results.map(path => ({ uri: `file://${path}` }))
 })
