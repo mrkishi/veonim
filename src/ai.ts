@@ -7,6 +7,14 @@ import Ripgrep from '@veonim/ripgrep'
 let pauseUpdate = false
 const cache = { filetype: '', file: '', revision: -1, cwd: '' }
 
+const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
+const getFiles = (path: string): Promise<string[]> => new Promise(done => {
+  const results: string[] = []
+  const rg = Ripgrep(['--files'], { cwd: path })
+  rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => results.push(path))
+  rg.on('exit', () => done(results))
+})
+
 define.PatchCurrentBuffer`
   let pos = getcurpos()
   let patch = a:1
@@ -53,6 +61,7 @@ const attemptUpdate = async (lineChange = false) => {
 
 autocmd.bufEnter(debounce(async () => {
   const [ cwd, file, filetype ] = await cc(cwdir(), call.expand(`%f`), expr(`&filetype`))
+  // TODO: changedtick -> revision
   merge(cache, { cwd, file, filetype, revision: -1 })
   updateServer()
 }, 100))
@@ -119,62 +128,8 @@ onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async 
   }
 })
 
-
-// example request
-//{
-  //"jsonrpc": "2.0",
-  //"id": 1,
-  //"method": "workspace/xfiles"
-//}
-//
-// response
-//{
-//"jsonrpc": "2.0",
-  //"id": 1,
-  //"result": [
-    //{"uri": "file:///some/project/.gitignore"},
-    //{"uri": "file:///some/project/composer.json"}
-    //{"uri": "file:///some/project/folder/1.php"},
-    //{"uri": "file:///some/project/folder/folder/2.php"}
-  //]
-//}
-//
-// REQ
-//{
-  //"jsonrpc": "2.0",
-  //"id": 1,
-  //"method": "workspace/xfiles",
-  //"params": {
-    //"base": "file:///usr/local/go"
-  //}
-//}
-//
-// RES
-//{
-  //"jsonrpc": "2.0",
-  //"id": 1,
-  //"result": [
-    //{"uri": "file:///usr/local/go/1.go"},
-    //{"uri": "file:///usr/local/go/folder/"},
-    //{"uri": "file:///usr/local/go/folder/2.go"},
-    //{"uri": "file:///usr/local/go/folder/folder/"},
-    //{"uri": "file:///usr/local/go/folder/folder/3.go"}
-  //]
-//}
-
 onServerRequest<FilesParam, TextDocumentIdentifier[]>('workspace/xfiles', async ({ base }: { base?: string }) => {
-  // TODO: also return directories
-  // glob or ... needs to respect .gitignore or whatever ripgrep uses = .ignore?
-  const cwd = base || await cwdir()
-  let completeDone = () => {}
-  const loadResults = new Promise(fin => completeDone = fin)
-
-  const results: string[] = []
-  const rg = Ripgrep(['--files'], { cwd })
-  rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => results.push(path))
-  rg.on('exit', () => completeDone())
-
-  await loadResults
-
-  return results.map(path => ({ uri: `file://${path}` }))
+  const cwd = base ? uriToPath(base) : await cwdir()
+  const files = await getFiles(cwd)
+  return files.map(path => ({ uri: `file://${path}` }))
 })
