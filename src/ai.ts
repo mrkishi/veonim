@@ -1,7 +1,7 @@
 import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
-import { cc, debounce, merge, NewlineSplitter } from './utils'
+import { cc, debounce, merge, readFile, NewlineSplitter } from './utils'
 import Ripgrep from '@veonim/ripgrep'
 
 let pauseUpdate = false
@@ -14,6 +14,12 @@ const getFiles = (path: string): Promise<string[]> => new Promise(done => {
   rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => results.push(path))
   rg.on('exit', () => done(results))
 })
+
+define.ModifiedBuffers`
+  let current = bufnr('%')
+  let bufs = filter(range(0, bufnr('$')), 'buflisted(v:val)')
+  return map(filter(map(bufs, {key, val -> { 'path': expand('#'.val.':p'), 'mod': getbufvar(val, '&mod') }}), {key, val -> val.mod == 1}), {key, val -> val.path})
+`
 
 define.PatchCurrentBuffer`
   let pos = getcurpos()
@@ -118,13 +124,21 @@ interface FilesParam {
 }
 
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
-  // TODO: get content of the document requested. if open buffer in vim session, send buffer.
-  // otherwise read from fs
+  const filepath = uriToPath(textDocument.uri)
+  const modifiedBuffers = await call.ModifiedBuffers()
+  if (modifiedBuffers.includes(filepath)) {
+    // TODO: vim read buffer (even if in background...?)
+  }
+
+  const fileContents = await readFile(filepath, { encoding: 'utf8' })
+  // TODO: get &filetype and b:changedtick for filepath
+  // needs to support background vim buffer
+  // or if from FS need to figure out filetype from extension. ugh
   return {
     uri: textDocument.uri,
     languageId: 'typescript',
     version: Date.now(),
-    text: 'buffer of the document'
+    text: fileContents.split('\n')
   }
 })
 

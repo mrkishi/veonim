@@ -3,7 +3,7 @@ import { PatchOperation } from './langserv/adapter'
 export interface VimBuffer {
   name: string,
   cur: boolean,
-  mod: boolean
+  mod: boolean,
 }
 
 export interface QuickFixList {
@@ -20,9 +20,11 @@ export interface QuickFixList {
 
 type WindowPosition = [ string, number, number, number ]
 
+// TODO: consider moving vim user functions to a central file (here?)
 export interface Functions {
   Commands(): Promise<string[]>,
-  Buffers(): VimBuffer[],
+  Buffers(): Promise<VimBuffer[]>,
+  ModifiedBuffers(): Promise<string[]>,
   OpenPaths(): Promise<string[]>,
   getcwd(): Promise<string>,
   getline(type: string | number, end?: string): Promise<string | string[]>,
