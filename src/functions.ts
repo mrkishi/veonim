@@ -34,4 +34,7 @@ export interface Functions {
   setloclist(window: number, list: QuickFixList[]): Promise<void>,
   cursor(line: number, column: number): Promise<void>,
   PatchCurrentBuffer(patchOperations: PatchOperation[]): Promise<void>,
+  bufname(expr: string | number): Promise<string>,
+  getbufline(expr: string | number, startLine: number, endLine?: number | string): Promise<string[]>,
+  getbufvar(expr: string | number, varname?: string, defaultValue?: any): Promise<any>,
 }

@@ -126,12 +126,29 @@ interface FilesParam {
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
   const filepath = uriToPath(textDocument.uri)
   const modifiedBuffers = await call.ModifiedBuffers()
+
   if (modifiedBuffers.includes(filepath)) {
-    // TODO: vim read buffer (even if in background...?)
+    // TODO: use built-in neovim api for this?
+    // getbufvar(name, '') gets full dict. might be faster to get all to client then parse out
+    const bufferName = await call.bufname(filepath)
+    const [ lines, filetype, revision ] = await Promise.all([
+      call.getbufline(bufferName, 1, '$'),
+      call.getbufvar(bufferName, '&filetype'),
+      call.getbufvar(bufferName, 'changedtick'),
+    ])
+
+    return {
+      uri: textDocument.uri,
+      version: revision,
+      // https://code.visualstudio.com/docs/languages/identifiers (may not match 1:1 with vim filetype)
+      languageId: filetype,
+      text: lines,
+    }
   }
 
   const fileContents = await readFile(filepath, { encoding: 'utf8' })
   // TODO: get &filetype and b:changedtick for filepath
+  // if loading from fs, then there are no revisions. consider using 1 for version
   // needs to support background vim buffer
   // or if from FS need to figure out filetype from extension. ugh
   return {
