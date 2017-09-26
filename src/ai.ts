@@ -2,6 +2,7 @@ import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, def
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import { cc, debounce, merge, readFile, NewlineSplitter } from './utils'
+import getLanguageIdFromPath from '../language-ids'
 import Ripgrep from '@veonim/ripgrep'
 
 let pauseUpdate = false
@@ -147,18 +148,10 @@ onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async 
   }
 
   const fileContents = await readFile(filepath, { encoding: 'utf8' })
-  // TODO: get filetype... extension matching might not be enough
-  //https://vi.stackexchange.com/questions/9962/get-filetype-by-extension-or-filename-in-vimscript
-  // how important is the languageId to the server anyways...
-  // idk, just do a dumb lookup by file extension, if it fails, send empty string
-  // if anyone complains, revisit later. otherwise the complexity of this could get out of hand
-  // (spawn new separate detached vim instance and load file into it - then use &filetype)
-  // because vim looks beyond file extension - it parses the first few lines to deduce filetype
-  // also, vim may not have all possible filetypes for more esoteric languages.
-  // lookup seems simplest.
+
   return {
     uri: textDocument.uri,
-    languageId: 'typescript',
+    languageId: getLanguageIdFromPath(filepath),
     version: 1,
     text: fileContents.split('\n')
   }
