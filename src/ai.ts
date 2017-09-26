@@ -138,23 +138,28 @@ onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async 
     ])
 
     return {
-      uri: textDocument.uri,
-      version: revision,
       // https://code.visualstudio.com/docs/languages/identifiers (may not match 1:1 with vim filetype)
       languageId: filetype,
+      uri: textDocument.uri,
+      version: revision,
       text: lines,
     }
   }
 
   const fileContents = await readFile(filepath, { encoding: 'utf8' })
-  // TODO: get &filetype and b:changedtick for filepath
-  // if loading from fs, then there are no revisions. consider using 1 for version
-  // needs to support background vim buffer
-  // or if from FS need to figure out filetype from extension. ugh
+  // TODO: get filetype... extension matching might not be enough
+  //https://vi.stackexchange.com/questions/9962/get-filetype-by-extension-or-filename-in-vimscript
+  // how important is the languageId to the server anyways...
+  // idk, just do a dumb lookup by file extension, if it fails, send empty string
+  // if anyone complains, revisit later. otherwise the complexity of this could get out of hand
+  // (spawn new separate detached vim instance and load file into it - then use &filetype)
+  // because vim looks beyond file extension - it parses the first few lines to deduce filetype
+  // also, vim may not have all possible filetypes for more esoteric languages.
+  // lookup seems simplest.
   return {
     uri: textDocument.uri,
     languageId: 'typescript',
-    version: Date.now(),
+    version: 1,
     text: fileContents.split('\n')
   }
 })
