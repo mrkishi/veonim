@@ -2,7 +2,7 @@ import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, def
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import { cc, debounce, merge, readFile, NewlineSplitter } from './utils'
-import getLanguageIdFromPath from '../language-ids'
+import getLanguageIdFromPath from './language-ids'
 import Ripgrep from '@veonim/ripgrep'
 
 let pauseUpdate = false
