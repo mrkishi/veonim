@@ -60,13 +60,10 @@ export const getDirFiles = async (path: string) => {
     .filter(m => m.dir || m.file)
 }
 
-export const requireDir = async (path: string) => {
-  const dirFiles = await getDirFiles(path)
-  dirFiles
-    .filter(m => m.file)
-    .filter(m => extname(m.name) === '.js')
-    .forEach(m => require(m.path))
-}
+export const requireDir = async (path: string) => (await getDirFiles(path))
+  .filter(m => m.file)
+  .filter(m => extname(m.name) === '.js')
+  .forEach(m => require(m.path))
 
 export function debounce (fn: Function, wait = 1) {
   let timeout: NodeJS.Timer

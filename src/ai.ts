@@ -5,6 +5,14 @@ import { cc, debounce, merge, readFile, NewlineSplitter } from './utils'
 import getLanguageIdFromPath from './language-ids'
 import Ripgrep from '@veonim/ripgrep'
 
+interface ContentParams {
+  textDocument: TextDocumentIdentifier
+}
+
+interface FilesParam {
+  base?: string
+}
+
 let pauseUpdate = false
 const cache = { filetype: '', file: '', revision: -1, cwd: '' }
 
@@ -46,7 +54,6 @@ const updateServer = async (lineChange = false) => {
     line,
     column,
     buffer: [ await getCurrentLine() ]
-    //buffer: [ await call.getline('.') as string ]
   })
 
   else fullBufferUpdate({
@@ -115,14 +122,6 @@ action('hint', async () => {
   const hint = await signatureHelp({ ...cache, line, column })
   console.log(hint)
 })
-
-interface ContentParams {
-  textDocument: TextDocumentIdentifier
-}
-
-interface FilesParam {
-  base?: string
-}
 
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
   const filepath = uriToPath(textDocument.uri)
