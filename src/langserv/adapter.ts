@@ -55,7 +55,6 @@ const toProtocol = (data: VimInfo, more?: any) => {
   return more ? merge(base, more) : base
 }
 
-
 const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 const asCwd = (m = '') => dirname(uriToPath(m)) 
 const asFile = (m = '') => basename(uriToPath(m)) 
@@ -149,7 +148,7 @@ export const references = async (data: VimInfo): Promise<VimQFItem[]> => {
     }
   })
 
-  const references = await textDocument.references(req)
+  const references = await textDocument.references(req) || []
   return references.map(asQfList)
 }
 

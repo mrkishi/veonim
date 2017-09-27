@@ -84,13 +84,13 @@ const pathGet = (obj: any, paths: string[]): any => {
 export const getInObjectByPath = (obj: any, path: string) => pathGet(obj, path.split('.'))
 
 export const getOpenPort = (): Promise<number> => new Promise((done, fail) => {
-	const server = createServer()
-	server.unref()
+  const server = createServer()
+  server.unref()
   server.on('error', () => fail(0))
-	server.listen(0, () => {
-		const port = server.address().port
-		server.close(() => done(port))
-	})
+  server.listen(0, () => {
+    const port = server.address().port
+    server.close(() => done(port))
+  })
 })
 
 export class Watchers extends Map<string, Set<Function>> {

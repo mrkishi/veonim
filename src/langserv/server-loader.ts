@@ -23,13 +23,40 @@ servers.set('javascript', async () => {
 })
 
 servers.set('typescript', async () => {
-  const { stdout, stdin } = spawn('node', [
-    'node_modules/javascript-typescript-langserver/lib/language-server-stdio.js',
+  const port = await getOpenPort().catch(derp)
+  if (!port) throw `failed to get an open port. will not be able to start typescript server`
+
+  const proc = spawn('node', [
+    'node_modules/javascript-typescript-langserver/lib/language-server.js',
+    '--trace',
+    '--port',
+    port + '',
   ])
 
-  return connect.ipc(stdout, stdin)
+  proc.on('error', derp)
+  proc.stdout.pipe(process.stdout)
+  proc.stderr.pipe(process.stderr)
+
+  console.log('connect to ', port)
+
+  return connect.tcp(port)
 })
 
+//servers.set('typescript', async () => {
+  //const proc = spawn('node', [
+    //'node_modules/javascript-typescript-langserver/lib/language-server-stdio.js',
+    //'--trace',
+    //'--logfile',
+    //'lglog',
+  //])
+
+  //proc.on('error', derp)
+  //proc.on('exit', () => console.error('IT CLOSED WHY'))
+  //proc.stdout.pipe(process.stdout)
+  //proc.stderr.pipe(process.stderr)
+
+  //return connect.ipc(proc.stdout, proc.stdin)
+//})
 
 export const hasServerFor = (language: string) => servers.has(language)
 export const startServerFor = (language: string) => servers.get(language)!()

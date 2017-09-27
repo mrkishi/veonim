@@ -1,7 +1,7 @@
 import { startServerFor, hasServerFor } from './server-loader'
 import defaultCapabs from './capabilities'
 import { Server } from '@veonim/jsonrpc'
-import { onFnCall } from '../utils'
+import { delay, onFnCall } from '../utils'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }
@@ -42,6 +42,7 @@ const serverRequestHandlers: RequestHandler[] = []
 const startServer = async (cwd: string, filetype: string): Promise<ActiveServer> => {
   startingServers.add(cwd + filetype)
   const server = await startServerFor(filetype)
+  await delay(3e3)
   const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
   if (error) throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
   server.notify.initialized()
@@ -60,6 +61,7 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
 }
 
 const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, args: any[]) => {
+  console.log(args[0])
   const { cwd, filetype } = args[0]
   if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
