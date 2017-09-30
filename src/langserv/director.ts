@@ -1,7 +1,7 @@
 import { startServerFor, hasServerFor } from './server-loader'
 import defaultCapabs from './capabilities'
 import { Server } from '@veonim/jsonrpc'
-import { delay, onFnCall } from '../utils'
+import { delay, proxyFn } from '../utils'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }
@@ -46,6 +46,7 @@ const startServer = async (cwd: string, filetype: string): Promise<ActiveServer>
   const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
   if (error) throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
   server.notify.initialized()
+  console.log('can do:', canDo)
   runningServers.add(cwd, filetype, { ...server, canDo })
   startingServers.delete(cwd + filetype)
   serverStartCallbacks.forEach(fn => fn(cwd, filetype))
@@ -60,17 +61,17 @@ const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
     || save && (canDo || {}).textDocumentSync[save]
 }
 
-const registerDynamicCaller = (namespace: string): ProxyFn => onFnCall(async (method, args: any[]) => {
-  console.log(args[0])
-  const { cwd, filetype } = args[0]
+const registerDynamicCaller = (namespace: string): ProxyFn => proxyFn(async (method, params) => {
+  console.log(params)
+  const { cwd, filetype } = params
   if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
   const server = runningServers.get(cwd, filetype) || await startServer(cwd, filetype)
   if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
   if (!canDoMethod(server, namespace, method)) return derp(`server does not support ${namespace}/${method}`)
 
-  console.log(`LS --> ${method} ${JSON.stringify(args)}`)
-  const result = await server.request[`${namespace}/${method}`](...args).catch(derp)
+  console.log(`LS --> ${method} ${JSON.stringify(params)}`)
+  const result = await server.request[`${namespace}/${method}`](params).catch(derp)
   console.log(`LS <-- ${result}`)
   return result
 })

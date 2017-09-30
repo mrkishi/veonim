@@ -86,7 +86,7 @@
   },
   "homepage": "https://github.com/veonim/veonim#readme",
   "dependencies": {
-    "@veonim/jsonrpc": "1.2.0",
+    "@veonim/jsonrpc": "2.1.2",
     "@veonim/plugin-manager": "0.4.2",
     "fuzzaldrin-plus": "0.4.1",
     "huu": "2.0.1",

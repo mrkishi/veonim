@@ -23,23 +23,22 @@ servers.set('javascript', async () => {
 })
 
 servers.set('typescript', async () => {
-  const port = await getOpenPort().catch(derp)
-  if (!port) throw `failed to get an open port. will not be able to start typescript server`
-
   const proc = spawn('node', [
-    'node_modules/javascript-typescript-langserver/lib/language-server.js',
+    'node_modules/javascript-typescript-langserver/lib/language-server-stdio.js',
     '--trace',
-    '--port',
-    port + '',
   ])
 
-  proc.on('error', derp)
-  proc.stdout.pipe(process.stdout)
-  proc.stderr.pipe(process.stderr)
+  proc.on('error', e => console.error('err in ts server', e))
 
-  console.log('connect to ', port)
+  proc.stdout.on('data', b => {
+    console.log('>>', b+'')
+  })
 
-  return connect.tcp(port)
+  proc.stderr.on('data', b => {
+    console.log('!!',b+'')
+  })
+
+  return connect.ipc(proc)
 })
 
 //servers.set('typescript', async () => {

@@ -4,8 +4,6 @@ import { update, getLine, getFile } from './files'
 import { dirname, basename } from 'path'
 import { merge } from '../utils'
 
-process.on('unhandledRejection', e => console.error(e))
-
 // TODO: revise to be the best interface that it can be. i believe in you. you can do it
 interface VimInfo {
   cwd: string,
