@@ -2,7 +2,7 @@ import { Position, Range, TextEdit, WorkspaceEdit } from 'vscode-languageserver-
 import { textDocument, onServerRequest } from './director'
 import { update, getLine, getFile } from './files'
 import { dirname, basename } from 'path'
-import { merge } from '../utils'
+import { is, merge } from '../utils'
 
 // TODO: revise to be the best interface that it can be. i believe in you. you can do it
 interface VimInfo {
@@ -135,7 +135,7 @@ export const definition = async (data: VimInfo) => {
   const req = toProtocol(data)
   const result = await textDocument.definition(req)
   if (!result) return
-  return asQfList(result)
+  return asQfList(is.array(result) ? result[0] : result)
 }
 
 // TODO: use a better thingy type thingy pls k thx
