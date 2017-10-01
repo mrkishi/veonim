@@ -123,6 +123,13 @@ action('hint', async () => {
   console.log(hint)
 })
 
+// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
+// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
+// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
+// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
+// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
+// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
+// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
   const filepath = uriToPath(textDocument.uri)
   const modifiedBuffers = await call.ModifiedBuffers()
@@ -142,7 +149,7 @@ onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async 
       languageId: filetype,
       uri: textDocument.uri,
       version: revision,
-      text: lines,
+      text: lines.join('\n'),
     }
   }
 
@@ -152,7 +159,7 @@ onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async 
     uri: textDocument.uri,
     languageId: getLanguageIdFromPath(filepath),
     version: 1,
-    text: fileContents.split('\n')
+    text: fileContents
   }
 })
 

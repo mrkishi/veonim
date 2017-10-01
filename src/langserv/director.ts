@@ -18,14 +18,14 @@ const derp = (e: any) => console.error(e)
 const servers = new Map<string, ActiveServer>()
 const startingServers = new Set<string>()
 const serverStartCallbacks = new Set<Function>()
-const saveOpts = new Map<string, string>([
-  ['textDocument/didOpen', 'openClose'],
-  ['textDocument/didClose', 'openClose'],
-  ['textDocument/didChange', 'change'],
-  ['textDocument/didSave', 'save'],
-  ['textDocument/willSave', 'willSave'],
-  ['textDocument/willSaveWaitUntil', 'willSaveWaitUntil'],
-])
+//const saveOpts = new Map<string, string>([
+  //['textDocument/didOpen', 'openClose'],
+  //['textDocument/didClose', 'openClose'],
+  //['textDocument/didChange', 'change'],
+  //['textDocument/didSave', 'save'],
+  //['textDocument/willSave', 'willSave'],
+  //['textDocument/willSaveWaitUntil', 'willSaveWaitUntil'],
+//])
 
 const runningServers = {
   get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
@@ -53,22 +53,22 @@ const startServer = async (cwd: string, filetype: string): Promise<ActiveServer>
   return { ...server, canDo }
 }
 
-const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
-  const save = saveOpts.get(`${ns}/${fn}`)
+//const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
+  //const save = saveOpts.get(`${ns}/${fn}`)
 
-  return canDo[`${fn}Provider`]
-    || canDo[`${ns + fn}Provider`]
-    || save && (canDo || {}).textDocumentSync[save]
-}
+  //return canDo[`${fn}Provider`]
+    //|| canDo[`${ns + fn}Provider`]
+    //|| save && (canDo || {}).textDocumentSync[save]
+//}
 
 const registerDynamicCaller = (namespace: string): ProxyFn => proxyFn(async (method, params) => {
-  console.log(params)
+  console.log(`BFS --> ${method} ${JSON.stringify(params)}`)
   const { cwd, filetype } = params
   if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
   const server = runningServers.get(cwd, filetype) || await startServer(cwd, filetype)
   if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
-  if (!canDoMethod(server, namespace, method)) return derp(`server does not support ${namespace}/${method}`)
+  //if (!canDoMethod(server, namespace, method)) return derp(`server does not support ${namespace}/${method}`)
 
   console.log(`LS --> ${method} ${JSON.stringify(params)}`)
   const result = await server.request[`${namespace}/${method}`](params).catch(derp)

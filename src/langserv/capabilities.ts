@@ -1,6 +1,6 @@
 export default (cwd: string) => ({
   rootPath: cwd,
-  rootUri: 'cwd://' + cwd,
+  rootUri: 'file://' + cwd,
   capabilities: {
     xfilesProvider: true,
     xcontentProvider: true,
