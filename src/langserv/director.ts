@@ -62,7 +62,7 @@ const startServer = async (cwd: string, filetype: string): Promise<ActiveServer>
 //}
 
 const registerDynamicCaller = (namespace: string): ProxyFn => proxyFn(async (method, params) => {
-  console.log(`BFS --> ${method} ${JSON.stringify(params)}`)
+  //console.log(`BFS --> ${method} ${JSON.stringify(params)}`)
   const { cwd, filetype } = params
   if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
@@ -72,7 +72,7 @@ const registerDynamicCaller = (namespace: string): ProxyFn => proxyFn(async (met
 
   console.log(`LS --> ${method} ${JSON.stringify(params)}`)
   const result = await server.request[`${namespace}/${method}`](params).catch(derp)
-  console.log(`LS <-- ${result}`)
+  console.log(`LS <-- ${JSON.stringify(result)}`)
   return result
 })
 

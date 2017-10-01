@@ -3,6 +3,7 @@ import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import { cc, debounce, merge, readFile, NewlineSplitter } from './utils'
 import getLanguageIdFromPath from './language-ids'
+import { resolve } from 'path'
 import Ripgrep from '@veonim/ripgrep'
 
 interface ContentParams {
@@ -123,16 +124,11 @@ action('hint', async () => {
   console.log(hint)
 })
 
-// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
-// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
-// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
-// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
-// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
-// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
-// TODO: not fulfilling all xcontent requests. is the protocol decode being parsed correctly?
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
-  const filepath = uriToPath(textDocument.uri)
-  const modifiedBuffers = await call.ModifiedBuffers()
+  const path = uriToPath(textDocument.uri)
+  console.log('xcontent for:', path)
+  const [ cwd, modifiedBuffers ] = await Promise.all([cwdir(), call.ModifiedBuffers()])
+  const filepath = resolve(cwd, path)
 
   if (modifiedBuffers.includes(filepath)) {
     // TODO: use built-in neovim api for this?

@@ -1,4 +1,4 @@
-import { Position, Range, TextEdit, TextDocumentEdit } from 'vscode-languageserver-types'
+import { Position, Range, TextEdit, WorkspaceEdit } from 'vscode-languageserver-types'
 import { textDocument, onServerRequest } from './director'
 import { update, getLine, getFile } from './files'
 import { dirname, basename } from 'path'
@@ -150,26 +150,19 @@ export const references = async (data: VimInfo): Promise<VimQFItem[]> => {
   return references.map(asQfList)
 }
 
+const asPatch = (filepath: string, edits: TextEdit[]): Patch => {
+  const cwd = asCwd(filepath)
+  const file = asFile(filepath)
+  return { cwd, file, operations: edits.map(makePatch(cwd, file)) }
+}
+
 export const rename = async (data: VimInfo & { newName: string }): Promise<Patch[]> => {
-  const req = toProtocol(data, {
-    newName: data.newName
-  })
+  const req = toProtocol(data, { newName: data.newName })
+  const { changes, documentChanges } = await textDocument.rename(req) as WorkspaceEdit
 
-  const { /*changes,*/ documentChanges } = await textDocument.rename(req)
-
-  if (documentChanges) return (documentChanges as TextDocumentEdit[]).map(({ textDocument, edits }) => {
-    const cwd = asCwd(textDocument.uri)
-    const file = asFile(textDocument.uri)
-    return { cwd, file, operations: edits.map(makePatch(cwd, file)) }
-  })
-
+  if (documentChanges) return documentChanges.map(({ textDocument, edits }) => asPatch(textDocument.uri, edits))
+  if (changes) return Object.entries(changes).map(([ file, edits ]) => asPatch(file, edits))
   return []
-
-  // TODO: handle legacy 'changes' property.
-  // LSP supports both changes and documentChanges. thanks microsoft
-  // TODO: handle { changes }
-  // changes array is indexed by the uri?
-  // changes[main.js] = { range, newText }
 }
 
 // TODO: get completions from language server. auto trigger is handled by vimtron
