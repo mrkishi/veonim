@@ -1,8 +1,7 @@
 import { Position, Range, TextEdit, WorkspaceEdit } from 'vscode-languageserver-types'
 import { textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
+import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
-import { dirname, basename } from 'path'
-import { is, merge } from '../utils'
 
 // TODO: revise to be the best interface that it can be. i believe in you. you can do it
 interface VimInfo {
@@ -71,10 +70,6 @@ const toProtocol = (data: VimInfo, more?: any) => {
   return more ? merge(base, more) : base
 }
 
-// TODO: move to utils?
-const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
-const asCwd = (m = '') => dirname(uriToPath(m)) 
-const asFile = (m = '') => basename(uriToPath(m)) 
 const toVimLocation = ({ line, character }: Position) => ({ line: line + 1, column: character + 1 })
 const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character
 
@@ -91,16 +86,11 @@ const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end
 
 const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line, column } = toVimLocation(range.start)
-  const cwd = asCwd(uri)
-  const file = asFile(uri)
+  const cwd = uriAsCwd(uri)
+  const file = uriAsFile(uri)
   const desc = getLine(cwd, file, line)
 
   return { cwd, file, line, column, desc }
-}
-
-const fullUpdate = (cwd: string, file: string, change: string[]) => {
-  update(cwd, file, change)
-  return change.join('\n')
 }
 
 const patchBufferCacheWithPartial = (cwd: string, file: string, change: string, line: number): void => {
@@ -110,7 +100,8 @@ const patchBufferCacheWithPartial = (cwd: string, file: string, change: string, 
 }
 
 export const fullBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferChange) => {
-  const content = { text: fullUpdate(cwd, file, buffer) }
+  update(cwd, file, buffer)
+  const content = { text: buffer.join('\n') }
   const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ], filetype })
   textDocument.didChange(req)
 }
@@ -155,8 +146,8 @@ export const references = async (data: VimInfo): Promise<VimQFItem[]> => {
 }
 
 const asPatch = (filepath: string, edits: TextEdit[]): Patch => {
-  const cwd = asCwd(filepath)
-  const file = asFile(filepath)
+  const cwd = uriAsCwd(filepath)
+  const file = uriAsFile(filepath)
   return { cwd, file, operations: edits.map(makePatch(cwd, file)) }
 }
 

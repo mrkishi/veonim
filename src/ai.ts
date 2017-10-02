@@ -1,7 +1,7 @@
 import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
-import { cc, debounce, merge, readFile, NewlineSplitter } from './utils'
+import { cc, debounce, uriToPath, merge, readFile, NewlineSplitter } from './utils'
 import getLanguageIdFromPath from './language-ids'
 import { resolve } from 'path'
 import Ripgrep from '@veonim/ripgrep'
@@ -17,7 +17,6 @@ interface FilesParam {
 let pauseUpdate = false
 const cache = { filetype: '', file: '', revision: -1, cwd: '' }
 
-const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 const getFiles = (path: string): Promise<string[]> => new Promise(done => {
   const results: string[] = []
   const rg = Ripgrep(['--files'], { cwd: path })
@@ -126,7 +125,6 @@ action('hint', async () => {
 
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
   const path = uriToPath(textDocument.uri)
-  console.log('xcontent for:', path)
   const [ cwd, modifiedBuffers ] = await Promise.all([cwdir(), call.ModifiedBuffers()])
   const filepath = resolve(cwd, path)
 
