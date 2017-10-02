@@ -1,5 +1,5 @@
 import { Position, Range, TextEdit, WorkspaceEdit } from 'vscode-languageserver-types'
-import { textDocument, onServerRequest } from './director'
+import { textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
 import { update, getLine, getFile } from './files'
 import { dirname, basename } from 'path'
 import { is, merge } from '../utils'
@@ -24,6 +24,24 @@ export interface Patch {
   cwd: string,
   file: string,
   operations: PatchOperation[],
+}
+
+interface VimQFItem {
+  cwd: string,
+  file: string,
+  line: number,
+  column: number,
+  desc: string,
+}
+
+interface BufferChange {
+  cwd: string,
+  file: string,
+  buffer: string[],
+  line: number,
+  column: number,
+  filetype: string,
+  revision: number,
 }
 
 // TODO: get typings for valid requests?
@@ -53,11 +71,13 @@ const toProtocol = (data: VimInfo, more?: any) => {
   return more ? merge(base, more) : base
 }
 
+// TODO: move to utils?
 const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 const asCwd = (m = '') => dirname(uriToPath(m)) 
 const asFile = (m = '') => basename(uriToPath(m)) 
 const toVimLocation = ({ line, character }: Position) => ({ line: line + 1, column: character + 1 })
 const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character
+
 const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }: TextEdit): PatchOperation => {
   const line = start.line + 1
 
@@ -67,14 +87,6 @@ const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end
   const buffer = getLine(cwd, file, line)
   const val = buffer.slice(0, start.character) + newText + buffer.slice(end.character)
   return { op: 'replace', line, val }
-}
-
-interface VimQFItem {
-  cwd: string,
-  file: string,
-  line: number,
-  column: number,
-  desc: string,
 }
 
 const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
@@ -91,24 +103,10 @@ const fullUpdate = (cwd: string, file: string, change: string[]) => {
   return change.join('\n')
 }
 
-// TODO: let vim send partial updates, and then:
-// if server wants full - merge
-// if server can support partial - send only partial change
-const partialUpdate = (cwd: string, file: string, change: string, line: number) => {
-  const buffer = getFile(cwd, file) || []
+const patchBufferCacheWithPartial = (cwd: string, file: string, change: string, line: number): void => {
+  const buffer = getFile(cwd, file)
   const patched = buffer.slice().splice(line, 1, change)
   update(cwd, file, patched)
-  return patched.join('\n')
-}
-
-interface BufferChange {
-  cwd: string,
-  file: string,
-  buffer: string[],
-  line: number,
-  column: number,
-  filetype: string,
-  revision: number,
 }
 
 export const fullBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferChange) => {
@@ -117,10 +115,16 @@ export const fullBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferCh
   textDocument.didChange(req)
 }
 
-export const partialBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferChange) => {
-  // TODO: be sensitive if language server can support partial updates
+export const partialBufferUpdate = (change: BufferChange) => {
+  const { cwd, file, buffer, line, filetype } = change
+  const syncKind = getSyncKind(cwd, filetype)
+
+  patchBufferCacheWithPartial(cwd, file, buffer[0], line)
+
+  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, buffer: getFile(cwd, file) })
+
   const content = {
-    text: partialUpdate(cwd, file, buffer[0], line),
+    text: buffer[0],
     range: {
       start: { line: line - 1, character: 0 },
       end: { line: line - 1, character: buffer.length - 1 }

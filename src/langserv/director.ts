@@ -14,18 +14,12 @@ interface ActiveServer extends Server {
   canDo: Result & QueryableObject
 }
 
+export enum SyncKind { None, Full, Incremental }
+
 const derp = (e: any) => console.error(e)
 const servers = new Map<string, ActiveServer>()
 const startingServers = new Set<string>()
 const serverStartCallbacks = new Set<Function>()
-//const saveOpts = new Map<string, string>([
-  //['textDocument/didOpen', 'openClose'],
-  //['textDocument/didClose', 'openClose'],
-  //['textDocument/didChange', 'change'],
-  //['textDocument/didSave', 'save'],
-  //['textDocument/willSave', 'willSave'],
-  //['textDocument/willSaveWaitUntil', 'willSaveWaitUntil'],
-//])
 
 const runningServers = {
   get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
@@ -46,32 +40,23 @@ const startServer = async (cwd: string, filetype: string): Promise<ActiveServer>
   const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
   if (error) throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
   server.notify.initialized()
-  console.log('can do:', canDo)
   runningServers.add(cwd, filetype, { ...server, canDo })
   startingServers.delete(cwd + filetype)
   serverStartCallbacks.forEach(fn => fn(cwd, filetype))
   return { ...server, canDo }
 }
 
-//const canDoMethod = ({ canDo }: ActiveServer, ns: string, fn: string) => {
-  //const save = saveOpts.get(`${ns}/${fn}`)
-
-  //return canDo[`${fn}Provider`]
-    //|| canDo[`${ns + fn}Provider`]
-    //|| save && (canDo || {}).textDocumentSync[save]
-//}
-
 const registerDynamicCaller = (namespace: string): ProxyFn => proxyFn(async (method, params) => {
-  //console.log(`BFS --> ${method} ${JSON.stringify(params)}`)
   const { cwd, filetype } = params
   if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
   const server = runningServers.get(cwd, filetype) || await startServer(cwd, filetype)
   if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
-  //if (!canDoMethod(server, namespace, method)) return derp(`server does not support ${namespace}/${method}`)
 
+  // TODO: cleanup
   console.log(`LS --> ${method} ${JSON.stringify(params)}`)
   const result = await server.request[`${namespace}/${method}`](params).catch(derp)
+  // TODO: cleanup
   console.log(`LS <-- ${JSON.stringify(result)}`)
   return result
 })
@@ -96,6 +81,12 @@ export const cancelRequest = (cwd: string, filetype: string, id: string | number
 }
 
 export const onServerRequest = <ArgType, ReturnType>(method: string, cb: (arg: ArgType) => Promise<ReturnType>) => serverRequestHandlers.push({ method, cb })
+
+export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
+  const server = runningServers.get(cwd, filetype)
+  if (!server) return SyncKind.Full
+  return (server.canDo.textDocumentSync || {}).change || SyncKind.Full
+}
 
 onServerStart((cwd, filetype) => serverRequestHandlers.forEach(({ method, cb }) => {
   const server = runningServers.get(cwd, filetype)
