@@ -1,7 +1,7 @@
-import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp } from './langserv/adapter'
+import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
-import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import { cc, debounce, uriToPath, merge, readFile, NewlineSplitter } from './utils'
+import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import getLanguageIdFromPath from './language-ids'
 import { resolve } from 'path'
 import Ripgrep from '@veonim/ripgrep'
@@ -117,7 +117,14 @@ action('rename', async () => {
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
 })
 
-action('hint', async () => {
+action('hover', async () => {
+  const [ , line, column ] = await call.getpos('.')
+  const info = await hover({ ...cache, line, column })
+  console.log('HOVER INFORMATION', info)
+})
+
+// TODO: this will be auto-triggered.
+action('signature-hint', async () => {
   const [ , line, column ] = await call.getpos('.')
   const hint = await signatureHelp({ ...cache, line, column })
   console.log(hint)

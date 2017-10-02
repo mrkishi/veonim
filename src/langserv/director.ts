@@ -1,7 +1,7 @@
 import { startServerFor, hasServerFor } from './server-loader'
 import defaultCapabs from './capabilities'
 import { Server } from '@veonim/jsonrpc'
-import { delay, proxyFn } from '../utils'
+import { proxyFn } from '../utils'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }
@@ -35,14 +35,16 @@ const serverRequestHandlers: RequestHandler[] = []
 
 const startServer = async (cwd: string, filetype: string): Promise<ActiveServer> => {
   startingServers.add(cwd + filetype)
+
   const server = await startServerFor(filetype)
-  await delay(3e3)
   const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
   if (error) throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
   server.notify.initialized()
+
   runningServers.add(cwd, filetype, { ...server, canDo })
   startingServers.delete(cwd + filetype)
   serverStartCallbacks.forEach(fn => fn(cwd, filetype))
+
   return { ...server, canDo }
 }
 
