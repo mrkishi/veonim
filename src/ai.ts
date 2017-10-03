@@ -132,11 +132,29 @@ action('hover', async () => {
 autocmd.cursorMoved(() => hoverUI.hide())
 autocmd.cursorMovedI(() => hoverUI.hide())
 
-// TODO: this will be auto-triggered.
-action('signature-hint', async () => {
+// TODO: this will be auto-triggered. get triggerChars from server.canDo
+action('signature-help', async () => {
   const [ , line, column ] = await call.getpos('.')
   const hint = await signatureHelp({ ...cache, line, column })
-  console.log(hint)
+  if (!hint.signatures.length) return
+  // TODO: support list of signatures
+  const { label } = hint.signatures[0]
+  const y = vimUI.rowToY(vimUI.cursor.row - 1)
+  const x = vimUI.colToX(column)
+  hoverUI.show({ html: label, x, y })
+  // TODO: highlight params
+  //const help = {
+  //signatures: [{
+  //label: 'text to be shown in the ui',
+  //documentation?: 'doc comment for the UI',
+  //parameters?: [{
+  //label: 'ui label',
+  //documentation?: 'ui doc'
+  //}]
+  //}],
+  //activeSignature?: 0,
+  //activeParameter?: 0
+  //}
 })
 
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {

@@ -1,4 +1,4 @@
-import { Position, Range, TextEdit, WorkspaceEdit, Hover } from 'vscode-languageserver-types'
+import { Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp } from 'vscode-languageserver-types'
 import { textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
@@ -191,21 +191,7 @@ export const completions = async (_data: VimInfo) => {
 // logic to js-langs to find function call
 export const signatureHelp = async (data: VimInfo) => {
   const req = toProtocol(data)
-  const hint = await textDocument.signatureHelp(req)
-  console.log(hint)
-
-  //const hint = {
-    //signatures: [{
-      //label: 'text to be shown in the ui',
-      //documentation?: 'doc comment for the UI',
-      //parameters?: [{
-        //label: 'ui label',
-        //documentation?: 'ui doc'
-      //}]
-    //}],
-    //activeSignature?: 0,
-    //activeParameter?: 0
-  //}
+  return await textDocument.signatureHelp(req) as SignatureHelp
 }
 
 export { onServerRequest }
