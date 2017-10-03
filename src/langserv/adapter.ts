@@ -2,6 +2,9 @@ import { Position, Range, TextEdit, WorkspaceEdit, Hover } from 'vscode-language
 import { textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
+//TODO: uhhh... need to figure out how to get mulit-line hover info (interfaces) + set innerHTML in view renderer
+//import * as markdownToHtml from 'marked'
+const markdownToHtml = (m: string) => m
 
 // TODO: revise to be the best interface that it can be. i believe in you. you can do it
 interface VimInfo {
@@ -47,12 +50,6 @@ interface MarkedStringPart {
   language: string,
   value: string,
 }
-
-const toMarkdown = ({ language, value }: MarkedStringPart): string => `
-\`\`\`${language}
-${value}
-\`\`\`
-`
 
 // TODO: get typings for valid requests?
 const toProtocol = (data: VimInfo, more?: any) => {
@@ -171,17 +168,15 @@ export const rename = async (data: VimInfo & { newName: string }): Promise<Patch
   return []
 }
 
-
 export const hover = async (data: VimInfo): Promise<string> => {
   const req = toProtocol(data)
   const { contents } = await textDocument.hover(req) as Hover
 
   if (is.string(contents)) return (contents as string)
-  if (is.object(contents)) return toMarkdown((contents as MarkedStringPart))
-
+  if (is.object(contents)) return markdownToHtml((contents as MarkedStringPart).value)
   if (is.array(contents)) return (contents as MarkedStringPart[])
     .filter(is.object)
-    .map(toMarkdown)[0]
+    .map(m => markdownToHtml(m.value))[0]
 
   return ''
 }

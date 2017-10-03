@@ -3,8 +3,10 @@ import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys
 import { cc, debounce, uriToPath, merge, readFile, NewlineSplitter } from './utils'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import getLanguageIdFromPath from './language-ids'
-import { resolve } from 'path'
+import * as hoverUI from './ui/plugins/hover'
 import Ripgrep from '@veonim/ripgrep'
+import vimUI from './ui/canvasgrid'
+import { resolve } from 'path'
 
 interface ContentParams {
   textDocument: TextDocumentIdentifier
@@ -119,9 +121,16 @@ action('rename', async () => {
 
 action('hover', async () => {
   const [ , line, column ] = await call.getpos('.')
-  const info = await hover({ ...cache, line, column })
-  console.log('HOVER INFORMATION', info)
+  const html = await hover({ ...cache, line, column })
+  // TODO: get start column of the object
+  // TODO: if multi-line html, anchor from bottom
+  const y = vimUI.rowToY(vimUI.cursor.row - 1)
+  const x = vimUI.colToX(column)
+  hoverUI.show({ html, x, y })
 })
+
+autocmd.cursorMoved(() => hoverUI.hide())
+autocmd.cursorMovedI(() => hoverUI.hide())
 
 // TODO: this will be auto-triggered.
 action('signature-hint', async () => {

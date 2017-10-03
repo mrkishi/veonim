@@ -93,6 +93,7 @@
     "hyperapp": "0.10.1",
     "javascript-typescript-langserver": "2.3.1",
     "js-langs": "0.1.6",
+    "marked": "0.3.6",
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.5"
     "portfinder": "1.0.13",
@@ -101,6 +102,7 @@
   },
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",
+    "@types/marked": "0.3.0",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "8.0.12",
     "@veonim/neovim": "0.0.5-mac",
