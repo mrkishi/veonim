@@ -1,4 +1,4 @@
-import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover } from './langserv/adapter'
+import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
 import { cc, debounce, uriToPath, merge, readFile, NewlineSplitter } from './utils'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
@@ -133,6 +133,7 @@ autocmd.cursorMoved(() => hoverUI.hide())
 autocmd.cursorMovedI(() => hoverUI.hide())
 
 // TODO: this will be auto-triggered. get triggerChars from server.canDo
+// TODO: try to figure out if we are inside func call? too much work?
 action('signature-help', async () => {
   const [ , line, column ] = await call.getpos('.')
   const hint = await signatureHelp({ ...cache, line, column })
@@ -155,6 +156,15 @@ action('signature-help', async () => {
   //activeSignature?: 0,
   //activeParameter?: 0
   //}
+})
+
+action('symbols', async () => {
+  const listOfSymbols = await symbols(cache)
+  console.log('symbols:', listOfSymbols)
+})
+
+action('workspace-symbols', async () => {
+
 })
 
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {

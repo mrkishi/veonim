@@ -1,4 +1,4 @@
-import { Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp } from 'vscode-languageserver-types'
+import { Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation } from 'vscode-languageserver-types'
 import { textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
@@ -10,7 +10,7 @@ const markdownToHtml = (m: string) => m
 interface VimInfo {
   cwd: string,
   file: string,
-  line: number,
+  line?: number,
   column?: number,
   filetype?: string,
   revision?: number,
@@ -179,6 +179,12 @@ export const hover = async (data: VimInfo): Promise<string> => {
     .map(m => markdownToHtml(m.value))[0]
 
   return ''
+}
+
+export const symbols = async (data: VimInfo): Promise<SymbolInformation[]> => {
+  const req = toProtocol(data)
+  // TODO: this response is very big. need to update jsonrpc to buffer according to content-length
+  return await textDocument.documentSymbol(req)
 }
 
 // TODO: get completions from language server. auto trigger is handled by vimtron
