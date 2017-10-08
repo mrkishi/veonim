@@ -1,4 +1,4 @@
-import { Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation } from 'vscode-languageserver-types'
+import { Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind } from 'vscode-languageserver-types'
 import { textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
@@ -28,6 +28,13 @@ export interface Patch {
   operations: PatchOperation[],
 }
 
+export interface DocumentSymbol {
+  name: string,
+  kind: SymbolKind,
+  location: VimLocation,
+  containerName?: string,
+}
+
 interface VimQFItem {
   cwd: string,
   file: string,
@@ -49,6 +56,11 @@ interface BufferChange {
 interface MarkedStringPart {
   language: string,
   value: string,
+}
+
+interface VimLocation {
+  line: number,
+  column: number,
 }
 
 // TODO: get typings for valid requests?
@@ -78,7 +90,7 @@ const toProtocol = (data: VimInfo, more?: any) => {
   return more ? merge(base, more) : base
 }
 
-const toVimLocation = ({ line, character }: Position) => ({ line: line + 1, column: character + 1 })
+const toVimLocation = ({ line, character }: Position): VimLocation => ({ line: line + 1, column: character + 1 })
 const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character
 
 const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }: TextEdit): PatchOperation => {
@@ -181,10 +193,10 @@ export const hover = async (data: VimInfo): Promise<string> => {
   return ''
 }
 
-export const symbols = async (data: VimInfo): Promise<SymbolInformation[]> => {
+export const symbols = async (data: VimInfo): Promise<DocumentSymbol[]> => {
   const req = toProtocol(data)
-  // TODO: this response is very big. need to update jsonrpc to buffer according to content-length
-  return await textDocument.documentSymbol(req)
+  const symbols = await textDocument.documentSymbol(req) as SymbolInformation[]
+  return symbols.map(s => ({ ...s, location: toVimLocation(s.location.range.start) }))
 }
 
 // TODO: get completions from language server. auto trigger is handled by vimtron
