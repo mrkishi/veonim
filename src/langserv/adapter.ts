@@ -1,5 +1,5 @@
-import { Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind } from 'vscode-languageserver-types'
-import { textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
+import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind } from 'vscode-languageserver-types'
+import { workspace, textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
 //TODO: uhhh... need to figure out how to get mulit-line hover info (interfaces) + set innerHTML in view renderer
@@ -28,11 +28,17 @@ export interface Patch {
   operations: PatchOperation[],
 }
 
-export interface DocumentSymbol {
+export interface Symbol {
   name: string,
   kind: SymbolKind,
   location: VimLocation,
   containerName?: string,
+}
+
+interface VimLocation {
+  cwd: string,
+  file: string,
+  position: VimPosition,
 }
 
 interface VimQFItem {
@@ -58,7 +64,7 @@ interface MarkedStringPart {
   value: string,
 }
 
-interface VimLocation {
+interface VimPosition {
   line: number,
   column: number,
 }
@@ -90,7 +96,7 @@ const toProtocol = (data: VimInfo, more?: any) => {
   return more ? merge(base, more) : base
 }
 
-const toVimLocation = ({ line, character }: Position): VimLocation => ({ line: line + 1, column: character + 1 })
+const toVimPosition = ({ line, character }: Position): VimPosition => ({ line: line + 1, column: character + 1 })
 const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character
 
 const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }: TextEdit): PatchOperation => {
@@ -105,7 +111,7 @@ const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end
 }
 
 const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
-  const { line, column } = toVimLocation(range.start)
+  const { line, column } = toVimPosition(range.start)
   const cwd = uriAsCwd(uri)
   const file = uriAsFile(uri)
   const desc = getLine(cwd, file, line)
@@ -193,11 +199,24 @@ export const hover = async (data: VimInfo): Promise<string> => {
   return ''
 }
 
-export const symbols = async (data: VimInfo): Promise<DocumentSymbol[]> => {
+const toVimLocation = ({ uri, range }: Location): VimLocation => ({
+  cwd: uriAsCwd(uri),
+  file: uriAsFile(uri),
+  position: toVimPosition(range.start),
+})
+
+export const symbols = async (data: VimInfo): Promise<Symbol[]> => {
   const req = toProtocol(data)
   const symbols = await textDocument.documentSymbol(req) as SymbolInformation[]
   if (!symbols || !symbols.length) return []
-  return symbols.map(s => ({ ...s, location: toVimLocation(s.location.range.start) }))
+  return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
+}
+
+export const workspaceSymbols = async (data: VimInfo): Promise<Symbol[]> => {
+  const req = toProtocol(data)
+  const symbols = await workspace.symbol(req) as SymbolInformation[]
+  if (!symbols || !symbols.length) return []
+  return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
 }
 
 // TODO: get completions from language server. auto trigger is handled by vimtron

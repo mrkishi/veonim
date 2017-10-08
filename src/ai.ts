@@ -1,4 +1,4 @@
-import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols } from './langserv/adapter'
+import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols, workspaceSymbols } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
 import { cc, debounce, uriToPath, merge, readFile, NewlineSplitter } from './utils'
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
@@ -116,7 +116,7 @@ action('rename', async () => {
   await feedkeys('u')
   pauseUpdate = false
   const patches = await rename({ ...cache, line, column, newName })
-  // TODO: change other files besides current buffer
+  // TODO: change other files besides current buffer. using fs operations if not modified?
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
 })
 
@@ -134,7 +134,7 @@ autocmd.cursorMoved(() => hoverUI.hide())
 autocmd.cursorMovedI(() => hoverUI.hide())
 
 // TODO: this will be auto-triggered. get triggerChars from server.canDo
-// TODO: try to figure out if we are inside func call? too much work?
+// TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
 action('signature-help', async () => {
   const [ , line, column ] = await call.getpos('.')
   const hint = await signatureHelp({ ...cache, line, column })
@@ -165,7 +165,8 @@ action('symbols', async () => {
 })
 
 action('workspace-symbols', async () => {
-
+  const listOfSymbols = await workspaceSymbols(cache)
+  listOfSymbols && symbolsUI.show(listOfSymbols)
 })
 
 onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
@@ -184,7 +185,6 @@ onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async 
     ])
 
     return {
-      // https://code.visualstudio.com/docs/languages/identifiers (may not match 1:1 with vim filetype)
       languageId: filetype,
       uri: textDocument.uri,
       version: revision,
