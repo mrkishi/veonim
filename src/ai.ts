@@ -4,6 +4,7 @@ import { cc, debounce, uriToPath, merge, readFile, NewlineSplitter } from './uti
 import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
 import getLanguageIdFromPath from './language-ids'
 import * as hoverUI from './ui/plugins/hover'
+import * as symbolsUI from './ui/plugins/symbols'
 import Ripgrep from '@veonim/ripgrep'
 import vimUI from './ui/canvasgrid'
 import { resolve } from 'path'
@@ -160,7 +161,7 @@ action('signature-help', async () => {
 
 action('symbols', async () => {
   const listOfSymbols = await symbols(cache)
-  console.log('symbols:', listOfSymbols)
+  listOfSymbols && symbolsUI.show(listOfSymbols)
 })
 
 action('workspace-symbols', async () => {

@@ -196,6 +196,7 @@ export const hover = async (data: VimInfo): Promise<string> => {
 export const symbols = async (data: VimInfo): Promise<DocumentSymbol[]> => {
   const req = toProtocol(data)
   const symbols = await textDocument.documentSymbol(req) as SymbolInformation[]
+  if (!symbols || !symbols.length) return []
   return symbols.map(s => ({ ...s, location: toVimLocation(s.location.range.start) }))
 }
 
