@@ -94,9 +94,7 @@
     "javascript-typescript-langserver": "2.5.1",
     "marked": "0.3.6",
     "msgpack-lite": "0.1.26",
-    "node-watch": "0.5.5"
-    "portfinder": "1.0.13",
-    "through": "2.3.8"
+    "node-watch": "0.5.5",
     "vscode-languageserver-types": "3.4.0"
   },
   "devDependencies": {

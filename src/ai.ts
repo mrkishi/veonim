@@ -23,7 +23,7 @@ const cache = { filetype: '', file: '', revision: -1, cwd: '' }
 const getFiles = (path: string): Promise<string[]> => new Promise(done => {
   const results: string[] = []
   const rg = Ripgrep(['--files'], { cwd: path })
-  rg.stdout.pipe(NewlineSplitter()).on('data', (path: string) => results.push(path))
+  rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => results.push(path))
   rg.on('exit', () => done(results))
 })
 
