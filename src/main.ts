@@ -1,12 +1,14 @@
 import { app, BrowserWindow, Menu } from 'electron'
 import { getDefaultConfig } from './config-reader'
+const delay = (time: number) => new Promise(fin => setTimeout(fin, time))
 
 let win: Electron.BrowserWindow
 app.setName('veonim')
 Menu.setApplicationMenu(new Menu())
+
 const configLoading: Promise<Map<string, any>> = Promise.race([
   getDefaultConfig(),
-  new Promise(fin => setTimeout(() => fin(new Map()), 500))
+  delay(500).then(() => new Map<string, any>())
 ])
 
 const vimtype = {

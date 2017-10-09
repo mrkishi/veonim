@@ -101,12 +101,12 @@
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/marked": "0.3.0",
     "@types/msgpack-lite": "0.1.4",
-    "@types/node": "8.0.12",
+    "@types/node": "8.0.33",
     "@veonim/neovim": "0.0.5-mac",
     "@veonim/ripgrep": "0.0.1-mac",
     "electron": "1.7.5",
     "electron-builder": "19.22.1",
     "jscodeshift": "0.3.32",
-    "typescript": "2.4.2"
+    "typescript": "2.5.3"
   }
 }
