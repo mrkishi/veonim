@@ -41,6 +41,18 @@ input {
   padding: 0;
 }
 
+.title-bar {
+  -webkit-app-region: drag;
+  position: absolute;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.15);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .close {
   cursor: pointer;
   background: none;
@@ -266,6 +278,7 @@ input {
   <body>
     <div id="cursor" style="position: absolute"></div>
     <div id="plugins"></div>
+    <div class="title-bar">veonim</div>
     <canvas id="nvim"></canvas>
     <script type="text/javascript">require('./ui/galaxy')</script>
   </body>
