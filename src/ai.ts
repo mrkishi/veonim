@@ -1,31 +1,12 @@
-import { onServerRequest, fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols, workspaceSymbols } from './langserv/adapter'
+import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols, workspaceSymbols } from './langserv/adapter'
 import { ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys, define } from './ui/neovim'
-import { cc, debounce, uriToPath, merge, readFile, NewlineSplitter } from './utils'
-import { TextDocumentItem, TextDocumentIdentifier } from 'vscode-languageserver-types'
-import getLanguageIdFromPath from './language-ids'
-import * as hoverUI from './ui/plugins/hover'
 import * as symbolsUI from './ui/plugins/symbols'
-import Ripgrep from '@veonim/ripgrep'
+import * as hoverUI from './ui/plugins/hover'
+import { cc, debounce, merge } from './utils'
 import vimUI from './ui/canvasgrid'
-import { resolve } from 'path'
-
-interface ContentParams {
-  textDocument: TextDocumentIdentifier
-}
-
-interface FilesParam {
-  base?: string
-}
 
 let pauseUpdate = false
 const cache = { filetype: '', file: '', revision: -1, cwd: '' }
-
-const getFiles = (path: string): Promise<string[]> => new Promise(done => {
-  const results: string[] = []
-  const rg = Ripgrep(['--files'], { cwd: path })
-  rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => results.push(path))
-  rg.on('exit', () => done(results))
-})
 
 define.ModifiedBuffers`
   let current = bufnr('%')
@@ -167,43 +148,4 @@ action('symbols', async () => {
 action('workspace-symbols', async () => {
   const listOfSymbols = await workspaceSymbols(cache)
   listOfSymbols && symbolsUI.show(listOfSymbols)
-})
-
-onServerRequest<ContentParams, TextDocumentItem>('textDocument/xcontent', async ({ textDocument }) => {
-  const path = uriToPath(textDocument.uri)
-  const [ cwd, modifiedBuffers ] = await Promise.all([cwdir(), call.ModifiedBuffers()])
-  const filepath = resolve(cwd, path)
-
-  if (modifiedBuffers.includes(filepath)) {
-    // TODO: use built-in neovim api for this?
-    // getbufvar(name, '') gets full dict. might be faster to get all to client then parse out
-    const bufferName = await call.bufname(filepath)
-    const [ lines, filetype, revision ] = await Promise.all([
-      call.getbufline(bufferName, 1, '$'),
-      call.getbufvar(bufferName, '&filetype'),
-      call.getbufvar(bufferName, 'changedtick'),
-    ])
-
-    return {
-      languageId: filetype,
-      uri: textDocument.uri,
-      version: revision,
-      text: lines.join('\n'),
-    }
-  }
-
-  const fileContents = await readFile(filepath, { encoding: 'utf8' })
-
-  return {
-    uri: textDocument.uri,
-    languageId: getLanguageIdFromPath(filepath),
-    version: 1,
-    text: fileContents
-  }
-})
-
-onServerRequest<FilesParam, TextDocumentIdentifier[]>('workspace/xfiles', async ({ base }: { base?: string }) => {
-  const cwd = base ? uriToPath(base) : await cwdir()
-  const files = await getFiles(cwd)
-  return files.map(path => ({ uri: `file://${path}` }))
 })
