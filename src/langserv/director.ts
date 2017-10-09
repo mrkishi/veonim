@@ -48,18 +48,19 @@ const startServer = async (cwd: string, filetype: string): Promise<ActiveServer>
   return { ...server, canDo }
 }
 
-const registerDynamicCaller = (namespace: string): ProxyFn => proxyFn(async (method, params) => {
+const registerDynamicCaller = (namespace: string, { notify = false } = {}): ProxyFn => proxyFn(async (method, params) => {
   const { cwd, filetype } = params
   if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
 
   const server = runningServers.get(cwd, filetype) || await startServer(cwd, filetype)
   if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
 
-  // TODO: cleanup
-  console.log(`LS --> ${method} ${JSON.stringify(params)}`)
+  if (notify) {
+    server.notify[`${namespace}/${method}`](params)
+    return
+  }
+
   const result = await server.request[`${namespace}/${method}`](params).catch(derp)
-  // TODO: cleanup
-  console.log(`LS <-- ${JSON.stringify(result)}`)
   return result
 })
 
@@ -71,6 +72,11 @@ export const documentLink = registerDynamicCaller('documentLink')
 export const window = registerDynamicCaller('window')
 export const textDocument = registerDynamicCaller('textDocument')
 export const telemetry = registerDynamicCaller('telemetry')
+
+export const notify = {
+  textDocument: registerDynamicCaller('textDocument', { notify: true }),
+  workspace: registerDynamicCaller('workspace', { notify: true }),
+}
 
 export const onServerStart = (fn: (cwd: string, filetype: string) => void) => {
   serverStartCallbacks.add(fn)

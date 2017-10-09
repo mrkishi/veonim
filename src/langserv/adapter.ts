@@ -1,5 +1,5 @@
 import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind } from 'vscode-languageserver-types'
-import { workspace, textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
+import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
 //TODO: uhhh... need to figure out how to get mulit-line hover info (interfaces) + set innerHTML in view renderer
@@ -69,6 +69,8 @@ interface VimPosition {
   column: number,
 }
 
+const openFiles = new Set<string>()
+
 // TODO: get typings for valid requests?
 const toProtocol = (data: VimInfo, more?: any) => {
   const { cwd, filetype, file, line: vimLine, column } = data
@@ -129,7 +131,10 @@ export const fullBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferCh
   update(cwd, file, buffer)
   const content = { text: buffer.join('\n') }
   const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ], filetype })
-  textDocument.didChange(req)
+
+  openFiles.has(cwd + file)
+    ? notify.textDocument.didChange(req)
+    : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
 }
 
 export const partialBufferUpdate = (change: BufferChange) => {
@@ -149,7 +154,10 @@ export const partialBufferUpdate = (change: BufferChange) => {
   }
 
   const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ], filetype })
-  textDocument.didChange(req)
+
+  openFiles.has(cwd + file)
+    ? notify.textDocument.didChange(req)
+    : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
 }
 
 export const definition = async (data: VimInfo) => {
