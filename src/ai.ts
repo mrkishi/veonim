@@ -12,7 +12,10 @@ import { sub } from './dispatch'
 interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string, revision: number, cwd: string }
 export const cache: Cache = { filetype: '', file: '', revision: -1, cwd: '', startIndex: 0, completionItems: [] }
 const maxResults = 8
-let pauseUpdate = false
+const state = {
+  pauseUpdate: false,
+  hoverVisible: false,
+}
 
 // TODO: get from lang server
 const completionTriggers = new Map<string, RegExp>()
@@ -71,7 +74,7 @@ const updateServer = async (lineChange = false) => {
 }
 
 const attemptUpdate = async (lineChange = false) => {
-  if (pauseUpdate) return
+  if (state.pauseUpdate) return
   const currentRevision = await vim.revision
   if (currentRevision > cache.revision) updateServer(lineChange)
   cache.revision = currentRevision
@@ -129,20 +132,19 @@ autocmd.bufEnter(debounce(async () => {
 
 autocmd.textChanged(debounce(() => attemptUpdate(), 200))
 autocmd.textChangedI(() => attemptUpdate(true))
-// TODO: are these ops hide ui expensive? should we track hoverui state? don't compute a re-render pls
 autocmd.cursorMoved(() => {
-  hoverUI.hide()
+  state.hoverVisible && hoverUI.hide()
 })
 
 autocmd.cursorMovedI(() => {
-  hoverUI.hide()
+  state.hoverVisible && hoverUI.hide()
   getCompletions()
 })
 
 autocmd.insertLeave(() => {
   cache.startIndex = 0
   completionUI.hide()
-  !pauseUpdate && updateServer()
+  !state.pauseUpdate && updateServer()
 })
 
 autocmd.completeDone(async () => {
@@ -166,6 +168,7 @@ action('signature-help', async () => {
   const y = vimUI.rowToY(vimUI.cursor.row - 1)
   const x = vimUI.colToX(column)
   hoverUI.show({ html: label, x, y })
+  state.hoverVisible = true
   // TODO: highlight params
 })
 
@@ -189,12 +192,12 @@ action('definition', async () => {
 })
 
 action('rename', async () => {
-  pauseUpdate = true
+  state.pauseUpdate = true
   await feedkeys('ciw')
   await until.insertLeave()
   const newName = await expr('@.')
   await feedkeys('u')
-  pauseUpdate = false
+  state.pauseUpdate = false
   const patches = await rename({ ...fileInfo(), ...await vim.position, newName })
   // TODO: change other files besides current buffer. using fs operations if not modified?
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
@@ -208,6 +211,7 @@ action('hover', async () => {
   const y = vimUI.rowToY(vimUI.cursor.row - 1)
   const x = vimUI.colToX(column)
   hoverUI.show({ html, x, y })
+  state.hoverVisible = true
 })
 
 action('symbols', async () => {
