@@ -1,12 +1,7 @@
-import { action, call, cmd, define } from '../neovim'
+import { action, call, cmd } from '../neovim'
 import { h, app, Actions } from '../uikit'
 import { filter } from 'fuzzaldrin-plus'
 import TermInput from './input'
-
-define.Commands`
-  silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"
-  return split(cmds, '\\\\s\\\\+')
-`
 
 interface State { val: string, cmds: string[], cache: string[], vis: boolean, ix: number }
 const state: State = { val: '', cmds: [], cache: [], vis: false, ix: 0 }

@@ -1,11 +1,12 @@
-import { call, cwdir, autocmd, cmd, g, expr, getCurrentLine, define, onCreate } from '../neovim'
-import { merge, cc, findIndexRight, hasUpperCase, debounce } from '../../utils'
+import { call, autocmd, g, expr, getCurrentLine } from '../neovim'
+import { cc, findIndexRight, hasUpperCase } from '../../utils'
 import * as harvester from './keyword-harvester'
 import { h, app, Actions } from '../uikit'
 import { filter } from 'fuzzaldrin-plus'
 import { sub } from '../../dispatch'
 import { translate } from '../css'
 import vimUI from '../canvasgrid'
+import { cache } from '../../ai'
 
 const orderCompletions = (m: string[], query: string) =>
   m.slice().sort(a => hasUpperCase(a) ? -1 : a.startsWith(query) ? -1 : 1)
@@ -46,30 +47,6 @@ a.hide = () => ({ vis: false, ix: 0 })
 a.select = (_s, _a, ix: number) => ({ ix })
 
 const ui = app({ state, view, actions: a }, false)
-
-interface Cache { startIndex: number, completionItems: string[], filetype: string, file: string, revision: number, cwd: string }
-
-const cache: Cache = { startIndex: 0, completionItems: [], filetype: '', file: '', revision: -1, cwd: '' }
-
-// TODO: toggle this when renaming or performing other 'non-update' changes to buffer (rename, etc)
-let pauseUpdate = false
-
-define.VeonimComplete`
-  return a:1 ? g:veonim_complete_pos : g:veonim_completions
-`
-
-define.CompleteScroll`
-  if len(g:veonim_completions)
-    if g:veonim_completing
-      return a:1 ? "\\<c-n>" : "\\<c-p>"
-    endif
-
-    let g:veonim_completing = 1
-    return a:1 ? "\\<c-x>\\<c-u>" : "\\<c-x>\\<c-u>\\<c-p>\\<c-p>"
-  endif
-
-  return a:1 ? "\\<tab>" : "\\<c-w>"
-`
 
 const findQuery = (filetype: string, line: string, column: number) => {
   const pattern = completionTriggers.get(filetype) || /[^\w\-]/
@@ -149,42 +126,14 @@ const getCompletions = async () => {
   }
 }
 
-const updateServer = async (lineChange = false) => {
-  // TODO: use nvim_* api for getting line/buffer
-  // TODO: update line changes for other lang serv stuffz
-  if (lineChange) {
-    //await call.getline('.')
-    return
-  }
-
-  harvester.update(cache.cwd, cache.file, await call.getline(1, '$') as string[])
-}
-
-const attemptUpdate = async (lineChange = false) => {
-  if (pauseUpdate) return
-  const chg = await expr('b:changedtick')
-  if (chg > cache.revision) updateServer(lineChange)
-  cache.revision = chg
-}
-
 sub('pmenu.select', ix => ui.select(ix))
 sub('pmenu.hide', () => ui.hide())
 
 autocmd.cursorMovedI(() => getCompletions())
-autocmd.bufEnter(debounce(async () => {
-  const [ cwd, file, filetype ] = await cc(cwdir(), call.expand(`%f`), expr(`&filetype`))
-  merge(cache, { cwd, file, filetype, revision: -1 })
-  updateServer()
-}, 100))
-
-// TODO: move to a more generic location once other users need buffer changes
-autocmd.textChanged(debounce(() => attemptUpdate(), 200))
-autocmd.textChangedI(() => attemptUpdate(true))
 
 autocmd.completeDone(async () => {
   g.veonim_completing = 0
   const { word } = await expr(`v:completed_item`)
-  // TODO: do what else with completed word? mru cache?
   harvester.addWord(cache.cwd, cache.file, word)
   updateVim([])
 })
@@ -192,15 +141,4 @@ autocmd.completeDone(async () => {
 autocmd.insertLeave(() => {
   cache.startIndex = 0
   ui.hide()
-  updateServer()
-})
-
-onCreate(() => {
-  g.veonim_completing = 0
-  g.veonim_complete_pos = 1
-  g.veonim_completions = []
-
-  cmd(`set completefunc=VeonimComplete`)
-  cmd(`ino <expr> <tab> CompleteScroll(1)`)
-  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
 })

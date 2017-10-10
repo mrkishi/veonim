@@ -1,6 +1,6 @@
-import { action, cwdir, call, cmd, define } from '../neovim'
-import { h, app, Actions } from '../uikit'
+import { action, cwdir, call, cmd } from '../neovim'
 import { VimBuffer } from '../../functions'
+import { h, app, Actions } from '../uikit'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
 import { merge } from '../../utils'
@@ -8,12 +8,6 @@ import TermInput from './input'
 
 interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
 interface State { val: string, buffers: BufferInfo[], cache: BufferInfo[], vis: boolean, ix: number }
-
-define.Buffers`
-  let current = bufnr('%')
-  let bufs = filter(range(0, bufnr('$')), 'buflisted(v:val)')
-  return map(bufs, {key, val -> { 'name': bufname(val), 'cur': val == current, 'mod': getbufvar(val, '&mod') }})
-`
 
 const cleanup = (fullpath: string, cwd: string) => fullpath.includes(cwd)
   ? fullpath.split(cwd + '/')[1]

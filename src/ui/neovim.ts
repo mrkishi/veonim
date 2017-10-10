@@ -150,6 +150,65 @@ export const onFile = {
   }
 }
 
+define.VeonimComplete`
+  return a:1 ? g:veonim_complete_pos : g:veonim_completions
+`
+
+define.CompleteScroll`
+  if len(g:veonim_completions)
+    if g:veonim_completing
+      return a:1 ? "\\<c-n>" : "\\<c-p>"
+    endif
+
+    let g:veonim_completing = 1
+    return a:1 ? "\\<c-x>\\<c-u>" : "\\<c-x>\\<c-u>\\<c-p>\\<c-p>"
+  endif
+
+  return a:1 ? "\\<tab>" : "\\<c-w>"
+`
+
+define.Buffers`
+  let current = bufnr('%')
+  let bufs = filter(range(0, bufnr('$')), 'buflisted(v:val)')
+  return map(bufs, {key, val -> { 'name': bufname(val), 'cur': val == current, 'mod': getbufvar(val, '&mod') }})
+`
+
+define.Commands`
+  silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"
+  return split(cmds, '\\\\s\\\\+')
+`
+
+define.ModifiedBuffers`
+  let current = bufnr('%')
+  let bufs = filter(range(0, bufnr('$')), 'buflisted(v:val)')
+  return map(filter(map(bufs, {key, val -> { 'path': expand('#'.val.':p'), 'mod': getbufvar(val, '&mod') }}), {key, val -> val.mod == 1}), {key, val -> val.path})
+`
+
+define.PatchCurrentBuffer`
+  let pos = getcurpos()
+  let patch = a:1
+  for chg in patch
+    if chg.op == 'delete'
+      exec chg.line . 'd'
+    elseif chg.op == 'replace'
+      call setline(chg.line, chg.val)
+    elseif chg.op == 'append'
+      call append(chg.line, chg.val)
+    end
+  endfor
+  call cursor(pos[1:])
+`
+
+onCreate(() => {
+  g.veonim_completing = 0
+  g.veonim_complete_pos = 1
+  g.veonim_completions = []
+
+  cmd(`set completefunc=VeonimComplete`)
+  cmd(`ino <expr> <tab> CompleteScroll(1)`)
+  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+})
+
 export const VBuffer = class VBuffer {
   public id: any
   constructor (id: any) { this.id = id }
