@@ -64,8 +64,7 @@ const updateServer = async (lineChange = false) => {
   })
 
   else {
-    // TODO: buffer.getLines api built-in
-    const buffer = await call.getline(1, '$') as string[]
+    const buffer = await vim.bufferContents
     harvester.update(cache.cwd, cache.file, buffer)
     fullBufferUpdate({ ...fileInfo(), ...await vim.position, buffer })
   }
@@ -73,16 +72,15 @@ const updateServer = async (lineChange = false) => {
 
 const attemptUpdate = async (lineChange = false) => {
   if (pauseUpdate) return
-  // TODO: buffer.changedtick api built-in
-  const chg = await expr('b:changedtick')
-  if (chg > cache.revision) updateServer(lineChange)
-  cache.revision = chg
+  const currentRevision = await vim.revision
+  if (currentRevision > cache.revision) updateServer(lineChange)
+  cache.revision = currentRevision
 }
 
 const getCompletions = async () => {
   // TODO: use neovim api built-ins? better perf? line is slowest. ui.cursor not work as it's global
-  const [ lineData, { column } ] = await cc(vim.lineContent, vim.position)
-  const { startIndex, query } = findQuery(cache.filetype, lineData, column)
+  const [ lineContent, { column } ] = await cc(vim.lineContent, vim.position)
+  const { startIndex, query } = findQuery(cache.filetype, lineContent, column)
 
   // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
   if (query.length) {
@@ -124,9 +122,8 @@ const getCompletions = async () => {
 }
 
 autocmd.bufEnter(debounce(async () => {
-  const [ cwd, file, filetype ] = await cc(cwdir(), call.expand(`%f`), expr(`&filetype`))
-  // TODO: changedtick -> revision
-  merge(cache, { cwd, file, filetype, revision: -1 })
+  const [ cwd, file, filetype, revision ] = await cc(cwdir(), vim.file, vim.filetype, vim.revision)
+  merge(cache, { cwd, file, filetype, revision })
   updateServer()
 }, 100))
 

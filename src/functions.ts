@@ -28,7 +28,7 @@ export interface Functions {
   OpenPaths(): Promise<string[]>,
   getcwd(): Promise<string>,
   getline(type: string | number, end?: string): Promise<string | string[]>,
-  expand(type: string): string,
+  expand(type: string): Promise<string>,
   synIDattr(id: number, type: string): Promise<number>,
   getpos(where: string): Promise<WindowPosition>,
   setloclist(window: number, list: QuickFixList[]): Promise<void>,

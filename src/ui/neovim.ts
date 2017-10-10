@@ -95,6 +95,10 @@ export const current = {
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
   get position(): Promise<Position> { return new Promise(fin => call.getpos('.').then(m => fin({ line: m[1], column: m[2] }))) },
   get lineContent(): Promise<string> { return req.core.getCurrentLine() },
+  get filetype(): Promise<string> { return expr(`&filetype`) },
+  get file(): Promise<string> { return call.expand(`%f`) },
+  get revision(): Promise<number> { return expr(`b:changedtick`) },
+  get bufferContents(): Promise<string[]> { return call.getline(1, '$') as Promise<string[]> },
 }
 
 export const g = new Proxy({} as KeyVal, {
