@@ -132,6 +132,7 @@ const getCompletions = async () => {
 // TODO: this will be auto-triggered. get triggerChars from server.canDo
 // TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
 // TODO: i think given the list of trigger characters, some guess work is due from our part
+// according to vscode, it really literally triggers on the specified trigger char. hold the hint in insert mode, update on trigger chars. on resume a new trigger char has to be pressed. also need to figure out how hint disappears. for ( open bracket it's easy to find close, but for other langs???
 const getSignatureHint = async () => {
   const { line, column } = await vim.position
   const hint = await signatureHelp({ ...fileInfo(), line, column })
