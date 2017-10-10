@@ -73,7 +73,7 @@ const openFiles = new Set<string>()
 
 // TODO: get typings for valid requests?
 const toProtocol = (data: VimInfo, more?: any) => {
-  const { cwd, filetype, file, line: vimLine, column } = data
+  const { cwd, filetype, file, line: vimLine, column, revision } = data
   const uri = 'file://' + cwd + '/' + file
 
   const base = {
@@ -81,10 +81,7 @@ const toProtocol = (data: VimInfo, more?: any) => {
     filetype,
     textDocument: {
       uri,
-      version: Date.now()
-      // TODO: about that revision... does it make sense?
-      // especially if jumping back and forth between revision and date.
-      //version: revision > 0 ? revision : Date.now()
+      version: revision,
     }
   }
 

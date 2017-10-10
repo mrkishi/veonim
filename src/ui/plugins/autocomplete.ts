@@ -7,16 +7,16 @@ interface ShowParams { x: number, y: number, options: CompletionOption[] }
 
 const state: State = { options: [], vis: false, ix: 0, x: 0, y: 0 }
 
-const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete.plugin', {
+const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
   hide: !vis,
-  style: { 'justify-content': 'flex-start' }
-}, [
-  h('div', { style: {
+  style: {
     'min-width': '100px',
     'max-width': '300px',
     position: 'absolute',
     transform: translate(x, y),
-  }}, options.map(({ id, text }) => h('.row.complete', {
+  }
+}, [
+  h('div', options.map(({ id, text }) => h('.row.complete', {
     key: id,
     css: { active: id === ix },
   }, [

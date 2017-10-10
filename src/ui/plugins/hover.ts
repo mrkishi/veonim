@@ -4,15 +4,14 @@ import { translate } from '../css'
 interface State { value: string, vis: boolean, x: number, y: number }
 const state: State = { value: '', vis: false, x: 0, y: 0 }
 
-const view = ({ value, vis, x, y }: State) => h('#hover.plugin', {
+const view = ({ value, vis, x, y }: State) => h('#hover', {
   hide: !vis,
-  style: { 'justify-content': 'flex-start' }
-}, [
-  h('.hover', { style: {
+  style: {
     position: 'absolute',
     transform: translate(x, y),
-    // TODO: string to html
-  }}, value)
+  }
+}, [
+  h('.hover', value)
 ])
 
 const a: Actions<State> = {}
