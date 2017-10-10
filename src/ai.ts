@@ -60,6 +60,11 @@ const updateVim = (items: string[]) => {
 }
 
 const updateServer = async (lineChange = false) => {
+  if (lineChange) {
+    const line = await vim.lineContent
+    console.log('@@LINE', line)
+  }
+
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
     ...await vim.position,
@@ -81,8 +86,8 @@ const attemptUpdate = async (lineChange = false) => {
 }
 
 const getCompletions = async () => {
-  // TODO: use neovim api built-ins? better perf? line is slowest. ui.cursor not work as it's global
   const [ lineContent, { column } ] = await cc(vim.lineContent, vim.position)
+  console.log('@@LINE', lineContent)
   const { startIndex, query } = findQuery(cache.filetype, lineContent, column)
 
   // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
@@ -124,6 +129,22 @@ const getCompletions = async () => {
   }
 }
 
+// TODO: this will be auto-triggered. get triggerChars from server.canDo
+// TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
+// TODO: i think given the list of trigger characters, some guess work is due from our part
+const getSignatureHint = async () => {
+  const { line, column } = await vim.position
+  const hint = await signatureHelp({ ...fileInfo(), line, column })
+  if (!hint.signatures.length) return
+  // TODO: support list of signatures
+  const { label } = hint.signatures[0]
+  const y = vimUI.rowToY(vimUI.cursor.row - 1)
+  const x = vimUI.colToX(column)
+  hoverUI.show({ html: label, x, y })
+  state.hoverVisible = true
+  // TODO: highlight params
+}
+
 autocmd.bufEnter(debounce(async () => {
   const [ cwd, file, filetype, revision ] = await cc(cwdir(), vim.file, vim.filetype, vim.revision)
   merge(cache, { cwd, file, filetype, revision })
@@ -132,18 +153,19 @@ autocmd.bufEnter(debounce(async () => {
 
 autocmd.textChanged(debounce(() => attemptUpdate(), 200))
 autocmd.textChangedI(() => attemptUpdate(true))
-autocmd.cursorMoved(() => {
-  state.hoverVisible && hoverUI.hide()
-})
+autocmd.cursorMoved(() => state.hoverVisible && hoverUI.hide())
+autocmd.insertEnter(() => state.hoverVisible && hoverUI.hide())
 
 autocmd.cursorMovedI(() => {
-  state.hoverVisible && hoverUI.hide()
   getCompletions()
+  getSignatureHint()
 })
 
 autocmd.insertLeave(() => {
   cache.startIndex = 0
   completionUI.hide()
+  // TODO: maybe just check state in the component? tracking two states gonna have a bad time
+  state.hoverVisible && hoverUI.hide()
   !state.pauseUpdate && updateServer()
 })
 
@@ -157,20 +179,6 @@ autocmd.completeDone(async () => {
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
 
-// TODO: this will be auto-triggered. get triggerChars from server.canDo
-// TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
-action('signature-help', async () => {
-  const { line, column } = await vim.position
-  const hint = await signatureHelp({ ...fileInfo(), line, column })
-  if (!hint.signatures.length) return
-  // TODO: support list of signatures
-  const { label } = hint.signatures[0]
-  const y = vimUI.rowToY(vimUI.cursor.row - 1)
-  const x = vimUI.colToX(column)
-  hoverUI.show({ html: label, x, y })
-  state.hoverVisible = true
-  // TODO: highlight params
-})
 
 action('references', async () => {
   const refs = await references({ ...fileInfo(), ...await vim.position })

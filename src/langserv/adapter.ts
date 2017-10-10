@@ -123,7 +123,8 @@ const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
 
 const patchBufferCacheWithPartial = (cwd: string, file: string, change: string, line: number): void => {
   const buffer = getFile(cwd, file)
-  const patched = buffer.slice().splice(line, 1, change)
+  const patched = buffer.slice()
+  Reflect.set(patched, line - 1, change)
   update(cwd, file, patched)
 }
 
