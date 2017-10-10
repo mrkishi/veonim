@@ -4,6 +4,11 @@ import { Functions } from '../functions'
 import { sub, processAnyBuffered } from '../dispatch'
 import setupRPC from '../rpc'
 
+export interface Position {
+  line: number,
+  column: number,
+}
+
 type GenericCallback = (...args: any[]) => void
 type StrFnObj = { [index: string]: (callback: () => void) => void }
 type ProxyToPromise = { [index: string]: () => Promise<any> }
@@ -71,7 +76,6 @@ export const cmd = (command: string) => api.core.command(command)
 export const ex = (command: string) => req.core.commandOutput(command)
 export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
-export const getCurrentLine = () => req.core.getCurrentLine()
 export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
 export const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
 export const action = (event: string, cb: GenericCallback): void => {
@@ -89,6 +93,8 @@ export const current = {
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
   get window() { return as.win(req.core.getCurrentWin()) },
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
+  get position(): Promise<Position> { return new Promise(fin => call.getpos('.').then(m => fin({ line: m[1], column: m[2] }))) },
+  get lineContent(): Promise<string> { return req.core.getCurrentLine() },
 }
 
 export const g = new Proxy({} as KeyVal, {

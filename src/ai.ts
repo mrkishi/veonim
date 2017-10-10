@@ -1,5 +1,5 @@
 import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols, workspaceSymbols } from './langserv/adapter'
-import { g, ex, action, autocmd, until, cwdir, call, expr, getCurrentLine, feedkeys } from './ui/neovim'
+import { g, ex, action, autocmd, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
 import { cc, debounce, merge, hasUpperCase, findIndexRight } from './utils'
 import * as harvester from './ui/plugins/keyword-harvester'
 import * as completionUI from './ui/plugins/autocomplete'
@@ -51,33 +51,23 @@ const findQuery = (filetype: string, line: string, column: number) => {
   return { startIndex, query, leftChar }
 }
 
-const getPos = async () => {
-  // TODO: use nvim_window_* api instead or ui.cursor position?
-  const [ buffer, line, column, offset ] = await call.getpos('.')
-  return { buffer, line, column, offset }
-}
-
 const updateVim = (items: string[]) => {
   cache.completionItems = items
   g.veonim_completions = items
 }
 
 const updateServer = async (lineChange = false) => {
-  // TODO: better, more async
-  const [ , line, column ] = await call.getpos('.')
-
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
-    line,
-    column,
-    buffer: [ await getCurrentLine() ]
+    ...await vim.position,
+    buffer: [ await vim.lineContent ]
   })
 
   else {
     // TODO: buffer.getLines api built-in
     const buffer = await call.getline(1, '$') as string[]
     harvester.update(cache.cwd, cache.file, buffer)
-    fullBufferUpdate({ ...fileInfo(), line, column, buffer })
+    fullBufferUpdate({ ...fileInfo(), ...await vim.position, buffer })
   }
 }
 
@@ -91,7 +81,7 @@ const attemptUpdate = async (lineChange = false) => {
 
 const getCompletions = async () => {
   // TODO: use neovim api built-ins? better perf? line is slowest. ui.cursor not work as it's global
-  const [ lineData, { column } ] = await cc(getCurrentLine(), getPos())
+  const [ lineData, { column } ] = await cc(vim.lineContent, vim.position)
   const { startIndex, query } = findQuery(cache.filetype, lineData, column)
 
   // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
@@ -142,7 +132,11 @@ autocmd.bufEnter(debounce(async () => {
 
 autocmd.textChanged(debounce(() => attemptUpdate(), 200))
 autocmd.textChangedI(() => attemptUpdate(true))
-autocmd.cursorMoved(() => hoverUI.hide())
+// TODO: are these ops hide ui expensive? should we track hoverui state? don't compute a re-render pls
+autocmd.cursorMoved(() => {
+  hoverUI.hide()
+})
+
 autocmd.cursorMovedI(() => {
   hoverUI.hide()
   getCompletions()
@@ -164,9 +158,22 @@ autocmd.completeDone(async () => {
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
 
+// TODO: this will be auto-triggered. get triggerChars from server.canDo
+// TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
+action('signature-help', async () => {
+  const { line, column } = await vim.position
+  const hint = await signatureHelp({ ...fileInfo(), line, column })
+  if (!hint.signatures.length) return
+  // TODO: support list of signatures
+  const { label } = hint.signatures[0]
+  const y = vimUI.rowToY(vimUI.cursor.row - 1)
+  const x = vimUI.colToX(column)
+  hoverUI.show({ html: label, x, y })
+  // TODO: highlight params
+})
+
 action('references', async () => {
-  const [ , line, column ] = await call.getpos('.')
-  const refs = await references({ ...fileInfo(), line, column })
+  const refs = await references({ ...fileInfo(), ...await vim.position })
 
   await call.setloclist(0, refs.map(m => ({
     lnum: m.line,
@@ -179,47 +186,31 @@ action('references', async () => {
 })
 
 action('definition', async () => {
-  const [ , line, column ] = await call.getpos('.')
-  const loc = await definition({ ...fileInfo(), line, column })
-  if (!loc || !loc.line || !loc.column) return
-  await call.cursor(loc.line, loc.column)
+  const { line, column } = await definition({ ...fileInfo(), ...await vim.position })
+  if (!line || !column) return
+  await call.cursor(line, column)
 })
 
 action('rename', async () => {
-  const [ , line, column ] = await call.getpos('.')
   pauseUpdate = true
   await feedkeys('ciw')
   await until.insertLeave()
   const newName = await expr('@.')
   await feedkeys('u')
   pauseUpdate = false
-  const patches = await rename({ ...fileInfo(), line, column, newName })
+  const patches = await rename({ ...fileInfo(), ...await vim.position, newName })
   // TODO: change other files besides current buffer. using fs operations if not modified?
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
 })
 
 action('hover', async () => {
-  const [ , line, column ] = await call.getpos('.')
+  const { line, column } = await vim.position
   const html = await hover({ ...fileInfo(), line, column })
   // TODO: get start column of the object
   // TODO: if multi-line html, anchor from bottom
   const y = vimUI.rowToY(vimUI.cursor.row - 1)
   const x = vimUI.colToX(column)
   hoverUI.show({ html, x, y })
-})
-
-// TODO: this will be auto-triggered. get triggerChars from server.canDo
-// TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
-action('signature-help', async () => {
-  const [ , line, column ] = await call.getpos('.')
-  const hint = await signatureHelp({ ...fileInfo(), line, column })
-  if (!hint.signatures.length) return
-  // TODO: support list of signatures
-  const { label } = hint.signatures[0]
-  const y = vimUI.rowToY(vimUI.cursor.row - 1)
-  const x = vimUI.colToX(column)
-  hoverUI.show({ html: label, x, y })
-  // TODO: highlight params
 })
 
 action('symbols', async () => {

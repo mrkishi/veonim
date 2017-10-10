@@ -160,10 +160,10 @@ export const partialBufferUpdate = (change: BufferChange) => {
     : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
 }
 
-export const definition = async (data: VimInfo) => {
+export const definition = async (data: VimInfo): Promise<VimQFItem> => {
   const req = toProtocol(data)
   const result = await textDocument.definition(req)
-  if (!result) return
+  if (!result) return {} as VimQFItem
   return asQfList(is.array(result) ? result[0] : result)
 }
 
