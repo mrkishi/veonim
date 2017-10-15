@@ -45,6 +45,9 @@ const startServer = async (cwd: string, filetype: string): Promise<ActiveServer>
   startingServers.delete(cwd + filetype)
   serverStartCallbacks.forEach(fn => fn(cwd, filetype))
 
+  console.log(`started server ${filetype} with options:`)
+  console.log(canDo)
+
   return { ...server, canDo }
 }
 
@@ -60,8 +63,7 @@ const registerDynamicCaller = (namespace: string, { notify = false } = {}): Prox
     return
   }
 
-  const result = await server.request[`${namespace}/${method}`](params).catch(derp)
-  return result
+  return await server.request[`${namespace}/${method}`](params).catch(derp)
 })
 
 export const client = registerDynamicCaller('client')
@@ -94,6 +96,18 @@ export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
   const server = runningServers.get(cwd, filetype)
   if (!server) return SyncKind.Full
   return (server.canDo.textDocumentSync || {}).change || SyncKind.Full
+}
+
+
+const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
+  const server = runningServers.get(cwd, filetype)
+  if (!server) return []
+  return (server.canDo[kind] || {}).triggerCharacters || []
+}
+
+export const triggers = {
+  completion: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'completionProvider'),
+  signatureHelp: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'signatureHelpProvider'),
 }
 
 onServerStart((cwd, filetype) => serverRequestHandlers.forEach(({ method, cb }) => {

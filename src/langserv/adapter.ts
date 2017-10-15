@@ -1,5 +1,5 @@
-import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind } from 'vscode-languageserver-types'
-import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind } from './director'
+import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem, CompletionList } from 'vscode-languageserver-types'
+import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
 //TODO: uhhh... need to figure out how to get mulit-line hover info (interfaces) + set innerHTML in view renderer
@@ -225,17 +225,14 @@ export const workspaceSymbols = async (data: VimInfo): Promise<Symbol[]> => {
   return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
 }
 
-// TODO: get completions from language server. auto trigger is handled by vimtron
-export const completions = async (_data: VimInfo) => {
-
+export const completions = async (data: VimInfo) => {
+  const req = toProtocol(data)
+  return await textDocument.completions(req) as CompletionItem[] | CompletionList
 }
 
-// TODO: get signature hint from language server. figure out if (all langs) need position to
-// be over the function or can be inside parens. if (can be inside parens) then migrate
-// logic to js-langs to find function call
 export const signatureHelp = async (data: VimInfo) => {
   const req = toProtocol(data)
   return await textDocument.signatureHelp(req) as SignatureHelp
 }
 
-export { onServerRequest }
+export { onServerRequest, triggers }

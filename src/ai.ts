@@ -1,4 +1,4 @@
-import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols, workspaceSymbols } from './langserv/adapter'
+import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
 import { g, ex, action, autocmd, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
 import { cc, debounce, merge, hasUpperCase, findIndexRight } from './utils'
 import * as harvester from './ui/plugins/keyword-harvester'
@@ -134,6 +134,9 @@ const getCompletions = async () => {
 // TODO: i think given the list of trigger characters, some guess work is due from our part
 // according to vscode, it really literally triggers on the specified trigger char. hold the hint in insert mode, update on trigger chars. on resume a new trigger char has to be pressed. also need to figure out how hint disappears. for ( open bracket it's easy to find close, but for other langs???
 const getSignatureHint = async () => {
+  const chars = triggers.signatureHelp(cache.cwd, cache.filetype)
+  console.log('sh triggers:', chars)
+
   const { line, column } = await vim.position
   const hint = await signatureHelp({ ...fileInfo(), line, column })
   if (!hint.signatures.length) return
