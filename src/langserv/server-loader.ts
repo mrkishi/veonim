@@ -9,15 +9,15 @@ servers.set('typescript', async () => {
     '--trace',
   ])
 
-  proc.on('error', e => console.error('err in ts server', e))
+  //proc.on('error', e => console.error('err in ts server', e))
 
-  proc.stdout.on('data', b => {
-    console.log('>>', b+'')
-  })
+  //proc.stdout.on('data', b => {
+    //console.log('>>', b+'')
+  //})
 
-  proc.stderr.on('data', b => {
-    console.log('!!',b+'')
-  })
+  //proc.stderr.on('data', b => {
+    //console.log('!!',b+'')
+  //})
 
   return connect.ipc(proc)
 })

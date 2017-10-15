@@ -7,6 +7,8 @@ const state: State = { value: '', vis: false, x: 0, y: 0 }
 const view = ({ value, vis, x, y }: State) => h('#hover', {
   hide: !vis,
   style: {
+    // TODO: need to anchor at bottom (if above) and top (if below)
+    // multi-line line can cover up current line
     position: 'absolute',
     transform: translate(x, y),
   }

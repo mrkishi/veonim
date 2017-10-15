@@ -60,11 +60,6 @@ const updateVim = (items: string[]) => {
 }
 
 const updateServer = async (lineChange = false) => {
-  if (lineChange) {
-    const line = await vim.lineContent
-    console.log('@@LINE', line)
-  }
-
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
     ...await vim.position,
@@ -78,6 +73,7 @@ const updateServer = async (lineChange = false) => {
   }
 }
 
+// TODO: could change this to 'needsUpdate' returns true or not
 const attemptUpdate = async (lineChange = false) => {
   if (state.pauseUpdate) return
   const currentRevision = await vim.revision
@@ -85,9 +81,7 @@ const attemptUpdate = async (lineChange = false) => {
   cache.revision = currentRevision
 }
 
-const getCompletions = async () => {
-  const [ lineContent, { column } ] = await cc(vim.lineContent, vim.position)
-  console.log('@@LINE', lineContent)
+const getCompletions = async (lineContent: string, column: number) => {
   const { startIndex, query } = findQuery(cache.filetype, lineContent, column)
 
   // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
@@ -133,14 +127,20 @@ const getCompletions = async () => {
 // TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
 // TODO: i think given the list of trigger characters, some guess work is due from our part
 // according to vscode, it really literally triggers on the specified trigger char. hold the hint in insert mode, update on trigger chars. on resume a new trigger char has to be pressed. also need to figure out how hint disappears. for ( open bracket it's easy to find close, but for other langs???
-const getSignatureHint = async () => {
-  const chars = triggers.signatureHelp(cache.cwd, cache.filetype)
-  console.log('sh triggers:', chars)
+const getSignatureHint = async (lineContent: string, line: number, column: number) => {
+  const triggerChars = triggers.signatureHelp(cache.cwd, cache.filetype)
+  const leftChar = lineContent[Math.max(column - 2, 0)]
 
-  const { line, column } = await vim.position
+  if (!triggerChars.includes(leftChar)) return
+
+  // TODO: textChangedI will also fire, how can optimize so only once called?
+  await updateServer(true)
   const hint = await signatureHelp({ ...fileInfo(), line, column })
   if (!hint.signatures.length) return
-  // TODO: support list of signatures
+  // TODO: support list of signatures?
+
+  // TODO: don't reposition signature if already active (same up)
+  // TODO: do however, updated the bolded parameters
   const { label } = hint.signatures[0]
   const y = vimUI.rowToY(vimUI.cursor.row - 1)
   const x = vimUI.colToX(column)
@@ -160,9 +160,11 @@ autocmd.textChangedI(() => attemptUpdate(true))
 autocmd.cursorMoved(() => state.hoverVisible && hoverUI.hide())
 autocmd.insertEnter(() => state.hoverVisible && hoverUI.hide())
 
-autocmd.cursorMovedI(() => {
-  getCompletions()
-  getSignatureHint()
+autocmd.cursorMovedI(async () => {
+  // TODO: inefficient with textChangedI because calling lineContent 2x
+  const [ lineContent, { line, column } ] = await cc(vim.lineContent, vim.position)
+  getCompletions(lineContent, column)
+  getSignatureHint(lineContent, line, column)
 })
 
 autocmd.insertLeave(() => {
