@@ -227,7 +227,9 @@ export const workspaceSymbols = async (data: VimInfo): Promise<Symbol[]> => {
 
 export const completions = async (data: VimInfo) => {
   const req = toProtocol(data)
-  return await textDocument.completions(req) as CompletionItem[] | CompletionList
+  const res = await textDocument.completions(req) as CompletionItem[] | CompletionList
+  console.log('COMPLETIONS:::', res)
+  return res
 }
 
 export const signatureHelp = async (data: VimInfo) => {

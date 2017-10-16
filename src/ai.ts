@@ -1,4 +1,4 @@
-import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
+import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
 import { g, ex, action, autocmd, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
 import { cc, debounce, merge, hasUpperCase, findIndexRight } from './utils'
 import * as harvester from './ui/plugins/keyword-harvester'
@@ -81,8 +81,21 @@ const attemptUpdate = async (lineChange = false) => {
   cache.revision = currentRevision
 }
 
-const getCompletions = async (lineContent: string, column: number) => {
-  const { startIndex, query } = findQuery(cache.filetype, lineContent, column)
+const getSemanticCompletions = async (line: number, column: number) => {
+  // TODO: textChangedI will also fire, how can optimize so only once called?
+  console.log('get semantics')
+  await updateServer(true)
+  const items = await completions({ ...fileInfo(), line, column })
+  console.log('RECVITEMS:', items)
+}
+
+const getCompletions = async (lineContent: string, line: number, column: number) => {
+  const { startIndex, query, leftChar } = findQuery(cache.filetype, lineContent, column)
+  const triggerChars = triggers.completion(cache.cwd, cache.filetype)
+  if (triggerChars.includes(leftChar)) getSemanticCompletions(line, startIndex)
+
+  console.log('left char:', leftChar)
+  console.log('startIndex:', startIndex)
 
   // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
   if (query.length) {
@@ -94,15 +107,15 @@ const getCompletions = async (lineContent: string, column: number) => {
 
     // query.toUpperCase() allows the filter engine to rank camel case functions higher
     // aka: saveUserAccount > suave for query: 'sua'
-    const completions = filter(words, query.toUpperCase(), { maxResults })
+    const completionOptions = filter(words, query.toUpperCase(), { maxResults })
 
-    if (!completions.length) {
+    if (!completionOptions.length) {
       updateVim([])
       completionUI.hide()
       return
     }
 
-    const orderedCompletions = orderCompletions(completions, query)
+    const orderedCompletions = orderCompletions(completionOptions, query)
     updateVim(orderedCompletions)
     const options = orderedCompletions.map((text, id) => ({ id, text }))
     const { x, y } = calcMenuPosition(startIndex, column, options.length)
@@ -111,7 +124,7 @@ const getCompletions = async (lineContent: string, column: number) => {
     // TODO: do we always need to update this?
     // TODO: cache last position in insert session
     // only update vim if (changed) 
-    // use cache - if (same) dont re-ask for keyword/semantic completions from avo
+    // use cache - if (same) dont re-ask for keyword/semantic completionOptions from avo
     //if (cache.startIndex !== startIndex) {
     //setVar('veonim_complete_pos', startIndex)
     //ui.show()
@@ -163,7 +176,7 @@ autocmd.insertEnter(() => state.hoverVisible && hoverUI.hide())
 autocmd.cursorMovedI(async () => {
   // TODO: inefficient with textChangedI because calling lineContent 2x
   const [ lineContent, { line, column } ] = await cc(vim.lineContent, vim.position)
-  getCompletions(lineContent, column)
+  getCompletions(lineContent, line, column)
   getSignatureHint(lineContent, line, column)
 })
 
@@ -184,7 +197,6 @@ autocmd.completeDone(async () => {
 
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
-
 
 action('references', async () => {
   const refs = await references({ ...fileInfo(), ...await vim.position })
