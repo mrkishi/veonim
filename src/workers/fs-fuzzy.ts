@@ -1,5 +1,5 @@
 import { NewlineSplitter } from '../utils'
-import { filter } from 'fuzzaldrin-plus'
+import { filter as fuzzy } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
 
 const INTERVAL = 250
@@ -8,8 +8,8 @@ const TIMEOUT = 15e3
 let results: string[] = []
 let query = ''
 
-const sendResults = ({ noFilter = false } = {}) => postMessage(['results', !noFilter && query
-  ? filter(results, query).slice(0, AMOUNT)
+const sendResults = ({ filter = true } = {}) => postMessage(['results', filter && query
+  ? fuzzy(results, query).slice(0, AMOUNT)
   : results.slice(0, AMOUNT)
 ])
 
@@ -18,17 +18,17 @@ const getFiles = (cwd: string) => {
   query = ''
   let alive = true
   let initialSent = false
-  const timer = setInterval(() => sendResults(), INTERVAL)
+  const timer = setInterval(sendResults, INTERVAL)
   const rg = Ripgrep(['--files'], { cwd })
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
-    if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ noFilter: true }))
+    if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ filter: false }))
     results.push(path)
   })
 
   rg.on('exit', () => {
     alive = false
-    if (!initialSent) (initialSent = true, sendResults({ noFilter: true }))
+    if (!initialSent) (initialSent = true, sendResults({ filter: false }))
     clearInterval(timer)
     sendResults()
     postMessage(['done'])
@@ -37,13 +37,16 @@ const getFiles = (cwd: string) => {
   const stop = () => {
     if (alive) rg.kill()
     clearInterval(timer)
+  }
+  
+  const reset = () => {
     query = ''
     results = []
   }
 
-  setImmediate(() => sendResults({ noFilter: true }))
-  setTimeout(() => stop(), TIMEOUT)
-  return () => stop()
+  setImmediate(() => sendResults({ filter: false }))
+  setTimeout(stop, TIMEOUT)
+  return () => stop() & reset()
 }
 
 onmessage = ({ data: [e, data] }: MessageEvent) => {
