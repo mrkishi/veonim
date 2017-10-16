@@ -117,8 +117,8 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 })
 const ui = app({ state, view, actions: a })
 
 action('explorer', async () => {
-  const cwd = await call.expand(`%:p:h`)
-  const filedirs = await getDirFiles(cwd)
-  const paths = sortDirFiles(filedirs)
-  ui.show({ paths, cwd, path: cwd })
+  const cwd = await cwdir()
+  const path = await call.expand(`%:p:h`)
+  const paths = sortDirFiles(await getDirFiles(path))
+  ui.show({ cwd, path, paths })
 })
