@@ -46,7 +46,7 @@ const getFiles = (cwd: string) => {
 
   setImmediate(() => sendResults({ filter: false }))
   setTimeout(stop, TIMEOUT)
-  return () => stop() & reset()
+  return () => (stop(), reset())
 }
 
 onmessage = ({ data: [e, data] }: MessageEvent) => {
