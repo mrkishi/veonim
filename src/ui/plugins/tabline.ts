@@ -30,7 +30,9 @@ const ui = app({ state, view, actions: a })
 
 sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
   const mtabs: TabInfo[] = tabs.map(t => ({ id: t.tab.id, name: t.name }))
-  mtabs.length > 1 && ui.updateTabs({ active: curtab.id, tabs: mtabs })
+  mtabs.length > 1
+    ? ui.updateTabs({ active: curtab.id, tabs: mtabs })
+    : ui.updateTabs({ active: -1, tabs: [] })
 })
 
 sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
