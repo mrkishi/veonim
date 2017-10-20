@@ -8,11 +8,11 @@ interface Session { id: number, name: string }
 interface State { val: string, vis: boolean, list: Session[], cache: Session[], ix: number }
 const state: State = { val: '', vis: false, list: [], cache: [], ix: 0 }
 
-const view = ({ val, vis, list, ix }: State, { select, hide, change }: any) => h('#vim-switch.plugin', {
+const view = ({ val, vis, list, ix }: State, { select, hide, change, next, prev }: any) => h('#vim-switch.plugin', {
   hide: !vis
 }, [
   h('.dialog.small', [
-    TermInput({ focus: true, val, select, hide, change }),
+    TermInput({ focus: true, val, select, hide, change, next, prev }),
 
     h('.row', { render: !list.length }, '...'),
 
@@ -38,6 +38,9 @@ a.select = (s, a) => {
   if (id) switchVim(id)
   a.hide()
 }
+
+a.next = s => ({ ix: s.ix + 1 > Math.min(s.list.length - 1, 9) ? 0 : s.ix + 1 })
+a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.list.length - 1, 9) : s.ix - 1 })
 
 const ui = app({ state, view, actions: a })
 action('vim-switch', () => ui.show(list()))

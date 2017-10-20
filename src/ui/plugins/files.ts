@@ -63,8 +63,8 @@ a.results = (s, _a, files: string[]) => ({
   files: asDirFile(files, s.currentFile)
 })
 
-a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
+a.next = s => ({ ix: s.ix + 1 > Math.min(s.files.length - 1, 9) ? 0 : s.ix + 1 })
+a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.files.length - 1, 9) : s.ix - 1 })
 
 const ui = app({ state, view, actions: a })
 on.results((files: string[]) => ui.results(files))

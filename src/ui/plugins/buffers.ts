@@ -73,8 +73,8 @@ a.change = (s, _a, val: string) => ({ val, buffers: val
 
 a.show = (_s, _a, buffers: BufferInfo[]) => ({ buffers, cache: buffers, vis: true })
 a.hide = () => ({ val: '', vis: false, ix: 0 })
-a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
+a.next = s => ({ ix: s.ix + 1 > Math.min(s.buffers.length - 1, 9) ? 0 : s.ix + 1 })
+a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.ix - 1 })
 
 const ui = app({ state, view, actions: a })
 
