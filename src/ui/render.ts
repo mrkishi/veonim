@@ -5,7 +5,7 @@ import { ExtContainer } from '../api'
 import { merge } from '../utils'
 
 interface Colors { fg: string, bg: string, sp: string }
-interface Mode { shape: CursorShape, size?: number, color?: number }
+interface Mode { shape: CursorShape, size?: number, color?: string }
 interface ScrollRegion { top: number, bottom: number, left: number, right: number }
 interface Attrs { fg: string, bg: string, foreground?: number, background?: number, special?: string, reverse?: string, italic?: string, bold?: string, underline?: string, undercurl?: string }
 interface ModeInfo { blinkoff?: number, blinkon?: number, blinkwait?: number, cell_percentage?: number, cursor_shape?: string, hl_id?: number, id_lm?: number, mouse_shape?: number, name: string, short_name: string }
@@ -13,12 +13,12 @@ interface PMenuItem { word: string, kind: string, menu: string, info: string }
 
 let lastScrollRegion: ScrollRegion | null = null
 let nextAttrs: Attrs
+let currentMode: string
 
 const api = new Map<string, Function>()
 const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, fn), true) })
 const modes = new Map<string, Mode>()
 const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
-
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
 
 const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
@@ -69,18 +69,20 @@ r.mode_info_set = (_: any, infos: ModeInfo[]) => infos.forEach(async mi => {
   }
 
   if (mi.hl_id) {
-    // TODO: figure out why synIDAttr not returing color values for highligh group id
     const { bg } = await getColor(mi.hl_id)
-    merge(info, { color: bg ? asColor(bg) : colors.fg })
+    merge(info, { color: bg || colors.fg })
+    if (mi.name === currentMode && bg) ui.setCursorColor(bg).setCursorShape(info.shape, info.size)
   }
 
   modes.set(mi.name, info)
 })
 
-r.mode_change = (mode: string) => {
+r.mode_change = async (mode: string) => {
+  currentMode = mode
   const info = modes.get(mode)
-  if (info) ui.setCursorShape(info.shape, info.size)
-  dispatch.pub('mode', mode)
+  if (!info) return dispatch.pub('mode', mode)
+  info.color && ui.setCursorColor(info.color)
+  ui.setCursorShape(info.shape, info.size)
 }
 
 r.highlight_set = (attrs: Attrs = { fg: '', bg: '' }) => {

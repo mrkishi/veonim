@@ -119,9 +119,9 @@ export const resize = (width: number, height: number) => {
 }
 
 export const getColor = async (id: number) => {
-  const [ fg = 0, bg = 0 ] = await Promise.all([
-    req.callFunction('synIDattr', [ id, 'fg#' ]),
-    req.callFunction('synIDattr', [ id, 'bg#' ]),
+  const [ fg = '', bg = '' ] = await Promise.all([
+    req.eval(`synIDattr(synIDtrans(${id}), "fg#")`),
+    req.eval(`synIDattr(synIDtrans(${id}), "bg#")`),
   ]).catch(e => e)
 
   return { fg, bg }

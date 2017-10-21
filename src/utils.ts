@@ -34,6 +34,7 @@ export const proxyFn = (cb: (name: string, data?: any) => void) => new Proxy({},
 export const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 export const uriAsCwd = (m = '') => dirname(uriToPath(m)) 
 export const uriAsFile = (m = '') => basename(uriToPath(m)) 
+export const Task = () => ( (done = () => {}, promise = new Promise(m => done = m)) => ({ done, promise }) )()
 
 export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
   const theFunctionToCall: Function = Reflect.get(o, name)
