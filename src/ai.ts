@@ -84,8 +84,7 @@ const attemptUpdate = async (lineChange = false) => {
 }
 
 const getSemanticCompletions = async (line: number, column: number) => {
-  // TODO: textChangedI will also fire, how can optimize so only once called?
-  console.log('get semantics')
+  // TODO: textChangedI will also fire, how can optimize so only once called (updateServer)?
   await updateServer(true)
   const items = await Promise.race([
     completions({ ...fileInfo(), line, column }),
@@ -107,7 +106,8 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   // TODO: don't actually wait here
   // TODO: memoize (line + startIndex)
   const semanticCompletions = triggerChars.includes(leftChar) ? await getSemanticCompletions(line, startIndex + 1) : []
-  console.log('semantic:', semanticCompletions)
+  console.log('query', query)
+  console.log('semantic:', semanticCompletions.length)
   console.log('left char:', leftChar)
   console.log('startIndex:', startIndex)
 
@@ -122,8 +122,9 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (query.length || semanticCompletions.length) {
     const keywords = (await harvester.getKeywords(cache.cwd, cache.file) || [])
       .map(text => ({ text, kind: 1 }))
+    console.log('keywords:', keywords.length)
 
-    if (!keywords.length || !semanticCompletions.length) return
+    if (!keywords.length && !semanticCompletions.length) return
     // TODO: call keywords + semantic = combine -> filter against query
     // TODO: call once per startIndex. don't repeat call if startIndex didn't change?
     // TODO: only call this if query has changed 
