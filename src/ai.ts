@@ -1,6 +1,6 @@
 import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
 import { g, ex, action, autocmd, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
-import { delay, cc, debounce, merge, hasUpperCase, findIndexRight } from './utils'
+import { delay, cc, debounce, merge, findIndexRight, hasUpperCase } from './utils'
 import * as harvester from './ui/plugins/keyword-harvester'
 import * as completionUI from './ui/plugins/autocomplete'
 import * as symbolsUI from './ui/plugins/symbols'
@@ -95,6 +95,11 @@ const getSemanticCompletions = async (line: number, column: number) => {
   return items.map(({ label: text, kind = 1 }) => ({ text, kind }))
 }
 
+// allow the filter engine to rank camel case completions higher. i.e. getUserInfo > gui for query 'gui'
+const smartCaseQuery = (query: string): string => hasUpperCase(query[0])
+  ? query
+  : query[0] + query.slice(1).toUpperCase()
+
 // TODO: call completionItem/resolve to get more info about selected completion item
 const getCompletions = async (lineContent: string, line: number, column: number) => {
   const { startIndex, query, leftChar } = findQuery(cache.filetype, lineContent, column)
@@ -123,20 +128,12 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     // TODO: call once per startIndex. don't repeat call if startIndex didn't change?
     // TODO: only call this if query has changed 
 
-    // query.toUpperCase() allows the filter engine to rank camel case functions higher
-    // aka: saveUserAccount > suave for query: 'sua'
-
-    // TODO: this uppercase needs rework.
-    // if user types something starting with uppercase, should respect that
-    // perhaps instead of converting the entire word to uppercase, it should only
-    // capitalize chars after the first. i.e. query -> 'sua' -> 'sUA'
-    // this way the starting char won't match words starting with uppercase
-
     // TODO: need better way of combining... and async...
-    const resSemantic = filter(semanticCompletions, query.toUpperCase(), { maxResults, key: 'text' })
+    const queryCased = smartCaseQuery(query)
+    const resSemantic = filter(semanticCompletions, queryCased, { maxResults, key: 'text' })
     const completionOptions = resSemantic.length
       ? resSemantic
-      : filter(keywords, query.toUpperCase(), { maxResults, key: 'text' })
+      : filter(keywords, queryCased, { maxResults, key: 'text' })
 
     if (!completionOptions.length) {
       updateVim([])
