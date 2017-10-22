@@ -1,4 +1,4 @@
-import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem, CompletionList } from 'vscode-languageserver-types'
+import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
 import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
@@ -225,11 +225,12 @@ export const workspaceSymbols = async (data: VimInfo): Promise<Symbol[]> => {
   return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
 }
 
-export const completions = async (data: VimInfo) => {
+export const completions = async (data: VimInfo): Promise<CompletionItem[]> => {
   const req = toProtocol(data)
-  const res = await textDocument.completions(req) as CompletionItem[] | CompletionList
-  console.log('COMPLETIONS:::', res)
-  return res
+  const res = await textDocument.completion(req)
+  // TODO: check if is incomplete? and do what?
+  // docs: * This list it not complete. Further typing should result in recomputing this list
+  return is.object(res) && res.items ? res.items : res
 }
 
 export const signatureHelp = async (data: VimInfo) => {

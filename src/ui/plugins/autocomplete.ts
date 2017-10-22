@@ -1,7 +1,8 @@
+import { CompletionItemKind } from 'vscode-languageserver-types'
 import { h, app, Actions } from '../uikit'
 import { translate } from '../css'
 
-interface CompletionOption { id: number, text: string }
+interface CompletionOption { text: string, kind: CompletionItemKind }
 interface State { options: CompletionOption[], vis: boolean, ix: number, x: number, y: number }
 interface ShowParams { x: number, y: number, options: CompletionOption[] }
 
@@ -16,10 +17,11 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
     transform: translate(x, y),
   }
 }, [
-  h('div', options.map(({ id, text }) => h('.row.complete', {
+  h('div', options.map(({ text }, id) => h('.row.complete', {
     key: id,
     css: { active: id === ix },
   }, [
+    // TODO: icon for CompletionItemKind
     h('span', text)
   ])))
 ])

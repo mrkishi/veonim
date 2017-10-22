@@ -15,6 +15,7 @@ servers.set('typescript', async () => {
     //console.log('>>', b+'')
   //})
 
+  // debug info printed here
   //proc.stderr.on('data', b => {
     //console.log('!!',b+'')
   //})

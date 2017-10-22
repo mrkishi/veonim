@@ -1,6 +1,6 @@
 import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
 import { g, ex, action, autocmd, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
-import { cc, debounce, merge, hasUpperCase, findIndexRight } from './utils'
+import { delay, cc, debounce, merge, hasUpperCase, findIndexRight } from './utils'
 import * as harvester from './ui/plugins/keyword-harvester'
 import * as completionUI from './ui/plugins/autocomplete'
 import * as symbolsUI from './ui/plugins/symbols'
@@ -28,8 +28,10 @@ const fileInfo = () => {
   return { cwd, file, filetype, revision }
 }
 
-const orderCompletions = (m: string[], query: string) =>
-  m.slice().sort(a => hasUpperCase(a) ? -1 : a.startsWith(query) ? -1 : 1)
+// TODO: make this an interface and export it to the UI plugin?
+type CompletionOption = { text: string, kind: any }
+const orderCompletions = (m: CompletionOption[], query: string) =>
+  m.slice().sort(({ text }) => hasUpperCase(text) ? -1 : text.startsWith(query) ? -1 : 1)
 
 const calcMenuPosition = (startIndex: number, column: number, count: number) => {
   // anchor menu above row if the maximum results are going to spill out of bounds.
@@ -85,29 +87,56 @@ const getSemanticCompletions = async (line: number, column: number) => {
   // TODO: textChangedI will also fire, how can optimize so only once called?
   console.log('get semantics')
   await updateServer(true)
-  const items = await completions({ ...fileInfo(), line, column })
-  console.log('RECVITEMS:', items)
+  const items = await Promise.race([
+    completions({ ...fileInfo(), line, column }),
+    delay(300).then(() => [])
+  ])
+
+  return items.map(({ label: text, kind = 1 }) => ({ text, kind }))
 }
 
+// TODO: call completionItem/resolve to get more info about selected completion item
 const getCompletions = async (lineContent: string, line: number, column: number) => {
   const { startIndex, query, leftChar } = findQuery(cache.filetype, lineContent, column)
   const triggerChars = triggers.completion(cache.cwd, cache.filetype)
-  if (triggerChars.includes(leftChar)) getSemanticCompletions(line, startIndex)
-
+  // TODO: don't actually wait here
+  // TODO: memoize (line + startIndex)
+  const semanticCompletions = triggerChars.includes(leftChar) ? await getSemanticCompletions(line, startIndex + 1) : []
+  console.log('semantic:', semanticCompletions)
   console.log('left char:', leftChar)
   console.log('startIndex:', startIndex)
 
+  if (!query.length && semanticCompletions.length) {
+    updateVim(semanticCompletions.map(m => m.text))
+    const { x, y } = calcMenuPosition(startIndex, column, semanticCompletions.length)
+    completionUI.show({ x, y, options: semanticCompletions })
+    return
+  }
+
   // TODO: if (left char is . or part of the completionTriggers defined per filetype) 
-  if (query.length) {
-    const words = await harvester.getKeywords(cache.cwd, cache.file)
-    if (!words || !words.length) return
+  if (query.length || semanticCompletions.length) {
+    const keywords = (await harvester.getKeywords(cache.cwd, cache.file) || [])
+      .map(text => ({ text, kind: 1 }))
+
+    if (!keywords.length || !semanticCompletions.length) return
     // TODO: call keywords + semantic = combine -> filter against query
     // TODO: call once per startIndex. don't repeat call if startIndex didn't change?
     // TODO: only call this if query has changed 
 
     // query.toUpperCase() allows the filter engine to rank camel case functions higher
     // aka: saveUserAccount > suave for query: 'sua'
-    const completionOptions = filter(words, query.toUpperCase(), { maxResults })
+
+    // TODO: this uppercase needs rework.
+    // if user types something starting with uppercase, should respect that
+    // perhaps instead of converting the entire word to uppercase, it should only
+    // capitalize chars after the first. i.e. query -> 'sua' -> 'sUA'
+    // this way the starting char won't match words starting with uppercase
+
+    // TODO: need better way of combining... and async...
+    const resSemantic = filter(semanticCompletions, query.toUpperCase(), { maxResults, key: 'text' })
+    const completionOptions = resSemantic.length
+      ? resSemantic
+      : filter(keywords, query.toUpperCase(), { maxResults, key: 'text' })
 
     if (!completionOptions.length) {
       updateVim([])
@@ -116,10 +145,9 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     }
 
     const orderedCompletions = orderCompletions(completionOptions, query)
-    updateVim(orderedCompletions)
-    const options = orderedCompletions.map((text, id) => ({ id, text }))
-    const { x, y } = calcMenuPosition(startIndex, column, options.length)
-    completionUI.show({ options, x, y })
+    updateVim(orderedCompletions.map(m => m.text))
+    const { x, y } = calcMenuPosition(startIndex, column, orderedCompletions.length)
+    completionUI.show({ x, y, options: orderedCompletions })
 
     // TODO: do we always need to update this?
     // TODO: cache last position in insert session
