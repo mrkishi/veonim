@@ -158,6 +158,8 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     // (because in most cases the lang serv will be quick enough to return completions before a query is started)
     // sidenote:
     //
+    // ----- WHAT ABOUT isIncomplete in the completions response (further typing needed to complete) how handle?
+    //
     // should we return keyword completions if leftChar === '.' and no query && semantic completions lookup is
     // taking too long? does it improve responsiveness to return probably wrong data? worth it?
     const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
@@ -190,8 +192,6 @@ const getCompletions = async (lineContent: string, line: number, column: number)
       .map(text => ({ text, kind: CompletionItemKind.Text }))
 
     if (!keywords.length && !semanticCompletions.length) return
-    // TODO: need better way of combining... and async...
-    // want to wait about ~50ms for semantic request, then async combine later
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
     // i mean could try to do some sort of combination with ranking/priority. idk if the filtering will interfere with it
     // TODO: do we want more than maxResults? i.e. i want to explore all of Array.prototype.* completions
