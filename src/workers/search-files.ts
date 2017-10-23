@@ -50,6 +50,7 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
     results = []
   }
 
+  // TODO: will the results disappear like in fs-fuzzy after timeout?
   setImmediate(() => sendResults())
   setTimeout(() => stop(), TIMEOUT)
   return () => stop()
