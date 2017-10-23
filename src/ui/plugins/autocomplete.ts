@@ -1,8 +1,7 @@
-import { CompletionItemKind } from 'vscode-languageserver-types'
+import { CompletionOption } from '../../ai'
 import { h, app, Actions } from '../uikit'
 import { translate } from '../css'
 
-interface CompletionOption { text: string, kind: CompletionItemKind }
 interface State { options: CompletionOption[], vis: boolean, ix: number, x: number, y: number }
 interface ShowParams { x: number, y: number, options: CompletionOption[] }
 

@@ -65,6 +65,18 @@ export const getDirFiles = async (path: string) => {
     .filter(m => m.dir || m.file)
 }
 
+export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
+  let delayExpired = false
+  const promise = new Promise(init)
+  const eventually = (cb: (value: any) => void) => promise.then(val => delayExpired && cb(val))
+  const maybeAfter = ({ time, or: defaultValue }: { time: number, or: any }) => Promise.race([
+    promise.then(val => !delayExpired ? val : undefined),
+    new Promise(fin => setTimeout(() => (delayExpired = true, fin(defaultValue)), time))
+  ])
+
+  return { maybeAfter, eventually, fail: promise.catch }
+}
+
 export const requireDir = async (path: string) => (await getDirFiles(path))
   .filter(m => m.file)
   .filter(m => extname(m.name) === '.js')
