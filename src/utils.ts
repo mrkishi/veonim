@@ -4,6 +4,11 @@ import { Transform } from 'stream'
 import { createServer } from 'net'
 import * as fs from 'fs'
 
+export interface Task<T> {
+  done: (value: T) => void,
+  promise: Promise<T>,
+}
+
 const logger = (str: TemplateStringsArray | string, v: any[]) => Array.isArray(str)
   ? console.log((str as TemplateStringsArray).map((s, ix) => s + (v[ix] || '')).join(''))
   : console.log(str as string)
@@ -34,7 +39,7 @@ export const proxyFn = (cb: (name: string, data?: any) => void) => new Proxy({},
 export const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 export const uriAsCwd = (m = '') => dirname(uriToPath(m)) 
 export const uriAsFile = (m = '') => basename(uriToPath(m)) 
-export const Task = () => ( (done = () => {}, promise = new Promise(m => done = m)) => ({ done, promise }) )()
+export const CreateTask = <T>(): Task<T> => ( (done = (_: T) => {}, promise = new Promise<T>(m => done = m)) => ({ done, promise }) )()
 
 export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
   const theFunctionToCall: Function = Reflect.get(o, name)

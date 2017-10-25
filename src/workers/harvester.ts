@@ -1,3 +1,5 @@
+import { filter as fuzzy } from 'fuzzaldrin-plus'
+
 const keywords = (() => {
   const p = (cwd: string, file: string) => `${cwd}/${file}`
   const m = new Map<string, string[]>()
@@ -30,8 +32,18 @@ const harvest = (buffer: string[]) => {
   return [...keywords]
 }
 
-onmessage = ({ data: [e, [ cwd, file, buffer ]] }: MessageEvent) => {
+const filter = (cwd: string, file: string, query: string, max = 20): string[] =>
+  fuzzy(keywords.get(cwd, file), query).slice(0, max) as string[]
+
+onmessage = ({ data: [ e, args ] }: MessageEvent) => {
+  const [ cwd, file, buffer ] = args
+  const [ , , query, max ] = args
+
   if (e === 'set') keywords.set(cwd, file, harvest(buffer))
   else if (e === 'add') keywords.add(cwd, file, buffer)
   else if (e === 'get') postMessage(['keywords', keywords.get(cwd, file)])
+  else if (e === 'filter') {
+    const res = filter(cwd, file, query, max)
+    postMessage(['results', res])
+  }
 }
