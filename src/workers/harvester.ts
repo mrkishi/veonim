@@ -32,8 +32,8 @@ const harvest = (buffer: string[]) => {
   return [...keywords]
 }
 
-const filter = (cwd: string, file: string, query: string, max = 20): string[] =>
-  fuzzy(keywords.get(cwd, file), query).slice(0, max) as string[]
+const filter = (cwd: string, file: string, query: string, maxResults = 20): string[] =>
+  fuzzy(keywords.get(cwd, file) || [], query, { maxResults })
 
 onmessage = ({ data: [ e, args ] }: MessageEvent) => {
   const [ cwd, file, buffer ] = args
@@ -43,6 +43,7 @@ onmessage = ({ data: [ e, args ] }: MessageEvent) => {
   else if (e === 'add') keywords.add(cwd, file, buffer)
   else if (e === 'get') postMessage(['keywords', keywords.get(cwd, file)])
   else if (e === 'filter') {
+    // TODO: we gonna memoize this? tradeoff between cpu vs memory
     const res = filter(cwd, file, query, max)
     postMessage(['results', res])
   }

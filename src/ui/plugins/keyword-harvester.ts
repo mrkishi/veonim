@@ -8,7 +8,7 @@ const tasks = {
 
 io.onmessage = ({ data: [e, arg] }: MessageEvent) => {
   if (e === 'keywords') return tasks.keyword.done(arg)
-  if (e === 'results') return tasks.filter.done(arg)
+  if (e === 'results') return tasks.filter.done(arg || [])
 }
 
 export const addWord = (cwd: string, file: string, word: string) => io.postMessage(['add', [cwd, file, word]])
@@ -20,7 +20,7 @@ export const getKeywords = (cwd: string, file: string): Promise<string[]> => {
 }
 
 export const queryKeywords = (cwd: string, file: string, query: string, max = 20): Promise<string[]> => {
-  io.postMessage(['filter'], [cwd, file, query, max])
+  io.postMessage(['filter', [cwd, file, query, max]])
   tasks.filter = CreateTask<string[]>()
   return tasks.filter.promise
 }

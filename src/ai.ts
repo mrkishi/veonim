@@ -174,10 +174,6 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (!query.length && semanticCompletions.length) return showCompletions(semanticCompletions)
 
   if (query.length || semanticCompletions.length) {
-    // TODO: i think it would be better if we got keywords that matched the given query (aka. filter in worker thread)
-    // otherwise in a large file this could return a METRIC FUCK TON of stuff and slow the UI thread down
-    // with processing and filtering
-
     // TODO: assuming we move the keyword filtering to the worker thread, can we run keyword filtering + semantic completion filtering in parallel?
     //
     // something like:
@@ -185,10 +181,8 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     // const semanticOptions = filter(semanticCompletions, queryCased, { maxResults, key: 'text' })
     // const completionOptions = semanticOptions.length ? semanticOptions : await keywordOptions
 
-    // TODO: i think worker thread should memoize query + gathered keywords and not filter over the entire
-    // list every single time
-
-    const keywords = (await harvester.getKeywords(cache.cwd, cache.file) || [])
+    const queryCased = smartCaseQuery(query)
+    const keywords = (await harvester.queryKeywords(cache.cwd, cache.file, queryCased, maxResults))
       .map(text => ({ text, kind: CompletionItemKind.Text }))
 
     if (!keywords.length && !semanticCompletions.length) return
@@ -196,7 +190,6 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     // i mean could try to do some sort of combination with ranking/priority. idk if the filtering will interfere with it
     // TODO: do we want more than maxResults? i.e. i want to explore all of Array.prototype.* completions
     // and i want to scroll thru the list. should i support that use case? or just use the query to filter?
-    const queryCased = smartCaseQuery(query)
     const resSemantic = filter(semanticCompletions, queryCased, { maxResults, key: 'text' })
     const completionOptions = resSemantic.length
       ? resSemantic
