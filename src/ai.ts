@@ -162,6 +162,26 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     //
     // should we return keyword completions if leftChar === '.' and no query && semantic completions lookup is
     // taking too long? does it improve responsiveness to return probably wrong data? worth it?
+    //
+    //
+    // UPDATE:
+    // UPDATE:
+    // UPDATE:
+    //
+    // if server is taking too long to complete, i want the basic keywords just in case i might get
+    // a hit and/or finish before server response finishes
+    //
+    // that means that yes, keywords could be replace with server completions halfway thru
+    // i think i'm okay with that. i prefer responsiveness over correctness.
+    //
+    // the only outstanding piece of work here is to not replace the currently selected word (if any)
+    // i hate nothing more than glitchy swaps as i;m about to select. also... should we preserve the
+    // first selection word in case i'm about to hit <tab> but then at the last second a different
+    // word gets replaced?. maybe
+    //
+    // on insertLeave, should cancel all pending keywords/semantic completions
+    // on result of keywords / semantic, check if g.startIndex is still equal to closure/scope
+    // startIndex + line number. don't want to hijack wrong completions if moved
     const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
     pendingSemanticCompletions.eventually(completions => {
       if (!query.length) showCompletions(completions)
