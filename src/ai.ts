@@ -211,9 +211,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     // TODO: do we want more than maxResults? i.e. i want to explore all of Array.prototype.* completions
     // and i want to scroll thru the list. should i support that use case? or just use the query to filter?
     const resSemantic = filter(semanticCompletions, queryCased, { maxResults, key: 'text' })
-    const completionOptions = resSemantic.length
-      ? resSemantic
-      : filter(keywords, queryCased, { maxResults, key: 'text' })
+    const completionOptions = resSemantic.length ? resSemantic : keywords
 
     if (!completionOptions.length) {
       updateVim([])
