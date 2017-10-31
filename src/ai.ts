@@ -35,6 +35,7 @@ export const cache: Cache = {
 
 const maxResults = 8
 const state = {
+  activeCompletion: '',
   pauseUpdate: false,
   hoverVisible: false,
 }
@@ -130,64 +131,23 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   let semanticCompletions: CompletionOption[] = []
 
   if (triggerChars.includes(leftChar)) {
-    // TODO: this thing needs a better test case to illustrate the issueZ
-    //
-    // how about
-    //
-    // server request takes 3000ms
-    // timeout is 10ms
-    // user actions create a query from '' to 'derp' BEFORE 3000ms. 
-    // completion menu is now populated with keywords.
-    // we are 4 chars in the query
-    // FINALLY 3s later we get semantic completions
-    // NOW WHAT?!
-    // - take over the completion menu?
-    // - ignore?
-    // - try to maintain some order and merge gracefully? i.e. preserve the first tab option in case user hits tab
-    // while the completionUI is being updated? other items are semantic? [ keyword, semantic, semantic ] etc
-    //
-    //
-    // ALSO in the eventually:
-    // - what if we move to another place in the document?
-    // - what if leave insert mode.
-    // - seems like we need to trakc the current line + startIndex that completion is being operated on
-    // if either/or keyword + semantic awaits are taking too long, they should be canceled and terminated.
-    // in the case of semantic a $/cancelRequest should be sent and promise canceled
-    //
-    // THIS WHOLE THING IS KINDA POINTLESS UNLESS WE ANSWER THE FOLLOWING PHILOSOPHICAL QUESTION?
-    // (because in most cases the lang serv will be quick enough to return completions before a query is started)
-    // sidenote:
-    //
-    // ----- WHAT ABOUT isIncomplete in the completions response (further typing needed to complete) how handle?
-    //
-    // should we return keyword completions if leftChar === '.' and no query && semantic completions lookup is
-    // taking too long? does it improve responsiveness to return probably wrong data? worth it?
-    //
-    //
-    // UPDATE:
-    // UPDATE:
-    // UPDATE:
-    //
-    // if server is taking too long to complete, i want the basic keywords just in case i might get
-    // a hit and/or finish before server response finishes
-    //
-    // that means that yes, keywords could be replace with server completions halfway thru
-    // i think i'm okay with that. i prefer responsiveness over correctness.
-    //
-    // the only outstanding piece of work here is to not replace the currently selected word (if any)
-    // i hate nothing more than glitchy swaps as i;m about to select. also... should we preserve the
-    // first selection word in case i'm about to hit <tab> but then at the last second a different
-    // word gets replaced?. maybe
-    //
-    // on insertLeave, should cancel all pending keywords/semantic completions
-    // on result of keywords / semantic, check if g.startIndex is still equal to closure/scope
-    // startIndex + line number. don't want to hijack wrong completions if moved
     const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
+    state.activeCompletion = `${line}:${startIndex}`
+
+    // TODO: send a $/cancelRequest on insertLeave if not intersted anymore
+    // maybe there is also a way to cancel if we moved to another completion location in the doc
     pendingSemanticCompletions.eventually(completions => {
-      if (!query.length) showCompletions(completions)
-      // if (query.length) then.... what? ( see above? )
+      // this returned late and we started another completion and this one is irrelevant
+      if (state.activeCompletion !== `${line}:${startIndex}`) return
+      semanticCompletions = completions
+
+      // TODO: how annoying is delayed semantic completions overriding pmenu? enable this maybe?
+      //query.length
+        //? showCompletions([...cache.completionItems.slice(0, 1), ...completions])
+        //: showCompletions(completions)
     })
 
+    // TODO: handle isIncomplete flag in completions result
     semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
   }
 
@@ -278,6 +238,7 @@ autocmd.cursorMovedI(async () => {
 })
 
 autocmd.insertLeave(() => {
+  state.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
   // TODO: maybe just check state in the component? tracking two states gonna have a bad time
