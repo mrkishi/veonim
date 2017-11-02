@@ -46,14 +46,17 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
   const stop = () => {
     if (alive) rg.kill()
     clearInterval(timer)
+  }
+
+  const reset = () => {
     filterQuery = ''
     results = []
   }
 
   // TODO: will the results disappear like in fs-fuzzy after timeout?
   setImmediate(() => sendResults())
-  setTimeout(() => stop(), TIMEOUT)
-  return () => stop()
+  setTimeout(stop, TIMEOUT)
+  return () => (stop(), reset())
 }
 
 onmessage = ({ data: [e, data] }: MessageEvent) => {
