@@ -2,9 +2,6 @@ import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHel
 import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
-//TODO: uhhh... need to figure out how to get mulit-line hover info (interfaces) + set innerHTML in view renderer
-//import * as markdownToHtml from 'marked'
-const markdownToHtml = (m: string) => m
 
 // TODO: revise to be the best interface that it can be. i believe in you. you can do it
 interface VimInfo {
@@ -194,13 +191,17 @@ export const rename = async (data: VimInfo & { newName: string }): Promise<Patch
 
 export const hover = async (data: VimInfo): Promise<string> => {
   const req = toProtocol(data)
-  const { contents } = await textDocument.hover(req) as Hover
+  const res = await textDocument.hover(req) as Hover
+  if (!res) return ''
+  const { contents } = res
 
+  // TODO: there is more than meets the eye here. make sure we are grabbing all the data
+  // that we need. could be all sorts of other goodies hidden in here. TREASURE HUNT YAY
   if (is.string(contents)) return (contents as string)
-  if (is.object(contents)) return markdownToHtml((contents as MarkedStringPart).value)
+  if (is.object(contents)) return (contents as MarkedStringPart).value
   if (is.array(contents)) return (contents as MarkedStringPart[])
     .filter(is.object)
-    .map(m => markdownToHtml(m.value))[0]
+    .map(m => m.value)[0]
 
   return ''
 }
