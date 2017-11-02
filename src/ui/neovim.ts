@@ -70,6 +70,7 @@ const subscribe = (event: string, fn: (data: any) => void) => {
   api.core.subscribe(event)
 }
 
+// TODO: DirChanged autocmd?
 export const cwdir = (): Promise<string> => req.core.callFunction('getcwd', [])
 export const input = (keys: string) => api.core.input(keys)
 export const cmd = (command: string) => api.core.command(command)
@@ -95,6 +96,7 @@ export const current = {
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
   get position(): Promise<Position> { return new Promise(fin => call.getpos('.').then(m => fin({ line: m[1], column: m[2] }))) },
   get lineContent(): Promise<string> { return req.core.getCurrentLine() },
+  // TODO: FileType autocmd?
   get filetype(): Promise<string> { return expr(`&filetype`) },
   get file(): Promise<string> { return call.expand(`%f`) },
   get revision(): Promise<number> { return expr(`b:changedtick`) },
