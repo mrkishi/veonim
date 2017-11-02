@@ -147,7 +147,6 @@ const getCompletions = async (lineContent: string, line: number, column: number)
         //: showCompletions(completions)
     })
 
-    // TODO: handle isIncomplete flag in completions result
     semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
   }
 

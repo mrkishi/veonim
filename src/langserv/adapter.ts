@@ -228,7 +228,7 @@ export const workspaceSymbols = async (data: VimInfo): Promise<Symbol[]> => {
 export const completions = async (data: VimInfo): Promise<CompletionItem[]> => {
   const req = toProtocol(data)
   const res = await textDocument.completion(req)
-  // TODO: check if is incomplete? and do what?
+  // TODO: handle isIncomplete flag in completions result
   // docs: * This list it not complete. Further typing should result in recomputing this list
   return is.object(res) && res.items ? res.items : res
 }
