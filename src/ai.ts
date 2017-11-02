@@ -75,7 +75,14 @@ const updateVim = (items: string[]) => {
   g.veonim_completions = items
 }
 
-const updateServer = async (lineChange = false) => {
+const needsUpdate = async (revision: number): Promise<boolean> => {
+  if (state.pauseUpdate) return false
+  return (await vim.revision) > revision
+}
+
+const updateServer = async ({ lineChange = false } = {}) => {
+  vim.revision.then(m => cache.revision = m)
+
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
     ...await vim.position,
@@ -89,20 +96,10 @@ const updateServer = async (lineChange = false) => {
   }
 }
 
-// TODO: could change this to 'needsUpdate' returns true or not
-const attemptUpdate = async (lineChange = false) => {
-  if (state.pauseUpdate) return
-  const currentRevision = await vim.revision
-  if (currentRevision > cache.revision) updateServer(lineChange)
-  cache.revision = currentRevision
-}
-
 const getSemanticCompletions = (line: number, column: number) => EarlyPromise(async done => {
   if (cache.semanticCompletions.has(`${line}:${column}`)) 
     return done(cache.semanticCompletions.get(`${line}:${column}`)!)
 
-  // TODO: textChangedI will also fire, how can optimize so only once called (updateServer)?
-  await updateServer(true)
   console.time('LSP COMPLETIONS')
   const items = await completions({ ...fileInfo(), line, column })
   console.timeEnd('LSP COMPLETIONS')
@@ -142,7 +139,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
       if (state.activeCompletion !== `${line}:${startIndex}`) return
       semanticCompletions = completions
 
-      // TODO: how annoying is delayed semantic completions overriding pmenu? enable this maybe?
+      // TODO: how annoying is delayed semantic completions overriding pmenu? enable this if so
       //query.length
         //? showCompletions([...cache.completionItems.slice(0, 1), ...completions])
         //: showCompletions(completions)
@@ -198,8 +195,6 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
 
   if (!triggerChars.includes(leftChar)) return
 
-  // TODO: textChangedI will also fire, how can optimize so only once called?
-  await updateServer(true)
   const hint = await signatureHelp({ ...fileInfo(), line, column })
   if (!hint.signatures.length) return
   // TODO: support list of signatures?
@@ -215,10 +210,6 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   // TODO: highlight params
 }
 
-// TODO: create queue for firing these events in proper order
-// certain events will have higher order.
-// clear stack, then call queue items in priority order
-
 autocmd.colorScheme(async () => {
   // TODO: this prints out in the command window
   // TODO: autocmd colorscheme gets the name of the scheme in <match>
@@ -229,28 +220,49 @@ autocmd.colorScheme(async () => {
 autocmd.bufEnter(debounce(async () => {
   const [ cwd, file, filetype, revision ] = await cc(cwdir(), vim.file, vim.filetype, vim.revision)
   merge(cache, { cwd, file, filetype, revision })
-  updateServer()
+  await needsUpdate(cache.revision) && updateServer()
 }, 100))
 
-autocmd.textChanged(debounce(() => attemptUpdate(), 200))
-autocmd.textChangedI(() => attemptUpdate(true))
+autocmd.textChanged(debounce(async () => {
+  await needsUpdate(cache.revision) && updateServer()
+}, 200))
+
 autocmd.cursorMoved(() => state.hoverVisible && hoverUI.hide())
 autocmd.insertEnter(() => state.hoverVisible && hoverUI.hide())
 
 autocmd.cursorMovedI(async () => {
-  // TODO: inefficient with textChangedI because calling lineContent 2x
+  // it is within the realm of possiblity that cursor move in insert mode does
+  // not always mean a text change. initally the idea was to subscribe to
+  // textChangedI for buffer changes and cursorMovedI to trigger language server
+  // events. however in practice this became more complex as the firing order of
+  // vim autocmd events is not deterministic. effectively this meant that lang
+  // server events were being triggered before buffer updates were syncd to the
+  // lang server.
+  //
+  // resolving this issue while maintaing both autocmds would mean a complex
+  // deferred mechanism in which cursorMovedI would only execute its callbacks
+  // after textChangedI fires. (remember that callback order is not guaranteed
+  // and textChangedI + cursorMovedI may not always occur at the same time)
+  //
+  // it seems simpler to skip textChangedI and check buffer revision status
+  // in cursorMovedI (to sync the buffer). in practice cursorMovedI almost
+  // always will also mean textChangedI (unless you're a filthy uncultured
+  // philistine swine who moves around in insert mode with arrow keys)
+  // so in the rare cases where a text change did not actually occur while
+  // the cursor moved, it means an extra call that vim has to process
+  if (await needsUpdate(cache.revision)) await updateServer({ lineChange: true })
   const [ lineContent, { line, column } ] = await cc(vim.lineContent, vim.position)
   getCompletions(lineContent, line, column)
   getSignatureHint(lineContent, line, column)
 })
 
-autocmd.insertLeave(() => {
+autocmd.insertLeave(async () => {
   state.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
   // TODO: maybe just check state in the component? tracking two states gonna have a bad time
   state.hoverVisible && hoverUI.hide()
-  !state.pauseUpdate && updateServer()
+  !state.pauseUpdate && await needsUpdate(cache.revision) && updateServer()
 })
 
 autocmd.completeDone(async () => {
