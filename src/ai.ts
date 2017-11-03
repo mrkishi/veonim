@@ -204,16 +204,25 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   if (!triggerChars.includes(leftChar)) return
 
   const hint = await signatureHelp({ ...fileInfo(), line, column })
-  if (!hint.signatures.length) return
-  // TODO: support list of signatures?
+  if (!hint) return
+
+  const { activeParameter, activeSignature, signatures = [] } = hint
+  if (!signatures.length) return
+
+  const { label = '', documentation = '', parameters = [] } = signatures[activeSignature || 0] || {}
+  const currentParam = parameters[activeParameter || 0]
+
+  // TODO: ok so there can be multiple signatures. does the user switch between
+  // them? is it the arrows down/up? explore vscode. i'm pretty sure only one
+  // sig can be displayed at a time? (think method overloads)
 
   // TODO: don't reposition signature if already active (same up)
+  // -- what if we are on another line?
   // TODO: do however, updated the bolded parameters
-  const { label } = hint.signatures[0]
   const y = vimUI.rowToY(vimUI.cursor.row - 1)
   const x = vimUI.colToX(column)
   const data = await getColorData(label, cache.filetype)
-  hoverUI.show({ data, x, y })
+  hoverUI.show({ data, x, y, info: documentation })
   // TODO: highlight params
 }
 

@@ -4,6 +4,7 @@ import { ColorData } from '../../color-service'
 
 interface State {
   value: ColorData[][],
+  info: string,
   vis: boolean,
   x: number,
   y: number,
@@ -13,15 +14,18 @@ interface ShowParams {
   x: number,
   y: number,
   data: ColorData[][],
+  info?: string,
 }
 
 const state: State = {
   value: [[]],
+  info: '',
   vis: false,
   x: 0,
   y: 0,
 }
 
+// TODO: render info (documentation/more detail)
 const view = ({ value, vis, x, y }: State) => h('#hover', {
   hide: !vis,
   style: {
@@ -46,5 +50,5 @@ a.hide = () => ({ vis: false })
 
 const ui = app({ state, view, actions: a }, false)
 
-export const show = ({ x, y, data }: ShowParams) => ui.show({ value: data, x, y })
+export const show = ({ x, y, data, info }: ShowParams) => ui.show({ value: data, info, x, y })
 export const hide = () => ui.hide()
