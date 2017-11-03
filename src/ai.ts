@@ -25,11 +25,20 @@ interface Cache {
   semanticCompletions: Map<string, CompletionOption[]>
 }
 
+// TODO: move cache to neovim module. some of these things should be
+// filled in by events (autocmd DirChanged, FileType, BufEnter, etc.)
+// this is neovim state so it belongs there.
+//
+// also once this shared cache state is in neovim begin to extract out
+// different parts of the AI to different modules
+//
+// DEPENDS ON: figuring out how to get autocmd event arguments <match> etc
 export const cache: Cache = {
   filetype: '',
   file: '',
   revision: -1,
   cwd: '',
+  // TODO: not used?
   completionItems: [],
   semanticCompletions: new Map()
 }
@@ -38,7 +47,6 @@ const maxResults = 8
 const state = {
   activeCompletion: '',
   pauseUpdate: false,
-  hoverVisible: false,
 }
 
 const fileInfo = () => {
@@ -206,7 +214,6 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   const x = vimUI.colToX(column)
   const data = await getColorData(label, cache.filetype)
   hoverUI.show({ data, x, y })
-  state.hoverVisible = true
   // TODO: highlight params
 }
 
@@ -220,15 +227,15 @@ autocmd.colorScheme(async () => {
 autocmd.bufEnter(debounce(async () => {
   const [ cwd, file, filetype, revision ] = await cc(cwdir(), vim.file, vim.filetype, vim.revision)
   merge(cache, { cwd, file, filetype, revision })
-  await needsUpdate(cache.revision) && updateServer()
+  updateServer()
 }, 100))
 
 autocmd.textChanged(debounce(async () => {
   await needsUpdate(cache.revision) && updateServer()
 }, 200))
 
-autocmd.cursorMoved(() => state.hoverVisible && hoverUI.hide())
-autocmd.insertEnter(() => state.hoverVisible && hoverUI.hide())
+autocmd.cursorMoved(() => hoverUI.hide())
+autocmd.insertEnter(() => hoverUI.hide())
 
 autocmd.cursorMovedI(async () => {
   // it is within the realm of possiblity that cursor move in insert mode does
@@ -260,8 +267,7 @@ autocmd.insertLeave(async () => {
   state.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
-  // TODO: maybe just check state in the component? tracking two states gonna have a bad time
-  state.hoverVisible && hoverUI.hide()
+  hoverUI.hide()
   !state.pauseUpdate && await needsUpdate(cache.revision) && updateServer()
 })
 
@@ -315,7 +321,6 @@ action('hover', async () => {
   const x = vimUI.colToX(column)
   const data = await getColorData(text, cache.filetype)
   hoverUI.show({ data, x, y })
-  state.hoverVisible = true
 })
 
 action('symbols', async () => {
