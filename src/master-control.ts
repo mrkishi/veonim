@@ -1,6 +1,7 @@
 import { ID, log, onFnCall, merge, prefixWith } from './utils'
 import { ChildProcess } from 'child_process'
 import CreateTransport from './transport'
+import NeovimUtils from './neovim-utils'
 import { Api, Prefixes } from './api'
 import Neovim from '@veonim/neovim'
 import { pub } from './dispatch'
@@ -76,18 +77,12 @@ export const switchTo = (id: number) => {
 export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> => {
   const id = createNewVimInstance({ askCd })
   switchTo(id)
+  const errors = await unblock()
 
-  // TODO: this getMode/blocking/input/capture :messages is kinda hack.
-  // when neovim implements external dialogs, please revisit
-  const { blocking } = await req.getMode()
-  if (blocking) {
-    api.input(`<Enter>`)
-    const errors = await req.commandOutput(`messages`)
-    pub('notification:error', {
-      title: 'Neovim startup problem',
-      message: errors.split('\n').filter(e => e),
-    })
-  }
+  if (errors.length) pub('notification:error', {
+    title: 'Neovim startup problem',
+    message: errors,
+  })
 
   api.command(`let g:vn_loaded=1`)
   const path = await req.eval('v:servername')
@@ -108,6 +103,8 @@ decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(prefix.core(name), args))
+
+const { unblock } = NeovimUtils({ api, req })
 
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => onEvent('redraw', fn)
