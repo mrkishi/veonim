@@ -22,6 +22,7 @@ const state: State = {
   y: 0,
 }
 
+// TODO: set fg text color to vim fg
 const view = ({ value, vis, x, y }: State) => h('#hover', {
   hide: !vis,
   style: {

@@ -7,6 +7,7 @@ import * as harvester from './ui/plugins/keyword-harvester'
 import * as completionUI from './ui/plugins/autocomplete'
 import * as symbolsUI from './ui/plugins/symbols'
 import * as hoverUI from './ui/plugins/hover'
+import * as hintUI from './ui/plugins/hint'
 import { filter } from 'fuzzaldrin-plus'
 import vimUI from './ui/canvasgrid'
 import { sub } from './dispatch'
@@ -146,6 +147,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
       // this returned late and we started another completion and this one is irrelevant
       if (state.activeCompletion !== `${line}:${startIndex}`) return
       semanticCompletions = completions
+      if (!query.length) showCompletions(completions)
 
       // TODO: how annoying is delayed semantic completions overriding pmenu? enable this if so
       //query.length
@@ -193,10 +195,6 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   }
 }
 
-// TODO: this will be auto-triggered. get triggerChars from server.canDo
-// TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
-// TODO: i think given the list of trigger characters, some guess work is due from our part
-// according to vscode, it really literally triggers on the specified trigger char. hold the hint in insert mode, update on trigger chars. on resume a new trigger char has to be pressed. also need to figure out how hint disappears. for ( open bracket it's easy to find close, but for other langs???
 const getSignatureHint = async (lineContent: string, line: number, column: number) => {
   const triggerChars = triggers.signatureHelp(cache.cwd, cache.filetype)
   const leftChar = lineContent[Math.max(column - 2, 0)]
@@ -210,20 +208,32 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   if (!signatures.length) return
 
   const { label = '', documentation = '', parameters = [] } = signatures[activeSignature || 0] || {}
-  const currentParam = parameters[activeParameter || 0]
+  const { label: currentParam = '' } = parameters[activeParameter || 0] || {}
+
+  // TODO: this will be auto-triggered. get triggerChars from server.canDo
+  // TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
+  // TODO: i think given the list of trigger characters, some guess work is due from our part
+  // according to vscode, it really literally triggers on the specified trigger char. hold the hint in insert mode, update on trigger chars. on resume a new trigger char has to be pressed. also need to figure out how hint disappears. for ( open bracket it's easy to find close, but for other langs???
+
+  // TODO: figure out when to hide, when we are doing completing params.
+  // usually when we type the matching paran? another line?
+  // what about languages that don't have parantheses?
 
   // TODO: ok so there can be multiple signatures. does the user switch between
   // them? is it the arrows down/up? explore vscode. i'm pretty sure only one
   // sig can be displayed at a time? (think method overloads)
 
-  // TODO: don't reposition signature if already active (same up)
-  // -- what if we are on another line?
-  // TODO: do however, updated the bolded parameters
+  // TODO: position up or down depending on where anchored
+
+  // TODO: can we slide over the function start to align better with params?
+  // hint line:      blarg(one, two, three): void
+  // text line: blarg(one, two, three)
+  // instead
+  // hint line: blarg(one, two, three): void
+  // text line: blarg(one, two, three)
   const y = vimUI.rowToY(vimUI.cursor.row - 1)
   const x = vimUI.colToX(column)
-  const data = await getColorData(label, cache.filetype)
-  hoverUI.show({ data, x, y, info: documentation })
-  // TODO: highlight params
+  hintUI.show({ label, currentParam, x, y, info: documentation })
 }
 
 autocmd.colorScheme(async () => {
@@ -243,8 +253,15 @@ autocmd.textChanged(debounce(async () => {
   await needsUpdate(cache.revision) && updateServer()
 }, 200))
 
-autocmd.cursorMoved(() => hoverUI.hide())
-autocmd.insertEnter(() => hoverUI.hide())
+autocmd.cursorMoved(() => {
+  hoverUI.hide()
+  hintUI.hide()
+})
+
+autocmd.insertEnter(() => {
+  hoverUI.hide()
+  hintUI.hide()
+})
 
 autocmd.cursorMovedI(async () => {
   // it is within the realm of possiblity that cursor move in insert mode does
@@ -277,6 +294,7 @@ autocmd.insertLeave(async () => {
   cache.semanticCompletions.clear()
   completionUI.hide()
   hoverUI.hide()
+  hintUI.hide()
   !state.pauseUpdate && await needsUpdate(cache.revision) && updateServer()
 })
 
