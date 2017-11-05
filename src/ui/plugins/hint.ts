@@ -2,6 +2,7 @@ import { h, app, Actions } from '../uikit'
 import { translate } from '../css'
 
 interface State {
+  label: string,
   labelStart: string,
   currentParam: string,
   labelEnd: string,
@@ -20,6 +21,7 @@ interface ShowParams {
 }
 
 const state: State = {
+  label: '',
   labelStart: '',
   currentParam: '',
   labelEnd: '',
@@ -38,6 +40,7 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y }: State) => h('#h
   style: {
     // TODO: need to anchor at bottom (if above) and top (if below)
     // because multi-line line can cover up current line
+    // TODO: also need to anchor within bounds. min (editor left edge) - max (editor right edge)
     position: 'absolute',
     transform: translate(x, y),
   }
@@ -51,11 +54,9 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y }: State) => h('#h
 
 const a: Actions<State> = {}
 
-// TODO; don't reposition if already active
-// use hash to compare label value if same as previous, then don't update x+y
-a.show = (_s, _a, { labelStart, currentParam, labelEnd, x, y }) => {
-  return { labelStart, currentParam, labelEnd, x, y, vis: true }
-}
+a.show = (s, _a, { label, labelStart, currentParam, labelEnd, x, y }) => s.label === label
+  ? { label, labelStart, currentParam, labelEnd, vis: true }
+  : { label, labelStart, currentParam, labelEnd, x, y, vis: true }
 
 a.hide = () => ({ vis: false })
 
@@ -68,6 +69,7 @@ export const show = ({ x, y, label, currentParam, info }: ShowParams) => {
     x,
     y,
     info,
+    label,
     labelStart: label.slice(0, paramStart),
     currentParam: label.slice(paramStart, paramStart + currentParam.length),
     labelEnd: label.slice(paramStart + currentParam.length),

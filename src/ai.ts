@@ -195,9 +195,31 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   }
 }
 
+const shouldCloseSignatureHint = (totalParams: number, currentParam: number, triggers: string[], leftChar: string): boolean => {
+  if (currentParam < totalParams) return false
+
+  const hasEasilyIdentifiableSymmetricalMatcherChar = triggers.some(t => ['(', '{', '['].includes(t))
+  if (!hasEasilyIdentifiableSymmetricalMatcherChar) return true
+
+  return (leftChar === ')' && triggers.includes('('))
+    || (leftChar === '}' && triggers.includes('{'))
+    || (leftChar === ']' && triggers.includes('['))
+}
+
+const shs = {
+  totalParams: 0,
+  currentParam: 0,
+}
+
 const getSignatureHint = async (lineContent: string, line: number, column: number) => {
   const triggerChars = triggers.signatureHelp(cache.cwd, cache.filetype)
   const leftChar = lineContent[Math.max(column - 2, 0)]
+
+  // TODO: should probably also hide if we jumped to another line
+  if (shouldCloseSignatureHint(shs.totalParams, shs.currentParam, triggerChars, leftChar)) {
+    hintUI.hide()
+    return
+  }
 
   if (!triggerChars.includes(leftChar)) return
 
@@ -210,14 +232,10 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   const { label = '', documentation = '', parameters = [] } = signatures[activeSignature || 0] || {}
   const { label: currentParam = '' } = parameters[activeParameter || 0] || {}
 
-  // TODO: this will be auto-triggered. get triggerChars from server.canDo
-  // TODO: try to figure out if we are inside func call? too much work? (so this func is not called when outside func)
-  // TODO: i think given the list of trigger characters, some guess work is due from our part
-  // according to vscode, it really literally triggers on the specified trigger char. hold the hint in insert mode, update on trigger chars. on resume a new trigger char has to be pressed. also need to figure out how hint disappears. for ( open bracket it's easy to find close, but for other langs???
-
-  // TODO: figure out when to hide, when we are doing completing params.
-  // usually when we type the matching paran? another line?
-  // what about languages that don't have parantheses?
+  merge(shs, {
+    totalParams: parameters.length,
+    currentParam: activeParameter,
+  })
 
   // TODO: ok so there can be multiple signatures. does the user switch between
   // them? is it the arrows down/up? explore vscode. i'm pretty sure only one
@@ -225,12 +243,6 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
 
   // TODO: position up or down depending on where anchored
 
-  // TODO: can we slide over the function start to align better with params?
-  // hint line:      blarg(one, two, three): void
-  // text line: blarg(one, two, three)
-  // instead
-  // hint line: blarg(one, two, three): void
-  // text line: blarg(one, two, three)
   const y = vimUI.rowToY(vimUI.cursor.row - 1)
   const x = vimUI.colToX(column)
   hintUI.show({ label, currentParam, x, y, info: documentation })
