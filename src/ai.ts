@@ -196,7 +196,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
 }
 
 const shouldCloseSignatureHint = (totalParams: number, currentParam: number, triggers: string[], leftChar: string): boolean => {
-  if (currentParam < totalParams) return false
+  if (currentParam < totalParams - 1) return false
 
   const hasEasilyIdentifiableSymmetricalMatcherChar = triggers.some(t => ['(', '{', '['].includes(t))
   if (!hasEasilyIdentifiableSymmetricalMatcherChar) return true
@@ -242,10 +242,13 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   // sig can be displayed at a time? (think method overloads)
 
   // TODO: position up or down depending on where anchored
-
-  const y = vimUI.rowToY(vimUI.cursor.row - 1)
-  const x = vimUI.colToX(column)
-  hintUI.show({ label, currentParam, x, y, info: documentation })
+  hintUI.show({
+    label,
+    currentParam,
+    row: vimUI.cursor.row,
+    col: column,
+    info: documentation
+  })
 }
 
 autocmd.colorScheme(async () => {

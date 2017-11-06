@@ -1,5 +1,6 @@
 import { h, app, Actions } from '../uikit'
 import { translate } from '../css'
+import vimUI from '../canvasgrid'
 
 interface State {
   label: string,
@@ -13,8 +14,8 @@ interface State {
 }
 
 interface ShowParams {
-  x: number,
-  y: number,
+  row: number,
+  col: number,
   label: string,
   currentParam: string,
   info?: string,
@@ -45,29 +46,35 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y }: State) => h('#h
     transform: translate(x, y),
   }
 }, [
-  h('.hover', [
-    h('span', { style: faded }, labelStart),
-    h('span', { style: bold }, currentParam),
-    h('span', { style: faded }, labelEnd),
+  h('div', {
+    style: {
+      transform: `translateY(-100%)`
+    }
+  }, [
+    h('.hover', [
+      h('span', { style: faded }, labelStart),
+      h('span', { style: bold }, currentParam),
+      h('span', { style: faded }, labelEnd),
+    ]),
   ]),
 ])
 
 const a: Actions<State> = {}
 
-a.show = (s, _a, { label, labelStart, currentParam, labelEnd, x, y }) => s.label === label
+a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col }) => s.label === label
   ? { label, labelStart, currentParam, labelEnd, vis: true }
-  : { label, labelStart, currentParam, labelEnd, x, y, vis: true }
+  : { label, labelStart, currentParam, labelEnd, x: vimUI.colToX(col), y: vimUI.rowToY(row), vis: true }
 
 a.hide = () => ({ vis: false })
 
 const ui = app({ state, view, actions: a }, false)
 
-export const show = ({ x, y, label, currentParam, info }: ShowParams) => {
+export const show = ({ row, col, label, currentParam, info }: ShowParams) => {
   const paramStart = label.indexOf(currentParam)
 
   ui.show({
-    x,
-    y,
+    row,
+    col,
     info,
     label,
     labelStart: label.slice(0, paramStart),
