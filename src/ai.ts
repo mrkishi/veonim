@@ -149,10 +149,8 @@ const getCompletions = async (lineContent: string, line: number, column: number)
       semanticCompletions = completions
       if (!query.length) showCompletions(completions)
 
-      // TODO: how annoying is delayed semantic completions overriding pmenu? enable this if so
-      //query.length
-        //? showCompletions([...cache.completionItems.slice(0, 1), ...completions])
-        //: showCompletions(completions)
+      // how annoying is delayed semantic completions overriding pmenu? enable this if so:
+      //else showCompletions([...cache.completionItems.slice(0, 1), ...completions])
     })
 
     semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
@@ -161,24 +159,17 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (!query.length && semanticCompletions.length) return showCompletions(semanticCompletions)
 
   if (query.length || semanticCompletions.length) {
-    // TODO: assuming we move the keyword filtering to the worker thread, can we run keyword filtering + semantic completion filtering in parallel?
-    //
-    // something like:
-    // const keywordOptions = harvester.findKeywords(cwd, file, queryCased)
-    // const semanticOptions = filter(semanticCompletions, queryCased, { maxResults, key: 'text' })
-    // const completionOptions = semanticOptions.length ? semanticOptions : await keywordOptions
-
     const queryCased = smartCaseQuery(query)
-    const keywords = (await harvester.queryKeywords(cache.cwd, cache.file, queryCased, maxResults))
-      .map(text => ({ text, kind: CompletionItemKind.Text }))
+    const pendingKeywords = harvester
+      .queryKeywords(cache.cwd, cache.file, queryCased, maxResults)
+      .then(res => res.map(text => ({ text, kind: CompletionItemKind.Text })))
 
-    if (!keywords.length && !semanticCompletions.length) return
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
     // i mean could try to do some sort of combination with ranking/priority. idk if the filtering will interfere with it
     // TODO: do we want more than maxResults? i.e. i want to explore all of Array.prototype.* completions
     // and i want to scroll thru the list. should i support that use case? or just use the query to filter?
     const resSemantic = filter(semanticCompletions, queryCased, { maxResults, key: 'text' })
-    const completionOptions = resSemantic.length ? resSemantic : keywords
+    const completionOptions = resSemantic.length ? resSemantic : await pendingKeywords
 
     if (!completionOptions.length) {
       updateVim([])
