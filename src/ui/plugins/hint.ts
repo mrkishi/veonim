@@ -38,22 +38,35 @@ const state: State = {
 
 const bold = { 'font-weight': 'bold' }
 const faded = { color: `rgba(255, 255, 255, 0.6)` }
+let spacer: HTMLElement
 
 // TODO: render info (documentation/more detail)
 const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom }: State) => h('#hint', {
-  hide: !vis,
   style: {
-    // TODO: also need to anchor within bounds. min (editor left edge) - max (editor right edge)
-    // TODO: difficult to know ahead of time the size of the content. let's say we are on row 1
-    // and we think the hint will take up 1 row. there will be enough space if we put it on row 0
-    // HOWEVER... if the hint content ends up taking more than 1 line(row) then it will clip outta bounds
+    display: vis ? 'flex' : 'none',
     'z-index': 100,
     position: 'absolute',
-    transform: translate(x, y),
+    transform: translate(0, y),
+    width: '100%',
   }
 }, [
   h('div', {
-    style: anchorBottom ? { transform: `translateY(-100%)` } : undefined
+    onupdate: (e: HTMLElement) => {
+      spacer = e
+    },
+    style: { flex: `${x}px`, }
+  }),
+  h('div', {
+    onupdate: (e: HTMLElement) => setTimeout(() => {
+      const { width } = e.getBoundingClientRect()
+      const okSize = Math.floor(window.innerWidth * 0.7)
+      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${x}px`
+      e.style[(<any>'opacity')] = '1'
+    }, 1),
+    style: {
+      transform: anchorBottom ? `translateY(-100%)` : undefined,
+      opacity: '0',
+    }
   }, [
     h('.hover', [
       h('span', { style: faded }, labelStart),
@@ -65,7 +78,7 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom }: S
 
 const a: Actions<State> = {}
 
-// this equals check will not refresh if we do sig hint calls > 1 on the same row... problemo?
+// this equals check will not refresh if we do sig hint calls > 1 on the same row... problem? umad?
 a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col }) => s.label === label && s.row === row
   ? { label, labelStart, currentParam, labelEnd, vis: true }
   : {
@@ -80,7 +93,7 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col }) => s.l
     vis: true
   }
 
-a.hide = () => ({ vis: false })
+a.hide = () => ({ label: '', vis: false, row: 0 })
 
 const ui = app({ state, view, actions: a }, false)
 
