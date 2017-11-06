@@ -4,6 +4,7 @@ import vimUI from '../canvasgrid'
 
 interface State {
   label: string,
+  row: number,
   labelStart: string,
   currentParam: string,
   labelEnd: string,
@@ -11,6 +12,7 @@ interface State {
   vis: boolean,
   x: number,
   y: number,
+  anchorBottom: boolean,
 }
 
 interface ShowParams {
@@ -23,6 +25,7 @@ interface ShowParams {
 
 const state: State = {
   label: '',
+  row: 0,
   labelStart: '',
   currentParam: '',
   labelEnd: '',
@@ -30,26 +33,27 @@ const state: State = {
   vis: false,
   x: 0,
   y: 0,
+  anchorBottom: true,
 }
 
 const bold = { 'font-weight': 'bold' }
 const faded = { color: `rgba(255, 255, 255, 0.6)` }
 
 // TODO: render info (documentation/more detail)
-const view = ({ labelStart, currentParam, labelEnd, vis, x, y }: State) => h('#hint', {
+const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom }: State) => h('#hint', {
   hide: !vis,
   style: {
-    // TODO: need to anchor at bottom (if above) and top (if below)
-    // because multi-line line can cover up current line
     // TODO: also need to anchor within bounds. min (editor left edge) - max (editor right edge)
+    // TODO: difficult to know ahead of time the size of the content. let's say we are on row 1
+    // and we think the hint will take up 1 row. there will be enough space if we put it on row 0
+    // HOWEVER... if the hint content ends up taking more than 1 line(row) then it will clip outta bounds
+    'z-index': 100,
     position: 'absolute',
     transform: translate(x, y),
   }
 }, [
   h('div', {
-    style: {
-      transform: `translateY(-100%)`
-    }
+    style: anchorBottom ? { transform: `translateY(-100%)` } : undefined
   }, [
     h('.hover', [
       h('span', { style: faded }, labelStart),
@@ -61,9 +65,20 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y }: State) => h('#h
 
 const a: Actions<State> = {}
 
-a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col }) => s.label === label
+// this equals check will not refresh if we do sig hint calls > 1 on the same row... problemo?
+a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col }) => s.label === label && s.row === row
   ? { label, labelStart, currentParam, labelEnd, vis: true }
-  : { label, labelStart, currentParam, labelEnd, x: vimUI.colToX(col), y: vimUI.rowToY(row), vis: true }
+  : {
+    row,
+    label,
+    labelStart,
+    currentParam,
+    labelEnd,
+    x: vimUI.colToX(col),
+    y: vimUI.rowToY(row > 2 ? row : row + 1),
+    anchorBottom: row > 2,
+    vis: true
+  }
 
 a.hide = () => ({ vis: false })
 

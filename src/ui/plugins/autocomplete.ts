@@ -10,6 +10,7 @@ const state: State = { options: [], vis: false, ix: 0, x: 0, y: 0 }
 const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
   hide: !vis,
   style: {
+    'z-index': 200,
     'min-width': '100px',
     'max-width': '300px',
     position: 'absolute',
