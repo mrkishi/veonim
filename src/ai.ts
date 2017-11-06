@@ -237,11 +237,11 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
     currentParam: activeParameter,
   })
 
-  // TODO: ok so there can be multiple signatures. does the user switch between
-  // them? is it the arrows down/up? explore vscode. i'm pretty sure only one
-  // sig can be displayed at a time? (think method overloads)
+  // TODO: figure out a way to switch different signatures...
+  // - cache signatures in state
+  // - add actions :Veonim next-sig (can be keybound) (ctrl+shift+n?)
+  // - on action switch active displayed signature/redraw
 
-  // TODO: position up or down depending on where anchored
   hintUI.show({
     label,
     currentParam,
