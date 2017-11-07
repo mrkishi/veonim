@@ -348,13 +348,10 @@ action('rename', async () => {
 action('hover', async () => {
   const { line, column } = await vim.position
   const text = await hover({ ...fileInfo(), line, column })
+  if (!text) return
   // TODO: get start column of the object (to show popup menu anchored to the beginning of the word)
-  // TODO: if multi-line html, anchor from bottom
-  const y = vimUI.rowToY(vimUI.cursor.row - 1)
-  const x = vimUI.colToX(column)
   const data = await getColorData(text, cache.filetype)
-  console.log('COLOR DATA:', data)
-  hoverUI.show({ data, x, y })
+  hoverUI.show({ data, row: vimUI.cursor.row, col: column })
 })
 
 action('symbols', async () => {

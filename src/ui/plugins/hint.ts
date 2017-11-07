@@ -93,7 +93,7 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col }) => s.l
     labelStart,
     currentParam,
     labelEnd,
-    x: vimUI.colToX(col),
+    x: vimUI.colToX(col - 1),
     y: vimUI.rowToY(row > 2 ? row : row + 1),
     anchorBottom: row > 2,
     vis: true
