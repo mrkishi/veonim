@@ -1,7 +1,7 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
-import { Functions } from '../functions'
+import { is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { sub, processAnyBuffered } from '../dispatch'
+import { Functions } from '../functions'
 import setupRPC from '../rpc'
 
 export interface Position {
@@ -10,10 +10,16 @@ export interface Position {
 }
 
 type GenericCallback = (...args: any[]) => void
-type StrFnObj = { [index: string]: (callback: () => void) => void }
 type ProxyToPromise = { [index: string]: () => Promise<any> }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 type KeyVal = { [index: string]: any }
+
+type AutocmdEvent = (callback: () => void) => void
+type AutocmdArgEvent = (argExpression: string, callback: (arg: any) => void) => void
+
+interface Autocmd {
+  [index: string]: AutocmdEvent & AutocmdArgEvent,
+}
 
 const prefix = {
   core: prefixWith(Prefixes.Core),
@@ -121,14 +127,20 @@ export const define: DefineFunction = onProp((name: string) => (fn: TemplateStri
   onCreate(() => cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`))()
 })
 
-const registerAutocmd = (event: string) => {
-  onCreate(() => cmd(`au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}')`))()
-  onCreate(() => subscribe(`autocmd:${event}`, () => autocmdWatchers.notify(event)))()
+const registerAutocmd = (event: string, argExpression?: string) => {
+  const base = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}'`
+  const ext = argExpression ? `, ${argExpression.replace(/"/g, '\\"') })` : ')'
+
+  onCreate(() => cmd(base + ext))()
+  onCreate(() => subscribe(`autocmd:${event}`, (a: any[]) => autocmdWatchers.notify(event, a[0])))()
 }
 
-export const autocmd: StrFnObj = onFnCall((name, [cb]) => {
+export const autocmd: Autocmd = onFnCall((name, args) => {
+  const cb = args.find(a => is.function(a) || is.asyncfunction(a))
+  const argExpression = args.find(is.string)
   const ev = pascalCase(name)
-  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
+
+  if (!autocmdWatchers.has(ev)) registerAutocmd(ev, argExpression)
   autocmdWatchers.add(ev, cb)
 })
 
@@ -139,16 +151,6 @@ export const until: ProxyToPromise = onFnCall(name => {
     const whenDone = () => (fin(), autocmdWatchers.remove(ev, whenDone))
     autocmdWatchers.add(ev, whenDone)
   })
-})
-
-onCreate(() => subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args)))
-onCreate(() => cmd(`aug Veonim | au! | aug END`))
-
-onCreate(async () => {
-  const bufferedActions = await g.vn_rpc_buf
-  if (!bufferedActions.length) return
-  bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
-  g.vn_rpc_buf = []
 })
 
 export const onFile = {
@@ -211,14 +213,38 @@ define.PatchCurrentBuffer`
   call cursor(pos[1:])
 `
 
+onCreate(async () => {
+  const bufferedActions = await g.vn_rpc_buf
+  if (!bufferedActions.length) return
+  bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
+  g.vn_rpc_buf = []
+})
+
+// TODO: really some of these should be in autocomplete file
 onCreate(() => {
   g.veonim_completing = 0
   g.veonim_complete_pos = 1
   g.veonim_completions = []
 
+  cmd(`aug Veonim | au! | aug END`)
   cmd(`set completefunc=VeonimComplete`)
   cmd(`ino <expr> <tab> CompleteScroll(1)`)
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+
+  subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+
+  autocmd.colorScheme(`expand('<amatch>')`, (colorScheme: string) => {
+    // TODO: why am i not getting something returned here. it works in vimscript...
+    console.log('colorscheme changed to', colorScheme)
+  })
+
+  autocmd.dirChanged(`v:event.cwd`, (dir: string) => {
+    console.log('cwd changed to', dir)
+  })
+
+  autocmd.fileType(`expand('<amatch>')`, (ft: string) => {
+    console.log('filetype changed to', ft)
+  })
 })
 
 export const VBuffer = class VBuffer {
