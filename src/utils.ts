@@ -132,6 +132,14 @@ export class Watchers extends Map<string, Set<Function>> {
     this.has(event) && this.get(event)!.forEach(cb => fn(cb))
   }
 
+  notifyStartingWith(event: string, ...args: any[]) {
+    Array
+      .from(this.entries())
+      .filter(m => m[0].startsWith(event))
+      .map(m => m[1])
+      .forEach(m => m.forEach(cb => cb(...args)))
+  }
+
   remove(event: string, handler: Function) {
     this.has(event) && this.get(event)!.delete(handler)
   }
