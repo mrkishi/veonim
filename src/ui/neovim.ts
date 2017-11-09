@@ -1,5 +1,5 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
+import { ID, is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { sub, processAnyBuffered } from '../dispatch'
 import { Functions } from '../functions'
 import setupRPC from '../rpc'
@@ -31,6 +31,7 @@ const onReady = new Set<Function>()
 const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
+const uid = ID()
 const actionWatchers = new Watchers()
 const autocmdWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
@@ -127,12 +128,20 @@ export const define: DefineFunction = onProp((name: string) => (fn: TemplateStri
   onCreate(() => cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`))()
 })
 
-const registerAutocmd = (event: string, argExpression?: string) => {
-  const base = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}'`
-  const ext = argExpression ? `, ${argExpression.replace(/"/g, '\\"') })` : ')'
+const registerAutocmd = (event: string) => {
+  const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}')`
 
-  onCreate(() => cmd(base + ext))()
-  onCreate(() => subscribe(`autocmd:${event}`, (a: any[]) => autocmdWatchers.notify(event, a[0])))()
+  onCreate(() => cmd(cmdExpr))()
+  onCreate(() => subscribe(`autocmd:${event}`, () => autocmdWatchers.notify(event)))()
+}
+
+const registerAutocmdEventWithArgExpression = (event: string, argExpression: string, cb: Function) => {
+  const id = uid.next()
+  const argExpr = argExpression.replace(/"/g, '\\"')
+  const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}:${id}', ${argExpr})`
+
+  onCreate(() => cmd(cmdExpr))()
+  onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
 }
 
 export const autocmd: Autocmd = onFnCall((name, args) => {
@@ -140,7 +149,8 @@ export const autocmd: Autocmd = onFnCall((name, args) => {
   const argExpression = args.find(is.string)
   const ev = pascalCase(name)
 
-  if (!autocmdWatchers.has(ev)) registerAutocmd(ev, argExpression)
+  if (argExpression) return registerAutocmdEventWithArgExpression(ev, argExpression, cb)
+  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
   autocmdWatchers.add(ev, cb)
 })
 
@@ -153,6 +163,7 @@ export const until: ProxyToPromise = onFnCall(name => {
   })
 })
 
+// TODO; use the generic autocmd argEpxr registrations
 export const onFile = {
   load: (cb: (file: string) => void) => {
     onCreate(() => cmd(`au Veonim BufAdd * call rpcnotify(0, 'file:load', expand('<afile>:p'))`))()
@@ -232,19 +243,18 @@ onCreate(() => {
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+})
 
-  autocmd.colorScheme(`expand('<amatch>')`, (colorScheme: string) => {
-    // TODO: why am i not getting something returned here. it works in vimscript...
-    console.log('colorscheme changed to', colorScheme)
-  })
+autocmd.dirChanged(`v:event.cwd`, (dir: string) => {
+  console.log('cwd changed to', dir)
+})
 
-  autocmd.dirChanged(`v:event.cwd`, (dir: string) => {
-    console.log('cwd changed to', dir)
-  })
+autocmd.fileType(`expand('<amatch>')`, (ft: string) => {
+  console.log('filetype changed to', ft)
+})
 
-  autocmd.fileType(`expand('<amatch>')`, (ft: string) => {
-    console.log('filetype changed to', ft)
-  })
+autocmd.colorScheme(`expand('<amatch>')`, (color: string) => {
+  console.log('colorscheme changed to:', color)
 })
 
 export const VBuffer = class VBuffer {
