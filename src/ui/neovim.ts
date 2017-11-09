@@ -37,11 +37,7 @@ const autocmdWatchers = new Watchers()
 const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
-const state = {
-  filetype: '',
-  cwd: '',
-  colorscheme: ''
-}
+const state = { file: '', filetype: '', cwd: '', colorscheme: '' }
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
@@ -253,6 +249,7 @@ onCreate(() => {
   expr(`&filetype`).then(updateFileType)
   call.getcwd().then(updateCurrentDir)
   g.colors_name.then(updateColor)
+  call.expand(`%f`).then(updateFile)
 })
 
 const updateColor = (color: string) => {
@@ -267,6 +264,12 @@ const updateFileType = (filetype: string) => {
   stateChangeWatchers.notify('filetype', filetype)
 }
 
+const updateFile = (file: string) => {
+  if (state.file === file) return
+  state.file = file
+  stateChangeWatchers.notify('file', file)
+}
+
 const updateCurrentDir = (dir: string) => {
   if (state.cwd === dir) return
   state.cwd = dir
@@ -276,18 +279,23 @@ const updateCurrentDir = (dir: string) => {
 autocmd.dirChanged(`v:event.cwd`, updateCurrentDir)
 autocmd.fileType(`expand('<amatch>')`, updateFileType)
 autocmd.colorScheme(`expand('<amatch>')`, updateColor)
-autocmd.bufEnter(debounce(() => g.colors_name.then(updateColor), 50))
+autocmd.bufEnter(debounce(() => {
+  g.colors_name.then(updateColor)
+  call.expand(`%f`).then(updateFile)
+}, 50))
 
 sub('session:switch', () => {
   expr(`&filetype`).then(updateFileType)
   call.getcwd().then(updateCurrentDir)
   g.colors_name.then(updateColor)
+  call.expand(`%f`).then(updateFile)
 })
 
 export const onStateChange = {
   colorscheme: (cb: (color: string) => void): void => stateChangeWatchers.add('colorscheme', cb),
-  filetype: (cb: (color: string) => void): void => stateChangeWatchers.add('filetype', cb),
-  cwd: (cb: (color: string) => void): void => stateChangeWatchers.add('cwd', cb),
+  filetype: (cb: (filetype: string) => void): void => stateChangeWatchers.add('filetype', cb),
+  cwd: (cb: (cwd: string) => void): void => stateChangeWatchers.add('cwd', cb),
+  file: (cb: (file: string) => void): void => stateChangeWatchers.add('file', cb),
 }
 
 export const VBuffer = class VBuffer {
