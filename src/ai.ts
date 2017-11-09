@@ -1,5 +1,5 @@
 import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
-import { g, ex, action, autocmd, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
+import { g, ex, action, autocmd, onStateChange, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
 import { cc, debounce, merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { getColorData, setColorScheme } from './color-service'
@@ -242,12 +242,7 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   })
 }
 
-autocmd.colorScheme(async () => {
-  // TODO: this prints out in the command window
-  // TODO: autocmd colorscheme gets the name of the scheme in <match>
-  // how to pick that up here?
-  setColorScheme(await ex(`colorscheme`))
-})
+onStateChange.colorscheme(color => setColorScheme(color))
 
 autocmd.bufEnter(debounce(async () => {
   const [ cwd, file, filetype, revision ] = await cc(cwdir(), vim.file, vim.filetype, vim.revision)

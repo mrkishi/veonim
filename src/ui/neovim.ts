@@ -1,5 +1,5 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { ID, is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
+import { ID, is, debounce, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { sub, processAnyBuffered } from '../dispatch'
 import { Functions } from '../functions'
 import setupRPC from '../rpc'
@@ -34,8 +34,14 @@ export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 const uid = ID()
 const actionWatchers = new Watchers()
 const autocmdWatchers = new Watchers()
+const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
+const state = {
+  filetype: '',
+  cwd: '',
+  colorscheme: ''
+}
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
@@ -77,8 +83,6 @@ const subscribe = (event: string, fn: (data: any) => void) => {
   api.core.subscribe(event)
 }
 
-// TODO: DirChanged autocmd?
-export const cwdir = (): Promise<string> => req.core.callFunction('getcwd', [])
 export const input = (keys: string) => api.core.input(keys)
 export const cmd = (command: string) => api.core.command(command)
 export const ex = (command: string) => req.core.commandOutput(command)
@@ -90,6 +94,7 @@ export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
+export const cwdir = (): Promise<string> => call.getcwd()
 
 export const list = {
   get buffers() { return as.bufl(req.core.listBufs()) },
@@ -103,11 +108,12 @@ export const current = {
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
   get position(): Promise<Position> { return new Promise(fin => call.getpos('.').then(m => fin({ line: m[1], column: m[2] }))) },
   get lineContent(): Promise<string> { return req.core.getCurrentLine() },
-  // TODO: FileType autocmd?
-  get filetype(): Promise<string> { return expr(`&filetype`) },
   get file(): Promise<string> { return call.expand(`%f`) },
   get revision(): Promise<number> { return expr(`b:changedtick`) },
   get bufferContents(): Promise<string[]> { return call.getline(1, '$') as Promise<string[]> },
+  get colorscheme(): string { return state.colorscheme },
+  get filetype(): string { return state.filetype },
+  get cwd(): string { return state.cwd },
 }
 
 export const g = new Proxy({} as KeyVal, {
@@ -243,19 +249,46 @@ onCreate(() => {
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+
+  expr(`&filetype`).then(updateFileType)
+  call.getcwd().then(updateCurrentDir)
+  g.colors_name.then(updateColor)
 })
 
-autocmd.dirChanged(`v:event.cwd`, (dir: string) => {
-  console.log('cwd changed to', dir)
+const updateColor = (color: string) => {
+  if (state.colorscheme === color) return
+  state.colorscheme = color
+  stateChangeWatchers.notify('colorscheme', color)
+}
+
+const updateFileType = (filetype: string) => {
+  if (state.filetype === filetype) return
+  state.filetype = filetype
+  stateChangeWatchers.notify('filetype', filetype)
+}
+
+const updateCurrentDir = (dir: string) => {
+  if (state.cwd === dir) return
+  state.cwd = dir
+  stateChangeWatchers.notify('dir', dir)
+}
+
+autocmd.dirChanged(`v:event.cwd`, updateCurrentDir)
+autocmd.fileType(`expand('<amatch>')`, updateFileType)
+autocmd.colorScheme(`expand('<amatch>')`, updateColor)
+autocmd.bufEnter(debounce(() => g.colors_name.then(updateColor), 50))
+
+sub('session:switch', () => {
+  expr(`&filetype`).then(updateFileType)
+  call.getcwd().then(updateCurrentDir)
+  g.colors_name.then(updateColor)
 })
 
-autocmd.fileType(`expand('<amatch>')`, (ft: string) => {
-  console.log('filetype changed to', ft)
-})
-
-autocmd.colorScheme(`expand('<amatch>')`, (color: string) => {
-  console.log('colorscheme changed to:', color)
-})
+export const onStateChange = {
+  colorscheme: (cb: (color: string) => void): void => stateChangeWatchers.add('colorscheme', cb),
+  filetype: (cb: (color: string) => void): void => stateChangeWatchers.add('filetype', cb),
+  cwd: (cb: (color: string) => void): void => stateChangeWatchers.add('cwd', cb),
+}
 
 export const VBuffer = class VBuffer {
   public id: any
