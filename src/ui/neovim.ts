@@ -4,15 +4,11 @@ import { sub, processAnyBuffered } from '../dispatch'
 import { Functions } from '../functions'
 import setupRPC from '../rpc'
 
-export interface Position {
-  line: number,
-  column: number,
-}
-
 type GenericCallback = (...args: any[]) => void
 type ProxyToPromise = { [index: string]: () => Promise<any> }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 type KeyVal = { [index: string]: any }
+type StateChangeEvent = { [index: string]: (value: any) => void }
 
 type AutocmdEvent = (callback: () => void) => void
 type AutocmdArgEvent = (argExpression: string, callback: (arg: any) => void) => void
@@ -21,12 +17,26 @@ interface Autocmd {
   [index: string]: AutocmdEvent & AutocmdArgEvent,
 }
 
+export interface Position {
+  line: number,
+  column: number,
+}
+
+interface State {
+  file: string,
+  filetype: string,
+  cwd: string,
+  colorscheme: string,
+  revision: number,
+}
+
 const prefix = {
   core: prefixWith(Prefixes.Core),
   buffer: prefixWith(Prefixes.Buffer),
   window: prefixWith(Prefixes.Window),
   tabpage: prefixWith(Prefixes.Tabpage),
 }
+
 const onReady = new Set<Function>()
 const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
@@ -37,7 +47,6 @@ const autocmdWatchers = new Watchers()
 const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
-const state = { file: '', filetype: '', cwd: '', colorscheme: '' }
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
@@ -90,6 +99,8 @@ export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
+
+// TODO: deprecate this shit
 export const cwdir = (): Promise<string> => call.getcwd()
 
 export const list = {
@@ -98,19 +109,30 @@ export const list = {
   get tabs() { return as.tabl(req.core.listTabpages()) },
 }
 
-export const current = {
+export const current: State = new Proxy({
+  file: '',
+  filetype: '',
+  cwd: '',
+  colorscheme: '',
+  revision: -1,
+}, {
+  set: (target, key, value) => {
+    Reflect.set(target, key, value)
+    if (Reflect.get(target, key) !== value) stateChangeWatchers.notify(key as string, value)
+    return true
+  }
+})
+
+export const getCurrent = {
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
   get window() { return as.win(req.core.getCurrentWin()) },
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
   get position(): Promise<Position> { return new Promise(fin => call.getpos('.').then(m => fin({ line: m[1], column: m[2] }))) },
   get lineContent(): Promise<string> { return req.core.getCurrentLine() },
-  get file(): Promise<string> { return call.expand(`%f`) },
-  get revision(): Promise<number> { return expr(`b:changedtick`) },
   get bufferContents(): Promise<string[]> { return call.getline(1, '$') as Promise<string[]> },
-  get colorscheme(): string { return state.colorscheme },
-  get filetype(): string { return state.filetype },
-  get cwd(): string { return state.cwd },
 }
+
+export const onStateChange: StateChangeEvent = onFnCall((stateKey: string, [cb]) => stateChangeWatchers.add(stateKey, cb))
 
 export const g = new Proxy({} as KeyVal, {
   get: async (_t, name: string) => {
@@ -233,6 +255,14 @@ onCreate(async () => {
   g.vn_rpc_buf = []
 })
 
+const refreshState = () => {
+  expr(`&filetype`).then(m => current.filetype = m)
+  call.getcwd().then(m => current.cwd = m)
+  call.expand(`%f`).then(m => current.file = m)
+  g.colors_name.then((m: string) => current.colorscheme = m)
+  expr(`b:changedtick`).then(m => current.revision = m)
+}
+
 // TODO: really some of these should be in autocomplete file
 onCreate(() => {
   g.veonim_completing = 0
@@ -246,57 +276,23 @@ onCreate(() => {
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
 
-  expr(`&filetype`).then(updateFileType)
-  call.getcwd().then(updateCurrentDir)
-  g.colors_name.then(updateColor)
-  call.expand(`%f`).then(updateFile)
+  refreshState()
 })
 
-const updateColor = (color: string) => {
-  if (state.colorscheme === color) return
-  state.colorscheme = color
-  stateChangeWatchers.notify('colorscheme', color)
-}
+// TODO: i wonder if there will be race conditions when accessing these state values in autocmds
+// i.e. a user autocmd could fire before our state update autocmds fire. thus the user autocmds
+// would reference old state. perhaps it is time to differentiate between internal/user autocmds?
+// SO:
+// add setImmediate on all user autocmds? make sure we update vim cache state before calling 
+// user autocmds?
+autocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
+autocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
+autocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
+autocmd.textChanged(() => expr(`b:changedtick`).then(m => current.revision = m))
+autocmd.textChangedI(() => expr(`b:changedtick`).then(m => current.revision = m))
+autocmd.bufEnter(debounce(() => refreshState(), 50))
 
-const updateFileType = (filetype: string) => {
-  if (state.filetype === filetype) return
-  state.filetype = filetype
-  stateChangeWatchers.notify('filetype', filetype)
-}
-
-const updateFile = (file: string) => {
-  if (state.file === file) return
-  state.file = file
-  stateChangeWatchers.notify('file', file)
-}
-
-const updateCurrentDir = (dir: string) => {
-  if (state.cwd === dir) return
-  state.cwd = dir
-  stateChangeWatchers.notify('dir', dir)
-}
-
-autocmd.dirChanged(`v:event.cwd`, updateCurrentDir)
-autocmd.fileType(`expand('<amatch>')`, updateFileType)
-autocmd.colorScheme(`expand('<amatch>')`, updateColor)
-autocmd.bufEnter(debounce(() => {
-  g.colors_name.then(updateColor)
-  call.expand(`%f`).then(updateFile)
-}, 50))
-
-sub('session:switch', () => {
-  expr(`&filetype`).then(updateFileType)
-  call.getcwd().then(updateCurrentDir)
-  g.colors_name.then(updateColor)
-  call.expand(`%f`).then(updateFile)
-})
-
-export const onStateChange = {
-  colorscheme: (cb: (color: string) => void): void => stateChangeWatchers.add('colorscheme', cb),
-  filetype: (cb: (filetype: string) => void): void => stateChangeWatchers.add('filetype', cb),
-  cwd: (cb: (cwd: string) => void): void => stateChangeWatchers.add('cwd', cb),
-  file: (cb: (file: string) => void): void => stateChangeWatchers.add('file', cb),
-}
+sub('session:switch', refreshState)
 
 export const VBuffer = class VBuffer {
   public id: any

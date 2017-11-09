@@ -1,5 +1,5 @@
 import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
-import { g, ex, action, autocmd, onStateChange, until, cwdir, call, expr, feedkeys, current as vim } from './ui/neovim'
+import { g, ex, action, autocmd, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
 import { cc, debounce, merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { getColorData, setColorScheme } from './color-service'
@@ -18,29 +18,13 @@ export interface CompletionOption {
 }
 
 interface Cache {
-  completionItems: string[],
-  filetype: string,
-  file: string,
-  revision: number,
-  cwd: string
   semanticCompletions: Map<string, CompletionOption[]>
 }
 
-// TODO: move cache to neovim module. some of these things should be
-// filled in by events (autocmd DirChanged, FileType, BufEnter, etc.)
-// this is neovim state so it belongs there.
-//
+// TODO: 
 // also once this shared cache state is in neovim begin to extract out
 // different parts of the AI to different modules
-//
-// DEPENDS ON: figuring out how to get autocmd event arguments <match> etc
 export const cache: Cache = {
-  filetype: '',
-  file: '',
-  revision: -1,
-  cwd: '',
-  // TODO: not used?
-  completionItems: [],
   semanticCompletions: new Map()
 }
 
@@ -48,10 +32,11 @@ const maxResults = 8
 const state = {
   activeCompletion: '',
   pauseUpdate: false,
+  lastRevision: -1,
 }
 
 const fileInfo = () => {
-  const { cwd, file, filetype, revision } = cache
+  const { cwd, file, filetype, revision } = vim
   return { cwd, file, filetype, revision }
 }
 
@@ -79,29 +64,24 @@ const findQuery = (line: string, column: number) => {
   return { startIndex, query, leftChar }
 }
 
-const updateVim = (items: string[]) => {
-  cache.completionItems = items
-  g.veonim_completions = items
-}
-
-const needsUpdate = async (revision: number): Promise<boolean> => {
+const needsUpdate = (): boolean => {
   if (state.pauseUpdate) return false
-  return (await vim.revision) > revision
+  return vim.revision > state.lastRevision
 }
 
 const updateServer = async ({ lineChange = false } = {}) => {
-  vim.revision.then(m => cache.revision = m)
+  state.lastRevision = vim.revision
 
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
-    ...await vim.position,
-    buffer: [ await vim.lineContent ]
+    ...await getVim.position,
+    buffer: [ await getVim.lineContent ]
   })
 
   else {
-    const buffer = await vim.bufferContents
-    harvester.update(cache.cwd, cache.file, buffer)
-    fullBufferUpdate({ ...fileInfo(), ...await vim.position, buffer })
+    const buffer = await getVim.bufferContents
+    harvester.update(vim.cwd, vim.file, buffer)
+    fullBufferUpdate({ ...fileInfo(), ...await getVim.position, buffer })
   }
 }
 
@@ -128,13 +108,13 @@ const smartCaseQuery = (query: string): string => hasUpperCase(query[0])
 const getCompletions = async (lineContent: string, line: number, column: number) => {
   const showCompletions = (completions: CompletionOption[]) => {
     const options = orderCompletions(completions, query)
-    updateVim(options.map(m => m.text))
+    g.veonim_completions = options.map(m => m.text)
     const { x, y } = calcMenuPosition(startIndex, column, options.length)
     completionUI.show({ x, y, options })
   }
 
   const { startIndex, query, leftChar } = findQuery(lineContent, column)
-  const triggerChars = triggers.completion(cache.cwd, cache.filetype)
+  const triggerChars = triggers.completion(vim.cwd, vim.filetype)
   let semanticCompletions: CompletionOption[] = []
 
   if (triggerChars.includes(leftChar)) {
@@ -161,7 +141,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (query.length || semanticCompletions.length) {
     const queryCased = smartCaseQuery(query)
     const pendingKeywords = harvester
-      .queryKeywords(cache.cwd, cache.file, queryCased, maxResults)
+      .queryKeywords(vim.cwd, vim.file, queryCased, maxResults)
       .then(res => res.map(text => ({ text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
@@ -172,7 +152,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const completionOptions = resSemantic.length ? resSemantic : await pendingKeywords
 
     if (!completionOptions.length) {
-      updateVim([])
+      g.veonim_completions = []
       completionUI.hide()
       return
     }
@@ -182,7 +162,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     g.veonim_complete_pos = startIndex
   } else {
     completionUI.hide()
-    updateVim([])
+    g.veonim_completions = []
   }
 }
 
@@ -203,7 +183,7 @@ const shs = {
 }
 
 const getSignatureHint = async (lineContent: string, line: number, column: number) => {
-  const triggerChars = triggers.signatureHelp(cache.cwd, cache.filetype)
+  const triggerChars = triggers.signatureHelp(vim.cwd, vim.filetype)
   const leftChar = lineContent[Math.max(column - 2, 0)]
 
   // TODO: should probably also hide if we jumped to another line
@@ -242,17 +222,16 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   })
 }
 
-onStateChange.colorscheme(color => setColorScheme(color))
+// TODO: TESTING
+onStateChange.cwd((dir: string) => {
+  console.log('current dir', vim.cwd)
+  console.log('dir changed:', dir)
+})
 
-autocmd.bufEnter(debounce(async () => {
-  const [ cwd, file, filetype, revision ] = await cc(cwdir(), vim.file, vim.filetype, vim.revision)
-  merge(cache, { cwd, file, filetype, revision })
-  updateServer()
-}, 100))
+onStateChange.colorscheme((color: string) => setColorScheme(color))
 
-autocmd.textChanged(debounce(async () => {
-  await needsUpdate(cache.revision) && updateServer()
-}, 200))
+autocmd.bufEnter(debounce(() => updateServer(), 100))
+autocmd.textChanged(debounce(() => needsUpdate() && updateServer(), 200))
 
 autocmd.cursorMoved(() => {
   hoverUI.hide()
@@ -284,8 +263,8 @@ autocmd.cursorMovedI(async () => {
   // philistine swine who moves around in insert mode with arrow keys)
   // so in the rare cases where a text change did not actually occur while
   // the cursor moved, it means an extra call that vim has to process
-  if (await needsUpdate(cache.revision)) await updateServer({ lineChange: true })
-  const [ lineContent, { line, column } ] = await cc(vim.lineContent, vim.position)
+  if (needsUpdate()) await updateServer({ lineChange: true })
+  const [ lineContent, { line, column } ] = await cc(getVim.lineContent, getVim.position)
   getCompletions(lineContent, line, column)
   getSignatureHint(lineContent, line, column)
 })
@@ -296,21 +275,21 @@ autocmd.insertLeave(async () => {
   completionUI.hide()
   hoverUI.hide()
   hintUI.hide()
-  !state.pauseUpdate && await needsUpdate(cache.revision) && updateServer()
+  needsUpdate() && updateServer()
 })
 
 autocmd.completeDone(async () => {
   g.veonim_completing = 0
   const { word } = await expr(`v:completed_item`)
-  harvester.addWord(cache.cwd, cache.file, word)
-  updateVim([])
+  harvester.addWord(vim.cwd, vim.file, word)
+  g.veonim_completions = []
 })
 
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
 
 action('references', async () => {
-  const refs = await references({ ...fileInfo(), ...await vim.position })
+  const refs = await references({ ...fileInfo(), ...await getVim.position })
 
   await call.setloclist(0, refs.map(m => ({
     lnum: m.line,
@@ -323,7 +302,7 @@ action('references', async () => {
 })
 
 action('definition', async () => {
-  const { line, column } = await definition({ ...fileInfo(), ...await vim.position })
+  const { line, column } = await definition({ ...fileInfo(), ...await getVim.position })
   if (!line || !column) return
   await call.cursor(line, column)
 })
@@ -335,17 +314,17 @@ action('rename', async () => {
   const newName = await expr('@.')
   await feedkeys('u')
   state.pauseUpdate = false
-  const patches = await rename({ ...fileInfo(), ...await vim.position, newName })
+  const patches = await rename({ ...fileInfo(), ...await getVim.position, newName })
   // TODO: change other files besides current buffer. using fs operations if not modified?
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
 })
 
 action('hover', async () => {
-  const { line, column } = await vim.position
+  const { line, column } = await getVim.position
   const text = await hover({ ...fileInfo(), line, column })
   if (!text) return
   // TODO: get start column of the object (to show popup menu anchored to the beginning of the word)
-  const data = await getColorData(text, cache.filetype)
+  const data = await getColorData(text, vim.filetype)
   hoverUI.show({ data, row: vimUI.cursor.row, col: column })
 })
 
