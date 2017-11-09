@@ -1,7 +1,6 @@
-import { action, cmd, call, cwdir, feedkeys, expr } from '../neovim'
+import { action, cmd, call, current, feedkeys, expr } from '../neovim'
 import { h, app, Actions } from '../uikit'
 import Worker from '../../worker'
-import { cc } from '../../utils'
 import TermInput from './input'
 
 interface SearchResult { line: number, col: number, text: string }
@@ -155,13 +154,14 @@ const ui = app({ state, view, actions: a })
 on.results((results: Result[]) => ui.results(results))
 
 action('grep', async (query: string) => {
-  const cwd = await cwdir()
+  const { cwd } = current
   ui.show({ cwd })
   query && go.query({ query, cwd })
 })
 
 action('grep-word', async () => {
-  const [ cwd, query ] = await cc(cwdir(), call.expand('<cword>'))
+  const { cwd } = current
+  const query = await call.expand('<cword>')
   ui.show({ cwd, val: query })
   go.query({ query, cwd })
 })
@@ -170,7 +170,7 @@ action('grep-selection', async () => {
   await feedkeys('gv"zy')
   const selection = await expr('@z')
   const [ query ] = selection.split('\n')
-  const cwd = await cwdir()
+  const { cwd } = current
   ui.show({ cwd, val: query })
   go.query({ query, cwd })
 })

@@ -1,4 +1,4 @@
-import { action, cwdir, call, cmd } from '../neovim'
+import { action, current, call, cmd } from '../neovim'
 import { h, app, Actions } from '../uikit'
 import { basename, dirname } from 'path'
 import Worker from '../../worker'
@@ -70,8 +70,7 @@ const ui = app({ state, view, actions: a })
 on.results((files: string[]) => ui.results(files))
 
 action('files', async () => {
-  const cwd = await cwdir()
-  go.load(cwd)
+  go.load(current.cwd)
   const currentFile = await call.expand('%f')
   ui.show(currentFile)
 })

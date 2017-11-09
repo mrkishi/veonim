@@ -1,12 +1,12 @@
 import HttpServer from '../../http-server'
-import { cmd, cwdir } from '../neovim'
+import { cmd, current } from '../neovim'
 import { relative, join } from 'path'
 
 interface RemoteRequest { cwd: string, file: string }
 
 const load = async ({ cwd, file }: RemoteRequest) => {
   if (!file) return
-  const vimCwd = await cwdir()
+  const vimCwd = current.cwd
   const base = cwd.includes(vimCwd) ? relative(vimCwd, cwd) : cwd
   const path = join(base, file)
   cmd(`e ${path}`)

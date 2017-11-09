@@ -1,5 +1,5 @@
 import { getDirFiles, exists } from '../../utils'
-import { action, cwdir, cmd } from '../neovim'
+import { action, current, cmd } from '../neovim'
 import { renameCurrent } from '../sessions'
 import { h, app, Actions } from '../uikit'
 import config from '../../config-service'
@@ -110,7 +110,7 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 })
 const ui = app({ state, view, actions: a })
 
 const go = async (userPath: string, renameToDir = false) => {
-  const cwd = await validPath(userPath) || await cwdir()
+  const cwd = await validPath(userPath) || current.cwd
   const filedirs = await getDirFiles(cwd)
   const paths = filterDirs(filedirs)
   ui.show({ paths, cwd, path: cwd, renameToDir })

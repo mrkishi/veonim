@@ -1,4 +1,4 @@
-import { action, cwdir, call, cmd } from '../neovim'
+import { action, current, call, cmd } from '../neovim'
 import { h, app, Actions } from '../uikit'
 import { getDirFiles } from '../../utils'
 import config from '../../config-service'
@@ -76,7 +76,7 @@ a.down = (s, a, next) => {
 }
 
 a.jumpHome = async (_s, a) => {
-  const cwd = await cwdir()
+  const { cwd } = current
   const filedirs = await getDirFiles(cwd)
   const paths = sortDirFiles(filedirs)
   a.show({ paths, cwd, path: cwd })
@@ -117,7 +117,7 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 })
 const ui = app({ state, view, actions: a })
 
 action('explorer', async () => {
-  const cwd = await cwdir()
+  const { cwd } = current
   const path = await call.expand(`%:p:h`)
   const paths = sortDirFiles(await getDirFiles(path))
   ui.show({ cwd, path, paths })

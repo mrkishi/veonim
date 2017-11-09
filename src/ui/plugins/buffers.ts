@@ -1,4 +1,4 @@
-import { action, cwdir, call, cmd } from '../neovim'
+import { action, current, call, cmd } from '../neovim'
 import { VimBuffer } from '../../functions'
 import { h, app, Actions } from '../uikit'
 import { basename, dirname } from 'path'
@@ -79,7 +79,6 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.ix - 1
 const ui = app({ state, view, actions: a })
 
 action('buffers', async () => {
-  const cwd = await cwdir()
-  const buffers = await getBuffers(cwd)
+  const buffers = await getBuffers(current.cwd)
   ui.show(buffers)
 })
