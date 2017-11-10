@@ -62,6 +62,8 @@ const findQuery = (line: string, column: number) => {
 }
 
 const updateServer = async ({ lineChange = false } = {}) => {
+  if (state.pauseUpdate) return
+
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
     buffer: [ await getVim.lineContent ]
@@ -273,7 +275,8 @@ action('definition', async () => {
   await call.cursor(line, column)
 })
 
-// TODO: broken, updates halfway
+// TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
+// or maybe figure out how to diff based on the partial modification
 action('rename', async () => {
   state.pauseUpdate = true
   await feedkeys('ciw')
