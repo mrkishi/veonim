@@ -5,7 +5,6 @@ import { Functions } from '../functions'
 import setupRPC from '../rpc'
 
 type GenericCallback = (...args: any[]) => void
-type ProxyToPromise = { [index: string]: () => Promise<any> }
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 type KeyVal = { [index: string]: any }
 type StateChangeEvent = { [index: string]: (value: any) => void }
@@ -18,6 +17,7 @@ interface Autocmd {
 }
 
 type EventCallback = (state: State) => void
+
 interface Event {
   bufLoad(cb: EventCallback): void,
   bufUnload(cb: EventCallback): void,
@@ -28,6 +28,18 @@ interface Event {
   insertEnter(cb: EventCallback): void,
   insertLeave(cb: EventCallback): void,
   completion(cb: (completedWord: string, state: State) => void): void,
+}
+
+interface EventWait {
+  bufLoad: Promise<any>,
+  bufUnload: Promise<any>,
+  bufChange: Promise<any>,
+  bufChangeInsert: Promise<any>,
+  cursorMove: Promise<any>,
+  cursorMoveInsert: Promise<any>,
+  insertEnter: Promise<any>,
+  insertLeave: Promise<any>,
+  completion: Promise<any>,
 }
 
 export interface Position {
@@ -188,6 +200,7 @@ const registerAutocmdWithArgExpression = (event: string, argExpression: string, 
   onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
 }
 
+// TODO: do we need multiple autocmd registrations if they are internal only?
 const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
   const cb = args.find(a => is.function(a) || is.asyncfunction(a))
   const argExpression = args.find(is.string)
@@ -198,13 +211,11 @@ const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
   autocmdWatchers.add(ev, cb)
 })
 
-// TODO: should this use events instead of autocmds?
-export const until: ProxyToPromise = onFnCall(name => {
+export const until: EventWait = onProp((name: string) => {
   const ev = pascalCase(name)
-  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
   return new Promise(fin => {
-    const whenDone = () => (fin(), autocmdWatchers.remove(ev, whenDone))
-    autocmdWatchers.add(ev, whenDone)
+    const whenDone = () => (fin(), events.remove(ev, whenDone))
+    events.add(ev, whenDone)
   })
 })
 

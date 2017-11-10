@@ -279,7 +279,8 @@ action('definition', async () => {
 action('rename', async () => {
   state.pauseUpdate = true
   await feedkeys('ciw')
-  await until.insertLeave()
+  // TODO: BROKEN
+  await until.insertLeave
   const newName = await expr('@.')
   await feedkeys('u')
   state.pauseUpdate = false
