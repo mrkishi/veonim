@@ -1,4 +1,4 @@
-import { CompletionOption } from '../../ai'
+import { CompletionOption } from '../../ai/completions'
 import { h, app, Actions } from '../uikit'
 import { translate } from '../css'
 
