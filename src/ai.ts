@@ -1,16 +1,19 @@
-import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
-import { g, ex, action, on, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
+import { fullBufferUpdate, partialBufferUpdate, rename, completions, signatureHelp, triggers } from './langserv/adapter'
+import { g, action, on, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
 import { merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
-import { getColorData, setColorScheme } from './color-service'
 import * as harvester from './ui/plugins/keyword-harvester'
 import * as completionUI from './ui/plugins/autocomplete'
-import * as symbolsUI from './ui/plugins/symbols'
-import * as hoverUI from './ui/plugins/hover'
+import { setColorScheme } from './color-service'
 import * as hintUI from './ui/plugins/hint'
 import { filter } from 'fuzzaldrin-plus'
 import vimUI from './ui/canvasgrid'
 import { sub } from './dispatch'
+
+import './ai/references'
+import './ai/definition'
+import './ai/symbols'
+import './ai/hover'
 
 export interface CompletionOption {
   text: string,
@@ -34,7 +37,7 @@ const state = {
   pauseUpdate: false,
 }
 
-const fileInfo = ({ cwd, file, filetype, revision, line, column } = vim) =>
+export const fileInfo = ({ cwd, file, filetype, revision, line, column } = vim) =>
   ({ cwd, file, filetype, revision, line, column })
 
 const orderCompletions = (m: CompletionOption[], query: string) =>
@@ -230,12 +233,10 @@ on.cursorMoveInsert(async (bufferModified, { line, column }) => {
 })
 
 on.cursorMove(() => {
-  hoverUI.hide()
   hintUI.hide()
 })
 
 on.insertEnter(() => {
-  hoverUI.hide()
   hintUI.hide()
 })
 
@@ -243,7 +244,6 @@ on.insertLeave(async () => {
   state.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
-  hoverUI.hide()
   hintUI.hide()
 })
 
@@ -255,25 +255,6 @@ on.completion((word, { cwd, file }) => {
 
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
-
-action('references', async () => {
-  const refs = await references({ ...fileInfo() })
-
-  await call.setloclist(0, refs.map(m => ({
-    lnum: m.line,
-    col: m.column,
-    text: m.desc
-  })))
-
-  ex('lopen')
-  ex('wincmd p')
-})
-
-action('definition', async () => {
-  const { line, column } = await definition({ ...fileInfo() })
-  if (!line || !column) return
-  await call.cursor(line, column)
-})
 
 // TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
 // or maybe figure out how to diff based on the partial modification
@@ -289,20 +270,3 @@ action('rename', async () => {
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
 })
 
-action('hover', async () => {
-  const text = await hover({ ...fileInfo() })
-  if (!text) return
-  // TODO: get start column of the object (to show popup menu anchored to the beginning of the word)
-  const data = await getColorData(text, vim.filetype)
-  hoverUI.show({ data, row: vimUI.cursor.row, col: vim.column })
-})
-
-action('symbols', async () => {
-  const listOfSymbols = await symbols(fileInfo())
-  listOfSymbols && symbolsUI.show(listOfSymbols)
-})
-
-action('workspace-symbols', async () => {
-  const listOfSymbols = await workspaceSymbols(fileInfo())
-  listOfSymbols && symbolsUI.show(listOfSymbols)
-})
