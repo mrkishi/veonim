@@ -1,9 +1,10 @@
-import { fullBufferUpdate, partialBufferUpdate, rename, completions, signatureHelp, triggers } from './langserv/adapter'
 import { g, action, on, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
+import { rename, completions, signatureHelp, triggers } from './langserv/adapter'
 import { merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as harvester from './ui/plugins/keyword-harvester'
 import * as completionUI from './ui/plugins/autocomplete'
+import * as updateService from './ai/update-server'
 import { setColorScheme } from './color-service'
 import * as hintUI from './ui/plugins/hint'
 import { filter } from 'fuzzaldrin-plus'
@@ -34,7 +35,6 @@ export const cache: Cache = {
 const maxResults = 8
 const state = {
   activeCompletion: '',
-  pauseUpdate: false,
 }
 
 export const fileInfo = ({ cwd, file, filetype, revision, line, column } = vim) =>
@@ -43,6 +43,7 @@ export const fileInfo = ({ cwd, file, filetype, revision, line, column } = vim) 
 const orderCompletions = (m: CompletionOption[], query: string) =>
   m.slice().sort(({ text }) => hasUpperCase(text) ? -1 : text.startsWith(query) ? -1 : 1)
 
+// TODO: should this just use smart pos?
 const calcMenuPosition = (startIndex: number, column: number, count: number) => {
   // anchor menu above row if the maximum results are going to spill out of bounds.
   // why maxResults instead of the # of items in options? because having the menu jump
@@ -64,20 +65,6 @@ const findQuery = (line: string, column: number) => {
   return { startIndex, query, leftChar }
 }
 
-const updateServer = async ({ lineChange = false } = {}) => {
-  if (state.pauseUpdate) return
-
-  if (lineChange) partialBufferUpdate({
-    ...fileInfo(),
-    buffer: [ await getVim.lineContent ]
-  })
-
-  else {
-    const buffer = await getVim.bufferContents
-    harvester.update(vim.cwd, vim.file, buffer)
-    fullBufferUpdate({ ...fileInfo(), buffer })
-  }
-}
 
 const getSemanticCompletions = (line: number, column: number) => EarlyPromise(async done => {
   if (cache.semanticCompletions.has(`${line}:${column}`)) 
@@ -218,15 +205,15 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
 
 onStateChange.colorscheme((color: string) => setColorScheme(color))
 
-on.bufLoad(() => updateServer())
-on.bufChange(() => updateServer())
+on.bufLoad(() => updateService.update())
+on.bufChange(() => updateService.update())
 
 // using cursor move with a diff on revision number because we might need to
 // update the lang server before triggering completions/hint lookups. using
 // textChangedI + cursorMovedI would make it very difficult to wait in cursorMovedI
 // until textChangedI ran AND updated the server
 on.cursorMoveInsert(async (bufferModified, { line, column }) => {
-  if (bufferModified) await updateServer({ lineChange: true })
+  if (bufferModified) await updateService.update({ lineChange: true })
   const lineContent = await getVim.lineContent
   getCompletions(lineContent, line, column)
   getSignatureHint(lineContent, line, column)
@@ -259,12 +246,12 @@ sub('pmenu.hide', () => completionUI.hide())
 // TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
 // or maybe figure out how to diff based on the partial modification
 action('rename', async () => {
-  state.pauseUpdate = true
+  updateService.pause()
   await feedkeys('ciw')
   await until.insertLeave
   const newName = await expr('@.')
   await feedkeys('u')
-  state.pauseUpdate = false
+  updateService.resume()
   const patches = await rename({ ...fileInfo(), newName })
   // TODO: change other files besides current buffer. using fs operations if not modified?
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
