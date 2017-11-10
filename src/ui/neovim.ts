@@ -1,5 +1,5 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { ID, is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
+import { ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { sub, processAnyBuffered } from '../dispatch'
 import { Functions } from '../functions'
 import setupRPC from '../rpc'
@@ -13,8 +13,21 @@ type StateChangeEvent = { [index: string]: (value: any) => void }
 type AutocmdEvent = (callback: () => void) => void
 type AutocmdArgEvent = (argExpression: string, callback: (arg: any) => void) => void
 
+// TODO: consider deprecating Autocmd and use Event instead?
 interface Autocmd {
   [index: string]: AutocmdEvent & AutocmdArgEvent,
+}
+
+type EventCallback = (state: State) => void
+interface Event {
+  bufLoad(cb: EventCallback): void,
+  bufChange(cb: EventCallback): void,
+  bufChangeInsert(cb: EventCallback): void,
+  cursorMove(cb: EventCallback): void,
+  cursorMoveInsert(cb: EventCallback): void,
+  insertEnter(cb: EventCallback): void,
+  insertLeave(cb: EventCallback): void,
+  completion(cb: (completedWord: string, state: State) => void): void,
 }
 
 export interface Position {
@@ -28,6 +41,7 @@ interface State {
   cwd: string,
   colorscheme: string,
   revision: number,
+  bufUpdated: boolean,
 }
 
 const prefix = {
@@ -42,11 +56,13 @@ const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
 const uid = ID()
+const events = new Watchers()
 const actionWatchers = new Watchers()
 const autocmdWatchers = new Watchers()
 const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
-const { notify, request, on, hasEvent, onData } = setupRPC(m => io.postMessage(m))
+const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
+const notifyEvent = (event: string) => events.notify(event, current)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
@@ -84,7 +100,7 @@ export const as = {
 }
 
 const subscribe = (event: string, fn: (data: any) => void) => {
-  if (!hasEvent(event)) on(event, fn)
+  if (!hasEvent(event)) onEvent(event, fn)
   api.core.subscribe(event)
 }
 
@@ -112,6 +128,7 @@ export const current: State = new Proxy({
   cwd: '',
   colorscheme: '',
   revision: -1,
+  bufUpdated: false,
 }, {
   set: (target, key, value) => {
     const prevValue = Reflect.get(target, key)
@@ -150,45 +167,36 @@ export const define: DefineFunction = onProp((name: string) => (fn: TemplateStri
   onCreate(() => cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`))()
 })
 
-const registerAutocmd = (event: string, defer = true) => {
+const registerAutocmd = (event: string) => {
   const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}')`
 
   onCreate(() => cmd(cmdExpr))()
-  onCreate(() => subscribe(`autocmd:${event}`, () => defer
-    ? setTimeout(() => autocmdWatchers.notify(event), 1)
-    : autocmdWatchers.notify(event)))()
+  onCreate(() => subscribe(`autocmd:${event}`, () => autocmdWatchers.notify(event)))()
 }
 
-const registerAutocmdWithArgExpression = (event: string, argExpression: string, cb: Function, defer = true) => {
+const registerAutocmdWithArgExpression = (event: string, argExpression: string, cb: Function) => {
   const id = uid.next()
   const argExpr = argExpression.replace(/"/g, '\\"')
   const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}:${id}', ${argExpr})`
 
   onCreate(() => cmd(cmdExpr))()
-  onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => defer
-    ? setTimeout(() => cb(a[0]), 1)
-    : cb(a[0])))()
+  onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
 }
 
-// so we want to run the internal autocmds BEFORE executing the user callbacks. 'defer' is
-// used to push user autocmd callbacks to the next stack (run after internal callbacks)
-// this way when the user callbacks execute, the vim current state will be up-to-date
-
-// TODO: but really, i doubt setImmediate does a lot... because we really should be waiting
-// until all state updates have finished
-const setupAutocmd = (name: string, args: any[], { defer = true } = {}) => {
+const setupAutocmd = (name: string, args: any[]) => {
   const cb = args.find(a => is.function(a) || is.asyncfunction(a))
   const argExpression = args.find(is.string)
   const ev = pascalCase(name)
 
-  if (argExpression) return registerAutocmdWithArgExpression(ev, argExpression, cb, defer)
-  if (!autocmdWatchers.has(ev)) registerAutocmd(ev, defer)
+  if (argExpression) return registerAutocmdWithArgExpression(ev, argExpression, cb)
+  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
   autocmdWatchers.add(ev, cb)
 }
 
-const internalAutocmd: Autocmd = onFnCall((name, args) => setupAutocmd(name, args, { defer: false }))
+// TODO: should use events instead of exposing autocmd?
 export const autocmd: Autocmd = onFnCall((name, args) => setupAutocmd(name, args))
 
+// TODO: should this use events instead of autocmds?
 export const until: ProxyToPromise = onFnCall(name => {
   const ev = pascalCase(name)
   if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
@@ -197,6 +205,8 @@ export const until: ProxyToPromise = onFnCall(name => {
     autocmdWatchers.add(ev, whenDone)
   })
 })
+
+export const on: Event = onFnCall((name, [cb]) => events.add(name, cb))
 
 // TODO; use the generic autocmd argEpxr registrations
 export const onFile = {
@@ -266,12 +276,17 @@ onCreate(async () => {
   g.vn_rpc_buf = []
 })
 
-const refreshState = () => {
-  expr(`&filetype`).then(m => current.filetype = m)
-  call.getcwd().then(m => current.cwd = m)
-  call.expand(`%f`).then(m => current.file = m)
-  g.colors_name.then((m: string) => current.colorscheme = m)
-  expr(`b:changedtick`).then(m => current.revision = m)
+const refreshState = async () => {
+  const [ filetype, cwd, file, colorscheme, revision ] = await cc(
+    expr(`&filetype`),
+    call.getcwd(),
+    call.expand(`%f`),
+    g.colors_name,
+    expr(`b:changedtick`),
+  )
+
+  merge(current, { filetype, cwd, file, colorscheme, revision })
+  notifyEvent('bufLoad')
 }
 
 // TODO: really some of these should be in autocomplete file
@@ -290,12 +305,34 @@ onCreate(() => {
   refreshState()
 })
 
-internalAutocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
-internalAutocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
-internalAutocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
-internalAutocmd.textChanged(() => expr(`b:changedtick`).then(m => current.revision = m))
-internalAutocmd.textChangedI(() => expr(`b:changedtick`).then(m => current.revision = m))
-internalAutocmd.bufEnter(refreshState)
+autocmd.bufEnter(refreshState)
+autocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
+autocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
+autocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
+autocmd.insertEnter(() => notifyEvent('insertEnter'))
+autocmd.insertLeave(() => notifyEvent('insertLeave'))
+autocmd.cursorMoved(() => notifyEvent('cursorMove'))
+
+autocmd.completeDone(async () => {
+  const { word } = await expr(`v:completed_item`)
+  events.notify('completion', word, current)
+})
+
+autocmd.textChanged(async () => {
+  current.revision = await expr(`b:changedtick`)
+  current.bufUpdated = true
+  notifyEvent('bufChange')
+})
+
+autocmd.cursorMovedI(async () => {
+  const prevRevision = current.revision
+  current.revision = await expr(`b:changedtick`)
+  current.bufUpdated = prevRevision !== current.revision
+
+  if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')
+  notifyEvent('cursorMoveInsert')
+})
+
 
 sub('session:switch', refreshState)
 

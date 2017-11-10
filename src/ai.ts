@@ -1,6 +1,6 @@
 import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
-import { g, ex, action, autocmd, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
-import { cc, debounce, merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
+import { g, ex, action, on, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
+import { cc, merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { getColorData, setColorScheme } from './color-service'
 import * as harvester from './ui/plugins/keyword-harvester'
@@ -32,7 +32,6 @@ const maxResults = 8
 const state = {
   activeCompletion: '',
   pauseUpdate: false,
-  lastRevision: -1,
 }
 
 const fileInfo = () => {
@@ -64,14 +63,7 @@ const findQuery = (line: string, column: number) => {
   return { startIndex, query, leftChar }
 }
 
-const needsUpdate = (): boolean => {
-  if (state.pauseUpdate) return false
-  return vim.revision > state.lastRevision
-}
-
 const updateServer = async ({ lineChange = false } = {}) => {
-  state.lastRevision = vim.revision
-
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
     ...await getVim.position,
@@ -222,71 +214,43 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
   })
 }
 
-// TODO: TESTING
-onStateChange.cwd((dir: string) => {
-  console.log('current dir', vim.cwd)
-  console.log('dir changed:', dir)
-})
-
-onStateChange.filetype((ft: string) => {
-  console.log('current ft', vim.filetype)
-  console.log('ft changed:', ft)
-})
-
 onStateChange.colorscheme((color: string) => setColorScheme(color))
 
-autocmd.bufEnter(debounce(() => updateServer(), 100))
-autocmd.textChanged(debounce(() => needsUpdate() && updateServer(), 200))
+on.bufLoad(() => updateServer())
+on.bufChange(() => updateServer())
 
-autocmd.cursorMoved(() => {
-  hoverUI.hide()
-  hintUI.hide()
-})
-
-autocmd.insertEnter(() => {
-  hoverUI.hide()
-  hintUI.hide()
-})
-
-autocmd.cursorMovedI(async () => {
-  // it is within the realm of possiblity that cursor move in insert mode does
-  // not always mean a text change. initally the idea was to subscribe to
-  // textChangedI for buffer changes and cursorMovedI to trigger language server
-  // events. however in practice this became more complex as the firing order of
-  // vim autocmd events is not deterministic. effectively this meant that lang
-  // server events were being triggered before buffer updates were syncd to the
-  // lang server.
-  //
-  // resolving this issue while maintaing both autocmds would mean a complex
-  // deferred mechanism in which cursorMovedI would only execute its callbacks
-  // after textChangedI fires. (remember that callback order is not guaranteed
-  // and textChangedI + cursorMovedI may not always occur at the same time)
-  //
-  // it seems simpler to skip textChangedI and check buffer revision status
-  // in cursorMovedI (to sync the buffer). in practice cursorMovedI almost
-  // always will also mean textChangedI (unless you're a filthy uncultured
-  // philistine swine who moves around in insert mode with arrow keys)
-  // so in the rare cases where a text change did not actually occur while
-  // the cursor moved, it means an extra call that vim has to process
-  if (needsUpdate()) await updateServer({ lineChange: true })
+// using cursor move with a diff on revision number because we might need to
+// update the lang server before triggering completions/hint lookups. using
+// textChangedI + cursorMovedI would make it very difficult to wait in cursorMovedI
+// until textChangedI ran AND updated the server
+on.cursorMoveInsert(async ({ bufUpdated }) => {
+  if (bufUpdated) await updateServer({ lineChange: true })
   const [ lineContent, { line, column } ] = await cc(getVim.lineContent, getVim.position)
   getCompletions(lineContent, line, column)
   getSignatureHint(lineContent, line, column)
 })
 
-autocmd.insertLeave(async () => {
+on.cursorMove(() => {
+  hoverUI.hide()
+  hintUI.hide()
+})
+
+on.insertEnter(() => {
+  hoverUI.hide()
+  hintUI.hide()
+})
+
+on.insertLeave(async () => {
   state.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
   hoverUI.hide()
   hintUI.hide()
-  needsUpdate() && updateServer()
 })
 
-autocmd.completeDone(async () => {
+on.completion((word, { cwd, file }) => {
+  harvester.addWord(cwd, file, word)
   g.veonim_completing = 0
-  const { word } = await expr(`v:completed_item`)
-  harvester.addWord(vim.cwd, vim.file, word)
   g.veonim_completions = []
 })
 
