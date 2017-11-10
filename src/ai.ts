@@ -1,4 +1,4 @@
-import { on, onStateChange, current as vim, getCurrent as getVim } from './ui/neovim'
+import { on, onStateChange, getCurrent as vim } from './ui/neovim'
 import { getSignatureHint } from './ai/signature-hint'
 import * as updateService from './ai/update-server'
 import { getCompletions } from './ai/completions'
@@ -8,11 +8,6 @@ import './ai/definition'
 import './ai/symbols'
 import './ai/rename'
 import './ai/hover'
-
-// TODO: instead of this function shared everywhere, why not just allow langserv adapter
-// to accept the vim 'current' state object?
-export const fileInfo = ({ cwd, file, filetype, revision, line, column } = vim) =>
-  ({ cwd, file, filetype, revision, line, column })
 
 onStateChange.colorscheme((color: string) => setColorScheme(color))
 
@@ -25,7 +20,7 @@ on.bufChange(() => updateService.update())
 // until textChangedI ran AND updated the server
 on.cursorMoveInsert(async (bufferModified, { line, column }) => {
   if (bufferModified) await updateService.update({ lineChange: true })
-  const lineContent = await getVim.lineContent
+  const lineContent = await vim.lineContent
   getCompletions(lineContent, line, column)
-  getSignatureHint(lineContent, line, column)
+  getSignatureHint(lineContent)
 })

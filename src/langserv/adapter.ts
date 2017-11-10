@@ -2,16 +2,7 @@ import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHel
 import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
-
-// TODO: revise to be the best interface that it can be. i believe in you. you can do it
-interface VimInfo {
-  cwd: string,
-  file: string,
-  line?: number,
-  column?: number,
-  filetype?: string,
-  revision?: number,
-}
+import { NeovimState } from '../ui/neovim'
 
 export interface PatchOperation {
   op: string,
@@ -39,21 +30,15 @@ interface VimLocation {
 }
 
 interface VimQFItem {
-  cwd: string,
+  desc: string,
+  column: number,
   file: string,
   line: number,
-  column: number,
-  desc: string,
+  cwd: string,
 }
 
-interface BufferChange {
-  cwd: string,
-  file: string,
+interface BufferChange extends NeovimState {
   buffer: string[],
-  line: number,
-  column: number,
-  filetype: string,
-  revision: number,
 }
 
 interface MarkedStringPart {
@@ -69,7 +54,7 @@ interface VimPosition {
 const openFiles = new Set<string>()
 
 // TODO: get typings for valid requests?
-const toProtocol = (data: VimInfo, more?: any) => {
+const toProtocol = (data: NeovimState, more?: any) => {
   const { cwd, filetype, file, line: vimLine, column, revision } = data
   const uri = 'file://' + cwd + '/' + file
 
@@ -122,10 +107,12 @@ const patchBufferCacheWithPartial = (cwd: string, file: string, change: string, 
   update(cwd, file, patched)
 }
 
-export const fullBufferUpdate = ({ cwd, file, buffer, line, filetype }: BufferChange) => {
+export const fullBufferUpdate = (bufferState: BufferChange) => {
+  const { cwd, file, buffer, filetype } = bufferState
   update(cwd, file, buffer)
+
   const content = { text: buffer.join('\n') }
-  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ], filetype })
+  const req = toProtocol(bufferState, { contentChanges: [ content ], filetype })
 
   openFiles.has(cwd + file)
     ? notify.textDocument.didChange(req)
@@ -148,14 +135,14 @@ export const partialBufferUpdate = (change: BufferChange) => {
     }
   }
 
-  const req = toProtocol({ cwd, file, line }, { contentChanges: [ content ], filetype })
+  const req = toProtocol(change, { contentChanges: [ content ], filetype })
 
   openFiles.has(cwd + file)
     ? notify.textDocument.didChange(req)
     : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
 }
 
-export const definition = async (data: VimInfo): Promise<VimQFItem> => {
+export const definition = async (data: NeovimState): Promise<VimQFItem> => {
   const req = toProtocol(data)
   const result = await textDocument.definition(req)
   if (!result) return {} as VimQFItem
@@ -163,7 +150,7 @@ export const definition = async (data: VimInfo): Promise<VimQFItem> => {
 }
 
 // TODO: use a better thingy type thingy pls k thx
-export const references = async (data: VimInfo): Promise<VimQFItem[]> => {
+export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
   const req = toProtocol(data, {
     context: {
       includeDeclaration: true
@@ -180,7 +167,7 @@ const asPatch = (filepath: string, edits: TextEdit[]): Patch => {
   return { cwd, file, operations: edits.map(makePatch(cwd, file)) }
 }
 
-export const rename = async (data: VimInfo & { newName: string }): Promise<Patch[]> => {
+export const rename = async (data: NeovimState & { newName: string }): Promise<Patch[]> => {
   const req = toProtocol(data, { newName: data.newName })
   const { changes, documentChanges } = await textDocument.rename(req) as WorkspaceEdit
 
@@ -189,7 +176,7 @@ export const rename = async (data: VimInfo & { newName: string }): Promise<Patch
   return []
 }
 
-export const hover = async (data: VimInfo): Promise<string> => {
+export const hover = async (data: NeovimState): Promise<string> => {
   const req = toProtocol(data)
   const res = await textDocument.hover(req) as Hover
   if (!res) return ''
@@ -212,21 +199,21 @@ const toVimLocation = ({ uri, range }: Location): VimLocation => ({
   position: toVimPosition(range.start),
 })
 
-export const symbols = async (data: VimInfo): Promise<Symbol[]> => {
+export const symbols = async (data: NeovimState): Promise<Symbol[]> => {
   const req = toProtocol(data)
   const symbols = await textDocument.documentSymbol(req) as SymbolInformation[]
   if (!symbols || !symbols.length) return []
   return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
 }
 
-export const workspaceSymbols = async (data: VimInfo): Promise<Symbol[]> => {
+export const workspaceSymbols = async (data: NeovimState): Promise<Symbol[]> => {
   const req = toProtocol(data)
   const symbols = await workspace.symbol(req) as SymbolInformation[]
   if (!symbols || !symbols.length) return []
   return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
 }
 
-export const completions = async (data: VimInfo): Promise<CompletionItem[]> => {
+export const completions = async (data: NeovimState): Promise<CompletionItem[]> => {
   const req = toProtocol(data)
   const res = await textDocument.completion(req)
   // TODO: handle isIncomplete flag in completions result
@@ -234,7 +221,7 @@ export const completions = async (data: VimInfo): Promise<CompletionItem[]> => {
   return is.object(res) && res.items ? res.items : res
 }
 
-export const signatureHelp = async (data: VimInfo) => {
+export const signatureHelp = async (data: NeovimState) => {
   const req = toProtocol(data)
   return await textDocument.signatureHelp(req) as SignatureHelp
 }

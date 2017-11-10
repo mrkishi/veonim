@@ -16,7 +16,7 @@ interface Autocmd {
   [index: string]: AutocmdEvent & AutocmdArgEvent,
 }
 
-type EventCallback = (state: State) => void
+type EventCallback = (state: NeovimState) => void
 
 interface Event {
   bufLoad(cb: EventCallback): void,
@@ -24,10 +24,10 @@ interface Event {
   bufChange(cb: EventCallback): void,
   bufChangeInsert(cb: EventCallback): void,
   cursorMove(cb: EventCallback): void,
-  cursorMoveInsert(cb: (modified: boolean, state: State) => void): void,
+  cursorMoveInsert(cb: (modified: boolean, state: NeovimState) => void): void,
   insertEnter(cb: EventCallback): void,
   insertLeave(cb: EventCallback): void,
-  completion(cb: (completedWord: string, state: State) => void): void,
+  completion(cb: (completedWord: string, state: NeovimState) => void): void,
 }
 
 interface EventWait {
@@ -43,18 +43,18 @@ interface EventWait {
 }
 
 export interface Position {
-  line: number,
   column: number,
+  line: number,
 }
 
-interface State {
-  file: string,
-  filetype: string,
-  cwd: string,
+export interface NeovimState {
   colorscheme: string,
+  filetype: string,
   revision: number,
-  line: number,
   column: number,
+  file: string,
+  line: number,
+  cwd: string,
 }
 
 const prefix = {
@@ -135,7 +135,7 @@ export const list = {
   get tabs() { return as.tabl(req.core.listTabpages()) },
 }
 
-export const current: State = new Proxy({
+export const current: NeovimState = new Proxy({
   file: '',
   filetype: '',
   cwd: '',

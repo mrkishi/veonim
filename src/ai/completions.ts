@@ -3,10 +3,9 @@ import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as harvester from '../ui/plugins/keyword-harvester'
 import { completions, triggers } from '../langserv/adapter'
 import * as completionUI from '../ui/plugins/autocomplete'
-import { g, on, current as vim } from '../ui/neovim'
+import { g, on, current as vimState } from '../ui/neovim'
 import { filter } from 'fuzzaldrin-plus'
 import vimUI from '../ui/canvasgrid'
-import { fileInfo } from '../ai'
 import { sub } from '../dispatch'
 
 interface Cache {
@@ -55,7 +54,7 @@ const getSemanticCompletions = (line: number, column: number) => EarlyPromise(as
     return done(cache.semanticCompletions.get(`${line}:${column}`)!)
 
   console.time('LSP COMPLETIONS')
-  const items = await completions({ ...fileInfo(), line, column })
+  const items = await completions(vimState)
   console.timeEnd('LSP COMPLETIONS')
   console.log('completions recv from the server:', items.length)
   const options = items.map(({ label: text, kind = CompletionItemKind.Text }) => ({ text, kind }))
@@ -79,7 +78,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   }
 
   const { startIndex, query, leftChar } = findQuery(lineContent, column)
-  const triggerChars = triggers.completion(vim.cwd, vim.filetype)
+  const triggerChars = triggers.completion(vimState.cwd, vimState.filetype)
   let semanticCompletions: CompletionOption[] = []
 
   if (triggerChars.includes(leftChar)) {
@@ -106,7 +105,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (query.length || semanticCompletions.length) {
     const queryCased = smartCaseQuery(query)
     const pendingKeywords = harvester
-      .queryKeywords(vim.cwd, vim.file, queryCased, MAX_RESULTS)
+      .queryKeywords(vimState.cwd, vimState.file, queryCased, MAX_RESULTS)
       .then(res => res.map(text => ({ text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...

@@ -1,8 +1,7 @@
 import { signatureHelp, triggers } from '../langserv/adapter'
 import * as hintUI from '../ui/plugins/hint'
-import { current, on } from '../ui/neovim'
+import { current as vimState, on } from '../ui/neovim'
 import vimUI from '../ui/canvasgrid'
-import { fileInfo } from '../ai'
 import { merge } from '../utils'
 
 const cache = {
@@ -21,9 +20,9 @@ const shouldCloseSignatureHint = (totalParams: number, currentParam: number, tri
     || (leftChar === ']' && triggers.includes('['))
 }
 
-const getSignatureHint = async (lineContent: string, line: number, column: number) => {
-  const triggerChars = triggers.signatureHelp(current.cwd, current.filetype)
-  const leftChar = lineContent[Math.max(column - 2, 0)]
+const getSignatureHint = async (lineContent: string) => {
+  const triggerChars = triggers.signatureHelp(vimState.cwd, vimState.filetype)
+  const leftChar = lineContent[Math.max(vimState.column - 2, 0)]
 
   // TODO: should probably also hide if we jumped to another line
   if (shouldCloseSignatureHint(cache.totalParams, cache.currentParam, triggerChars, leftChar)) {
@@ -33,7 +32,7 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
 
   if (!triggerChars.includes(leftChar)) return
 
-  const hint = await signatureHelp({ ...fileInfo(), line, column })
+  const hint = await signatureHelp(vimState)
   if (!hint) return
 
   const { activeParameter, activeSignature, signatures = [] } = hint
@@ -56,7 +55,7 @@ const getSignatureHint = async (lineContent: string, line: number, column: numbe
     label,
     currentParam,
     row: vimUI.cursor.row,
-    col: column,
+    col: vimState.column,
     info: documentation
   })
 }
