@@ -222,8 +222,8 @@ on.bufChange(() => updateServer())
 // update the lang server before triggering completions/hint lookups. using
 // textChangedI + cursorMovedI would make it very difficult to wait in cursorMovedI
 // until textChangedI ran AND updated the server
-on.cursorMoveInsert(async ({ bufUpdated, line, column }) => {
-  if (bufUpdated) await updateServer({ lineChange: true })
+on.cursorMoveInsert(async (bufferModified, { line, column }) => {
+  if (bufferModified) await updateServer({ lineChange: true })
   const lineContent = await getVim.lineContent
   getCompletions(lineContent, line, column)
   getSignatureHint(lineContent, line, column)

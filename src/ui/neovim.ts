@@ -24,7 +24,7 @@ interface Event {
   bufChange(cb: EventCallback): void,
   bufChangeInsert(cb: EventCallback): void,
   cursorMove(cb: EventCallback): void,
-  cursorMoveInsert(cb: EventCallback): void,
+  cursorMoveInsert(cb: (modified: boolean, state: State) => void): void,
   insertEnter(cb: EventCallback): void,
   insertLeave(cb: EventCallback): void,
   completion(cb: (completedWord: string, state: State) => void): void,
@@ -53,8 +53,6 @@ interface State {
   cwd: string,
   colorscheme: string,
   revision: number,
-  // TODO: idk, maybe there is a better way of doing this
-  bufUpdated: boolean,
   line: number,
   column: number,
 }
@@ -143,7 +141,6 @@ export const current: State = new Proxy({
   cwd: '',
   colorscheme: '',
   revision: -1,
-  bufUpdated: false,
   line: 0,
   column: 0,
 }, {
@@ -279,22 +276,16 @@ autocmd.completeDone(async () => {
 
 autocmd.textChanged(async () => {
   current.revision = await expr(`b:changedtick`)
-  current.bufUpdated = true
   notifyEvent('bufChange')
 })
 
 autocmd.cursorMovedI(async () => {
   const prevRevision = current.revision
-  const [ revision, { line, column } ] = await cc(
-    expr(`b:changedtick`),
-    getCurrent.position,
-  )
-
+  const [ revision, { line, column } ] = await cc(expr(`b:changedtick`), getCurrent.position)
   merge(current, { revision, line, column })
-  current.bufUpdated = prevRevision !== current.revision
 
   if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')
-  notifyEvent('cursorMoveInsert')
+  events.notify('cursorMoveInsert', prevRevision !== current.revision, current)
 })
 
 sub('session:switch', refreshState)
