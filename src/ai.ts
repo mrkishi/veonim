@@ -1,6 +1,6 @@
-import { g, action, on, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
-import { rename, completions, signatureHelp, triggers } from './langserv/adapter'
+import { g, on, onStateChange, current as vim, getCurrent as getVim } from './ui/neovim'
 import { merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
+import { completions, signatureHelp, triggers } from './langserv/adapter'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as harvester from './ui/plugins/keyword-harvester'
 import * as completionUI from './ui/plugins/autocomplete'
@@ -14,6 +14,7 @@ import { sub } from './dispatch'
 import './ai/references'
 import './ai/definition'
 import './ai/symbols'
+import './ai/rename'
 import './ai/hover'
 
 export interface CompletionOption {
@@ -242,18 +243,3 @@ on.completion((word, { cwd, file }) => {
 
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
-
-// TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
-// or maybe figure out how to diff based on the partial modification
-action('rename', async () => {
-  updateService.pause()
-  await feedkeys('ciw')
-  await until.insertLeave
-  const newName = await expr('@.')
-  await feedkeys('u')
-  updateService.resume()
-  const patches = await rename({ ...fileInfo(), newName })
-  // TODO: change other files besides current buffer. using fs operations if not modified?
-  patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
-})
-
