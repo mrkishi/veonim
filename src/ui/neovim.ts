@@ -1,5 +1,5 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
+import { ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase, camelCase, prefixWith } from '../utils'
 import { sub, processAnyBuffered } from '../dispatch'
 import { Functions } from '../functions'
 import setupRPC from '../rpc'
@@ -200,7 +200,6 @@ const registerAutocmdWithArgExpression = (event: string, argExpression: string, 
   onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
 }
 
-// TODO: do we need multiple autocmd registrations if they are internal only?
 const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
   const cb = args.find(a => is.function(a) || is.asyncfunction(a))
   const argExpression = args.find(is.string)
@@ -212,7 +211,7 @@ const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
 })
 
 export const until: EventWait = onProp((name: string) => {
-  const ev = pascalCase(name)
+  const ev = camelCase(name)
   return new Promise(fin => {
     const whenDone = () => (fin(), events.remove(ev, whenDone))
     events.add(ev, whenDone)

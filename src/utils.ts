@@ -32,6 +32,7 @@ export const is = new Proxy<Types>({} as Types, { get: (_, key) => (val: any) =>
 export const onProp = <T>(cb: (name: PropertyKey) => void): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
 export const onFnCall = <T>(cb: (name: string, args: any[]) => void): T => new Proxy({}, { get: (_, name) => (...args: any[]) => cb(name as string, args) }) as T
 export const pascalCase = (m: string) => m[0].toUpperCase() + m.slice(1)
+export const camelCase = (m: string) => m[0].toLowerCase() + m.slice(1)
 export const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
 export const mergeValid = (target: any, source: any) => Object.entries(source).reduce((tar, [k, v]) => (v && Reflect.set(tar, k, v), tar), target)
 export const hasUpperCase = (m: string) => m.toLowerCase() !== m

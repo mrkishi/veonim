@@ -273,10 +273,10 @@ action('definition', async () => {
   await call.cursor(line, column)
 })
 
+// TODO: broken, updates halfway
 action('rename', async () => {
   state.pauseUpdate = true
   await feedkeys('ciw')
-  // TODO: BROKEN
   await until.insertLeave
   const newName = await expr('@.')
   await feedkeys('u')
