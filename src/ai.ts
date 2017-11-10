@@ -34,10 +34,8 @@ const state = {
   pauseUpdate: false,
 }
 
-const fileInfo = () => {
-  const { cwd, file, filetype, revision } = vim
-  return { cwd, file, filetype, revision }
-}
+const fileInfo = ({ cwd, file, filetype, revision, line, column } = vim) =>
+  ({ cwd, file, filetype, revision, line, column })
 
 const orderCompletions = (m: CompletionOption[], query: string) =>
   m.slice().sort(({ text }) => hasUpperCase(text) ? -1 : text.startsWith(query) ? -1 : 1)
@@ -66,14 +64,13 @@ const findQuery = (line: string, column: number) => {
 const updateServer = async ({ lineChange = false } = {}) => {
   if (lineChange) partialBufferUpdate({
     ...fileInfo(),
-    ...await getVim.position,
     buffer: [ await getVim.lineContent ]
   })
 
   else {
     const buffer = await getVim.bufferContents
     harvester.update(vim.cwd, vim.file, buffer)
-    fullBufferUpdate({ ...fileInfo(), ...await getVim.position, buffer })
+    fullBufferUpdate({ ...fileInfo(), buffer })
   }
 }
 
@@ -258,7 +255,7 @@ sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
 
 action('references', async () => {
-  const refs = await references({ ...fileInfo(), ...await getVim.position })
+  const refs = await references({ ...fileInfo() })
 
   await call.setloclist(0, refs.map(m => ({
     lnum: m.line,
@@ -271,7 +268,7 @@ action('references', async () => {
 })
 
 action('definition', async () => {
-  const { line, column } = await definition({ ...fileInfo(), ...await getVim.position })
+  const { line, column } = await definition({ ...fileInfo() })
   if (!line || !column) return
   await call.cursor(line, column)
 })
@@ -284,18 +281,17 @@ action('rename', async () => {
   const newName = await expr('@.')
   await feedkeys('u')
   state.pauseUpdate = false
-  const patches = await rename({ ...fileInfo(), ...await getVim.position, newName })
+  const patches = await rename({ ...fileInfo(), newName })
   // TODO: change other files besides current buffer. using fs operations if not modified?
   patches.forEach(({ operations }) => call.PatchCurrentBuffer(operations))
 })
 
 action('hover', async () => {
-  const { line, column } = await getVim.position
-  const text = await hover({ ...fileInfo(), line, column })
+  const text = await hover({ ...fileInfo() })
   if (!text) return
   // TODO: get start column of the object (to show popup menu anchored to the beginning of the word)
   const data = await getColorData(text, vim.filetype)
-  hoverUI.show({ data, row: vimUI.cursor.row, col: column })
+  hoverUI.show({ data, row: vimUI.cursor.row, col: vim.column })
 })
 
 action('symbols', async () => {
