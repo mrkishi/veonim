@@ -1,5 +1,5 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../api'
-import { ID, is, debounce, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
+import { ID, is, onFnCall, onProp, Watchers, pascalCase, prefixWith } from '../utils'
 import { sub, processAnyBuffered } from '../dispatch'
 import { Functions } from '../functions'
 import setupRPC from '../rpc'
@@ -73,7 +73,7 @@ const api = {
   tab: onFnCall((name: string, args: any[]) => notify(prefix.tabpage(name), args)) as ITabpage,
 }
 
-// trying to do dyanmic introspection (obj vs arr) messy with typings. (also a bit slower)
+// trying to do dynamic introspection (obj vs arr) messy with typings. (also a bit slower)
 export const as = {
   buf: (p: Promise<ExtContainer>) => p.then(e => new VBuffer(e.id)),
   bufl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VBuffer(e.id))),
@@ -114,8 +114,9 @@ export const current: State = new Proxy({
   revision: -1,
 }, {
   set: (target, key, value) => {
+    const prevValue = Reflect.get(target, key)
     Reflect.set(target, key, value)
-    if (Reflect.get(target, key) !== value) stateChangeWatchers.notify(key as string, value)
+    if (prevValue !== value) stateChangeWatchers.notify(key as string, value)
     return true
   }
 })
@@ -149,31 +150,44 @@ export const define: DefineFunction = onProp((name: string) => (fn: TemplateStri
   onCreate(() => cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`))()
 })
 
-const registerAutocmd = (event: string) => {
+const registerAutocmd = (event: string, defer = true) => {
   const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}')`
 
   onCreate(() => cmd(cmdExpr))()
-  onCreate(() => subscribe(`autocmd:${event}`, () => autocmdWatchers.notify(event)))()
+  onCreate(() => subscribe(`autocmd:${event}`, () => defer
+    ? setTimeout(() => autocmdWatchers.notify(event), 1)
+    : autocmdWatchers.notify(event)))()
 }
 
-const registerAutocmdEventWithArgExpression = (event: string, argExpression: string, cb: Function) => {
+const registerAutocmdWithArgExpression = (event: string, argExpression: string, cb: Function, defer = true) => {
   const id = uid.next()
   const argExpr = argExpression.replace(/"/g, '\\"')
   const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}:${id}', ${argExpr})`
 
   onCreate(() => cmd(cmdExpr))()
-  onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
+  onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => defer
+    ? setTimeout(() => cb(a[0]), 1)
+    : cb(a[0])))()
 }
 
-export const autocmd: Autocmd = onFnCall((name, args) => {
+// so we want to run the internal autocmds BEFORE executing the user callbacks. 'defer' is
+// used to push user autocmd callbacks to the next stack (run after internal callbacks)
+// this way when the user callbacks execute, the vim current state will be up-to-date
+
+// TODO: but really, i doubt setImmediate does a lot... because we really should be waiting
+// until all state updates have finished
+const setupAutocmd = (name: string, args: any[], { defer = true } = {}) => {
   const cb = args.find(a => is.function(a) || is.asyncfunction(a))
   const argExpression = args.find(is.string)
   const ev = pascalCase(name)
 
-  if (argExpression) return registerAutocmdEventWithArgExpression(ev, argExpression, cb)
-  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
+  if (argExpression) return registerAutocmdWithArgExpression(ev, argExpression, cb, defer)
+  if (!autocmdWatchers.has(ev)) registerAutocmd(ev, defer)
   autocmdWatchers.add(ev, cb)
-})
+}
+
+const internalAutocmd: Autocmd = onFnCall((name, args) => setupAutocmd(name, args, { defer: false }))
+export const autocmd: Autocmd = onFnCall((name, args) => setupAutocmd(name, args))
 
 export const until: ProxyToPromise = onFnCall(name => {
   const ev = pascalCase(name)
@@ -276,18 +290,12 @@ onCreate(() => {
   refreshState()
 })
 
-// TODO: i wonder if there will be race conditions when accessing these state values in autocmds
-// i.e. a user autocmd could fire before our state update autocmds fire. thus the user autocmds
-// would reference old state. perhaps it is time to differentiate between internal/user autocmds?
-// SO:
-// add setImmediate on all user autocmds? make sure we update vim cache state before calling 
-// user autocmds?
-autocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
-autocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
-autocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
-autocmd.textChanged(() => expr(`b:changedtick`).then(m => current.revision = m))
-autocmd.textChangedI(() => expr(`b:changedtick`).then(m => current.revision = m))
-autocmd.bufEnter(debounce(() => refreshState(), 50))
+internalAutocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
+internalAutocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
+internalAutocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
+internalAutocmd.textChanged(() => expr(`b:changedtick`).then(m => current.revision = m))
+internalAutocmd.textChangedI(() => expr(`b:changedtick`).then(m => current.revision = m))
+internalAutocmd.bufEnter(refreshState)
 
 sub('session:switch', refreshState)
 

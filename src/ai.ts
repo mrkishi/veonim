@@ -228,6 +228,11 @@ onStateChange.cwd((dir: string) => {
   console.log('dir changed:', dir)
 })
 
+onStateChange.filetype((ft: string) => {
+  console.log('current ft', vim.filetype)
+  console.log('ft changed:', ft)
+})
+
 onStateChange.colorscheme((color: string) => setColorScheme(color))
 
 autocmd.bufEnter(debounce(() => updateServer(), 100))
