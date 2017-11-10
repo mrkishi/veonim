@@ -13,7 +13,6 @@ type StateChangeEvent = { [index: string]: (value: any) => void }
 type AutocmdEvent = (callback: () => void) => void
 type AutocmdArgEvent = (argExpression: string, callback: (arg: any) => void) => void
 
-// TODO: consider deprecating Autocmd and use Event instead?
 interface Autocmd {
   [index: string]: AutocmdEvent & AutocmdArgEvent,
 }
@@ -21,6 +20,7 @@ interface Autocmd {
 type EventCallback = (state: State) => void
 interface Event {
   bufLoad(cb: EventCallback): void,
+  bufUnload(cb: EventCallback): void,
   bufChange(cb: EventCallback): void,
   bufChangeInsert(cb: EventCallback): void,
   cursorMove(cb: EventCallback): void,
@@ -188,7 +188,7 @@ const registerAutocmdWithArgExpression = (event: string, argExpression: string, 
   onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
 }
 
-const setupAutocmd = (name: string, args: any[]) => {
+const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
   const cb = args.find(a => is.function(a) || is.asyncfunction(a))
   const argExpression = args.find(is.string)
   const ev = pascalCase(name)
@@ -196,10 +196,7 @@ const setupAutocmd = (name: string, args: any[]) => {
   if (argExpression) return registerAutocmdWithArgExpression(ev, argExpression, cb)
   if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
   autocmdWatchers.add(ev, cb)
-}
-
-// TODO: should use events instead of exposing autocmd?
-export const autocmd: Autocmd = onFnCall((name, args) => setupAutocmd(name, args))
+})
 
 // TODO: should this use events instead of autocmds?
 export const until: ProxyToPromise = onFnCall(name => {
@@ -213,17 +210,84 @@ export const until: ProxyToPromise = onFnCall(name => {
 
 export const on: Event = onFnCall((name, [cb]) => events.add(name, cb))
 
-// TODO; use the generic autocmd argEpxr registrations
-export const onFile = {
-  load: (cb: (file: string) => void) => {
-    onCreate(() => cmd(`au Veonim BufAdd * call rpcnotify(0, 'file:load', expand('<afile>:p'))`))()
-    onCreate(() => subscribe(`file:load`, ((a: any[]) => cb(a[0]))))()
-  },
-  unload: (cb: (file: string) => void) => {
-    onCreate(() => cmd(`au Veonim BufDelete * call rpcnotify(0, 'file:unload', expand('<afile>:p'))`))()
-    onCreate(() => subscribe(`file:unload`, ((a: any[]) => cb(a[0]))))()
-  }
+onCreate(async () => {
+  const bufferedActions = await g.vn_rpc_buf
+  if (!bufferedActions.length) return
+  bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
+  g.vn_rpc_buf = []
+})
+
+const refreshState = (event = 'bufLoad') => async () => {
+  const [ filetype, cwd, file, colorscheme, revision, { line, column } ] = await cc(
+    expr(`&filetype`),
+    call.getcwd(),
+    call.expand(`%f`),
+    g.colors_name,
+    expr(`b:changedtick`),
+    getCurrent.position,
+  )
+
+merge(current, { filetype, cwd, file, colorscheme, revision, line, column })
+notifyEvent(event)
 }
+
+// TODO: really some of these should be in autocomplete file
+onCreate(() => {
+  g.veonim_completing = 0
+  g.veonim_complete_pos = 1
+  g.veonim_completions = []
+
+  cmd(`aug Veonim | au! | aug END`)
+  cmd(`set completefunc=VeonimComplete`)
+  cmd(`ino <expr> <tab> CompleteScroll(1)`)
+  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+
+  subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+
+  refreshState()
+})
+
+autocmd.bufAdd(refreshState())
+autocmd.bufEnter(refreshState())
+autocmd.bufDelete(refreshState('bufUnload'))
+autocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
+autocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
+autocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
+autocmd.insertEnter(() => notifyEvent('insertEnter'))
+autocmd.insertLeave(() => notifyEvent('insertLeave'))
+
+autocmd.cursorMoved(async () => {
+  const { line, column } = await getCurrent.position
+  merge(current, { line, column })
+  notifyEvent('cursorMove')
+})
+
+autocmd.completeDone(async () => {
+  const { word } = await expr(`v:completed_item`)
+  events.notify('completion', word, current)
+})
+
+autocmd.textChanged(async () => {
+  current.revision = await expr(`b:changedtick`)
+  current.bufUpdated = true
+  notifyEvent('bufChange')
+})
+
+autocmd.cursorMovedI(async () => {
+  const prevRevision = current.revision
+  const [ revision, { line, column } ] = await cc(
+    expr(`b:changedtick`),
+    getCurrent.position,
+  )
+
+  merge(current, { revision, line, column })
+  current.bufUpdated = prevRevision !== current.revision
+
+  if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')
+  notifyEvent('cursorMoveInsert')
+})
+
+sub('session:switch', refreshState)
 
 define.VeonimComplete`
   return a:1 ? g:veonim_complete_pos : g:veonim_completions
@@ -273,84 +337,6 @@ define.PatchCurrentBuffer`
   endfor
   call cursor(pos[1:])
 `
-
-onCreate(async () => {
-  const bufferedActions = await g.vn_rpc_buf
-  if (!bufferedActions.length) return
-  bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
-  g.vn_rpc_buf = []
-})
-
-const refreshState = async () => {
-  const [ filetype, cwd, file, colorscheme, revision, { line, column } ] = await cc(
-    expr(`&filetype`),
-    call.getcwd(),
-    call.expand(`%f`),
-    g.colors_name,
-    expr(`b:changedtick`),
-    getCurrent.position,
-  )
-
-  merge(current, { filetype, cwd, file, colorscheme, revision, line, column })
-  notifyEvent('bufLoad')
-}
-
-// TODO: really some of these should be in autocomplete file
-onCreate(() => {
-  g.veonim_completing = 0
-  g.veonim_complete_pos = 1
-  g.veonim_completions = []
-
-  cmd(`aug Veonim | au! | aug END`)
-  cmd(`set completefunc=VeonimComplete`)
-  cmd(`ino <expr> <tab> CompleteScroll(1)`)
-  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
-
-  subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
-
-  refreshState()
-})
-
-autocmd.bufEnter(refreshState)
-autocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
-autocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
-autocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
-autocmd.insertEnter(() => notifyEvent('insertEnter'))
-autocmd.insertLeave(() => notifyEvent('insertLeave'))
-
-autocmd.cursorMoved(async () => {
-  const { line, column } = await getCurrent.position
-  merge(current, { line, column })
-  notifyEvent('cursorMove')
-})
-
-autocmd.completeDone(async () => {
-  const { word } = await expr(`v:completed_item`)
-  events.notify('completion', word, current)
-})
-
-autocmd.textChanged(async () => {
-  current.revision = await expr(`b:changedtick`)
-  current.bufUpdated = true
-  notifyEvent('bufChange')
-})
-
-autocmd.cursorMovedI(async () => {
-  const prevRevision = current.revision
-  const [ revision, { line, column } ] = await cc(
-    expr(`b:changedtick`),
-    getCurrent.position,
-  )
-
-  merge(current, { revision, line, column })
-  current.bufUpdated = prevRevision !== current.revision
-
-  if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')
-  notifyEvent('cursorMoveInsert')
-})
-
-
-sub('session:switch', refreshState)
 
 export const VBuffer = class VBuffer {
   public id: any
