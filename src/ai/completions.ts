@@ -1,9 +1,9 @@
+import { g, on, cmd, current as vimState, onCreate } from '../ui/neovim'
 import { findIndexRight, hasUpperCase, EarlyPromise } from '../utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as harvester from '../ui/plugins/keyword-harvester'
 import { completions, triggers } from '../langserv/adapter'
 import * as completionUI from '../ui/plugins/autocomplete'
-import { g, on, current as vimState } from '../ui/neovim'
 import { filter } from 'fuzzaldrin-plus'
 import vimUI from '../ui/canvasgrid'
 import { sub } from '../dispatch'
@@ -144,5 +144,15 @@ on.completion((word, { cwd, file }) => {
 
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
+
+onCreate(() => {
+  g.veonim_completing = 0
+  g.veonim_complete_pos = 1
+  g.veonim_completions = []
+
+  cmd(`set completefunc=VeonimComplete`)
+  cmd(`ino <expr> <tab> CompleteScroll(1)`)
+  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+})
 
 export { getCompletions }

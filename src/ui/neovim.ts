@@ -217,13 +217,6 @@ export const until: EventWait = onProp((name: string) => {
 
 export const on: Event = onFnCall((name, [cb]) => events.add(name, cb))
 
-onCreate(async () => {
-  const bufferedActions = await g.vn_rpc_buf
-  if (!bufferedActions.length) return
-  bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
-  g.vn_rpc_buf = []
-})
-
 const refreshState = (event = 'bufLoad') => async () => {
   const [ filetype, cwd, file, colorscheme, revision, { line, column } ] = await cc(
     expr(`&filetype`),
@@ -234,23 +227,21 @@ const refreshState = (event = 'bufLoad') => async () => {
     getCurrent.position,
   )
 
-merge(current, { filetype, cwd, file, colorscheme, revision, line, column })
-notifyEvent(event)
+  merge(current, { filetype, cwd, file, colorscheme, revision, line, column })
+  notifyEvent(event)
 }
 
-// TODO: really some of these should be in autocomplete file
+const processBufferedActions = async () => {
+  const bufferedActions = await g.vn_rpc_buf
+  if (!bufferedActions.length) return
+  bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
+  g.vn_rpc_buf = []
+}
+
 onCreate(() => {
-  g.veonim_completing = 0
-  g.veonim_complete_pos = 1
-  g.veonim_completions = []
-
   cmd(`aug Veonim | au! | aug END`)
-  cmd(`set completefunc=VeonimComplete`)
-  cmd(`ino <expr> <tab> CompleteScroll(1)`)
-  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
-
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
-
+  processBufferedActions()
   refreshState()
 })
 

@@ -149,7 +149,6 @@ export const definition = async (data: NeovimState): Promise<VimQFItem> => {
   return asQfList(is.array(result) ? result[0] : result)
 }
 
-// TODO: use a better thingy type thingy pls k thx
 export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
   const req = toProtocol(data, {
     context: {
