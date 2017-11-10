@@ -41,7 +41,10 @@ interface State {
   cwd: string,
   colorscheme: string,
   revision: number,
+  // TODO: idk, maybe there is a better way of doing this
   bufUpdated: boolean,
+  line: number,
+  column: number,
 }
 
 const prefix = {
@@ -129,6 +132,8 @@ export const current: State = new Proxy({
   colorscheme: '',
   revision: -1,
   bufUpdated: false,
+  line: 0,
+  column: 0,
 }, {
   set: (target, key, value) => {
     const prevValue = Reflect.get(target, key)
@@ -277,15 +282,16 @@ onCreate(async () => {
 })
 
 const refreshState = async () => {
-  const [ filetype, cwd, file, colorscheme, revision ] = await cc(
+  const [ filetype, cwd, file, colorscheme, revision, { line, column } ] = await cc(
     expr(`&filetype`),
     call.getcwd(),
     call.expand(`%f`),
     g.colors_name,
     expr(`b:changedtick`),
+    getCurrent.position,
   )
 
-  merge(current, { filetype, cwd, file, colorscheme, revision })
+  merge(current, { filetype, cwd, file, colorscheme, revision, line, column })
   notifyEvent('bufLoad')
 }
 
@@ -311,7 +317,12 @@ autocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
 autocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
 autocmd.insertEnter(() => notifyEvent('insertEnter'))
 autocmd.insertLeave(() => notifyEvent('insertLeave'))
-autocmd.cursorMoved(() => notifyEvent('cursorMove'))
+
+autocmd.cursorMoved(async () => {
+  const { line, column } = await getCurrent.position
+  merge(current, { line, column })
+  notifyEvent('cursorMove')
+})
 
 autocmd.completeDone(async () => {
   const { word } = await expr(`v:completed_item`)
@@ -326,7 +337,12 @@ autocmd.textChanged(async () => {
 
 autocmd.cursorMovedI(async () => {
   const prevRevision = current.revision
-  current.revision = await expr(`b:changedtick`)
+  const [ revision, { line, column } ] = await cc(
+    expr(`b:changedtick`),
+    getCurrent.position,
+  )
+
+  merge(current, { revision, line, column })
   current.bufUpdated = prevRevision !== current.revision
 
   if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')

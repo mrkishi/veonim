@@ -1,6 +1,6 @@
 import { fullBufferUpdate, partialBufferUpdate, references, definition, rename, completions, signatureHelp, hover, symbols, workspaceSymbols, triggers } from './langserv/adapter'
 import { g, ex, action, on, onStateChange, until, call, expr, feedkeys, current as vim, getCurrent as getVim } from './ui/neovim'
-import { cc, merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
+import { merge, findIndexRight, hasUpperCase, EarlyPromise } from './utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { getColorData, setColorScheme } from './color-service'
 import * as harvester from './ui/plugins/keyword-harvester'
@@ -223,9 +223,9 @@ on.bufChange(() => updateServer())
 // update the lang server before triggering completions/hint lookups. using
 // textChangedI + cursorMovedI would make it very difficult to wait in cursorMovedI
 // until textChangedI ran AND updated the server
-on.cursorMoveInsert(async ({ bufUpdated }) => {
+on.cursorMoveInsert(async ({ bufUpdated, line, column }) => {
   if (bufUpdated) await updateServer({ lineChange: true })
-  const [ lineContent, { line, column } ] = await cc(getVim.lineContent, getVim.position)
+  const lineContent = await getVim.lineContent
   getCompletions(lineContent, line, column)
   getSignatureHint(lineContent, line, column)
 })
