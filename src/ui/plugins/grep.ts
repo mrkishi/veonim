@@ -153,6 +153,12 @@ a.scrollUp = () => {
 const ui = app({ state, view, actions: a })
 on.results((results: Result[]) => ui.results(results))
 
+action('grep-resume', async () => {
+  console.error('NYI grep-resume')
+  // TODO: the problem is that we need ui actions that show/hide without
+  // actually resetting state
+})
+
 action('grep', async (query: string) => {
   const { cwd } = current
   ui.show({ cwd })
