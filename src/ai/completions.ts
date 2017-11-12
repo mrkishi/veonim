@@ -10,12 +10,12 @@ import { sub } from '../dispatch'
 
 interface Cache {
   semanticCompletions: Map<string, CompletionOption[]>,
-    activeCompletion: string,
+  activeCompletion: string,
 }
 
 export interface CompletionOption {
   text: string,
-    kind: CompletionItemKind,
+  kind: CompletionItemKind,
 }
 
 const MAX_RESULTS = 8

@@ -1,4 +1,4 @@
-import { getDirFiles, configPath, readFile, fromJSON } from './utils'
+import { merge, getDirFiles, configPath, readFile, fromJSON } from './utils'
 import { connect, Server } from '@veonim/jsonrpc'
 import * as path from 'path'
 
@@ -11,6 +11,12 @@ enum ActivationEventType {
   Always  = '*',
 }
 
+export enum ActivationResultKind {
+  Success,
+  Fail,
+  NotExist,
+}
+
 interface ActivationEvent {
   type: ActivationEventType,
   value: string,
@@ -19,12 +25,18 @@ interface ActivationEvent {
 interface Extension {
   modulePath: string,
   activationEvents: ActivationEvent[],
+  disposables: any[],
+}
+
+interface LanguageActivationResult {
+  status: ActivationResultKind,
+  reason?: string,
+  server?: Server,
 }
 
 const EXT_PATH = path.join(configPath, 'veonim', 'extensions')
 const extensions = new Map<string, Extension>()
 const languageExtensions = new Map<string, string>()
-const languageServers = new Map<string, Server>()
 
 const findExtensions = async () => {
   const extensionDirs = (await getDirFiles(EXT_PATH)).filter(m => m.dir)
@@ -55,12 +67,8 @@ export const load = async () => {
   const extensionData = await Promise.all(extensionPaths.map(async m => ({
     modulePath: m.path,
     activationEvents: await getActivationEvents(m.package),
+    disposables: [],
   })))
-
-  extensionData.forEach(m => {
-    console.log('MODULE:', m.modulePath)
-    console.log('activationEvents:', m.activationEvents)
-  })
 
   extensions.clear()
   languageExtensions.clear()
@@ -71,33 +79,35 @@ export const load = async () => {
       .filter(a => a.type === ActivationEventType.Language)
       .forEach(a => languageExtensions.set(a.value, m.modulePath))
   })
-
-  console.log(extensions)
-  console.log(languageExtensions)
 }
 
 export const activate = {
-  language: async (language: string, workspace: string) => {
+  language: async (language: string): Promise<LanguageActivationResult> => {
     const modulePath = languageExtensions.get(language)
-    if (!modulePath) return {
-      activated: false,
-      reason: `no extension found for language ${language}`
-    }
+    if (!modulePath) return { status: ActivationResultKind.NotExist }
 
-    const ext = require(modulePath)
-    if (!ext.activate) return {
-      activated: false,
+    const extension = require(modulePath)
+
+    if (!extension.activate) return {
+      status: ActivationResultKind.Fail,
       reason: `extension ${path.basename(modulePath)} does not have a .activate() method`
     }
 
-    const key = `${workspace}:${language}`
+    // TODO: needs rework you lazy fuck. THIS IS WIP FOR MVP
+    // TODO: disposables does not necessarily mean a language server.
+    // also there can be more than one lang server
 
-    const anyError = await ext.activate({
+    // need to figure out how vscode language client identifies a lang server in extension subscriptions
+
+    const result: LanguageActivationResult = { status: ActivationResultKind.Success }
+
+    await extension.activate({
+      // TODO: give proxy access to disposables array or implement array like?
       subscriptions: {
-        push: (server: Server) => languageServers.set(key, server)
+        push: (server: Server) => (result.server = server, extensions.get(modulePath)!.disposables.push(server))
       }
-    }, { connect }).catch((err: any) => err)
+    }, { connect }).catch((reason: any) => merge(result, { status: ActivationResultKind.Fail, reason }))
 
-    return { activated: !anyError, reason: anyError, server: languageServers.get(key) }
+    return result
   }
 }

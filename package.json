@@ -91,8 +91,6 @@
     "fuzzaldrin-plus": "0.4.1",
     "huu": "2.0.1",
     "hyperapp": "0.10.1",
-    "javascript-typescript-langserver": "2.5.1",
-    "marked": "0.3.6",
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.5",
     "remove-markdown": "0.2.2",
@@ -100,7 +98,6 @@
   },
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",
-    "@types/marked": "0.3.0",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "8.0.33",
     "@veonim/neovim": "0.0.5-mac",

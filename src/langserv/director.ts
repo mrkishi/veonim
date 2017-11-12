@@ -1,4 +1,3 @@
-import { startServerFor, hasServerFor } from './server-loader'
 import * as extensions from '../extensions'
 import defaultCapabs from './capabilities'
 import { Server } from '@veonim/jsonrpc'
@@ -29,41 +28,62 @@ const serverStartCallbacks = new Set<Function>()
 const serverRequestHandlers: RequestHandler[] = []
 
 const runningServers = {
+  has: (cwd: string, type: string) => servers.has(`${cwd}::${type}`),
   get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
   add: (cwd: string, type: string, server: ActiveServer) => servers.set(`${cwd}::${type}`, server),
 }
 
-const startServer = async (cwd: string, filetype: string): Promise<ActiveServer> => {
-  startingServers.add(cwd + filetype)
-
-  const server = await startServerFor(filetype)
+const initServer = async (server: Server, cwd: string, filetype: string) => {
   const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
   if (error) throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
   server.notify.initialized()
 
   runningServers.add(cwd, filetype, { ...server, canDo })
-  startingServers.delete(cwd + filetype)
   serverStartCallbacks.forEach(fn => fn(cwd, filetype))
 
+  // TODO: report status in GUI
   console.log(`started server ${filetype} with options:`)
   console.log(canDo)
+}
 
-  return { ...server, canDo }
+const serverSend = async (server: Server, namespace: string, method: string, params: any[], notify: boolean) => {
+  if (notify) return server.notify[`${namespace}/${method}`](params)
+  return await server.request[`${namespace}/${method}`](params).catch(derp)
+}
+
+const startingServer = (cwd: string, filetype: string) => {
+  startingServers.add(cwd + filetype)
+  return { done: () => startingServers.delete(cwd + filetype)}
 }
 
 const registerDynamicCaller = (namespace: string, { notify = false } = {}): ProxyFn => proxyFn(async (method, params) => {
   const { cwd, filetype } = params
-  if (!hasServerFor(filetype) || startingServers.has(cwd + filetype)) return
+  if (startingServers.has(cwd + filetype)) return
 
-  const server = runningServers.get(cwd, filetype) || await startServer(cwd, filetype)
-  if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
+  if (runningServers.has(cwd, filetype)) {
+    const server = runningServers.get(cwd, filetype)
+    if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
+    return serverSend(server, namespace, method, params, notify)
+  }
 
-  if (notify) {
-    server.notify[`${namespace}/${method}`](params)
+  const starting = startingServer(cwd, filetype)
+  const { status, reason, server } = await extensions.activate.language(filetype)
+
+  // TODO: report status in GUI
+  if (status === extensions.ActivationResultKind.NotExist) {
+    starting.done()
     return
   }
 
-  return await server.request[`${namespace}/${method}`](params).catch(derp)
+  if (status === extensions.ActivationResultKind.Fail || !server) {
+    derp(reason)
+    starting.done()
+    return
+  }
+
+  initServer(server, cwd, filetype).catch(derp)
+  starting.done()
+  return serverSend(server, namespace, method, params, notify)
 })
 
 export const client = registerDynamicCaller('client')
