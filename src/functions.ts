@@ -20,7 +20,6 @@ export interface QuickFixList {
 
 type WindowPosition = [ string, number, number, number ]
 
-// TODO: consider moving vim user functions to a central file (here?)
 export interface Functions {
   Commands(): Promise<string[]>,
   Buffers(): Promise<VimBuffer[]>,

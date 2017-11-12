@@ -1,14 +1,8 @@
-import { log, exists, readFile } from './utils'
+import { log, exists, readFile, configPath as base } from './utils'
 const watch = require('node-watch')
-import { homedir } from 'os'
 
 export type Config = Map<string, any>
 export type ConfigCallback = (config: Config) => void
-
-const $HOME = homedir()
-const base = process.env.XDG_CONFIG_HOME || (process.platform === 'win32'
-  ? `${$HOME}/AppData/Local`
-  : `${$HOME}/.config`)
 
 const loadConfig = async (path: string, notify: ConfigCallback) => {
   const pathExists = await exists(path)

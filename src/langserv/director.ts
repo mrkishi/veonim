@@ -1,4 +1,5 @@
 import { startServerFor, hasServerFor } from './server-loader'
+import * as extensions from '../extensions'
 import defaultCapabs from './capabilities'
 import { Server } from '@veonim/jsonrpc'
 import { proxyFn } from '../utils'
@@ -14,24 +15,23 @@ interface ActiveServer extends Server {
   canDo: Result & QueryableObject
 }
 
+interface RequestHandler {
+  method: string,
+  cb: (arg: any) => any,
+}
+
 export enum SyncKind { None, Full, Incremental }
 
 const derp = (e: any) => console.error(e)
 const servers = new Map<string, ActiveServer>()
 const startingServers = new Set<string>()
 const serverStartCallbacks = new Set<Function>()
+const serverRequestHandlers: RequestHandler[] = []
 
 const runningServers = {
   get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
   add: (cwd: string, type: string, server: ActiveServer) => servers.set(`${cwd}::${type}`, server),
 }
-
-interface RequestHandler {
-  method: string,
-  cb: (arg: any) => any,
-}
-
-const serverRequestHandlers: RequestHandler[] = []
 
 const startServer = async (cwd: string, filetype: string): Promise<ActiveServer> => {
   startingServers.add(cwd + filetype)
@@ -109,6 +109,10 @@ export const triggers = {
   completion: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'completionProvider'),
   signatureHelp: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'signatureHelpProvider'),
 }
+
+// TODO: also reload extensions on vimrc change? i mean, if an extension definition was added or removed...
+// otherwise it would be annoying to restart everything just because a mapping was changed
+extensions.load()
 
 onServerStart((cwd, filetype) => serverRequestHandlers.forEach(({ method, cb }) => {
   const server = runningServers.get(cwd, filetype)

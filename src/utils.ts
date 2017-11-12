@@ -1,7 +1,7 @@
-import { dirname, basename } from 'path'
-import { join, extname } from 'path'
+import { dirname, basename, join, extname } from 'path'
 import { Transform } from 'stream'
 import { createServer } from 'net'
+import { homedir } from 'os'
 import * as fs from 'fs'
 
 export interface Task<T> {
@@ -20,7 +20,13 @@ process.on('unhandledRejection', e => console.log(e))
 type TypeChecker = (thing: any) => boolean
 interface Types { string: TypeChecker, number: TypeChecker, array: TypeChecker, object: TypeChecker, null: TypeChecker, asyncfunction: TypeChecker, function: TypeChecker, promise: TypeChecker, map: TypeChecker, set: TypeChecker }
 
+export const $HOME = homedir()
+export const configPath = process.env.XDG_CONFIG_HOME || (process.platform === 'win32'
+  ? `${$HOME}/AppData/Local`
+  : `${$HOME}/.config`)
+
 export const toJSON = (m: any) => JSON.stringify(m)
+export const fromJSON = (m: string) => ({ or: (defaultVal: any) => { try { return JSON.parse(m) } catch(_) { return defaultVal } }})
 export const prefixWith = (prefix: string) => (m: string) => `${prefix}${snakeCase(m)}`
 export const merge = Object.assign
 export const cc = (...a: any[]) => Promise.all(a)
@@ -59,7 +65,7 @@ export const exists = (path: string) => new Promise(fin => fs.access(path, e => 
 const emptyStat = { isDirectory: () => false, isFile: () => false }
 
 export const getDirFiles = async (path: string) => {
-  const paths = await readdir(path) as string[]
+  const paths = await readdir(path).catch((_e: string) => []) as string[]
   const filepaths = paths.map(f => ({ name: f, path: join(path, f) }))
   const filesreq = await Promise.all(filepaths.map(async f => ({
     path: f.path,

@@ -46,13 +46,13 @@ import { spawn } from 'child_process'
 
 
 
-
     -- FUTURE
     langserv modules published on github
     list of modules (json) served on github.io in veonim org + repo
     vimrc defines list of language servers to support (not langs because erver can have multi lang)
     veonim read vimrc, get list, download lang serv module from github to .config/veonim/langserv
     !!!!!! veonim run npm install (how does this work if npm is not installed on machine?)
+    - vscode you publish extensions with node_modules. there is no installation done on client
     then do the usual require module and run .activate()
 
 
