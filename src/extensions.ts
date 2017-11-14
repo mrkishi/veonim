@@ -1,4 +1,4 @@
-import { merge, getDirFiles, configPath, readFile, fromJSON } from './utils'
+import { getDirFiles, configPath, readFile, fromJSON } from './utils'
 import { connect, Server } from '@veonim/jsonrpc'
 import * as path from 'path'
 
@@ -61,7 +61,6 @@ const getActivationEvents = async (packagePath: string): Promise<ActivationEvent
   }))
 }
 
-// TODO: call on veonim startup and whenever vimrc changes
 export const load = async () => {
   const extensionPaths = await findExtensions()
   const extensionData = await Promise.all(extensionPaths.map(async m => ({
@@ -101,13 +100,13 @@ export const activate = {
 
     const result: LanguageActivationResult = { status: ActivationResultKind.Success }
 
-    await extension.activate({
+    const errResult = await extension.activate({
       // TODO: give proxy access to disposables array or implement array like?
       subscriptions: {
         push: (server: Server) => (result.server = server, extensions.get(modulePath)!.disposables.push(server))
       }
-    }, { connect }).catch((reason: any) => merge(result, { status: ActivationResultKind.Fail, reason }))
+    }, { connect }).catch((reason: any) => ({ status: ActivationResultKind.Fail, reason }))
 
-    return result
+    return errResult || result
   }
 }

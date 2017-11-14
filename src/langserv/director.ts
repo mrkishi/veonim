@@ -46,10 +46,9 @@ const initServer = async (server: Server, cwd: string, filetype: string) => {
   console.log(canDo)
 }
 
-const serverSend = async (server: Server, namespace: string, method: string, params: any[], notify: boolean) => {
-  if (notify) return server.notify[`${namespace}/${method}`](params)
-  return await server.request[`${namespace}/${method}`](params).catch(derp)
-}
+const serverSend = async (server: Server, namespace: string, method: string, params: any[], notify: boolean) => notify
+  ? server.notify[`${namespace}/${method}`](params)
+  : server.request[`${namespace}/${method}`](params)
 
 const startingServer = (cwd: string, filetype: string) => {
   startingServers.add(cwd + filetype)
@@ -81,7 +80,7 @@ const registerDynamicCaller = (namespace: string, { notify = false } = {}): Prox
     return
   }
 
-  initServer(server, cwd, filetype).catch(derp)
+  await initServer(server, cwd, filetype).catch(derp)
   starting.done()
   return serverSend(server, namespace, method, params, notify)
 })
