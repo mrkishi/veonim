@@ -1,6 +1,7 @@
 import * as extensions from '../extensions'
 import defaultCapabs from './capabilities'
 import { Server } from '@veonim/jsonrpc'
+import * as dispatch from '../dispatch'
 import { proxyFn } from '../utils'
 
 type ProxyFn = { [index: string]: Function }
@@ -35,15 +36,16 @@ const runningServers = {
 
 const initServer = async (server: Server, cwd: string, filetype: string) => {
   const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
-  if (error) throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
+  if (error) {
+    dispatch.pub('langserv:start.fail', filetype, error)
+    throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
+  }
   server.notify.initialized()
 
   runningServers.add(cwd, filetype, { ...server, canDo })
   serverStartCallbacks.forEach(fn => fn(cwd, filetype))
 
-  // TODO: report status in GUI
-  console.log(`started server ${filetype} with options:`)
-  console.log(canDo)
+  dispatch.pub('langserv:start.success', filetype)
 }
 
 const serverSend = async (server: Server, namespace: string, method: string, params: any[], notify: boolean) => notify
@@ -61,7 +63,10 @@ const registerDynamicCaller = (namespace: string, { notify = false } = {}): Prox
 
   if (runningServers.has(cwd, filetype)) {
     const server = runningServers.get(cwd, filetype)
-    if (!server) return derp(`could not load server type:${filetype} cwd:${cwd}`)
+    if (!server) {
+      dispatch.pub('langserv:error.load', filetype, cwd)
+      return derp(`could not load server type:${filetype} cwd:${cwd}`)
+    }
     return serverSend(server, namespace, method, params, notify)
   }
 
@@ -75,10 +80,14 @@ const registerDynamicCaller = (namespace: string, { notify = false } = {}): Prox
   }
 
   if (status === extensions.ActivationResultKind.Fail || !server) {
+    dispatch.pub('langserv:start.fail', reason)
     derp(reason)
     starting.done()
     return
   }
+
+  server.onError(e => dispatch.pub('langserv:error', e))
+  server.onExit(c => dispatch.pub('langserv:exit', c))
 
   await initServer(server, cwd, filetype).catch(derp)
   starting.done()
