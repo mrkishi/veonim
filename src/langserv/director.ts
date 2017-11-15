@@ -117,7 +117,6 @@ export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
   return (server.canDo.textDocumentSync || {}).change || SyncKind.Full
 }
 
-
 const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
   const server = runningServers.get(cwd, filetype)
   if (!server) return []
