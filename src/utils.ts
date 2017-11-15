@@ -47,6 +47,40 @@ export const uriToPath = (m: string) => m.replace(/^\S+:\/\//, '')
 export const uriAsCwd = (m = '') => dirname(uriToPath(m)) 
 export const uriAsFile = (m = '') => basename(uriToPath(m)) 
 export const CreateTask = <T>(): Task<T> => ( (done = (_: T) => {}, promise = new Promise<T>(m => done = m)) => ({ done, promise }) )()
+export const Deferred = () => ( (ok = (_: any) => {}, no = () => {}, p = new Promise((y, n) => (ok = y, no = n))) => ({ done: ok, fail: no, promise: p }) )()
+
+interface BackoffParams {
+  factor?: number,
+  maxAttempts?: number,
+  initialDelay?: number,
+  timeout?: number,
+  action: (tryAgain: () => void) => any,
+}
+
+export const Backoff = ({ factor = 1.5, maxAttempts = 5, initialDelay = 10, timeout, action }: BackoffParams) => {
+  let iteration = 0
+  let delay = initialDelay
+  let timer: NodeJS.Timer
+  const task = Deferred()
+  const goodAndDone = (value: any) => (clearTimeout(timer), task.done(value))
+
+  const next = () => {
+    iteration += 1
+    if (iteration > maxAttempts) return task.fail()
+    setTimeout(() => {
+      const res = action(() => next())
+      if (res && typeof (res as any).then === 'function') (res as Promise<boolean>).then(val => val != null && goodAndDone(val)).catch(task.fail)
+      else if (res != null) goodAndDone(res)
+      else next()
+    }, delay *= factor)
+  }
+
+  return () => {
+    next()
+    if (timeout) timer = setTimeout(() => (iteration = maxAttempts + 1, task.fail()), timeout)
+    return task.promise
+  }
+}
 
 export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
   const theFunctionToCall: Function = Reflect.get(o, name)
