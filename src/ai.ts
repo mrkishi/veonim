@@ -3,11 +3,16 @@ import { getSignatureHint } from './ai/signature-hint'
 import * as updateService from './ai/update-server'
 import { getCompletions } from './ai/completions'
 import { setColorScheme } from './color-service'
+import * as dispatch from './dispatch'
 import './ai/references'
 import './ai/definition'
 import './ai/symbols'
 import './ai/rename'
 import './ai/hover'
+
+dispatch.sub('langserv:start.success', ft => console.log('STARTED LANGSERV', ft))
+dispatch.sub('langserv:error', e => console.error(e))
+dispatch.sub('langserv:exit', c => console.log('exit', c))
 
 onStateChange.colorscheme((color: string) => setColorScheme(color))
 

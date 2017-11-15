@@ -1,4 +1,4 @@
-import { getDirFiles, configPath, readFile, fromJSON } from './utils'
+import { merge, getDirFiles, configPath, readFile, fromJSON } from './utils'
 import { connect, Server } from '@veonim/jsonrpc'
 import * as path from 'path'
 
@@ -25,7 +25,6 @@ interface ActivationEvent {
 interface Extension {
   modulePath: string,
   activationEvents: ActivationEvent[],
-  disposables: any[],
 }
 
 interface LanguageActivationResult {
@@ -66,7 +65,6 @@ export const load = async () => {
   const extensionData = await Promise.all(extensionPaths.map(async m => ({
     modulePath: m.path,
     activationEvents: await getActivationEvents(m.package),
-    disposables: [],
   })))
 
   extensions.clear()
@@ -92,21 +90,12 @@ export const activate = {
       reason: `extension ${path.basename(modulePath)} does not have a .activate() method`
     }
 
-    // TODO: needs rework you lazy fuck. THIS IS WIP FOR MVP
-    // TODO: disposables does not necessarily mean a language server.
-    // also there can be more than one lang server
-
-    // need to figure out how vscode language client identifies a lang server in extension subscriptions
-
     const result: LanguageActivationResult = { status: ActivationResultKind.Success }
 
-    const errResult = await extension.activate({
-      // TODO: give proxy access to disposables array or implement array like?
-      subscriptions: {
-        push: (server: Server) => (result.server = server, extensions.get(modulePath)!.disposables.push(server))
-      }
-    }, { connect }).catch((reason: any) => ({ status: ActivationResultKind.Fail, reason }))
+    result.server = await extension
+      .activate({ connectLanguageServer: connect })
+      .catch((reason: any) => merge(result, { reason, status: ActivationResultKind.Fail }))
 
-    return errResult || result
+    return result
   }
 }
