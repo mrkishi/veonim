@@ -80,14 +80,14 @@ const registerDynamicCaller = (namespace: string, { notify = false } = {}): Prox
   }
 
   if (status === extensions.ActivationResultKind.Fail || !server) {
-    dispatch.pub('langserv:start.fail', reason)
+    dispatch.pub('langserv:start.fail', filetype, reason)
     derp(reason)
     starting.done()
     return
   }
 
-  server.onError(e => dispatch.pub('langserv:error', e))
-  server.onExit(c => dispatch.pub('langserv:exit', c))
+  server.onError(e => dispatch.pub('langserv:error', filetype, e))
+  server.onExit(c => dispatch.pub('langserv:exit', filetype, c))
 
   await initServer(server, cwd, filetype).catch(derp)
   starting.done()
