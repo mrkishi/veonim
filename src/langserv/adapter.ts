@@ -100,8 +100,8 @@ const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   return { cwd, file, line, column, desc }
 }
 
-const patchBufferCacheWithPartial = (cwd: string, file: string, change: string, line: number): void => {
-  const buffer = getFile(cwd, file)
+const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
+  const buffer = await getFile(cwd, file)
   const patched = buffer.slice()
   Reflect.set(patched, line - 1, change)
   update(cwd, file, patched)
@@ -119,13 +119,13 @@ export const fullBufferUpdate = (bufferState: BufferChange) => {
     : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
 }
 
-export const partialBufferUpdate = (change: BufferChange) => {
+export const partialBufferUpdate = async (change: BufferChange) => {
   const { cwd, file, buffer, line, filetype } = change
   const syncKind = getSyncKind(cwd, filetype)
 
-  patchBufferCacheWithPartial(cwd, file, buffer[0], line)
+  await patchBufferCacheWithPartial(cwd, file, buffer[0], line)
 
-  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, buffer: getFile(cwd, file) })
+  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, buffer: await getFile(cwd, file) })
 
   const content = {
     text: buffer[0],
