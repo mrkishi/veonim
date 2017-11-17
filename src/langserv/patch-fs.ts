@@ -1,17 +1,18 @@
-import { readFile, writeFile, matchVal } from '../utils'
+import { readFile, writeFile, matchOn } from '../utils'
 import { Patch, PatchOperation } from './adapter'
 import { join } from 'path'
 
 // TODO: this module should probably be a worker
 const patch = (lines: string[], operations: PatchOperation[]): string[] => {
-  operations.map(({ op, line, val = '' }) => matchVal(op)({
-    // TODO: are these 0 or 1 indexed?
-    delete: (lines.splice(line), lines),
-    append: (lines.splice(line, 0, val), lines),
-    replace: (lines.splice(line, 1, val), lines),
-  }))
-  console.log(lines)
-  console.log(operations)
+  // heavy operation - so splice maybe more efficient instead of immutable
+  operations
+    .sort((a, b) => b.line - a.line)
+    .forEach(({ op, line, val = '' }) => matchOn(op)({
+      delete: () => lines.splice(line, 1),
+      append: () => lines.splice(line + 1, 0, val),
+      replace: () => lines.splice(line, 1, val),
+    }))
+
   return lines
 }
 
@@ -23,7 +24,7 @@ export default async (patches: Patch[]): Promise<boolean> => {
     // TODO: so when generating a patch, the logic tries to fill out the 'replace' val
     // by reading the file from the fs. that means 2x read file ops will be done (or even more
     // if same file is read multiple times in file service)
-    const lines = await (readFile(path).catch(() => '')).split('\n')
+    const lines = (await readFile(path).catch(() => '')).split('\n')
     const modifiedLines = patch(lines, operations)
     return applyPatch(path, modifiedLines)
   })

@@ -4,6 +4,8 @@
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
+    "test": "mocha test/unit",
+    "test-watch": "npm run test -- -w",
     "html": "cp src/index.html build/index.html",
     "runtime": "cp -r runtime build/runtime",
     "clean": "rm -rf build",
@@ -105,6 +107,8 @@
     "electron": "1.7.5",
     "electron-builder": "19.22.1",
     "jscodeshift": "0.3.32",
+    "mocha": "4.0.1",
+    "proxyquire": "1.8.0",
     "typescript": "2.5.3"
   }
 }

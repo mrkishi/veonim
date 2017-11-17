@@ -1,6 +1,22 @@
 import { extname, join } from 'path'
 import { readFile } from '../utils'
 
+// TODO: i feel like this is the wrong approach (to store all these cached files)
+// there are a few problems. first of all, there is no mechanism to update the files
+// in this cache when the files are changed outside vim. i mean we could register
+// file watchers, but the other problem is:
+//
+// no way to remove files from cache. user could go through hundreds of files, all
+// being added to the cache and using up memory. with file watchers, there would be
+// even more resources tied up.
+//
+// what was the point of this module?
+// if i remember correctly - the point was to allow partial updates to be made much easier
+// than calling for entire buffer on every change.
+//
+// thus maybe this module should only store the current file.
+// bufEnter -> add buf lines
+// bufEnter -> remove previous, add new buf lines
 const files = new Map<string, string[]>()
 
 // TODO: i wonder what happens if a buffer is modified outside of vim

@@ -4,8 +4,14 @@ import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
 import { NeovimState } from '../ui/neovim'
 
+export enum Operation {
+  Delete = 'delete',
+  Append = 'append',
+  Replace = 'replace',
+}
+
 export interface PatchOperation {
-  op: string,
+  op: Operation,
   line: number,
   val?: string,
 }
@@ -83,12 +89,12 @@ const samePos = (s: Position, e: Position) => s.line === e.line && s.character =
 const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }: TextEdit): PatchOperation => {
   const line = start.line + 1
 
-  if (!newText) return { op: 'delete', line }
-  if (samePos(start, end)) return { op: 'append', line, val: newText }
+  if (!newText) return { op: Operation.Delete, line }
+  if (samePos(start, end)) return { op: Operation.Append, line, val: newText }
 
   const buffer = getLine(cwd, file, line)
   const val = buffer.slice(0, start.character) + newText + buffer.slice(end.character)
-  return { op: 'replace', line, val }
+  return { op: Operation.Replace, line, val }
 }
 
 const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
