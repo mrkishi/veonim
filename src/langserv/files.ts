@@ -17,6 +17,12 @@ import { readFile } from '../utils'
 // thus maybe this module should only store the current file.
 // bufEnter -> add buf lines
 // bufEnter -> remove previous, add new buf lines
+
+
+// TODO: actually i see another use case... modified buffers. can't find them on the FS, and
+// if we perform a 'rename' modification, the patches should be applied to modified buffers.
+// so either we store cache ro we use the neovim Buffers.getLines/setLines methods for
+// modifying buf
 const files = new Map<string, string[]>()
 
 // TODO: i wonder what happens if a buffer is modified outside of vim

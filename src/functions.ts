@@ -1,4 +1,4 @@
-import { PatchOperation } from './langserv/adapter'
+import { VimPatch } from './langserv/patch'
 
 export interface VimBuffer {
   name: string,
@@ -32,7 +32,7 @@ export interface Functions {
   getpos(where: string): Promise<WindowPosition>,
   setloclist(window: number, list: QuickFixList[]): Promise<void>,
   cursor(line: number, column: number): Promise<void>,
-  PatchCurrentBuffer(patchOperations: PatchOperation[]): Promise<void>,
+  PatchCurrentBuffer(patchOperations: VimPatch[]): Promise<void>,
   bufname(expr: string | number): Promise<string>,
   getbufline(expr: string | number, startLine: number, endLine?: number | string): Promise<string[]>,
   getbufvar(expr: string | number, varname?: string, defaultValue?: any): Promise<any>,

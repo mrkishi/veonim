@@ -1,16 +1,24 @@
 import { readFile, writeFile, matchOn } from '../utils'
-import { Patch, PatchOperation } from './adapter'
-import { join } from 'path'
+import { Patch, PatchOperation } from './patch'
 
 // TODO: this module should probably be a worker
+// TODO: this module should probably be a worker
+// TODO: this module should probably be a worker
+// TODO: this module should probably be a worker
+
 const patch = (lines: string[], operations: PatchOperation[]): string[] => {
   // heavy operation - so splice maybe more efficient instead of immutable
   operations
-    .sort((a, b) => b.line - a.line)
-    .forEach(({ op, line, val = '' }) => matchOn(op)({
-      delete: () => lines.splice(line, 1),
-      append: () => lines.splice(line + 1, 0, val),
-      replace: () => lines.splice(line, 1, val),
+    .sort((a, b) => b.start.line - a.end.line)
+    .forEach(({ op, start, end, val = '' }) => matchOn(op)({
+      delete: () => lines.splice(start.line, 1),
+      append: () => lines.splice(start.line + 1, 0, val),
+      replace: () => {
+      // TODO: does this apply correctly for 0-index based operations?
+        const targetLine = lines[start.line]
+        const newLine = targetLine.slice(0, start.character) + val + targetLine.slice(end.character)
+        lines.splice(start.line, 1, newLine)
+      },
     }))
 
   return lines
@@ -18,12 +26,8 @@ const patch = (lines: string[], operations: PatchOperation[]): string[] => {
 
 const applyPatch = (path: string, lines: string[]): Promise<boolean> => writeFile(path, lines.join('\n'))
 
-export default async (patches: Patch[]): Promise<boolean> => {
-  const res = patches.map(async ({ cwd, file, operations }) => {
-    const path = join(cwd, file)
-    // TODO: so when generating a patch, the logic tries to fill out the 'replace' val
-    // by reading the file from the fs. that means 2x read file ops will be done (or even more
-    // if same file is read multiple times in file service)
+const patchFiles = async (patches: Patch[]): Promise<boolean> => {
+  const res = patches.map(async ({ path, operations }) => {
     const lines = (await readFile(path).catch(() => '')).split('\n')
     const modifiedLines = patch(lines, operations)
     return applyPatch(path, modifiedLines)
@@ -31,3 +35,6 @@ export default async (patches: Patch[]): Promise<boolean> => {
 
   return (await Promise.all(res)).every(m => m)
 }
+
+// TODO: make sure to only pass in WorkspaceEdit(s) that are for file-system
+export default async (patches: Patch[]): Promise<boolean> => patchFiles(patches)

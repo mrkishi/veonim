@@ -10,7 +10,12 @@ empire strikes back is my favorite
 but the best one is the HOLIDAY SPECIAL
 `
 
-const oneFilePatch = (operations) => [ { cwd: 'ayyy', file: 'lmao', operations } ]
+const oneFilePatch = (operations) => [ {
+  cwd: 'ayyy',
+  file: 'lmao',
+  path: 'ayyy/lmao',
+  operations
+} ]
 
 describe('patch-fs', () => {
   let patch
@@ -28,8 +33,8 @@ describe('patch-fs', () => {
 
   it('delete', async () => {
     const patches = oneFilePatch([
-      { op: 'delete', line: 5 },
-      { op: 'delete', line: 2 },
+      { op: 'delete', start: { line: 2, character: 0 }, end: { line: 2, character: 0 } },
+      { op: 'delete', start: { line: 5, character: 0 }, end: { line: 5, character: 0 } },
     ])
 
     const res = await patch(patches)
@@ -45,10 +50,17 @@ empire strikes back is my favorite
   })
 
   it('append', async () => {
-    const patches = oneFilePatch([
-      { op: 'append', line: 3, val: 'LAST' },
-      { op: 'append', line: 1, val: 'JEDI' },
-    ])
+    const patches = oneFilePatch([{
+      op: 'append',
+      start: { line: 1, character: 0 },
+      end: { line: 1, character: 0 },
+      val: 'JEDI'
+    }, {
+      op: 'append',
+      start: { line: 3, character: 0 },
+      end: { line: 3, character: 0 },
+      val: 'LAST'
+    }])
 
     const res = await patch(patches)
 
@@ -67,10 +79,17 @@ but the best one is the HOLIDAY SPECIAL
   })
 
   it('replace', async () => {
-    const patches = oneFilePatch([
-      { op: 'replace', line: 5, val: 'the best one is EMPIRE STRIKES BACK' },
-      { op: 'replace', line: 1, val: 'ROGUE ONE' },
-    ])
+    const patches = oneFilePatch([{
+      op: 'replace',
+      start: { line: 5, character: 20 },
+      end: { line: 5, character: 39 },
+      val: 'EMPIRE STRIKES BACK'
+    }, {
+      op: 'replace',
+      start: { line: 1, character: 0 },
+      end: { line: 1, character: 3 },
+      val: 'ROGUE ONE'
+    }])
 
     const res = await patch(patches)
 
@@ -81,17 +100,27 @@ ROGUE ONE
 two
 star wars is the best
 empire strikes back is my favorite
-the best one is EMPIRE STRIKES BACK
+but the best one is EMPIRE STRIKES BACK
 `
     )
   })
 
   it('delete + append + replace', async () => {
-    const patches = oneFilePatch([
-      { op: 'replace', line: 5, val: 'the best one is EMPIRE STRIKES BACK' },
-      { op: 'delete', line: 1 },
-      { op: 'append', line: 4, val: 'in the original movies' },
-    ])
+    const patches = oneFilePatch([{
+      op: 'replace',
+      start: { line: 5, character: 20 },
+      end: { line: 5, character: 39 },
+      val: 'EMPIRE STRIKES BACK'
+    }, {
+      op: 'delete',
+      start: { line: 1, character: 0 },
+      end: { line: 1, character: 0 },
+    }, {
+      op: 'append',
+      start: { line: 4, character: 0 },
+      end: { line: 4, character: 0 },
+      val: 'in the original movies'
+    }])
 
     const res = await patch(patches)
 
@@ -102,7 +131,7 @@ two
 star wars is the best
 empire strikes back is my favorite
 in the original movies
-the best one is EMPIRE STRIKES BACK
+but the best one is EMPIRE STRIKES BACK
 `
     )
   })

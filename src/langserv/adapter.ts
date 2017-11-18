@@ -1,26 +1,9 @@
-import { Location, Position, Range, TextEdit, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
+import { Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
 import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from './director'
 import { is, merge, uriAsCwd, uriAsFile } from '../utils'
 import { update, getLine, getFile } from './files'
 import { NeovimState } from '../ui/neovim'
-
-export enum Operation {
-  Delete = 'delete',
-  Append = 'append',
-  Replace = 'replace',
-}
-
-export interface PatchOperation {
-  op: Operation,
-  line: number,
-  val?: string,
-}
-
-export interface Patch {
-  cwd: string,
-  file: string,
-  operations: PatchOperation[],
-}
+import { Patch, workspaceEditToPatch } from './patch'
 
 export interface Symbol {
   name: string,
@@ -84,18 +67,6 @@ const toProtocol = (data: NeovimState, more?: any) => {
 }
 
 const toVimPosition = ({ line, character }: Position): VimPosition => ({ line: line + 1, column: character + 1 })
-const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character
-
-const makePatch = (cwd: string, file: string) => ({ newText, range: { start, end } }: TextEdit): PatchOperation => {
-  const line = start.line + 1
-
-  if (!newText) return { op: Operation.Delete, line }
-  if (samePos(start, end)) return { op: Operation.Append, line, val: newText }
-
-  const buffer = getLine(cwd, file, line)
-  const val = buffer.slice(0, start.character) + newText + buffer.slice(end.character)
-  return { op: Operation.Replace, line, val }
-}
 
 const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line, column } = toVimPosition(range.start)
@@ -166,19 +137,10 @@ export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
   return references.map(asQfList)
 }
 
-const asPatch = (filepath: string, edits: TextEdit[]): Patch => {
-  const cwd = uriAsCwd(filepath)
-  const file = uriAsFile(filepath)
-  return { cwd, file, operations: edits.map(makePatch(cwd, file)) }
-}
-
 export const rename = async (data: NeovimState & { newName: string }): Promise<Patch[]> => {
   const req = toProtocol(data, { newName: data.newName })
-  const { changes, documentChanges } = await textDocument.rename(req) as WorkspaceEdit
-
-  if (documentChanges) return documentChanges.map(({ textDocument, edits }) => asPatch(textDocument.uri, edits))
-  if (changes) return Object.entries(changes).map(([ file, edits ]) => asPatch(file, edits))
-  return []
+  const workspaceEdit = await textDocument.rename(req) as WorkspaceEdit
+  return workspaceEditToPatch(workspaceEdit)
 }
 
 export const hover = async (data: NeovimState): Promise<string> => {
