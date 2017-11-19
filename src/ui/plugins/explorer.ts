@@ -32,7 +32,7 @@ let listElRef: HTMLElement
 const view = ({ val, path, paths, vis, ix }: State, { jumpPrev, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom, jumpHome }: any) => h('#explorer.plugin', {
   hide: !vis
 }, [
-  h('.dialog.large', [
+  h('.dialog.xlarge', [
     TermInput({ focus: true, val, next, prev, change, hide, select, jumpPrev, down: scrollDown, up: scrollUp, top, bottom, ctrlH: jumpHome }),
 
     h('.row.important', shorten(path)),

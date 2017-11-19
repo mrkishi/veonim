@@ -1,5 +1,6 @@
-import { cmd, on } from '../neovim'
 import { sub } from '../../dispatch'
+import { exists } from '../../utils'
+import { cmd, on } from '../neovim'
 const watch = require('node-watch')
 import { join } from 'path'
 
@@ -15,9 +16,10 @@ sub('session:switch', (id: number) => {
   cmd(`checktime`)
 })
 
-on.bufLoad(({ cwd, file }) => {
+on.bufLoad(async ({ cwd, file }) => {
   const filepath = join(cwd, file)
   if (!filepath) return
+  if (!await exists(filepath)) return
   currentSession.add(filepath)
   const w = watch(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
   watchers.set(filepath, w)

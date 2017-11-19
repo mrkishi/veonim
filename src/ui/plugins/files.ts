@@ -21,7 +21,7 @@ const state: State = { val: '', files: [], cache: [], vis: false, ix: 0, current
 const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
   hide: !vis
 }, [
-  h('.dialog.large', [
+  h('.dialog.xlarge', [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
     h('.row', { render: !files.length }, '...'),
