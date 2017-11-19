@@ -39,5 +39,5 @@ export const getLine = (cwd: string, file: string, line: number) =>
 export const getFile = async (cwd: string, file: string): Promise<string[]> => {
   const path = join(cwd, file)
   // TODO: could read the same file multiple times -- should cache (or defer to patch-fs module)
-  return files.get(path) || (await readFile(path).catch(() => '')).split('\n')
+  return files.get(path) || (await readFile(path).catch(() => '') as string).split('\n')
 }

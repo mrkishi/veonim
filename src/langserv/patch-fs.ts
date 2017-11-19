@@ -28,7 +28,7 @@ const applyPatch = (path: string, lines: string[]): Promise<boolean> => writeFil
 
 const patchFiles = async (patches: Patch[]): Promise<boolean> => {
   const res = patches.map(async ({ path, operations }) => {
-    const lines = (await readFile(path).catch(() => '')).split('\n')
+    const lines = (await readFile(path).catch(() => '') as string).split('\n')
     const modifiedLines = patch(lines, operations)
     return applyPatch(path, modifiedLines)
   })

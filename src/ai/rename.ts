@@ -45,6 +45,7 @@ const applyPatchesToModifiedBuffers = async (patches: Patch[]) => {
   const buffers = await list.buffers
   const modBufs = await Promise.all(buffers.filter(async b => patchPaths.includes(await b.name)))
 
+  // TODO: yeah this thing is broke as fuck
   modBufs.forEach(async b => {
     const name = await b.name
     const patch = patches.find(p => p.path === name)

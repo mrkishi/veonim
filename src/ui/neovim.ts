@@ -343,15 +343,15 @@ export const VBuffer = class VBuffer {
   }
 
   getLine(start: number) {
-    return this.getLines(start, start, true)
+    return this.getLines(start, start + 1, true)
   }
 
   setLines(start: number, end: number, strict_indexing: boolean, replacement: string[]) {
     api.buf.setLines(this.id, start, end, strict_indexing, replacement)
   }
 
-  delete(start: number, end = start) {
-    this.setLines(start, end, false, [])
+  delete(start: number) {
+    this.setLines(start, start + 1, false, [])
   }
 
   append(start: number, lines: string | string[]) {
@@ -360,7 +360,7 @@ export const VBuffer = class VBuffer {
   }
 
   replace(start: number, line: string) {
-    this.setLines(start, start, false, [line])
+    this.setLines(start, start + 1, true, [line])
   }
 
   getVar(name: string) {

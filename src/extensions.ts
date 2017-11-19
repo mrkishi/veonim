@@ -53,7 +53,7 @@ const findExtensions = async () => {
 }
 
 const getActivationEvents = async (packagePath: string): Promise<ActivationEvent[]> => {
-  const { activationEvents = [] } = fromJSON(await readFile(packagePath)).or({})
+  const { activationEvents = [] } = fromJSON(await readFile(packagePath) as string).or({})
   return activationEvents.map((m: string) => ({
     type: m.split(':')[0] as ActivationEventType,
     value: m.split(':')[1],
