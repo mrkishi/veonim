@@ -1,9 +1,10 @@
-import { feedkeys, call, action, until, expr, current as vimState } from '../ui/neovim'
+import { list, feedkeys, call, action, until, expr, current as vimState } from '../ui/neovim'
 import { VimPatch, Operation, Patch } from '../langserv/patch'
+import patchFilesOnFS from '../langserv/patch-fs'
 import * as updateService from './update-server'
 import { rename } from '../langserv/adapter'
 import { getLine } from '../langserv/files'
-import patchFilesOnFS from '../langserv/patch-fs'
+import { matchOn } from '../utils'
 import * as path from 'path'
 
 const currentBufferPath = () => path.join(vimState.cwd, vimState.file)
@@ -26,15 +27,44 @@ action('rename', async () => {
   // what is the performance impact? otherwise would be simpler code to have 2 methods)
   // - patch current buffer via vimscript fns (actually, why not just use Neovim.Buffer methods?
   // - patch all modified buffers (not saved to FS) via Neovim.Buffer.getLines/setLines
-  // TODO: get modified buffers
-  const modifiedBuffers: string[] = []
+  const modifiedBuffers = await call.ModifiedBuffers()
 
   const fsPatches = patches
     .filter(({ path }) => path !== currentBufferPath() && !modifiedBuffers.includes(path))
 
+  const bufferPatches = patches
+    .filter(({ path }) => path !== currentBufferPath() && modifiedBuffers.includes(path))
+
   applyPatchToBuffer(currentBufferPatch)
+  applyPatchesToModifiedBuffers(bufferPatches)
   patchFilesOnFS(fsPatches)
 })
+
+const applyPatchesToModifiedBuffers = async (patches: Patch[]) => {
+  const patchPaths = patches.map(p => p.path)
+  const buffers = await list.buffers
+  const modBufs = await Promise.all(buffers.filter(async b => patchPaths.includes(await b.name)))
+
+  modBufs.forEach(async b => {
+    const name = await b.name
+    const patch = patches.find(p => p.path === name)
+    if (!patch) return
+
+    patch.operations.forEach(({ op, start, end, val }) => {
+      const line = start.line + 1
+
+      matchOn(op)({
+        delete: () => b.delete(line),
+        append: () => b.append(line, val),
+        replace: async () => {
+          const targetLine = await b.getLine(line)
+          const newLine = targetLine.slice(0, start.character) + val + targetLine.slice(end.character)
+          b.replace(line, newLine)
+        }
+      })
+    })
+  })
+}
 
 const mapVimPatch = ({ cwd, file, operations }: Patch): VimPatch[] => operations.map(({ op, start, end, val }) => {
   const line = start.line + 1

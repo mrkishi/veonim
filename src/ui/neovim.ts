@@ -342,8 +342,25 @@ export const VBuffer = class VBuffer {
     return req.buf.getLines(this.id, start, end, strict_indexing)
   }
 
+  getLine(start: number) {
+    return this.getLines(start, start, true)
+  }
+
   setLines(start: number, end: number, strict_indexing: boolean, replacement: string[]) {
     api.buf.setLines(this.id, start, end, strict_indexing, replacement)
+  }
+
+  delete(start: number, end = start) {
+    this.setLines(start, end, false, [])
+  }
+
+  append(start: number, lines: string | string[]) {
+    const replacement = is.array(lines) ? lines as string[] : [lines as string]
+    this.setLines(start + 1, start + 1 + replacement.length, false, replacement)
+  }
+
+  replace(start: number, line: string) {
+    this.setLines(start, start, false, [line])
   }
 
   getVar(name: string) {

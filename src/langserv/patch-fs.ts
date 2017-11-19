@@ -36,5 +36,4 @@ const patchFiles = async (patches: Patch[]): Promise<boolean> => {
   return (await Promise.all(res)).every(m => m)
 }
 
-// TODO: make sure to only pass in WorkspaceEdit(s) that are for file-system
 export default async (patches: Patch[]): Promise<boolean> => patchFiles(patches)
