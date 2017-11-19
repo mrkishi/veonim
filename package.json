@@ -1,6 +1,6 @@
 {
   "name": "veonim",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "vim end game",
   "main": "build/main.js",
   "scripts": {
