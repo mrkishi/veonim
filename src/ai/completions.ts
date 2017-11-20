@@ -53,10 +53,7 @@ const getSemanticCompletions = (line: number, column: number) => EarlyPromise(as
   if (cache.semanticCompletions.has(`${line}:${column}`)) 
     return done(cache.semanticCompletions.get(`${line}:${column}`)!)
 
-  console.time('LSP COMPLETIONS')
   const items = await completions(vimState)
-  console.timeEnd('LSP COMPLETIONS')
-  console.log('completions recv from the server:', items.length)
   const options = items.map(({ label: text, kind = CompletionItemKind.Text }) => ({ text, kind }))
   cache.semanticCompletions.set(`${line}:${column}`, options)
   done(options)
