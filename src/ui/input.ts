@@ -51,6 +51,7 @@ const formatInput = $(combineModsWithKey, wrapKey)
 const shortcuts = new Map<string, Function>()
 
 export const registerShortcut = (keys: string, cb: Function) => shortcuts.set(`<${keys.toUpperCase()}>`, cb)
+// TODO: can we use transform to do the same thing as remapModifier? seems similar
 export const remapModifier = (from: string, to: string) => remaps.set(from, to)
 export const focus = () => {
   isCapturing = true
@@ -84,14 +85,27 @@ const defkey = {...new KeyboardEvent('keydown'), key: '', ctrlKey: false, metaKe
 // hold: A -> A (default, optional) + A(hold) -> C
 // holdfull: A -> B + A(hold) -> C
 export const transform = {
-  hold: (e: any, fn: Transformer) => xfrmHold.set(keToStr({...defkey, ...e}), fn),
+  // TODO: i think the buffered rpc calls are not getting thru
+  hold: (e: any, fn: Transformer) => {
+    console.log('set HOLD match', e)
+    console.log('transform fn', fn)
+    //xfrmHold.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) }))
+    xfrmHold.set(keToStr({...defkey, ...e}), e => {
+      const res = fn(e)
+      console.log('fn res:', res)
+      const ret = { ...e, ...res }
+      console.log('xf ret:', ret)
+      return ret
+    })
+  },
+  //hold: (e: any, fn: Transformer) => xfrmHold.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
   down: (e: any, fn: Transformer) => xfrmDown.set(keToStr({...defkey, ...e}), fn),
   // TODO: set the before condition?
   // up: (before: any, now: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
   up: (e: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
 }
 
-transform.hold({ key: ';' }, e => ({ ...e, key: ';' + e.key }))
+transform.hold({ key: '[' }, e => ({ ...e, key: '[' + e.key }))
 
 const sendKeys = (e: KeyboardEvent) => {
   const key = bypassEmptyMod(e.key)

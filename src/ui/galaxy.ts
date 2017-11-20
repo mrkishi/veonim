@@ -33,8 +33,8 @@ configReader('nvim/init.vim', c => {
 
 // TODO: make these friendly names?
 // TODO: read from vim config
-uiInput.remapModifier('C', 'D')
-uiInput.remapModifier('D', 'C')
+//uiInput.remapModifier('C', 'D')
+//uiInput.remapModifier('D', 'C')
 uiInput.registerShortcut('s-c-|', () => remote.getCurrentWebContents().toggleDevTools())
 uiInput.registerShortcut('s-c-x', () => remote.app.quit())
 uiInput.registerShortcut('s-c-f', () => {

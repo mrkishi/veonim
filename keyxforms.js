@@ -1,0 +1,1 @@
+module.exports = e => ({ key: e + 42 })

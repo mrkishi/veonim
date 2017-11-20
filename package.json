@@ -96,6 +96,7 @@
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.5",
     "remove-markdown": "0.2.2",
+    "tempy": "^0.2.1",
     "vscode-languageserver-types": "3.4.0"
   },
   "devDependencies": {
