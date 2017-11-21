@@ -26,7 +26,7 @@ let onExitFn: ExitFn = function () {}
 
 const spawnVimInstance = ({ askCd = false }) => Neovim([
   '--cmd',
-  `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_cmd_completions = '' | let g:vn_ask_cd=${<any>askCd | 0} | let $PATH .= ':${__dirname}/runtime/${os}' | let g:vn_rpc_buf = []`,
+  `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_cmd_completions = '' | let g:vn_ask_cd = ${<any>askCd | 0} | let $PATH .= ':${__dirname}/runtime/${os}' | let g:vn_rpc_buf = [] | let g:platform = '${os}'`,
   '--cmd',
   `exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
   '--cmd',
