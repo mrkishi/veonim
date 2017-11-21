@@ -47,6 +47,24 @@ startup.defineFunc.VeonimCmdCompletions`
   return g:vn_cmd_completions
 `
 
+startup.defineFunc.VeonimRegisterEvent`
+  if has_key(g:vn_events, a:1)
+    call add(g:vn_events[a:1], a:2)
+  else
+    let g:vn_events[a:1] = [a:2]
+  endif
+`
+
+startup.defineFunc.VeonimCallEvent`
+  if has_key(g:vn_events, a:1)
+    for Func in g:vn_events[a:1] | call Func() | endfor
+  endif
+`
+
+startup.defineFunc.VK`
+  call VeonimRegisterEvent(a:1, a:2)
+`
+
 const spawnVimInstance = () => Neovim([
   '--cmd',
   `${startupCmds} | ${startup.funcs}`,
