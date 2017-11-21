@@ -85,27 +85,16 @@ const defkey = {...new KeyboardEvent('keydown'), key: '', ctrlKey: false, metaKe
 // hold: A -> A (default, optional) + A(hold) -> C
 // holdfull: A -> B + A(hold) -> C
 export const transform = {
-  // TODO: i think the buffered rpc calls are not getting thru
-  hold: (e: any, fn: Transformer) => {
-    console.log('set HOLD match', e)
-    console.log('transform fn', fn)
-    //xfrmHold.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) }))
-    xfrmHold.set(keToStr({...defkey, ...e}), e => {
-      const res = fn(e)
-      console.log('fn res:', res)
-      const ret = { ...e, ...res }
-      console.log('xf ret:', ret)
-      return ret
-    })
-  },
-  //hold: (e: any, fn: Transformer) => xfrmHold.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
-  down: (e: any, fn: Transformer) => xfrmDown.set(keToStr({...defkey, ...e}), fn),
-  // TODO: set the before condition?
-  // up: (before: any, now: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
-  up: (e: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
-}
+  hold: (e: any, fn: Transformer) =>
+    xfrmHold.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
+  down: (e: any, fn: Transformer) =>
+    xfrmDown.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
 
-transform.hold({ key: '[' }, e => ({ ...e, key: '[' + e.key }))
+  // TODO: set the before condition?
+   //up: (before: any, now: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
+  up: (e: any, fn: Transformer) =>
+    xfrmUp.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
+}
 
 const sendKeys = (e: KeyboardEvent) => {
   const key = bypassEmptyMod(e.key)
