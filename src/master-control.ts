@@ -1,4 +1,5 @@
 import { ID, log, onFnCall, merge, prefixWith } from './utils'
+import { CmdGroup, FunctionGroup } from './neovim-utils'
 import { ChildProcess } from 'child_process'
 import CreateTransport from './transport'
 import NeovimUtils from './neovim-utils'
@@ -13,6 +14,7 @@ export interface NewVimResponse { id: number, path: string }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
+let onExitFn: ExitFn = function () {}
 const { platform: os } = process
 const prefix = { core: prefixWith(Prefixes.Core) }
 const { encoder, decoder } = CreateTransport()
@@ -21,28 +23,60 @@ const vimOptions = { rgb: true, ext_popupmenu: true, ext_tabline: true, ext_wild
 const ids = { vim: ID(), activeVim: -1 }
 const clientSize = { width: 0, height: 0 }
 const vimInstances = new Map<number, VimInstance>()
+const startup = FunctionGroup()
 
-let onExitFn: ExitFn = function () {}
+// TODO: dat ask_cd is lots of shit
+// TODO: should buffer happen in Veonim fn instead?
+const startupCmds = CmdGroup`
+  let $PATH .= ':${__dirname}/runtime/${os}'
+  let g:veonim = 1
+  let g:vn_loaded = 0
+  let g:vn_cmd_completions = ''
+  let g:vn_ask_cd = 0
+  let g:vn_rpc_buf = []
+  let g:vn_platform = '${os}'
+  let g:vn_events = {}
+  call serverstart()
+`
 
-const spawnVimInstance = ({ askCd = false }) => Neovim([
+startup.defineFunc.Veonim`
+  call rpcnotify(0, 'veonim', a:1, a:000)
+`
+
+startup.defineFunc.VeonimCmdCompletions`
+  return g:vn_cmd_completions
+`
+
+const spawnVimInstance = () => Neovim([
   '--cmd',
-  `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_cmd_completions = '' | let g:vn_ask_cd = ${<any>askCd | 0} | let $PATH .= ':${__dirname}/runtime/${os}' | let g:vn_rpc_buf = [] | let g:platform = '${os}'`,
+  `${startupCmds} | ${startup.funcs}`,
   '--cmd',
-  `exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
+  `com! -nargs=* Plug 1`,
   '--cmd',
   `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call add(g:vn_rpc_buf, [<f-args>]) | endif`,
-  '--cmd',
-  `exe ":fun! VeonimCmdCompletions(...)\\n return g:vn_cmd_completions \\n endfun"`,
-  '--cmd',
-  // sometimes this doesn't happen automatically... idk why
-  `call serverstart()`,
-  '--cmd',
-  'com! -nargs=* Plug 1',
-  '--embed',
+  '--embed'
 ], { cwd: $HOME })
 
+//const spawnVimInstance = ({ askCd = false }) => Neovim([
+  //'--cmd',
+  //`let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_cmd_completions = '' | let g:vn_ask_cd = ${<any>askCd | 0} | let $PATH .= ':${__dirname}/runtime/${os}' | let g:vn_rpc_buf = [] | let g:platform = '${os}'`,
+  //'--cmd',
+  //`exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
+  //'--cmd',
+  //`com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call add(g:vn_rpc_buf, [<f-args>]) | endif`,
+  //'--cmd',
+  //`exe ":fun! VeonimCmdCompletions(...)\\n return g:vn_cmd_completions \\n endfun"`,
+  //'--cmd',
+  //// sometimes this doesn't happen automatically... idk why
+  //`call serverstart()`,
+  //'--cmd',
+  //'com! -nargs=* Plug 1',
+  //'--embed',
+//], { cwd: $HOME })
+
 const createNewVimInstance = ({ askCd = false } = {}): number => {
-  const proc = spawnVimInstance({ askCd })
+  console.log('please start and ask for cd should use autocmd?', askCd)
+  const proc = spawnVimInstance()
   const id = ids.vim.next()
 
   vimInstances.set(id, { id, proc, attached: false })

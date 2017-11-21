@@ -1,5 +1,7 @@
-import { delay } from './utils'
+import { delay, pascalCase, onProp } from './utils'
 import { Api } from './api'
+
+export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 
 // TODO: this getMode/blocking/input/capture :messages is kinda hack.
 // when neovim implements external dialogs, please revisit
@@ -32,3 +34,36 @@ const unblock = (api: Api, req: Api) => (): Promise<string[]> => new Promise(fin
 export default ({ api, req }: { api: Api, req: Api }) => ({
   unblock: unblock(api, req)
 })
+
+export const FunctionGroup = () => {
+  const fns: string[] = []
+
+  const defineFunc: DefineFunction = onProp((name: string) => (strParts: TemplateStringsArray, ...vars: any[]) => {
+    const expr = strParts
+      .map((m, ix) => [m, vars[ix]].join(''))
+      .join('')
+      .split('\n')
+      .filter(m => m)
+      .map(m => m.trim())
+      .join('\\n')
+      .replace(/"/g, '\\"')
+
+    fns.push(`exe ":fun! ${pascalCase(name)}(...) range\\n${expr}\\nendfun"`)
+  })
+
+  return {
+    defineFunc,
+    get funcs() { return fns.join(' | ') }
+  }
+}
+
+
+export const CmdGroup = (strParts: TemplateStringsArray, ...vars: any[]) => strParts
+  .map((m, ix) => [m, vars[ix]].join(''))
+  .join('')
+  .split('\n')
+  .filter(m => m)
+  .map(m => m.trim())
+  .map(m => m.replace(/\|/g, '\\|'))
+  .join(' | ')
+  .replace(/"/g, '\\"')
