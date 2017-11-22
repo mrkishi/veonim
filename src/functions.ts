@@ -21,6 +21,7 @@ export interface QuickFixList {
 type WindowPosition = [ string, number, number, number ]
 
 export interface Functions {
+  VeonimCallEvent(event: string): void,
   Commands(): Promise<string[]>,
   Buffers(): Promise<VimBuffer[]>,
   ModifiedBuffers(): Promise<string[]>,

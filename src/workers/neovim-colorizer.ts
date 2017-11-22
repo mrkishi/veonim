@@ -33,6 +33,7 @@ const { encoder, decoder } = CreateTransport()
 const proc = Neovim([
   '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,
   '--cmd', `exe ":fun! Veonim(...)\\n endfun"`,
+  '--cmd', `exe ":fun! VK(...)\\n endfun"`,
   '--cmd', `com! -nargs=+ -range Veonim 1`,
   '--cmd', 'com! -nargs=* Plug 1',
   '--embed',

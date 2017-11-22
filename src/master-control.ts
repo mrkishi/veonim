@@ -26,7 +26,6 @@ const vimInstances = new Map<number, VimInstance>()
 const startup = FunctionGroup()
 
 // TODO: dat ask_cd is lots of shit
-// TODO: should buffer happen in Veonim fn instead?
 const startupCmds = CmdGroup`
   let $PATH .= ':${__dirname}/runtime/${os}'
   let g:veonim = 1
@@ -40,7 +39,11 @@ const startupCmds = CmdGroup`
 `
 
 startup.defineFunc.Veonim`
-  call rpcnotify(0, 'veonim', a:1, a:000)
+  if g:vn_loaded
+    call rpcnotify(0, 'veonim', a:1, a:000[1:])
+  else
+    call add(g:vn_rpc_buf, a:000)
+  endif
 `
 
 startup.defineFunc.VeonimCmdCompletions`
@@ -62,7 +65,8 @@ startup.defineFunc.VeonimCallEvent`
 `
 
 startup.defineFunc.VK`
-  call VeonimRegisterEvent(a:1, a:2)
+  call VeonimRegisterEvent('key:' . a:1, a:2)
+  call Veonim('register-shortcut', a:1)
 `
 
 const spawnVimInstance = () => Neovim([
@@ -71,7 +75,7 @@ const spawnVimInstance = () => Neovim([
   '--cmd',
   `com! -nargs=* Plug 1`,
   '--cmd',
-  `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call add(g:vn_rpc_buf, [<f-args>]) | endif`,
+  `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
   '--embed'
 ], { cwd: $HOME })
 
