@@ -25,13 +25,11 @@ const clientSize = { width: 0, height: 0 }
 const vimInstances = new Map<number, VimInstance>()
 const startup = FunctionGroup()
 
-// TODO: dat ask_cd is lots of shit
 const startupCmds = CmdGroup`
   let $PATH .= ':${__dirname}/runtime/${os}'
   let g:veonim = 1
   let g:vn_loaded = 0
   let g:vn_cmd_completions = ''
-  let g:vn_ask_cd = 0
   let g:vn_rpc_buf = []
   let g:vn_platform = '${os}'
   let g:vn_events = {}
@@ -96,8 +94,7 @@ const spawnVimInstance = () => Neovim([
   //'--embed',
 //], { cwd: $HOME })
 
-const createNewVimInstance = ({ askCd = false } = {}): number => {
-  console.log('please start and ask for cd should use autocmd?', askCd)
+const createNewVimInstance = (): number => {
   const proc = spawnVimInstance()
   const id = ids.vim.next()
 
@@ -131,7 +128,7 @@ export const switchTo = (id: number) => {
 }
 
 export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> => {
-  const id = createNewVimInstance({ askCd })
+  const id = createNewVimInstance()
   switchTo(id)
   const errors = await unblock()
 
@@ -140,7 +137,10 @@ export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
     message: errors,
   })
 
-  api.command(`let g:vn_loaded=1`)
+  api.command(`let g:vn_loaded = 1`)
+  // TODO: there should be a more deterministic way to do this. i tried VimEnter autocmd but...
+  askCd && setTimeout(() => api.command(`doautocmd <nomodeline> User VeonimStartupDir`), 11)
+
   const path = await req.eval('v:servername')
   vimInstances.get(id)!.path = path
   return { id, path }

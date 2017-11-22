@@ -126,6 +126,7 @@ export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.cor
 export const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
 export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
+  // TODO: this only gets registered on the first vim instance...
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
