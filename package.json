@@ -19,7 +19,7 @@
     "gen-api": "node tools/gen-api.js",
     "bins-mac": "mkdir -p bindeps/mac && npm i @veonim/neovim-mac@0.0.1 @veonim/ripgrep-mac@0.0.1 --prefix ./bindeps/mac",
     "bins-linux": "mkdir -p bindeps/linux && npm i @veonim/neovim-linux@0.0.1 @veonim/ripgrep-linux@0.0.1 --prefix ./bindeps/linux",
-    "bins-win": "mkdir -p bindeps/win && npm i @veonim/neovim-win@0.0.5 @veonim/ripgrep-win@0.0.1 --prefix ./bindeps/win",
+    "bins-win": "mkdir -p bindeps/win && npm i @veonim/neovim-win@0.0.1 @veonim/ripgrep-win@0.0.1 --prefix ./bindeps/win",
     "bins": "npm run bins-mac && npm run bins-win && npm run bins-linux",
     "pack-mac": "npm run bins-mac && electron-builder -m",
     "pack-win": "npm run bins-win && electron-builder -w",
