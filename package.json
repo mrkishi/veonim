@@ -17,16 +17,18 @@
     "rebuild": "npm run clean && npm run build",
     "start": "electron build/main.js",
     "gen-api": "node tools/gen-api.js",
-    "mkdir-bin": "mkdir bindeps && mkdir bindeps/mac bindeps/linux bindeps/win",
-    "bins-mac": "npm i @veonim/neovim@0.0.5-mac @veonim/ripgrep@0.0.1-mac --prefix ./bindeps/mac",
-    "bins-linux": "npm i @veonim/neovim@0.0.5-linux @veonim/ripgrep@0.0.1-linux --prefix ./bindeps/linux",
-    "bins-win": "npm i @veonim/neovim@0.0.5-win @veonim/ripgrep@0.0.1-win --prefix ./bindeps/win",
+    "bins-mac": "mkdir -p bindeps/mac && npm i @veonim/neovim-mac@0.0.1 @veonim/ripgrep-mac@0.0.1 --prefix ./bindeps/mac",
+    "bins-linux": "mkdir -p bindeps/linux && npm i @veonim/neovim-linux@0.0.1 @veonim/ripgrep-linux@0.0.1 --prefix ./bindeps/linux",
+    "bins-win": "mkdir -p bindeps/win && npm i @veonim/neovim-win@0.0.5 @veonim/ripgrep-win@0.0.1 --prefix ./bindeps/win",
     "bins": "npm run bins-mac && npm run bins-win && npm run bins-linux",
     "pack-mac": "npm run bins-mac && electron-builder -m",
     "pack-win": "npm run bins-win && electron-builder -w",
     "pack-linux": "npm run bins-linux && electron-builder -l",
     "pack": "npm run bins && electron-builder -mwl",
-    "release": "npm run clean-all && npm run build && npm run mkdir-bin && npm run pack"
+    "release": "npm run clean-all && npm run build && npm run pack",
+    "release-mac": "npm run clean-all && npm run build && npm run pack-mac",
+    "release-win": "npm run clean-all && npm run build && npm run pack-win",
+    "release-linux": "npm run clean-all && npm run build && npm run pack-linux"
   },
   "build": {
     "productName": "veonim",
