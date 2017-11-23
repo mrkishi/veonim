@@ -55,7 +55,7 @@ const getSignatureHint = async (lineContent: string) => {
     label,
     currentParam,
     row: vimUI.cursor.row,
-    col: vimState.column,
+    col: vimUI.cursor.col,
     info: documentation
   })
 }

@@ -7,9 +7,12 @@ import vimUI from '../ui/canvasgrid'
 action('hover', async () => {
   const text = await hover(vimState)
   if (!text) return
-  // TODO: get start column of the object (to show popup menu anchored to the beginning of the word)
   const data = await getColorData(text, vimState.filetype)
-  hoverUI.show({ data, row: vimUI.cursor.row, col: vimState.column })
+  hoverUI.show({
+    data,
+    row: vimUI.cursor.row,
+    col: vimUI.cursor.col
+  })
 })
 
 on.cursorMove(() => hoverUI.hide())
