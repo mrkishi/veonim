@@ -9,29 +9,53 @@ import { pub } from './dispatch'
 import { homedir } from 'os'
 import SetupRPC from './rpc'
 
-interface VimInstance { id: number, proc: ChildProcess, attached: boolean, path?: string}
-export interface NewVimResponse { id: number, path: string }
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
 
+interface VimInstance {
+  id: number,
+  proc: ChildProcess,
+  attached: boolean,
+  path?: string
+}
+
+export interface NewVimResponse {
+  id: number,
+  path: string
+}
+
+const vimOptions = {
+  rgb: true,
+  ext_popupmenu: true,
+  ext_tabline: true,
+  ext_wildmenu: false,
+  ext_cmdline: false
+}
+
+const ids = {
+  vim: ID(),
+  activeVim: -1
+}
+
+const clientSize = {
+  width: 0,
+  height: 0
+}
+
 let onExitFn: ExitFn = function () {}
-const { platform: os } = process
-const prefix = { core: prefixWith(Prefixes.Core) }
-const { encoder, decoder } = CreateTransport()
-const $HOME = homedir()
-const vimOptions = { rgb: true, ext_popupmenu: true, ext_tabline: true, ext_wildmenu: false, ext_cmdline: false }
-const ids = { vim: ID(), activeVim: -1 }
-const clientSize = { width: 0, height: 0 }
+//const prefix = { core: prefixWith(Prefixes.Core) }
+const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
+const { encoder, decoder } = CreateTransport()
 const startup = FunctionGroup()
 
 const startupCmds = CmdGroup`
-  let $PATH .= ':${__dirname}/runtime/${os}'
+  let $PATH .= ':${__dirname}/runtime/${process.platform}'
   let g:veonim = 1
   let g:vn_loaded = 0
   let g:vn_cmd_completions = ''
   let g:vn_rpc_buf = []
-  let g:vn_platform = '${os}'
+  let g:vn_platform = '${process.platform}'
   let g:vn_events = {}
   call serverstart()
 `
@@ -75,24 +99,7 @@ const spawnVimInstance = () => Neovim([
   '--cmd',
   `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
   '--embed'
-], { cwd: $HOME })
-
-//const spawnVimInstance = ({ askCd = false }) => Neovim([
-  //'--cmd',
-  //`let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_cmd_completions = '' | let g:vn_ask_cd = ${<any>askCd | 0} | let $PATH .= ':${__dirname}/runtime/${os}' | let g:vn_rpc_buf = [] | let g:platform = '${os}'`,
-  //'--cmd',
-  //`exe ":fun! Veonim(event, ...)\\n call rpcnotify(0, 'veonim', a:event, a:000) \\n endfun"`,
-  //'--cmd',
-  //`com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim if g:vn_loaded | call Veonim(<f-args>) | else | call add(g:vn_rpc_buf, [<f-args>]) | endif`,
-  //'--cmd',
-  //`exe ":fun! VeonimCmdCompletions(...)\\n return g:vn_cmd_completions \\n endfun"`,
-  //'--cmd',
-  //// sometimes this doesn't happen automatically... idk why
-  //`call serverstart()`,
-  //'--cmd',
-  //'com! -nargs=* Plug 1',
-  //'--embed',
-//], { cwd: $HOME })
+], { cwd: homedir() })
 
 const createNewVimInstance = (): number => {
   const proc = spawnVimInstance()
@@ -157,8 +164,8 @@ export const attachTo = (id: number) => {
 const { notify, request, on: onEvent, onData } = SetupRPC(encoder.write)
 decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
-const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args))
-const api: Api = onFnCall((name: string, args: any[]) => notify(prefix.core(name), args))
+const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix(name), args))
+const api: Api = onFnCall((name: string, args: any[]) => notify(prefix(name), args))
 
 const { unblock } = NeovimUtils({ api, req })
 
@@ -171,6 +178,7 @@ export const resize = (width: number, height: number) => {
   if (ids.activeVim > -1) api.uiTryResize(width, height)
 }
 
+// TODO: i think nvim 0.2.2+ now has an api method for getting colors?
 export const getColor = async (id: number) => {
   const [ fg = '', bg = '' ] = await Promise.all([
     req.eval(`synIDattr(synIDtrans(${id}), "fg#")`),
