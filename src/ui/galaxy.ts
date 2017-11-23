@@ -46,8 +46,6 @@ const main = async () => {
   const { id, path } = await create()
   await Promise.race([ initialConfig, timeout(500) ])
   ui.setCursorShape(CursorShape.block)
-  //ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
-  //resize(ui.cols, ui.rows)
   refreshCanvas()
   uiInput.focus()
   attachTo(id)
