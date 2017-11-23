@@ -1,5 +1,5 @@
 import { merge, getDirFiles, configPath, readFile, fromJSON } from './utils'
-import { connect, Server } from '@veonim/jsonrpc'
+import { connect, Server } from './jsonrpc'
 import * as path from 'path'
 
 enum ActivationEventType {

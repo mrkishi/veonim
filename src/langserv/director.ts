@@ -1,7 +1,7 @@
 import * as extensions from '../extensions'
 import defaultCapabs from './capabilities'
-import { Server } from '@veonim/jsonrpc'
 import * as dispatch from '../dispatch'
+import { Server } from '../jsonrpc'
 import { proxyFn } from '../utils'
 
 type ProxyFn = { [index: string]: Function }
