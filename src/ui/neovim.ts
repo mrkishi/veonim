@@ -68,6 +68,7 @@ const onReady = new Set<Function>()
 const notifyCreated = () => onReady.forEach(cb => cb())
 export const onCreate = (fn: Function) => (onReady.add(fn), fn)
 
+const registeredEventActions = new Set<string>()
 const uid = ID()
 const events = new Watchers()
 const actionWatchers = new Watchers()
@@ -126,8 +127,7 @@ export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.cor
 export const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
 export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
-  // TODO: this only gets registered on the first vim instance...
-  cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
+  registeredEventActions.add(event)
 }
 
 export const list = {
@@ -240,6 +240,8 @@ const processBufferedActions = async () => {
 }
 
 onCreate(() => {
+  const events = [...registeredEventActions.values()].join('\\n')
+  cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
   cmd(`aug Veonim | au! | aug END`)
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   processBufferedActions()
