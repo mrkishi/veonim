@@ -5,6 +5,7 @@ import configReader from '../config-reader'
 import setDefaultSession from './sessions'
 import * as uiInput from './input'
 import { remote } from 'electron'
+import { sub } from '../dispatch'
 import './render'
 import './notifications'
 
@@ -41,6 +42,10 @@ const refreshCanvas = () => {
 
 window.matchMedia('screen and (min-resolution: 2dppx)').addListener(refreshCanvas)
 window.addEventListener('resize', debounce(() => refreshCanvas(), 150))
+
+sub('colors.vim.bg', color => {
+  if (document.body.style.background !== color) document.body.style.background = color
+})
 
 const main = async () => {
   const { id, path } = await create()
