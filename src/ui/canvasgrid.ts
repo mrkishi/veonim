@@ -31,7 +31,6 @@ export interface CanvasGrid {
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
-const ratio = window.devicePixelRatio
 const font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
 const actualSize = { width: 0, height: 0 }
 const cell = { width: 0, height: 0 }
@@ -51,12 +50,12 @@ const sizeToGrid = (height: number, width: number): Grid => ({
 // TODO: memoize
 const px = {
   row: {
-    height: (row: number, scaled = false) => Math.floor(row * cell.height * (scaled ? ratio : 1)),
-    y: (rows: number, scaled = false) => px.row.height(rows, scaled) + (margins.top * (scaled ? ratio : 1))
+    height: (row: number, scaled = false) => Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
+    y: (rows: number, scaled = false) => px.row.height(rows, scaled) + (margins.top * (scaled ? window.devicePixelRatio : 1))
   },
   col: {
-    width: (col: number, scaled = false) => Math.floor(col * cell.width * (scaled ? ratio : 1)),
-    x: (cols: number, scaled = false) => px.col.width(cols, scaled) + (margins.left * (scaled ? ratio : 1))
+    width: (col: number, scaled = false) => Math.floor(col * cell.width * (scaled ? window.devicePixelRatio : 1)),
+    x: (cols: number, scaled = false) => px.col.width(cols, scaled) + (margins.left * (scaled ? window.devicePixelRatio : 1))
   }
 }
 
@@ -72,12 +71,12 @@ api.colToX = col => px.col.x(col)
 api.resize = (pixelHeight, pixelWidth) => {
   merge(actualSize, { width: pixelWidth, height: pixelHeight })
 
-  canvas.height = pixelHeight * ratio
-  canvas.width = pixelWidth * ratio
+  canvas.height = pixelHeight * window.devicePixelRatio
+  canvas.width = pixelWidth * window.devicePixelRatio
   canvas.style.height = `${pixelHeight}px`
   canvas.style.width = `${pixelWidth}px`
 
-  ui.scale(ratio, ratio)
+  ui.scale(window.devicePixelRatio, window.devicePixelRatio)
   merge(grid, sizeToGrid(pixelHeight, pixelWidth))
 
   // setting canvas properties resets font. we need user to call setFont() first to

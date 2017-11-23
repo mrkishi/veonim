@@ -34,20 +34,26 @@ configReader('nvim/init.vim', c => {
 // TODO: deprecate once shortcuts can be registered from vimrc
 uiInput.registerShortcut('s-c-|', () => remote.getCurrentWebContents().toggleDevTools())
 
-window.addEventListener('resize', debounce(() => {
+const refreshCanvas = () => {
   ui.resize(window.innerHeight, window.innerWidth)
   resize(ui.cols, ui.rows)
-}, 150))
+}
+
+window.matchMedia('screen and (min-resolution: 2dppx)').addListener(refreshCanvas)
+window.addEventListener('resize', debounce(() => refreshCanvas(), 150))
 
 const main = async () => {
   const { id, path } = await create()
   await Promise.race([ initialConfig, timeout(500) ])
-  ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
+  ui.setCursorShape(CursorShape.block)
+  //ui.setCursorShape(CursorShape.block).resize(window.innerHeight, window.innerWidth)
+  //resize(ui.cols, ui.rows)
+  refreshCanvas()
   uiInput.focus()
-  resize(ui.cols, ui.rows)
   attachTo(id)
   setDefaultSession(id, path)
   remote.getCurrentWindow().show()
+
   setTimeout(() => {
     requireDir(`${__dirname}/plugins`)
     setTimeout(() => require('../ai'))
