@@ -88,6 +88,8 @@
   },
   "homepage": "https://github.com/veonim/veonim#readme",
   "dependencies": {
+    "@veonim/neovim": "0.0.11",
+    "@veonim/ripgrep": "0.0.5",
     "@veonim/plugin-manager": "0.4.2",
     "fuzzaldrin-plus": "0.4.1",
     "huu": "2.0.1",
@@ -102,8 +104,6 @@
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "8.0.53",
-    "@veonim/neovim": "0.0.5-mac",
-    "@veonim/ripgrep": "0.0.1-mac",
     "electron": "1.7.9",
     "electron-builder": "19.45.5",
     "jscodeshift": "0.3.32",
