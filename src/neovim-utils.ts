@@ -38,7 +38,7 @@ export default ({ api, req }: { api: Api, req: Api }) => ({
 export const FunctionGroup = () => {
   const fns: string[] = []
 
-  const defineFunc: DefineFunction = onProp((name: string) => (strParts: TemplateStringsArray, ...vars: any[]) => {
+  const defineFunc: DefineFunction = onProp((name: PropertyKey) => (strParts: TemplateStringsArray, ...vars: any[]) => {
     const expr = strParts
       .map((m, ix) => [m, vars[ix]].join(''))
       .join('')
@@ -48,7 +48,7 @@ export const FunctionGroup = () => {
       .join('\\n')
       .replace(/"/g, '\\"')
 
-    fns.push(`exe ":fun! ${pascalCase(name)}(...) range\\n${expr}\\nendfun"`)
+    fns.push(`exe ":fun! ${pascalCase(name as string)}(...) range\\n${expr}\\nendfun"`)
   })
 
   return {

@@ -172,14 +172,14 @@ export const g = new Proxy({} as KeyVal, {
   set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
 })
 
-export const define: DefineFunction = onProp((name: string) => (fn: TemplateStringsArray) => {
+export const define: DefineFunction = onProp((name: PropertyKey) => (fn: TemplateStringsArray) => {
   const expr = fn[0]
     .split('\n')
     .filter(m => m)
     .join('\\n')
     .replace(/"/g, '\\"')
 
-  onCreate(() => cmd(`exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`))()
+  onCreate(() => cmd(`exe ":fun! ${pascalCase(name as string)}(...) range\n${expr}\nendfun"`))()
 })
 
 const registerAutocmd = (event: string) => {
@@ -208,8 +208,8 @@ const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
   autocmdWatchers.add(ev, cb)
 })
 
-export const until: EventWait = onProp((name: string) => {
-  const ev = camelCase(name)
+export const until: EventWait = onProp((name: PropertyKey) => {
+  const ev = camelCase(name as string)
   return new Promise(fin => {
     const whenDone = () => (fin(), events.remove(ev, whenDone))
     events.add(ev, whenDone)
