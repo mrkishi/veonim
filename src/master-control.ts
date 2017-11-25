@@ -1,4 +1,4 @@
-import { ID, log, onFnCall, merge, prefixWith } from './utils'
+import { asColor, ID, log, onFnCall, merge, prefixWith } from './utils'
 import { CmdGroup, FunctionGroup } from './neovim-utils'
 import { ChildProcess } from 'child_process'
 import CreateTransport from './transport'
@@ -11,6 +11,11 @@ import SetupRPC from './rpc'
 
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
+
+interface VimColor {
+  background: number,
+  foreground: number,
+}
 
 interface VimInstance {
   id: number,
@@ -177,12 +182,10 @@ export const resize = (width: number, height: number) => {
   if (ids.activeVim > -1) api.uiTryResize(width, height)
 }
 
-// TODO: i think nvim 0.2.2+ now has an api method for getting colors?
 export const getColor = async (id: number) => {
-  const [ fg = '', bg = '' ] = await Promise.all([
-    req.eval(`synIDattr(synIDtrans(${id}), "fg#")`),
-    req.eval(`synIDattr(synIDtrans(${id}), "bg#")`),
-  ]).catch(e => e)
-
-  return { fg, bg }
+  const { foreground, background } = await req.getHlById(id, true) as VimColor
+  return {
+    fg: asColor(foreground || 0),
+    bg: asColor(background || 0),
+  }
 }

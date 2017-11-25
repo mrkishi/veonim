@@ -2,7 +2,7 @@ import { onRedraw, getColor } from '../master-control'
 import ui, { CursorShape } from './canvasgrid'
 import * as dispatch from '../dispatch'
 import { ExtContainer } from '../api'
-import { merge } from '../utils'
+import { asColor, merge } from '../utils'
 
 interface Colors { fg: string, bg: string, sp: string }
 interface Mode { shape: CursorShape, size?: number, color?: string }
@@ -20,12 +20,6 @@ const r = new Proxy(api, { set: (_: any, name, fn) => (api.set(name as string, f
 const modes = new Map<string, Mode>()
 const colors: Colors = { fg: '#ccc', bg: '#222', sp: '#f00' }
 const defaultScrollRegion = (): ScrollRegion => ({ top: 0, left: 0, right: ui.cols, bottom: ui.rows })
-
-const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
-  const mask = 0xff << shift
-  const hex = ((color & mask) >> shift).toString(16)
-  return hex.length < 2 ? ('0' + hex) : hex
-}).join('')
 
 const cursorShapeType = (type: string | undefined) => {
   if (type === 'block') return CursorShape.block

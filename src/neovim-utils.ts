@@ -3,6 +3,11 @@ import { Api } from './api'
 
 export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 
+interface VimMode {
+  blocking: boolean,
+  mode: string,
+}
+
 // TODO: this getMode/blocking/input/capture :messages is kinda hack.
 // when neovim implements external dialogs, please revisit
 const unblock = (api: Api, req: Api) => (): Promise<string[]> => new Promise(fin => {
@@ -13,7 +18,7 @@ const unblock = (api: Api, req: Api) => (): Promise<string[]> => new Promise(fin
     fin([])
   }, 2e3)
 
-  const tryToUnblock = () => req.getMode().then((mode: object & { blocking: boolean }) => {
+  const tryToUnblock = () => req.getMode().then((mode: VimMode) => {
     if (!mode.blocking) {
       Promise.race([
         req.commandOutput('messages').then(m => m.split('\n').filter(m => m)),
