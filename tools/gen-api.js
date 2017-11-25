@@ -77,12 +77,15 @@ const group = (fns, prefix) => fns
 
 const asParam = ({ name, type }) => `${name}: ${type}`
 const fmt = ({ name, params, returns }) => `${name}(${params.map(asParam).join(', ')}): ${returns}`
+const asUIParam = ([ type, name ]) => `${name}: ${toJSTypes(type)}`
 
 decoder.on('data', raw => {
   const [ type, id, err, res ] = raw
-  const [ chid, { version: { major, minor, patch }, error_types, types, functions } ] = res
+  const [ chid, { version: { major, minor, patch }, error_types, types, functions, ui_events } ] = res
 
+  //ui_events.forEach(a => console.log(a))
   write('// AUTO-GENERATED! This file automagically generated with gen-api.js')
+  write(`// ${new Date().toGMTString()}`)
   write(`// Neovim version: ${major}.${minor}.${patch}`)
   write()
 
@@ -97,6 +100,14 @@ decoder.on('data', raw => {
   kind: number,
   id: any,
 }\n`)
+
+  write(`export interface Events {`)
+  ui_events.forEach(e => {
+    const fn = e.name
+    const params = `(${e.parameters.map(asUIParam).join(', ')})`
+    write(fn + params + ': void,', 2)
+  })
+  write(`}\n`)
 
   write(`export interface Api {`)
 

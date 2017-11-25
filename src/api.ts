@@ -1,10 +1,52 @@
 // AUTO-GENERATED! This file automagically generated with gen-api.js
+// Sat, 25 Nov 2017 01:52:52 GMT
 // Neovim version: 0.2.3
 
 export interface ExtContainer {
   extContainer: boolean,
   kind: number,
   id: any,
+}
+
+export interface Events {
+  resize(rows: number, columns: number): void,
+  clear(): void,
+  eol_clear(): void,
+  cursor_goto(row: number, col: number): void,
+  mode_info_set(enabled: boolean, cursor_styles: any[]): void,
+  update_menu(): void,
+  busy_start(): void,
+  busy_stop(): void,
+  mouse_on(): void,
+  mouse_off(): void,
+  mode_change(mode: string, mode_idx: number): void,
+  set_scroll_region(top: number, bot: number, left: number, right: number): void,
+  scroll(count: number): void,
+  highlight_set(attrs: object): void,
+  put(str: string): void,
+  bell(): void,
+  visual_bell(): void,
+  flush(): void,
+  update_fg(fg: number): void,
+  update_bg(bg: number): void,
+  update_sp(sp: number): void,
+  suspend(): void,
+  set_title(title: string): void,
+  set_icon(icon: string): void,
+  popupmenu_show(items: any[], selected: number, row: number, col: number): void,
+  popupmenu_hide(): void,
+  popupmenu_select(selected: number): void,
+  tabline_update(current: Tabpage, tabs: any[]): void,
+  cmdline_show(content: any[], pos: number, firstc: string, prompt: string, indent: number, level: number): void,
+  cmdline_pos(pos: number, level: number): void,
+  cmdline_special_char(c: string, shift: boolean, level: number): void,
+  cmdline_hide(level: number): void,
+  cmdline_block_show(lines: any[]): void,
+  cmdline_block_append(lines: any[]): void,
+  cmdline_block_hide(): void,
+  wildmenu_show(items: any[]): void,
+  wildmenu_select(selected: number): void,
+  wildmenu_hide(): void,
 }
 
 export interface Api {
