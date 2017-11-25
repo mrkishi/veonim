@@ -13,7 +13,7 @@ const unblock = (api: Api, req: Api) => (): Promise<string[]> => new Promise(fin
     fin([])
   }, 2e3)
 
-  const tryToUnblock = () => req.getMode().then(mode => {
+  const tryToUnblock = () => req.getMode().then((mode: object & { blocking: boolean }) => {
     if (!mode.blocking) {
       Promise.race([
         req.commandOutput('messages').then(m => m.split('\n').filter(m => m)),

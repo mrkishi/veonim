@@ -1,5 +1,5 @@
 // AUTO-GENERATED! This file automagically generated with gen-api.js
-// Neovim version: 0.2.3
+// Neovim version: 0.2.0
 
 export interface ExtContainer {
   extContainer: boolean,
@@ -13,16 +13,13 @@ export interface Api {
   uiTryResize(width: number, height: number): void,
   uiSetOption(name: string, value: any): void,
   command(command: string): void,
-  getHlByName(name: string, rgb: boolean): Promise<object>,
-  getHlById(hl_id: number, rgb: boolean): Promise<object>,
   feedkeys(keys: string, mode: string, escape_csi: boolean): void,
   input(keys: string): Promise<number>,
   replaceTermcodes(str: string, from_part: boolean, do_lt: boolean, special: boolean): Promise<string>,
   commandOutput(str: string): Promise<string>,
   eval(expr: string): Promise<any>,
   callFunction(fname: string, args: any[]): Promise<any>,
-  executeLua(code: string, args: any[]): Promise<any>,
-  strwidth(text: string): Promise<number>,
+  strwidth(str: string): Promise<number>,
   listRuntimePaths(): Promise<string[]>,
   setCurrentDir(dir: string): void,
   getCurrentLine(): Promise<string>,
@@ -49,9 +46,8 @@ export interface Api {
   subscribe(event: string): void,
   unsubscribe(event: string): void,
   getColorByName(name: string): Promise<number>,
-  getColorMap(): Promise<object>,
-  getMode(): Promise<object>,
-  getKeymap(mode: string): Promise<object[]>,
+  getColorMap(): Promise<any>,
+  getMode(): Promise<any>,
   getApiInfo(): Promise<any[]>,
   callAtomic(calls: any[]): Promise<any[]>,
   buffer: Buffer,
@@ -65,7 +61,6 @@ export interface Buffer {
   setLines(buffer: Buffer, start: number, end: number, strict_indexing: boolean, replacement: string[]): void,
   getVar(buffer: Buffer, name: string): Promise<any>,
   getChangedtick(buffer: Buffer): Promise<number>,
-  getKeymap(buffer: Buffer, mode: string): Promise<object[]>,
   setVar(buffer: Buffer, name: string, value: any): void,
   delVar(buffer: Buffer, name: string): void,
   getOption(buffer: Buffer, name: string): Promise<any>,

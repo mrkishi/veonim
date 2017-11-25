@@ -43,7 +43,6 @@ const clientSize = {
 }
 
 let onExitFn: ExitFn = function () {}
-//const prefix = { core: prefixWith(Prefixes.Core) }
 const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
 const { encoder, decoder } = CreateTransport()

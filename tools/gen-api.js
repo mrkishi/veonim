@@ -1,14 +1,17 @@
 'use strict'
 
-const { spawn } = require('child_process')
-const { stdin, stdout } = spawn('nvim', ['-N', '--embed', '--'])
 const { encode, decode, createEncodeStream, createDecodeStream } = require('msgpack-lite')
+const { default: Neovim } = require('@veonim/neovim')
 const { createWriteStream } = require('fs')
-const out = createWriteStream('../src/api.ts')
+const { spawn } = require('child_process')
+const { join } = require('path')
+
+const out = createWriteStream(join(__dirname, '../src/api.ts'))
 const leftPad = (str, amt) => Array(amt).fill(' ').join('') + str
 const write = (m = '', pad = 0) => out.write(leftPad(`${m}\n`, pad))
 const mix = (...a) => Object.assign({}, ...a)
 
+const { stdin, stdout } = Neovim(['--embed'])
 const stupidEncoder = createEncodeStream()
 const encoder = stupidEncoder.pipe(stdin)
 const toVim = m => encoder.write(encode(m)) // <-- lol wtf?!
@@ -26,10 +29,15 @@ const param = p => {
 
 const wildcard = t => {
   if (t.includes('ArrayOf(Integer')) return 'number[]'
-  if (t.includes('ArrayOf(Window')) return 'Window[]'
-  if (t.includes('ArrayOf(Tabpage')) return 'Tabpage[]'
-  if (t.includes('ArrayOf(Buffer')) return 'Buffer[]'
   if (t.includes('ArrayOf(String')) return 'string[]'
+  if (t.includes('ArrayOf(Dictionary')) return 'object[]'
+  // using ext container because need to keep it RAW in webworker
+  if (t.includes('ArrayOf(Window')) return 'ExtContainer[]'
+  if (t.includes('ArrayOf(Tabpage')) return 'ExtContainer[]'
+  if (t.includes('ArrayOf(Buffer')) return 'ExtContainer[]'
+  //if (t.includes('ArrayOf(Window')) return 'Window[]'
+  //if (t.includes('ArrayOf(Tabpage')) return 'Tabpage[]'
+  //if (t.includes('ArrayOf(Buffer')) return 'Buffer[]'
   else return t
 }
 
@@ -42,7 +50,13 @@ const toJSTypes = type => ({
   Dictionary: 'object',
 })[type] || wildcard(type)
 
-const asPromise = m => m === 'void' ? m : `Promise<${m}>`
+const extTypeMaybe = type => ({
+  Buffer: 'ExtContainer',
+  Window: 'ExtContainer',
+  Tabpage: 'ExtContainer',
+})[type] || type
+
+const asPromise = m => m === 'void' ? m : `Promise<${extTypeMaybe(m)}>`
 
 const group = (fns, prefix) => fns
   .filter(m => m.name.startsWith(prefix))
@@ -77,6 +91,12 @@ decoder.on('data', raw => {
     id: types[k].id,
     prefix: types[k].prefix
   }))
+
+  write(`export interface ExtContainer {
+  extContainer: boolean,
+  kind: number,
+  id: any,
+}\n`)
 
   write(`export interface Api {`)
 
