@@ -33,7 +33,7 @@ const canvas = document.getElementById('nvim') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
 const font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
 const actualSize = { width: 0, height: 0 }
-const cell = { width: 0, height: 0 }
+const cell = { width: 0, height: 0, padding: 0 }
 const cursor = { row: 0, col: 0, color: '#fff' }
 const grid = { rows: 0, cols: 0 }
 const margins = { top: 6, bottom: 6, left: 6, right: 6 }
@@ -93,6 +93,7 @@ api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeigh
   setVar('line-height', lineHeight)
   merge(font, { size, face, lineHeight })
   merge(cell, { width: Math.floor(ui.measureText('m').width), height: Math.floor(size * lineHeight) })
+  cell.padding = Math.floor((cell.height - font.size) / 2)
   return api
 }
 
@@ -100,7 +101,7 @@ api.setMargins = newMargins => (mergeValid(margins, newMargins), api)
 api.setColor = color => (ui.fillStyle = color, api)
 api.clear = () => (ui.fillRect(0, 0, actualSize.width, actualSize.height), api)
 api.setTextBaseline = mode => (ui.textBaseline = mode, api)
-api.fillText = (m, c, r) => (ui.fillText(m, px.col.x(c), px.row.y(r) + px.row.height(1)), api)
+api.fillText = (m, c, r) => (ui.fillText(m, px.col.x(c), px.row.y(r) + cell.padding), api)
 api.fillRect = (c, r, w, h) => (ui.fillRect(px.col.x(c), px.row.y(r), px.col.width(w), px.row.height(h)), api)
 
 api.getImageData = (col, row, width, height) => {

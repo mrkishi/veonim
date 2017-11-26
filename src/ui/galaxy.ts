@@ -32,9 +32,6 @@ configReader('nvim/init.vim', c => {
   configLoaded()
 })
 
-// TODO: deprecate once shortcuts can be registered from vimrc
-uiInput.registerShortcut('s-c-|', () => remote.getCurrentWebContents().toggleDevTools())
-
 const refreshCanvas = () => {
   ui.resize(window.innerHeight, window.innerWidth)
   resize(ui.cols, ui.rows)

@@ -117,7 +117,7 @@ r.put = (m: any[]) => {
     .setColor(nextAttrs.bg)
     .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
     .setColor(nextAttrs.fg)
-    .setTextBaseline('bottom')
+    .setTextBaseline('top')
 
   for (let ix = 0; ix < total; ix++) {
     if (m[ix][0] !== ' ') ui.fillText(m[ix][0], ui.cursor.col, ui.cursor.row)
