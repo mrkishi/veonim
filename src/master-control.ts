@@ -90,6 +90,7 @@ startup.defineFunc.VeonimCallEvent`
   endif
 `
 
+// TODO: pls dedup reg so when vimrc is reloaded it won't reg multi
 startup.defineFunc.VK`
   call VeonimRegisterEvent('key:' . a:1, a:2)
   call Veonim('register-shortcut', a:1)

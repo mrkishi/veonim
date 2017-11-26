@@ -5,6 +5,7 @@
   "main": "build/main.js",
   "scripts": {
     "test": "mocha test/unit",
+    "test-e2e": "mocha test/e2e",
     "test-watch": "npm run test -- -w",
     "html": "cp src/index.html build/index.html",
     "runtime": "cp -r runtime build/runtime",
@@ -111,6 +112,7 @@
     "jscodeshift": "0.3.32",
     "mocha": "4.0.1",
     "proxyquire": "1.8.0",
+    "spectron": "3.7.2",
     "typescript": "2.5.3"
   }
 }
