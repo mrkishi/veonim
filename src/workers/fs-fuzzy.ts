@@ -1,17 +1,20 @@
 import { NewlineSplitter } from '../utils'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
+import WorkerClient from '../worker-client'
 
 const INTERVAL = 250
 const AMOUNT = 10
 const TIMEOUT = 15e3
+const { on, call } = WorkerClient()
 let results: string[] = []
+let stopSearch = () => {}
 let query = ''
 
-const sendResults = ({ filter = true } = {}) => postMessage(['results', filter && query
+const sendResults = ({ filter = true } = {}) => call.results(filter && query
   ? fuzzy(results, query).slice(0, AMOUNT)
   : results.slice(0, AMOUNT)
-])
+)
 
 const getFiles = (cwd: string) => {
   results = []
@@ -31,7 +34,7 @@ const getFiles = (cwd: string) => {
     if (!initialSent) (initialSent = true, sendResults({ filter: false }))
     clearInterval(timer)
     sendResults()
-    postMessage(['done'])
+    call.done()
   })
 
   const stop = () => {
@@ -49,9 +52,9 @@ const getFiles = (cwd: string) => {
   return () => (stop(), reset())
 }
 
-onmessage = ({ data: [e, data] }: MessageEvent) => {
-  let stopSearch = () => {}
-  if (e === 'stop') return stopSearch()
-  if (e === 'load') return (stopSearch = getFiles(data))
-  if (e === 'query') return (query = data, sendResults())
-}
+on.stop(() => stopSearch())
+on.load((cwd: string) => {
+  console.log('pls load files for cwd:', cwd)
+  stopSearch = getFiles(cwd)
+})
+on.query((data: string) => (query = data, sendResults()))

@@ -4,7 +4,8 @@
   ],
   "exclude": [
     "node_modules",
-    "src/workers/*.ts"
+    "src/workers/*.ts",
+    "src/worker-client.ts"
   ],
   "compilerOptions": {
     "target": "es2017",

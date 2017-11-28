@@ -1,10 +1,15 @@
-import { proxyFn } from './utils'
+import { onFnCall, proxyFn, Watchers } from './utils'
+
+type EventFn = { [index: string]: (...args: any[]) => void }
 
 export default (name: string) => {
   const worker = new Worker(`${__dirname}/workers/${name}.js`)
-  const watchers = new Map<string, Function>()
-  const on = proxyFn((event: string, fn: Function) => watchers.set(event, fn))
-  const go = proxyFn((event: string, data?: any) => worker.postMessage([event, data]))
-  worker.onmessage = ({ data: [event, data] }: MessageEvent) => watchers.has(event) && watchers.get(event)!(data)
-  return { on, go }
+  const watchers = new Watchers()
+
+  const call: EventFn = onFnCall((event: string, args: any[]) => worker.postMessage([event, args]))
+  const on = proxyFn((event: string, cb: (data: any) => void) => watchers.add(event, cb))
+
+  worker.onmessage = ({ data: [e, data = []] }: MessageEvent) => watchers.notify(e, ...data)
+
+  return { on, call }
 }

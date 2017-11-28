@@ -9,7 +9,7 @@ type Result = [string, SearchResult[]]
 interface State { val: string, cwd: string, results: Result[], vis: boolean, ix: number, subix: number, loading: boolean }
 
 const SCROLL_AMOUNT = 0.25
-const { on, go } = Worker('search-files')
+const worker = Worker('search-files')
 const state: State = { val: '', cwd: '', results: [], vis: false, ix: 0, subix: -1, loading: false }
 const els = new Map<number, HTMLElement>()
 let elref: HTMLElement
@@ -99,7 +99,7 @@ const a: Actions<State> = {}
 a.show = (_s, _a, { cwd, val }) => ({ cwd, val, vis: true })
 
 a.hide = () => {
-  go.stop()
+  worker.call.stop()
   return { val: '', vis: false, ix: 0, subix: -1, loading: false, results: [] }
 }
 
@@ -110,7 +110,7 @@ a.select = (s, a) => {
 }
 
 a.change = (s, _a, val: string) => {
-  val && go.query({ query: val, cwd: s.cwd })
+  val && worker.call.query({ query: val, cwd: s.cwd })
   return val ? { val } : { val, results: [], ix: 0, subix: 0 }
 }
 
@@ -151,7 +151,7 @@ a.scrollUp = () => {
 }
 
 const ui = app({ state, view, actions: a })
-on.results((results: Result[]) => ui.results(results))
+worker.on.results((results: Result[]) => ui.results(results))
 
 action('grep-resume', async () => {
   console.error('NYI grep-resume')
@@ -162,14 +162,14 @@ action('grep-resume', async () => {
 action('grep', async (query: string) => {
   const { cwd } = current
   ui.show({ cwd })
-  query && go.query({ query, cwd })
+  query && worker.call.query({ query, cwd })
 })
 
 action('grep-word', async () => {
   const { cwd } = current
   const query = await call.expand('<cword>')
   ui.show({ cwd, val: query })
-  go.query({ query, cwd })
+  worker.call.query({ query, cwd })
 })
 
 action('grep-selection', async () => {
@@ -178,5 +178,5 @@ action('grep-selection', async () => {
   const [ query ] = selection.split('\n')
   const { cwd } = current
   ui.show({ cwd, val: query })
-  go.query({ query, cwd })
+  worker.call.query({ query, cwd })
 })
