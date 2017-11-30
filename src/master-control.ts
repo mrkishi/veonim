@@ -76,21 +76,19 @@ startup.defineFunc.VeonimCmdCompletions`
   return g:vn_cmd_completions
 `
 
+// TODO: figure out how to add multiple fn lambdas but dedup'd! (as a Set)
+// index(g:vn_events[a:1], a:2) < 0 does not work
 startup.defineFunc.VeonimRegisterEvent`
-  if has_key(g:vn_events, a:1)
-    call add(g:vn_events[a:1], a:2)
-  else
-    let g:vn_events[a:1] = [a:2]
-  endif
+  let g:vn_events[a:1] = a:2
 `
 
 startup.defineFunc.VeonimCallEvent`
   if has_key(g:vn_events, a:1)
-    for Func in g:vn_events[a:1] | call Func() | endfor
+    let Func = g:vn_events[a:1]
+    call Func()
   endif
 `
 
-// TODO: pls dedup reg so when vimrc is reloaded it won't reg multi
 startup.defineFunc.VK`
   call VeonimRegisterEvent('key:' . a:1, a:2)
   call Veonim('register-shortcut', a:1)
