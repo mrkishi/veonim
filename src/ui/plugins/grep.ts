@@ -3,16 +3,39 @@ import { h, app, Actions } from '../uikit'
 import Worker from '../../worker'
 import TermInput from './input'
 
-interface SearchResult { line: number, col: number, text: string }
 type TextTransformer = (text: string) => string
 type Result = [string, SearchResult[]]
-interface State { val: string, cwd: string, results: Result[], vis: boolean, ix: number, subix: number, loading: boolean }
 
+interface SearchResult {
+  line: number,
+  col: number,
+  text: string
+}
+
+interface State {
+  val: string,
+  cwd: string,
+  results: Result[],
+  vis: boolean,
+  ix: number,
+  subix: number,
+  loading: boolean
+}
+
+let elref: HTMLElement
 const SCROLL_AMOUNT = 0.25
 const worker = Worker('search-files')
-const state: State = { val: '', cwd: '', results: [], vis: false, ix: 0, subix: -1, loading: false }
 const els = new Map<number, HTMLElement>()
-let elref: HTMLElement
+
+const state: State = {
+  val: '',
+  cwd: '',
+  results: [],
+  vis: false,
+  ix: 0,
+  subix: -1,
+  loading: false
+}
 
 // scroll after next section has been rendered as expanded (a little hacky)
 const scrollIntoView = (next: number) => setTimeout(() => {
@@ -96,12 +119,10 @@ const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, n
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, { cwd, val }) => ({ cwd, val, vis: true })
-
-a.hide = () => {
-  worker.call.stop()
-  return { val: '', vis: false, ix: 0, subix: -1, loading: false, results: [] }
-}
+a.hide = () => ({ vis: false })
+a.show = (_s, _a, { cwd, val, reset = true }) => reset
+  ? ({ vis: true, cwd, val, ix: 0, subix: -1, results: [], loading: false })
+  : ({ vis: true })
 
 a.select = (s, a) => {
   if (!s.results.length) return a.hide()
@@ -163,10 +184,8 @@ const ui = app({ state, view, actions: a })
 worker.on.results((results: Result[]) => ui.results(results))
 worker.on.moreResults((results: Result[]) => ui.moreResults(results))
 
-action('grep-resume', async () => {
-  console.error('NYI grep-resume')
-  // TODO: the problem is that we need ui actions that show/hide without
-  // actually resetting state
+action('grep-resume', () => {
+  ui.show({ reset: false })
 })
 
 action('grep', async (query: string) => {
