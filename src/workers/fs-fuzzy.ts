@@ -53,8 +53,5 @@ const getFiles = (cwd: string) => {
 }
 
 on.stop(() => stopSearch())
-on.load((cwd: string) => {
-  console.log('pls load files for cwd:', cwd)
-  stopSearch = getFiles(cwd)
-})
+on.load((cwd: string) => stopSearch = getFiles(cwd))
 on.query((data: string) => (query = data, sendResults()))
