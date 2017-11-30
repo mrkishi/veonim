@@ -3,7 +3,7 @@ import { findIndexRight, hasUpperCase, EarlyPromise } from '../utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { completions, triggers } from '../langserv/adapter'
 import * as completionUI from '../ui/plugins/autocomplete'
-import { harvester } from './update-server'
+import { harvester, update } from './update-server'
 import { filter } from 'fuzzaldrin-plus'
 import vimUI from '../ui/canvasgrid'
 import { sub } from '../dispatch'
@@ -129,10 +129,10 @@ const getCompletions = async (lineContent: string, line: number, column: number)
 }
 
 on.insertLeave(async () => {
-  // TODO: add harvester stuffs!
   cache.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
+  update()
 })
 
 on.completion((word, { cwd, file }) => {
