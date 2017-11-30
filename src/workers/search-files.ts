@@ -1,12 +1,33 @@
 import { NewlineSplitter } from '../utils'
-import { filter } from 'fuzzaldrin-plus'
+import { filter as fuzzy } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
+import WorkerClient from '../worker-client'
 
-interface Result { path: string, line: number, col: number, text: string }
-interface ResultPart { line: number, col: number, text: string }
+interface Request {
+  query: string,
+    cwd: string
+}
+
+interface Result {
+  path: string,
+  line: number,
+  col: number,
+  text: string
+}
+
+interface ResultPart {
+  line: number,
+  col: number,
+  text: string
+}
+
+const INCREMENT_AMOUNT = 50
 const INTERVAL = 250
 const TIMEOUT = 10e3
+const { on, call } = WorkerClient()
+const range = { start: 0, end: INCREMENT_AMOUNT * 2 }
 let results: Result[] = []
+let stopSearch = () => {}
 let filterQuery = ''
 
 const groupResults = (m: Result[]) => [...m.reduce((map, { path, text, line, col }: Result) => {
@@ -14,14 +35,26 @@ const groupResults = (m: Result[]) => [...m.reduce((map, { path, text, line, col
   return (map.get(path)!.push({ text, line, col }), map)
 }, new Map<string, ResultPart[]>())]
 
-const sendResults = () => results.length && postMessage(['results', filterQuery
-  ? groupResults(filter(results, filterQuery, { key: 'path' }))
-  : groupResults(results)
-])
+const sendResults = () => {
+  if (!results.length) return
 
-const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
+  const searchResults = filterQuery
+    ? fuzzy(results, filterQuery, { key: 'path' }).slice(range.start, range.end)
+    : results.slice(range.start, range.end)
+
+  if (searchResults.length) {
+    if (range.start > 0) call.moreResults(groupResults(searchResults))
+    else call.results(groupResults(searchResults))
+    return
+  }
+
+  range.start -= INCREMENT_AMOUNT
+  range.end -= INCREMENT_AMOUNT
+}
+
+const searchFiles = ({ query, cwd }: Request) => {
   if (!query || !cwd) {
-    postMessage(['done'])
+    call.done()
     return () => {}
   }
 
@@ -40,7 +73,7 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
     alive = false
     clearInterval(timer)
     sendResults()
-    postMessage(['done'])
+    call.done()
   })
 
   const stop = () => {
@@ -51,6 +84,8 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
   const reset = () => {
     filterQuery = ''
     results = []
+    range.start = 0
+    range.end = INCREMENT_AMOUNT * 2
   }
 
   setImmediate(() => sendResults())
@@ -58,9 +93,23 @@ const searchFiles = ({ query, cwd }: { query: string, cwd: string }) => {
   return () => (stop(), reset())
 }
 
-onmessage = ({ data: [e, data] }: MessageEvent) => {
-  let stopSearch = () => {}
-  if (e === 'stop') return stopSearch()
-  if (e === 'query') return (stopSearch(), stopSearch = searchFiles(data))
-  if (e === 'filter') return (filterQuery = data, sendResults())
-}
+on.stop(() => stopSearch())
+
+on.query((req: Request) => {
+  stopSearch()
+  stopSearch = searchFiles(req)
+})
+
+on.filter((query: string) => {
+  filterQuery = query
+  sendResults()
+})
+
+on.loadNext(() => {
+  range.start += INCREMENT_AMOUNT
+  range.end += INCREMENT_AMOUNT
+
+  // TODO: VERY BAD! because fuzzy will run again over the same query
+  // a little tricky to figure out because need to figure out cache result invalidation
+  sendResults()
+})

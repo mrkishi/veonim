@@ -116,6 +116,12 @@ a.change = (s, _a, val: string) => {
 
 a.results = (_s, _a, results: Result[]) => ({ results })
 
+a.moreResults = (s, _a, results: Result[]) => {
+  const merged = [ ...s.results, ...results ]
+  const deduped = merged.filter((m, ix, arr) => arr.findIndex(e => e[0] === m[0]) === ix)
+  return { results: deduped }
+}
+
 a.nextGroup = s => {
   const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
   scrollIntoView(next)
@@ -142,6 +148,9 @@ a.prev = s => {
 
 a.scrollDown = () => {
   const { height } = elref.getBoundingClientRect()
+  const maxScroll = elref.scrollHeight - height
+  // TODO: should wait until get results back before calling loadNext again...
+  if (elref.scrollTop === maxScroll) return worker.call.loadNext()
   elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
 }
 
@@ -152,6 +161,7 @@ a.scrollUp = () => {
 
 const ui = app({ state, view, actions: a })
 worker.on.results((results: Result[]) => ui.results(results))
+worker.on.moreResults((results: Result[]) => ui.moreResults(results))
 
 action('grep-resume', async () => {
   console.error('NYI grep-resume')
