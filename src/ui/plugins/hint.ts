@@ -1,5 +1,6 @@
+import { current as vimstate } from '../neovim'
+import { translate, hexToRGBA } from '../css'
 import { h, app, Actions } from '../uikit'
-import { translate } from '../css'
 import vimUI from '../canvasgrid'
 
 interface State {
@@ -36,12 +37,12 @@ const state: State = {
   anchorBottom: true,
 }
 
-const bold = { 'font-weight': 'bold' }
-const faded = { color: `rgba(255, 255, 255, 0.6)` }
+const bold = (color: string) => ({ color, 'font-weight': 'bold' })
+const faded = (color: string) => ({ color: hexToRGBA(color, 0.6) })
+
 let spacer: HTMLElement
 
 // TODO: render info (documentation/more detail)
-// TODO: vim fg!
 const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom }: State) => h('#hint', {
   style: {
     display: vis ? 'flex' : 'none',
@@ -72,9 +73,9 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom }: S
     h('.hover', {
       style: {}
     }, [
-      h('span', { style: faded }, labelStart),
-      h('span', { style: bold }, currentParam),
-      h('span', { style: faded }, labelEnd),
+      h('span', { style: faded(vimstate.fg) }, labelStart),
+      h('span', { style: bold(vimstate.fg) }, currentParam),
+      h('span', { style: faded(vimstate.fg) }, labelEnd),
     ]),
   ]),
 ])
