@@ -1,4 +1,7 @@
 import { filter as fuzzy } from 'fuzzaldrin-plus'
+import WorkerClient from '../worker-client'
+
+const { on } = WorkerClient()
 
 const keywords = (() => {
   const p = (cwd: string, file: string) => `${cwd}/${file}`
@@ -35,16 +38,7 @@ const harvest = (buffer: string[]) => {
 const filter = (cwd: string, file: string, query: string, maxResults = 20): string[] =>
   fuzzy(keywords.get(cwd, file) || [], query, { maxResults })
 
-onmessage = ({ data: [ e, args ] }: MessageEvent) => {
-  const [ cwd, file, buffer ] = args
-  const [ , , query, max ] = args
-
-  if (e === 'set') keywords.set(cwd, file, harvest(buffer))
-  else if (e === 'add') keywords.add(cwd, file, buffer)
-  else if (e === 'get') postMessage(['keywords', keywords.get(cwd, file)])
-  else if (e === 'filter') {
-    // TODO: we gonna memoize this? tradeoff between cpu vs memory
-    const res = filter(cwd, file, query, max)
-    postMessage(['results', res])
-  }
-}
+on.set((cwd: string, file: string, buffer: string[]) => keywords.set(cwd, file, harvest(buffer)))
+on.add((cwd: string, file: string, word: string) => keywords.add(cwd, file, word))
+on.query(async (cwd: string, file: string, query: string, max?: number) => await filter(cwd, file, query, max))
+on.get(async (cwd: string, file: string) => await keywords.get(cwd, file))

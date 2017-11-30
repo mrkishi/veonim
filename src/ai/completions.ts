@@ -1,9 +1,9 @@
 import { g, on, cmd, current as vimState, onCreate } from '../ui/neovim'
 import { findIndexRight, hasUpperCase, EarlyPromise } from '../utils'
 import { CompletionItemKind } from 'vscode-languageserver-types'
-import * as harvester from '../ui/plugins/keyword-harvester'
 import { completions, triggers } from '../langserv/adapter'
 import * as completionUI from '../ui/plugins/autocomplete'
+import { harvester } from './update-server'
 import { filter } from 'fuzzaldrin-plus'
 import vimUI from '../ui/canvasgrid'
 import { sub } from '../dispatch'
@@ -102,8 +102,9 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (query.length || semanticCompletions.length) {
     const queryCased = smartCaseQuery(query)
     const pendingKeywords = harvester
-      .queryKeywords(vimState.cwd, vimState.file, queryCased, MAX_RESULTS)
-      .then(res => res.map(text => ({ text, kind: CompletionItemKind.Text })))
+      .request
+      .query(vimState.cwd, vimState.file, queryCased, MAX_RESULTS)
+      .then((res: string[]) => res.map(text => ({ text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
     // i mean could try to do some sort of combination with ranking/priority. idk if the filtering will interfere with it
@@ -128,13 +129,14 @@ const getCompletions = async (lineContent: string, line: number, column: number)
 }
 
 on.insertLeave(async () => {
+  // TODO: add harvester stuffs!
   cache.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
 })
 
 on.completion((word, { cwd, file }) => {
-  harvester.addWord(cwd, file, word)
+  harvester.call.add(cwd, file, word)
   g.veonim_completing = 0
   g.veonim_completions = []
 })

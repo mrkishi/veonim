@@ -1,7 +1,8 @@
 import { fullBufferUpdate, partialBufferUpdate } from '../langserv/adapter'
-import * as harvester from '../ui/plugins/keyword-harvester'
 import { current as vimState, getCurrent } from '../ui/neovim'
+import Worker from '../worker'
 
+export const harvester = Worker('harvester')
 let pauseUpdate = false
 
 const update = async ({ lineChange = false } = {}) => {
@@ -14,7 +15,7 @@ const update = async ({ lineChange = false } = {}) => {
 
   else {
     const buffer = await getCurrent.bufferContents
-    harvester.update(vimState.cwd, vimState.file, buffer)
+    harvester.call.set(vimState.cwd, vimState.file, buffer)
     fullBufferUpdate({ ...vimState, buffer })
   }
 }
