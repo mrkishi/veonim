@@ -1,4 +1,5 @@
-import { is, prefixWith, onFnCall, pascalCase } from '../utils'
+import { prefixWith, onFnCall, pascalCase } from '../utils'
+import WorkerClient from '../worker-client'
 import CreateTransport from '../transport'
 import NeovimUtils from '../neovim-utils'
 import { Api, Prefixes } from '../api'
@@ -10,6 +11,7 @@ interface ColorData {
   text: string,
 }
 
+const { on } = WorkerClient()
 const prefix = { core: prefixWith(Prefixes.Core) }
 const vimOptions = {
   rgb: true,
@@ -132,16 +134,5 @@ const colorizeText = async (text: string, filetype = ''): Promise<ColorData[][]>
   return colorData(lines, colorsAsRanges(colors))
 }
 
-const setColorScheme = (scheme: string) => api.command(`colorscheme ${scheme}`)
-
-onmessage = ({ data }: MessageEvent) => {
-  if (!is.array(data)) return
-  const [ method, args ] = data
-
-  if (method === 'colorize' && is.array(args)) {
-    const [ text, filetype ] = args
-    colorizeText(text, filetype).then(res => postMessage([ 'colorized', res ]))
-  }
-
-  else if (method === 'set-colorscheme') setColorScheme(args)
-}
+on.setColorScheme((scheme: string) => api.command(`colorscheme ${scheme}`))
+on.colorize(async (text: string, filetype: string) => await colorizeText(text, filetype))

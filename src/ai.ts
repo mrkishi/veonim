@@ -2,14 +2,13 @@ import { on, onStateChange, getCurrent as vim } from './ui/neovim'
 import { getSignatureHint } from './ai/signature-hint'
 import * as updateService from './ai/update-server'
 import { getCompletions } from './ai/completions'
-import { setColorScheme } from './color-service'
+import { colorizer } from './ai/hover'
 import './ai/references'
 import './ai/definition'
 import './ai/symbols'
 import './ai/rename'
-import './ai/hover'
 
-onStateChange.colorscheme((color: string) => setColorScheme(color))
+onStateChange.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
 on.bufLoad(() => updateService.update())
 on.bufChange(() => updateService.update())

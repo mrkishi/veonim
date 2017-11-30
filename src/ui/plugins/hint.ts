@@ -1,4 +1,3 @@
-import { sub, processAnyBuffered } from '../../dispatch'
 import { h, app, Actions } from '../uikit'
 import { translate } from '../css'
 import vimUI from '../canvasgrid'
@@ -14,7 +13,6 @@ interface State {
   x: number,
   y: number,
   anchorBottom: boolean,
-  fg: string,
 }
 
 interface ShowParams {
@@ -36,7 +34,6 @@ const state: State = {
   x: 0,
   y: 0,
   anchorBottom: true,
-  fg: '#eee'
 }
 
 const bold = { 'font-weight': 'bold' }
@@ -44,7 +41,7 @@ const faded = { color: `rgba(255, 255, 255, 0.6)` }
 let spacer: HTMLElement
 
 // TODO: render info (documentation/more detail)
-// TODO: use vim fg color
+// TODO: vim fg!
 const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom }: State) => h('#hint', {
   style: {
     display: vis ? 'flex' : 'none',
@@ -118,6 +115,3 @@ export const show = ({ row, col, label, currentParam, info }: ShowParams) => {
 }
 
 export const hide = () => ui.hide()
-
-sub('colors.vim.fg', fg => ui.setFG(fg))
-processAnyBuffered('colors.vim.fg')

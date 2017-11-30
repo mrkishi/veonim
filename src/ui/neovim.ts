@@ -55,6 +55,8 @@ export interface NeovimState {
   file: string,
   line: number,
   cwd: string,
+  fg: string,
+  bg: string,
 }
 
 const prefix = {
@@ -144,6 +146,8 @@ export const current: NeovimState = new Proxy({
   revision: -1,
   line: 0,
   column: 0,
+  fg: '#ccc',
+  bg: '#222',
 }, {
   set: (target, key, value) => {
     const prevValue = Reflect.get(target, key)
@@ -240,6 +244,11 @@ const processBufferedActions = async () => {
 }
 
 onCreate(() => {
+  sub('colors.vim.fg', fg => current.fg = fg)
+  sub('colors.vim.bg', bg => current.bg = bg)
+  processAnyBuffered('colors.vim.fg')
+  processAnyBuffered('colors.vim.bg')
+
   const events = [...registeredEventActions.values()].join('\\n')
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
   cmd(`aug Veonim | au! | aug END`)

@@ -1,5 +1,5 @@
-import { sub, processAnyBuffered } from '../../dispatch'
-import { ColorData } from '../../color-service'
+import { current as vimstate } from '../neovim'
+import { ColorData } from '../../ai/hover'
 import { h, app, Actions } from '../uikit'
 import { translate } from '../css'
 import vimUI from '../canvasgrid'
@@ -10,7 +10,6 @@ interface State {
   x: number,
   y: number,
   anchorBottom: boolean,
-  fg: string,
 }
 
 interface ShowParams {
@@ -25,12 +24,11 @@ const state: State = {
   x: 0,
   y: 0,
   anchorBottom: true,
-  fg: '#eee',
 }
 
 let spacer: HTMLElement
 
-const view = ({ value, vis, x, y, anchorBottom, fg }: State) => h('#hover', {
+const view = ({ value, vis, x, y, anchorBottom }: State) => h('#hover', {
   style: {
     display: vis ? 'flex' : 'none',
     position: 'absolute',
@@ -58,7 +56,7 @@ const view = ({ value, vis, x, y, anchorBottom, fg }: State) => h('#hover', {
   }, [
     h('.hover', value.map(m => h('div', m.map(({ color, text }) => h('span', {
       style: {
-        color: color || fg,
+        color: color || vimstate.fg,
         'white-space': 'pre',
       }
     }, text))))),
@@ -75,12 +73,8 @@ a.show = (_s, _a, { value, row, col }) => ({
   vis: true
 })
 a.hide = () => ({ vis: false })
-a.setFG = (_s, _a, fg) => ({ fg })
 
 const ui = app({ state, view, actions: a }, false)
 
 export const show = ({ row, col, data }: ShowParams) => ui.show({ value: data, row, col })
 export const hide = () => ui.hide()
-
-sub('colors.vim.fg', fg => ui.setFG(fg))
-processAnyBuffered('colors.vim.fg')
