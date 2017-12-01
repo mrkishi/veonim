@@ -77,7 +77,7 @@ const group = (fns, prefix) => fns
 
 const asParam = ({ name, type }) => `${name}: ${type}`
 const fmt = ({ name, params, returns }) => `${name}(${params.map(asParam).join(', ')}): ${returns}`
-const asUIParam = ([ type, name ]) => `${name}: ${toJSTypes(type)}`
+const asUIParam = ([ type, name ]) => `${name}: ${toJSTypes(extTypeMaybe(type))}`
 
 decoder.on('data', raw => {
   const [ type, id, err, res ] = raw

@@ -1,5 +1,5 @@
 // AUTO-GENERATED! This file automagically generated with gen-api.js
-// Sat, 25 Nov 2017 01:52:52 GMT
+// Fri, 01 Dec 2017 12:45:41 GMT
 // Neovim version: 0.2.3
 
 export interface ExtContainer {
@@ -36,7 +36,7 @@ export interface Events {
   popupmenu_show(items: any[], selected: number, row: number, col: number): void,
   popupmenu_hide(): void,
   popupmenu_select(selected: number): void,
-  tabline_update(current: Tabpage, tabs: any[]): void,
+  tabline_update(current: ExtContainer, tabs: any[]): void,
   cmdline_show(content: any[], pos: number, firstc: string, prompt: string, indent: number, level: number): void,
   cmdline_pos(pos: number, level: number): void,
   cmdline_special_char(c: string, shift: boolean, level: number): void,
