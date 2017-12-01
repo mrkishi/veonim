@@ -1,5 +1,5 @@
 import { onRedraw, getColor } from '../core/master-control'
-import { matchOn, asColor, merge } from '../support/utils'
+import { asColor, merge } from '../support/utils'
 import ui, { CursorShape } from '../core/canvasgrid'
 import * as dispatch from '../messaging/dispatch'
 import { Events, ExtContainer } from '../core/api'
@@ -88,11 +88,12 @@ const defaultScrollRegion = (): ScrollRegion => ({
   bottom: ui.rows
 })
 
-const cursorShapeType = (shape?: string) => matchOn(shape)({
-  block: CursorShape.block,
-  horizontal: CursorShape.underline,
-  vertical: CursorShape.line,
-}) || CursorShape.block
+const cursorShapeType = (shape?: string) => {
+  if (shape === 'block') return CursorShape.block
+  if (shape === 'horizontal') return CursorShape.underline
+  if (shape === 'vertical') return CursorShape.line
+  else return CursorShape.block
+}
 
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const width = right - left + 1
@@ -200,17 +201,9 @@ r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
 
 r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => dispatch.pub('tabs', { curtab, tabs })
 
-r.wildmenu_show = items => {
-  console.log('wildmenu items:', items)
-}
-
-r.wildmenu_select = selected => {
-  console.log('selected wildmenu item', selected)
-}
-
-r.wildmenu_hide = () => {
-  console.log('hide wildmenu')
-}
+r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
+r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
+r.wildmenu_hide = () => dispatch.pub('wildmenu.hide')
 
 onRedraw((m: any[]) => {
   const count = m.length

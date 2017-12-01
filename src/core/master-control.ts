@@ -20,30 +20,30 @@ interface VimInstance {
   id: number,
   proc: ChildProcess,
   attached: boolean,
-  path?: string
+  path?: string,
 }
 
 export interface NewVimResponse {
   id: number,
-  path: string
+  path: string,
 }
 
 const vimOptions = {
   rgb: true,
   ext_popupmenu: true,
   ext_tabline: true,
-  ext_wildmenu: false,
-  ext_cmdline: false
+  ext_wildmenu: true,
+  ext_cmdline: false,
 }
 
 const ids = {
   vim: ID(),
-  activeVim: -1
+  activeVim: -1,
 }
 
 const clientSize = {
   width: 0,
-  height: 0
+  height: 0,
 }
 
 let onExitFn: ExitFn = function () {}
