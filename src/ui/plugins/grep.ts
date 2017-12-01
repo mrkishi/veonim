@@ -184,9 +184,7 @@ const ui = app({ state, view, actions: a })
 worker.on.results((results: Result[]) => ui.results(results))
 worker.on.moreResults((results: Result[]) => ui.moreResults(results))
 
-action('grep-resume', () => {
-  ui.show({ reset: false })
-})
+action('grep-resume', () => ui.show({ reset: false }))
 
 action('grep', async (query: string) => {
   const { cwd } = current

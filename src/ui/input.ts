@@ -68,32 +68,26 @@ export const blur = () => {
 }
 
 type Transformer = (input: KeyboardEvent) => KeyboardEvent
-const xfrmHold = new Map<string, Transformer>()
-const xfrmUp = new Map<string, Transformer>()
-const xfrmDown = new Map<string, Transformer>()
+export const xfrmHold = new Map<string, Transformer>()
+export const xfrmDown = new Map<string, Transformer>()
+export const xfrmUp = new Map<string, Transformer>()
 
 const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
 
 const defkey = {...new KeyboardEvent('keydown'), key: '', ctrlKey: false, metaKey: false, altKey: false, shiftKey: false}
 
-// TODO:
-// -technically there are two kinds of remapping that a user would think of
-// i want to remap key A -> key B
-// i want to remap key A -> key B HOWEVER, when key A (holding) -> key C
-// is there a case where you would want ONLY a keyup remap?
-// aka. hold + up should be combined together
-// hold: A -> A (default, optional) + A(hold) -> C
-// holdfull: A -> B + A(hold) -> C
 export const transform = {
   hold: (e: any, fn: Transformer) =>
     xfrmHold.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
+
   down: (e: any, fn: Transformer) =>
     xfrmDown.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
 
-  // TODO: set the before condition?
-   //up: (before: any, now: any, fn: Transformer) => xfrmUp.set(keToStr({...defkey, ...e}), fn),
-  up: (e: any, fn: Transformer) =>
-    xfrmUp.set(keToStr({...defkey, ...e}), e => ({ ...e, ...fn(e) })),
+  up: (e: any, fn: Transformer) => {
+    const before = keToStr({ ...defkey, ...e })
+    const now = keToStr({ ...defkey, key: e.key })
+    xfrmUp.set(before + now, e => ({ ...e, ...fn(e) }))
+  }
 }
 
 const sendKeys = (e: KeyboardEvent) => {
@@ -138,8 +132,8 @@ window.addEventListener('keyup', e => {
   if (!isCapturing) return
   const es = keToStr(e)
 
-  // TODO: temp dirty hack
-  if (lastDown === 'Meta0100' && keToStr(e) === 'Meta0000') return input(`<Esc>`)
+  const prevKeyAndThisOne = lastDown + es
+  if (xfrmUp.has(prevKeyAndThisOne)) return sendKeys(xfrmUp.get(prevKeyAndThisOne)!(e))
 
   if (holding === es) {
     if (!xformed) sendKeys(e)

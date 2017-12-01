@@ -1,3 +1,4 @@
+import { xfrmUp } from '../input'
 import { h } from '../uikit'
 
 interface Props {
@@ -54,10 +55,14 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
     onblur: () => hide(),
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeyup: (e: KeyboardEvent) => {
-      // TODO: make it better. support ctrl?
-      if (lastDown === 'Meta0100' && keToStr(e) === 'Meta0000') {
-        lastDown = ''
-        return hide()
+      const prevKeyAndThisOne = lastDown + keToStr(e)
+
+      if (xfrmUp.has(prevKeyAndThisOne)) {
+        const { key } = xfrmUp.get(prevKeyAndThisOne)!(e)
+        if (key.toLowerCase() === '<esc>') {
+          lastDown = ''
+          return hide()
+        }
       }
     },
     onkeydown: (e: KeyboardEvent) => {
