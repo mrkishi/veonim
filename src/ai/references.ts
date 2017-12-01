@@ -1,4 +1,4 @@
-import { action, call, ex, current as vimState } from '../ui/neovim'
+import { action, call, ex, current as vimState } from '../core/neovim'
 import { references } from '../langserv/adapter'
 
 action('references', async () => {

@@ -1,6 +1,6 @@
-import { h, app, Actions } from './uikit'
-import { sub } from '../dispatch'
-import { is } from '../utils'
+import { h, app, Actions } from '../ui/uikit'
+import { sub } from '../messaging/dispatch'
+import { is } from '../support/utils'
 
 enum NotifyKind { error = 'error', warning = 'warning', info = 'info', success = 'success' }
 interface Notification { type: NotifyKind, title: string, message: string | string[] }

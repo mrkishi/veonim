@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>veonim</title>
+    <style>
+* {
+  cursor: none;
+}
+
+body {
+  --font: 'Courier New';
+  --font-size: 12;
+  --line-height: 1.5;
+  font-family: var(--font);
+  font-size: calc(var(--font-size) * 1px);
+  margin: 0;
+  padding: 0;
+  background: #222;
+  color: #ddd;
+  overflow: hidden;
+}
+
+button {
+  padding-left: 12px;
+  padding-right: 12px;
+  font-family: var(--font);
+  font-size: calc(var(--font-size) * 1px);
+  outline: none;
+  border: none;
+  background: #666;
+  color: #fff;
+}
+
+input {
+  font-family: var(--font);
+  font-size: calc(var(--font-size) * 1px);
+  width: 100%;
+  box-sizing: border-box;
+  color: transparent;
+  text-shadow: 0 0 0 #999;
+  outline: none;
+  border: none;
+  background: none;
+  line-height: var(--line-height);
+  padding: 0;
+}
+
+.close {
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 18px;
+  line-height: 0;
+  opacity: 0.4;
+}
+
+.close:hover {
+  pointer: cursor;
+  opacity: 1;
+}
+
+#notifications {
+  position: absolute;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  top: 10px;
+  right: 10px;
+}
+
+.notification {
+  margin-bottom: 10px;
+}
+
+.notification .header {
+  display: flex;
+  justify-content: space-between;
+  color: #fff;
+}
+
+.notification .title {
+  padding: 10px;
+}
+
+.notification .message {
+  padding: 10px;
+}
+
+.notification .message .line {
+  margin-bottom: 8px;
+}
+
+.notification .message .line:last-child {
+  margin-bottom: 0;
+}
+
+.notification.error {
+  background: #332424;
+  color: #eab3b3;
+}
+
+.notification.error .header {
+  background: #962727;
+}
+
+.alert {
+  display: flex;
+  background: #444;
+}
+
+.alert .message {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.highlight {
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bubble {
+  border-radius: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  background: #212121;
+}
+
+.gui-cursor {
+  background: #bbb;
+  line-height: var(--line-height);
+}
+
+.gui-input {
+  display: flex;
+  padding-left: 8px;
+  background: #222;
+}
+
+.row {
+  padding-left: 8px;
+  padding-right: 8px;
+  line-height: var(--line-height);
+  background: #333;
+  color: #bbb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row.dim {
+  color: #888;
+}
+
+.row.important {
+  color: #ffd800;
+  background: #222;
+}
+
+.row.header {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  color: #c7c7c7;
+  background: #2b2b2b;
+}
+
+.row.header.active {
+  color: #fff;
+  background: #5a5a5a;
+  font-weight: normal;
+}
+
+.row-group {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.hover {
+  background: #222;
+  color: #eee;
+  padding: 4px;
+}
+
+.row.active {
+  background: #3f3f3f;
+  color: #eee;
+  font-weight: bold;
+}
+
+.active {
+  color: #eee;
+}
+
+.complete {
+  background: #222;
+}
+
+.complete.active {
+  background: #404040;
+  color: #eee;
+  font-weight: bold;
+}
+
+.tab {
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  background: #222;
+  color: #aaa;
+}
+
+.tab.active {
+  color: #ddd;
+  background: #333;
+}
+
+.plugin {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.plugin.bottom {
+  align-items: flex-end;
+}
+
+.plugin.right {
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.dialog {
+  background: #333;
+  margin-top: 15%;
+}
+
+.dialog.small {
+  width: 200px;
+}
+
+.dialog.medium {
+  width: 300px;
+}
+
+.dialog.large {
+  width: 400px;
+}
+
+.dialog.xlarge {
+  width: 500px;
+}
+
+.dialog.top {
+  margin-top: 0;
+}
+
+#plugins {
+  position: absolute;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+    </style>
+  </head>
+  <body>
+    <div id="cursor" style="position: absolute"></div>
+    <div id="plugins"></div>
+    <canvas id="nvim"></canvas>
+    <script type="text/javascript">require('../bootstrap/galaxy')</script>
+  </body>
+</html>

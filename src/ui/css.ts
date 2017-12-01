@@ -1,4 +1,4 @@
-import { hexToRGB } from '../utils'
+import { hexToRGB } from '../support/utils'
 
 export const gradient = (deg: number, color1: string, fade1: number, color2: string, fade2: number) => `linear-gradient(${deg}deg, ${color1} ${fade1}%, ${color2} ${fade2}%)`
 export const partialFill = (direction: string, color: string, size: number) =>

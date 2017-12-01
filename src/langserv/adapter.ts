@@ -1,9 +1,9 @@
 import { Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
-import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from './director'
-import { is, merge, uriAsCwd, uriAsFile } from '../utils'
-import { update, getLine, getFile } from './files'
-import { NeovimState } from '../ui/neovim'
-import { Patch, workspaceEditToPatch } from './patch'
+import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from '../langserv/director'
+import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
+import { Patch, workspaceEditToPatch } from '../langserv/patch'
+import { update, getLine, getFile } from '../langserv/files'
+import { NeovimState } from '../core/neovim'
 
 export interface Symbol {
   name: string,

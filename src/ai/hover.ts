@@ -1,9 +1,9 @@
-import { action, current as vimState, on } from '../ui/neovim'
+import { action, current as vimState, on } from '../core/neovim'
 const removeMarkdown = require('remove-markdown')
-import * as hoverUI from '../ui/plugins/hover'
+import * as hoverUI from '../components/hover'
 import { hover } from '../langserv/adapter'
-import vimUI from '../ui/canvasgrid'
-import Worker from '../worker'
+import Worker from '../messaging/worker'
+import vimUI from '../core/canvasgrid'
 
 export interface ColorData {
   color: string,

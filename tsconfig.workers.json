@@ -1,7 +1,7 @@
 {
   "include": [
     "src/workers/*.ts",
-    "src/worker-client.ts"
+    "src/messaging/worker-client.ts"
   ],
   "compilerOptions": {
     "target": "es2017",

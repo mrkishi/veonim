@@ -1,4 +1,4 @@
-import CreateTransport from '../transport'
+import CreateTransport from '../messaging/transport'
 import { createConnection } from 'net'
 
 interface Client { id: number, path: string, socket: NodeJS.Socket }

@@ -1,6 +1,6 @@
 import { fullBufferUpdate, partialBufferUpdate } from '../langserv/adapter'
-import { current as vimState, getCurrent } from '../ui/neovim'
-import Worker from '../worker'
+import { current as vimState, getCurrent } from '../core/neovim'
+import Worker from '../messaging/worker'
 
 export const harvester = Worker('harvester')
 let pauseUpdate = false

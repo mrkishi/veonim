@@ -1,5 +1,5 @@
 import { Position, TextEdit, WorkspaceEdit } from 'vscode-languageserver-types'
-import { uriAsCwd, uriAsFile } from '../utils'
+import { uriAsCwd, uriAsFile } from '../support/utils'
 import { join } from 'path'
 
 const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character

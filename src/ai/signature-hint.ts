@@ -1,8 +1,8 @@
 import { signatureHelp, triggers } from '../langserv/adapter'
-import * as hintUI from '../ui/plugins/hint'
-import { current as vimState, on } from '../ui/neovim'
-import vimUI from '../ui/canvasgrid'
-import { merge } from '../utils'
+import { current as vimState, on } from '../core/neovim'
+import * as hintUI from '../components/hint'
+import { merge } from '../support/utils'
+import vimUI from '../core/canvasgrid'
 
 const cache = {
   totalParams: 0,

@@ -1,8 +1,8 @@
-import * as extensions from '../extensions'
-import defaultCapabs from './capabilities'
-import * as dispatch from '../dispatch'
-import { Server } from '../jsonrpc'
-import { proxyFn } from '../utils'
+import defaultCapabs from '../langserv/capabilities'
+import * as dispatch from '../messaging/dispatch'
+import * as extensions from '../core/extensions'
+import { Server } from '../messaging/jsonrpc'
+import { proxyFn } from '../support/utils'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }

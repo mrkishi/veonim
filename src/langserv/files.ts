@@ -1,5 +1,5 @@
+import { readFile } from '../support/utils'
 import { extname, join } from 'path'
-import { readFile } from '../utils'
 
 // TODO: i feel like this is the wrong approach (to store all these cached files)
 // there are a few problems. first of all, there is no mechanism to update the files

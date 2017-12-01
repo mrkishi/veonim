@@ -1,5 +1,5 @@
-import { readFile, writeFile, matchOn } from '../utils'
-import { Patch, PatchOperation } from './patch'
+import { readFile, writeFile, matchOn } from '../support/utils'
+import { Patch, PatchOperation } from '../langserv/patch'
 
 // TODO: this module should probably be a worker
 // TODO: this module should probably be a worker

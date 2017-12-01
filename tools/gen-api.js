@@ -6,7 +6,7 @@ const { createWriteStream } = require('fs')
 const { spawn } = require('child_process')
 const { join } = require('path')
 
-const out = createWriteStream(join(__dirname, '../src/api.ts'))
+const out = createWriteStream(join(__dirname, '../src/core/api.ts'))
 const leftPad = (str, amt) => Array(amt).fill(' ').join('') + str
 const write = (m = '', pad = 0) => out.write(leftPad(`${m}\n`, pad))
 const mix = (...a) => Object.assign({}, ...a)

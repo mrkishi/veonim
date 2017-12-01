@@ -6,7 +6,7 @@ const cwd = `${__dirname}/..`
 const npmrun = task => exec(`npm run ${task}`, { cwd })
 const tsc = conf => spawn('tsc', ['-p', conf, '--watch'], { cwd })
 
-watch(`${cwd}/src/index.html`, () => {
+watch(`${cwd}/src/bootstrap/index.html`, () => {
   console.log('html modified... copying...')
   npmrun('html')
 })

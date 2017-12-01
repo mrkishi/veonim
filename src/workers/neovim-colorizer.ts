@@ -1,10 +1,10 @@
-import { prefixWith, onFnCall, pascalCase } from '../utils'
-import WorkerClient from '../worker-client'
-import CreateTransport from '../transport'
-import NeovimUtils from '../neovim-utils'
-import { Api, Prefixes } from '../api'
+import { prefixWith, onFnCall, pascalCase } from '../support/utils'
+import WorkerClient from '../messaging/worker-client'
+import CreateTransport from '../messaging/transport'
+import NeovimUtils from '../support/neovim-utils'
+import { Api, Prefixes } from '../core/api'
+import SetupRPC from '../messaging/rpc'
 import Neovim from '@veonim/neovim'
-import SetupRPC from '../rpc'
 
 interface ColorData {
   color: string,

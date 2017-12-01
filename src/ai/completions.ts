@@ -1,12 +1,12 @@
-import { g, on, cmd, current as vimState, onCreate } from '../ui/neovim'
-import { findIndexRight, hasUpperCase, EarlyPromise } from '../utils'
+import { findIndexRight, hasUpperCase, EarlyPromise } from '../support/utils'
+import { g, on, cmd, current as vimState, onCreate } from '../core/neovim'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { completions, triggers } from '../langserv/adapter'
-import * as completionUI from '../ui/plugins/autocomplete'
-import { harvester, update } from './update-server'
+import * as completionUI from '../components/autocomplete'
+import { harvester, update } from '../ai/update-server'
+import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
-import vimUI from '../ui/canvasgrid'
-import { sub } from '../dispatch'
+import vimUI from '../core/canvasgrid'
 
 interface Cache {
   semanticCompletions: Map<string, CompletionOption[]>,

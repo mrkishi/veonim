@@ -1,10 +1,10 @@
-import { list, feedkeys, call, action, until, expr, current as vimState } from '../ui/neovim'
+import { list, feedkeys, call, action, until, expr, current as vimState } from '../core/neovim'
 import { VimPatch, Operation, Patch } from '../langserv/patch'
+import * as updateService from '../ai/update-server'
 import patchFilesOnFS from '../langserv/patch-fs'
-import * as updateService from './update-server'
 import { rename } from '../langserv/adapter'
 import { getLine } from '../langserv/files'
-import { matchOn } from '../utils'
+import { matchOn } from '../support/utils'
 import * as path from 'path'
 
 const currentBufferPath = () => path.join(vimState.cwd, vimState.file)

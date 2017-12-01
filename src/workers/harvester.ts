@@ -1,5 +1,5 @@
+import WorkerClient from '../messaging/worker-client'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
-import WorkerClient from '../worker-client'
 
 const { on } = WorkerClient()
 

@@ -1,8 +1,8 @@
 // TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
 const { h: hs, app: makeApp } = require('hyperapp')
-import { merge, proxyFn } from '../utils'
-import * as viminput from './input'
-import vim from './canvasgrid'
+import { merge, proxyFn } from '../support/utils'
+import * as viminput from '../core/input'
+import vim from '../core/canvasgrid'
 import huu from 'huu'
 
 export interface ActionCaller { [index: string]: (data?: any) => void }
