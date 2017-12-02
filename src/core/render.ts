@@ -1,8 +1,10 @@
 import { onRedraw, getColor } from '../core/master-control'
-import { asColor, merge } from '../support/utils'
 import ui, { CursorShape } from '../core/canvasgrid'
-import * as dispatch from '../messaging/dispatch'
 import { Events, ExtContainer } from '../core/api'
+import NeovimUtils from '../support/neovim-utils'
+import { asColor, merge } from '../support/utils'
+import * as dispatch from '../messaging/dispatch'
+import { raw as neovim } from '../core/neovim'
 
 interface Colors {
   fg: string,
@@ -62,6 +64,7 @@ interface PMenuItem {
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 
+const { unblock } = NeovimUtils(neovim)
 const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
 
@@ -204,6 +207,66 @@ r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => dispatch.pub(
 r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
 r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
 r.wildmenu_hide = () => dispatch.pub('wildmenu.hide')
+
+type CmdContent = [any, string]
+
+export enum CommandType {
+  Ex,
+  SearchForward,
+  SearchBackward,
+}
+
+export interface CommandUpdate {
+  cmd: string,
+  kind: CommandType,
+  position: number,
+}
+
+r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level) => {
+  // TODO: process attributes!
+  const cmd = content.reduce((str, [ _, item ]) => str + item, '')
+
+  const kind: CommandType = Reflect.get({
+    ':': CommandType.Ex,
+    '/': CommandType.SearchForward,
+    '?': CommandType.SearchBackward,
+  }, opChar) || CommandType.Ex
+
+  dispatch.pub('cmd.update', { cmd, kind, position } as CommandUpdate)
+
+  prompt && console.log('prompt?', prompt)
+  indent && console.log('indent:', indent)
+  level > 1 && console.log('level:', level)
+}
+
+r.cmdline_pos = position => {
+  console.log('Put the cursor pos at:', position)
+}
+
+r.cmdline_hide = async () => {
+  console.log('cmd shoo')
+  // TODO: so i'm thinking... after this happens, pause and buffer all render updates
+  // on complete, if any errors, discard render output and show notification with errors
+  // if ok, render stuff that was buffered from the last line, into... what? some gui thing
+  //
+  //if multi-line, then i guess we would need to calculate the size of the window, subtract
+  //whatever is remaining + including the statusline. i think most of the time the cmd output
+  //should be 1 row. (famous last words)
+  //
+  //what i want to do is hide the cmd_output window. eventually neovim will externalize this
+  //so let's not get too clever here. some hackery is okay
+  //
+  //we could do this as a temp thing just to render the grid size taller by row + 1
+  //this way the last row will be out of bounds. but actually we will not render any shit
+  //in the last row. 
+  //just we will capture output and figure out a way to display it in the gui
+  const errors = await unblock()
+
+  if (errors.length) dispatch.pub('notification:error', {
+    title: 'wtf r u doin m8',
+    message: errors,
+  })
+}
 
 onRedraw((m: any[]) => {
   const count = m.length

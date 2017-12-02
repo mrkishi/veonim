@@ -1,53 +1,66 @@
+import { CommandUpdate } from '../core/render'
 import { h, app, Actions } from '../ui/uikit'
 import { sub } from '../messaging/dispatch'
-import vimUI from '../core/canvasgrid'
-import { translate } from '../ui/css'
+import TermInput from '../components/input'
 
 interface State {
   options: string[],
+  cache: string[],
   vis: boolean,
+  val: string,
   ix: number,
 }
 
 const state: State = {
   options: [],
+  cache: [],
   vis: false,
+  val: '',
   ix: 0,
 }
 
-const x = vimUI.colToX(0)
-const y = vimUI.rowToY(vimUI.rows - 1)
-
-const view = ({ options, vis, ix }: State) => h('#wildmenu', {
+const view = ({ options, val, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#wildmenu.plugin', {
   hide: !vis,
-  style: {
-    'z-index': 200,
-    'min-width': '100px',
-    'max-width': '500px',
-    position: 'absolute',
-    transform: translate(x, y),
-  }
 }, [
-  h('div', {
-    style: {
-      transform: 'translateY(-100%)'
-    }
-  }, options.map((text, id) => h('.row.complete', {
-    key: id,
-    css: { active: id === ix },
-  }, [
-    h('span', text)
-  ])))
+  h('.dialog.medium', [
+    TermInput({ focus: true, val: '', next, prev, change, hide, select }),
+
+    h('.row', val),
+
+    h('div', options.map((name, key) => h('.row', {
+      key,
+      css: { active: key === ix },
+    }, [
+      h('span', name),
+    ]))),
+
+  ]),
 ])
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, options) => ({ options, ix: -1, vis: true })
-a.hide = () => ({ vis: false, ix: 0 })
-a.select = (_s, _a, ix: number) => ({ ix })
+a.show = (_s, _a, options = []) => ({ options, vis: true })
+a.hide = () => ({ vis: false, ix: -1, val: '' })
+a.selectOption = (_s, _a, ix: number) => ({ ix })
+
+a.wrender = (_s, _a, val: string) => ({ val })
+
+a.change = (_s, _a, val: string) => {
+  console.log('thing changed', val)
+}
+
+a.select = (s) => {
+  const selection = s.options[s.ix]
+  console.log('selected', selection)
+}
 
 const ui = app({ state, view, actions: a }, false)
 
+// TODO: use export cns. this component is a high priority so it should be loaded early
+// because someone might open cmdline eary
 sub('wildmenu.show', opts => ui.show(opts))
-sub('wildmenu.select', ix => ui.select(ix))
+sub('wildmenu.select', ix => ui.selectOption(ix))
 sub('wildmenu.hide', () => ui.hide())
+
+sub('cmd.show', () => ui.show())
+sub('cmd.update', ({ cmd }: CommandUpdate) => (ui.show(), ui.wrender(cmd)))

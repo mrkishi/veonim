@@ -10,7 +10,7 @@ interface VimMode {
 
 // TODO: this getMode/blocking/input/capture :messages is kinda hack.
 // when neovim implements external dialogs, please revisit
-const unblock = (api: Api, req: Api) => (): Promise<string[]> => new Promise(fin => {
+const unblock = (notify: Api, request: Api) => (): Promise<string[]> => new Promise(fin => {
   let neverGonnaGiveYouUp = false
 
   const timer = setTimeout(() => {
@@ -18,10 +18,10 @@ const unblock = (api: Api, req: Api) => (): Promise<string[]> => new Promise(fin
     fin([])
   }, 2e3)
 
-  const tryToUnblock = () => req.getMode().then((mode: VimMode) => {
+  const tryToUnblock = () => request.getMode().then((mode: VimMode) => {
     if (!mode.blocking) {
       Promise.race([
-        req.commandOutput('messages').then(m => m.split('\n').filter(m => m)),
+        request.commandOutput('messages').then(m => m.split('\n').filter(m => m)),
         delay(250).then(() => [])
       ]).then(fin)
 
@@ -29,15 +29,15 @@ const unblock = (api: Api, req: Api) => (): Promise<string[]> => new Promise(fin
       return
     }
 
-    api.input(`<Enter>`)
+    notify.input(`<Enter>`)
     if (!neverGonnaGiveYouUp) setImmediate(() => tryToUnblock())
   })
 
   tryToUnblock()
 })
 
-export default ({ api, req }: { api: Api, req: Api }) => ({
-  unblock: unblock(api, req)
+export default ({ notify, request }: { notify: Api, request: Api }) => ({
+  unblock: unblock(notify, request)
 })
 
 export const FunctionGroup = () => {

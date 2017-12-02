@@ -56,7 +56,7 @@ decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(prefix.core(name), args))
 
-const { unblock } = NeovimUtils({ api, req })
+const { unblock } = NeovimUtils({ notify: api, request: req })
 
 unblock().then(errors => {
   if (errors.length) {

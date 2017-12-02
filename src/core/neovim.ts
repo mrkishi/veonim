@@ -105,6 +105,11 @@ const api = {
   tab: onFnCall((name: string, args: any[]) => notify(prefix.tabpage(name), args)) as ITabpage,
 }
 
+export const raw = {
+  notify: api.core,
+  request: req.core,
+}
+
 // trying to do dynamic introspection (obj vs arr) messy with typings. (also a bit slower)
 export const as = {
   buf: (p: Promise<ExtContainer>) => p.then(e => new VBuffer(e.id)),

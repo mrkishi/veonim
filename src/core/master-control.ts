@@ -33,7 +33,7 @@ const vimOptions = {
   ext_popupmenu: true,
   ext_tabline: true,
   ext_wildmenu: true,
-  ext_cmdline: false,
+  ext_cmdline: true,
 }
 
 const ids = {
@@ -169,7 +169,7 @@ decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix(name), args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(prefix(name), args))
 
-const { unblock } = NeovimUtils({ api, req })
+const { unblock } = NeovimUtils({ notify: api, request: req })
 
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => onEvent('redraw', fn)
