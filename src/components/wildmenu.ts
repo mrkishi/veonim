@@ -1,7 +1,6 @@
 import { CommandUpdate } from '../core/render'
 import { h, app, Actions } from '../ui/uikit'
 import { sub } from '../messaging/dispatch'
-import TermInput from '../components/input'
 
 interface State {
   options: string[],
@@ -19,13 +18,20 @@ const state: State = {
   ix: 0,
 }
 
-const view = ({ options, val, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#wildmenu.plugin', {
+let el: HTMLInputElement
+
+const view = ({ options, val, vis, ix }: State) => h('#wildmenu.plugin', {
   hide: !vis,
 }, [
   h('.dialog.medium', [
-    TermInput({ focus: true, val: '', next, prev, change, hide, select }),
-
-    h('.row', val),
+    h('input', {
+      type: 'text',
+      value: val,
+      onupdate: (e: HTMLInputElement) => {
+        if (e) el = e
+        e !== document.activeElement && e.focus()
+      },
+    }),
 
     h('div', options.map((name, key) => h('.row', {
       key,
@@ -39,28 +45,27 @@ const view = ({ options, val, vis, ix }: State, { change, hide, select, next, pr
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, options = []) => ({ options, vis: true })
-a.hide = () => ({ vis: false, ix: -1, val: '' })
+a.show = () => ({ vis: true })
+a.hide = () => ({ vis: false, ix: -1, val: '', options: [] })
 a.selectOption = (_s, _a, ix: number) => ({ ix })
-
-a.wrender = (_s, _a, val: string) => ({ val })
-
-a.change = (_s, _a, val: string) => {
-  console.log('thing changed', val)
-}
-
-a.select = (s) => {
-  const selection = s.options[s.ix]
-  console.log('selected', selection)
-}
+a.updateValue = (_s, _a, val: string) => ({ val })
+a.updateOptions = (_s, _a, options) => ({ options, ix: -1 })
 
 const ui = app({ state, view, actions: a }, false)
 
 // TODO: use export cns. this component is a high priority so it should be loaded early
 // because someone might open cmdline eary
-sub('wildmenu.show', opts => ui.show(opts))
-sub('wildmenu.select', ix => ui.selectOption(ix))
-sub('wildmenu.hide', () => ui.hide())
+sub('wildmenu.reallyShow', opts => ui.updateOptions(opts))
+sub('wildmenu.reallySelect', ix => ui.selectOption(ix))
+//sub('wildmenu.hide', () => ui.updateOptions([]))
 
+sub('cmd.reallyhide', () => ui.hide())
 sub('cmd.show', () => ui.show())
-sub('cmd.update', ({ cmd }: CommandUpdate) => (ui.show(), ui.wrender(cmd)))
+sub('cmd.rupdate', ({ cmd, position }: CommandUpdate) => {
+  ui.show()
+  ui.updateValue(cmd)
+  el && el.setSelectionRange(position, position)
+
+  if (!cmd) ui.updateOptions([])
+  //if (!el) console.log('el is not here wtf?')
+})

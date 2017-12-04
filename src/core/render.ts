@@ -1,10 +1,10 @@
 import { onRedraw, getColor } from '../core/master-control'
 import ui, { CursorShape } from '../core/canvasgrid'
 import { Events, ExtContainer } from '../core/api'
-import NeovimUtils from '../support/neovim-utils'
+//import NeovimUtils from '../support/neovim-utils'
 import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-import { raw as neovim } from '../core/neovim'
+//import { raw as neovim } from '../core/neovim'
 
 interface Colors {
   fg: string,
@@ -64,7 +64,7 @@ interface PMenuItem {
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 
-const { unblock } = NeovimUtils(neovim)
+//const { unblock } = NeovimUtils(neovim)
 const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
 
@@ -157,9 +157,10 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 })
 
 r.mode_change = async mode => {
+  dispatch.pub('vim:mode', mode)
   currentMode = mode
   const info = modes.get(mode)
-  if (!info) return dispatch.pub('mode', mode)
+  if (!info) return
   info.color && ui.setCursorColor(info.color)
   ui.setCursorShape(info.shape, info.size)
 }
@@ -234,17 +235,18 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
 
   dispatch.pub('cmd.update', { cmd, kind, position } as CommandUpdate)
 
+  // TODO: wtf is with this '...' shenanigans when hitting <Tab> or <ctrl-a> appearing in the
+  // command output line (bottom of the screen?)
+
   prompt && console.log('prompt?', prompt)
   indent && console.log('indent:', indent)
   level > 1 && console.log('level:', level)
 }
 
-r.cmdline_pos = position => {
-  console.log('Put the cursor pos at:', position)
-}
+r.cmdline_pos = position => dispatch.pub('cmd.update', { position })
 
 r.cmdline_hide = async () => {
-  console.log('cmd shoo')
+  dispatch.pub('cmd.hide')
   // TODO: so i'm thinking... after this happens, pause and buffer all render updates
   // on complete, if any errors, discard render output and show notification with errors
   // if ok, render stuff that was buffered from the last line, into... what? some gui thing
@@ -260,12 +262,12 @@ r.cmdline_hide = async () => {
   //this way the last row will be out of bounds. but actually we will not render any shit
   //in the last row. 
   //just we will capture output and figure out a way to display it in the gui
-  const errors = await unblock()
+  //const errors = await unblock()
 
-  if (errors.length) dispatch.pub('notification:error', {
-    title: 'wtf r u doin m8',
-    message: errors,
-  })
+  //if (errors.length) dispatch.pub('notification:error', {
+    //title: 'wtf r u doin m8',
+    //message: errors,
+  //})
 }
 
 onRedraw((m: any[]) => {

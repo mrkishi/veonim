@@ -174,6 +174,8 @@ const { unblock } = NeovimUtils({ notify: api, request: req })
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => onEvent('redraw', fn)
 export const input = (keys: string) => api.input(keys)
+export const inputAndWait = (keys: string) => req.input(keys)
+export const callAtomic = (...calls: any[]) => req.callAtomic(calls)
 
 export const resize = (width: number, height: number) => {
   merge(clientSize, { width, height })

@@ -49,7 +49,7 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
     }, 'm'),
   ]),
 
-  h('input', {
+  h('input.term-input', {
     value: val,
     placeholder: desc,
     onblur: () => hide(),
