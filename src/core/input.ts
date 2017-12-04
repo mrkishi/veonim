@@ -105,8 +105,6 @@ const vim = {
   lastPosition: -22,
 }
 
-//const backs = ['<BS>', '<C-w']
-
 dispatch.sub('vim:mode', m => vim.mode = m)
 dispatch.sub('cmd.update', ({ cmd, position }) => {
   mergeValid(vim, { cmd, position })
@@ -127,7 +125,6 @@ const reset = () => {
 dispatch.sub('cmd.update', debounce(async ({ cmd, position }: { cmd: string, position: number }) => {
   console.log('cmd render', position, JSON.stringify(cmd))
 
-  console.log('vim.lastPosition', vim.lastPosition)
   const noCmd = vim.lastPosition === 0 && !cmd
   const backspaceMethod = vim.lastPosition === 1 && position === 1
   const ctrlWMethod = vim.lastPosition > 0 && position === 1 && cmd === '!'
@@ -185,6 +182,9 @@ const captureMenuOpts = async () => {
   //input(':')
 
   vim.rewindTo = vim.position
+  if (vim.position !== vim.lastPosition) console.log('NOT SAME!')
+  // TODO: get wildchar to use here
+  // also depends on wildmenu option being set...
   input('<Tab>')
 }
 
@@ -225,6 +225,7 @@ const sendKeys = async (e: KeyboardEvent) => {
     }
 
     else {
+      // TODO: how about ~ triggers?
       console.log('@@', inputKeys)
       vim.lastPosition = vim.position
       await inputAndWait(inputKeys)
