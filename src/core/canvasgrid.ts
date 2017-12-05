@@ -1,9 +1,35 @@
 import { partialFill, translate, setVar } from '../ui/css'
 import { merge, mergeValid } from '../support/utils'
 
-interface Grid { rows: number, cols: number }
-interface Cursor { row: number, col: number, color: string }
-export enum CursorShape { block, line, underline }
+interface Grid {
+  rows: number,
+  cols: number,
+}
+
+interface Cursor {
+  row: number,
+  col: number,
+  color: string,
+}
+
+export enum CursorShape {
+  block,
+  line,
+  underline
+}
+
+export interface TransferRegion {
+  width: number,
+  height: number,
+  source: {
+    row: number,
+    col: number,
+  },
+  destination: {
+    row: number,
+    col: number,
+  },
+}
 
 export interface CanvasGrid {
   rowToY(row: number): number,
@@ -15,6 +41,7 @@ export interface CanvasGrid {
   hideCursor(): CanvasGrid,
   showCursor(): CanvasGrid,
   moveCursor(): CanvasGrid,
+  moveRegion(region: TransferRegion): CanvasGrid,
   putImageData(data: ImageData, col: number, row: number, width: number, height: number): CanvasGrid,
   getImageData(col: number, row: number, width: number, height: number): ImageData,
   fillText(text: string, col: number, row: number): CanvasGrid,
@@ -103,6 +130,31 @@ api.clear = () => (ui.fillRect(0, 0, actualSize.width, actualSize.height), api)
 api.setTextBaseline = mode => (ui.textBaseline = mode, api)
 api.fillText = (m, c, r) => (ui.fillText(m, px.col.x(c), px.row.y(r) + cell.padding), api)
 api.fillRect = (c, r, w, h) => (ui.fillRect(px.col.x(c), px.row.y(r), px.col.width(w), px.row.height(h)), api)
+
+api.moveRegion = ({ width, height, source, destination }) => {
+  const srcX = px.col.x(source.col, true)
+  const srcY = px.row.y(source.row, true)
+
+  const destX = px.col.x(destination.col)
+  const destY = px.row.y(destination.row)
+
+  const w = px.col.width(width)
+  const h = px.row.height(height)
+
+  const w2x = px.col.width(width, true)
+  const h2x = px.row.height(height, true)
+
+  // TODO: i wonder if specifying the dest width/height is causing the render to slow down
+  // because of scaling?
+  //
+  // what if 2 drawImage calls.
+  // 1 -> "get" copy from src a slice of the canvas to a second canvas
+  // 2 -> "put" copy from 2nd canvas - only destCanvas.drawImage(2ndCanvas, destX, destY)
+
+  ui.drawImage(canvas, srcX, srcY, w2x, h2x, destX, destY, w, h)
+
+  return api
+}
 
 api.getImageData = (col, row, width, height) => {
   return ui.getImageData(px.col.x(col, true), px.row.y(row, true), px.col.width(width, true), px.row.height(height, true))

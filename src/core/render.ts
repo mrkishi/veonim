@@ -98,9 +98,21 @@ const cursorShapeType = (shape?: string) => {
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
-  const slice = ui.getImageData(left, top + amount, width, height)
+  //const slice = ui.getImageData(left, top + amount, width, height)
   ui
-    .putImageData(slice, left, top, width, height)
+    //.putImageData(slice, left, top, width, height)
+    .moveRegion({
+      width,
+      height,
+      source: {
+        col: left,
+        row: top + amount,
+      },
+      destination: {
+        col: left,
+        row: top,
+      }
+    })
     .setColor(colors.bg)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 }
