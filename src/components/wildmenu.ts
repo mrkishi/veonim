@@ -55,17 +55,15 @@ const ui = app({ state, view, actions: a }, false)
 
 // TODO: use export cns. this component is a high priority so it should be loaded early
 // because someone might open cmdline eary
-sub('wildmenu.reallyShow', opts => ui.updateOptions(opts))
-sub('wildmenu.reallySelect', ix => ui.selectOption(ix))
-//sub('wildmenu.hide', () => ui.updateOptions([]))
+sub('wildmenu.show', opts => ui.updateOptions(opts))
+sub('wildmenu.select', ix => ui.selectOption(ix))
+sub('wildmenu.hide', () => ui.updateOptions([]))
 
-sub('cmd.reallyhide', () => ui.hide())
+sub('cmd.hide', () => ui.hide())
 sub('cmd.show', () => ui.show())
-sub('cmd.rupdate', ({ cmd, position }: CommandUpdate) => {
+sub('cmd.update', ({ cmd, position }: CommandUpdate) => {
   ui.show()
   ui.updateValue(cmd)
   el && el.setSelectionRange(position, position)
-
   if (!cmd) ui.updateOptions([])
-  //if (!el) console.log('el is not here wtf?')
 })

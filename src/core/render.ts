@@ -1,10 +1,8 @@
 import { onRedraw, getColor } from '../core/master-control'
 import ui, { CursorShape } from '../core/canvasgrid'
 import { Events, ExtContainer } from '../core/api'
-//import NeovimUtils from '../support/neovim-utils'
 import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-//import { raw as neovim } from '../core/neovim'
 
 interface Colors {
   fg: string,
@@ -64,7 +62,6 @@ interface PMenuItem {
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 
-//const { unblock } = NeovimUtils(neovim)
 const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
 
@@ -237,6 +234,7 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
 
   // TODO: wtf is with this '...' shenanigans when hitting <Tab> or <ctrl-a> appearing in the
   // command output line (bottom of the screen?)
+  // tracking: https://github.com/neovim/neovim/issues/7689
 
   prompt && console.log('prompt?', prompt)
   indent && console.log('indent:', indent)
@@ -244,31 +242,7 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
 }
 
 r.cmdline_pos = position => dispatch.pub('cmd.update', { position })
-
-r.cmdline_hide = async () => {
-  dispatch.pub('cmd.hide')
-  // TODO: so i'm thinking... after this happens, pause and buffer all render updates
-  // on complete, if any errors, discard render output and show notification with errors
-  // if ok, render stuff that was buffered from the last line, into... what? some gui thing
-  //
-  //if multi-line, then i guess we would need to calculate the size of the window, subtract
-  //whatever is remaining + including the statusline. i think most of the time the cmd output
-  //should be 1 row. (famous last words)
-  //
-  //what i want to do is hide the cmd_output window. eventually neovim will externalize this
-  //so let's not get too clever here. some hackery is okay
-  //
-  //we could do this as a temp thing just to render the grid size taller by row + 1
-  //this way the last row will be out of bounds. but actually we will not render any shit
-  //in the last row. 
-  //just we will capture output and figure out a way to display it in the gui
-  //const errors = await unblock()
-
-  //if (errors.length) dispatch.pub('notification:error', {
-    //title: 'wtf r u doin m8',
-    //message: errors,
-  //})
-}
+r.cmdline_hide = () => dispatch.pub('cmd.hide')
 
 onRedraw((m: any[]) => {
   const count = m.length
