@@ -132,26 +132,18 @@ api.fillText = (m, c, r) => (ui.fillText(m, px.col.x(c), px.row.y(r) + cell.padd
 api.fillRect = (c, r, w, h) => (ui.fillRect(px.col.x(c), px.row.y(r), px.col.width(w), px.row.height(h)), api)
 
 api.moveRegion = ({ width, height, source, destination }) => {
+  // TODO: what about dat safeHeight used in the get/put imageData fns?
   const srcX = px.col.x(source.col, true)
   const srcY = px.row.y(source.row, true)
+  const srcWidth = px.col.width(width, true)
+  const srcHeight = px.row.height(height, true)
 
   const destX = px.col.x(destination.col)
   const destY = px.row.y(destination.row)
+  const destWidth = px.col.width(width)
+  const destHeight = px.row.height(height)
 
-  const w = px.col.width(width)
-  const h = px.row.height(height)
-
-  const w2x = px.col.width(width, true)
-  const h2x = px.row.height(height, true)
-
-  // TODO: i wonder if specifying the dest width/height is causing the render to slow down
-  // because of scaling?
-  //
-  // what if 2 drawImage calls.
-  // 1 -> "get" copy from src a slice of the canvas to a second canvas
-  // 2 -> "put" copy from 2nd canvas - only destCanvas.drawImage(2ndCanvas, destX, destY)
-
-  ui.drawImage(canvas, srcX, srcY, w2x, h2x, destX, destY, w, h)
+  ui.drawImage(ui.canvas, srcX, srcY, srcWidth, srcHeight, destX, destY, destWidth, destHeight)
 
   return api
 }
