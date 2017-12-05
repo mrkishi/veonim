@@ -28,7 +28,7 @@ describe('patch-fs', () => {
 
   beforeEach(() => {
     writtenFile = ''
-    patch = proxyquire('../../build/langserv/patch-fs', { '../utils': fake }).default
+    patch = proxyquire('../../build/langserv/patch-fs', { '../support/utils': fake }).default
   })
 
   it('delete', async () => {
