@@ -92,13 +92,14 @@
   "homepage": "https://github.com/veonim/veonim#readme",
   "dependencies": {
     "@veonim/neovim": "0.0.13",
-    "@veonim/ripgrep": "0.0.5",
     "@veonim/plugin-manager": "0.4.2",
+    "@veonim/ripgrep": "0.0.5",
     "fuzzaldrin-plus": "0.4.1",
     "huu": "2.0.1",
     "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.5",
+    "picostyle": "^0.1.4",
     "remove-markdown": "0.2.2",
     "vscode-jsonrpc": "3.5.0",
     "vscode-languageserver-types": "3.4.0"

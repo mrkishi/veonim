@@ -2,6 +2,7 @@
 const { h: hs, app: makeApp } = require('hyperapp')
 import { merge, proxyFn } from '../support/utils'
 import * as viminput from '../core/input'
+const picostyle = require('picostyle')
 import vim from '../core/canvasgrid'
 import huu from 'huu'
 
@@ -11,6 +12,7 @@ export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, 
 
 const hostElement = document.getElementById('plugins')
 
+export const style = picostyle(hs)
 export const h = huu(hs)
 
 // TODO: because mixins and events.beforeAction dont work in the current npm release of hyperapp

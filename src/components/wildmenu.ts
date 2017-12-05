@@ -1,5 +1,5 @@
+import { h, app, style, Actions } from '../ui/uikit'
 import { CommandUpdate } from '../core/render'
-import { h, app, Actions } from '../ui/uikit'
 import { sub } from '../messaging/dispatch'
 
 interface State {
@@ -18,14 +18,21 @@ const state: State = {
   ix: 0,
 }
 
+const Input = style('input')({
+  display: 'flex',
+  paddingLeft: '8px',
+  background: '#222',
+  color: '#999',
+})
+
 let el: HTMLInputElement
 
 const view = ({ options, val, vis, ix }: State) => h('#wildmenu.plugin', {
   hide: !vis,
 }, [
-  h('.dialog.medium', [
-    h('input', {
-      type: 'text',
+  h('.dialog.xlarge', [
+
+    Input({
       value: val,
       onupdate: (e: HTMLInputElement) => {
         if (e) el = e
