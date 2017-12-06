@@ -75,7 +75,7 @@ const sizeToGrid = (height: number, width: number): Grid => ({
 })
 
 // TODO: memoize
-const px = {
+export const px = {
   row: {
     height: (row: number, scaled = false) => Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
     y: (rows: number, scaled = false) => px.row.height(rows, scaled) + (margins.top * (scaled ? window.devicePixelRatio : 1))

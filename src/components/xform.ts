@@ -1,6 +1,7 @@
 import { transform, remapModifier, registerShortcut } from '../core/input'
+import { as, action, call, getCurrent } from '../core/neovim'
 import { is, fromJSON } from '../support/utils'
-import { action, call } from '../core/neovim'
+import { px } from '../core/canvasgrid'
 import { remote } from 'electron'
 import { Script } from 'vm'
 
@@ -21,4 +22,57 @@ action('devtools', () => remote.getCurrentWebContents().toggleDevTools())
 action('fullscreen', () => {
   const win = remote.getCurrentWindow()
   win.setFullScreen(!win.isFullScreen())
+})
+
+action('blarg', async () => {
+  console.time('wins')
+  const wins = await (await getCurrent.tab).windows
+  const windows = await Promise.all(wins.map(async w => {
+    const [ y, x ] = await w.position
+    return {
+      x,
+      y,
+      number: await w.number,
+      height: await w.height,
+      width: await w.width,
+      name: await (await as.buf(w.buffer)).name,
+    }
+  }))
+
+  console.timeEnd('wins')
+
+  // TODO: the problem here is that the side margin paddings is calculated with all the shit
+  // we should extract the padding out of the canvas calculation
+  // canvas should just look at it's container div instead of the window size
+  // container div should dictate padding, not canvas
+  const realWins = windows.map(w => ({
+    name: w.name,
+    x: px.col.x(w.x),
+    y: px.row.y(w.y),
+    width: px.col.width(w.width),
+    height: px.row.height(w.height),
+  }))
+
+  const container = document.getElementById('grid') as HTMLElement
+
+  const els = realWins.map(w => {
+    const e = document.createElement('div')
+
+    Object.assign(e.style, {
+      position: 'absolute',
+      border: '1px solid red',
+      width: w.width + 'px',
+      height: w.height + 'px',
+      top: w.y + 'px',
+      right: w.x + 'px',
+    })
+
+    return e
+  })
+
+  els.forEach(e => container.appendChild(e))
+
+  // TODO: i think this lists all the windows present in the vim session.
+  // i think we should use current tabpage and get list of windows from the tab
+  realWins.forEach(w => console.log(w))
 })
