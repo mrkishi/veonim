@@ -1,5 +1,5 @@
 import { partialFill, translate, setVar } from '../ui/css'
-import { merge, mergeValid } from '../support/utils'
+import { merge } from '../support/utils'
 
 interface Grid {
   rows: number,
@@ -35,7 +35,7 @@ export interface CanvasGrid {
   rowToY(row: number): number,
   colToX(col: number): number,
   setMargins(margins: { left?: number, right?: number, top?: number, bottom?: number }): CanvasGrid,
-  resize(pixelHeight: number, pixelWidth: number): CanvasGrid,
+  resize(): CanvasGrid,
   setCursorColor(color: string): CanvasGrid,
   setCursorShape(type: CursorShape, size?: number): CanvasGrid,
   hideCursor(): CanvasGrid,
@@ -55,6 +55,8 @@ export interface CanvasGrid {
   cursor: Cursor
 }
 
+const paddingContainer = document.getElementById('neovim-container') as HTMLElement
+const container = document.getElementById('canvas-container') as HTMLElement
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
@@ -63,26 +65,25 @@ const actualSize = { width: 0, height: 0 }
 const cell = { width: 0, height: 0, padding: 0 }
 const cursor = { row: 0, col: 0, color: '#fff' }
 const grid = { rows: 0, cols: 0 }
-const margins = { top: 6, bottom: 6, left: 6, right: 6 }
 ui.imageSmoothingEnabled = false
 
 // TODO: explore:
 // -- setTransform for scaling? might remove manual scaling calcs?
 
 const sizeToGrid = (height: number, width: number): Grid => ({
-  rows: Math.floor((height - (margins.top + margins.bottom)) / cell.height),
-  cols: Math.floor((width - (margins.left + margins.right)) / cell.width)
+  rows: Math.floor(height / cell.height),
+  cols: Math.floor(width / cell.width),
 })
 
 // TODO: memoize
 export const px = {
   row: {
     height: (row: number, scaled = false) => Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
-    y: (rows: number, scaled = false) => px.row.height(rows, scaled) + (margins.top * (scaled ? window.devicePixelRatio : 1))
+    y: (rows: number, scaled = false) => px.row.height(rows, scaled) + (scaled ? window.devicePixelRatio : 1),
   },
   col: {
     width: (col: number, scaled = false) => Math.floor(col * cell.width * (scaled ? window.devicePixelRatio : 1)),
-    x: (cols: number, scaled = false) => px.col.width(cols, scaled) + (margins.left * (scaled ? window.devicePixelRatio : 1))
+    x: (cols: number, scaled = false) => px.col.width(cols, scaled) + (scaled ? window.devicePixelRatio : 1),
   }
 }
 
@@ -95,16 +96,17 @@ const api = {
 api.rowToY = row => px.row.y(row)
 api.colToX = col => px.col.x(col)
 
-api.resize = (pixelHeight, pixelWidth) => {
-  merge(actualSize, { width: pixelWidth, height: pixelHeight })
+api.resize = () => {
+  const { width, height } = container.getBoundingClientRect()
+  merge(actualSize, { width, height })
 
-  canvas.height = pixelHeight * window.devicePixelRatio
-  canvas.width = pixelWidth * window.devicePixelRatio
-  canvas.style.height = `${pixelHeight}px`
-  canvas.style.width = `${pixelWidth}px`
+  canvas.height = height * window.devicePixelRatio
+  canvas.width = width * window.devicePixelRatio
+  canvas.style.height = `${height}px`
+  canvas.style.width = `${width}px`
 
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
-  merge(grid, sizeToGrid(pixelHeight, pixelWidth))
+  merge(grid, sizeToGrid(height, width))
 
   // setting canvas properties resets font. we need user to call setFont() first to
   // be able to calculate sizeToGrid() based on font size. but because font is reset
@@ -124,7 +126,14 @@ api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeigh
   return api
 }
 
-api.setMargins = newMargins => (mergeValid(margins, newMargins), api)
+api.setMargins = ({ top, bottom, left, right }) => {
+  if (top) paddingContainer.style.paddingTop = top + 'px'
+  if (bottom) paddingContainer.style.paddingBottom = bottom + 'px'
+  if (left) paddingContainer.style.paddingLeft = left + 'px'
+  if (right) paddingContainer.style.paddingRight = right + 'px'
+  return api
+}
+
 api.setColor = color => (ui.fillStyle = color, api)
 api.clear = () => (ui.fillRect(0, 0, actualSize.width, actualSize.height), api)
 api.setTextBaseline = mode => (ui.textBaseline = mode, api)

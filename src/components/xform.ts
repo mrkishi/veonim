@@ -28,14 +28,20 @@ action('blarg', async () => {
   console.time('wins')
   const wins = await (await getCurrent.tab).windows
   const windows = await Promise.all(wins.map(async w => {
-    const [ y, x ] = await w.position
+    const [ [ y, x ], buffer ] = await Promise.all([
+      w.position,
+      as.buf(w.buffer)
+    ])
+
     return {
       x,
       y,
       number: await w.number,
       height: await w.height,
       width: await w.width,
-      name: await (await as.buf(w.buffer)).name,
+      name: await buffer.name,
+      // TODO: this is very annoying. i can't figure out what the proper key is here... i tried so many...
+      //modified: await buffer.getVar('&modified'),
     }
   }))
 
@@ -64,7 +70,7 @@ action('blarg', async () => {
       width: w.width + 'px',
       height: w.height + 'px',
       top: w.y + 'px',
-      right: w.x + 'px',
+      left: w.x + 'px',
     })
 
     return e

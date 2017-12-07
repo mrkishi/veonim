@@ -33,7 +33,7 @@ configReader('nvim/init.vim', c => {
 })
 
 const refreshCanvas = () => {
-  ui.resize(window.innerHeight, window.innerWidth)
+  ui.resize()
   resize(ui.cols, ui.rows)
 }
 

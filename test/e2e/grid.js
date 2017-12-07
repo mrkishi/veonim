@@ -44,6 +44,9 @@ describe('grid', function () {
     await input(':vsplit')
     await input('Enter')
 
+    await input(':Veonim blarg')
+    await input('Enter')
+
     await app.webContents.openDevTools()
   })
 })
