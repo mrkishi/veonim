@@ -254,10 +254,6 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
 
   dispatch.pub('cmd.update', { cmd, kind, position } as CommandUpdate)
 
-  // TODO: wtf is with this '...' shenanigans when hitting <Tab> or <ctrl-a> appearing in the
-  // command output line (bottom of the screen?)
-  // tracking: https://github.com/neovim/neovim/issues/7689
-
   prompt && console.log('prompt?', prompt)
   indent && console.log('indent:', indent)
   level > 1 && console.log('level:', level)
@@ -280,4 +276,5 @@ onRedraw((m: any[]) => {
 
   lastScrollRegion = null
   ui.moveCursor()
+  setImmediate(() => dispatch.pub('redraw'))
 })
