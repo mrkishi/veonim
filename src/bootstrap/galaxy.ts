@@ -1,4 +1,4 @@
-import { requireDir, debounce, log, delay as timeout } from '../support/utils'
+import { CreateTask, requireDir, debounce, log, delay as timeout } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import ui, { CursorShape } from '../core/canvasgrid'
 import configReader from '../config/config-reader'
@@ -9,9 +9,8 @@ import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
 
-// TODO: just have config reader return promise for initialConfig?
-let configLoaded: Function
-const initialConfig = new Promise(done => configLoaded = done)
+const loadingConfig = CreateTask()
+
 configReader('nvim/init.vim', c => {
   ui.setFont({
     face: c.get('font'),
@@ -19,7 +18,7 @@ configReader('nvim/init.vim', c => {
     lineHeight: c.get('line_height')-0
   })
 
-  configLoaded()
+  loadingConfig.done('')
 })
 
 const refreshCanvas = () => {
@@ -36,7 +35,7 @@ sub('colors.vim.bg', color => {
 
 const main = async () => {
   const { id, path } = await create()
-  await Promise.race([ initialConfig, timeout(500) ])
+  await Promise.race([ loadingConfig.promise, timeout(500) ])
   ui.setCursorShape(CursorShape.block)
   refreshCanvas()
   uiInput.focus()

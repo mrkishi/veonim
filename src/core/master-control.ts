@@ -147,6 +147,7 @@ export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
   })
 
   api.command(`let g:vn_loaded = 1`)
+  // TODO: this doesn't always work
   // TODO: there should be a more deterministic way to do this. i tried VimEnter autocmd but...
   askCd && setTimeout(() => api.command(`doautocmd <nomodeline> User VeonimStartupDir`), 11)
 
@@ -174,8 +175,6 @@ const { unblock } = NeovimUtils({ notify: api, request: req })
 export const onExit = (fn: ExitFn) => { onExitFn = fn }
 export const onRedraw = (fn: RedrawFn) => onEvent('redraw', fn)
 export const input = (keys: string) => api.input(keys)
-export const inputAndWait = (keys: string) => req.input(keys)
-export const callAtomic = (...calls: any[]) => req.callAtomic(calls)
 
 export const resize = (width: number, height: number) => {
   merge(clientSize, { width, height })
