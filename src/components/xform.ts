@@ -1,5 +1,4 @@
 import { transform, remapModifier, registerShortcut } from '../core/input'
-import * as windows from '../components/windows'
 import { is, fromJSON } from '../support/utils'
 import { action, call } from '../core/neovim'
 import { remote } from 'electron'
@@ -23,5 +22,3 @@ action('fullscreen', () => {
   const win = remote.getCurrentWindow()
   win.setFullScreen(!win.isFullScreen())
 })
-
-action('blarg', () => windows.render())

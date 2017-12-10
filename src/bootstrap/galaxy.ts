@@ -19,16 +19,6 @@ configReader('nvim/init.vim', c => {
     lineHeight: c.get('line_height')-0
   })
 
-  const margins = c.get('margins')-0
-  if (margins) ui.setMargins({ left: margins, right: margins, top: margins, bottom: margins })
-
-  ui.setMargins({
-    left: c.get('margin_left')-0,
-    right: c.get('margin_right')-0,
-    top: c.get('margin_top')-0,
-    bottom: c.get('margin_bottom')-0
-  })
-
   configLoaded()
 })
 

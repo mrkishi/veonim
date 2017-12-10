@@ -34,7 +34,6 @@ export interface TransferRegion {
 export interface CanvasGrid {
   rowToY(row: number): number,
   colToX(col: number): number,
-  setMargins(margins: { left?: number, right?: number, top?: number, bottom?: number }): CanvasGrid,
   resize(): CanvasGrid,
   setCursorColor(color: string): CanvasGrid,
   setCursorShape(type: CursorShape, size?: number): CanvasGrid,
@@ -55,7 +54,6 @@ export interface CanvasGrid {
   cursor: Cursor
 }
 
-const paddingContainer = document.getElementById('neovim-container') as HTMLElement
 const container = document.getElementById('canvas-container') as HTMLElement
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
@@ -123,14 +121,6 @@ api.setFont = ({ size = font.size, face = font.face, lineHeight = font.lineHeigh
   merge(font, { size, face, lineHeight })
   merge(cell, { width: Math.floor(ui.measureText('m').width), height: Math.floor(size * lineHeight) })
   cell.padding = Math.floor((cell.height - font.size) / 2)
-  return api
-}
-
-api.setMargins = ({ top, bottom, left, right }) => {
-  if (top) paddingContainer.style.paddingTop = top + 'px'
-  if (bottom) paddingContainer.style.paddingBottom = bottom + 'px'
-  if (left) paddingContainer.style.paddingLeft = left + 'px'
-  if (right) paddingContainer.style.paddingRight = right + 'px'
   return api
 }
 
