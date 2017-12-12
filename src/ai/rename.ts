@@ -1,13 +1,13 @@
-import { list, feedkeys, call, action, until, expr, current as vimState } from '../core/neovim'
-import { VimPatch, Operation, Patch } from '../langserv/patch'
+import { Buffer, ex, list, feedkeys, action, until, expr, current as vimState } from '../core/neovim'
 import * as updateService from '../ai/update-server'
-import patchFilesOnFS from '../langserv/patch-fs'
 import { rename } from '../langserv/adapter'
-import { getLine } from '../langserv/files'
 import { matchOn } from '../support/utils'
-import * as path from 'path'
+import { Patch } from '../langserv/patch'
 
-const currentBufferPath = () => path.join(vimState.cwd, vimState.file)
+interface PathBuf {
+  buffer: Buffer,
+  path: string,
+}
 
 // TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
 // or maybe figure out how to diff based on the partial modification
@@ -20,67 +20,36 @@ action('rename', async () => {
   updateService.resume()
   const patches = await rename({ ...vimState, newName })
 
-  // TODO: how does this work if the buffer is unnamed and not saved to fs?
-  const currentBufferPatch = patches
-    .filter(({ path }) => path === currentBufferPath())[0]
+  const buffers = await Promise.all((await list.buffers).map(async buffer => ({
+    buffer,
+    path: await buffer.name,
+  })))
 
-  // what is the performance impact? otherwise would be simpler code to have 2 methods)
-  // - patch current buffer via vimscript fns (actually, why not just use Neovim.Buffer methods?
-  // - patch all modified buffers (not saved to FS) via Neovim.Buffer.getLines/setLines
-  const modifiedBuffers = await call.ModifiedBuffers()
+  // TODO: this assumes all missing files are in the cwd
+  // TODO: badd allows the option of specifying a line number to position the curosr
+  // when loading the buffer. might be nice to use on a rename op. see :h badd
+  patches
+    .filter(p => buffers.some(b => b.path !== p.path))
+    .map(b => ex(`badd ${b.file}`))
 
-  const fsPatches = patches
-    .filter(({ path }) => path !== currentBufferPath() && !modifiedBuffers.includes(path))
-
-  const bufferPatches = patches
-    .filter(({ path }) => path !== currentBufferPath() && modifiedBuffers.includes(path))
-
-  applyPatchToBuffer(currentBufferPatch)
-  applyPatchesToModifiedBuffers(bufferPatches)
-  patchFilesOnFS(fsPatches)
+  applyPatchesToBuffers(patches, buffers)
 })
 
-const applyPatchesToModifiedBuffers = async (patches: Patch[]) => {
-  const patchPaths = patches.map(p => p.path)
-  const buffers = await list.buffers
-  const modBufs = await Promise.all(buffers.filter(async b => patchPaths.includes(await b.name)))
+// TODO: maybe this fn should be in common neovim utils or neovim.ts?
+const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => buffers.forEach(({ buffer, path }) => {
+  const patch = patches.find(p => p.path === path)
+  if (!patch) return
 
-  // TODO: yeah this thing is broke as fuck
-  modBufs.forEach(async b => {
-    const name = await b.name
-    const patch = patches.find(p => p.path === name)
-    if (!patch) return
+  // TODO: should do atomic calls for this?
+  // undo is two-stage chunk...
 
-    patch.operations.forEach(({ op, start, end, val }) => {
-      const line = start.line + 1
-
-      matchOn(op)({
-        delete: () => b.delete(line),
-        append: () => b.append(line, val),
-        replace: async () => {
-          const targetLine = await b.getLine(line)
-          const newLine = targetLine.slice(0, start.character) + val + targetLine.slice(end.character)
-          b.replace(line, newLine)
-        }
-      })
-    })
-  })
-}
-
-const mapVimPatch = ({ cwd, file, operations }: Patch): VimPatch[] => operations.map(({ op, start, end, val }) => {
-  const line = start.line + 1
-
-  if (op === Operation.Replace) {
-    const targetLine = getLine(cwd, file, line)
-    // TODO: does this apply to vim 1-index based lines/chars?
-    const newLine = targetLine.slice(0, start.character) + val + targetLine.slice(end.character)
-    return { op, line, val: newLine }
-  }
-
-  return { op, line, val }
+  patch.operations.forEach(({ op, start, end, val }) => matchOn(op)({
+    delete: () => buffer.delete(start.line),
+    append: () => buffer.append(start.line, val),
+    replace: async () => {
+      const targetLine = await buffer.getLine(start.line)
+      const newLine = targetLine.slice(0, start.character) + val + targetLine.slice(end.character)
+      buffer.replace(start.line, newLine)
+    }
+  }))
 })
-
-const applyPatchToBuffer = (patch: Patch) => {
-  const patchOps = mapVimPatch(patch)
-  call.PatchCurrentBuffer(patchOps)
-}

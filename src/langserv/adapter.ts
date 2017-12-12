@@ -2,7 +2,6 @@ import { Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolI
 import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from '../langserv/director'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
-import { update, getLine, getFile } from '../langserv/files'
 import { NeovimState } from '../core/neovim'
 
 export interface Symbol {
@@ -40,7 +39,18 @@ interface VimPosition {
   column: number,
 }
 
+interface CurrentBuffer {
+  cwd: string,
+  file: string,
+  contents: string[],
+}
+
 const openFiles = new Set<string>()
+const currentBuffer: CurrentBuffer = {
+  cwd: '',
+  file: '',
+  contents: [],
+}
 
 // TODO: get typings for valid requests?
 const toProtocol = (data: NeovimState, more?: any) => {
@@ -72,25 +82,27 @@ const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line, column } = toVimPosition(range.start)
   const cwd = uriAsCwd(uri)
   const file = uriAsFile(uri)
-  const desc = getLine(cwd, file, line)
+  const desc = currentBuffer.contents[line]
 
   return { cwd, file, line, column, desc }
 }
 
 const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
-  const buffer = await getFile(cwd, file)
-  const patched = buffer.slice()
-  Reflect.set(patched, line - 1, change)
-  update(cwd, file, patched)
+  if (currentBuffer.cwd !== cwd && currentBuffer.file !== file)
+    return console.error('trying to do a partial update before a full update has been done. normally before doing a partial update a bufEnter event happens which triggers a full update.', currentBuffer, cwd, file)
+  Reflect.set(currentBuffer.contents, line - 1, change)
 }
 
 export const fullBufferUpdate = (bufferState: BufferChange) => {
-  const { cwd, file, buffer, filetype } = bufferState
-  update(cwd, file, buffer)
+  const { cwd, file, buffer: contents, filetype } = bufferState
 
-  const content = { text: buffer.join('\n') }
+  merge(currentBuffer, { cwd, file, contents })
+
+  const content = { text: contents.join('\n') }
   const req = toProtocol(bufferState, { contentChanges: [ content ], filetype })
 
+  // TODO: keeping open buffers state here seems like a bad idea...
+  // shouldn't we check against vim buffer list?
   openFiles.has(cwd + file)
     ? notify.textDocument.didChange(req)
     : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
@@ -102,7 +114,7 @@ export const partialBufferUpdate = async (change: BufferChange) => {
 
   await patchBufferCacheWithPartial(cwd, file, buffer[0], line)
 
-  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, buffer: await getFile(cwd, file) })
+  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, buffer: currentBuffer.contents })
 
   const content = {
     text: buffer[0],
@@ -114,6 +126,8 @@ export const partialBufferUpdate = async (change: BufferChange) => {
 
   const req = toProtocol(change, { contentChanges: [ content ], filetype })
 
+  // TODO: keeping open buffers state here seems like a bad idea...
+  // shouldn't we check against vim buffer list?
   openFiles.has(cwd + file)
     ? notify.textDocument.didChange(req)
     : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))

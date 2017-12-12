@@ -59,6 +59,31 @@ export interface NeovimState {
   bg: string,
 }
 
+export interface Buffer {
+  id: any,
+  length: Promise<number>,
+  getLines(start: number, end: number): Promise<string[]>,
+  getLine(start: number): Promise<string>,
+  setLines(start: number, end: number, replacement: string[]): void,
+  delete(start: number): void,
+  append(start: number, lines: string | string[]): void,
+  replace(start: number, line: string): void,
+  getKeymap(mode: string): Promise<any>,
+  changedtick: Promise<number>,
+  getVar(name: string): Promise<any>,
+  setVar(name: string, value: any): void,
+  delVar(name: string): void,
+  getOption(name: string): Promise<any>,
+  setOption(name: string, value: any): void,
+  number: Promise<number>,
+  name: Promise<string>,
+  setName(name: string): void,
+  valid: Promise<boolean>,
+  getMark(name: string): Promise<number[]>,
+  addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>,
+  clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void,
+}
+
 const prefix = {
   core: prefixWith(Prefixes.Core),
   buffer: prefixWith(Prefixes.Buffer),
@@ -112,8 +137,8 @@ export const raw = {
 
 // trying to do dynamic introspection (obj vs arr) messy with typings. (also a bit slower)
 export const as = {
-  buf: (p: Promise<ExtContainer>) => p.then(e => new VBuffer(e.id)),
-  bufl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VBuffer(e.id))),
+  buf: (p: Promise<ExtContainer>): Promise<Buffer> => p.then(e => Buffer(e.id)),
+  bufl: (p: Promise<ExtContainer[]>): Promise<Buffer[]> => p.then(m => m.map(e => Buffer(e.id))),
   win: (p: Promise<ExtContainer>) => p.then(e => new VWindow(e.id)),
   winl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VWindow(e.id))),
   tab: (p: Promise<ExtContainer>) => p.then(e => new VTabpage(e.id)),
@@ -332,106 +357,36 @@ define.ModifiedBuffers`
   return map(filter(map(bufs, {key, val -> { 'path': expand('#'.val.':p'), 'mod': getbufvar(val, '&mod') }}), {key, val -> val.mod == 1}), {key, val -> val.path})
 `
 
-define.PatchCurrentBuffer`
-  let pos = getcurpos()
-  let patch = a:1
-  for chg in patch
-    if chg.op == 'delete'
-      exec chg.line . 'd'
-    elseif chg.op == 'replace'
-      call setline(chg.line, chg.val)
-    elseif chg.op == 'append'
-      call append(chg.line, chg.val)
-    end
-  endfor
-  call cursor(pos[1:])
-`
-
-export const VBuffer = class VBuffer {
-  public id: any
-  constructor (id: any) { this.id = id }
-
-  get length() {
-    return req.buf.lineCount(this.id)
-  }
-
-  getLines(start: number, end: number, strict_indexing: boolean) {
-    return req.buf.getLines(this.id, start, end, strict_indexing)
-  }
-
-  getLine(start: number) {
-    return this.getLines(start, start + 1, true)
-  }
-
-  setLines(start: number, end: number, strict_indexing: boolean, replacement: string[]) {
-    api.buf.setLines(this.id, start, end, strict_indexing, replacement)
-  }
-
-  delete(start: number) {
-    this.setLines(start, start + 1, false, [])
-  }
-
-  append(start: number, lines: string | string[]) {
+const Buffer = (id: any) => ({
+  id,
+  get length() { return req.buf.lineCount(id) },
+  append: async (start, lines) => {
     const replacement = is.array(lines) ? lines as string[] : [lines as string]
-    this.setLines(start + 1, start + 1 + replacement.length, false, replacement)
-  }
+    const linesBelow = await req.buf.getLines(id, start + 1, -1, false)
+    const newLines = [...replacement, ...linesBelow]
 
-  replace(start: number, line: string) {
-    this.setLines(start, start + 1, true, [line])
-  }
-
-  getVar(name: string) {
-    return req.buf.getVar(this.id, name)
-  }
-
-  get changedtick() {
-    return req.buf.getChangedtick(this.id)
-  }
-
-  setVar(name: string, value: any) {
-    api.buf.setVar(this.id, name, value)
-  }
-
-  delVar(name: string) {
-    api.buf.delVar(this.id, name)
-  }
-
-  getOption(name: string) {
-    return req.buf.getOption(this.id, name)
-  }
-
-  setOption(name: string, value: any) {
-    api.buf.setOption(this.id, name, value)
-  }
-
-  get number() {
-    return req.buf.getNumber(this.id)
-  }
-
-  get name(): string | Promise<string> {
-    return req.buf.getName(this.id)
-  }
-
-  set name(value: string | Promise<string>) {
-    api.buf.setName(this.id, value as string)
-  }
-
-  isValid() {
-    return req.buf.isValid(this.id)
-  }
-
-  getMark(name: string) {
-    return req.buf.getMark(this.id, name)
-  }
-
-  addHighlight(src_id: number, hl_group: string, line: number, col_start: number, col_end: number) {
-    return req.buf.addHighlight(this.id, src_id, hl_group, line, col_start, col_end)
-  }
-
-  clearHighlight(src_id: number, line_start: number, line_end: number) {
-    api.buf.clearHighlight(this.id, src_id, line_start, line_end)
-  }
-}
+    api.buf.setLines(id, start + 1, start + 1 + newLines.length, false, newLines)
+  },
+  getLines: (start, end) => req.buf.getLines(id, start, end, true),
+  getLine: start => req.buf.getLines(id, start, start + 1, true).then(m => m[0]),
+  setLines: (start, end, lines) => api.buf.setLines(id, start, end, true, lines),
+  delete: start => api.buf.setLines(id, start, start + 1, true, []),
+  replace: (start, line) => api.buf.setLines(id, start, start + 1, false, [ line ]),
+  getVar: name => req.buf.getVar(id, name),
+  get changedtick() { return req.buf.getChangedtick(id) },
+  setVar: (name, value) => api.buf.setVar(id, name, value),
+  getKeymap: mode => req.buf.getKeymap(id, mode),
+  delVar: name => api.buf.delVar(id, name),
+  getOption: name => req.buf.getOption(id, name),
+  setOption: (name, value) => api.buf.setOption(id, name, value),
+  get number() { return req.buf.getNumber(id) },
+  get name() { return req.buf.getName(id) },
+  setName: name => api.buf.setName(id, name),
+  get valid() { return req.buf.isValid(id) },
+  getMark: name => req.buf.getMark(id, name),
+  addHighlight: (sourceId, hlGroup, line, colStart, colEnd) => req.buf.addHighlight(id, sourceId, hlGroup, line, colStart, colEnd),
+  clearHighlight: (sourceId, lineStart, lineEnd) => api.buf.clearHighlight(id, sourceId, lineStart, lineEnd),
+} as Buffer)
 
 export const VWindow = class VWindow {
   public id: any

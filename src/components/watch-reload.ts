@@ -6,7 +6,7 @@ import { join } from 'path'
 
 const sessions = new Map<number, Set<string>>()
 const watchers = new Map<string, any>()
-let currentSession: Set<string>
+let currentSession = new Set<string>()
 
 const anySessionsHaveFile = (file: string) => [...sessions.values()].some(s => s.has(file))
 
