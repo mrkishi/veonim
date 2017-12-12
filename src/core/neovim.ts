@@ -16,6 +16,7 @@ interface Autocmd {
   [index: string]: AutocmdEvent & AutocmdArgEvent,
 }
 
+type AtomicCall = [string, any[]]
 type EventCallback = (state: NeovimState) => void
 
 interface Event {
@@ -130,6 +131,7 @@ const api = {
   tab: onFnCall((name: string, args: any[]) => notify(prefix.tabpage(name), args)) as ITabpage,
 }
 
+
 export const raw = {
   notify: api.core,
   request: req.core,
@@ -157,6 +159,7 @@ export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
 export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
 export const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
+export const callAtomic = (calls: AtomicCall[]) => req.core.callAtomic(calls)
 export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
   registeredEventActions.add(event)
@@ -349,12 +352,6 @@ define.Buffers`
 define.Commands`
   silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"
   return split(cmds, '\\\\s\\\\+')
-`
-
-define.ModifiedBuffers`
-  let current = bufnr('%')
-  let bufs = filter(range(0, bufnr('$')), 'buflisted(v:val)')
-  return map(filter(map(bufs, {key, val -> { 'path': expand('#'.val.':p'), 'mod': getbufvar(val, '&mod') }}), {key, val -> val.mod == 1}), {key, val -> val.path})
 `
 
 const Buffer = (id: any) => ({
