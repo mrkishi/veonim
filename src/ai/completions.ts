@@ -70,6 +70,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   const showCompletions = (completions: CompletionOption[]) => {
     const options = orderCompletions(completions, query)
     g.veonim_completions = options.map(m => m.text)
+    g.veonim_complete_pos = startIndex
     const { x, y } = calcMenuPosition(startIndex, column, options.length)
     completionUI.show({ x, y, options })
   }
@@ -120,8 +121,6 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     }
 
     showCompletions(completionOptions)
-
-    g.veonim_complete_pos = startIndex
   } else {
     completionUI.hide()
     g.veonim_completions = []

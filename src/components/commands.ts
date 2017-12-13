@@ -47,6 +47,7 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 
 const ui = app({ state, view, actions: a })
 
+// TODO: deprecate Commands and have neovim send back wildmenu results without having to hit Tab
 action('commands', async () => {
   const cmds = await call.Commands()
   ui.show(cmds)

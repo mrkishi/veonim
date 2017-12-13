@@ -379,6 +379,7 @@ const Buffer = (id: any) => ({
   clearHighlight: (sourceId, lineStart, lineEnd) => api.buf.clearHighlight(id, sourceId, lineStart, lineEnd),
 } as Buffer)
 
+// TODO: classes suck
 export const VWindow = class VWindow {
   public id: any
   constructor (id: any) { this.id = id }
@@ -448,6 +449,7 @@ export const VWindow = class VWindow {
   }
 }
 
+// TODO: classes suck
 export const VTabpage = class VTabpage {
   public id: any
   constructor (id: any) { this.id = id }
