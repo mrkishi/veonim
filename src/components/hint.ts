@@ -101,17 +101,25 @@ a.hide = () => ({ label: '', vis: false, row: 0 })
 
 const ui = app({ state, view, actions: a }, false)
 
-export const show = ({ row, col, label, currentParam, info }: ShowParams) => {
+const sliceAndDiceLabel = (label: string, currentParam: string) => {
   const paramStart = label.indexOf(currentParam)
+  const labelStart = label.slice(0, paramStart)
+  const activeParam = label.slice(paramStart, paramStart + currentParam.length)
+  const labelEnd = label.slice(paramStart + currentParam.length)
+  return { labelStart, labelEnd, activeParam }
+}
+
+export const show = ({ row, col, label, currentParam, info }: ShowParams) => {
+  const { labelStart, labelEnd, activeParam } = sliceAndDiceLabel(label, currentParam)
 
   ui.show({
     row,
     col,
     info,
     label,
-    labelStart: label.slice(0, paramStart),
-    currentParam: label.slice(paramStart, paramStart + currentParam.length),
-    labelEnd: label.slice(paramStart + currentParam.length),
+    labelStart,
+    labelEnd,
+    currentParam: activeParam,
   })
 }
 
