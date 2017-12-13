@@ -62,27 +62,58 @@ export interface NeovimState {
 
 export interface Buffer {
   id: any,
+  number: Promise<number>,
+  valid: Promise<boolean>,
+  name: Promise<string>,
   length: Promise<number>,
+  changedtick: Promise<number>,
+  append(start: number, lines: string | string[]): void,
   getLines(start: number, end: number): Promise<string[]>,
   getLine(start: number): Promise<string>,
   setLines(start: number, end: number, replacement: string[]): void,
   delete(start: number): void,
-  append(start: number, lines: string | string[]): void,
   replace(start: number, line: string): void,
   getKeymap(mode: string): Promise<any>,
-  changedtick: Promise<number>,
   getVar(name: string): Promise<any>,
   setVar(name: string, value: any): void,
   delVar(name: string): void,
   getOption(name: string): Promise<any>,
   setOption(name: string, value: any): void,
-  number: Promise<number>,
-  name: Promise<string>,
   setName(name: string): void,
-  valid: Promise<boolean>,
   getMark(name: string): Promise<number[]>,
   addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>,
   clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void,
+}
+
+export interface Window {
+  id: any,
+  number: Promise<number>,
+  valid: Promise<boolean>,
+  tab: Promise<Tabpage>,
+  buffer: Promise<Buffer>,
+  cursor: Promise<number[]>,
+  position: Promise<number[]>,
+  height: Promise<number>,
+  width: Promise<number>,
+  setCursor(row: number, col: number): void,
+  setHeight(height: number): void,
+  setWidth(width: number): void,
+  getVar(name: string): Promise<any>,
+  setVar(name: string, value: any): void,
+  delVar(name: string): void,
+  getOption(name: string): Promise<any>,
+  setOption(name: string, value: any): void,
+}
+
+export interface Tabpage {
+  id: any,
+  number: Promise<number>,
+  valid: Promise<boolean>,
+  window: Promise<Window>,
+  windows: Promise<Window[]>,
+  getVar(name: string): Promise<any>,
+  setVar(name: string, value: any): void,
+  delVar(name: string): void,
 }
 
 const prefix = {
@@ -131,7 +162,6 @@ const api = {
   tab: onFnCall((name: string, args: any[]) => notify(prefix.tabpage(name), args)) as ITabpage,
 }
 
-
 export const raw = {
   notify: api.core,
   request: req.core,
@@ -141,10 +171,10 @@ export const raw = {
 export const as = {
   buf: (p: Promise<ExtContainer>): Promise<Buffer> => p.then(e => Buffer(e.id)),
   bufl: (p: Promise<ExtContainer[]>): Promise<Buffer[]> => p.then(m => m.map(e => Buffer(e.id))),
-  win: (p: Promise<ExtContainer>) => p.then(e => new VWindow(e.id)),
-  winl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VWindow(e.id))),
-  tab: (p: Promise<ExtContainer>) => p.then(e => new VTabpage(e.id)),
-  tabl: (p: Promise<ExtContainer[]>) => p.then(m => m.map(e => new VTabpage(e.id))),
+  win: (p: Promise<ExtContainer>): Promise<Window> => p.then(e => Window(e.id)),
+  winl: (p: Promise<ExtContainer[]>): Promise<Window[]> => p.then(m => m.map(e => Window(e.id))),
+  tab: (p: Promise<ExtContainer>): Promise<Tabpage> => p.then(e => Tabpage(e.id)),
+  tabl: (p: Promise<ExtContainer[]>): Promise<Tabpage[]> => p.then(m => m.map(e => Tabpage(e.id))),
 }
 
 const subscribe = (event: string, fn: (data: any) => void) => {
@@ -350,7 +380,11 @@ define.Commands`
 
 const Buffer = (id: any) => ({
   id,
+  get number() { return req.buf.getNumber(id) },
+  get valid() { return req.buf.isValid(id) },
+  get name() { return req.buf.getName(id) },
   get length() { return req.buf.lineCount(id) },
+  get changedtick() { return req.buf.getChangedtick(id) },
   append: async (start, lines) => {
     const replacement = is.array(lines) ? lines as string[] : [lines as string]
     const linesBelow = await req.buf.getLines(id, start + 1, -1, false)
@@ -364,121 +398,44 @@ const Buffer = (id: any) => ({
   delete: start => api.buf.setLines(id, start, start + 1, true, []),
   replace: (start, line) => api.buf.setLines(id, start, start + 1, false, [ line ]),
   getVar: name => req.buf.getVar(id, name),
-  get changedtick() { return req.buf.getChangedtick(id) },
   setVar: (name, value) => api.buf.setVar(id, name, value),
   getKeymap: mode => req.buf.getKeymap(id, mode),
   delVar: name => api.buf.delVar(id, name),
   getOption: name => req.buf.getOption(id, name),
   setOption: (name, value) => api.buf.setOption(id, name, value),
-  get number() { return req.buf.getNumber(id) },
-  get name() { return req.buf.getName(id) },
   setName: name => api.buf.setName(id, name),
-  get valid() { return req.buf.isValid(id) },
   getMark: name => req.buf.getMark(id, name),
   addHighlight: (sourceId, hlGroup, line, colStart, colEnd) => req.buf.addHighlight(id, sourceId, hlGroup, line, colStart, colEnd),
   clearHighlight: (sourceId, lineStart, lineEnd) => api.buf.clearHighlight(id, sourceId, lineStart, lineEnd),
 } as Buffer)
 
-// TODO: classes suck
-export const VWindow = class VWindow {
-  public id: any
-  constructor (id: any) { this.id = id }
+const Window = (id: any) => ({
+  id,
+  get number() { return req.win.getNumber(id) },
+  get valid() { return req.win.isValid(id) },
+  get tab() { return as.tab(req.win.getTabpage(id)) },
+  get buffer() { return as.buf(req.win.getBuf(id)) },
+  get cursor() { return req.win.getCursor(id) },
+  get position() { return req.win.getPosition(id) },
+  get height() { return req.win.getHeight(id) },
+  get width() { return req.win.getWidth(id) },
+  setCursor: (row, col) => api.win.setCursor(id, [ row, col ]),
+  setHeight: height => api.win.setHeight(id, height),
+  setWidth: width => api.win.setWidth(id, width),
+  getVar: name => req.win.getVar(id, name),
+  setVar: (name, val) => api.win.setVar(id, name, val),
+  delVar: name => api.win.delVar(id, name),
+  getOption: name => req.win.getOption(id, name),
+  setOption: (name, val) => api.win.setOption(id, name, val),
+} as Window)
 
-  get buffer() {
-    return req.win.getBuf(this.id)
-  }
-
-  get cursor(): number[] | Promise<number[]> {
-    return req.win.getCursor(this.id)
-  }
-
-  set cursor(pos: number[] | Promise<number[]>) {
-    api.win.setCursor(this.id, pos as number[])
-  }
-
-  get height(): number | Promise<number> {
-    return req.win.getHeight(this.id)
-  }
-
-  set height(height: number | Promise<number>) {
-    api.win.setHeight(this.id, height as number)
-  }
-
-  get width(): number | Promise<number> {
-    return req.win.getWidth(this.id)
-  }
-
-  set width(width: number | Promise<number>) {
-    api.win.setWidth(this.id, width as number)
-  }
-
-  getVar(name: string) {
-    return req.win.getVar(this.id, name)
-  }
-
-  setVar(name: string, value: any) {
-    api.win.setVar(this.id, name, value)
-  }
-
-  delVar(name: string) {
-    api.win.delVar(this.id, name)
-  }
-
-  getOption(name: string) {
-    return req.win.getOption(this.id, name)
-  }
-
-  setOption(name: string, value: any) {
-    api.win.setOption(this.id, name, value)
-  }
-
-  get position() {
-    return req.win.getPosition(this.id)
-  }
-
-  get tab() {
-    return as.tab(req.win.getTabpage(this.id))
-  }
-
-  get number() {
-    return req.win.getNumber(this.id)
-  }
-
-  isValid() {
-    return req.win.isValid(this.id)
-  }
-}
-
-// TODO: classes suck
-export const VTabpage = class VTabpage {
-  public id: any
-  constructor (id: any) { this.id = id }
-
-  get windows() {
-    return as.winl(req.tab.listWins(this.id))
-  }
-
-  getVar(name: string) {
-    return req.tab.getVar(this.id, name)
-  }
-
-  setVar(name: string, value: any) {
-    api.tab.setVar(this.id, name, value)
-  }
-
-  delVar(name: string) {
-    api.tab.delVar(this.id, name)
-  }
-
-  get win() {
-    return as.win(req.tab.getWin(this.id))
-  }
-
-  get number() {
-    return req.tab.getNumber(this.id)
-  }
-
-  isValid() {
-    return req.tab.isValid(this.id)
-  }
-}
+const Tabpage = (id: any) => ({
+  id,
+  get number() { return req.tab.getNumber(id) },
+  get valid() { return req.tab.isValid(id) },
+  get window() { return as.win(req.tab.getWin(id)) },
+  get windows() { return as.winl(req.tab.listWins(id)) },
+  getVar: name => req.tab.getVar(id, name),
+  setVar: (name, val) => api.tab.setVar(id, name, val),
+  delVar: name => api.tab.delVar(id, name),
+} as Tabpage)
