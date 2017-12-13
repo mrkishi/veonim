@@ -343,12 +343,6 @@ define.CompleteScroll`
   return a:1 ? "\\<tab>" : "\\<c-w>"
 `
 
-define.Buffers`
-  let current = bufnr('%')
-  let bufs = filter(range(0, bufnr('$')), 'buflisted(v:val)')
-  return map(bufs, {key, val -> { 'name': bufname(val), 'cur': val == current, 'mod': getbufvar(val, '&mod') }})
-`
-
 define.Commands`
   silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"
   return split(cmds, '\\\\s\\\\+')

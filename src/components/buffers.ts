@@ -1,37 +1,62 @@
-import { action, current, call, cmd } from '../core/neovim'
+import { list, action, current, getCurrent, cmd } from '../core/neovim'
 import { VimBuffer } from '../core/vim-functions'
 import { h, app, Actions } from '../ui/uikit'
 import TermInput from '../components/input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
-import { merge } from '../support/utils'
+import { homedir } from 'os'
 
-interface BufferInfo { name: string, base: string, modified?: boolean, dir: string, duplicate: boolean }
-interface State { val: string, buffers: BufferInfo[], cache: BufferInfo[], vis: boolean, ix: number }
+interface BufferInfo {
+  name: string,
+  base: string,
+  modified?: boolean,
+  dir: string,
+  duplicate: boolean
+}
+
+interface State {
+  val: string,
+  buffers: BufferInfo[],
+  cache: BufferInfo[],
+  vis: boolean,
+  ix: number
+}
+
+const $HOME = homedir()
+
+const simplifyHomedir = (path: string) => path.includes($HOME)
+  ? path.replace($HOME, '~')
+  : path
 
 const cleanup = (fullpath: string, cwd: string) => fullpath.includes(cwd)
   ? fullpath.split(cwd + '/')[1]
-  : fullpath
+  : simplifyHomedir(fullpath)
+
+const getVimBuffers = async () => {
+  const buffers = await list.buffers
+  const currentBufferId = (await getCurrent.buffer).id
+
+  return await Promise.all(buffers.map(async b => ({
+    name: await b.name,
+    cur: b.id === currentBufferId,
+    mod: await b.getOption('modified'),
+  })))
+}
 
 const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
-  const buffers = await call.Buffers()
+  const buffers = await getVimBuffers()
   if (!buffers) return []
   
-   return buffers
-     .filter((m: VimBuffer, ix: number, arr: any[]) => arr.findIndex(e => e.name === m.name) === ix)
-     .filter((m: VimBuffer) => !m.cur)
-     .map(({ name, mod }) => ({
-       name,
-       base: basename(name),
-       modified: mod,
-       dir: cleanup(dirname(name), cwd)
-     }))
-    .map((m, ix, arr) => merge(m, {
-      duplicate: arr.some((n, ixf) => ixf !== ix && n.base === m.base)
+  return buffers
+    .filter((m: VimBuffer) => !m.cur)
+    .map(({ name, mod }) => ({
+      name,
+      base: basename(name),
+      modified: mod,
+      dir: cleanup(dirname(name), cwd)
     }))
-    .map(m => merge(m, {
-      name: m.duplicate ? `${m.dir}/${m.base}` : m.base,
-    }))
+    .map((m, ix, arr) => ({ ...m, duplicate: arr.some((n, ixf) => ixf !== ix && n.base === m.base) }))
+    .map(m => ({ ...m, name: m.duplicate ? `${m.dir}/${m.base}` : m.base }))
 }
 
 const state: State = { val: '', buffers: [], cache: [], vis: false, ix: 0 }
@@ -39,7 +64,7 @@ const state: State = { val: '', buffers: [], cache: [], vis: false, ix: 0 }
 const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#buffers.plugin', {
   hide: !vis
 }, [
-  h('.dialog.medium', [
+  h('.dialog.large', [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
     h('.row', { render: !buffers.length }, '...'),
@@ -78,7 +103,4 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.ix - 1
 
 const ui = app({ state, view, actions: a })
 
-action('buffers', async () => {
-  const buffers = await getBuffers(current.cwd)
-  ui.show(buffers)
-})
+action('buffers', async () => ui.show(await getBuffers(current.cwd)))
