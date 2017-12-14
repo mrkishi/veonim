@@ -52,6 +52,7 @@ export interface CanvasGrid {
   readonly cols: number,
   readonly rows: number,
   cursor: Cursor
+  readonly fontSize: number,
 }
 
 const container = document.getElementById('canvas-container') as HTMLElement
@@ -89,6 +90,7 @@ const api = {
   cursor,
   get cols () { return grid.cols },
   get rows () { return grid.rows },
+  get fontSize () { return font.size },
 } as CanvasGrid
 
 api.rowToY = row => px.row.y(row)

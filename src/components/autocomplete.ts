@@ -1,11 +1,29 @@
 import { CompletionOption } from '../ai/completions'
 import { h, app, Actions } from '../ui/uikit'
+import Icon from '../components/icon'
 import { translate } from '../ui/css'
 
-interface State { options: CompletionOption[], vis: boolean, ix: number, x: number, y: number }
-interface ShowParams { x: number, y: number, options: CompletionOption[] }
+interface State {
+  options: CompletionOption[],
+  vis: boolean,
+  ix: number,
+  x: number,
+  y: number,
+}
 
-const state: State = { options: [], vis: false, ix: 0, x: 0, y: 0 }
+interface ShowParams {
+  x: number,
+  y: number,
+  options: CompletionOption[],
+}
+
+const state: State = {
+  options: [],
+  vis: false,
+  ix: 0,
+  x: 0,
+  y: 0,
+}
 
 const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
   hide: !vis,
@@ -20,8 +38,12 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
   h('div', options.map(({ text }, id) => h('.row.complete', {
     key: id,
     css: { active: id === ix },
+    style: {
+      display: 'flex',
+      'align-items': 'center',
+    }
   }, [
-    // TODO: icon for CompletionItemKind
+    Icon('box', '#7fe2cd'),
     h('span', text)
   ])))
 ])
