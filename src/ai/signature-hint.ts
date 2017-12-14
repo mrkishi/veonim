@@ -23,21 +23,48 @@ const shouldCloseSignatureHint = (totalParams: number, currentParam: number, tri
     || (leftChar === ']' && triggers.includes('['))
 }
 
+const cursorPos = () => ({ row: vimUI.cursor.row, col: vimUI.cursor.col })
+
 const showSignature = (signatures: SignatureInformation[], which?: number | null, param?: number | null) => {
   const { label = '', documentation = '', parameters = [] } = signatures[which || 0]
-  const { label: currentParam = '' } = parameters[param || 0]
+  const activeParameter = param || 0
 
-  cache.totalParams = parameters.length
+  const baseOpts = { ...cursorPos(), totalSignatures: signatures.length }
 
-  hintUI.show({
-    label,
-    currentParam,
-    row: vimUI.cursor.row,
-    col: vimUI.cursor.col,
-    info: documentation,
-    selectedSignature: (which || 0) + 1,
-    totalSignatures: signatures.length,
-  })
+  if (activeParameter < parameters.length) {
+    const { label: currentParam = '' } = parameters[activeParameter]
+    cache.totalParams = parameters.length
+
+    hintUI.show({
+      ...baseOpts,
+      label,
+      currentParam,
+      documentation,
+      selectedSignature: (which || 0) + 1,
+    })
+  }
+
+  else {
+    const nextSignatureIndex = signatures
+      .slice()
+      .filter(s => s.parameters && s.parameters.length)
+      .sort((a, b) => a.parameters!.length - b.parameters!.length)
+      .findIndex(s => s.parameters!.length > activeParameter)
+
+    if (!~nextSignatureIndex) return hintUI.hide()
+
+    const { label = '', documentation = '', parameters = [] } = signatures[nextSignatureIndex]
+    const { label: currentParam = '' } = parameters[activeParameter]
+    merge(cache, { selectedSignature: nextSignatureIndex, totalParams: parameters.length })
+
+    hintUI.show({
+      ...baseOpts,
+      label,
+      currentParam,
+      documentation,
+      selectedSignature: nextSignatureIndex + 1,
+    })
+  }
 }
 
 const getSignatureHint = async (lineContent: string) => {
@@ -45,10 +72,10 @@ const getSignatureHint = async (lineContent: string) => {
   const leftChar = lineContent[Math.max(vimState.column - 2, 0)]
 
   // TODO: should probably also hide if we jumped to another line
-  if (shouldCloseSignatureHint(cache.totalParams, cache.currentParam, triggerChars, leftChar)) {
-    hintUI.hide()
-    return
-  }
+  // how do we determine the difference between multiline signatures and exit signature?
+  // would need to check if cursor is outside of func brackets doShit(    )   | <- cursor
+  const closeSignatureHint = shouldCloseSignatureHint(cache.totalParams, cache.currentParam, triggerChars, leftChar)
+  if (closeSignatureHint) return hintUI.hide()
 
   if (!triggerChars.includes(leftChar)) return
 
@@ -57,8 +84,6 @@ const getSignatureHint = async (lineContent: string) => {
 
   const { activeParameter, activeSignature, signatures = [] } = hint
   if (!signatures.length) return
-
-  console.log('signature hints:', signatures.length)
 
   merge(cache, { signatures, currentParam: activeParameter, selectedSignature: 0 })
   showSignature(signatures, activeSignature, activeParameter)

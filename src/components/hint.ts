@@ -9,7 +9,7 @@ interface State {
   labelStart: string,
   currentParam: string,
   labelEnd: string,
-  info: string,
+  documentation: string,
   vis: boolean,
   x: number,
   y: number,
@@ -23,7 +23,7 @@ interface ShowParams {
   col: number,
   label: string,
   currentParam: string,
-  info?: string,
+  documentation?: string,
   totalSignatures: number,
   selectedSignature: number,
 }
@@ -34,7 +34,7 @@ const state: State = {
   labelStart: '',
   currentParam: '',
   labelEnd: '',
-  info: '',
+  documentation: '',
   vis: false,
   x: 0,
   y: 0,
@@ -66,11 +66,14 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, sel
       const { width } = e.getBoundingClientRect()
       const okSize = Math.floor(window.innerWidth * 0.7)
       spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${x}px`
-      e.style[(<any>'opacity')] = '1'
+      // TODO: this was used for figuring out placement, but it was causing flickering
+      // on every update, so temp disable to see how bad it is without pre-emptive pos calc
+      //e.style[(<any>'opacity')] = '1'
     }, 1),
     style: {
       transform: anchorBottom ? `translateY(-100%)` : undefined,
-      opacity: '0',
+      // TODO: need this?
+      //opacity: '0',
     }
   }, [
     h('.hover', {
@@ -89,7 +92,13 @@ const a: Actions<State> = {}
 
 // this equals check will not refresh if we do sig hint calls > 1 on the same row... problem? umad?
 a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selectedSignature, totalSignatures }) => s.label === label && s.row === row
-  ? { label, labelStart, currentParam, labelEnd, vis: true }
+  ? {
+    label,
+    labelStart,
+    currentParam,
+    labelEnd,
+    vis: true
+  }
   : {
     row,
     label,
@@ -116,13 +125,13 @@ const sliceAndDiceLabel = (label: string, currentParam: string) => {
   return { labelStart, labelEnd, activeParam }
 }
 
-export const show = ({ row, col, label, currentParam, info, selectedSignature, totalSignatures }: ShowParams) => {
+export const show = ({ row, col, label, currentParam, documentation, selectedSignature, totalSignatures }: ShowParams) => {
   const { labelStart, labelEnd, activeParam } = sliceAndDiceLabel(label, currentParam)
 
   ui.show({
     row,
     col,
-    info,
+    documentation,
     label,
     labelStart,
     labelEnd,
