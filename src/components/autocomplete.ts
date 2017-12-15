@@ -28,8 +28,8 @@ const state: State = {
 
 const getCompletionIcon = (kind: CompletionItemKind) => {
   if (kind === CompletionItemKind.Text) return Icon('shield')
-  if (kind === CompletionItemKind.Method) return Icon('box', '#a673dd')
-  if (kind === CompletionItemKind.Property) return Icon('disc', '#7fe2cd')
+  if (kind === CompletionItemKind.Method) return Icon('box', '#bb5ef1')
+  if (kind === CompletionItemKind.Property) return Icon('disc', '#54c8ff')
   else {
     console.warn('please implement icon for:', kind)
     return Icon('code')
@@ -51,19 +51,22 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
     css: { active: id === ix },
     style: {
       display: 'flex',
-      'align-items': 'center',
     }
   }, [
-    h('span', {
+    h('div', {
       style: {
+        display: 'flex',
         'margin-left': '-8px',
-        background: '#ccc',
+        background: 'rgba(255, 255, 255, 0.03)',
         width: '24px',
+        'margin-right': '8px',
+        'align-items': 'center',
+        'justify-content': 'center',
       }
     }, [
       getCompletionIcon(kind),
     ]),
-    h('span', text)
+    h('div', text)
   ])))
 ])
 
