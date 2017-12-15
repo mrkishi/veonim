@@ -1,3 +1,4 @@
+import { CompletionItemKind } from 'vscode-languageserver-types'
 import { CompletionOption } from '../ai/completions'
 import { h, app, Actions } from '../ui/uikit'
 import Icon from '../components/icon'
@@ -25,6 +26,16 @@ const state: State = {
   y: 0,
 }
 
+const getCompletionIcon = (kind: CompletionItemKind) => {
+  if (kind === CompletionItemKind.Text) return Icon('shield')
+  if (kind === CompletionItemKind.Method) return Icon('box', '#a673dd')
+  if (kind === CompletionItemKind.Property) return Icon('disc', '#7fe2cd')
+  else {
+    console.warn('please implement icon for:', kind)
+    return Icon('code')
+  }
+}
+
 const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
   hide: !vis,
   style: {
@@ -35,7 +46,7 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
     transform: translate(x, y),
   }
 }, [
-  h('div', options.map(({ text }, id) => h('.row.complete', {
+  h('div', options.map(({ text, kind }, id) => h('.row.complete', {
     key: id,
     css: { active: id === ix },
     style: {
@@ -43,7 +54,15 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
       'align-items': 'center',
     }
   }, [
-    Icon('box', '#7fe2cd'),
+    h('span', {
+      style: {
+        'margin-left': '-8px',
+        background: '#ccc',
+        width: '24px',
+      }
+    }, [
+      getCompletionIcon(kind),
+    ]),
     h('span', text)
   ])))
 ])
