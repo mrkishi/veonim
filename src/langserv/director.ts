@@ -1,8 +1,9 @@
+import { Diagnostic } from 'vscode-languageserver-types'
 import defaultCapabs from '../langserv/capabilities'
+import { proxyFn, Watchers } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
 import { Server } from '../messaging/jsonrpc'
-import { proxyFn } from '../support/utils'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }
@@ -15,18 +16,13 @@ interface ActiveServer extends Server {
   canDo: Result & QueryableObject
 }
 
-interface RequestHandler {
-  method: string,
-  cb: (arg: any) => any,
-}
-
 export enum SyncKind { None, Full, Incremental }
 
 const derp = (e: any) => console.error(e)
 const servers = new Map<string, ActiveServer>()
 const startingServers = new Set<string>()
 const serverStartCallbacks = new Set<Function>()
-const serverRequestHandlers: RequestHandler[] = []
+const watchers = new Watchers()
 
 const runningServers = {
   has: (cwd: string, type: string) => servers.has(`${cwd}::${type}`),
@@ -43,7 +39,7 @@ const initServer = async (server: Server, cwd: string, filetype: string) => {
   server.notify.initialized()
 
   runningServers.add(cwd, filetype, { ...server, canDo })
-  serverStartCallbacks.forEach(fn => fn(cwd, filetype))
+  serverStartCallbacks.forEach(fn => fn(server))
 
   dispatch.pub('langserv:start.success', filetype)
 }
@@ -108,7 +104,7 @@ export const notify = {
   workspace: registerDynamicCaller('workspace', { notify: true }),
 }
 
-export const onServerStart = (fn: (cwd: string, filetype: string) => void) => {
+export const onServerStart = (fn: (server: Server) => void) => {
   serverStartCallbacks.add(fn)
   return () => serverStartCallbacks.delete(fn)
 }
@@ -118,7 +114,7 @@ export const cancelRequest = (cwd: string, filetype: string, id: string | number
   m.cancelRequest({ cwd, language: filetype, id })
 }
 
-export const onServerRequest = <ArgType, ReturnType>(method: string, cb: (arg: ArgType) => Promise<ReturnType>) => serverRequestHandlers.push({ method, cb })
+export const onDiagnostics = (cb: (diagnostics: { uri: string, diagnostics: Diagnostic[] }) => void) => watchers.add('diagnostics', cb)
 
 export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
   const server = runningServers.get(cwd, filetype)
@@ -141,8 +137,6 @@ export const triggers = {
 // otherwise it would be annoying to restart everything just because a mapping was changed
 extensions.load()
 
-onServerStart((cwd, filetype) => serverRequestHandlers.forEach(({ method, cb }) => {
-  const server = runningServers.get(cwd, filetype)
-  if (!server) throw `was told server ${cwd}:${filetype} was started, but it was not found under 'runningServers'`
-  server.on(method, cb)
-}))
+onServerStart(server => {
+  server.on('textDocument/publishDiagnostics', (diag: any) => watchers.notify('diagnostics', diag))
+})

@@ -1,7 +1,7 @@
 import { findIndexRight, hasUpperCase, EarlyPromise } from '../support/utils'
+import { completions, completionDetail, triggers } from '../langserv/adapter'
 import { g, on, cmd, current as vimState, onCreate } from '../core/neovim'
 import { CompletionItemKind } from 'vscode-languageserver-types'
-import { completions, triggers } from '../langserv/adapter'
 import * as completionUI from '../components/autocomplete'
 import { harvester, update } from '../ai/update-server'
 import { sub } from '../messaging/dispatch'
@@ -54,6 +54,13 @@ const getSemanticCompletions = (line: number, column: number) => EarlyPromise(as
     return done(cache.semanticCompletions.get(`${line}:${column}`)!)
 
   const items = await completions(vimState)
+
+  items.forEach(item => {
+    completionDetail(item).then(m => {
+      console.log('completionItem/resolve', m)
+    })
+  })
+
   const options = items.map(({ label: text, kind = CompletionItemKind.Text }) => ({ text, kind }))
   cache.semanticCompletions.set(`${line}:${column}`, options)
   done(options)

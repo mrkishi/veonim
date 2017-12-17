@@ -33,6 +33,8 @@ interface LanguageActivationResult {
   server?: Server,
 }
 
+// TODO: remove in build?
+const DEV_MODE = !!+process.env.VEONIM_DEV!
 const EXT_PATH = path.join(configPath, 'veonim', 'extensions')
 const extensions = new Map<string, Extension>()
 const languageExtensions = new Map<string, string>()
@@ -93,7 +95,7 @@ export const activate = {
     const result: LanguageActivationResult = { status: ActivationResultKind.Success }
 
     result.server = await extension
-      .activate({ connectLanguageServer: connect })
+      .activate({ connectLanguageServer: connect, debug: DEV_MODE })
       .catch((reason: any) => merge(result, { reason, status: ActivationResultKind.Fail }))
 
     return result

@@ -1,8 +1,10 @@
 import { Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
-import { notify, workspace, textDocument, onServerRequest, getSyncKind, SyncKind, triggers } from '../langserv/director'
+import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind, triggers } from '../langserv/director'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
 import { NeovimState } from '../core/neovim'
+
+export { onDiagnostics } from '../langserv/director'
 
 export interface Symbol {
   name: string,
@@ -202,9 +204,14 @@ export const completions = async (data: NeovimState): Promise<CompletionItem[]> 
   return is.object(res) && res.items ? res.items : res
 }
 
+export const completionDetail = async (item: CompletionItem): Promise<CompletionItem> => {
+  const res = await completionItem.resolve(item) as CompletionItem
+  return res || {}
+}
+
 export const signatureHelp = async (data: NeovimState) => {
   const req = toProtocol(data)
   return await textDocument.signatureHelp(req) as SignatureHelp
 }
 
-export { onServerRequest, triggers }
+export { triggers }
