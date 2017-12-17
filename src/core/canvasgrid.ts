@@ -31,7 +31,18 @@ export interface TransferRegion {
   },
 }
 
+export interface BlurOptions {
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  amount: number,
+}
+
 export interface CanvasGrid {
+  readonly cols: number,
+  readonly rows: number,
+  readonly fontSize: number,
   rowToY(row: number): number,
   colToX(col: number): number,
   resize(): CanvasGrid,
@@ -49,16 +60,17 @@ export interface CanvasGrid {
   clear(): CanvasGrid,
   setColor(color: string): CanvasGrid,
   setFont(params: { size?: number, face?: string, lineHeight?: number }): CanvasGrid,
-  readonly cols: number,
-  readonly rows: number,
   cursor: Cursor
-  readonly fontSize: number,
+  blurRegion(options: BlurOptions): CanvasGrid,
+  clearActiveBlur(): void,
 }
 
 const container = document.getElementById('canvas-container') as HTMLElement
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
+const canvasBlur = document.getElementById('blur') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
+const blurUI = canvasBlur.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
 const font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
 const actualSize = { width: 0, height: 0 }
 const cell = { width: 0, height: 0, padding: 0 }
@@ -95,6 +107,25 @@ const api = {
 
 api.rowToY = row => px.row.y(row)
 api.colToX = col => px.col.x(col)
+
+api.clearActiveBlur = () => canvasBlur.style.display = 'none'
+
+api.blurRegion = ({ x, y, width, height, amount }) => {
+  canvasBlur.style.display = 'block'
+  canvasBlur.height = height * window.devicePixelRatio
+  canvasBlur.width = width * window.devicePixelRatio
+  canvasBlur.style.height = `${height}px`
+  canvasBlur.style.width = `${width}px`
+  blurUI.scale(window.devicePixelRatio, window.devicePixelRatio)
+  blurUI.drawImage(ui.canvas, x, y, canvasBlur.width, canvasBlur.height, x, y, width, height)
+
+  // TODO: FILTER DOES EXIST ON CANVAS YOU USELESS PIECE OF SHIT
+  const FUCK_TYPESCRIPT: any = blurUI
+  FUCK_TYPESCRIPT.filter = `blur(${amount}px)`
+
+  blurUI.drawImage(ui.canvas, x, y, canvasBlur.width, canvasBlur.height, x, y, width, height)
+  return api
+}
 
 api.resize = () => {
   const { width, height } = container.getBoundingClientRect()
