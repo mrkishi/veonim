@@ -1,4 +1,4 @@
-import { Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
+import { Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
 import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind, triggers } from '../langserv/director'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
@@ -206,13 +206,26 @@ export const completions = async (data: NeovimState): Promise<CompletionItem[]> 
 
 export const completionDetail = async (data: NeovimState, item: CompletionItem): Promise<CompletionItem> => {
   const req = toProtocol(data)
-  const res = await completionItem.resolve({ ...req, ...item }) as CompletionItem
-  return res || {}
+  return (await completionItem.resolve({ ...req, ...item })) || {}
 }
 
 export const signatureHelp = async (data: NeovimState) => {
   const req = toProtocol(data)
   return await textDocument.signatureHelp(req) as SignatureHelp
+}
+
+export const codeAction = async (data: NeovimState, diagnostics: Diagnostic[]): Promise<Command[]> => {
+  const req = toProtocol(data)
+  const request = {
+    cwd: req.cwd,
+    filetype: req.filetype,
+    textDocument: req.textDocument,
+    range: { start: req.position, end: req.position },
+    context: { diagnostics }
+  }
+
+  // TODO: what is causing 'cannot read description of undefined error in lsp server?'
+  return (await textDocument.codeAction(request)) || []
 }
 
 export { triggers }
