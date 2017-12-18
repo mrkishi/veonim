@@ -1,4 +1,5 @@
 import { codeAction, onDiagnostics } from '../langserv/adapter'
+import { positionWithinRange } from '../support/neovim-utils'
 import { Diagnostic } from 'vscode-languageserver-types'
 import { merge } from '../support/utils'
 import { on } from '../core/neovim'
@@ -14,11 +15,12 @@ onDiagnostics(m => {
 })
 
 on.cursorMove(async state => {
-  try {
-    const res = await codeAction(state, cache.diagnostics)
-    if (res) console.log('code action:', res)
-  } catch(e) {
-    console.warn('GOTTEM')
-    console.error(e)
-  }
+  const { line, column } = state
+
+  const relevantDiagnostics = cache
+    .diagnostics
+    .filter(d => positionWithinRange(line - 1, column - 1, d.range))
+
+  const res = await codeAction(state, relevantDiagnostics)
+  console.log('do something with these code actions:', res)
 })

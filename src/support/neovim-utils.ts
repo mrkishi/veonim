@@ -1,4 +1,5 @@
 import { delay, pascalCase, onProp } from '../support/utils'
+import { Range } from 'vscode-languageserver-types'
 import { Api } from '../core/api'
 
 export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
@@ -85,4 +86,14 @@ export const parseFont = (shittyvimshit: string): FontOption => {
   const size = parts.find(m => /(h\d+)/.test(m))
   const font = parts.find(m => !/([h|w|c]\d+)/.test(m) && !fontFormattings.includes(m))
   return { font, size }
+}
+
+export const positionWithinRange = (line: number, column: number, { start, end }: Range): boolean => {
+  const startInRange = line >= start.line
+    && (line !== start.line || column >= start.character)
+
+  const endInRange = line <= end.line
+    && (line !== end.line || column <= end.character)
+
+  return startInRange && endInRange
 }

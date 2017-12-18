@@ -216,11 +216,19 @@ export const signatureHelp = async (data: NeovimState) => {
 
 export const codeAction = async (data: NeovimState, diagnostics: Diagnostic[]): Promise<Command[]> => {
   const req = toProtocol(data)
+
+  // i noticed that in vscode if there are diagnostics, then the request 'range' matches on of the
+  // diagnostic entries. otherwise i'm getting cannot read property 'description' of undefined error
+  // from the TS lang serv. weird
+  const range = diagnostics.length
+    ? { start: diagnostics[0].range.start, end: diagnostics[0].range.end }
+    : { start: req.position, end: req.position }
+
   const request = {
+    range,
     cwd: req.cwd,
     filetype: req.filetype,
     textDocument: req.textDocument,
-    range: { start: req.position, end: req.position },
     context: { diagnostics }
   }
 

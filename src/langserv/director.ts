@@ -63,6 +63,7 @@ const registerDynamicCaller = (namespace: string, { notify = false } = {}): Prox
       dispatch.pub('langserv:error.load', filetype, cwd)
       return derp(`could not load server type:${filetype} cwd:${cwd}`)
     }
+
     return serverSend(server, namespace, method, params, notify)
   }
 
