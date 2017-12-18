@@ -204,8 +204,9 @@ export const completions = async (data: NeovimState): Promise<CompletionItem[]> 
   return is.object(res) && res.items ? res.items : res
 }
 
-export const completionDetail = async (item: CompletionItem): Promise<CompletionItem> => {
-  const res = await completionItem.resolve(item) as CompletionItem
+export const completionDetail = async (data: NeovimState, item: CompletionItem): Promise<CompletionItem> => {
+  const req = toProtocol(data)
+  const res = await completionItem.resolve({ ...req, ...item }) as CompletionItem
   return res || {}
 }
 

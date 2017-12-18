@@ -1,6 +1,7 @@
+import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { CompletionItemKind } from 'vscode-languageserver-types'
-import { CompletionOption } from '../ai/completions'
 import { h, app, Actions } from '../ui/uikit'
+import vimUI from '../core/canvasgrid'
 import Icon from '../components/icon'
 import { translate } from '../ui/css'
 
@@ -10,6 +11,7 @@ interface State {
   ix: number,
   x: number,
   y: number,
+  documentation?: string,
 }
 
 interface ShowParams {
@@ -36,7 +38,7 @@ const getCompletionIcon = (kind: CompletionItemKind) => {
   }
 }
 
-const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
+const view = ({ options, documentation, vis, ix, x, y }: State) => h('#autocomplete', {
   hide: !vis,
   style: {
     'z-index': 200,
@@ -67,17 +69,40 @@ const view = ({ options, vis, ix, x, y }: State) => h('#autocomplete', {
       getCompletionIcon(kind),
     ]),
     h('div', text)
-  ])))
+  ]))),
+
+  // TODO: position this above completions if anchor from bottom
+  h('.row', {
+    hide: !documentation,
+    style: {
+      overflow: 'visible',
+      whiteSpace: 'normal',
+      background: '#1e1e1e',
+      paddingTop: '4px',
+      paddingBottom: '4px',
+      fontSize: `${vimUI.fontSize - 2}px`,
+      color: 'rgba(255, 255, 255, 0.5)',
+    }
+  }, documentation)
 ])
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, { options, x, y, ix = -1 }) => ({ options, ix, x, y, vis: true })
+a.show = (_s, _a, { options, x, y, ix = -1 }) => ({ options, ix, x, y, vis: true, documentation: undefined })
+a.showDocs = (_s, _a, documentation) => ({ documentation })
 a.hide = () => ({ vis: false, ix: 0 })
-a.select = (_s, _a, ix: number) => ({ ix })
+a.select = (s, a, ix: number) => {
+  const completionItem = (s.options[ix] || {}).raw
+
+  if (completionItem) getCompletionDetail(completionItem)
+    .then(m => m.documentation && a.showDocs(m.documentation))
+
+  return { ix, documentation: undefined }
+}
 
 const ui = app({ state, view, actions: a }, false)
 
 export const show = (params: ShowParams) => ui.show(params)
 export const select = (index: number) => ui.select(index)
 export const hide = () => ui.hide()
+export const showDocs = (documentation: string) => ui.showDocs(documentation)
