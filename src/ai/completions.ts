@@ -31,17 +31,23 @@ const calcMenuPosition = (startIndex: number, column: number, count: number) => 
   // anchor menu above row if the maximum results are going to spill out of bounds.
   // why maxResults instead of the # of items in options? because having the menu jump
   // around over-under as you narrow down results by typing or undo is kinda annoying
-  const row = vimUI.cursor.row + MAX_RESULTS > vimUI.rows
+  const anchorAbove = vimUI.cursor.row + MAX_RESULTS > vimUI.rows 
+  const row = anchorAbove
     ? vimUI.cursor.row - count
     : vimUI.cursor.row + 1
 
   const start = Math.max(0, startIndex)
   const col = vimUI.cursor.col - (column - start)
-  return { y: vimUI.rowToY(row), x: vimUI.colToX(col) }
+  return {
+    anchorAbove,
+    y: vimUI.rowToY(row),
+    x: vimUI.colToX(col),
+  }
 }
 
-const orderCompletions = (m: CompletionOption[], query: string) =>
-  m.slice().sort(({ text }) => hasUpperCase(text) ? -1 : text.startsWith(query) ? -1 : 1)
+const orderCompletions = (m: CompletionOption[], query: string) => m
+  .slice()
+  .sort(({ text }) => hasUpperCase(text) ? -1 : text.startsWith(query) ? -1 : 1)
 
 const findQuery = (line: string, column: number) => {
   const start = findIndexRight(line, /[^\w\-]/, column - 2) || 0
@@ -79,8 +85,8 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const options = orderCompletions(completions, query)
     g.veonim_completions = options.map(m => m.text)
     g.veonim_complete_pos = startIndex
-    const { x, y } = calcMenuPosition(startIndex, column, options.length)
-    completionUI.show({ x, y, options })
+    const { x, y, anchorAbove } = calcMenuPosition(startIndex, column, options.length)
+    completionUI.show({ x, y, options, anchorAbove })
   }
 
   const { startIndex, query, leftChar } = findQuery(lineContent, column)

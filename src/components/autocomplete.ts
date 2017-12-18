@@ -12,15 +12,18 @@ interface State {
   x: number,
   y: number,
   documentation?: string,
+  anchorAbove: boolean,
 }
 
 interface ShowParams {
   x: number,
   y: number,
   options: CompletionOption[],
+  anchorAbove: boolean,
 }
 
 const state: State = {
+  anchorAbove: false,
   options: [],
   vis: false,
   ix: 0,
@@ -38,7 +41,19 @@ const getCompletionIcon = (kind: CompletionItemKind) => {
   }
 }
 
-const view = ({ options, documentation, vis, ix, x, y }: State) => h('#autocomplete', {
+const docs = (data: string) => h('.row', {
+  style: {
+    overflow: 'visible',
+    whiteSpace: 'normal',
+    background: '#1e1e1e',
+    paddingTop: '4px',
+    paddingBottom: '4px',
+    fontSize: `${vimUI.fontSize - 2}px`,
+    color: 'rgba(255, 255, 255, 0.5)',
+  }
+}, data)
+
+const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => h('#autocomplete', {
   hide: !vis,
   style: {
     'z-index': 200,
@@ -48,6 +63,8 @@ const view = ({ options, documentation, vis, ix, x, y }: State) => h('#autocompl
     transform: translate(x, y),
   }
 }, [
+  documentation && anchorAbove ? docs(documentation) : undefined,
+
   h('div', options.map(({ text, kind }, id) => h('.row.complete', {
     key: id,
     css: { active: id === ix },
@@ -71,24 +88,12 @@ const view = ({ options, documentation, vis, ix, x, y }: State) => h('#autocompl
     h('div', text)
   ]))),
 
-  // TODO: position this above completions if anchor from bottom
-  h('.row', {
-    hide: !documentation,
-    style: {
-      overflow: 'visible',
-      whiteSpace: 'normal',
-      background: '#1e1e1e',
-      paddingTop: '4px',
-      paddingBottom: '4px',
-      fontSize: `${vimUI.fontSize - 2}px`,
-      color: 'rgba(255, 255, 255, 0.5)',
-    }
-  }, documentation)
+  documentation && !anchorAbove ? docs(documentation) : undefined,
 ])
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, { options, x, y, ix = -1 }) => ({ options, ix, x, y, vis: true, documentation: undefined })
+a.show = (_s, _a, { anchorAbove, options, x, y, ix = -1 }) => ({ anchorAbove, options, ix, x, y, vis: true, documentation: undefined })
 a.showDocs = (_s, _a, documentation) => ({ documentation })
 a.hide = () => ({ vis: false, ix: 0 })
 a.select = (s, a, ix: number) => {
