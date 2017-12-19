@@ -1,5 +1,5 @@
 import { xfrmUp } from '../core/input'
-import { h } from '../ui/uikit'
+import { h, style } from '../ui/uikit'
 
 interface Props {
   val: string,
@@ -25,6 +25,13 @@ interface Props {
 let lastDown = ''
 const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
 const nop = () => {}
+
+// TODO: make this work
+const Input = style('input')({
+  display: 'flex',
+  paddingLeft: '8px',
+  background: 'rgba(31, 31, 31, 0.5)',
+})
 
 export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, nextGroup = nop, prevGroup = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop, tab = nop, ctrlH = nop }: Props) => h('.gui-input', [
   h('div', {
@@ -52,7 +59,7 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
   h('input.term-input', {
     value: val,
     placeholder: desc,
-    onblur: () => hide(),
+    //onblur: () => hide(),
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeyup: (e: KeyboardEvent) => {
       const prevKeyAndThisOne = lastDown + keToStr(e)

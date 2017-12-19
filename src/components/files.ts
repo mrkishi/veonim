@@ -1,11 +1,24 @@
 import { action, current, call, cmd } from '../core/neovim'
-import { h, app, Actions } from '../ui/uikit'
+import { h, app, style, Actions } from '../ui/uikit'
 import TermInput from '../components/input'
 import { basename, dirname } from 'path'
 import Worker from '../messaging/worker'
+import vimUI from '../core/canvasgrid'
 
-interface FileDir { dir: string, file: string }
-interface State { val: string, files: FileDir[], cache: FileDir[], vis: boolean, ix: number, currentFile: string, loading: boolean }
+interface FileDir {
+  dir: string,
+  file: string,
+}
+
+interface State {
+  val: string,
+  files: FileDir[],
+  cache: FileDir[],
+  vis: boolean,
+  ix: number,
+  currentFile: string,
+  loading: boolean,
+}
 
 const worker = Worker('fs-fuzzy')
 const formatDir = (dir: string) => dir === '.' ? '' : `${dir}/`
@@ -16,17 +29,51 @@ const asDirFile = (files: string[], currentFile: string) => files
     file: basename(path),
   }))
 
-const state: State = { val: '', files: [], cache: [], vis: false, ix: 0, currentFile: '', loading: false }
+const state: State = {
+  val: '',
+  files: [],
+  cache: [],
+  vis: false,
+  ix: 0,
+  currentFile: '',
+  loading: false,
+}
+
+const Row = style('div')({
+  paddingLeft: '8px',
+  paddingRight: '8px',
+  lineHeight: 'var(--line-height)',
+  background: 'rgba(51, 51, 51, 0.5)',
+  color: '#bbb',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+})
 
 const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
-  hide: !vis
+  hide: !vis,
 }, [
-  h('.dialog.xlarge', [
+  // TODO: dialog xlarg
+  h('div', {
+    style: {
+      marginTop: '15%',
+      width: '500px',
+    },
+    hide: !vis,
+    onupdate: (e: HTMLElement) => setTimeout(() => {
+      const { top: y, left: x, height, width } = e.getBoundingClientRect()
+      console.log('pos x y h w', x, y, height, width)
+      //if (!height || !width) return vimUI.clearActiveBlur()
+      vimUI.blurRegion({ x, y, height, width, amount: 2 })
+    }),
+  }, [
     TermInput({ focus: true, val, next, prev, change, hide, select }),
 
-    h('.row', { render: !files.length }, '...'),
+    Row({ render: !files.length }, '...'),
+    //h('.row', { render: !files.length }, '...'),
 
-    h('div', files.map((f, key) => h('.row', {
+    //h('div', files.map((f, key) => h('.row', {
+    h('div', files.map((f, key) => Row({
       // TODO: lol nope
       key,
       css: { active: key === ix },

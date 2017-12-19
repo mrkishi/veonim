@@ -111,19 +111,29 @@ api.colToX = col => px.col.x(col)
 api.clearActiveBlur = () => canvasBlur.style.display = 'none'
 
 api.blurRegion = ({ x, y, width, height, amount }) => {
-  canvasBlur.style.display = 'block'
+  // TODO: something is happening here with different device pixel ratios
+  merge(canvasBlur.style, {
+    display: 'block',
+    top: `${y}px`,
+    left: `${x}px`
+  })
   canvasBlur.height = height * window.devicePixelRatio
   canvasBlur.width = width * window.devicePixelRatio
   canvasBlur.style.height = `${height}px`
   canvasBlur.style.width = `${width}px`
   blurUI.scale(window.devicePixelRatio, window.devicePixelRatio)
-  blurUI.drawImage(ui.canvas, x, y, canvasBlur.width, canvasBlur.height, x, y, width, height)
+
+  // TODO: the x + y dimensions are in absolute terms, which includes the container margins...
+  const xx = (x - 6) * window.devicePixelRatio
+  const yy = (y - 6) * window.devicePixelRatio
+
+  blurUI.drawImage(ui.canvas, xx, yy, canvasBlur.width, canvasBlur.height, 0, 0, width, height)
 
   // TODO: FILTER DOES EXIST ON CANVAS YOU USELESS PIECE OF SHIT
   const FUCK_TYPESCRIPT: any = blurUI
   FUCK_TYPESCRIPT.filter = `blur(${amount}px)`
 
-  blurUI.drawImage(ui.canvas, x, y, canvasBlur.width, canvasBlur.height, x, y, width, height)
+  blurUI.drawImage(ui.canvas, xx, yy, canvasBlur.width, canvasBlur.height, 0, 0, width, height)
   return api
 }
 
