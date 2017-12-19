@@ -33,8 +33,8 @@ const state: State = {
 
 const getCompletionIcon = (kind: CompletionItemKind) => {
   if (kind === CompletionItemKind.Text) return Icon('shield')
-  if (kind === CompletionItemKind.Method) return Icon('box', '#bb5ef1')
-  if (kind === CompletionItemKind.Property) return Icon('disc', '#54c8ff')
+  if (kind === CompletionItemKind.Method) return Icon('box', { color: '#bb5ef1' })
+  if (kind === CompletionItemKind.Property) return Icon('disc', { color: '#54c8ff' })
   else {
     console.warn('please implement icon for:', kind)
     return Icon('code')

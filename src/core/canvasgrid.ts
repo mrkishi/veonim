@@ -111,12 +111,15 @@ api.colToX = col => px.col.x(col)
 api.clearActiveBlur = () => canvasBlur.style.display = 'none'
 
 api.blurRegion = ({ x, y, width, height, amount }) => {
-  // TODO: something is happening here with different device pixel ratios
+  // TODO: yeah this approach is not so great. when a blur happens, the edges become faded
+  // i wonder if it would make more sense to copy the entire canvas (or a larger portion)
+  // and use a clipping mask to constrain to visible portion
   merge(canvasBlur.style, {
     display: 'block',
     top: `${y}px`,
     left: `${x}px`
   })
+
   canvasBlur.height = height * window.devicePixelRatio
   canvasBlur.width = width * window.devicePixelRatio
   canvasBlur.style.height = `${height}px`
@@ -127,6 +130,7 @@ api.blurRegion = ({ x, y, width, height, amount }) => {
   const xx = (x - 6) * window.devicePixelRatio
   const yy = (y - 6) * window.devicePixelRatio
 
+  // TODO: don't think we need this pass
   blurUI.drawImage(ui.canvas, xx, yy, canvasBlur.width, canvasBlur.height, 0, 0, width, height)
 
   // TODO: FILTER DOES EXIST ON CANVAS YOU USELESS PIECE OF SHIT

@@ -1,8 +1,11 @@
 import { xfrmUp } from '../core/input'
-import { h } from '../ui/uikit'
+import vimUI from '../core/canvasgrid'
+import Icon from '../components/icon'
+import { style } from '../ui/uikit'
 
 interface Props {
   val: string,
+  icon: string,
   desc?: string,
   focus?: boolean,
   change?: (val: string) => void,
@@ -23,33 +26,75 @@ interface Props {
 }
 
 let lastDown = ''
-const keToStr = (e: KeyboardEvent) => [e.key, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
 const nop = () => {}
+const keToStr = (e: KeyboardEvent) => [
+  e.key,
+  <any>e.ctrlKey|0,
+  <any>e.metaKey|0,
+  <any>e.altKey|0,
+  <any>e.shiftKey|0
+].join('')
 
-export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide = nop, select = nop, next = nop, prev = nop, nextGroup = nop, prevGroup = nop, down = nop, up = nop, top = nop, bottom = nop, jumpPrev = nop, jumpNext = nop, tab = nop, ctrlH = nop }: Props) => h('.gui-input', [
-  h('div', {
-    style: {
-      'pointer-events': 'none',
-      display: 'flex',
-      position: 'absolute',
-    }
-  }, [
-    h('div', {
-      style: {
-        'pointer-events': 'none',
-        color: 'transparent',
-      }
-    }, val.replace(/ /g, '@')),
+const InputBox = style('div')({
+  paddingTop: '10px',
+  paddingBottom: '10px',
+  paddingLeft: '12px',
+  paddingRight: '12px',
+  padding: '10px',
+  display: 'flex',
+  alignItems: 'center',
+})
 
-    h('.gui-cursor', {
-      style: {
-        'pointer-events': 'none',
-        color: 'transparent',
-      }
-    }, 'm'),
+// TODO: make this work
+const Input = style('input')({
+  '::placeholder': {
+    color: 'rgba(255, 255, 255, 0.2)',
+  },
+  color: 'rgba(255, 255, 255, 0.9)',
+  outline: 'none',
+  border: 'none',
+  fontSize: `${vimUI.fontSize + 4}px`,
+  fontFamily: 'var(--font)',
+})
+
+const IconBox = style('div')({
+  display: 'flex',
+  alignItems: 'center',
+  paddingRight: '8px',
+})
+
+export default ({
+  desc,
+  icon,
+  val = '',
+  focus: shouldFocus = false,
+  // TODO: what about a proxy here for noops?
+  change = nop,
+  hide = nop,
+  select = nop,
+  next = nop,
+  prev = nop,
+  nextGroup = nop,
+  prevGroup = nop,
+  down = nop,
+  up = nop,
+  top = nop,
+  bottom = nop,
+  jumpPrev = nop,
+  jumpNext = nop,
+  tab = nop,
+  ctrlH = nop
+}: Props) => InputBox({}, [
+
+  IconBox({}, [
+    Icon(icon, {
+      color: '#555',
+      size: vimUI.fontSize + 8,
+      weight: 3,
+    })
   ]),
 
-  h('input.term-input', {
+  Input({
     value: val,
     placeholder: desc,
     //onblur: () => hide(),
@@ -92,4 +137,5 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
       change(val + (key.length > 1 ? '' : key))
     }
   }),
+
 ])

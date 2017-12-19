@@ -1,6 +1,6 @@
 import { action, current, call, cmd } from '../core/neovim'
 import { h, app, style, Actions } from '../ui/uikit'
-import TermInput from '../components/input'
+import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import Worker from '../messaging/worker'
 import vimUI from '../core/canvasgrid'
@@ -40,11 +40,14 @@ const state: State = {
 }
 
 const Row = style('div')({
-  paddingLeft: '8px',
-  paddingRight: '8px',
-  lineHeight: 'var(--line-height)',
-  background: 'rgba(51, 51, 51, 0.5)',
-  color: '#bbb',
+  ':last-child': {
+    paddingBottom: '9px',
+  },
+  paddingLeft: '12px',
+  paddingRight: '12px',
+  paddingTop: '4px',
+  paddingBottom: '4px',
+  color: 'rgba(255, 255, 255, 0.8)',
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -53,30 +56,36 @@ const Row = style('div')({
 const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
   hide: !vis,
 }, [
-  // TODO: dialog xlarg
   h('div', {
     style: {
+      background: 'rgba(0, 0, 0, 0.44)',
       marginTop: '15%',
-      width: '500px',
+      width: '600px',
     },
     hide: !vis,
-    onupdate: (e: HTMLElement) => setTimeout(() => {
+    onupdate: (e: HTMLElement) => setImmediate(() => {
       const { top: y, left: x, height, width } = e.getBoundingClientRect()
       console.log('pos x y h w', x, y, height, width)
-      //if (!height || !width) return vimUI.clearActiveBlur()
-      vimUI.blurRegion({ x, y, height, width, amount: 2 })
+      if (!height || !width) return vimUI.clearActiveBlur()
+      vimUI.blurRegion({ x, y, height, width, amount: 40 })
     }),
   }, [
-    TermInput({ focus: true, val, next, prev, change, hide, select }),
+    Input({
+      val,
+      next,
+      prev,
+      change,
+      hide,
+      select,
+      icon: 'search',
+      focus: true,
+      desc: 'find files',
+    }),
 
-    Row({ render: !files.length }, '...'),
-    //h('.row', { render: !files.length }, '...'),
-
-    //h('div', files.map((f, key) => h('.row', {
     h('div', files.map((f, key) => Row({
       // TODO: lol nope
       key,
-      css: { active: key === ix },
+      style: key === ix ? { background: 'rgba(255, 255, 255, 0.08)' } : undefined,
     }, [
       h('span', { style: { color: '#666' } }, f.dir),
       h('span', f.file)
