@@ -111,10 +111,8 @@ api.colToX = col => px.col.x(col)
 api.clearActiveBlur = () => canvasBlur.style.display = 'none'
 
 api.blurRegion = ({ x, y, width, height, amount }) => {
-  blurUI.clearRect(0, 0, canvasBlur.height, canvasBlur.height)
+  blurUI.clearRect(0, 0, canvasBlur.width, canvasBlur.height)
   canvasBlur.style.display = 'block'
-
-  console.log('x, y, w, h', x, y, width, height)
 
   // TODO: the x + y dimensions are in absolute terms, which includes the container margins...
   const xx = (x - 6) * window.devicePixelRatio
@@ -149,10 +147,10 @@ api.resize = () => {
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
   merge(grid, sizeToGrid(height, width))
 
-  canvasBlur.height = height * window.devicePixelRatio
-  canvasBlur.width = width * window.devicePixelRatio
-  canvasBlur.style.height = `${height}px`
-  canvasBlur.style.width = `${width}px`
+  canvasBlur.height = canvas.height
+  canvasBlur.width = canvas.width
+  canvasBlur.style.height = canvas.style.height
+  canvasBlur.style.width = canvas.style.width
 
   // setting canvas properties resets font. we need user to call setFont() first to
   // be able to calculate sizeToGrid() based on font size. but because font is reset

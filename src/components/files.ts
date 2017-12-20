@@ -58,7 +58,7 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
 }, [
   h('div', {
     style: {
-      background: 'rgba(0, 0, 0, 0.44)',
+      background: 'rgba(20, 20, 20, 0.52)',
       marginTop: '15%',
       width: '600px',
     },
@@ -66,7 +66,7 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
     onupdate: (e: HTMLElement) => setImmediate(() => {
       const { top: y, left: x, height, width } = e.getBoundingClientRect()
       if (!height || !width) return vimUI.clearActiveBlur()
-      vimUI.blurRegion({ x, y, height, width, amount: 40 })
+      vimUI.blurRegion({ x, y, height, width, amount: 80 })
     }),
   }, [
     Input({
