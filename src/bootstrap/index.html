@@ -211,20 +211,6 @@ input {
   font-weight: bold;
 }
 
-.tab {
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  background: #222;
-  color: #aaa;
-}
-
-.tab.active {
-  color: #ddd;
-  background: #333;
-}
-
 .plugin {
   display: flex;
   width: 100%;
@@ -291,6 +277,7 @@ input {
     </style>
   </head>
   <body>
+    <div id="statusline"></div>
     <div id="neovim-container">
       <div id="canvas-container">
         <div id="plugins"></div>
