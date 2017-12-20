@@ -70,7 +70,7 @@ const cursorEl = document.getElementById('cursor') as HTMLElement
 const canvas = document.getElementById('nvim') as HTMLCanvasElement
 const canvasBlur = document.getElementById('blur') as HTMLCanvasElement
 const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
-const blurUI = canvasBlur.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
+const blurUI = canvasBlur.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 const font = { face: 'Courier New', size: 12, lineHeight: 1.5 }
 const actualSize = { width: 0, height: 0 }
 const cell = { width: 0, height: 0, padding: 0 }
@@ -111,33 +111,29 @@ api.colToX = col => px.col.x(col)
 api.clearActiveBlur = () => canvasBlur.style.display = 'none'
 
 api.blurRegion = ({ x, y, width, height, amount }) => {
-  // TODO: yeah this approach is not so great. when a blur happens, the edges become faded
-  // i wonder if it would make more sense to copy the entire canvas (or a larger portion)
-  // and use a clipping mask to constrain to visible portion
-  merge(canvasBlur.style, {
-    display: 'block',
-    top: `${y}px`,
-    left: `${x}px`
-  })
+  blurUI.clearRect(0, 0, canvasBlur.height, canvasBlur.height)
+  canvasBlur.style.display = 'block'
 
-  canvasBlur.height = height * window.devicePixelRatio
-  canvasBlur.width = width * window.devicePixelRatio
-  canvasBlur.style.height = `${height}px`
-  canvasBlur.style.width = `${width}px`
-  blurUI.scale(window.devicePixelRatio, window.devicePixelRatio)
+  console.log('x, y, w, h', x, y, width, height)
 
   // TODO: the x + y dimensions are in absolute terms, which includes the container margins...
   const xx = (x - 6) * window.devicePixelRatio
   const yy = (y - 6) * window.devicePixelRatio
+  const w = width * window.devicePixelRatio
+  const h = height * window.devicePixelRatio
 
-  // TODO: don't think we need this pass
-  blurUI.drawImage(ui.canvas, xx, yy, canvasBlur.width, canvasBlur.height, 0, 0, width, height)
+  blurUI.save()
+  blurUI.beginPath()
+  blurUI.rect(xx, yy, w, h)
+  blurUI.clip()
 
   // TODO: FILTER DOES EXIST ON CANVAS YOU USELESS PIECE OF SHIT
   const FUCK_TYPESCRIPT: any = blurUI
   FUCK_TYPESCRIPT.filter = `blur(${amount}px)`
+  blurUI.drawImage(ui.canvas, 0, 0)
 
-  blurUI.drawImage(ui.canvas, xx, yy, canvasBlur.width, canvasBlur.height, 0, 0, width, height)
+  blurUI.restore()
+
   return api
 }
 
@@ -152,6 +148,11 @@ api.resize = () => {
 
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
   merge(grid, sizeToGrid(height, width))
+
+  canvasBlur.height = height * window.devicePixelRatio
+  canvasBlur.width = width * window.devicePixelRatio
+  canvasBlur.style.height = `${height}px`
+  canvasBlur.style.width = `${width}px`
 
   // setting canvas properties resets font. we need user to call setFont() first to
   // be able to calculate sizeToGrid() based on font size. but because font is reset

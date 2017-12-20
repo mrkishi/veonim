@@ -65,7 +65,6 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
     hide: !vis,
     onupdate: (e: HTMLElement) => setImmediate(() => {
       const { top: y, left: x, height, width } = e.getBoundingClientRect()
-      console.log('pos x y h w', x, y, height, width)
       if (!height || !width) return vimUI.clearActiveBlur()
       vimUI.blurRegion({ x, y, height, width, amount: 40 })
     }),
