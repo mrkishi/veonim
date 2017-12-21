@@ -8,6 +8,7 @@ import * as uiInput from '../core/input'
 import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
+import { resizeGrid } from '../core/grid'
 
 const loadingConfig = CreateTask()
 
@@ -23,6 +24,7 @@ configReader('nvim/init.vim', c => {
 
 const refreshCanvas = () => {
   ui.resize()
+  resizeGrid(ui.rows, ui.cols)
   resize(ui.cols, ui.rows)
 }
 

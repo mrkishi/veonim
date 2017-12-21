@@ -1,165 +1,87 @@
-//import { as, getCurrent, current } from '../core/neovim'
-//import { debounce, merge } from '../support/utils'
-//import * as dispatch from '../messaging/dispatch'
-//import { px } from '../core/canvasgrid'
+import { CanvasWindow, createWindow } from '../core/canvas-window'
+import { debounce, merge } from '../support/utils'
+import * as dispatch from '../messaging/dispatch'
+import { getCurrent } from '../core/neovim'
+import * as vimUI from '../core/canvasgrid'
 
-//// TODO: this whole thing is kind of a dirty hack until we get floating/external windows in the neovim api
-//export interface VeonimWindow {
-  //x: number,
-  //y: number,
-  //height: number,
-  //width: number,
-  //name: string,
-  //modified: boolean,
-  //active: boolean,
-//}
+export interface VeonimWindow {
+  x: number,
+  y: number,
+  height: number,
+  width: number,
+  name: string,
+  modified: boolean,
+  active: boolean,
+}
 
-//export interface Window {
-  //x: string,
-  //y: string,
-  //width: string,
-  //height: string,
-  //name: string,
-  //nearEdge: boolean,
-  //nearTop: boolean,
-  //rawHeight: number,
-//}
+const generateElements = (count = 20) => [...Array(count)]
+  .map(() => document.createElement('div'))
+  .map(e => (merge(e.style, {
+    position: 'absolute',
+    display: 'none',
+    background: 'none',
+  }), e))
 
-//export interface Nameplate {
-  //name: string,
-  //modified: boolean,
-  //active: boolean,
-  //x: string,
-  //y: string,
-  //width: string,
-//}
+const container = document.getElementById('windows') as HTMLElement
+const windowsEl = generateElements(10).map(e => (merge(e.style, { border: '1px solid green' }), e))
+const windows = windowsEl.map(e => createWindow(e))
 
-//const generateElements = (count = 20) => [...Array(count)]
-  //.map(() => document.createElement('div'))
-  //.map(e => (merge(e.style, {
-    //position: 'absolute',
-    //display: 'none',
-    //background: 'none',
-  //}), e))
+windowsEl.forEach(e => container.appendChild(e))
 
-//const canvasContainer = document.getElementById('canvas-container') as HTMLElement
-//const container = document.getElementById('windows') as HTMLElement
-//const elements = generateElements(20)
-//const nameplates = generateElements(20).map(np => (merge(np.style, {
-  //border: 'none',
-  //height: px.row.height(1) + 'px',
-//}), np))
+const getWindows = async (): Promise<VeonimWindow[]> => {
+  const currentBuffer = (await getCurrent.buffer).id
+  const wins = await (await getCurrent.tab).windows
 
-//elements.forEach(e => container.appendChild(e))
-////nameplates.forEach(n => container.appendChild(n))
+  return await Promise.all(wins.map(async w => {
+    const [ [ y, x ], buffer ] = await Promise.all([
+      w.position,
+      w.buffer,
+    ])
 
-//const getWindows = async (): Promise<VeonimWindow[]> => {
-  //const currentBuffer = (await getCurrent.buffer).id
-  //const wins = await (await getCurrent.tab).windows
+    return {
+      x,
+      y,
+      height: await w.height,
+      width: await w.width,
+      name: (await buffer.name),
+      active: (await buffer.id) === currentBuffer,
+      modified: (await buffer.getOption('modified')),
+    }
+  }))
+}
 
-  //return await Promise.all(wins.map(async w => {
-    //const [ [ y, x ], buffer ] = await Promise.all([
-      //w.position,
-      //as.buf(w.buffer)
-    //])
+const setupWindow = (element: HTMLElement, canvas: CanvasWindow, window: VeonimWindow) => {
+  canvas
+    .resize(window.height, window.width)
+    .setOffset(window.y, window.x)
 
-    //return {
-      //x,
-      //y,
-      //height: await w.height,
-      //width: await w.width,
-      //name: (await buffer.name),
-      //active: (await buffer.id) === currentBuffer,
-      //modified: (await buffer.getOption('modified')),
-    //}
-  //}))
-//}
+  merge(element.style, {
+    // TODO: need to figure out better dynamic positioning
+    top: vimUI.px.row.y(window.y) + 'px',
+    left: vimUI.px.col.x(window.x) + 'px',
+    display: '',
+  })
+}
 
-//const nearEdge = (x: number): boolean => canvasContainer.getBoundingClientRect().width - x < 10
-//const nearTop = (y: number): boolean => canvasContainer.getBoundingClientRect().top - y < 6
+export const render = async () => {
+  const vimWindows = await getWindows()
+  vimWindows.forEach(w => console.log(w))
 
-//const asWindow = (w: VeonimWindow): Window => ({
-  //name: w.name.replace(current.cwd + '/', ''),
-  //x: (px.col.x(w.x) + 4) + 'px',
-  //y: px.row.y(w.y) + 'px',
-  //width: px.col.width(w.width) + 'px',
-  //height: px.row.height(w.height) + 'px',
-  //nearEdge: nearEdge(px.col.width(w.width) + px.col.x(w.x)),
-  //nearTop: nearTop(px.row.y(w.y)),
-  //rawHeight: px.row.height(w.height),
-//})
+  // TODO: if need to create more
+  //if (vimWindows > windows)
 
-////const asNameplate = (w: VeonimWindow): Nameplate => ({
-  ////active: w.active,
-  ////modified: w.modified,
-  ////name: w.name.replace(current.cwd + '/', ''),
-  ////x: px.col.x(w.x) + 'px',
-  ////y: (px.row.y(w.y) + px.row.height(w.height)) + 'px',
-  ////width: px.col.width(w.width) + 'px',
-////})
+  for (let ix = 0; ix < windowsEl.length; ix++) {
+    const el = windowsEl[ix]
 
+    if (ix < vimWindows.length) {
+      setupWindow(el, windows[ix], vimWindows[ix])
+    }
 
-//const applyWindow = (w: Window, el: HTMLElement): HTMLElement => (merge(el.style, {
-  //width: w.width,
-  //height: w.nearTop ? (w.rawHeight + 6) + 'px' : w.height,
-  //top: w.y,
-  //left: w.x,
-  //display: '',
-  //borderRight: w.nearEdge ? 'none' : '1px solid rgba(255, 255, 255, 0.04)',
-  //marginTop: w.nearTop ? '-6px' : '0',
-//}), el)
+    else {
+      if (el.style.display !== 'none') merge(el.style, { display: 'none' })
+    }
+  }
+}
 
-////const applyNameplate = (n: Nameplate, el: HTMLElement): HTMLElement => {
-  ////merge(el.style, {
-    ////background: n.active ? '#2a2a2a' : '#222',
-    ////color: n.active ? '#eee' : '#aaa',
-    ////width: n.width,
-    ////top: n.y,
-    ////left: n.x,
-    ////display: '',
-  ////})
-
-  ////el.innerText = n.name
-  ////if (n.modified) el.innerText += ' *'
-  ////return el
-////}
-
-//export const render = async () => {
-  //const vimWindows = await getWindows()
-
-  //vimWindows.forEach(w => console.log(w))
-
-  //const windows = vimWindows.map(asWindow)
-  ////const plates = vimWindows.map(asNameplate)
-
-  //// TODO: cache the thing and skip render if wins not changed
-  //// or actually just need to vdom diff lol
-  //// if props not changed, skip render
-  //const windowCount = windows.length
-  //const elCount = elements.length
-
-  //if (windowCount > elCount) {
-    //const newWinCount = windowCount - elCount
-    //const newElements = generateElements(newWinCount)
-    //newElements.forEach(e => container.appendChild(e))
-    //elements.concat(newElements)
-  //}
-
-  //for (let ix = 0; ix < elCount; ix++) {
-    //const el = elements[ix]
-    //const np = nameplates[ix]
-
-    //if (ix < windowCount) {
-      //applyWindow(windows[ix], el)
-      ////applyNameplate(plates[ix], np)
-    //}
-
-    //else {
-      //if (el.style.display !== 'none') merge(el.style, { display: 'none' })
-      //if (np.style.display !== 'none') merge(el.style, { display: 'none' })
-    //}
-  //}
-//}
-
-//// TODO: yeah maybe not
-////dispatch.sub('redraw', debounce(() => render(), 32))
+// TODO: yeah maybe not
+dispatch.sub('redraw', debounce(() => render(), 32))

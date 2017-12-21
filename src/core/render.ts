@@ -3,6 +3,7 @@ import ui, { CursorShape } from '../core/canvasgrid'
 import { Events, ExtContainer } from '../core/api'
 import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
+import { grid } from '../core/grid'
 
 interface Colors {
   fg: string,
@@ -194,6 +195,7 @@ r.highlight_set = (attrs: Attrs) => {
 }
 
 r.scroll = amount => {
+  console.log('scroll', lastScrollRegion)
   amount > 0
     ? moveRegionUp(amount, lastScrollRegion || defaultScrollRegion())
     : moveRegionDown(-amount, lastScrollRegion || defaultScrollRegion())
@@ -212,7 +214,19 @@ r.put = str => {
     .setTextBaseline('top')
 
   for (let ix = 0; ix < total; ix++) {
-    if (str[ix][0] !== ' ') ui.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
+    // TODO: short form if didn't work...
+    // vertical split
+    if (str[ix][0] === '\u2411') {}
+    // horizontal split
+    else if (str[ix][0] === '\u2412') {}
+
+    // TODO: force set fillchars to these unicode chars (as to not render)
+    // if current char is empty or a split (fillchar) do not render
+    else if (str[ix][0] !== ' ') {
+      ui.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
+      grid[ui.cursor.row][ui.cursor.col] = str[ix][0]
+    }
+
     ui.cursor.col++
   }
 }

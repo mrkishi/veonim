@@ -60,7 +60,7 @@ export interface CanvasGrid {
   clear(): CanvasGrid,
   setColor(color: string): CanvasGrid,
   setFont(params: { size?: number, face?: string, lineHeight?: number }): CanvasGrid,
-  cursor: Cursor
+  cursor: Cursor,
   blurRegion(options: BlurOptions): CanvasGrid,
   clearActiveBlur(): void,
 }
