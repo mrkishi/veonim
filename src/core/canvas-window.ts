@@ -19,6 +19,13 @@ export interface TransferRegion {
   },
 }
 
+export interface Specs {
+  row: number,
+  col: number,
+  height: number,
+  width: number,
+}
+
 export interface CanvasWindow {
   px: {
     row: {
@@ -30,7 +37,8 @@ export interface CanvasWindow {
       x(cols: number, scaled?: boolean): number,
     }
   },
-  setOffset(row: number, col: number): CanvasWindow,
+  getSpecs(): Specs,
+  setSpecs(row: number, col: number, height: number, width: number): CanvasWindow,
   rowToY(row: number): number,
   colToX(col: number): number,
   resize(rows: number, columns: number): CanvasWindow,
@@ -48,7 +56,7 @@ export const createWindow = (container: HTMLElement) => {
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
   const font = { face: 'Roboto Mono', size: 14, lineHeight: 1.5 }
   const cell = { width: 0, height: 0, padding: 0 }
-  const offset = { row: 0, col: 0 }
+  const specs = { row: 0, col: 0, height: 0, width: 0 }
   const api = {} as CanvasWindow
 
   ui.imageSmoothingEnabled = false
@@ -56,20 +64,27 @@ export const createWindow = (container: HTMLElement) => {
 
   api.px = {
     row: {
-      height: (row, scaled = false) => Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
-      y: (rows, scaled = false) => api.px.row.height(rows, scaled) + (scaled ? window.devicePixelRatio : 1),
+      height: (row, scaled = false) =>
+        Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
+      y: (rows, scaled = false) =>
+        (api.px.row.height(rows, scaled) - specs.row) + (scaled ? window.devicePixelRatio : 1),
     },
     col: {
-      width: (col, scaled = false) => Math.floor(col * cell.width * (scaled ? window.devicePixelRatio : 1)),
-      x: (cols, scaled = false) => api.px.col.width(cols, scaled) + (scaled ? window.devicePixelRatio : 1),
+      width: (col, scaled = false) =>
+        Math.floor(col * cell.width * (scaled ? window.devicePixelRatio : 1)),
+      x: (cols, scaled = false) =>
+        (api.px.col.width(cols, scaled) - specs.col) + (scaled ? window.devicePixelRatio : 1),
     }
   }
 
-  api.setOffset = (row, col) => (merge(offset, { row, col }), api)
+  api.getSpecs = () => specs
+  api.setSpecs = (row, col, height, width) => (merge(specs, { row, col, height, width }), api)
   api.rowToY = row => api.px.row.y(row)
   api.colToX = col => api.px.col.x(col)
 
   api.resize = (rows, columns) => {
+    console.log('REDO O BOI LOL')
+    console.log('SPECS:', specs)
     const height = api.px.row.height(rows)
     const width = api.px.col.width(columns)
 

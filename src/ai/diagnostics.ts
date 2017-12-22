@@ -24,5 +24,5 @@ on.cursorMove(async state => {
   const res = await codeAction(state, relevantDiagnostics)
   // TODO: change cursor color i guess...
   // what is the stuff on the columnbar? code lens?
-  console.log('do something with these code actions:', res)
+  res && res.length && console.log('do something with these code actions:', res)
 })

@@ -3,7 +3,8 @@ import ui, { CursorShape } from '../core/canvasgrid'
 import { Events, ExtContainer } from '../core/api'
 import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-import { grid } from '../core/grid'
+import * as grid from '../core/grid'
+import { getWindow, applyToWindows } from '../components/windows'
 
 interface Colors {
   fg: string,
@@ -97,10 +98,13 @@ const cursorShapeType = (shape?: string) => {
 }
 
 const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
+  const w = getWindow(top, left)
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
-  ui
+  if (!w) console.log('MRU no window for', ui.cursor.col, ui.cursor.row)
+
+  w && w
     .moveRegion({
       width,
       height,
@@ -115,13 +119,18 @@ const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion
     })
     .setColor(colors.bg)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
+
+  grid.moveRegionUp(amount, top, bottom, left, right)
 }
 
 const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
+  const w = getWindow(top, left)
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
-  ui
+  if (!w) console.log('MRD no window for', ui.cursor.col, ui.cursor.row)
+
+  w && w
     .moveRegion({
       width,
       height,
@@ -136,12 +145,33 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
     })
     .setColor(colors.bg)
     .fillRect(left, top, right - left + 1, amount)
+
+  grid.moveRegionDown(amount, top, bottom, left, right)
 }
 
-r.clear = () => ui.setColor(colors.bg).clear()
 r.cursor_goto = (row, col) => merge(ui.cursor, { col, row })
-r.eol_clear = () => ui.setColor(colors.bg).fillRect(ui.cursor.col, ui.cursor.row, ui.cols, 1)
 r.set_scroll_region = (top, bottom, left, right) => lastScrollRegion = { top, bottom, left, right }
+
+r.clear = () => {
+  //ui.setColor(colors.bg).clear()
+  applyToWindows(w => w.setColor(colors.bg).clear())
+  grid.clear()
+}
+
+r.eol_clear = () => {
+  const win = getWindow(ui.cursor.row, ui.cursor.col)
+  if (!win) console.log('eol clear no window:', ui.cursor.row, ui.cursor.col)
+
+  win && win
+    .setColor(colors.bg)
+    .fillRect(ui.cursor.col, ui.cursor.row, ui.cols, 1)
+    
+  //ui
+    //.setColor(colors.bg)
+    //.fillRect(ui.cursor.col, ui.cursor.row, ui.cols, 1)
+
+  grid.clearLine(ui.cursor.row, ui.cursor.col)
+}
 
 r.update_fg = fg => {
   if (fg < 0) return
@@ -207,11 +237,19 @@ r.put = str => {
   const total = str.length
   if (!total) return
 
-  ui
+  const win = getWindow(ui.cursor.row, ui.cursor.col)
+  //// TODO: get all windows which apply for this range
+  win && win
     .setColor(nextAttrs.bg)
     .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
+
+  //ui
+    //.setColor(nextAttrs.bg)
+    //.fillRect(ui.cursor.col, ui.cursor.row, total, 1)
+    //.setColor(nextAttrs.fg)
+    //.setTextBaseline('top')
 
   for (let ix = 0; ix < total; ix++) {
     // TODO: short form if didn't work...
@@ -223,8 +261,11 @@ r.put = str => {
     // TODO: force set fillchars to these unicode chars (as to not render)
     // if current char is empty or a split (fillchar) do not render
     else if (str[ix][0] !== ' ') {
-      ui.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
-      grid[ui.cursor.row][ui.cursor.col] = str[ix][0]
+      //ui.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
+      const w = getWindow(ui.cursor.row, ui.cursor.col)
+      if (!w) console.log('no window for', ui.cursor.col, ui.cursor.row)
+      w && w.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
+      grid.grid[ui.cursor.row][ui.cursor.col] = str[ix][0]
     }
 
     ui.cursor.col++

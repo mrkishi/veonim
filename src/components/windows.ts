@@ -3,6 +3,7 @@ import { debounce, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import { getCurrent } from '../core/neovim'
 import * as vimUI from '../core/canvasgrid'
+import * as grid from '../core/grid'
 
 export interface VeonimWindow {
   x: number,
@@ -50,10 +51,39 @@ const getWindows = async (): Promise<VeonimWindow[]> => {
   }))
 }
 
+export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w))
+
+export const getWindow = (targetRow: number, targetCol: number) => windows.find(window => {
+  const { row, col, height, width } = window.getSpecs()
+  const horizontal = row <= targetRow && targetRow <= width
+  const vertical = col <= targetCol && targetCol <= height
+  return horizontal && vertical
+})
+
+export const getWindowsWhere = (targetRow: number, targetCol: number, targetHeight: number, targetWidth: number) => windows.find(window => {
+  const { row, col, height, width } = window.getSpecs()
+  const horizontal = row <= targetRow && targetRow <= width
+  const vertical = col <= targetCol && targetCol <= height
+  console.log('implement', targetHeight, targetWidth)
+  // TODO: wut
+  return horizontal && vertical
+})
+
 const setupWindow = (element: HTMLElement, canvas: CanvasWindow, window: VeonimWindow) => {
+  console.log('setup window:', window)
   canvas
+    .setSpecs(window.y, window.x, window.height, window.width)
     .resize(window.height, window.width)
-    .setOffset(window.y, window.x)
+    .setTextBaseline('top')
+    .setColor('#fff')
+
+  for (let lineIx = window.y; lineIx < window.height; lineIx++) {
+    const line = grid.grid[lineIx]
+
+    for (let charIx = window.x; charIx < window.width; charIx++) {
+      canvas.fillText(line[charIx], window.x + charIx, window.y + lineIx)
+    }
+  }
 
   merge(element.style, {
     // TODO: need to figure out better dynamic positioning
@@ -63,8 +93,26 @@ const setupWindow = (element: HTMLElement, canvas: CanvasWindow, window: VeonimW
   })
 }
 
+let vimWindows: VeonimWindow[]
+
 export const render = async () => {
-  const vimWindows = await getWindows()
+  const wins = await getWindows()
+
+  if (vimWindows) {
+    const same = wins.every((w, ix) => {
+      const lw = vimWindows[ix]
+      if (!lw) return false
+
+      return w.x === lw.x &&
+        w.y === lw.y &&
+        w.height === lw.height &&
+        w.width === lw.width
+    })
+
+    if (same) return
+  }
+
+  vimWindows = wins
   vimWindows.forEach(w => console.log(w))
 
   // TODO: if need to create more
