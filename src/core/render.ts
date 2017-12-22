@@ -263,7 +263,7 @@ r.put = str => {
     else if (str[ix][0] !== ' ') {
       //ui.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
       const w = getWindow(ui.cursor.row, ui.cursor.col)
-      if (!w) console.log('no window for', ui.cursor.col, ui.cursor.row)
+      if (!w) console.log(`no window for r${ui.cursor.row} c${ui.cursor.col}`)
       w && w.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
       grid.grid[ui.cursor.row][ui.cursor.col] = str[ix][0]
     }

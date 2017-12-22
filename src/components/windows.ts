@@ -53,10 +53,12 @@ const getWindows = async (): Promise<VeonimWindow[]> => {
 
 export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w))
 
-export const getWindow = (targetRow: number, targetCol: number) => windows.find(window => {
+// TODO: this iterates thru all windows, even those that are not active
+export const getWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.isActive()).find(window => {
   const { row, col, height, width } = window.getSpecs()
-  const horizontal = row <= targetRow && targetRow <= width
-  const vertical = col <= targetCol && targetCol <= height
+  //console.log(`S r${row} c${col} h${height} w${width} -> T r${targetRow} c${targetCol}`)
+  const horizontal = row <= targetRow && targetRow <= (height + row)
+  const vertical = col <= targetCol && targetCol <= (width + col)
   return horizontal && vertical
 })
 

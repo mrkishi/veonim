@@ -49,6 +49,7 @@ export interface CanvasWindow {
   clear(): CanvasWindow,
   setColor(color: string): CanvasWindow,
   setFont(params: { size?: number, face?: string, lineHeight?: number }): CanvasWindow,
+  isActive(): boolean,
 }
 
 export const createWindow = (container: HTMLElement) => {
@@ -58,6 +59,7 @@ export const createWindow = (container: HTMLElement) => {
   const cell = { width: 0, height: 0, padding: 0 }
   const specs = { row: 0, col: 0, height: 0, width: 0 }
   const api = {} as CanvasWindow
+  let active = false
 
   ui.imageSmoothingEnabled = false
   container.appendChild(canvas)
@@ -67,13 +69,13 @@ export const createWindow = (container: HTMLElement) => {
       height: (row, scaled = false) =>
         Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
       y: (rows, scaled = false) =>
-        (api.px.row.height(rows, scaled) - specs.row) + (scaled ? window.devicePixelRatio : 1),
+        api.px.row.height(rows - specs.row, scaled) + (scaled ? window.devicePixelRatio : 1),
     },
     col: {
       width: (col, scaled = false) =>
         Math.floor(col * cell.width * (scaled ? window.devicePixelRatio : 1)),
       x: (cols, scaled = false) =>
-        (api.px.col.width(cols, scaled) - specs.col) + (scaled ? window.devicePixelRatio : 1),
+        api.px.col.width(cols - specs.col, scaled) + (scaled ? window.devicePixelRatio : 1),
     }
   }
 
@@ -82,7 +84,9 @@ export const createWindow = (container: HTMLElement) => {
   api.rowToY = row => api.px.row.y(row)
   api.colToX = col => api.px.col.x(col)
 
+  api.isActive = () => active
   api.resize = (rows, columns) => {
+    active = true
     console.log('REDO O BOI LOL')
     console.log('SPECS:', specs)
     const height = api.px.row.height(rows)
