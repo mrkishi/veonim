@@ -147,6 +147,7 @@ export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
   })
 
   api.command(`let g:vn_loaded = 1`)
+  // TODO: why not just ask for dir BEFORE creating new vim instance then inject :cd cmd with chosen dir?
   // TODO: this doesn't always work
   // TODO: there should be a more deterministic way to do this. i tried VimEnter autocmd but...
   askCd && setTimeout(() => api.command(`doautocmd <nomodeline> User VeonimStartupDir`), 11)

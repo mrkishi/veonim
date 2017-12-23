@@ -177,12 +177,14 @@ r.update_fg = fg => {
   if (fg < 0) return
   merge(colors, { fg: asColor(fg) })
   dispatch.pub('colors.vim.fg', colors.fg)
+  grid.setForeground(colors.fg)
 }
 
 r.update_bg = bg => {
   if (bg < 0) return
   merge(colors, { bg: asColor(bg) })
   dispatch.pub('colors.vim.bg', colors.bg)
+  grid.setBackground(colors.bg)
 }
 
 r.update_sp = sp => {
@@ -265,7 +267,7 @@ r.put = str => {
       const w = getWindow(ui.cursor.row, ui.cursor.col)
       if (!w) console.log(`no window for r${ui.cursor.row} c${ui.cursor.col}`)
       w && w.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
-      grid.grid[ui.cursor.row][ui.cursor.col] = str[ix][0]
+      grid.set(ui.cursor.row, ui.cursor.col, str[ix][0], nextAttrs.fg, nextAttrs.bg)
     }
 
     ui.cursor.col++
