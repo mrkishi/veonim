@@ -102,8 +102,6 @@ const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
-  if (!w) console.log('MRU no window for', ui.cursor.col, ui.cursor.row)
-
   w && w
     .moveRegion({
       width,
@@ -128,8 +126,6 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
-  if (!w) console.log('MRD no window for', ui.cursor.col, ui.cursor.row)
-
   w && w
     .moveRegion({
       width,
@@ -153,22 +149,16 @@ r.cursor_goto = (row, col) => merge(ui.cursor, { col, row })
 r.set_scroll_region = (top, bottom, left, right) => lastScrollRegion = { top, bottom, left, right }
 
 r.clear = () => {
-  //ui.setColor(colors.bg).clear()
   applyToWindows(w => w.setColor(colors.bg).clear())
   grid.clear()
 }
 
 r.eol_clear = () => {
   const win = getWindow(ui.cursor.row, ui.cursor.col)
-  if (!win) console.log('eol clear no window:', ui.cursor.row, ui.cursor.col)
 
   win && win
     .setColor(colors.bg)
     .fillRect(ui.cursor.col, ui.cursor.row, ui.cols, 1)
-    
-  //ui
-    //.setColor(colors.bg)
-    //.fillRect(ui.cursor.col, ui.cursor.row, ui.cols, 1)
 
   grid.clearLine(ui.cursor.row, ui.cursor.col)
 }
@@ -227,7 +217,6 @@ r.highlight_set = (attrs: Attrs) => {
 }
 
 r.scroll = amount => {
-  console.log('scroll', lastScrollRegion)
   amount > 0
     ? moveRegionUp(amount, lastScrollRegion || defaultScrollRegion())
     : moveRegionDown(-amount, lastScrollRegion || defaultScrollRegion())
@@ -241,17 +230,13 @@ r.put = str => {
 
   const win = getWindow(ui.cursor.row, ui.cursor.col)
   //// TODO: get all windows which apply for this range
+  //or is it even an issue? aka always in range of window dimensions?
+  //add check in canvas-window fillRect to see if out of bounds
   win && win
     .setColor(nextAttrs.bg)
     .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
-
-  //ui
-    //.setColor(nextAttrs.bg)
-    //.fillRect(ui.cursor.col, ui.cursor.row, total, 1)
-    //.setColor(nextAttrs.fg)
-    //.setTextBaseline('top')
 
   for (let ix = 0; ix < total; ix++) {
     // TODO: short form if didn't work...

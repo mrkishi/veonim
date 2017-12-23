@@ -24,6 +24,7 @@ const generateElements = (count = 20) => [...Array(count)]
   }), e))
 
 const container = document.getElementById('windows') as HTMLElement
+// TODO: don't make so many!. just start with 1 and add as created
 const windowsEl = generateElements(10).map(e => (merge(e.style, { border: '1px solid green' }), e))
 const windows = windowsEl.map(e => createWindow(e))
 
@@ -52,6 +53,8 @@ const getWindows = async (): Promise<VeonimWindow[]> => {
 }
 
 export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w))
+
+export const px = windows[0].px
 
 // TODO: this iterates thru all windows, even those that are not active
 export const getWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.isActive()).find(window => {

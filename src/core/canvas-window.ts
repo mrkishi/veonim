@@ -125,7 +125,6 @@ export const createWindow = (container: HTMLElement) => {
   api.fillRect = (c, r, w, h) => (ui.fillRect(api.px.col.x(c), api.px.row.y(r), api.px.col.width(w), api.px.row.height(h)), api)
 
   api.moveRegion = ({ width, height, source, destination }) => {
-    // TODO: what about dat safeHeight used in the get/put imageData fns?
     const srcX = api.px.col.x(source.col, true)
     const srcY = api.px.row.y(source.row, true)
     const srcWidth = api.px.col.width(width, true)

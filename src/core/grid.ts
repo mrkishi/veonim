@@ -12,7 +12,6 @@ export const setForeground = (fg: string) => defaults.fg = fg
 export const setBackground = (bg: string) => defaults.bg = bg
 
 export const resizeGrid = (rows: number, columns: number) => {
-  console.log('resize rows:', rows, 'columns:', columns)
   grid = [...Array(rows)].map(() => [...Array(columns)].map(() => [' ', defaults.fg, defaults.bg] as Cell))
 }
 
