@@ -72,14 +72,22 @@ export const getWindowsWhere = (targetRow: number, targetCol: number, targetHeig
 })
 
 const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: VeonimWindow) => {
-  //console.log('setup window:', window)
-
   canvas
     .setSpecs(window.y, window.x, window.height, window.width)
     .resize(window.height, window.width)
 
-  //const specs = canvas.getSpecs()
-  //console.log('specs for x', window.x, specs)
+  for (let lineIx = window.y; lineIx < window.y + window.height; lineIx++) {
+    for (let charIx = window.x; charIx < window.x + window.width; charIx++) {
+      const [ ch, fg, bg ] = grid.get(lineIx, charIx)
+
+      canvas
+        .setColor(bg)
+        .fillRect(charIx, lineIx, 1, 1)
+        .setColor(fg)
+        .setTextBaseline('top')
+        .fillText(ch, charIx, lineIx)
+    }
+  }
 
   merge(element.style, {
     // TODO: need to figure out better dynamic positioning
@@ -87,32 +95,6 @@ const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: V
     left: vimUI.px.col.x(window.x) + 'px',
     display: '',
   })
-
-  setTimeout(() => {
-    console.log('BEGIN PAINT FROM CACHE')
-
-  for (let lineIx = window.y; lineIx < window.y + window.height; lineIx++) {
-    for (let charIx = window.x; charIx < window.x + window.width; charIx++) {
-      const [ ch, fg, bg ] = grid.get(lineIx, charIx)
-      //window.x > 0 && console.log('ch:', ch, lineIx, charIx, bg, fg)
-      
-      const col = window.x + charIx
-      const row = window.y + lineIx
-
-      // TODO: dirty check?
-      canvas.setColor(bg)
-      canvas.fillRect(col, row, 1, 1)
-
-      if (ch !== ' ') {
-        canvas.setColor(fg)
-        canvas.setTextBaseline('top')
-        canvas.fillText(ch, col, row)
-      }
-    }
-  }
-
-  }, 5e3)
-
 }
 
 let vimWindows: VeonimWindow[]

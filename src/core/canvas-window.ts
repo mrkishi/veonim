@@ -68,14 +68,14 @@ export const createWindow = (container: HTMLElement) => {
     row: {
       height: (row, scaled = false) =>
         Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
-      y: (rows, scaled = false) =>
-        api.px.row.height(rows - specs.row, scaled) + (scaled ? window.devicePixelRatio : 1),
+      y: (row, scaled = false) =>
+        api.px.row.height(row - specs.row, scaled) + (scaled ? window.devicePixelRatio : 1),
     },
     col: {
       width: (col, scaled = false) =>
         Math.floor(col * cell.width * (scaled ? window.devicePixelRatio : 1)),
-      x: (cols, scaled = false) =>
-        api.px.col.width(cols - specs.col, scaled) + (scaled ? window.devicePixelRatio : 1),
+      x: (col, scaled = false) =>
+        api.px.col.width(col - specs.col, scaled) + (scaled ? window.devicePixelRatio : 1),
     }
   }
 

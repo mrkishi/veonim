@@ -265,10 +265,14 @@ r.put = str => {
     else if (str[ix][0] !== ' ') {
       //ui.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
       const w = getWindow(ui.cursor.row, ui.cursor.col)
+      // TODO: window dimensions does not include bottom statusline. but it does vertical split chars?
+      // should skip the fillchars check and just truncate windows that will have vert fillchars?
+      // (because horizontal are already not included in window)
       if (!w) console.log(`no window for r${ui.cursor.row} c${ui.cursor.col}`)
       w && w.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
-      grid.set(ui.cursor.row, ui.cursor.col, str[ix][0], nextAttrs.fg, nextAttrs.bg)
     }
+
+    grid.set(ui.cursor.row, ui.cursor.col, str[ix][0], nextAttrs.fg, nextAttrs.bg)
 
     ui.cursor.col++
   }
