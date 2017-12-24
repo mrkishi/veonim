@@ -60,6 +60,7 @@ const startupCmds = CmdGroup`
   let g:vn_rpc_buf = []
   let g:vn_platform = '${process.platform}'
   let g:vn_events = {}
+  set laststatus = 0
   call serverstart()
 `
 
@@ -147,6 +148,7 @@ export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
   })
 
   api.command(`let g:vn_loaded = 1`)
+  api.command(`set laststatus = 0`)
   // TODO: why not just ask for dir BEFORE creating new vim instance then inject :cd cmd with chosen dir?
   // TODO: this doesn't always work
   // TODO: there should be a more deterministic way to do this. i tried VimEnter autocmd but...
