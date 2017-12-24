@@ -20,11 +20,12 @@ const generateElements = (count = 20) => [...Array(count)]
   .map(e => (merge(e.style, {
     display: 'none',
     background: 'none',
+    border: '1px solid pink',
   }), e))
 
 const container = document.getElementById('windows') as HTMLElement
 // TODO: don't make so many!. just start with 1 and add as created
-const windowsEl = generateElements(10).map(e => (merge(e.style, { border: '1px solid green' }), e))
+const windowsEl = generateElements(10)
 const windows = windowsEl.map(e => createWindow(e))
 
 windowsEl.forEach(e => container.appendChild(e))

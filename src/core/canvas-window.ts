@@ -88,10 +88,9 @@ export const createWindow = (container: HTMLElement) => {
 
   api.deactivate = () => active = false
   api.isActive = () => active
+
   api.resize = (rows, columns) => {
     active = true
-    console.log('REDO O BOI LOL')
-    console.log('SPECS:', specs)
     const height = api.px.row.height(rows)
     const width = api.px.col.width(columns)
 

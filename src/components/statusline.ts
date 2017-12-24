@@ -79,6 +79,7 @@ const Tab = style('div')({
   height: '100%',
 })
 
+// TODO: LOL NOPE
 const $PR = `/Users/a/Documents/projects/`
 
 const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers }: State) => Statusline({}, [
