@@ -1,9 +1,9 @@
 // TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
+import { showCursor, hideCursor } from '../core/cursor'
 const { h: hs, app: makeApp } = require('hyperapp')
 import { merge, proxyFn } from '../support/utils'
 import * as viminput from '../core/input'
 const picostyle = require('picostyle')
-import vim from '../core/canvasgrid'
 import huu from 'huu'
 
 export interface ActionCaller { [index: string]: (data?: any) => void }
@@ -23,13 +23,13 @@ export const app = (appParts: any, switchFocus = true, root = hostElement) => {
 
   if (switchFocus) appParts.actions.show = (s: any, a: any, d: any) => {
     viminput.blur()
-    vim.hideCursor()
+    hideCursor()
     return show(s, a, d)
   }
 
   if (switchFocus) appParts.actions.hide = (s: any, a: any, d: any) => {
     setImmediate(() => viminput.focus())
-    vim.showCursor()
+    showCursor()
     return hide(s, a, d)
   }
 

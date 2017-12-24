@@ -5,9 +5,11 @@ import { CompletionItemKind } from 'vscode-languageserver-types'
 import { CompletionItem } from 'vscode-languageserver-types'
 import * as completionUI from '../components/autocomplete'
 import { harvester, update } from '../ai/update-server'
+import { activeWindow } from '../components/windows'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
-import vimUI from '../core/canvasgrid'
+import * as canvasContainer from '../core/canvas-container'
+import { cursor } from '../core/cursor'
 
 interface Cache {
   semanticCompletions: Map<string, CompletionOption[]>,
@@ -31,17 +33,19 @@ const calcMenuPosition = (startIndex: number, column: number, count: number) => 
   // anchor menu above row if the maximum results are going to spill out of bounds.
   // why maxResults instead of the # of items in options? because having the menu jump
   // around over-under as you narrow down results by typing or undo is kinda annoying
-  const anchorAbove = vimUI.cursor.row + MAX_RESULTS > vimUI.rows 
+  const anchorAbove = cursor.row + MAX_RESULTS > canvasContainer.size.rows
   const row = anchorAbove
-    ? vimUI.cursor.row - count
-    : vimUI.cursor.row + 1
+    ? cursor.row - count
+    : cursor.row + 1
 
   const start = Math.max(0, startIndex)
-  const col = vimUI.cursor.col - (column - start)
+  const col = cursor.col - (column - start)
+  const win = activeWindow()
+
   return {
     anchorAbove,
-    y: vimUI.rowToY(row),
-    x: vimUI.colToX(col),
+    y: win ? win.rowToY(row) : 0,
+    x: win ? win.colToX(col) : 0,
   }
 }
 

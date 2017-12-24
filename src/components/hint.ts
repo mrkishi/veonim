@@ -1,7 +1,7 @@
+import { activeWindow } from '../components/windows'
 import { current as vimstate } from '../core/neovim'
 import { translate, bold, faded } from '../ui/css'
 import { h, app, Actions } from '../ui/uikit'
-import vimUI from '../core/canvasgrid'
 
 interface State {
   label: string,
@@ -107,8 +107,8 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selected
     currentParam,
     selectedSignature,
     totalSignatures,
-    x: vimUI.colToX(col - 1),
-    y: vimUI.rowToY(row > 2 ? row : row + 1),
+    x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
+    y: activeWindow() ? activeWindow()!.rowToY(row > 2 ? row : row + 1) : 0,
     anchorBottom: row > 2,
     vis: true
   }

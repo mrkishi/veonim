@@ -1,7 +1,7 @@
+import { activeWindow } from '../components/windows'
 import { current as vimstate } from '../core/neovim'
 import { h, app, Actions } from '../ui/uikit'
 import { ColorData } from '../ai/hover'
-import vimUI from '../core/canvasgrid'
 import { translate } from '../ui/css'
 
 interface State {
@@ -67,8 +67,8 @@ const a: Actions<State> = {}
 
 a.show = (_s, _a, { value, row, col }) => ({
   value,
-  x: vimUI.colToX(col - 1),
-  y: vimUI.rowToY(row > 2 ? row : row + 1),
+  x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
+  y: activeWindow() ? activeWindow()!.rowToY(row > 2 ? row : row + 1) : 0,
   anchorBottom: row > 2,
   vis: true
 })

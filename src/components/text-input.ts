@@ -1,5 +1,5 @@
+import * as canvasContainer from '../core/canvas-container'
 import { xfrmUp } from '../core/input'
-import vimUI from '../core/canvasgrid'
 import Icon from '../components/icon'
 import { style } from '../ui/uikit'
 
@@ -53,7 +53,7 @@ const Input = style('input')({
   color: 'rgba(255, 255, 255, 0.9)',
   outline: 'none',
   border: 'none',
-  fontSize: `${vimUI.fontSize + 4}px`,
+  fontSize: `${canvasContainer.font.size + 4}px`,
   fontFamily: 'var(--font)',
 })
 
@@ -89,7 +89,7 @@ export default ({
   IconBox({}, [
     Icon(icon, {
       color: '#555',
-      size: vimUI.fontSize + 8,
+      size: canvasContainer.font.size + 8,
       weight: 3,
     })
   ]),

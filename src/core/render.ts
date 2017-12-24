@@ -1,10 +1,11 @@
+import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
+import { getWindow, applyToWindows } from '../components/windows'
+import * as canvasContainer from '../core/canvas-container'
 import { onRedraw, getColor } from '../core/master-control'
-import ui, { CursorShape } from '../core/canvasgrid'
 import { Events, ExtContainer } from '../core/api'
 import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
-import { getWindow, applyToWindows } from '../components/windows'
 
 interface Colors {
   fg: string,
@@ -86,8 +87,8 @@ const nextAttrs: NextAttrs = {
 const defaultScrollRegion = (): ScrollRegion => ({
   top: 0,
   left: 0,
-  right: ui.cols,
-  bottom: ui.rows
+  right: canvasContainer.size.cols,
+  bottom: canvasContainer.size.rows,
 })
 
 const cursorShapeType = (shape?: string) => {
@@ -145,7 +146,7 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
   grid.moveRegionDown(amount, top, bottom, left, right)
 }
 
-r.cursor_goto = (row, col) => merge(ui.cursor, { col, row })
+r.cursor_goto = (row, col) => merge(cursor, { col, row })
 r.set_scroll_region = (top, bottom, left, right) => lastScrollRegion = { top, bottom, left, right }
 
 r.clear = () => {
@@ -154,13 +155,13 @@ r.clear = () => {
 }
 
 r.eol_clear = () => {
-  const win = getWindow(ui.cursor.row, ui.cursor.col)
+  const win = getWindow(cursor.row, cursor.col)
 
   win && win
     .setColor(colors.bg)
-    .fillRect(ui.cursor.col, ui.cursor.row, ui.cols, 1)
+    .fillRect(cursor.col, cursor.row, canvasContainer.size.cols, 1)
 
-  grid.clearLine(ui.cursor.row, ui.cursor.col)
+  grid.clearLine(cursor.row, cursor.col)
 }
 
 r.update_fg = fg => {
@@ -192,7 +193,10 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
   if (mi.hl_id) {
     const { bg } = await getColor(mi.hl_id)
     merge(info, { color: bg || colors.fg })
-    if (mi.name === currentMode && bg) ui.setCursorColor(bg).setCursorShape(info.shape, info.size)
+    if (mi.name === currentMode && bg) {
+      setCursorColor(bg)
+      setCursorShape(info.shape, info.size)
+    }
   }
 
   modes.set(mi.name, info)
@@ -203,8 +207,8 @@ r.mode_change = async mode => {
   currentMode = mode
   const info = modes.get(mode)
   if (!info) return
-  info.color && ui.setCursorColor(info.color)
-  ui.setCursorShape(info.shape, info.size)
+  info.color && setCursorColor(info.color)
+  setCursorShape(info.shape, info.size)
 }
 
 r.highlight_set = (attrs: Attrs) => {
@@ -228,13 +232,13 @@ r.put = str => {
   const total = str.length
   if (!total) return
 
-  const win = getWindow(ui.cursor.row, ui.cursor.col)
+  const win = getWindow(cursor.row, cursor.col)
   //// TODO: get all windows which apply for this range
   //or is it even an issue? aka always in range of window dimensions?
   //add check in canvas-window fillRect to see if out of bounds
   win && win
     .setColor(nextAttrs.bg)
-    .fillRect(ui.cursor.col, ui.cursor.row, total, 1)
+    .fillRect(cursor.col, cursor.row, total, 1)
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
 
@@ -248,18 +252,17 @@ r.put = str => {
     // TODO: force set fillchars to these unicode chars (as to not render)
     // if current char is empty or a split (fillchar) do not render
     else if (str[ix][0] !== ' ') {
-      //ui.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
-      const w = getWindow(ui.cursor.row, ui.cursor.col)
+      const w = getWindow(cursor.row, cursor.col)
       // TODO: window dimensions does not include bottom statusline. but it does vertical split chars?
       // should skip the fillchars check and just truncate windows that will have vert fillchars?
       // (because horizontal are already not included in window)
-      if (!w) console.log(`no window for r${ui.cursor.row} c${ui.cursor.col}`)
-      w && w.fillText(str[ix][0], ui.cursor.col, ui.cursor.row)
+      if (!w) console.log(`no window for r${cursor.row} c${cursor.col}`)
+      w && w.fillText(str[ix][0], cursor.col, cursor.row)
     }
 
-    grid.set(ui.cursor.row, ui.cursor.col, str[ix][0], nextAttrs.fg, nextAttrs.bg)
+    grid.set(cursor.row, cursor.col, str[ix][0], nextAttrs.fg, nextAttrs.bg)
 
-    ui.cursor.col++
+    cursor.col++
   }
 }
 
@@ -321,6 +324,6 @@ onRedraw((m: any[]) => {
   }
 
   lastScrollRegion = null
-  ui.moveCursor()
+  moveCursor()
   setImmediate(() => dispatch.pub('redraw'))
 })

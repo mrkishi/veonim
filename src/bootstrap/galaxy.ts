@@ -1,19 +1,19 @@
-import { CreateTask, requireDir, debounce, log, delay as timeout } from '../support/utils'
+import { CreateTask, requireDir, log, delay as timeout } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
-import ui, { CursorShape } from '../core/canvasgrid'
+import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
 import setDefaultSession from '../core/sessions'
+import * as windows from '../components/windows'
 import { sub } from '../messaging/dispatch'
 import * as uiInput from '../core/input'
 import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
-import { resizeGrid } from '../core/grid'
 
 const loadingConfig = CreateTask()
 
 configReader('nvim/init.vim', c => {
-  ui.setFont({
+  canvasContainer.setFont({
     face: c.get('font'),
     size: c.get('font_size')-0,
     lineHeight: c.get('line_height')-0
@@ -22,24 +22,19 @@ configReader('nvim/init.vim', c => {
   loadingConfig.done('')
 })
 
-const refreshCanvas = () => {
-  ui.resize()
-  resizeGrid(ui.rows, ui.cols)
-  resize(ui.cols, ui.rows)
-}
-
-window.matchMedia('screen and (min-resolution: 2dppx)').addListener(refreshCanvas)
-window.addEventListener('resize', debounce(() => refreshCanvas(), 150))
-
 sub('colors.vim.bg', color => {
   if (document.body.style.background !== color) document.body.style.background = color
+})
+
+canvasContainer.on('resize', ({ rows, cols }) => {
+  resize(cols, rows)
+  setImmediate(() => windows.render())
 })
 
 const main = async () => {
   const { id, path } = await create()
   await Promise.race([ loadingConfig.promise, timeout(500) ])
-  ui.setCursorShape(CursorShape.block)
-  refreshCanvas()
+  resize(canvasContainer.size.cols, canvasContainer.size.rows)
   uiInput.focus()
   attachTo(id)
   setDefaultSession(id, path)

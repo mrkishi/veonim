@@ -3,7 +3,7 @@ import { action, current as vimState, on } from '../core/neovim'
 import { signatureHelp, triggers } from '../langserv/adapter'
 import * as hintUI from '../components/hint'
 import { merge } from '../support/utils'
-import vimUI from '../core/canvasgrid'
+import { cursor } from '../core/cursor'
 
 const cache = {
   signatures: [] as SignatureInformation[],
@@ -23,7 +23,7 @@ const shouldCloseSignatureHint = (totalParams: number, currentParam: number, tri
     || (leftChar === ']' && triggers.includes('['))
 }
 
-const cursorPos = () => ({ row: vimUI.cursor.row, col: vimUI.cursor.col })
+const cursorPos = () => ({ row: cursor.row, col: cursor.col })
 
 const showSignature = (signatures: SignatureInformation[], which?: number | null, param?: number | null) => {
   const { label = '', documentation = '', parameters = [] } = signatures[which || 0]

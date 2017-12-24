@@ -2,7 +2,7 @@ import { CanvasWindow, createWindow } from '../core/canvas-window'
 import { debounce, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import { getCurrent } from '../core/neovim'
-import * as vimUI from '../core/canvasgrid'
+import { cursor } from '../core/cursor'
 import * as grid from '../core/grid'
 
 export interface VeonimWindow {
@@ -65,6 +65,8 @@ export const getWindow = (targetRow: number, targetCol: number) => windows.filte
   return horizontal && vertical
 })
 
+export const activeWindow = () => getWindow(cursor.row, cursor.col)
+
 export const getWindowsWhere = (targetRow: number, targetCol: number, targetHeight: number, targetWidth: number) => windows.find(window => {
   const { row, col, height, width } = window.getSpecs()
   const horizontal = row <= targetRow && targetRow <= width
@@ -94,8 +96,8 @@ const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: V
 
   merge(element.style, {
     // TODO: need to figure out better dynamic positioning
-    top: vimUI.px.row.y(window.y) + 'px',
-    left: vimUI.px.col.x(window.x) + 'px',
+    //top: vimUI.px.row.y(window.y) + 'px',
+    //left: vimUI.px.col.x(window.x) + 'px',
     display: '',
   })
 }

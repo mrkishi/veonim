@@ -1,19 +1,19 @@
+import * as canvasContainer from '../core/canvas-container'
+
 type Character = string
 type Foreground = string
 type Background = string
-
 type Cell = [ Character, Foreground, Background ]
 
 let grid: Cell[][] = [[]]
 
-export const defaults = { fg: '', bg: '' }
-
-export const setForeground = (fg: string) => defaults.fg = fg
-export const setBackground = (bg: string) => defaults.bg = bg
-
-export const resizeGrid = (rows: number, columns: number) => {
+const resizeGrid = (rows: number, columns: number) => {
   grid = [...Array(rows)].map(() => [...Array(columns)].map(() => [' ', defaults.fg, defaults.bg] as Cell))
 }
+
+export const defaults = { fg: '', bg: '' }
+export const setForeground = (fg: string) => defaults.fg = fg
+export const setBackground = (bg: string) => defaults.bg = bg
 
 export const get = (row: number, col: number): Cell => grid[row][col]
 
@@ -95,3 +95,5 @@ export const clearLine = (row: number, col: number) => {
     line[charIx][2] = defaults.bg
   }
 }
+
+canvasContainer.on('resize', ({ rows, cols }) => resizeGrid(rows, cols))

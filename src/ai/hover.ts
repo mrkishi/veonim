@@ -3,7 +3,7 @@ const removeMarkdown = require('remove-markdown')
 import * as hoverUI from '../components/hover'
 import { hover } from '../langserv/adapter'
 import Worker from '../messaging/worker'
-import vimUI from '../core/canvasgrid'
+import { cursor } from '../core/cursor'
 
 export interface ColorData {
   color: string,
@@ -18,11 +18,7 @@ action('hover', async () => {
   const cleanData = removeMarkdown(text)
   const data: ColorData[][] = await colorizer.request.colorize(cleanData, vimState.filetype)
 
-  hoverUI.show({
-    data,
-    row: vimUI.cursor.row,
-    col: vimUI.cursor.col
-  })
+  hoverUI.show({ data, row: cursor.row, col: cursor.col })
 })
 
 on.cursorMove(() => hoverUI.hide())

@@ -1,7 +1,7 @@
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { CompletionItemKind } from 'vscode-languageserver-types'
+import * as canvasContainer from '../core/canvas-container'
 import { h, app, Actions } from '../ui/uikit'
-import vimUI from '../core/canvasgrid'
 import Icon from '../components/icon'
 import { translate } from '../ui/css'
 
@@ -48,7 +48,7 @@ const docs = (data: string) => h('.row', {
     background: '#1e1e1e',
     paddingTop: '4px',
     paddingBottom: '4px',
-    fontSize: `${vimUI.fontSize - 2}px`,
+    fontSize: `${canvasContainer.font.size - 2}px`,
     color: 'rgba(255, 255, 255, 0.5)',
   }
 }, data)

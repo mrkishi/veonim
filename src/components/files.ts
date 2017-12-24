@@ -3,7 +3,6 @@ import { h, app, style, Actions } from '../ui/uikit'
 import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import Worker from '../messaging/worker'
-import vimUI from '../core/canvasgrid'
 
 interface FileDir {
   dir: string,
@@ -63,11 +62,6 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
       width: '600px',
     },
     hide: !vis,
-    onupdate: (e: HTMLElement) => setImmediate(() => {
-      const { top: y, left: x, height, width } = e.getBoundingClientRect()
-      if (!height || !width) return vimUI.clearActiveBlur()
-      vimUI.blurRegion({ x, y, height, width, amount: 80 })
-    }),
   }, [
     Input({
       val,
