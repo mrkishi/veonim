@@ -56,25 +56,14 @@ export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => w
 
 export const px = windows[0].px
 
-// TODO: this iterates thru all windows, even those that are not active
 export const getWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.isActive()).find(window => {
   const { row, col, height, width } = window.getSpecs()
-  //console.log(`S r${row} c${col} h${height} w${width} -> T r${targetRow} c${targetCol}`)
   const horizontal = row <= targetRow && targetRow <= (height + row)
   const vertical = col <= targetCol && targetCol <= (width + col)
   return horizontal && vertical
 })
 
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
-
-export const getWindowsWhere = (targetRow: number, targetCol: number, targetHeight: number, targetWidth: number) => windows.find(window => {
-  const { row, col, height, width } = window.getSpecs()
-  const horizontal = row <= targetRow && targetRow <= width
-  const vertical = col <= targetCol && targetCol <= height
-  console.log('implement', targetHeight, targetWidth)
-  // TODO: wut
-  return horizontal && vertical
-})
 
 const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: VeonimWindow) => {
   canvas
@@ -135,6 +124,7 @@ export const render = async () => {
 
     else {
       if (el.style.display !== 'none') merge(el.style, { display: 'none' })
+      windows[ix].deactivate()
     }
   }
 }

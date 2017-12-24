@@ -50,6 +50,7 @@ export interface CanvasWindow {
   clear(): CanvasWindow,
   setColor(color: string): CanvasWindow,
   isActive(): boolean,
+  deactivate(): void,
 }
 
 export const createWindow = (container: HTMLElement) => {
@@ -85,6 +86,7 @@ export const createWindow = (container: HTMLElement) => {
   api.rowToY = row => api.px.row.y(row)
   api.colToX = col => api.px.col.x(col)
 
+  api.deactivate = () => active = false
   api.isActive = () => active
   api.resize = (rows, columns) => {
     active = true
