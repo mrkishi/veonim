@@ -8,8 +8,9 @@ export enum CursorShape {
   underline,
 }
 
-const cursorEl = document.getElementById('cursor') as HTMLElement
 export const cursor = { row: 0, col: 0, color: '#fff' }
+const cursorEl = document.getElementById('cursor') as HTMLElement
+cursorEl.style.position = 'absolute'
 
 export const setCursorShape = (type: CursorShape, size = 20) => {
   console.log('pls set cursor shape', type, size, partialFill)

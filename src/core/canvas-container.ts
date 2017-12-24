@@ -12,6 +12,7 @@ const watchers = new Watchers()
 const container = document.getElementById('canvas-container') as HTMLElement
 const sandboxCanvas = document.createElement('canvas')
 const canvas = sandboxCanvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
+container.style.flex = '1'
 
 const _font = {
   face: 'Roboto Mono',

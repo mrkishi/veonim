@@ -18,7 +18,6 @@ export interface VeonimWindow {
 const generateElements = (count = 20) => [...Array(count)]
   .map(() => document.createElement('div'))
   .map(e => (merge(e.style, {
-    position: 'absolute',
     display: 'none',
     background: 'none',
   }), e))
@@ -29,6 +28,12 @@ const windowsEl = generateElements(10).map(e => (merge(e.style, { border: '1px s
 const windows = windowsEl.map(e => createWindow(e))
 
 windowsEl.forEach(e => container.appendChild(e))
+merge(container.style, {
+  display: 'flex',
+  'flex-flow': 'column wrap',
+  width: '100%',
+  height: '100%',
+})
 
 const getWindows = async (): Promise<VeonimWindow[]> => {
   const currentBuffer = (await getCurrent.buffer).id
