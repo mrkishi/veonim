@@ -31,11 +31,6 @@ canvasContainer.on('resize', ({ rows, cols }) => {
   setImmediate(() => windows.render())
 })
 
-// TODO: REGRESSION
-// TODO: sometimes remap-modifiers work and sometimes they don't.
-// startup ordering getting messed up?
-// broke with windows hacks
-
 const main = async () => {
   const { id, path } = await create()
   await Promise.race([ loadingConfig.promise, timeout(500) ])
