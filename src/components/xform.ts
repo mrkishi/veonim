@@ -5,10 +5,15 @@ import { remote } from 'electron'
 import { Script } from 'vm'
 
 // TODO: deprecate remapModifier and use transform instead?
-action('remap-modifier', (from, to) => remapModifier(from, to))
+action('remap-modifier', (from, to) => {
+  console.log('REMAP MODIFIER', from, to)
+  remapModifier(from, to)
+})
+
 action('register-shortcut', key => registerShortcut(key, () => call.VeonimCallEvent(`key:${key}`)))
 
 action('key-transform', (type, matcher, transformer) => {
+  console.log('KEY TRANSFORM', type, matcher)
   const fn = Reflect.get(transform, type)
   const transformFn = new Script(transformer).runInThisContext()
   const matchObj = is.string(matcher) ? fromJSON(matcher).or({}) : matcher

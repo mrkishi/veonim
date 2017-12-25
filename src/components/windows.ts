@@ -151,15 +151,14 @@ export const render = async () => {
       // TODO: this could be better
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
-      console.log('update just nameplate kthx')
       win.nameplate.innerText = vw.name
-      // TODO: need to update vimWindows with the change!
+      const wwIx = vimWindows.findIndex(w => w.x === vw.x && w.y === vw.y)
+      vimWindows[wwIx].name = vw.name
     })
 
     if (windowsDimensionsSame(wins, vimWindows)) return
   }
 
-  console.log('update all windows')
   vimWindows = wins
 
   // TODO: if need to create more
@@ -180,9 +179,8 @@ export const render = async () => {
     }
   }
 
-  // TODO: cursor position is in the wrong place on veonim startup
-  moveCursor()
+  setImmediate(() => moveCursor())
 }
 
-// TODO: yeah maybe not
+// TODO: maybe use throttle as to be more responsive?
 dispatch.sub('redraw', debounce(() => render(), 32))

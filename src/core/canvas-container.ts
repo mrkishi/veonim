@@ -17,7 +17,7 @@ merge(container.style, {
   display: 'flex',
   flex: '1',
   // TODO: should lighten (or darken) % based on vim current.bg
-  background: 'rgb(60, 60, 60)',
+  background: 'rgb(30, 30, 30)',
   // TODO: this may need some tweaking
   'padding-top': '2px',
   'padding-left': '2px',
