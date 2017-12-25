@@ -46,7 +46,6 @@ const Row = style('div')({
   paddingRight: '12px',
   paddingTop: '4px',
   paddingBottom: '4px',
-  color: 'rgba(255, 255, 255, 0.8)',
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -57,7 +56,7 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
 }, [
   h('div', {
     style: {
-      background: 'rgba(20, 20, 20, 0.52)',
+      background: 'rgb(20, 20, 20)',
       marginTop: '15%',
       width: '600px',
     },
@@ -81,7 +80,9 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
       style: key === ix ? { background: 'rgba(255, 255, 255, 0.08)' } : undefined,
     }, [
       h('span', { style: { color: '#666' } }, f.dir),
-      h('span', f.file)
+      h('span', { style: {
+        color: key === ix ? '#fff' : '#aaa'
+      } }, f.file)
     ]))),
   ])
 ])
