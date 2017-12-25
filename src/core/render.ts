@@ -243,20 +243,8 @@ r.put = str => {
     .setTextBaseline('top')
 
   for (let ix = 0; ix < total; ix++) {
-    // TODO: short form if didn't work...
-    // vertical split
-    if (str[ix][0] === '\u2411') {}
-    // horizontal split
-    else if (str[ix][0] === '\u2412') {}
-
-    // TODO: force set fillchars to these unicode chars (as to not render)
-    // if current char is empty or a split (fillchar) do not render
-    else if (str[ix][0] !== ' ') {
+    if (str[ix][0] !== ' ') {
       const w = getWindow(cursor.row, cursor.col)
-      // TODO: window dimensions does not include bottom statusline. but it does vertical split chars?
-      // should skip the fillchars check and just truncate windows that will have vert fillchars?
-      // (because horizontal are already not included in window)
-      if (!w) console.log(`no window for r${cursor.row} c${cursor.col}`)
       w && w.fillText(str[ix][0], cursor.col, cursor.row)
     }
 

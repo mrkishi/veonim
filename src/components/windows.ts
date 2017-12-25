@@ -87,12 +87,7 @@ const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: V
     }
   }
 
-  merge(element.style, {
-    // TODO: need to figure out better dynamic positioning
-    //top: vimUI.px.row.y(window.y) + 'px',
-    //left: vimUI.px.col.x(window.x) + 'px',
-    display: '',
-  })
+  element.style.display = ''
 }
 
 let vimWindows: VeonimWindow[]
