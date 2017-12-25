@@ -60,8 +60,6 @@ const getWindows = async (): Promise<VeonimWindow[]> => {
 
 export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w))
 
-export const px = windows[0].px
-
 export const getWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.isActive()).find(window => {
   const { row, col, height, width } = window.getSpecs()
   const horizontal = row <= targetRow && targetRow <= (height + row)
