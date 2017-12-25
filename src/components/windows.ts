@@ -1,8 +1,9 @@
 import { CanvasWindow, createWindow } from '../core/canvas-window'
+import * as canvasContainer from '../core/canvas-container'
+import { getCurrent, current } from '../core/neovim'
+import { cursor, moveCursor } from '../core/cursor'
 import { debounce, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-import { getCurrent } from '../core/neovim'
-import { cursor } from '../core/cursor'
 import * as grid from '../core/grid'
 
 export interface VeonimWindow {
@@ -20,15 +21,44 @@ const generateElements = (count = 20) => [...Array(count)]
   .map(e => (merge(e.style, {
     display: 'none',
     background: 'none',
-    border: '1px solid pink',
+    margin: '1px',
   }), e))
 
 const container = document.getElementById('windows') as HTMLElement
 // TODO: don't make so many!. just start with 1 and add as created
-const windowsEl = generateElements(10)
-const windows = windowsEl.map(e => createWindow(e))
+const windows = generateElements(10).map(e => {
+  const canvasBox = document.createElement('div')
+  const nameplateBox = document.createElement('div')
+  const nameplate = document.createElement('div')
+  const canvas = createWindow(canvasBox)
 
-windowsEl.forEach(e => container.appendChild(e))
+  merge(nameplateBox.style, {
+    height: `${canvasContainer.cell.height}px`,
+    display: 'flex',
+    // TODO: constrain canvasBox (and nameplate) to the size of the canvas. NO OVERFLOW
+    //whiteSpace: 'nowrap',
+    //overflow: 'hidden',
+    //textOverflow: 'ellipsis',
+  })
+
+  merge(nameplate.style, {
+    display: 'flex',
+    'align-items': 'center',
+    'padding-left': '10px',
+    'padding-right': '10px',
+  })
+
+  nameplate.style.color = '#aaa'
+
+  nameplateBox.appendChild(nameplate)
+  e.appendChild(nameplateBox)
+  e.appendChild(canvasBox)
+
+  return { element: e, canvas, nameplate }
+})
+
+windows.forEach(m => container.appendChild(m.element))
+
 merge(container.style, {
   display: 'flex',
   'flex-flow': 'column wrap',
@@ -51,25 +81,28 @@ const getWindows = async (): Promise<VeonimWindow[]> => {
       y,
       height: await w.height,
       width: await w.width,
-      name: (await buffer.name),
+      name: (await buffer.name).replace(current.cwd + '/', ''),
       active: (await buffer.id) === currentBuffer,
       modified: (await buffer.getOption('modified')),
     }
   }))
 }
 
-export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w))
+export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w.canvas))
 
-export const getWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.isActive()).find(window => {
-  const { row, col, height, width } = window.getSpecs()
+const findWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.canvas.isActive()).find(window => {
+  const { row, col, height, width } = window.canvas.getSpecs()
   const horizontal = row <= targetRow && targetRow <= (height + row)
   const vertical = col <= targetCol && targetCol <= (width + col)
   return horizontal && vertical
 })
 
+export const getWindow = (row: number, column: number): CanvasWindow | undefined =>
+  (findWindow(row, column) || {} as any).canvas
+
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
 
-const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: VeonimWindow) => {
+const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: VeonimWindow, nameplate: HTMLElement) => {
   canvas
     .setSpecs(window.y, window.x, window.height, window.width)
     .resize(window.height, window.width)
@@ -88,6 +121,8 @@ const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: V
   }
 
   element.style.display = ''
+  nameplate.style.background = current.bg
+  nameplate.innerText = window.name
 }
 
 let vimWindows: VeonimWindow[]
@@ -103,29 +138,36 @@ export const render = async () => {
       return w.x === lw.x &&
         w.y === lw.y &&
         w.height === lw.height &&
-        w.width === lw.width
+        w.width === lw.width &&
+        w.name === lw.name
     })
 
     if (same) return
   }
+
+  // TODO: if only nameplate changed, then don't run thru the whole setup again!
+  // only update nameplate
 
   vimWindows = wins
 
   // TODO: if need to create more
   //if (vimWindows > windows)
 
-  for (let ix = 0; ix < windowsEl.length; ix++) {
-    const el = windowsEl[ix]
+  for (let ix = 0; ix < windows.length; ix++) {
 
-    if (ix < vimWindows.length) {
-      setupWindow(el, windows[ix], vimWindows[ix])
-    }
+    if (ix < vimWindows.length)
+      setupWindow(windows[ix].element, windows[ix].canvas, vimWindows[ix], windows[ix].nameplate)
 
     else {
-      if (el.style.display !== 'none') merge(el.style, { display: 'none' })
-      windows[ix].deactivate()
+      windows[ix].canvas.deactivate()
+
+      if (windows[ix].element.style.display !== 'none')
+        merge(windows[ix].element.style, { display: 'none' })
     }
   }
+
+  // TODO: cursor position is in the wrong place on veonim startup
+  moveCursor()
 }
 
 // TODO: yeah maybe not

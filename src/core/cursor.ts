@@ -53,7 +53,7 @@ export const setCursorColor = (color: string) => {
 }
 
 export const hideCursor = () => merge(cursorEl.style, { display: 'none' })
-export const showCursor = () => merge(cursorEl.style, { display: 'block' })
+export const showCursor = () => merge(cursorEl.style, { display: 'flex' })
 
 export const moveCursor = () => {
   const win = getWindow(cursor.row, cursor.col)

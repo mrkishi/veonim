@@ -12,8 +12,16 @@ const watchers = new Watchers()
 const container = document.getElementById('canvas-container') as HTMLElement
 const sandboxCanvas = document.createElement('canvas')
 const canvas = sandboxCanvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
-container.style.display = 'flex'
-container.style.flex = '1'
+
+merge(container.style, {
+  display: 'flex',
+  flex: '1',
+  // TODO: should lighten (or darken) % based on vim current.bg
+  background: 'rgb(60, 60, 60)',
+  // TODO: this may need some tweaking
+  'padding-top': '2px',
+  'padding-left': '2px',
+})
 
 const _font = {
   face: 'Roboto Mono',
@@ -56,7 +64,8 @@ const resize = () => {
   merge(_size, {
     height,
     width,
-    rows: Math.floor(height / _cell.height),
+    // to account for "statusline" or in our case nameplates
+    rows: Math.floor(height / _cell.height) - 1,
     cols: Math.floor(width / _cell.width),
   })
 

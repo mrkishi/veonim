@@ -110,7 +110,10 @@ export const createWindow = (container: HTMLElement) => {
   }
 
   api.fillRect = (c, r, w, h) => {
-    ui.fillRect(px.col.x(c), px.row.y(r), px.col.width(w), px.row.height(h))
+    // TODO: temp dirty hack because px y/x starts at x1 y1 and there's a black line
+    // anyways neeed to add padding to canvas. so need to figure out a way to fill black
+    // with correct vim.bg color
+    ui.fillRect(px.col.x(c) - 1, px.row.y(r) - 1, px.col.width(w) + 1, px.row.height(h) + 1)
     return api
   }
 
