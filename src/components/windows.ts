@@ -127,27 +127,39 @@ const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: V
 
 let vimWindows: VeonimWindow[]
 
+const windowsDimensionsSame = (windows: VeonimWindow[], previousWindows: VeonimWindow[]) => windows.every((w, ix) => {
+  const lw = previousWindows[ix]
+  if (!lw) return false
+
+  return w.x === lw.x &&
+    w.y === lw.y &&
+    w.height === lw.height &&
+    w.width === lw.width
+})
+
+const findWindowsWithDifferentNameplate = (windows: VeonimWindow[], previousWindows: VeonimWindow[]) => windows.filter((w, ix) => {
+  const lw = previousWindows[ix]
+  if (!lw) return false
+  return w.name !== lw.name
+})
+
 export const render = async () => {
   const wins = await getWindows()
 
   if (vimWindows) {
-    const same = wins.every((w, ix) => {
-      const lw = vimWindows[ix]
-      if (!lw) return false
-
-      return w.x === lw.x &&
-        w.y === lw.y &&
-        w.height === lw.height &&
-        w.width === lw.width &&
-        w.name === lw.name
+    findWindowsWithDifferentNameplate(wins, vimWindows).forEach(vw => {
+      // TODO: this could be better
+      const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
+      if (!win) return
+      console.log('update just nameplate kthx')
+      win.nameplate.innerText = vw.name
+      // TODO: need to update vimWindows with the change!
     })
 
-    if (same) return
+    if (windowsDimensionsSame(wins, vimWindows)) return
   }
 
-  // TODO: if only nameplate changed, then don't run thru the whole setup again!
-  // only update nameplate
-
+  console.log('update all windows')
   vimWindows = wins
 
   // TODO: if need to create more
@@ -156,6 +168,8 @@ export const render = async () => {
   for (let ix = 0; ix < windows.length; ix++) {
 
     if (ix < vimWindows.length)
+      // TODO: just pass the entire window object instead of each prop by itself
+      // aka setupWindow(window, vimWindow)
       setupWindow(windows[ix].element, windows[ix].canvas, vimWindows[ix], windows[ix].nameplate)
 
     else {
