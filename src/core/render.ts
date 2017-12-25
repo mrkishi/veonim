@@ -1,5 +1,5 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { getWindow, applyToWindows } from '../components/windows'
+import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'
 import { onRedraw, getColor } from '../core/master-control'
 import { Events, ExtContainer } from '../core/api'

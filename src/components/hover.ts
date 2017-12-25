@@ -1,5 +1,5 @@
-import { activeWindow } from '../components/windows'
 import { current as vimstate } from '../core/neovim'
+import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
 import { ColorData } from '../ai/hover'
 import { translate } from '../ui/css'

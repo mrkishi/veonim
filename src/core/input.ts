@@ -1,5 +1,8 @@
+import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
+import { action, call } from '../core/neovim'
 import { $ } from '../support/utils'
+import { Script } from 'vm'
 
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
@@ -141,4 +144,17 @@ window.addEventListener('keyup', e => {
     xformed = false
     holding = ''
   }
+})
+
+// TODO: deprecate remapModifier and use transform instead?
+action('remap-modifier', (from, to) => remapModifier(from, to))
+
+action('register-shortcut', key => registerShortcut(key, () => call.VeonimCallEvent(`key:${key}`)))
+
+action('key-transform', (type, matcher, transformer) => {
+  const fn = Reflect.get(transform, type)
+  const transformFn = new Script(transformer).runInThisContext()
+  const matchObj = is.string(matcher) ? fromJSON(matcher).or({}) : matcher
+
+  if (is.function(fn) && is.function(transformFn)) fn(matchObj, transformFn)
 })

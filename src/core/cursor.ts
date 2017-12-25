@@ -1,6 +1,6 @@
 import * as canvasContainer from '../core/canvas-container'
 import { partialFill, translate } from '../ui/css'
-import { getWindow } from '../components/windows'
+import { getWindow } from '../core/windows'
 import { merge } from '../support/utils'
 import { get } from '../core/grid'
 

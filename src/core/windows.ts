@@ -8,12 +8,12 @@ import * as grid from '../core/grid'
 
 export interface VeonimWindow {
   x: number,
-  y: number,
-  height: number,
-  width: number,
-  name: string,
-  modified: boolean,
-  active: boolean,
+    y: number,
+    height: number,
+    width: number,
+    name: string,
+    modified: boolean,
+    active: boolean,
 }
 
 const generateElements = (count = 20) => [...Array(count)]
