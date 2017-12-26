@@ -1,8 +1,8 @@
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
+import { uuid, debounce, merge } from '../support/utils'
 import { getCurrent, current } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
-import { debounce, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
 
@@ -85,6 +85,7 @@ const getWindows = async (): Promise<VeonimWindow[]> => {
     return {
       x,
       y,
+      genid: uuid(),
       height: await w.height,
       width: await w.width,
       name: (await buffer.name).replace(current.cwd + '/', ''),
@@ -198,6 +199,7 @@ const gogrid = (wins: VeonimWindow[]) => {
   console.log('gtc:', gridTemplateColumns)
 
   const www = wins.map(w => ({
+    ...w,
     col: {
       start: w.x,
       end: w.x + w.width === totalColumns ? w.x + w.width : w.x + w.width + 1,
@@ -208,13 +210,14 @@ const gogrid = (wins: VeonimWindow[]) => {
     }
   }))
 
-  const ddd = www.map(m => {
-    const rowStart = yrows.indexOf(m.row.start) + 1
-    const rowEnd = yrows.indexOf(m.row.end) + 1
-    const colStart = xcols.indexOf(m.col.start) + 1
-    const colEnd = xcols.indexOf(m.col.end) + 1
+  const ddd = www.map(w => {
+    const rowStart = yrows.indexOf(w.row.start) + 1
+    const rowEnd = yrows.indexOf(w.row.end) + 1
+    const colStart = xcols.indexOf(w.col.start) + 1
+    const colEnd = xcols.indexOf(w.col.end) + 1
 
     return {
+      ...w,
       'grid-column': `${colStart} / ${colEnd}`,
       'grid-row': `${rowStart} / ${rowEnd}`,
     }
@@ -234,6 +237,7 @@ export const render = async () => {
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
       win.nameplate.innerText = vw.name
+      // TODO: use genid
       const wwIx = vimWindows.findIndex(w => w.x === vw.x && w.y === vw.y)
       vimWindows[wwIx].name = vw.name
     })

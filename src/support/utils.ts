@@ -48,6 +48,7 @@ export const uriAsCwd = (m = '') => dirname(uriToPath(m))
 export const uriAsFile = (m = '') => basename(uriToPath(m)) 
 export const CreateTask = <T>(): Task<T> => ( (done = (_: T) => {}, promise = new Promise<T>(m => done = m)) => ({ done, promise }) )()
 export const Deferred = () => ( (ok = (_: any) => {}, no = () => {}, p = new Promise((y, n) => (ok = y, no = n))) => ({ done: ok, fail: no, promise: p }) )()
+export const uuid = (): string => (<any>[1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,(a: any)=>(a^Math.random()*16>>a/4).toString(16))
 
 export const match = (...opts: [boolean, any][]): any => new Map(opts).get(true)
 export const matchOn = (val: any) => (opts: object): any => (Reflect.get(opts, val) || (() => {}))()
