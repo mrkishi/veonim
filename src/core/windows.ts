@@ -24,6 +24,11 @@ const generateElements = (count = 20) => [...Array(count)]
     margin: '1px',
   }), e))
 
+// TODO: what if instead of setting canvas div container width+heights explicitly
+// calculate percentages as used in the entire grid. then render percentages. canvas inherits size
+// from div. vim w+h defined as minimum. can scroll canvas overflow into view as scrolling down/up
+// this would solve the mismatched window sizes giving edges bad 
+
 const container = document.getElementById('windows') as HTMLElement
 // TODO: don't make so many!. just start with 1 and add as created
 const windows = generateElements(10).map(e => {
@@ -62,6 +67,7 @@ windows.forEach(m => container.appendChild(m.element))
 merge(container.style, {
   display: 'flex',
   'flex-flow': 'column wrap',
+  //'flex-flow': 'row wrap',
   width: '100%',
   height: '100%',
 })
@@ -120,6 +126,9 @@ const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: V
     }
   }
 
+  const heightRaw = parseInt(canvas.height.replace('px', ''))
+  element.style.width = canvas.width
+  element.style.height = `${heightRaw + canvasContainer.cell.height}px`
   element.style.display = ''
   nameplate.style.background = current.bg
   nameplate.innerText = window.name
@@ -143,8 +152,81 @@ const findWindowsWithDifferentNameplate = (windows: VeonimWindow[], previousWind
   return w.name !== lw.name
 })
 
+const gogrid = (wins: VeonimWindow[]) => {
+  const xPoints = new Set<number>()
+  const yPoints = new Set<number>()
+
+  const { rows: gridRows, cols: totalColumns } = canvasContainer.size
+  const totalRows = gridRows - 1
+
+  wins.forEach(w => {
+    xPoints.add(w.x)
+    yPoints.add(w.y)
+  })
+
+  xPoints.add(totalColumns)
+  yPoints.add(totalRows)
+
+  const yrows = [...yPoints].sort((a, b) => a - b)
+  const xcols = [...xPoints].sort((a, b) => a - b)
+
+  console.log('rows:', yrows)
+  console.log('cols:', xcols)
+
+  const rr = yrows.reduce((res, curr, ix, arr) => {
+    if (ix === arr.length - 1) return res
+
+    const next = arr[ix + 1]
+    const diff = next - curr
+    const rowSize = Math.round((diff / totalRows) * 100).toFixed(1)
+    return [...res, rowSize]
+  }, [])
+
+  const cc = xcols.reduce((res, curr, ix, arr) => {
+    if (ix === arr.length - 1) return res
+
+    const next = arr[ix + 1]
+    const diff = next - curr
+    const rowSize = Math.round((diff / totalColumns) * 100).toFixed(1)
+    return [...res, rowSize]
+  }, [])
+
+  const gridTemplateRows = rr.reduce((s, m) => s + m + '% ', '')
+  const gridTemplateColumns = cc.reduce((s, m) => s + m + '% ', '')
+
+  console.log('gtr:', gridTemplateRows)
+  console.log('gtc:', gridTemplateColumns)
+
+  const www = wins.map(w => ({
+    col: {
+      start: w.x,
+      end: w.x + w.width === totalColumns ? w.x + w.width : w.x + w.width + 1,
+    },
+    row: {
+      start: w.y,
+      end: w.y + w.height === totalRows ? w.y + w.height : w.y + w.height + 1,
+    }
+  }))
+
+  const ddd = www.map(m => {
+    const rowStart = yrows.indexOf(m.row.start) + 1
+    const rowEnd = yrows.indexOf(m.row.end) + 1
+    const colStart = xcols.indexOf(m.col.start) + 1
+    const colEnd = xcols.indexOf(m.col.end) + 1
+
+    return {
+      'grid-column': `${colStart} / ${colEnd}`,
+      'grid-row': `${rowStart} / ${rowEnd}`,
+    }
+  })
+
+  www.forEach(m => console.log(`row: ${m.row.start}-${m.row.end} col: ${m.col.start}-${m.col.end}`))
+  ddd.forEach(m => console.log(m))
+}
+
 export const render = async () => {
   const wins = await getWindows()
+  gogrid(wins)
 
   if (vimWindows) {
     findWindowsWithDifferentNameplate(wins, vimWindows).forEach(vw => {

@@ -41,6 +41,8 @@ export interface CanvasWindow {
   setColor(color: string): CanvasWindow,
   isActive(): boolean,
   deactivate(): void,
+  readonly width: string,
+  readonly height: string,
 }
 
 export const createWindow = (container: HTMLElement) => {
@@ -48,7 +50,6 @@ export const createWindow = (container: HTMLElement) => {
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
   const specs = { row: 0, col: 0, height: 0, width: 0 }
   const position = { x: 0, y: 0 }
-  const api = {} as CanvasWindow
   let active = false
 
   ui.imageSmoothingEnabled = false
@@ -70,6 +71,11 @@ export const createWindow = (container: HTMLElement) => {
         px.col.width(col - specs.col, scaled) + (scaled ? window.devicePixelRatio : 1),
     }
   }
+
+  const api = {
+    get width() { return canvas.style.width },
+    get height() { return canvas.style.height },
+  } as CanvasWindow
 
   api.getSpecs = () => specs
   api.setSpecs = (row, col, height, width) => (merge(specs, { row, col, height, width }), api)

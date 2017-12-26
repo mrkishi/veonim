@@ -77,6 +77,8 @@ export const on = (event: string, handler: (data: any) => void) => watchers.add(
 export const size = {
   get rows() { return _size.rows },
   get cols() { return _size.cols },
+  get height() { return _size.height },
+  get width() { return _size.width },
 }
 
 export const cell = {
