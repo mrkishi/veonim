@@ -1,19 +1,44 @@
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
-import { uuid, debounce, merge } from '../support/utils'
 import { getCurrent, current } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
+import { debounce, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
 
-export interface VeonimWindow {
+export interface VimWindow {
   x: number,
-    y: number,
-    height: number,
-    width: number,
-    name: string,
-    modified: boolean,
-    active: boolean,
+  y: number,
+  height: number,
+  width: number,
+  name: string,
+  modified: boolean,
+  active: boolean,
+}
+
+export interface RenderWindow extends VimWindow {
+  col: {
+    start: number,
+    end: number,
+  },
+  row: {
+    start: number,
+    end: number,
+  },
+  gridColumn: string,
+  gridRow: string,
+}
+
+export interface Window {
+  element: HTMLElement,
+  nameplate: HTMLElement,
+  canvas: CanvasWindow,
+}
+
+interface GridInfo {
+  gridTemplateRows: string,
+  gridTemplateColumns: string,
+  windows: RenderWindow[],
 }
 
 const generateElements = (count = 20) => [...Array(count)]
@@ -65,14 +90,11 @@ const windows = generateElements(10).map(e => {
 windows.forEach(m => container.appendChild(m.element))
 
 merge(container.style, {
-  display: 'flex',
-  'flex-flow': 'column wrap',
-  //'flex-flow': 'row wrap',
-  width: '100%',
-  height: '100%',
+  flex: 1,
+  display: 'grid',
 })
 
-const getWindows = async (): Promise<VeonimWindow[]> => {
+const getWindows = async (): Promise<VimWindow[]> => {
   const currentBuffer = (await getCurrent.buffer).id
   const wins = await (await getCurrent.tab).windows
 
@@ -85,7 +107,6 @@ const getWindows = async (): Promise<VeonimWindow[]> => {
     return {
       x,
       y,
-      genid: uuid(),
       height: await w.height,
       width: await w.width,
       name: (await buffer.name).replace(current.cwd + '/', ''),
@@ -109,7 +130,7 @@ export const getWindow = (row: number, column: number): CanvasWindow | undefined
 
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
 
-const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: VeonimWindow, nameplate: HTMLElement) => {
+const setupWindow = async ({ element, nameplate, canvas }: Window, window: RenderWindow) => {
   canvas
     .setSpecs(window.y, window.x, window.height, window.width)
     .resize(window.height, window.width)
@@ -127,17 +148,19 @@ const setupWindow = async (element: HTMLElement, canvas: CanvasWindow, window: V
     }
   }
 
-  const heightRaw = parseInt(canvas.height.replace('px', ''))
-  element.style.width = canvas.width
-  element.style.height = `${heightRaw + canvasContainer.cell.height}px`
-  element.style.display = ''
+  merge(element.style, {
+    display: '',
+    'grid-column': window.gridColumn,
+    'grid-row': window.gridRow,
+  })
+
   nameplate.style.background = current.bg
   nameplate.innerText = window.name
 }
 
-let vimWindows: VeonimWindow[]
+let vimWindows: VimWindow[]
 
-const windowsDimensionsSame = (windows: VeonimWindow[], previousWindows: VeonimWindow[]) => windows.every((w, ix) => {
+const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.every((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
 
@@ -147,13 +170,13 @@ const windowsDimensionsSame = (windows: VeonimWindow[], previousWindows: VeonimW
     w.width === lw.width
 })
 
-const findWindowsWithDifferentNameplate = (windows: VeonimWindow[], previousWindows: VeonimWindow[]) => windows.filter((w, ix) => {
+const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
   return w.name !== lw.name
 })
 
-const gogrid = (wins: VeonimWindow[]) => {
+const gogrid = (wins: VimWindow[]): GridInfo => {
   const xPoints = new Set<number>()
   const yPoints = new Set<number>()
 
@@ -170,9 +193,6 @@ const gogrid = (wins: VeonimWindow[]) => {
 
   const yrows = [...yPoints].sort((a, b) => a - b)
   const xcols = [...xPoints].sort((a, b) => a - b)
-
-  console.log('rows:', yrows)
-  console.log('cols:', xcols)
 
   const rr = yrows.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
@@ -195,10 +215,7 @@ const gogrid = (wins: VeonimWindow[]) => {
   const gridTemplateRows = rr.reduce((s, m) => s + m + '% ', '')
   const gridTemplateColumns = cc.reduce((s, m) => s + m + '% ', '')
 
-  console.log('gtr:', gridTemplateRows)
-  console.log('gtc:', gridTemplateColumns)
-
-  const www = wins.map(w => ({
+  const windowsWithGridInfo = wins.map(w => ({
     ...w,
     col: {
       start: w.x,
@@ -208,9 +225,7 @@ const gogrid = (wins: VeonimWindow[]) => {
       start: w.y,
       end: w.y + w.height === totalRows ? w.y + w.height : w.y + w.height + 1,
     }
-  }))
-
-  const ddd = www.map(w => {
+  })).map(w => {
     const rowStart = yrows.indexOf(w.row.start) + 1
     const rowEnd = yrows.indexOf(w.row.end) + 1
     const colStart = xcols.indexOf(w.col.start) + 1
@@ -218,18 +233,20 @@ const gogrid = (wins: VeonimWindow[]) => {
 
     return {
       ...w,
-      'grid-column': `${colStart} / ${colEnd}`,
-      'grid-row': `${rowStart} / ${rowEnd}`,
+      gridColumn: `${colStart} / ${colEnd}`,
+      gridRow: `${rowStart} / ${rowEnd}`,
     }
   })
 
-  www.forEach(m => console.log(`row: ${m.row.start}-${m.row.end} col: ${m.col.start}-${m.col.end}`))
-  ddd.forEach(m => console.log(m))
+  return {
+    gridTemplateRows,
+    gridTemplateColumns,
+    windows: windowsWithGridInfo,
+  }
 }
 
 export const render = async () => {
   const wins = await getWindows()
-  gogrid(wins)
 
   if (vimWindows) {
     findWindowsWithDifferentNameplate(wins, vimWindows).forEach(vw => {
@@ -237,7 +254,6 @@ export const render = async () => {
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
       win.nameplate.innerText = vw.name
-      // TODO: use genid
       const wwIx = vimWindows.findIndex(w => w.x === vw.x && w.y === vw.y)
       vimWindows[wwIx].name = vw.name
     })
@@ -250,12 +266,13 @@ export const render = async () => {
   // TODO: if need to create more
   //if (vimWindows > windows)
 
+  const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
+  merge(container.style, { gridTemplateRows, gridTemplateColumns })
+
   for (let ix = 0; ix < windows.length; ix++) {
 
     if (ix < vimWindows.length)
-      // TODO: just pass the entire window object instead of each prop by itself
-      // aka setupWindow(window, vimWindow)
-      setupWindow(windows[ix].element, windows[ix].canvas, vimWindows[ix], windows[ix].nameplate)
+      setupWindow(windows[ix], renderWindows[ix])
 
     else {
       windows[ix].canvas.deactivate()
