@@ -33,6 +33,7 @@ export interface Window {
   element: HTMLElement,
   nameplate: HTMLElement,
   canvas: CanvasWindow,
+  canvasBox: HTMLElement,
 }
 
 interface GridInfo {
@@ -45,8 +46,9 @@ const generateElements = (count = 20) => [...Array(count)]
   .map(() => document.createElement('div'))
   .map(e => (merge(e.style, {
     display: 'none',
+    'flex-flow': 'column',
     background: 'none',
-    margin: '1px',
+    //margin: '1px',
   }), e))
 
 // TODO: what if instead of setting canvas div container width+heights explicitly
@@ -61,6 +63,8 @@ const windows = generateElements(10).map(e => {
   const nameplateBox = document.createElement('div')
   const nameplate = document.createElement('div')
   const canvas = createWindow(canvasBox)
+
+  canvasBox.style.flex = '1'
 
   merge(nameplateBox.style, {
     height: `${canvasContainer.cell.height}px`,
@@ -84,7 +88,7 @@ const windows = generateElements(10).map(e => {
   e.appendChild(nameplateBox)
   e.appendChild(canvasBox)
 
-  return { element: e, canvas, nameplate }
+  return { element: e, canvas, nameplate, canvasBox }
 })
 
 windows.forEach(m => container.appendChild(m.element))
@@ -92,6 +96,9 @@ windows.forEach(m => container.appendChild(m.element))
 merge(container.style, {
   flex: 1,
   display: 'grid',
+  'grid-gap': '2px',
+  'justify-items': 'stretch',
+  'align-items': 'stretch',
 })
 
 const getWindows = async (): Promise<VimWindow[]> => {
@@ -130,10 +137,10 @@ export const getWindow = (row: number, column: number): CanvasWindow | undefined
 
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
 
-const setupWindow = async ({ element, nameplate, canvas }: Window, window: RenderWindow) => {
+const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, window: RenderWindow) => {
   canvas
-    .setSpecs(window.y, window.x, window.height, window.width)
-    .resize(window.height, window.width)
+    .setSpecs(window.y, window.x, window.height, window.width, 10)
+    .resize(window.height, window.width, current.bg)
 
   for (let lineIx = window.y; lineIx < window.y + window.height; lineIx++) {
     for (let charIx = window.x; charIx < window.x + window.width; charIx++) {
@@ -149,11 +156,12 @@ const setupWindow = async ({ element, nameplate, canvas }: Window, window: Rende
   }
 
   merge(element.style, {
-    display: '',
+    display: 'flex',
     'grid-column': window.gridColumn,
     'grid-row': window.gridRow,
   })
 
+  canvasBox.style.background = current.bg
   nameplate.style.background = current.bg
   nameplate.innerText = window.name
 }

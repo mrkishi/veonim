@@ -2,6 +2,7 @@ import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { h, app, style, Actions } from '../ui/uikit'
 import { onStateChange } from '../core/neovim'
 import { ExtContainer } from '../core/api'
+import { merge } from '../support/utils'
 import Icon from '../components/icon'
 
 interface Tab {
@@ -39,13 +40,9 @@ const state = {
 }
 
 const Statusline = style('div')({
-  position: 'absolute',
+  flex: 1,
   display: 'flex',
-  height: '28px',
   justifyContent: 'space-between',
-  bottom: '0',
-  left: '0',
-  width: '100vw',
   background: '#222',
 })
 
@@ -76,7 +73,13 @@ const Tab = style('div')({
   paddingTop: '4px',
   paddingBottom: '4px',
   color: '#aaa',
-  height: '100%',
+})
+
+const container = document.getElementById('statusline') as HTMLElement
+merge(container.style, {
+  height: '24px',
+  display: 'flex',
+  'z-index': 240,
 })
 
 // TODO: LOL NOPE
@@ -123,10 +126,11 @@ const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers 
     ,Item({
       style: {
         paddingLeft: '36px',
-        paddingRight: '36px',
+        paddingRight: '26px',
         background: '#342d35',
-        marginRight: '-17px',
-        clipPath: 'polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%)',
+        marginRight: '-20px',
+        clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
+        //clipPath: 'polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%)',
       }
     }, [
       ,h('div', `${line}:${column}`)
@@ -136,7 +140,7 @@ const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers 
       style: {
         paddingRight: '0',
         background: '#2a2a2a',
-        clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
+        //clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
       }
     }, [
       ,tabs.map(({ id }, ix) => Tab({
@@ -174,7 +178,7 @@ a.serverOffline = (s, _a, server) => ({
   erroredServers: new Set([...s.erroredServers].filter(m => m !== server)),
 })
 
-const ui = app({ state, view, actions: a }, false, document.getElementById('statusline'))
+const ui = app({ state, view, actions: a }, false, container)
 
 sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
   const mtabs: TabInfo[] = tabs.map(t => ({ id: t.tab.id, name: t.name }))

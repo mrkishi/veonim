@@ -19,8 +19,8 @@ merge(container.style, {
   // TODO: should lighten (or darken) % based on vim current.bg
   background: 'rgb(30, 30, 30)',
   // TODO: this may need some tweaking
-  'padding-top': '2px',
-  'padding-left': '2px',
+  //'padding-top': '2px',
+  //'padding-left': '2px',
 })
 
 const _font = {
@@ -66,7 +66,10 @@ const resize = () => {
     width,
     // to account for "statusline" or in our case nameplates
     rows: Math.floor(height / _cell.height) - 1,
-    cols: Math.floor(width / _cell.width),
+    // TODO: might be better to figure out how many windows are up
+    // determine number of columns that can fit. minus the window padding
+    // use cell.width to calculate precise
+    cols: Math.floor(width / _cell.width) - 2,
   })
 
   watchers.notify('resize', _size)
