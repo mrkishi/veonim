@@ -90,7 +90,7 @@ const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers 
     ,Item({
       style: {
         color: '#eee',
-        background: '#944465',
+        background: 'rgb(74, 55, 83)',
         paddingRight: '30px',
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 0 100%)',
       }
