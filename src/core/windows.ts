@@ -67,7 +67,7 @@ const windows = generateElements(10).map(e => {
   canvasBox.style.flex = '1'
 
   merge(nameplateBox.style, {
-    height: `${canvasContainer.cell.height}px`,
+    height: `${canvasContainer.cell.height + 4}px`,
     display: 'flex',
     // TODO: constrain canvasBox (and nameplate) to the size of the canvas. NO OVERFLOW
     //whiteSpace: 'nowrap',
