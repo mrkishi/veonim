@@ -351,9 +351,17 @@ onCreate(() => {
   processAnyBuffered('colors.vim.fg')
   processAnyBuffered('colors.vim.bg')
 
+  g.veonim_completing = 0
+  g.veonim_complete_pos = 1
+  g.veonim_completions = []
+
   const events = [...registeredEventActions.values()].join('\\n')
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
   cmd(`aug Veonim | au! | aug END`)
+  cmd(`set completefunc=VeonimComplete`)
+  cmd(`ino <expr> <tab> CompleteScroll(1)`)
+  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   processBufferedActions()
   refreshState()

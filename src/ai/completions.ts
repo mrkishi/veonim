@@ -1,9 +1,9 @@
 import { findIndexRight, hasUpperCase, EarlyPromise } from '../support/utils'
 import { completions, completionDetail, triggers } from '../langserv/adapter'
-import { g, on, cmd, current as vimState, onCreate } from '../core/neovim'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { CompletionItem } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
+import { g, on, current as vimState } from '../core/neovim'
 import * as completionUI from '../components/autocomplete'
 import { harvester, update } from '../ai/update-server'
 import { activeWindow } from '../core/windows'
@@ -162,15 +162,5 @@ on.completion((word, { cwd, file }) => {
 
 sub('pmenu.select', ix => completionUI.select(ix))
 sub('pmenu.hide', () => completionUI.hide())
-
-onCreate(() => {
-  g.veonim_completing = 0
-  g.veonim_complete_pos = 1
-  g.veonim_completions = []
-
-  cmd(`set completefunc=VeonimComplete`)
-  cmd(`ino <expr> <tab> CompleteScroll(1)`)
-  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
-})
 
 export { getCompletions }
