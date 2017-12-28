@@ -1,7 +1,7 @@
 import { current as vimstate } from '../core/neovim'
+import { h, app, style, Actions } from '../ui/uikit'
 import { translate, bold, faded } from '../ui/css'
 import { activeWindow } from '../core/windows'
-import { h, app, Actions } from '../ui/uikit'
 
 interface State {
   label: string,
@@ -10,6 +10,7 @@ interface State {
   currentParam: string,
   labelEnd: string,
   documentation: string,
+  paramDoc: string,
   vis: boolean,
   x: number,
   y: number,
@@ -24,6 +25,7 @@ interface ShowParams {
   label: string,
   currentParam: string,
   documentation?: string,
+  paramDoc?: string,
   totalSignatures: number,
   selectedSignature: number,
 }
@@ -35,6 +37,7 @@ const state: State = {
   currentParam: '',
   labelEnd: '',
   documentation: '',
+  paramDoc: '',
   vis: false,
   x: 0,
   y: 0,
@@ -45,8 +48,13 @@ const state: State = {
 
 let spacer: HTMLElement
 
+const Doc = style('div')({
+  paddingBottom: '4px',
+  color: vimstate.fg || '#aaa',
+})
+
 // TODO: render info (documentation/more detail)
-const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, selectedSignature, totalSignatures }: State) => h('#hint', {
+const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, selectedSignature, totalSignatures, documentation, paramDoc }: State) => h('#hint', {
   style: {
     display: vis ? 'flex' : 'none',
     'z-index': 100,
@@ -55,13 +63,14 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, sel
     width: '100%',
   }
 }, [
-  h('div', {
+  ,h('div', {
     onupdate: (e: HTMLElement) => {
       spacer = e
     },
     style: { flex: `${x}px`, }
-  }),
-  h('div', {
+  })
+
+  ,h('div', {
     onupdate: (e: HTMLElement) => setTimeout(() => {
       const { width } = e.getBoundingClientRect()
       const okSize = Math.floor(window.innerWidth * 0.7)
@@ -76,27 +85,49 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, sel
       //opacity: '0',
     }
   }, [
-    h('.hover', {
-      style: {}
+    ,h('div', {
+      style: {
+        background: '#222',
+        color: '#eee',
+        padding: '8px',
+      }
     }, [
-      h('span', { style: faded(vimstate.fg, 0.6) }, labelStart),
-      h('span', { style: bold(vimstate.fg) }, currentParam),
-      h('span', { style: faded(vimstate.fg, 0.6) }, labelEnd),
-    ]),
+      ,h('div', { style: {
+        paddingBottom: documentation || paramDoc ? '8px' : undefined
+      } }, [
+        ,documentation && Doc({}, documentation)
+        ,paramDoc && Doc({}, paramDoc)
+      ])
 
-    h('div', { hide: totalSignatures < 2 }, `${selectedSignature}/${totalSignatures}`)
-  ]),
+      ,h('div', { style: { display: 'flex' } }, [
+        ,h('div', [
+          ,h('span', { style: faded(vimstate.fg, 0.6) }, labelStart)
+          ,h('span', { style: bold(vimstate.fg) }, currentParam)
+          ,h('span', { style: faded(vimstate.fg, 0.6) }, labelEnd)
+        ])
+
+        ,h('div', {
+          hide: totalSignatures < 2,
+          style: {
+            paddingLeft: '4px',
+            color: vimstate.fg,
+          },
+        }, `${selectedSignature}/${totalSignatures}`)
+      ])
+    ])
+  ])
 ])
 
 const a: Actions<State> = {}
 
 // this equals check will not refresh if we do sig hint calls > 1 on the same row... problem? umad?
-a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selectedSignature, totalSignatures }) => s.label === label && s.row === row
+a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selectedSignature, totalSignatures, documentation, paramDoc }) => s.label === label && s.row === row
   ? {
     label,
     labelStart,
     currentParam,
     labelEnd,
+    paramDoc,
     vis: true
   }
   : {
@@ -104,6 +135,8 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selected
     label,
     labelStart,
     labelEnd,
+    documentation,
+    paramDoc,
     currentParam,
     selectedSignature,
     totalSignatures,
@@ -125,12 +158,13 @@ const sliceAndDiceLabel = (label: string, currentParam: string) => {
   return { labelStart, labelEnd, activeParam }
 }
 
-export const show = ({ row, col, label, currentParam, documentation, selectedSignature, totalSignatures }: ShowParams) => {
+export const show = ({ row, col, label, currentParam, documentation, paramDoc, selectedSignature, totalSignatures }: ShowParams) => {
   const { labelStart, labelEnd, activeParam } = sliceAndDiceLabel(label, currentParam)
 
   ui.show({
     row,
     col,
+    paramDoc,
     documentation,
     label,
     labelStart,

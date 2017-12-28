@@ -1,4 +1,4 @@
-import { Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
+import { CodeLens, Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
 import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind, triggers } from '../langserv/director'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
@@ -212,6 +212,11 @@ export const completionDetail = async (data: NeovimState, item: CompletionItem):
 export const signatureHelp = async (data: NeovimState) => {
   const req = toProtocol(data)
   return await textDocument.signatureHelp(req) as SignatureHelp
+}
+
+export const codeLens = async (data: NeovimState): Promise<CodeLens[]> => {
+  const req = toProtocol(data)
+  return (await textDocument.codeLens(req)) || []
 }
 
 export const codeAction = async (data: NeovimState, diagnostics: Diagnostic[]): Promise<Command[]> => {

@@ -54,7 +54,13 @@ const view = ({ value, vis, x, y, anchorBottom }: State) => h('#hover', {
       opacity: '0',
     }
   }, [
-    h('.hover', value.map(m => h('div', m.map(({ color, text }) => h('span', {
+    h('div', {
+      style: {
+        background: '#222',
+        color: '#eee',
+        padding: '8px',
+      }
+    }, value.map(m => h('div', m.map(({ color, text }) => h('span', {
       style: {
         color: color || vimstate.fg,
         'white-space': 'pre',

@@ -15,4 +15,3 @@ action('rename', async () => {
   updateService.resume()
   applyPatches(await rename({ ...vimState, newName }))
 })
-

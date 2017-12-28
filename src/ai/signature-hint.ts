@@ -32,12 +32,13 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
   const baseOpts = { ...cursorPos(), totalSignatures: signatures.length }
 
   if (activeParameter < parameters.length) {
-    const { label: currentParam = '' } = parameters[activeParameter]
+    const { label: currentParam = '', documentation: paramDoc } = parameters[activeParameter]
     cache.totalParams = parameters.length
 
     hintUI.show({
       ...baseOpts,
       label,
+      paramDoc,
       currentParam,
       documentation,
       selectedSignature: (which || 0) + 1,
