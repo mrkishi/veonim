@@ -1,11 +1,12 @@
 import * as canvasContainer from '../core/canvas-container'
 import { xfrmUp } from '../core/input'
+import { h, style } from '../ui/uikit'
 import Icon from '../components/icon'
-import { style } from '../ui/uikit'
 
 interface Props {
   val: string,
   icon: string,
+  small?: boolean,
   desc?: string,
   focus?: boolean,
   change?: (val: string) => void,
@@ -35,17 +36,6 @@ const keToStr = (e: KeyboardEvent) => [
   <any>e.shiftKey|0
 ].join('')
 
-const InputBox = style('div')({
-  paddingTop: '10px',
-  paddingBottom: '10px',
-  paddingLeft: '12px',
-  paddingRight: '12px',
-  padding: '10px',
-  display: 'flex',
-  alignItems: 'center',
-})
-
-// TODO: make this work
 const Input = style('input')({
   '::placeholder': {
     color: 'rgba(255, 255, 255, 0.2)',
@@ -53,7 +43,6 @@ const Input = style('input')({
   color: 'rgba(255, 255, 255, 0.9)',
   outline: 'none',
   border: 'none',
-  fontSize: `${canvasContainer.font.size + 4}px`,
   fontFamily: 'var(--font)',
 })
 
@@ -67,6 +56,7 @@ export default ({
   desc,
   icon,
   val = '',
+  small = false,
   focus: shouldFocus = false,
   // TODO: what about a proxy here for noops?
   change = nop,
@@ -84,17 +74,29 @@ export default ({
   jumpNext = nop,
   tab = nop,
   ctrlH = nop
-}: Props) => InputBox({}, [
+}: Props) => h('div', {
+  style: {
+    paddingTop: `${small ? 5 : 10}px`,
+    paddingBottom: `${small ? 5 : 10}px`,
+    paddingLeft: '12px',
+    paddingRight: '12px',
+    display: 'flex',
+    alignItems: 'center',
+  }
+}, [
 
   IconBox({}, [
     Icon(icon, {
       color: '#555',
-      size: canvasContainer.font.size + 8,
+      size: canvasContainer.font.size + (small ? 0 : 8),
       weight: 3,
     })
   ]),
 
   Input({
+    style: {
+      fontSize: `${canvasContainer.font.size + (small ? 0 : 4)}px`
+    },
     value: val,
     placeholder: desc,
     //onblur: () => hide(),

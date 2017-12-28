@@ -1,8 +1,9 @@
 import { action, current, call, cmd } from '../core/neovim'
-import { h, app, style, Actions } from '../ui/uikit'
+import { h, app, Actions } from '../ui/uikit'
 import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import Worker from '../messaging/worker'
+import { Row } from '../styles/common'
 
 interface FileDir {
   dir: string,
@@ -37,19 +38,6 @@ const state: State = {
   currentFile: '',
   loading: false,
 }
-
-const Row = style('div')({
-  ':last-child': {
-    paddingBottom: '9px',
-  },
-  paddingLeft: '12px',
-  paddingRight: '12px',
-  paddingTop: '4px',
-  paddingBottom: '4px',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-})
 
 const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
   hide: !vis,

@@ -1,8 +1,9 @@
-import { Diagnostic } from 'vscode-languageserver-types'
+import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
 import defaultCapabs from '../langserv/capabilities'
 import { proxyFn, Watchers } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
+import { applyEdit } from '../langserv/adapter'
 import { Server } from '../messaging/jsonrpc'
 
 type ProxyFn = { [index: string]: Function }
@@ -134,10 +135,10 @@ export const triggers = {
   signatureHelp: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'signatureHelpProvider'),
 }
 
-// TODO: also reload extensions on vimrc change? i mean, if an extension definition was added or removed...
-// otherwise it would be annoying to restart everything just because a mapping was changed
+// TODO: on vimrc change load any new or updated extensions. provide user with manual extensions reload
 extensions.load()
 
 onServerStart(server => {
-  server.on('textDocument/publishDiagnostics', (diag: any) => watchers.notify('diagnostics', diag))
+  server.on('textDocument/publishDiagnostics', diag => watchers.notify('diagnostics', diag))
+  server.onRequest('workspace/applyEdit', async ({ edit }: { edit: WorkspaceEdit }) => applyEdit(edit))
 })

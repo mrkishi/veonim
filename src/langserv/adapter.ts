@@ -2,7 +2,7 @@ import { Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, S
 import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind, triggers } from '../langserv/director'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
-import { NeovimState } from '../core/neovim'
+import { NeovimState, applyPatches } from '../core/neovim'
 
 export { onDiagnostics } from '../langserv/director'
 
@@ -235,5 +235,12 @@ export const codeAction = async (data: NeovimState, diagnostics: Diagnostic[]): 
   // TODO: what is causing 'cannot read description of undefined error in lsp server?'
   return (await textDocument.codeAction(request)) || []
 }
+
+export const executeCommand = async (data: NeovimState, command: Command) => {
+  const req = toProtocol(data)
+  workspace.executeCommand({ ...req, ...command })
+}
+
+export const applyEdit = async (edit: WorkspaceEdit) => applyPatches(workspaceEditToPatch(edit))
 
 export { triggers }

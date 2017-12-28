@@ -1,12 +1,15 @@
-import { codeAction, onDiagnostics } from '../langserv/adapter'
+import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
+import { Command, Diagnostic } from 'vscode-languageserver-types'
 import { positionWithinRange } from '../support/neovim-utils'
-import { Diagnostic } from 'vscode-languageserver-types'
+import { on, action, current as vim } from '../core/neovim'
+import * as codeActionUI from '../components/code-actions'
+import { setCursorColor } from '../core/cursor'
 import { merge } from '../support/utils'
-import { on } from '../core/neovim'
 
 const cache = {
   uri: '',
-  diagnostics: [] as Diagnostic[]
+  diagnostics: [] as Diagnostic[],
+  actions: [] as Command[],
 }
 
 onDiagnostics(m => {
@@ -21,8 +24,15 @@ on.cursorMove(async state => {
     .diagnostics
     .filter(d => positionWithinRange(line - 1, column - 1, d.range))
 
-  const res = await codeAction(state, relevantDiagnostics)
-  // TODO: change cursor color i guess...
-  // what is the stuff on the columnbar? code lens?
-  res && res.length && console.log('do something with these code actions:', res)
+  const actions = await codeAction(state, relevantDiagnostics)
+
+  // TODO: what is the stuff on the columnbar? code lens?
+  if (actions && actions.length) {
+    cache.actions = actions
+    setCursorColor('red')
+  }
 })
+
+export const runCodeAction = (action: Command) => executeCommand(vim, action)
+
+action('quickfix', () => codeActionUI.show(vim.line, vim.column, cache.actions))

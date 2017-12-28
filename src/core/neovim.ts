@@ -2,6 +2,7 @@ import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabp
 import { ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase, camelCase, prefixWith } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { Functions } from '../core/vim-functions'
+import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
 
 type GenericCallback = (...args: any[]) => void
@@ -114,6 +115,11 @@ export interface Tabpage {
   getVar(name: string): Promise<any>,
   setVar(name: string, value: any): void,
   delVar(name: string): void,
+}
+
+interface PathBuf {
+  buffer: Buffer,
+  path: string,
 }
 
 const prefix = {
@@ -284,6 +290,39 @@ export const until: EventWait = onProp((name: PropertyKey) => {
 })
 
 export const on: Event = onFnCall((name, [cb]) => events.add(name, cb))
+
+export const applyPatches = async (patches: Patch[]) => {
+  const buffers = await Promise.all((await list.buffers).map(async buffer => ({
+    buffer,
+    path: await buffer.name,
+  })))
+
+  // TODO: this assumes all missing files are in the cwd
+  // TODO: badd allows the option of specifying a line number to position the curosr
+  // when loading the buffer. might be nice to use on a rename op. see :h badd
+  patches
+    .filter(p => buffers.some(b => b.path !== p.path))
+    .map(b => ex(`badd ${b.file}`))
+
+  applyPatchesToBuffers(patches, buffers)
+}
+
+const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => buffers.forEach(({ buffer, path }) => {
+  const patch = patches.find(p => p.path === path)
+  if (!patch) return
+
+  patch.operations.forEach(async ({ op, start, end, val }, ix) => {
+    if (op === 'delete') buffer.delete(start.line)
+    else if (op === 'append') buffer.append(start.line, val)
+    else if (op === 'replace') {
+      const targetLine = await buffer.getLine(start.line)
+      const newLine = targetLine.slice(0, start.character) + val + targetLine.slice(end.character)
+      buffer.replace(start.line, newLine)
+    }
+
+    if (!ix) ex('undojoin')
+  })
+})
 
 const refreshState = (event = 'bufLoad') => async () => {
   const [ filetype, cwd, file, colorscheme, revision, { line, column } ] = await cc(

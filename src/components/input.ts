@@ -52,7 +52,7 @@ export default ({ val = '', desc, focus: shouldFocus = false, change = nop, hide
   h('input.term-input', {
     value: val,
     placeholder: desc,
-    //onblur: () => hide(),
+    onblur: () => hide(),
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeyup: (e: KeyboardEvent) => {
       const prevKeyAndThisOne = lastDown + keToStr(e)
