@@ -39,8 +39,6 @@ export interface CanvasWindow {
   setTextBaseline(mode: string): CanvasWindow,
   clear(): CanvasWindow,
   setColor(color: string): CanvasWindow,
-  isActive(): boolean,
-  deactivate(): void,
   readonly width: string,
   readonly height: string,
 }
@@ -50,7 +48,6 @@ export const createWindow = (container: HTMLElement) => {
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
   const specs = { row: 0, col: 0, height: 0, width: 0, paddingX: 0, paddingY: 0 }
   const position = { x: 0, y: 0 }
-  let active = false
 
   canvas.style.overflow = 'hidden'
   ui.imageSmoothingEnabled = false
@@ -83,17 +80,12 @@ export const createWindow = (container: HTMLElement) => {
   api.rowToY = row => position.y + px.row.y(row)
   api.colToX = col => position.x + px.col.x(col)
 
-  api.deactivate = () => active = false
-  api.isActive = () => active
-
   const grabPosition = (canvasBox: HTMLElement) => setImmediate(() => {
     const { top: y, left: x } = canvasBox.getBoundingClientRect()
     merge(position, { y, x })
   })
 
   api.resize = (canvasBox, initBackgroundColor) => {
-    active = true
-
     const height = px.row.height(specs.height + 1)
     const width = px.col.width(specs.width)
 

@@ -126,15 +126,14 @@ const getWindows = async (): Promise<VimWindow[]> => {
 
 export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w.canvas))
 
-const findWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.canvas.isActive()).find(window => {
-  const { row, col, height, width } = window.canvas.getSpecs()
-  const horizontal = row <= targetRow && targetRow < (height + row)
-  const vertical = col <= targetCol && targetCol < (width + col)
-  return horizontal && vertical
-})
-
-export const getWindow = (row: number, column: number): CanvasWindow | undefined =>
-  (findWindow(row, column) || {} as any).canvas
+// TODO: how to make this even faster? (besides a memory intensive hashtable)
+export const getWindow = (targetRow: number, targetCol: number): CanvasWindow | undefined => {
+  const winCount = winPos.length
+  for (let ix = 0; ix < winCount; ix++) {
+    const [ row, col, height, width, canvas ] = winPos[ix]
+    if ((row <= targetRow && targetRow < (height + row)) && (col <= targetCol && targetCol < (width + col))) return canvas
+  }
+}
 
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
 
@@ -164,6 +163,7 @@ const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, wi
     .setSpecs(window.y, window.x, window.height, window.width, 10, 12)
     .resize(canvasBox, current.bg)
 
+  winPos.push([window.y, window.x, window.height, window.width, canvas])
   fillCanvasFromGrid(window.x, window.y, window.height, window.width, canvas)
 
   canvasBox.style.background = current.bg
@@ -256,6 +256,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   }
 }
 
+let winPos = [] as any
 export const render = async () => {
   const wins = await getWindows()
 
@@ -279,20 +280,16 @@ export const render = async () => {
     windows.push(...listof(toCreate, () => createWindowEl()))
   }
 
+  winPos = []
   const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
   merge(container.style, { gridTemplateRows, gridTemplateColumns })
 
   for (let ix = 0; ix < windows.length; ix++) {
-
     if (ix < cache.windows.length)
       setupWindow(windows[ix], renderWindows[ix])
 
-    else {
-      windows[ix].canvas.deactivate()
-
-      if (windows[ix].element.style.display !== 'none')
-        merge(windows[ix].element.style, { display: 'none' })
-    }
+    else if (windows[ix].element.style.display !== 'none')
+      merge(windows[ix].element.style, { display: 'none' })
   }
 
   setImmediate(() => moveCursor())
