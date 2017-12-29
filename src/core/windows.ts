@@ -1,8 +1,8 @@
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
+import { debounce, merge, listof } from '../support/utils'
 import { getCurrent, current } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
-import { debounce, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
 
@@ -42,22 +42,18 @@ interface GridInfo {
   windows: RenderWindow[],
 }
 
-const generateElements = (count = 20) => [...Array(count)]
-  .map(() => document.createElement('div'))
-  .map(e => (merge(e.style, {
+const cache = {
+  windows: [] as VimWindow[]
+}
+
+const createWindowEl = () => {
+  const element = document.createElement('div')
+  merge(element.style, {
     display: 'none',
     'flex-flow': 'column',
     background: 'none',
-  }), e))
+  })
 
-// TODO: what if instead of setting canvas div container width+heights explicitly
-// calculate percentages as used in the entire grid. then render percentages. canvas inherits size
-// from div. vim w+h defined as minimum. can scroll canvas overflow into view as scrolling down/up
-// this would solve the mismatched window sizes giving edges bad 
-
-const container = document.getElementById('windows') as HTMLElement
-// TODO: don't make so many!. just start with 1 and add as created
-const windows = generateElements(10).map(e => {
   const canvasBox = document.createElement('div')
   const nameplateBox = document.createElement('div')
   const nameplate = document.createElement('div')
@@ -88,13 +84,15 @@ const windows = generateElements(10).map(e => {
   nameplate.style.color = '#aaa'
 
   nameplateBox.appendChild(nameplate)
-  e.appendChild(nameplateBox)
-  e.appendChild(canvasBox)
+  element.appendChild(nameplateBox)
+  element.appendChild(canvasBox)
+  container.appendChild(element)
 
-  return { element: e, canvas, nameplate, canvasBox }
-})
+  return { element, canvas, nameplate, canvasBox }
+}
 
-windows.forEach(m => container.appendChild(m.element))
+const container = document.getElementById('windows') as HTMLElement
+const windows = [ createWindowEl() ]
 
 merge(container.style, {
   flex: 1,
@@ -172,8 +170,6 @@ const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, wi
   nameplate.style.background = current.bg
   nameplate.innerText = window.name
 }
-
-let vimWindows: VimWindow[]
 
 const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.every((w, ix) => {
   const lw = previousWindows[ix]
@@ -263,30 +259,32 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 export const render = async () => {
   const wins = await getWindows()
 
-  if (vimWindows) {
-    findWindowsWithDifferentNameplate(wins, vimWindows).forEach(vw => {
+  if (cache.windows) {
+    findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {
       // TODO: this could be better
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
       win.nameplate.innerText = vw.name
-      const wwIx = vimWindows.findIndex(w => w.x === vw.x && w.y === vw.y)
-      vimWindows[wwIx].name = vw.name
+      const wwIx = cache.windows.findIndex(w => w.x === vw.x && w.y === vw.y)
+      cache.windows[wwIx].name = vw.name
     })
 
-    if (windowsDimensionsSame(wins, vimWindows)) return
+    if (windowsDimensionsSame(wins, cache.windows)) return
   }
 
-  vimWindows = wins
+  cache.windows = wins
 
-  // TODO: if need to create more
-  //if (vimWindows > windows)
+  if (wins.length > windows.length) {
+    const toCreate = wins.length - windows.length
+    windows.push(...listof(toCreate, () => createWindowEl()))
+  }
 
   const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
   merge(container.style, { gridTemplateRows, gridTemplateColumns })
 
   for (let ix = 0; ix < windows.length; ix++) {
 
-    if (ix < vimWindows.length)
+    if (ix < cache.windows.length)
       setupWindow(windows[ix], renderWindows[ix])
 
     else {

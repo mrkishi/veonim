@@ -1,4 +1,5 @@
 import * as canvasContainer from '../core/canvas-container'
+import { listof } from '../support/utils'
 
 type Character = string
 type Foreground = string
@@ -8,7 +9,7 @@ type Cell = [ Character, Foreground, Background ]
 let grid: Cell[][] = [[]]
 
 const resizeGrid = (rows: number, columns: number) => {
-  grid = [...Array(rows)].map(() => [...Array(columns)].map(() => [' ', defaults.fg, defaults.bg] as Cell))
+  grid = listof(rows, () => listof(columns, () => [' ', defaults.fg, defaults.bg] as Cell))
 }
 
 export const defaults = { fg: '', bg: '' }
