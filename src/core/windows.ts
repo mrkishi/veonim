@@ -138,9 +138,15 @@ export const getWindow = (row: number, column: number): CanvasWindow | undefined
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
 
 const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, window: RenderWindow) => {
+  merge(element.style, {
+    display: 'flex',
+    'grid-column': window.gridColumn,
+    'grid-row': window.gridRow,
+  })
+
   canvas
-    .setSpecs(window.y, window.x, window.height, window.width, 10)
-    .resize(window.height, window.width, current.bg)
+    .setSpecs(window.y, window.x, window.height, window.width, 10, 12)
+    .resize(canvasBox, window.height, window.width, current.bg)
 
   for (let lineIx = window.y; lineIx < window.y + window.height; lineIx++) {
     for (let charIx = window.x; charIx < window.x + window.width; charIx++) {
@@ -154,12 +160,6 @@ const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, wi
         .fillText(ch, charIx, lineIx)
     }
   }
-
-  merge(element.style, {
-    display: 'flex',
-    'grid-column': window.gridColumn,
-    'grid-row': window.gridRow,
-  })
 
   canvasBox.style.background = current.bg
   nameplate.style.background = current.bg

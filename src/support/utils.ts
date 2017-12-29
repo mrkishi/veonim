@@ -25,6 +25,7 @@ export const configPath = process.env.XDG_CONFIG_HOME || (process.platform === '
   ? `${$HOME}/AppData/Local`
   : `${$HOME}/.config`)
 
+export const clearStack = () => new Promise(fin => setImmediate(fin))
 export const toJSON = (m: any) => JSON.stringify(m)
 export const fromJSON = (m: string) => ({ or: (defaultVal: any) => { try { return JSON.parse(m) } catch(_) { return defaultVal } }})
 export const prefixWith = (prefix: string) => (m: string) => `${prefix}${snakeCase(m)}`
