@@ -76,12 +76,11 @@ const createWindowEl = () => {
 
   merge(nameplate.style, {
     display: 'flex',
+    color: '#aaa',
     'align-items': 'center',
     'padding-left': '10px',
     'padding-right': '10px',
   })
-
-  nameplate.style.color = '#aaa'
 
   nameplateBox.appendChild(nameplate)
   element.appendChild(nameplateBox)
@@ -168,7 +167,7 @@ const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, wi
 
   canvasBox.style.background = current.bg
   nameplate.style.background = current.bg
-  nameplate.innerText = window.name
+  nameplate.innerText = window.name || '[No Name]'
 }
 
 const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.every((w, ix) => {
