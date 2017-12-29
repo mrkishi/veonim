@@ -48,7 +48,6 @@ const generateElements = (count = 20) => [...Array(count)]
     display: 'none',
     'flex-flow': 'column',
     background: 'none',
-    //margin: '1px',
   }), e))
 
 // TODO: what if instead of setting canvas div container width+heights explicitly
@@ -64,10 +63,14 @@ const windows = generateElements(10).map(e => {
   const nameplate = document.createElement('div')
   const canvas = createWindow(canvasBox)
 
-  canvasBox.style.flex = '1'
+  merge(canvasBox.style, {
+    flex: 1,
+    overflow: 'hidden',
+  })
 
   merge(nameplateBox.style, {
     height: `${canvasContainer.cell.height + 4}px`,
+    'min-height': `${canvasContainer.cell.height + 4}px`,
     display: 'flex',
     // TODO: constrain canvasBox (and nameplate) to the size of the canvas. NO OVERFLOW
     //whiteSpace: 'nowrap',
@@ -127,8 +130,8 @@ export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => w
 
 const findWindow = (targetRow: number, targetCol: number) => windows.filter(w => w.canvas.isActive()).find(window => {
   const { row, col, height, width } = window.canvas.getSpecs()
-  const horizontal = row <= targetRow && targetRow <= (height + row)
-  const vertical = col <= targetCol && targetCol <= (width + col)
+  const horizontal = row <= targetRow && targetRow < (height + row)
+  const vertical = col <= targetCol && targetCol < (width + col)
   return horizontal && vertical
 })
 
@@ -137,19 +140,9 @@ export const getWindow = (row: number, column: number): CanvasWindow | undefined
 
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
 
-const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, window: RenderWindow) => {
-  merge(element.style, {
-    display: 'flex',
-    'grid-column': window.gridColumn,
-    'grid-row': window.gridRow,
-  })
-
-  canvas
-    .setSpecs(window.y, window.x, window.height, window.width, 10, 12)
-    .resize(canvasBox, window.height, window.width, current.bg)
-
-  for (let lineIx = window.y; lineIx < window.y + window.height; lineIx++) {
-    for (let charIx = window.x; charIx < window.x + window.width; charIx++) {
+const fillCanvasFromGrid = (x: number, y: number, height: number, width: number, canvas: CanvasWindow) => {
+  for (let lineIx = y; lineIx < y + height; lineIx++) {
+    for (let charIx = x; charIx < x + width; charIx++) {
       const [ ch, fg, bg ] = grid.get(lineIx, charIx)
 
       canvas
@@ -160,6 +153,20 @@ const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, wi
         .fillText(ch, charIx, lineIx)
     }
   }
+}
+
+const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, window: RenderWindow) => {
+  merge(element.style, {
+    display: 'flex',
+    'grid-column': window.gridColumn,
+    'grid-row': window.gridRow,
+  })
+
+  canvas
+    .setSpecs(window.y, window.x, window.height, window.width, 10, 12)
+    .resize(canvasBox, current.bg)
+
+  fillCanvasFromGrid(window.x, window.y, window.height, window.width, canvas)
 
   canvasBox.style.background = current.bg
   nameplate.style.background = current.bg

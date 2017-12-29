@@ -32,7 +32,7 @@ export interface CanvasWindow {
   setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): CanvasWindow,
   rowToY(row: number): number,
   colToX(col: number): number,
-  resize(canvasBox: HTMLElement, rows: number, columns: number, initBackgroundColor: string): CanvasWindow,
+  resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow,
   moveRegion(region: TransferRegion): CanvasWindow,
   fillText(text: string, col: number, row: number): CanvasWindow,
   fillRect(col: number, row: number, width: number, height: number): CanvasWindow,
@@ -47,15 +47,12 @@ export interface CanvasWindow {
 
 export const createWindow = (container: HTMLElement) => {
   const canvas = document.createElement('canvas')
-  const tempCanvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
-  const tempUi = tempCanvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
   const specs = { row: 0, col: 0, height: 0, width: 0, paddingX: 0, paddingY: 0 }
   const position = { x: 0, y: 0 }
   let active = false
 
-  canvas.style.height = '100%'
-  canvas.style.width = '100%'
+  canvas.style.overflow = 'hidden'
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
   container.appendChild(canvas)
@@ -89,33 +86,16 @@ export const createWindow = (container: HTMLElement) => {
   api.deactivate = () => active = false
   api.isActive = () => active
 
-  const resizeForReal = (canvasBox: HTMLElement, background: string) => setImmediate(() => {
-    tempUi.canvas.height = canvas.height
-    tempUi.canvas.width = canvas.width
-    tempUi.canvas.style.height = canvas.style.height
-    tempUi.canvas.style.width = canvas.style.width
-
-    tempUi.drawImage(ui.canvas, 0, 0)
-    const { top: y, left: x, height, width } = canvasBox.getBoundingClientRect()
+  const grabPosition = (canvasBox: HTMLElement) => setImmediate(() => {
+    const { top: y, left: x } = canvasBox.getBoundingClientRect()
     merge(position, { y, x })
-    canvas.height = height * window.devicePixelRatio
-    canvas.width = width * window.devicePixelRatio
-    canvas.style.height = `${height}px`
-    canvas.style.width = `${width}px`
-
-    // setting canvas properties resets font. need to reset it here
-    ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
-    ui.scale(window.devicePixelRatio, window.devicePixelRatio)
-    ui.fillStyle = background
-    ui.fillRect(0, 0, canvas.width, canvas.height)
-    ui.drawImage(tempUi.canvas, 0, 0, canvas.width, canvas.height, 0, 0, width, height)
   })
 
-  api.resize = (canvasBox, rows, columns, initBackgroundColor) => {
+  api.resize = (canvasBox, initBackgroundColor) => {
     active = true
 
-    const height = px.row.height(rows)
-    const width = px.col.width(columns)
+    const height = px.row.height(specs.height + 1)
+    const width = px.col.width(specs.width)
 
     canvas.height = height * window.devicePixelRatio
     canvas.width = width * window.devicePixelRatio
@@ -128,7 +108,7 @@ export const createWindow = (container: HTMLElement) => {
     ui.fillStyle = initBackgroundColor
     ui.fillRect(0, 0, canvas.width, canvas.height)
 
-    resizeForReal(canvasBox, initBackgroundColor)
+    grabPosition(canvasBox)
 
     return api
   }
