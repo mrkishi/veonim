@@ -70,6 +70,14 @@ export const createWindow = (container: HTMLElement) => {
     }
   }
 
+  const considerScrollingMaybe = (y: number) => {
+    const bottomCellEdge = y + canvasContainer.cell.height
+    const height = canvas.offsetHeight - canvas.offsetTop
+    if (bottomCellEdge > height) {
+      console.log('ITS OUT OF BOUNDS SON!')
+    }
+  }
+
   const api = {
     get width() { return canvas.style.width },
     get height() { return canvas.style.height },
@@ -77,8 +85,13 @@ export const createWindow = (container: HTMLElement) => {
 
   api.getSpecs = () => specs
   api.setSpecs = (row, col, height, width, paddingX = 0, paddingY = 0) => (merge(specs, { row, col, height, width, paddingX, paddingY }), api)
-  api.rowToY = row => position.y + px.row.y(row)
+
   api.colToX = col => position.x + px.col.x(col)
+  api.rowToY = row => {
+    const pos = px.row.y(row)
+    setImmediate(() => considerScrollingMaybe(pos))
+    return position.y + pos
+  }
 
   const grabPosition = (canvasBox: HTMLElement) => setImmediate(() => {
     const { top: y, left: x } = canvasBox.getBoundingClientRect()
