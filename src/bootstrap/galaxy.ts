@@ -1,4 +1,4 @@
-import { CreateTask, requireDir, log, delay as timeout } from '../support/utils'
+import { lazyLoadCSS, CreateTask, requireDir, log, delay as timeout } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
@@ -41,6 +41,7 @@ const main = async () => {
   remote.getCurrentWindow().show()
 
   setTimeout(() => {
+    lazyLoadCSS('../assets/seti-icons.css')
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))
   }, 1)
