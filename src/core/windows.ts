@@ -159,7 +159,7 @@ const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, wi
   })
 
   canvas
-    .setSpecs(window.y, window.x, window.height, window.width, 10, 12)
+    .setSpecs(window.y, window.x, window.height, window.width, 10, 6)
     .resize(canvasBox, current.bg)
 
   winPos.push([window.y, window.x, window.height, window.width, canvas])
