@@ -26,4 +26,6 @@ setTimeout(() => {
   npmrun('runtime')
   console.log('copying html')
   npmrun('html')
+  console.log('copying assets')
+  npmrun('assets')
 }, 2e3)
