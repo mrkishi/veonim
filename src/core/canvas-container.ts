@@ -64,14 +64,15 @@ const resize = () => {
   merge(_size, {
     height,
     width,
-    // to account for "statusline" or in our case nameplates
     rows: Math.floor(height / _cell.height) - 1,
-    // TODO: might be better to figure out how many windows are up
-    // determine number of columns that can fit. minus the window padding
-    // use cell.width to calculate precise
     cols: Math.floor(width / _cell.width) - 2,
   })
 
+  watchers.notify('resize', _size)
+}
+
+export const resizeToMoreRealisticDimensions = (rows: number, cols: number) => {
+  merge(_size, { rows, cols })
   watchers.notify('resize', _size)
 }
 

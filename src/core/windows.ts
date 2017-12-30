@@ -37,15 +37,27 @@ export interface Window {
 }
 
 interface GridInfo {
+  horizontalSplits: number,
+  verticalSplits: number,
   gridTemplateRows: string,
   gridTemplateColumns: string,
   windows: RenderWindow[],
 }
 
+const cache = { windows: [] as VimWindow[] }
 const container = document.getElementById('windows') as HTMLElement
-const cache = {
-  windows: [] as VimWindow[]
+const specs = {
+  gridGap: 2,
+  nameplateHeight: canvasContainer.cell.height + 4
 }
+
+merge(container.style, {
+  flex: 1,
+  display: 'grid',
+  'grid-gap': `${specs.gridGap}px`,
+  'justify-items': 'stretch',
+  'align-items': 'stretch',
+})
 
 const createWindowEl = () => {
   const element = document.createElement('div')
@@ -66,8 +78,8 @@ const createWindowEl = () => {
   })
 
   merge(nameplateBox.style, {
-    height: `${canvasContainer.cell.height + 4}px`,
-    'min-height': `${canvasContainer.cell.height + 4}px`,
+    height: `${specs.nameplateHeight}px`,
+    'min-height': `${specs.nameplateHeight}px`,
     display: 'flex',
     // TODO: constrain canvasBox (and nameplate) to the size of the canvas. NO OVERFLOW
     //whiteSpace: 'nowrap',
@@ -92,14 +104,6 @@ const createWindowEl = () => {
 }
 
 const windows = [ createWindowEl() ]
-
-merge(container.style, {
-  flex: 1,
-  display: 'grid',
-  'grid-gap': '2px',
-  'justify-items': 'stretch',
-  'align-items': 'stretch',
-})
 
 const getWindows = async (): Promise<VimWindow[]> => {
   const currentBuffer = (await getCurrent.buffer).id
@@ -180,25 +184,28 @@ const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[
     w.width === lw.width
 })
 
-const getSizes = () => {
+const getSizes = (horizontalSplits: number, verticalSplits: number) => {
   const { height, width } = container.getBoundingClientRect()
   const { paddingX, paddingY } = windows[0].canvas.getSpecs()
-  const vh = height - (paddingY * 2)
-  const vw = width - (paddingX * 2)
+
+  const vh = height
+    - ((horizontalSplits + 1) * paddingY * 2)
+    - (horizontalSplits * (specs.gridGap + specs.nameplateHeight))
+
+  const vw = width
+    - ((verticalSplits + 1) * paddingX * 2)
+    - (verticalSplits * specs.gridGap)
+
   const rows = Math.floor(vh / canvasContainer.cell.height)
   const cols = Math.floor(vw / canvasContainer.cell.width)
-
-  // TODO: subtract number of horizontal windows * (the nameplates + 2px gaps)
-  // TODO: subtract number of vertical windows * (the 2px gaps)
-
   const resizeV = rows !== canvasContainer.size.rows
   const resizeH = cols !== canvasContainer.size.cols
 
-  // TODO: but will resize actually fill enough in each window or only last?
-  // i.e. last vert split will have -10 cols, but other windows will still be clipped...
+  resizeV && console.log('actual rows', rows, 'current:', canvasContainer.size.rows)
+  resizeH && console.log('actual cols', cols, 'current:', canvasContainer.size.cols)
 
-  resizeV && console.log('more vertical', resizeV, rows, canvasContainer.size.rows)
-  resizeH && console.log('more horizontal', resizeH, cols, canvasContainer.size.cols)
+  // TODO: fail
+  //if (resizeH) canvasContainer.resizeToMoreRealisticDimensions(canvasContainer.size.rows, cols)
 }
 
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
@@ -270,6 +277,8 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   })
 
   return {
+    horizontalSplits: yrows.length - 2,
+    verticalSplits: xcols.length - 2,
     gridTemplateRows,
     gridTemplateColumns,
     windows: windowsWithGridInfo,
@@ -301,7 +310,7 @@ export const render = async () => {
   }
 
   winPos = []
-  const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
+  const { horizontalSplits, verticalSplits, gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
   merge(container.style, { gridTemplateRows, gridTemplateColumns })
 
   for (let ix = 0; ix < windows.length; ix++) {
@@ -313,7 +322,7 @@ export const render = async () => {
   }
 
   setImmediate(() => moveCursor())
-  setImmediate(() => getSizes())
+  setImmediate(() => getSizes(horizontalSplits, verticalSplits))
 }
 
 // TODO: maybe use throttle as to be more responsive?
