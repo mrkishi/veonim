@@ -19,6 +19,7 @@
     "rebuild": "npm run clean && npm run build",
     "start": "electron build/bootstrap/main.js",
     "gen-api": "node tools/gen-api.js",
+    "gen-seti-icons": "node tools/gen-seti-stylesheet.js",
     "bins-mac": "mkdir -p bindeps/mac && npm i -f @veonim/neovim-mac@0.0.3 @veonim/ripgrep-mac@0.0.1 --prefix ./bindeps/mac",
     "bins-linux": "mkdir -p bindeps/linux && npm i -f @veonim/neovim-linux@0.0.2 @veonim/ripgrep-linux@0.0.1 --prefix ./bindeps/linux",
     "bins-win": "mkdir -p bindeps/win && npm i -f @veonim/neovim-win@0.0.2 @veonim/ripgrep-win@0.0.1 --prefix ./bindeps/win",

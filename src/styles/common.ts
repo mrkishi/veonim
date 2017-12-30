@@ -11,4 +11,5 @@ export const Row = style('div')({
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
+  display: 'flex',
 })

@@ -1,4 +1,5 @@
 import { action, current, call, cmd } from '../core/neovim'
+import * as setiIcon from '../styles/seti-icons'
 import { h, app, Actions } from '../ui/uikit'
 import Input from '../components/text-input'
 import { basename, dirname } from 'path'
@@ -67,6 +68,7 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
       key,
       style: key === ix ? { background: 'rgba(255, 255, 255, 0.08)' } : undefined,
     }, [
+      setiIcon.file(f.file),
       h('span', { style: { color: '#666' } }, f.dir),
       h('span', { style: {
         color: key === ix ? '#fff' : '#aaa'
