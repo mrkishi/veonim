@@ -42,6 +42,7 @@ interface GridInfo {
   windows: RenderWindow[],
 }
 
+const container = document.getElementById('windows') as HTMLElement
 const cache = {
   windows: [] as VimWindow[]
 }
@@ -90,7 +91,6 @@ const createWindowEl = () => {
   return { element, canvas, nameplate, canvasBox }
 }
 
-const container = document.getElementById('windows') as HTMLElement
 const windows = [ createWindowEl() ]
 
 merge(container.style, {
@@ -179,6 +179,27 @@ const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[
     w.height === lw.height &&
     w.width === lw.width
 })
+
+const getSizes = () => {
+  const { height, width } = container.getBoundingClientRect()
+  const { paddingX, paddingY } = windows[0].canvas.getSpecs()
+  const vh = height - (paddingY * 2)
+  const vw = width - (paddingX * 2)
+  const rows = Math.floor(vh / canvasContainer.cell.height)
+  const cols = Math.floor(vw / canvasContainer.cell.width)
+
+  // TODO: subtract number of horizontal windows * (the nameplates + 2px gaps)
+  // TODO: subtract number of vertical windows * (the 2px gaps)
+
+  const resizeV = rows !== canvasContainer.size.rows
+  const resizeH = cols !== canvasContainer.size.cols
+
+  // TODO: but will resize actually fill enough in each window or only last?
+  // i.e. last vert split will have -10 cols, but other windows will still be clipped...
+
+  resizeV && console.log('more vertical', resizeV, rows, canvasContainer.size.rows)
+  resizeH && console.log('more horizontal', resizeH, cols, canvasContainer.size.cols)
+}
 
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
@@ -292,6 +313,7 @@ export const render = async () => {
   }
 
   setImmediate(() => moveCursor())
+  setImmediate(() => getSizes())
 }
 
 // TODO: maybe use throttle as to be more responsive?

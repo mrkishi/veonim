@@ -25,6 +25,8 @@ export interface Specs {
   col: number,
   height: number,
   width: number,
+  paddingX: number,
+  paddingY: number,
 }
 
 export interface CanvasWindow {
