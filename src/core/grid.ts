@@ -8,7 +8,7 @@ type Cell = [ Character, Foreground, Background ]
 
 let grid: Cell[][] = [[]]
 
-const resizeGrid = (rows: number, columns: number) => {
+export const resize = (rows: number, columns: number) => {
   grid = listof(rows, () => listof(columns, () => [' ', defaults.fg, defaults.bg] as Cell))
 }
 
@@ -19,6 +19,7 @@ export const setBackground = (bg: string) => defaults.bg = bg
 export const get = (row: number, col: number): Cell => grid[row][col]
 
 export const set = (row: number, col: number, char: string, fg = defaults.fg, bg = defaults.bg) => {
+  if (!grid[row] || !grid[row][col]) return
   grid[row][col][0] = char
   grid[row][col][1] = fg
   grid[row][col][2] = bg
@@ -97,4 +98,4 @@ export const clearLine = (row: number, col: number) => {
   }
 }
 
-canvasContainer.on('resize', ({ rows, cols }) => resizeGrid(rows, cols))
+canvasContainer.on('resize', ({ rows, cols }) => resize(rows, cols))

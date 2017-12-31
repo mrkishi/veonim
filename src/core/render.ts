@@ -254,8 +254,10 @@ r.scroll = amount => {
   lastScrollRegion = null
 }
 
-r.put = str => {
-  const total = str.length
+r.resize = () => merge(cursor, { row: 0, col: 0 })
+
+r.put = chars => {
+  const total = chars.length
   if (!total) return
 
   const { row: ogRow, col: ogCol } = cursor
@@ -270,13 +272,12 @@ r.put = str => {
     .setTextBaseline('top')
 
   for (let ix = 0; ix < total; ix++) {
-    if (str[ix][0] !== ' ') {
+    if (chars[ix][0] !== ' ') {
       const w = getWindow(cursor.row, cursor.col)
-      w && w.fillText(str[ix][0], cursor.col, cursor.row)
+      w && w.fillText(chars[ix][0], cursor.col, cursor.row)
     }
 
-    grid.set(cursor.row, cursor.col, str[ix][0], nextAttrs.fg, nextAttrs.bg)
-
+    grid.set(cursor.row, cursor.col, chars[ix][0], nextAttrs.fg, nextAttrs.bg)
     cursor.col++
   }
 
