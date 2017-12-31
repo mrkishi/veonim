@@ -38,7 +38,7 @@ export interface CanvasWindow {
   moveRegion(region: TransferRegion): CanvasWindow,
   fillText(text: string, col: number, row: number): CanvasWindow,
   fillRect(col: number, row: number, width: number, height: number): CanvasWindow,
-  drawLine(col: number, row: number, width: number): CanvasWindow,
+  underline(col: number, row: number, width: number, color: string): CanvasWindow,
   setTextBaseline(mode: string): CanvasWindow,
   clear(): CanvasWindow,
   setColor(color: string): CanvasWindow,
@@ -137,9 +137,18 @@ export const createWindow = (container: HTMLElement) => {
     return api
   }
 
-  api.drawLine = (col, row, width) => {
+  api.underline = (col, row, width, color) => {
+    const x = px.col.x(col)
     const y = px.row.y(row) + (canvasContainer.cell.height - canvasContainer.cell.padding + 2)
-    ui.fillRect(px.col.x(col), y, px.col.width(width), 1)
+    const w = px.col.width(width)
+
+    ui.beginPath()
+    ui.strokeStyle = color
+    ui.lineWidth = 1
+    ui.moveTo(x, y)
+    ui.lineTo(x + w, y)
+    ui.stroke()
+
     return api
   }
 
