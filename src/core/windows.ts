@@ -144,7 +144,7 @@ const createWindowEl = () => {
 const windows = [ createWindowEl() ]
 
 const getWindows = async (): Promise<VimWindow[]> => {
-  const currentBuffer = (await getCurrent.buffer).id
+  const activeWindow = (await getCurrent.window).id
   const wins = await (await getCurrent.tab).windows
 
   return await Promise.all(wins.map(async w => {
@@ -156,10 +156,10 @@ const getWindows = async (): Promise<VimWindow[]> => {
     return {
       x,
       y,
+      active: w.id === activeWindow,
       height: await w.height,
       width: await w.width,
       name: (await buffer.name).replace(current.cwd + '/', ''),
-      active: (await buffer.id) === currentBuffer,
       modified: (await buffer.getOption('modified')),
     }
   }))
@@ -248,7 +248,7 @@ const getSizes = (horizontalSplits: number, verticalSplits: number) => {
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
-  return w.name !== lw.name || w.modified !== lw.modified || w.active !== lw.active
+  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name)
 })
 
 const gogrid = (wins: VimWindow[]): GridInfo => {
