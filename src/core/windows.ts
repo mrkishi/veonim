@@ -328,10 +328,14 @@ export const render = async () => {
       // TODO: this could be better
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
-
       merge(win.api, vw)
+
       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
-      if (prevWin) merge(prevWin, vw)
+      if (prevWin) merge(prevWin, {
+        name: vw.name,
+        active: vw.active,
+        modified: vw.modified,
+      })
     })
 
     if (windowsDimensionsSame(wins, cache.windows)) return
