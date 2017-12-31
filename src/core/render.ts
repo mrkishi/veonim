@@ -5,7 +5,6 @@ import { onRedraw, getColor } from '../core/master-control'
 import { Events, ExtContainer } from '../core/api'
 import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-import * as overlay from '../core/overlay'
 import * as grid from '../core/grid'
 
 interface Colors {
@@ -62,6 +61,20 @@ interface PMenuItem {
   kind: string,
   menu: string,
   info: string,
+}
+
+type CmdContent = [any, string]
+
+export enum CommandType {
+  Ex,
+  SearchForward,
+  SearchBackward,
+}
+
+export interface CommandUpdate {
+  cmd: string,
+  kind: CommandType,
+  position: number,
 }
 
 let lastScrollRegion: ScrollRegion | null = null
@@ -129,8 +142,6 @@ const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion
     .setColor(colors.bg)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 
-  overlay.moveRegion(region)
-  overlay.clear(bottom - amount + 1, left, right - left + 1, amount)
   grid.moveRegionUp(amount, top, bottom, left, right)
 }
 
@@ -157,8 +168,6 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
     .setColor(colors.bg)
     .fillRect(left, top, right - left + 1, amount)
 
-  overlay.moveRegion(region)
-  overlay.clear(top, left, right - left + 1, amount)
   grid.moveRegionDown(amount, top, bottom, left, right)
 }
 
@@ -168,7 +177,6 @@ r.set_scroll_region = (top, bottom, left, right) => lastScrollRegion = { top, bo
 r.clear = () => {
   applyToWindows(w => w.setColor(colors.bg).clear())
   grid.clear()
-  overlay.clearAll()
 }
 
 r.eol_clear = () => {
@@ -179,7 +187,6 @@ r.eol_clear = () => {
     .fillRect(cursor.col, cursor.row, canvasContainer.size.cols, 1)
 
   grid.clearLine(cursor.row, cursor.col)
-  overlay.clearLine(cursor.row, cursor.col)
 }
 
 r.update_fg = fg => {
@@ -286,20 +293,6 @@ r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => dispatch.pub(
 r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
 r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
 r.wildmenu_hide = () => dispatch.pub('wildmenu.hide')
-
-type CmdContent = [any, string]
-
-export enum CommandType {
-  Ex,
-  SearchForward,
-  SearchBackward,
-}
-
-export interface CommandUpdate {
-  cmd: string,
-  kind: CommandType,
-  position: number,
-}
 
 r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level) => {
   // TODO: process attributes!
