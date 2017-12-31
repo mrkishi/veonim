@@ -37,14 +37,9 @@ describe('grid', function () {
     await delay(235)
     await input(':cd ~/Documents/projects/veonim')
     await input('Enter')
-    await input(':e src/core/api.ts')
+    await input(':e src/core/canvas-container.ts')
     await input('Enter')
-    await input(':split src/core/render.ts')
-    await input('Enter')
-    await input(':vsplit')
-    await input('Enter')
-
-    await input(':Veonim blarg')
+    await input(':Veonim uadd')
     await input('Enter')
 
     await app.webContents.openDevTools()

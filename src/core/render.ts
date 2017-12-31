@@ -109,22 +109,26 @@ const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
+  const region = {
+    width,
+    height,
+    source: {
+      col: left,
+      row: top + amount,
+    },
+    destination: {
+      col: left,
+      row: top,
+    }
+  }
+
   w && w
-    .moveRegion({
-      width,
-      height,
-      source: {
-        col: left,
-        row: top + amount,
-      },
-      destination: {
-        col: left,
-        row: top,
-      }
-    })
+    .moveRegion(region)
     .setColor(colors.bg)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 
+  overlay.moveRegion(region)
+  overlay.clear(bottom - amount + 1, left, right - left + 1, amount)
   grid.moveRegionUp(amount, top, bottom, left, right)
 }
 
@@ -133,22 +137,26 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
+  const region = {
+    width,
+    height,
+    source: {
+      col: left,
+      row: top
+    },
+    destination: {
+      col: left,
+      row: top + amount
+    }
+  }
+
   w && w
-    .moveRegion({
-      width,
-      height,
-      source: {
-        col: left,
-        row: top
-      },
-      destination: {
-        col: left,
-        row: top + amount
-      }
-    })
+    .moveRegion(region)
     .setColor(colors.bg)
     .fillRect(left, top, right - left + 1, amount)
 
+  overlay.moveRegion(region)
+  overlay.clear(top, left, right - left + 1, amount)
   grid.moveRegionDown(amount, top, bottom, left, right)
 }
 

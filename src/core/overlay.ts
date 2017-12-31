@@ -1,4 +1,5 @@
 import * as canvasContainer from '../core/canvas-container'
+import { TransferRegion } from '../core/canvas-window'
 import { activeWindow } from '../core/windows'
 import { merge } from '../support/utils'
 
@@ -22,13 +23,13 @@ const resize = () => {
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
 }
 
-const gps = (row: number, col: number, width: number, height: number) => {
+const gps = (row: number, col: number, width: number, height: number, scaled = false) => {
   const win = activeWindow()
   if (!win) return
-  const x = win.colToX(col)
-  const y = win.rowToY(row)
-  const ww = Math.floor(width * canvasContainer.cell.width)
-  const hh = Math.floor(height * canvasContainer.cell.height)
+  const x = win.colToX(col) * (scaled ? window.devicePixelRatio : 1)
+  const y = win.rowToY(row) * (scaled ? window.devicePixelRatio : 1)
+  const ww = Math.floor(width * canvasContainer.cell.width * (scaled ? window.devicePixelRatio : 1))
+  const hh = Math.floor(height * canvasContainer.cell.height * (scaled ? window.devicePixelRatio : 1))
   return { x, y, width: ww, height: hh }
 }
 
@@ -47,12 +48,19 @@ export const clearLine = (row: number, col: number) => {
 }
 
 export const drawLine = (row: number, col: number, width: number) => {
-  console.log('rcw', row, col, width)
   const pos = gps(row, col, width, 1)
   if (!pos) return
-  //ui.clearRect(0, 0, canvas.width, canvas.height)
+
   ui.fillStyle = '#fff000'
   ui.fillRect(pos.x, pos.y + (canvasContainer.cell.height), pos.width, 1)
+}
+
+export const moveRegion = ({ width, height, source, destination }: TransferRegion) => {
+  const s = gps(source.row, source.col, width, height, true)
+  const d = gps(destination.row, destination.col, width, height)
+  if (!s || !d) return
+
+  ui.drawImage(ui.canvas, s.x, s.y, s.width, s.height, d.x, d.y, d.width, d.height)
 }
 
 resize()
