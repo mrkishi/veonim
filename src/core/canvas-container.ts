@@ -42,6 +42,7 @@ const _size = {
   width: 0,
 }
 
+
 export const setFont = ({ size = _font.size, face = _font.face, lineHeight = _font.lineHeight }: Font) => {
   setVar('font', face)
   setVar('font-size', size)

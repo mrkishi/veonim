@@ -20,6 +20,11 @@ interface Autocmd {
 type AtomicCall = [string, any[]]
 type EventCallback = (state: NeovimState) => void
 
+export enum Highlight {
+  Underline = 'VeonimUnderline',
+  Undercurl = 'VeonimUndercurl',
+}
+
 interface Event {
   bufLoad(cb: EventCallback): void,
   bufUnload(cb: EventCallback): void,
@@ -84,6 +89,7 @@ export interface Buffer {
   getMark(name: string): Promise<number[]>,
   addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>,
   clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void,
+  clearAllHighlights(sourceId: number): void,
 }
 
 export interface Window {
@@ -361,6 +367,8 @@ onCreate(() => {
   cmd(`set completefunc=VeonimComplete`)
   cmd(`ino <expr> <tab> CompleteScroll(1)`)
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+  cmd(`highlight ${Highlight.Underline} gui=underline`)
+  cmd(`highlight ${Highlight.Undercurl} gui=undercurl`)
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   processBufferedActions()
@@ -454,6 +462,7 @@ const Buffer = (id: any) => ({
   getMark: name => req.buf.getMark(id, name),
   addHighlight: (sourceId, hlGroup, line, colStart, colEnd) => req.buf.addHighlight(id, sourceId, hlGroup, line, colStart, colEnd),
   clearHighlight: (sourceId, lineStart, lineEnd) => api.buf.clearHighlight(id, sourceId, lineStart, lineEnd),
+  clearAllHighlights: sourceId => api.buf.clearHighlight(id, sourceId, 1, -1),
 } as Buffer)
 
 const Window = (id: any) => ({

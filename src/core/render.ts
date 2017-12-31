@@ -5,6 +5,7 @@ import { onRedraw, getColor } from '../core/master-control'
 import { Events, ExtContainer } from '../core/api'
 import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
+import * as overlay from '../core/overlay'
 import * as grid from '../core/grid'
 
 interface Colors {
@@ -33,8 +34,8 @@ interface Attrs {
   reverse?: string,
   italic?: string,
   bold?: string,
-  underline?: string,
-  undercurl?: string,
+  underline?: boolean,
+  undercurl?: boolean,
 }
 
 interface NextAttrs extends Attrs {
@@ -64,6 +65,11 @@ interface PMenuItem {
 
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
+
+const attrDefaults: Attrs = {
+  underline: false,
+  undercurl: false
+}
 
 const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
@@ -152,6 +158,7 @@ r.set_scroll_region = (top, bottom, left, right) => lastScrollRegion = { top, bo
 r.clear = () => {
   applyToWindows(w => w.setColor(colors.bg).clear())
   grid.clear()
+  overlay.clearAll()
 }
 
 r.eol_clear = () => {
@@ -162,6 +169,7 @@ r.eol_clear = () => {
     .fillRect(cursor.col, cursor.row, canvasContainer.size.cols, 1)
 
   grid.clearLine(cursor.row, cursor.col)
+  overlay.clearLine(cursor.row, cursor.col)
 }
 
 r.update_fg = fg => {
@@ -216,8 +224,8 @@ r.highlight_set = (attrs: Attrs) => {
   const bg = attrs.background ? asColor(attrs.background) : colors.bg
 
   attrs.reverse
-    ? merge(nextAttrs, attrs, { bg: fg, fg: bg })
-    : merge(nextAttrs, attrs, { fg, bg })
+    ? merge(nextAttrs, attrDefaults, attrs, { bg: fg, fg: bg })
+    : merge(nextAttrs, attrDefaults, attrs, { fg, bg })
 }
 
 r.scroll = amount => {
@@ -241,6 +249,18 @@ r.put = str => {
     .fillRect(cursor.col, cursor.row, total, 1)
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
+
+  overlay.clear(cursor.row, cursor.col, total, 1)
+
+  if (nextAttrs.undercurl) {
+    overlay.drawLine(cursor.row, cursor.col, total)
+    console.log('__', cursor.row, cursor.col, total)
+  }
+
+  //if (nextAttrs.underline) {
+    //overlay.drawLine(cursor.row, cursor.col, total)
+    //console.log('__', cursor.row, cursor.col, total)
+  //}
 
   for (let ix = 0; ix < total; ix++) {
     if (str[ix][0] !== ' ') {

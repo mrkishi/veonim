@@ -1,4 +1,4 @@
-import { lazyLoadCSS, CreateTask, requireDir, log, delay as timeout } from '../support/utils'
+import { merge, CreateTask, requireDir, log, delay as timeout } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
@@ -9,6 +9,12 @@ import * as uiInput from '../core/input'
 import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
+
+export const lazyLoadCSS = (href: string) => {
+  const css = document.createElement('link')
+  merge(css, { href, rel: 'stylesheet', type: 'text/css' })
+  document.head.appendChild(css)
+}
 
 const loadingConfig = CreateTask()
 
