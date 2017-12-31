@@ -280,7 +280,8 @@ r.put = str => {
     cursor.col++
   }
 
-  if (win && nextAttrs.undercurl) win.setColor(nextAttrs.sp).drawLine(ogCol, ogRow, total)
+  if (win && (nextAttrs.undercurl || nextAttrs.underline))
+    win.setColor(nextAttrs.sp).drawLine(ogCol, ogRow, total)
 }
 
 r.popupmenu_hide = () => dispatch.pub('pmenu.hide')
