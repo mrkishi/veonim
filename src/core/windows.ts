@@ -29,11 +29,20 @@ export interface RenderWindow extends VimWindow {
   gridRow: string,
 }
 
+export interface WindowApi {
+  modified: boolean,
+  active: boolean,
+  name?: string,
+  updateBackground(): void,
+}
+
 export interface Window {
   element: HTMLElement,
+  nameplateBox: HTMLElement,
   nameplate: HTMLElement,
   canvas: CanvasWindow,
   canvasBox: HTMLElement,
+  api: WindowApi,
 }
 
 interface GridInfo {
@@ -54,53 +63,82 @@ const specs = {
 merge(container.style, {
   flex: 1,
   display: 'grid',
-  'grid-gap': `${specs.gridGap}px`,
-  'justify-items': 'stretch',
-  'align-items': 'stretch',
+  gridGap: `${specs.gridGap}px`,
+  justifyItems: 'stretch',
+  alignItems: 'stretch',
 })
 
 const createWindowEl = () => {
   const element = document.createElement('div')
   merge(element.style, {
     display: 'none',
-    'flex-flow': 'column',
+    flexFlow: 'column',
     background: 'none',
   })
 
   const canvasBox = document.createElement('div')
+  const titleBar = document.createElement('div')
   const nameplateBox = document.createElement('div')
   const nameplate = document.createElement('div')
   const canvas = createWindow(canvasBox)
+  const modifiedBubble = document.createElement('div')
 
   merge(canvasBox.style, {
     flex: 1,
     overflow: 'hidden',
   })
 
-  merge(nameplateBox.style, {
+  merge(titleBar.style, {
     height: `${specs.nameplateHeight}px`,
-    'min-height': `${specs.nameplateHeight}px`,
+    minHeight: `${specs.nameplateHeight}px`,
     display: 'flex',
-    // TODO: constrain canvasBox (and nameplate) to the size of the canvas. NO OVERFLOW
+    // TODO: constrain canvasBox (and nameplateBox) to the size of the canvas. NO OVERFLOW
     //whiteSpace: 'nowrap',
     //overflow: 'hidden',
     //textOverflow: 'ellipsis',
   })
 
-  merge(nameplate.style, {
+  merge(nameplateBox.style, {
     display: 'flex',
+    alignItems: 'center',
+    paddingLeft: '10px',
+    paddingRight: '10px',
+  })
+
+  merge(nameplate.style, {
     color: '#aaa',
-    'align-items': 'center',
-    'padding-left': '10px',
-    'padding-right': '10px',
+  })
+
+  merge(modifiedBubble.style, {
+    display: 'none',
+    marginTop: '2px',
+    marginLeft: '8px',
+    background: '#aaa',
+    borderRadius: '50%',
+    height: `${Math.round(canvasContainer.font.size / 2)}px`,
+    width: `${Math.round(canvasContainer.font.size / 2)}px`,
   })
 
   nameplateBox.appendChild(nameplate)
-  element.appendChild(nameplateBox)
+  nameplateBox.appendChild(modifiedBubble)
+  titleBar.appendChild(nameplateBox)
+  element.appendChild(titleBar)
   element.appendChild(canvasBox)
   container.appendChild(element)
 
-  return { element, canvas, nameplate, canvasBox }
+  const api: WindowApi = {
+    set modified(yes: boolean) { modifiedBubble.style.display = yes ? 'block' : 'none' },
+    set active(yes: boolean) { nameplate.style.filter = `brightness(${yes ? 130 : 90}%)` },
+    set name(name: string) { nameplate.innerText = name || '[No Name]'},
+    updateBackground: () => {
+      canvasBox.style.background = current.bg
+      nameplateBox.style.background = current.bg
+      modifiedBubble.style.background = current.bg
+      modifiedBubble.style.filter = `brightness(250%)`
+    },
+  }
+
+  return { element, canvas, nameplateBox, nameplate, canvasBox, api }
 }
 
 const windows = [ createWindowEl() ]
@@ -155,11 +193,11 @@ const fillCanvasFromGrid = (x: number, y: number, height: number, width: number,
   }
 }
 
-const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, window: RenderWindow) => {
+const setupWindow = async ({ element, canvas, canvasBox, api }: Window, window: RenderWindow) => {
   merge(element.style, {
     display: 'flex',
-    'grid-column': window.gridColumn,
-    'grid-row': window.gridRow,
+    gridColumn: window.gridColumn,
+    gridRow: window.gridRow,
   })
 
   canvas
@@ -169,9 +207,8 @@ const setupWindow = async ({ element, nameplate, canvas, canvasBox }: Window, wi
   winPos.push([window.y, window.x, window.height, window.width, canvas])
   fillCanvasFromGrid(window.x, window.y, window.height, window.width, canvas)
 
-  canvasBox.style.background = current.bg
-  nameplate.style.background = current.bg
-  nameplate.innerText = window.name || '[No Name]'
+  api.updateBackground()
+  merge(api, window)
 }
 
 const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.every((w, ix) => {
@@ -211,7 +248,7 @@ const getSizes = (horizontalSplits: number, verticalSplits: number) => {
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
-  return w.name !== lw.name
+  return w.name !== lw.name || w.modified !== lw.modified || w.active !== lw.active
 })
 
 const gogrid = (wins: VimWindow[]): GridInfo => {
@@ -294,9 +331,10 @@ export const render = async () => {
       // TODO: this could be better
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
-      win.nameplate.innerText = vw.name
-      const wwIx = cache.windows.findIndex(w => w.x === vw.x && w.y === vw.y)
-      cache.windows[wwIx].name = vw.name
+
+      merge(win.api, vw)
+      const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
+      if (prevWin) merge(prevWin, vw)
     })
 
     if (windowsDimensionsSame(wins, cache.windows)) return
