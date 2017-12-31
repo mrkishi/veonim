@@ -89,8 +89,7 @@ export const createWindow = (container: HTMLElement) => {
   })
 
   api.resize = (canvasBox, initBackgroundColor) => {
-    const height = px.row.height(specs.height + 1)
-    const width = px.col.width(specs.width)
+    const { height, width } = container.getBoundingClientRect()
 
     canvas.height = height * window.devicePixelRatio
     canvas.width = width * window.devicePixelRatio
