@@ -56,10 +56,15 @@ export const drawLine = (row: number, col: number, width: number) => {
 }
 
 export const moveRegion = ({ width, height, source, destination }: TransferRegion) => {
+  clear(destination.row, destination.col, width, height)
   const s = gps(source.row, source.col, width, height, true)
   const d = gps(destination.row, destination.col, width, height)
   if (!s || !d) return
 
+  //const d = gps(source.row, source.col, width, height)
+  //if (!d) return
+  //ui.fillStyle = 'blue'
+  //ui.fillRect(d.x, d.y, d.width, d.height)
   ui.drawImage(ui.canvas, s.x, s.y, s.width, s.height, d.x, d.y, d.width, d.height)
 }
 

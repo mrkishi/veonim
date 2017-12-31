@@ -38,6 +38,7 @@ export interface CanvasWindow {
   moveRegion(region: TransferRegion): CanvasWindow,
   fillText(text: string, col: number, row: number): CanvasWindow,
   fillRect(col: number, row: number, width: number, height: number): CanvasWindow,
+  drawLine(col: number, row: number, width: number): CanvasWindow,
   setTextBaseline(mode: string): CanvasWindow,
   clear(): CanvasWindow,
   setColor(color: string): CanvasWindow,
@@ -132,6 +133,16 @@ export const createWindow = (container: HTMLElement) => {
     const destHeight = px.row.height(height)
 
     ui.drawImage(ui.canvas, srcX, srcY, srcWidth, srcHeight, destX, destY, destWidth, destHeight)
+
+    return api
+  }
+
+  api.drawLine = (col, row, width) => {
+    const x = px.col.x(col)
+    const y = px.row.y(row)
+    const w = px.col.width(width)
+
+    ui.fillRect(x, y + (canvasContainer.cell.height - 3), w, 1)
 
     return api
   }

@@ -255,19 +255,21 @@ r.put = str => {
   win && win
     .setColor(nextAttrs.bg)
     .fillRect(cursor.col, cursor.row, total, 1)
+
+  if (win && nextAttrs.undercurl) {
+    console.log('__', cursor.row, cursor.col, total)
+    win.setColor('#ff00ff').drawLine(cursor.col, cursor.row, total)
+  }
+
+  win && win
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
 
-  overlay.clear(cursor.row, cursor.col, total, 1)
+  //overlay.clear(cursor.row, cursor.col, total, 1)
 
-  if (nextAttrs.undercurl) {
-    overlay.drawLine(cursor.row, cursor.col, total)
-    console.log('__', cursor.row, cursor.col, total)
-  }
 
   //if (nextAttrs.underline) {
     //overlay.drawLine(cursor.row, cursor.col, total)
-    //console.log('__', cursor.row, cursor.col, total)
   //}
 
   for (let ix = 0; ix < total; ix++) {
