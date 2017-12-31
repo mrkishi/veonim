@@ -30,7 +30,7 @@ interface ScrollRegion {
 interface Attrs {
   foreground?: number,
   background?: number,
-  special?: string,
+  special?: number,
   reverse?: string,
   italic?: string,
   bold?: string,
@@ -41,6 +41,7 @@ interface Attrs {
 interface NextAttrs extends Attrs {
   fg: string,
   bg: string,
+  sp: string,
 }
 
 interface ModeInfo {
@@ -88,6 +89,7 @@ const colors: Colors = {
 const nextAttrs: NextAttrs = {
   fg: colors.fg,
   bg: colors.bg,
+  sp: colors.sp,
 }
 
 const defaultScrollRegion = (): ScrollRegion => ({
@@ -230,10 +232,11 @@ r.mode_change = async mode => {
 r.highlight_set = (attrs: Attrs) => {
   const fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
   const bg = attrs.background ? asColor(attrs.background) : colors.bg
+  const sp = attrs.special ? asColor(attrs.special) : colors.sp
 
   attrs.reverse
-    ? merge(nextAttrs, attrDefaults, attrs, { bg: fg, fg: bg })
-    : merge(nextAttrs, attrDefaults, attrs, { fg, bg })
+    ? merge(nextAttrs, attrDefaults, attrs, { sp, bg: fg, fg: bg })
+    : merge(nextAttrs, attrDefaults, attrs, { sp, fg, bg })
 }
 
 r.scroll = amount => {
@@ -248,6 +251,7 @@ r.put = str => {
   const total = str.length
   if (!total) return
 
+  const { row: ogRow, col: ogCol } = cursor
   const win = getWindow(cursor.row, cursor.col)
   //// TODO: get all windows which apply for this range
   //or is it even an issue? aka always in range of window dimensions?
@@ -255,22 +259,8 @@ r.put = str => {
   win && win
     .setColor(nextAttrs.bg)
     .fillRect(cursor.col, cursor.row, total, 1)
-
-  if (win && nextAttrs.undercurl) {
-    console.log('__', cursor.row, cursor.col, total)
-    win.setColor('#ff00ff').drawLine(cursor.col, cursor.row, total)
-  }
-
-  win && win
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
-
-  //overlay.clear(cursor.row, cursor.col, total, 1)
-
-
-  //if (nextAttrs.underline) {
-    //overlay.drawLine(cursor.row, cursor.col, total)
-  //}
 
   for (let ix = 0; ix < total; ix++) {
     if (str[ix][0] !== ' ') {
@@ -282,6 +272,8 @@ r.put = str => {
 
     cursor.col++
   }
+
+  if (win && nextAttrs.undercurl) win.setColor(nextAttrs.sp).drawLine(ogCol, ogRow, total)
 }
 
 r.popupmenu_hide = () => dispatch.pub('pmenu.hide')

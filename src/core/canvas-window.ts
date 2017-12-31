@@ -138,7 +138,8 @@ export const createWindow = (container: HTMLElement) => {
   }
 
   api.drawLine = (col, row, width) => {
-    ui.fillRect(px.col.x(col), px.row.y(row) + (canvasContainer.cell.height - 3), px.col.width(width), 1)
+    const y = px.row.y(row) + (canvasContainer.cell.height - canvasContainer.cell.padding + 2)
+    ui.fillRect(px.col.x(col), y, px.col.width(width), 1)
     return api
   }
 
