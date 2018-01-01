@@ -16,7 +16,7 @@ export const defaults = { fg: '', bg: '' }
 export const setForeground = (fg: string) => defaults.fg = fg
 export const setBackground = (bg: string) => defaults.bg = bg
 
-export const get = (row: number, col: number): Cell => grid[row][col]
+export const get = (row: number, col: number): Cell => grid[row][col] || []
 
 export const set = (row: number, col: number, char: string, fg = defaults.fg, bg = defaults.bg) => {
   if (!grid[row] || !grid[row][col]) return

@@ -1,7 +1,7 @@
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
 import { debounce, merge, listof } from '../support/utils'
-import { getCurrent, current } from '../core/neovim'
+import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
@@ -222,6 +222,18 @@ const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[
     w.width === lw.width
 })
 
+// TODO: super hacky but i'm lazy right now ok
+const maybeResize = ((time: number) => {
+  let canResize = true
+  return {
+    cooldown: () => {
+      canResize = false
+      setTimeout(() => canResize = true, time)
+    },
+    get canResize () { return canResize }
+  }
+})(100)
+
 const getSizes = (horizontalSplits: number, verticalSplits: number) => {
   const { height, width } = container.getBoundingClientRect()
   const { paddingX, paddingY } = windows[0].canvas.getSpecs()
@@ -239,11 +251,15 @@ const getSizes = (horizontalSplits: number, verticalSplits: number) => {
   const resizeV = rows !== canvasContainer.size.rows
   const resizeH = cols !== canvasContainer.size.cols
 
-  resizeV && console.log('actual rows', rows, 'current:', canvasContainer.size.rows)
-  resizeH && console.log('actual cols', cols, 'current:', canvasContainer.size.cols)
+  // TODO: do we need to resize vertically? or just use vertical overflows?
+  if (resizeV) {}
 
-  // TODO: after resize, equal width windows? also don't recursively resize
-  //if (resizeH) canvasContainer.redoResize(canvasContainer.size.rows, cols)
+  if (resizeH) {
+    maybeResize.cooldown()
+    canvasContainer.redoResize(canvasContainer.size.rows, cols + 1)
+    // TODO: hacky, could be better
+    setTimeout(() => cmd(`wincmd =`), 25)
+  }
 }
 
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
