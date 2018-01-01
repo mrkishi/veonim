@@ -62,6 +62,7 @@ const specs = {
 
 merge(container.style, {
   flex: 1,
+  maxWidth: '100%',
   display: 'grid',
   gridGap: `${specs.gridGap}px`,
   justifyItems: 'stretch',
@@ -254,9 +255,8 @@ const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows
 const gogrid = (wins: VimWindow[]): GridInfo => {
   const xPoints = new Set<number>()
   const yPoints = new Set<number>()
-
-  const { rows: gridRows, cols: totalColumns } = canvasContainer.size
-  const totalRows = gridRows - 1
+  const totalRows = canvasContainer.size.rows - 1
+  const totalColumns = canvasContainer.size.cols
 
   wins.forEach(w => {
     xPoints.add(w.x)
@@ -287,8 +287,8 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
     return [...res, rowSize]
   }, [])
 
-  const gridTemplateRows = rr.reduce((s, m) => s + m + '% ', '')
-  const gridTemplateColumns = cc.reduce((s, m) => s + m + '% ', '')
+  const gridTemplateRows = rr.length < 2 ? '100%' : rr.reduce((s, m) => s + m + '% ', '')
+  const gridTemplateColumns = cc.length < 2 ? '100%' : cc.reduce((s, m) => s + m + '% ', '')
 
   const windowsWithGridInfo = wins.map(w => ({
     ...w,
@@ -314,6 +314,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   })
 
   return {
+    // only include positions between container left and right edges (the actual splits)
     horizontalSplits: yrows.length - 2,
     verticalSplits: xcols.length - 2,
     gridTemplateRows,
@@ -323,6 +324,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 }
 
 let winPos = [] as any
+
 export const render = async () => {
   const wins = await getWindows()
 
