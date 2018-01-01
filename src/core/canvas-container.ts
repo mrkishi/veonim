@@ -72,6 +72,11 @@ const resize = () => {
   watchers.notify('resize', _size)
 }
 
+export const redoResize = (rows: number, cols: number) => {
+  merge(_size, { rows, cols })
+  watchers.notify('resize', _size)
+}
+
 export const on = (event: string, handler: (data: any) => void) => watchers.add(event, handler)
 
 export const size = {

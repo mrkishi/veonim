@@ -240,6 +240,9 @@ const getSizes = (horizontalSplits: number, verticalSplits: number) => {
 
   resizeV && console.log('actual rows', rows, 'current:', canvasContainer.size.rows)
   resizeH && console.log('actual cols', cols, 'current:', canvasContainer.size.cols)
+
+  // TODO: hardmode (resizing after is hacky. try before?)
+  //if (resizeH) canvasContainer.redoResize(canvasContainer.size.rows, cols)
 }
 
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
