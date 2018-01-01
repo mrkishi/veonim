@@ -242,7 +242,7 @@ const getSizes = (horizontalSplits: number, verticalSplits: number) => {
   resizeV && console.log('actual rows', rows, 'current:', canvasContainer.size.rows)
   resizeH && console.log('actual cols', cols, 'current:', canvasContainer.size.cols)
 
-  // TODO: hardmode (resizing after is hacky. try before?)
+  // TODO: after resize, equal width windows? also don't recursively resize
   //if (resizeH) canvasContainer.redoResize(canvasContainer.size.rows, cols)
 }
 
