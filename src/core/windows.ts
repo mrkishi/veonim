@@ -14,6 +14,7 @@ export interface VimWindow {
   name: string,
   modified: boolean,
   active: boolean,
+  terminal: boolean,
 }
 
 export interface RenderWindow extends VimWindow {
@@ -33,6 +34,7 @@ export interface WindowApi {
   modified: boolean,
   active: boolean,
   name?: string,
+  terminal: boolean,
   updateBackground(): void,
 }
 
@@ -83,6 +85,7 @@ const createWindowEl = () => {
   const nameplate = document.createElement('div')
   const canvas = createWindow(canvasBox)
   const modifiedBubble = document.createElement('div')
+  const terminalIcon = document.createElement('div')
 
   merge(canvasBox.style, {
     flex: 1,
@@ -120,6 +123,29 @@ const createWindowEl = () => {
     width: `${Math.round(canvasContainer.font.size / 2)}px`,
   })
 
+  merge(terminalIcon.style, {
+    display: 'none',
+    marginRight: '8px',
+    color: '#aaa',
+    alignItems: 'center,'
+  })
+
+  terminalIcon.innerHTML = `<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="${canvasContainer.font.size + 2}"
+    height="${canvasContainer.font.size + 2}"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <polyline points="4 17 10 11 4 5"></polyline>
+    <line x1="12" y1="19" x2="20" y2="19"></line>
+  </svg>`
+
+  nameplateBox.appendChild(terminalIcon)
   nameplateBox.appendChild(nameplate)
   nameplateBox.appendChild(modifiedBubble)
   titleBar.appendChild(nameplateBox)
@@ -131,11 +157,14 @@ const createWindowEl = () => {
     set modified(yes: boolean) { modifiedBubble.style.display = yes ? 'block' : 'none' },
     set active(yes: boolean) { nameplate.style.filter = `brightness(${yes ? 130 : 90}%)` },
     set name(name: string) { nameplate.innerText = name || '[No Name]'},
+    set terminal(yes: boolean) { terminalIcon.style.display = yes ? 'flex' : 'none' },
     updateBackground: () => {
       canvasBox.style.background = current.bg
       nameplateBox.style.background = current.bg
       modifiedBubble.style.background = current.bg
       modifiedBubble.style.filter = `brightness(250%)`
+      terminalIcon.style.color = current.bg
+      terminalIcon.style.filter = `brightness(250%)`
     },
   }
 
@@ -160,8 +189,11 @@ const getWindows = async (): Promise<VimWindow[]> => {
       active: w.id === activeWindow,
       height: await w.height,
       width: await w.width,
-      name: (await buffer.name).replace(current.cwd + '/', ''),
-      modified: (await buffer.getOption('modified')),
+      name: (await buffer.name)
+        .replace(current.cwd + '/', '')
+        .replace(/^term:\/\/\.\/\/\w+:/, ''),
+      modified: await buffer.getOption('modified'),
+      terminal: (await buffer.getOption('buftype')) === 'terminal',
     }
   }))
 }
@@ -265,7 +297,7 @@ const getSizes = (horizontalSplits: number, verticalSplits: number) => {
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
-  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name)
+  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name && w.terminal === lw.terminal)
 })
 
 const gogrid = (wins: VimWindow[]): GridInfo => {
@@ -343,6 +375,7 @@ let winPos = [] as any
 
 export const render = async () => {
   const wins = await getWindows()
+  //wins.forEach(w => console.log(w.name, w.terminal))
 
   if (cache.windows) {
     findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {
@@ -356,6 +389,7 @@ export const render = async () => {
         name: vw.name,
         active: vw.active,
         modified: vw.modified,
+        terminal: vw.terminal,
       })
     })
 
