@@ -43,7 +43,7 @@ const state: State = {
 const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
   hide: !vis,
 }, [
-  h('div', {
+  ,h('div', {
     style: {
       background: 'rgb(20, 20, 20)',
       marginTop: '15%',
@@ -51,7 +51,7 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
     },
     hide: !vis,
   }, [
-    Input({
+    ,Input({
       val,
       next,
       prev,
@@ -61,19 +61,19 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
       icon: 'search',
       focus: true,
       desc: 'find files',
-    }),
+    })
 
-    h('div', files.map((f, key) => Row({
+    ,h('div', files.map((f, key) => Row({
       // TODO: lol nope
       key,
       style: key === ix ? { background: 'rgba(255, 255, 255, 0.08)' } : undefined,
     }, [
       setiIcon.file(f.file),
-      h('span', { style: { color: '#666' } }, f.dir),
-      h('span', { style: {
+      ,h('span', { style: { color: '#666' } }, f.dir),
+      ,h('span', { style: {
         color: key === ix ? '#fff' : '#aaa'
       } }, f.file)
-    ]))),
+    ])))
   ])
 ])
 
