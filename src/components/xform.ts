@@ -12,7 +12,7 @@ let currentHighlight = 0
 
 action('uadd', async () => {
   const buffer = await getCurrent.buffer
-  currentHighlight= await buffer.addHighlight(-1, Highlight.Undercurl, 9, 6, 14)
+  currentHighlight = await buffer.addHighlight(-1, Highlight.Undercurl, 9, 18, 22)
   console.log('hi id:', currentHighlight)
 })
 

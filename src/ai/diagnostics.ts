@@ -1,20 +1,40 @@
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
+import { on, action, getCurrent, current as vim } from '../core/neovim'
 import { Command, Diagnostic } from 'vscode-languageserver-types'
 import { positionWithinRange } from '../support/neovim-utils'
-import { on, action, current as vim } from '../core/neovim'
 import * as codeActionUI from '../components/code-actions'
+import { merge, uriToPath } from '../support/utils'
 import { setCursorColor } from '../core/cursor'
-import { merge } from '../support/utils'
 
 const cache = {
   uri: '',
   diagnostics: [] as Diagnostic[],
   actions: [] as Command[],
+  visibleConcerns: new Map<string, () => void>(),
 }
 
-onDiagnostics(m => {
-  console.log('PROBLEMS FOR:', m.uri, m.diagnostics)
+onDiagnostics(async m => {
+  const path = uriToPath(m.uri)
   merge(cache, m)
+
+  const clearPreviousConcerns = cache.visibleConcerns.get(path)
+  if (clearPreviousConcerns) clearPreviousConcerns()
+  if (!m.diagnostics.length) return
+
+  // TODO: handle severity (errors vs warnings, etc.)
+  const concerns = m.diagnostics.map((d: Diagnostic) => ({
+    line: d.range.start.line,
+    columnStart: d.range.start.character,
+    columnEnd: d.range.end.character,
+  }))
+
+  const buffer = await getCurrent.buffer
+  const name = await buffer.name
+
+  if (name !== path) return
+
+  const clearToken = await buffer.highlightConcerns(concerns)
+  cache.visibleConcerns.set(name, clearToken)
 })
 
 on.cursorMove(async state => {
@@ -35,4 +55,4 @@ on.cursorMove(async state => {
 
 export const runCodeAction = (action: Command) => executeCommand(vim, action)
 
-action('quickfix', () => codeActionUI.show(vim.line, vim.column, cache.actions))
+action('code-action', () => codeActionUI.show(vim.line, vim.column, cache.actions))
