@@ -24,4 +24,3 @@ action('hover', async () => {
 on.cursorMove(() => hoverUI.hide())
 on.insertEnter(() => hoverUI.hide())
 on.insertLeave(() => hoverUI.hide())
-

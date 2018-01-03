@@ -1,11 +1,9 @@
-import { current as vimstate } from '../core/neovim'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
-import { ColorData } from '../ai/hover'
 import { translate } from '../ui/css'
 
 interface State {
-  value: ColorData[][],
+  value: string,
   vis: boolean,
   x: number,
   y: number,
@@ -15,11 +13,11 @@ interface State {
 interface ShowParams {
   row: number,
   col: number,
-  data: ColorData[][],
+  data: string,
 }
 
 const state: State = {
-  value: [[]],
+  value: '',
   vis: false,
   x: 0,
   y: 0,
@@ -28,7 +26,7 @@ const state: State = {
 
 let spacer: HTMLElement
 
-const view = ({ value, vis, x, y, anchorBottom }: State) => h('#hover', {
+const view = ({ value, vis, x, y, anchorBottom }: State) => h('#problem-info', {
   style: {
     display: vis ? 'flex' : 'none',
     position: 'absolute',
@@ -56,16 +54,12 @@ const view = ({ value, vis, x, y, anchorBottom }: State) => h('#hover', {
   }, [
     h('div', {
       style: {
+        // TODO: vim colors pls
         background: '#222',
         color: '#eee',
         padding: '8px',
       }
-    }, value.map(m => h('div', m.map(({ color, text }) => h('span', {
-      style: {
-        color: color || vimstate.fg,
-        'white-space': 'pre',
-      }
-    }, text))))),
+    }, value),
   ]),
 ])
 
