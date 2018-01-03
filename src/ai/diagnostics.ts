@@ -8,6 +8,7 @@ import * as quickfixUI from '../components/quickfix'
 import { merge, uriToPath } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
+import { cursor } from '../core/cursor'
 
 const cache = {
   uri: '',
@@ -50,8 +51,8 @@ action('show-problem', async () => {
   const targetProblem = cache.diagnostics.find(d => positionWithinRange(line - 1, column - 1, d.range))
 
   targetProblem && problemInfoUI.show({
-    row: line,
-    col: column,
+    row: cursor.row,
+    col: cursor.col,
     data: targetProblem.message
   })
 })
@@ -130,4 +131,4 @@ on.cursorMove(async state => {
 
 export const runCodeAction = (action: Command) => executeCommand(vim, action)
 
-action('code-action', () => codeActionUI.show(vim.line, vim.column, cache.actions))
+action('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
