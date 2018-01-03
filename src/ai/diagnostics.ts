@@ -4,6 +4,7 @@ import { Command, Diagnostic } from 'vscode-languageserver-types'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
+import * as quickfixUI from '../components/quickfix'
 import { merge, uriToPath } from '../support/utils'
 import { setCursorColor } from '../core/cursor'
 
@@ -53,6 +54,20 @@ action('show-problem', async () => {
 on.cursorMove(() => problemInfoUI.hide())
 on.insertEnter(() => problemInfoUI.hide())
 on.insertLeave(() => problemInfoUI.hide())
+
+const findClosestProblem = (line: number, column: number) => {
+}
+
+action('next-problem', () => {
+
+})
+
+action('prev-problem', () => {
+
+})
+
+action('quickfix-open', () => quickfixUI.show(cache.diagnostics))
+action('quickfix-close', () => quickfixUI.hide())
 
 on.cursorMove(async state => {
   const { line, column } = state
