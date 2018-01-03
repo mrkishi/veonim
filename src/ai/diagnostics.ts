@@ -55,15 +55,54 @@ on.cursorMove(() => problemInfoUI.hide())
 on.insertEnter(() => problemInfoUI.hide())
 on.insertLeave(() => problemInfoUI.hide())
 
-const findClosestProblem = (line: number, column: number) => {
+interface Distance {
+  diagnostic: Diagnostic,
+  lines: number,
+  characters: number,
 }
 
-action('next-problem', () => {
+const distanceAsc = (a: Distance, b: Distance) =>
+  a.lines === b.lines ? a.characters < b.characters : a.lines < b.lines
 
+const distanceDesc = (a: Distance, b: Distance) =>
+  a.lines === b.lines ? a.characters > b.characters : a.lines > b.lines
+
+const findClosestProblem = (line: number, column: number, findNext: boolean) => {
+  const distances = cache.diagnostics.map(d => ({
+    diagnostic: d,
+    lines: d.range.start.line - line,
+    characters: d.range.start.character - column,
+  } as Distance))
+
+  const sortedProblems = distances.sort((a, b) => findNext
+    ? distanceDesc(a, b) ? 1 : 0
+    : distanceAsc(a, b) ? 1 : 0)
+
+  const validProblems = findNext
+    ? sortedProblems.filter(m => m.lines === 0 ? m.characters > 0 : m.lines > 0)
+    : sortedProblems.filter(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
+
+  return (validProblems[0] || {}).diagnostic
+}
+
+action('next-problem', async () => {
+  const { line, column } = vim
+
+  const problem = findClosestProblem(line - 1, column - 1, true)
+  if (!problem) return
+
+  const window = await getCurrent.window
+  window.setCursor(problem.range.start.line + 1, problem.range.start.character)
 })
 
-action('prev-problem', () => {
+action('prev-problem', async () => {
+  const { line, column } = vim
 
+  const problem = findClosestProblem(line - 1, column - 1, false)
+  if (!problem) return
+
+  const window = await getCurrent.window
+  window.setCursor(problem.range.start.line + 1, problem.range.start.character)
 })
 
 action('quickfix-open', () => quickfixUI.show(cache.diagnostics))
