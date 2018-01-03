@@ -122,7 +122,6 @@ on.cursorMove(async state => {
 
   const actions = await codeAction(state, relevantDiagnostics)
 
-  // TODO: what is the stuff on the columnbar? code lens?
   if (actions && actions.length) {
     cache.actions = actions
     setCursorColor('red')
