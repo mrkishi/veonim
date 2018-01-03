@@ -1,6 +1,8 @@
+import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
 import { translate } from '../ui/css'
+import Icon from '../components/icon'
 
 interface State {
   value: string,
@@ -34,13 +36,14 @@ const view = ({ value, vis, x, y, anchorBottom }: State) => h('#problem-info', {
     width: '100%',
   }
 }, [
-  h('div', {
+  ,h('div', {
     onupdate: (e: HTMLElement) => {
       spacer = e
     },
     style: { flex: `${x}px`, }
-  }),
-  h('div', {
+  })
+
+  ,h('div', {
     onupdate: (e: HTMLElement) => setTimeout(() => {
       const { width } = e.getBoundingClientRect()
       const okSize = Math.floor(window.innerWidth * 0.7)
@@ -52,15 +55,34 @@ const view = ({ value, vis, x, y, anchorBottom }: State) => h('#problem-info', {
       opacity: '0',
     }
   }, [
-    h('div', {
+
+    ,h('div', {
       style: {
         // TODO: vim colors pls
         background: '#222',
         color: '#eee',
         padding: '8px',
+        display: 'flex',
       }
-    }, value),
-  ]),
+    }, [
+
+      ,h('div', {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          paddingRight: '8px',
+        }
+      }, [
+        Icon('alert', {
+          color: '#ef2f2f',
+          size: canvasContainer.font.size + 4,
+        })
+      ])
+
+      ,h('div', value)
+
+    ])
+  ])
 ])
 
 const a: Actions<State> = {}
