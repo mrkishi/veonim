@@ -73,7 +73,7 @@ const view = ({ value, vis, x, y, anchorBottom }: State) => h('#problem-info', {
           paddingRight: '8px',
         }
       }, [
-        Icon('alert', {
+        Icon('error', {
           color: '#ef2f2f',
           size: canvasContainer.font.size + 4,
         })

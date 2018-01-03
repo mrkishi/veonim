@@ -25,6 +25,8 @@ interface State {
   line: number,
   column: number,
   cwd: string,
+  errors: number,
+  warnings: number,
 }
 
 const state = {
@@ -37,6 +39,8 @@ const state = {
   line: 0,
   column: 0,
   cwd: '',
+  errors: 0,
+  warnings: 0,
 }
 
 const Statusline = style('div')({
@@ -75,6 +79,12 @@ const Tab = style('div')({
   color: '#aaa',
 })
 
+const IconBox = style('div')({
+  display: 'flex',
+  paddingRight: '4px',
+  alignItems: 'center',
+})
+
 const container = document.getElementById('statusline') as HTMLElement
 merge(container.style, {
   height: '24px',
@@ -85,7 +95,7 @@ merge(container.style, {
 // TODO: LOL NOPE
 const $PR = `/Users/a/Documents/projects/`
 
-const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers }: State) => Statusline({}, [
+const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers, errors, warnings }: State) => Statusline({}, [
   ,Left({}, [
     ,Item({
       style: {
@@ -125,12 +135,48 @@ const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers 
   ,Right({}, [
     ,Item({
       style: {
+        paddingLeft: '30px',
+        paddingRight: '30px',
+        background: '#413d42',
+        marginRight: '-15px',
+        clipPath: 'polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%)',
+      }
+    }, [
+      // ERRORS
+      ,IconBox({
+        style: {
+          color: errors > 0 && '#ef2f2f',
+        }
+      }, [
+        ,Icon('error')
+      ])
+
+      ,h('div', {
+        style: { color: errors > 0 && '#ff9a9a' }
+      }, errors)
+
+      // WARNINGS
+      ,IconBox({
+        style: {
+          marginLeft: '12px',
+          color: warnings > 0 && '#ffb100',
+        }
+      }, [
+        ,Icon('warning')
+      ])
+
+      ,h('div', {
+        style: { color: warnings > 0 && '#ffd26c' }
+      }, warnings)
+    ])
+
+    ,Item({
+      style: {
         paddingLeft: '36px',
         paddingRight: '26px',
         background: '#342d35',
         marginRight: '-20px',
         clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
-        //clipPath: 'polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%)',
       }
     }, [
       ,h('div', `${line}:${column}`)
@@ -162,6 +208,7 @@ a.setMode = (_s, _a, mode) => ({ mode })
 a.setLine = (_s, _a, line) => ({ line })
 a.setColumn = (_s, _a, column) => ({ column })
 a.setCwd = (_s, _a, cwd) => ({ cwd })
+a.setDiagnostics = (_s, _a, { errors = 0, warnings = 0 }) => ({ errors, warnings })
 
 a.serverRunning = (s, _a, server) => ({
   runningServers: new Set([...s.runningServers, server]),
@@ -187,8 +234,12 @@ sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
     : ui.updateTabs({ active: -1, tabs: [] })
 })
 
-sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
 sub('vim:mode', ui.setMode)
+sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
+sub('ai:diagnostics', ({ errors, warnings }) => ui.setDiagnostics({
+  errors: errors.length,
+  warnings: warnings.length,
+}))
 
 onStateChange.filetype(ui.setFiletype)
 onStateChange.cwd(ui.setCwd)

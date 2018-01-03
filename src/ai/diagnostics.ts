@@ -1,11 +1,12 @@
+import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { on, action, getCurrent, current as vim } from '../core/neovim'
-import { Command, Diagnostic } from 'vscode-languageserver-types'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
 import * as quickfixUI from '../components/quickfix'
 import { merge, uriToPath } from '../support/utils'
+import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
 
 const cache = {
@@ -18,6 +19,10 @@ const cache = {
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   merge(cache, m)
+
+  const errors = m.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error)
+  const warnings = m.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning)
+  dispatch.pub('ai:diagnostics', { errors, warnings })
 
   const clearPreviousConcerns = cache.visibleProblems.get(path)
   if (clearPreviousConcerns) clearPreviousConcerns()
