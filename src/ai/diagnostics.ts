@@ -33,7 +33,7 @@ onDiagnostics(async m => {
 
   if (name !== path) return
 
-  const clearToken = await buffer.highlightConcerns(concerns)
+  const clearToken = await buffer.highlightProblems(concerns)
   cache.visibleConcerns.set(name, clearToken)
 })
 
