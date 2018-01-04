@@ -5,20 +5,20 @@ import Ripgrep from '@veonim/ripgrep'
 
 interface Request {
   query: string,
-    cwd: string
+  cwd: string,
 }
 
 interface Result {
   path: string,
   line: number,
   col: number,
-  text: string
+  text: string,
 }
 
 interface ResultPart {
   line: number,
   col: number,
-  text: string
+  text: string,
 }
 
 const INCREMENT_AMOUNT = 50
