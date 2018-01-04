@@ -1,6 +1,6 @@
 import { style } from '../ui/uikit'
 
-export const Row = style('div')({
+const row = {
   ':last-child': {
     paddingBottom: '9px',
   },
@@ -12,4 +12,19 @@ export const Row = style('div')({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   display: 'flex',
+}
+
+export const Row = style('div')(row)
+
+export const RowHeader = style('div')({
+  ...row,
+  paddingTop: '6px',
+  paddingBottom: '6px',
+  color: '#c7c7c7',
+  background: '#2b2b2b',
+})
+
+export const RowGroup = style('div')({
+  paddingTop: '4px',
+  paddingBottom: '4px',
 })
