@@ -97,10 +97,14 @@ const view = ({ problems, vis, ix, subix }: State) => h('#quickfix', {
 
 const a: Actions<State> = {}
 
+a.show = () => ({ vis: true })
 a.hide = () => ({ vis: false })
-a.show = (_s, _a, problems) => ({ problems, vis: true })
+a.toggle = s => ({ vis: !s.vis })
+a.updateProblems = (_s, _a, problems) => ({ problems })
 
 const ui = app({ state, view, actions: a }, false)
 
-export const show = (problems: QuickfixGroup[]) => ui.show(problems)
 export const hide = () => ui.hide()
+export const show = () => ui.show()
+export const toggle = () => ui.toggle()
+export const update = (problems: QuickfixGroup[]) => ui.updateProblems(problems)

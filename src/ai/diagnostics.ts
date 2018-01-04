@@ -55,7 +55,6 @@ const findClosestProblem = (diagnostics: Diagnostic[], line: number, column: num
 
 const mapToQuickfix = (diagsMap: Map<string, Diagnostic[]>): QuickfixGroup[] => [...diagsMap.entries()]
   .map(([ filepath, diagnostics ]) => ({
-    diagnostics,
     file: path.basename(filepath),
     dir: path.dirname(filepath),
     items: diagnostics,
@@ -73,6 +72,7 @@ onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.diagnostics.set(path, m.diagnostics)
   dispatch.pub('ai:diagnostics.count', getProblemCount(cache.diagnostics))
+  if (cache.diagnostics.size) quickfixUI.update(mapToQuickfix(cache.diagnostics))
 
   const clearPreviousConcerns = cache.visibleProblems.get(path)
   if (clearPreviousConcerns) clearPreviousConcerns()
@@ -136,10 +136,9 @@ action('prev-problem', async () => {
   window.setCursor(problem.range.start.line + 1, problem.range.start.character)
 })
 
+action('quickfix-open', () => quickfixUI.show())
 action('quickfix-close', () => quickfixUI.hide())
-action('quickfix-open', () => quickfixUI.show(mapToQuickfix(cache.diagnostics)))
-// TODO: implement
-action('quickfix-toggle', () => {})
+action('quickfix-toggle', () => quickfixUI.toggle())
 
 on.cursorMove(async state => {
   const { line, column, cwd, file } = vim
