@@ -236,10 +236,7 @@ sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
 
 sub('vim:mode', ui.setMode)
 sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
-sub('ai:diagnostics', ({ errors, warnings }) => ui.setDiagnostics({
-  errors: errors.length,
-  warnings: warnings.length,
-}))
+sub('ai:diagnostics.count', count => ui.setDiagnostics(count))
 
 onStateChange.filetype(ui.setFiletype)
 onStateChange.cwd(ui.setCwd)

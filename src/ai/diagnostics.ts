@@ -60,14 +60,19 @@ const mapToQuickfix = (diagsMap: Map<string, Diagnostic[]>): QuickfixGroup[] => 
     dir: path.dirname(filepath),
     items: diagnostics,
   }))
+  .filter(m => m.items.length)
+
+const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
+  const diagnostics = [...diagsMap.values()].reduce((all, curr) => all.concat(curr))
+  const errors = diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length
+  const warnings = diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning).length
+  return { errors, warnings }
+}
 
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.diagnostics.set(path, m.diagnostics)
-
-  const errors = m.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error)
-  const warnings = m.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning)
-  dispatch.pub('ai:diagnostics', { errors, warnings })
+  dispatch.pub('ai:diagnostics.count', getProblemCount(cache.diagnostics))
 
   const clearPreviousConcerns = cache.visibleProblems.get(path)
   if (clearPreviousConcerns) clearPreviousConcerns()
@@ -133,6 +138,8 @@ action('prev-problem', async () => {
 
 action('quickfix-close', () => quickfixUI.hide())
 action('quickfix-open', () => quickfixUI.show(mapToQuickfix(cache.diagnostics)))
+// TODO: implement
+action('quickfix-toggle', () => {})
 
 on.cursorMove(async state => {
   const { line, column, cwd, file } = vim
