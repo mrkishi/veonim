@@ -1,17 +1,19 @@
-import { Diagnostic } from 'vscode-languageserver-types'
+import { Row, RowHeader, RowGroup } from '../styles/common'
+import { QuickfixGroup } from '../ai/diagnostics'
 import { h, app, Actions } from '../ui/uikit'
-import { Row } from '../styles/common'
 
 interface State {
-  problems: Diagnostic[],
+  problems: QuickfixGroup[],
   vis: boolean,
   ix: number,
+  subix: number,
 }
 
 const state: State = {
   problems: [],
   vis: false,
   ix: 0,
+  subix: 0,
 }
 
 const view = ({ problems, vis, ix }: State) => h('#quickfix', {
@@ -36,13 +38,24 @@ const view = ({ problems, vis, ix }: State) => h('#quickfix', {
     }
   }, 'Quickfix')
 
-  ,h('div', problems.map((problem, key) => Row({
-    key,
-    style: key === ix ? { background: 'rgba(255, 255, 255, 0.08)' } : undefined,
-  }, [
-    h('span', { style: {
-      color: key === ix ? '#fff' : '#aaa'
-    } }, problem.message)
+  ,h('div', problems.map(({ file, dir, items }, pos) => h('div', [
+
+    ,RowHeader({
+
+    }, [
+      ,h('span', file),
+      ,h('span', dir),
+      ,h('span.bubble', { style: { 'margin-left': '12px' } }, items.length)
+    ])
+
+    ,pos === ix && RowGroup({}, items.map((d) => Row({
+
+    }, [
+      ,h('span', d.severity)
+      ,h('span', d.message)
+      ,h('span', `(${d.range.start.line}, ${d.range.start.character})`)
+    ])))
+
   ])))
 ])
 
@@ -53,5 +66,5 @@ a.show = (_s, _a, problems) => ({ problems, vis: true })
 
 const ui = app({ state, view, actions: a }, false)
 
-export const show = (problems: Diagnostic[]) => ui.show(problems)
+export const show = (problems: QuickfixGroup[]) => ui.show(problems)
 export const hide = () => ui.hide()
