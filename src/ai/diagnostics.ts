@@ -5,21 +5,65 @@ import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
 import * as quickfixUI from '../components/quickfix'
-import { merge, uriToPath } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
+import { uriToPath } from '../support/utils'
 import { cursor } from '../core/cursor'
+import * as path from 'path'
+
+export interface QuickfixGroup {
+  file: string,
+  dir: string,
+  items: Diagnostic[],
+}
+
+interface Distance {
+  diagnostic: Diagnostic,
+  lines: number,
+  characters: number,
+}
 
 const cache = {
-  uri: '',
-  diagnostics: [] as Diagnostic[],
+  diagnostics: new Map<string, Diagnostic[]>(),
   actions: [] as Command[],
   visibleProblems: new Map<string, () => void>(),
 }
 
+const distanceAsc = (a: Distance, b: Distance) =>
+  a.lines === b.lines ? a.characters < b.characters : a.lines < b.lines
+
+const distanceDesc = (a: Distance, b: Distance) =>
+  a.lines === b.lines ? a.characters > b.characters : a.lines > b.lines
+
+const findClosestProblem = (diagnostics: Diagnostic[], line: number, column: number, findNext: boolean) => {
+  const distances = diagnostics.map(d => ({
+    diagnostic: d,
+    lines: d.range.start.line - line,
+    characters: d.range.start.character - column,
+  } as Distance))
+
+  const sortedProblems = distances.sort((a, b) => findNext
+    ? distanceDesc(a, b) ? 1 : 0
+    : distanceAsc(a, b) ? 1 : 0)
+
+  const validProblems = findNext
+    ? sortedProblems.filter(m => m.lines === 0 ? m.characters > 0 : m.lines > 0)
+    : sortedProblems.filter(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
+
+  return (validProblems[0] || {}).diagnostic
+}
+
+const mapToQuickfix = (diagsMap: Map<string, Diagnostic[]>): QuickfixGroup[] => [...diagsMap.entries()]
+  .map(([ filepath, diagnostics ]) => ({
+    diagnostics,
+    file: path.basename(filepath),
+    dir: path.dirname(filepath),
+    items: diagnostics,
+  }))
+
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
-  merge(cache, m)
+  cache.diagnostics.set(path, m.diagnostics)
 
   const errors = m.diagnostics.filter(d => d.severity === DiagnosticSeverity.Error)
   const warnings = m.diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning)
@@ -46,9 +90,11 @@ onDiagnostics(async m => {
 })
 
 action('show-problem', async () => {
-  const { line, column } = vim
+  const { line, column, cwd, file } = vim
+  const diagnostics = cache.diagnostics.get(path.join(cwd, file))
+  if (!diagnostics) return
 
-  const targetProblem = cache.diagnostics.find(d => positionWithinRange(line - 1, column - 1, d.range))
+  const targetProblem = diagnostics.find(d => positionWithinRange(line - 1, column - 1, d.range))
 
   targetProblem && problemInfoUI.show({
     row: cursor.row,
@@ -61,40 +107,12 @@ on.cursorMove(() => problemInfoUI.hide())
 on.insertEnter(() => problemInfoUI.hide())
 on.insertLeave(() => problemInfoUI.hide())
 
-interface Distance {
-  diagnostic: Diagnostic,
-  lines: number,
-  characters: number,
-}
-
-const distanceAsc = (a: Distance, b: Distance) =>
-  a.lines === b.lines ? a.characters < b.characters : a.lines < b.lines
-
-const distanceDesc = (a: Distance, b: Distance) =>
-  a.lines === b.lines ? a.characters > b.characters : a.lines > b.lines
-
-const findClosestProblem = (line: number, column: number, findNext: boolean) => {
-  const distances = cache.diagnostics.map(d => ({
-    diagnostic: d,
-    lines: d.range.start.line - line,
-    characters: d.range.start.character - column,
-  } as Distance))
-
-  const sortedProblems = distances.sort((a, b) => findNext
-    ? distanceDesc(a, b) ? 1 : 0
-    : distanceAsc(a, b) ? 1 : 0)
-
-  const validProblems = findNext
-    ? sortedProblems.filter(m => m.lines === 0 ? m.characters > 0 : m.lines > 0)
-    : sortedProblems.filter(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
-
-  return (validProblems[0] || {}).diagnostic
-}
-
 action('next-problem', async () => {
-  const { line, column } = vim
+  const { line, column, cwd, file } = vim
+  const diagnostics = cache.diagnostics.get(path.join(cwd, file))
+  if (!diagnostics) return
 
-  const problem = findClosestProblem(line - 1, column - 1, true)
+  const problem = findClosestProblem(diagnostics, line - 1, column - 1, true)
   if (!problem) return
 
   const window = await getCurrent.window
@@ -102,23 +120,26 @@ action('next-problem', async () => {
 })
 
 action('prev-problem', async () => {
-  const { line, column } = vim
+  const { line, column, cwd, file } = vim
+  const diagnostics = cache.diagnostics.get(path.join(cwd, file))
+  if (!diagnostics) return
 
-  const problem = findClosestProblem(line - 1, column - 1, false)
+  const problem = findClosestProblem(diagnostics, line - 1, column - 1, false)
   if (!problem) return
 
   const window = await getCurrent.window
   window.setCursor(problem.range.start.line + 1, problem.range.start.character)
 })
 
-action('quickfix-open', () => quickfixUI.show(cache.diagnostics))
 action('quickfix-close', () => quickfixUI.hide())
+action('quickfix-open', () => quickfixUI.show(mapToQuickfix(cache.diagnostics)))
 
 on.cursorMove(async state => {
-  const { line, column } = state
+  const { line, column, cwd, file } = vim
+  const diagnostics = cache.diagnostics.get(path.join(cwd, file))
+  if (!diagnostics) return
 
-  const relevantDiagnostics = cache
-    .diagnostics
+  const relevantDiagnostics = diagnostics
     .filter(d => positionWithinRange(line - 1, column - 1, d.range))
 
   const actions = await codeAction(state, relevantDiagnostics)
