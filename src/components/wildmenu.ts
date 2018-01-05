@@ -61,7 +61,7 @@ a.updateOptions = (_s, _a, options) => ({ options, ix: -1 })
 const ui = app({ state, view, actions: a }, false)
 
 // TODO: use export cns. this component is a high priority so it should be loaded early
-// because someone might open cmdline eary
+// because someone might open cmdline early
 sub('wildmenu.show', opts => ui.updateOptions(opts))
 sub('wildmenu.select', ix => ui.selectOption(ix))
 sub('wildmenu.hide', () => ui.updateOptions([]))
@@ -70,7 +70,7 @@ sub('cmd.hide', () => ui.hide())
 sub('cmd.show', () => ui.show())
 sub('cmd.update', ({ cmd, position }: CommandUpdate) => {
   ui.show()
-  ui.updateValue(cmd)
-  el && el.setSelectionRange(position, position)
+  cmd && ui.updateValue(cmd)
+  setTimeout(() => el && el.setSelectionRange(position, position), 0)
   if (!cmd) ui.updateOptions([])
 })

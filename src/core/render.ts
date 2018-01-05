@@ -295,9 +295,28 @@ r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
 r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
 r.wildmenu_hide = () => dispatch.pub('wildmenu.hide')
 
+// TODO: is this a neovim bug or am i doing something stupid? why is it being spammed so much?!
+// TODO: because neovim bug (cmdline_show is spammed infinite rapid fire until hide)
+interface NeovimFail {
+  cmd?: string,
+  active: boolean,
+  position: number,
+}
+
+const cmdcache: NeovimFail = {
+  active: false,
+  position: -999,
+}
+
 r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level) => {
+  // TODO: all these checks here are because of the spam
+  if (cmdcache.active && cmdcache.position === position) return
+  cmdcache.active = true
+  cmdcache.position = position
   // TODO: process attributes!
   const cmd = content.reduce((str, [ _, item ]) => str + item, '')
+  if (cmdcache.cmd === cmd) return
+  cmdcache.cmd = cmd
 
   const kind: CommandType = Reflect.get({
     ':': CommandType.Ex,
@@ -312,8 +331,12 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
   level > 1 && console.log('level:', level)
 }
 
+r.cmdline_hide = () => {
+  merge(cmdcache, { active: false, position: -999, cmd: undefined })
+  dispatch.pub('cmd.hide')
+}
+
 r.cmdline_pos = position => dispatch.pub('cmd.update', { position })
-r.cmdline_hide = () => dispatch.pub('cmd.hide')
 
 onRedraw((m: any[]) => {
   const count = m.length
