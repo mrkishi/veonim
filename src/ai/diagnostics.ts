@@ -1,6 +1,6 @@
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
-import { on, action, getCurrent, current as vim } from '../core/neovim'
+import { on, call, action, getCurrent, current as vim } from '../core/neovim'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
@@ -24,9 +24,11 @@ interface Distance {
 }
 
 const cache = {
+  quickfix: [] as QuickfixGroup[],
   diagnostics: new Map<string, Diagnostic[]>(),
   actions: [] as Command[],
   visibleProblems: new Map<string, () => void>(),
+  currentBuffer: '',
 }
 
 const distanceAsc = (a: Distance, b: Distance) =>
@@ -53,7 +55,14 @@ const findClosestProblem = (diagnostics: Diagnostic[], line: number, column: num
   return (validProblems[0] || {}).diagnostic
 }
 
-const mapToQuickfix = (diagsMap: Map<string, Diagnostic[]>): QuickfixGroup[] => [...diagsMap.entries()]
+const updateUI = () => {
+  const diagsqf = mapToQuickfix(cache.diagnostics)
+  const problems = mergeQuickfixWithDiagnostics(cache.quickfix, diagsqf)
+  quickfixUI.update(problems)
+}
+
+const mapToQuickfix = (diagsMap: Map<string, Diagnostic[]>): QuickfixGroup[] =>
+  [...diagsMap.entries()]
   .map(([ filepath, diagnostics ]) => ({
     file: path.basename(filepath),
     dir: path.dirname(filepath),
@@ -68,11 +77,73 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
   return { errors, warnings }
 }
 
+const mergeQuickfixWithDiagnostics = (quickfix: QuickfixGroup[], diagnostics: QuickfixGroup[]): QuickfixGroup[] => {
+  // in my observation langserv only updates diangnostics for the current buffer.
+  // this means that any other buffer could be outdated. quickfix population via linter/compiler
+  // should be the ultimate source of truth, overriding any outdated buffer diagnostics
+
+  // however, because the current buffer has langserv support, it should be more up to date
+  // than a compiler or linter run output. (thus current buf takes highest priority)
+  if (!quickfix.length) return diagnostics
+
+  return diagnostics.reduce((qf, d) => {
+    const diagPath = path.join(d.dir, d.file)
+    if (diagPath === cache.currentBuffer) return (qf.push(d), qf)
+
+    const has = qf.some(q => path.join(q.dir, q.file) === diagPath)
+    if (!has) qf.push(d)
+
+    return qf
+  }, quickfix)
+}
+
+const quickfixTypeToSeverity = (type?: string): DiagnosticSeverity => {
+  if (type === '1' || type === 'E') return DiagnosticSeverity.Error
+  if (type === '2' || type === 'W') return DiagnosticSeverity.Warning
+  if (type === '3' || type === 'I') return DiagnosticSeverity.Information
+  if (type === '4' || type === 'H') return DiagnosticSeverity.Hint
+  else return DiagnosticSeverity.Error
+}
+
+const getVimQuickfix = async (): Promise<QuickfixGroup[]> => {
+  const list = await call.getqflist()
+  const qfgroup = list.reduce((map, { bufnr, lnum, col, type, text }) => {
+    const item = {
+      range: {
+        start: { line: lnum, character: col },
+        end: { line: lnum, character: col },
+      },
+      severity: quickfixTypeToSeverity(type),
+      message: text,
+    }
+
+    map.has(bufnr)
+      ? map.get(bufnr)!.push(item)
+      : map.set(bufnr, [ item ])
+
+    return map
+  }, new Map<number | undefined, Diagnostic[]>())
+
+  const qftask = [...qfgroup.entries()].map(async ([ bufnr, items ]) => ({
+    items,
+    filepath: bufnr ? await call.bufname(bufnr) : undefined,
+  }))
+
+  const qfnames = (await Promise.all(qftask)).filter(m => m.filepath)
+
+  return qfnames.map(m => ({
+    items: m.items,
+    file: path.basename(m.filepath as string),
+    dir: path.dirname(m.filepath as string),
+  }))
+}
+
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
+  cache.currentBuffer = path
   cache.diagnostics.set(path, m.diagnostics)
   dispatch.pub('ai:diagnostics.count', getProblemCount(cache.diagnostics))
-  if (cache.diagnostics.size) quickfixUI.update(mapToQuickfix(cache.diagnostics))
+  if (cache.diagnostics.size) updateUI()
 
   const clearPreviousConcerns = cache.visibleProblems.get(path)
   if (clearPreviousConcerns) clearPreviousConcerns()
@@ -139,6 +210,16 @@ action('prev-problem', async () => {
 action('quickfix-open', () => quickfixUI.show())
 action('quickfix-close', () => quickfixUI.hide())
 action('quickfix-toggle', () => quickfixUI.toggle())
+
+// TODO: this is temporary. triggered via user autocmd, hooked up to ale or neomake
+// the idea is that whenever ale runs, it fires an autocmd. the quickfix list should be
+// updated. we will read and parse the qflist and merge it with diagnostics.
+//
+// in the future it would be nice to implement a custom quickfix window renderer
+action('refresh-vim-quickfix', async () => {
+  cache.quickfix = await getVimQuickfix()
+  updateUI()
+})
 
 on.cursorMove(async state => {
   const { line, column, cwd, file } = vim

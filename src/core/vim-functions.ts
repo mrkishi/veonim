@@ -29,6 +29,7 @@ export interface Functions {
   synIDattr(id: number, type: string): Promise<number>,
   getpos(where: string): Promise<WindowPosition>,
   setloclist(window: number, list: QuickFixList[]): Promise<void>,
+  getqflist(): Promise<QuickFixList[]>,
   cursor(line: number, column: number): Promise<void>,
   bufname(expr: string | number): Promise<string>,
   getbufline(expr: string | number, startLine: number, endLine?: number | string): Promise<string[]>,
