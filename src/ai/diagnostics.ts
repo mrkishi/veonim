@@ -9,6 +9,7 @@ import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
 import { uriToPath } from '../support/utils'
 import { cursor } from '../core/cursor'
+import '../ai/remote-problems'
 import * as path from 'path'
 
 export interface QuickfixGroup {
@@ -220,6 +221,12 @@ action('refresh-vim-quickfix', async () => {
   cache.quickfix = await getVimQuickfix()
   updateUI()
 })
+
+export const setCustomQuickfix = (quickfixes: QuickfixGroup[]) => {
+  if (!quickfixes || !quickfixes.length) return
+  cache.quickfix = quickfixes
+  updateUI()
+}
 
 on.cursorMove(async state => {
   const { line, column, cwd, file } = vim
