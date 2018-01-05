@@ -81,23 +81,21 @@ export const moveCursor = (backgroundColor: string) => {
     const [ char ] = get(cursor.row, cursor.col)
     cursorChar.innerText = char
     cursorChar.style.display = ''
-
-    const { x, y, width } = win.whereLine(cursor.row)
-
-    merge(cursorline.style, {
-      display: '',
-      background: hexToRGBA(backgroundColor, 0.2),
-      transform: translate(x, y),
-      width: `${width}px`,
-    })
   }
 
   else {
     cursorChar.style.display = 'none'
     cursorChar.innerText = ''
-    cursorline.style.display = 'none'
   }
 
+  const { x, y, width } = win.whereLine(cursor.row)
+
+  merge(cursorline.style, {
+    display: '',
+    background: hexToRGBA(backgroundColor, 0.2),
+    transform: translate(x, y),
+    width: `${width}px`,
+  })
 }
 
 setCursorShape(CursorShape.block)
