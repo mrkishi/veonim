@@ -1,5 +1,5 @@
 import * as canvasContainer from '../core/canvas-container'
-import { partialFill, translate } from '../ui/css'
+import { hexToRGBA, partialFill, translate } from '../ui/css'
 import { getWindow } from '../core/windows'
 import { merge } from '../support/utils'
 import { get } from '../core/grid'
@@ -13,8 +13,17 @@ export enum CursorShape {
 export const cursor = { row: 0, col: 0, color: '#fff', type: CursorShape.block }
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const cursorChar = document.createElement('span')
+const cursorline = document.getElementById('cursorline') as HTMLElement
+
+merge(cursorline.style, {
+  position: 'absolute',
+  mixBlendMode: 'screen',
+  height: `${canvasContainer.cell.height}px`,
+  zIndex: 60,
+})
 
 merge(cursorEl.style, {
+  zIndex: 70,
   position: 'absolute',
   display: 'flex',
   'justify-content': 'center',
@@ -52,10 +61,17 @@ export const setCursorColor = (color: string) => {
   cursorEl.style.background = color
 }
 
-export const hideCursor = () => merge(cursorEl.style, { display: 'none' })
-export const showCursor = () => merge(cursorEl.style, { display: 'flex' })
+export const hideCursor = () => {
+  cursorEl.style.display = 'none'
+  cursorline.style.display = 'none'
+}
 
-export const moveCursor = () => {
+export const showCursor = () => {
+  cursorEl.style.display = 'flex'
+  cursorline.style.display = ''
+}
+
+export const moveCursor = (backgroundColor: string) => {
   const win = getWindow(cursor.row, cursor.col)
   if (!win) return
 
@@ -65,12 +81,23 @@ export const moveCursor = () => {
     const [ char ] = get(cursor.row, cursor.col)
     cursorChar.innerText = char
     cursorChar.style.display = ''
+
+    const { x, y, width } = win.whereLine(cursor.row)
+
+    merge(cursorline.style, {
+      display: '',
+      background: hexToRGBA(backgroundColor, 0.2),
+      transform: translate(x, y),
+      width: `${width}px`,
+    })
   }
 
   else {
     cursorChar.style.display = 'none'
     cursorChar.innerText = ''
+    cursorline.style.display = 'none'
   }
+
 }
 
 setCursorShape(CursorShape.block)

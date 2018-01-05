@@ -328,6 +328,6 @@ onRedraw((m: any[]) => {
   }
 
   lastScrollRegion = null
-  moveCursor()
+  moveCursor(colors.bg)
   setImmediate(() => dispatch.pub('redraw'))
 })

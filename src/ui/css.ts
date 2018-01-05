@@ -18,6 +18,7 @@ export const faded = (color: string, amount: number) => ({ color: hexToRGBA(colo
 export const polygon = (...points: Point[]) => `polygon(${points.map(p => `${percent(p.x)} ${percent(p.y)}`).join(', ')})`
 
 export const hexToRGBA = (color: string, alpha: number) => {
+  if (!color) return ''
   const [ r, g, b ] = hexToRGB(color)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }

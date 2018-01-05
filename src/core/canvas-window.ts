@@ -41,6 +41,7 @@ export interface CanvasWindow {
   underline(col: number, row: number, width: number, color: string): CanvasWindow,
   setTextBaseline(mode: string): CanvasWindow,
   clear(): CanvasWindow,
+  whereLine(row: number): { x: number, y: number, width: number },
   setColor(color: string): CanvasWindow,
   readonly width: string,
   readonly height: string,
@@ -135,6 +136,12 @@ export const createWindow = (container: HTMLElement) => {
 
     return api
   }
+
+  api.whereLine = row => ({
+    x: position.x,
+    y: position.y + px.row.y(row),
+    width: Math.ceil(canvas.width / window.devicePixelRatio),
+  })
 
   api.underline = (col, row, width, color) => {
     const x = px.col.x(col)

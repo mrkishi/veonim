@@ -415,7 +415,7 @@ export const render = async () => {
       merge(windows[ix].element.style, { display: 'none' })
   }
 
-  setImmediate(() => moveCursor())
+  setImmediate(() => moveCursor(current.bg))
   setImmediate(() => getSizes(horizontalSplits, verticalSplits))
 }
 
