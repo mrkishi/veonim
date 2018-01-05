@@ -21,7 +21,7 @@ interface State {
 }
 
 let elref: HTMLElement
-const SCROLL_AMOUNT = 0.25
+const SCROLL_AMOUNT = 0.4
 const els = new Map<number, HTMLElement>()
 
 // scroll after next section has been rendered as expanded (a little hacky)
@@ -83,7 +83,7 @@ const icons = {
 
 const getSeverityIcon = (severity = 1) => Reflect.get(icons, severity)
 
-const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#quickfix', {
+const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#problems', {
   onupdate: (e: HTMLElement) => elref = e,
   style: {
     // TODO: vim colors
@@ -93,9 +93,12 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     flexFlow: 'column',
     position: 'absolute',
     alignSelf: 'flex-end',
-    // TODO: enable once we have scrolling implemented
-    //maxHeight: '30vh',
+    overflowY: 'scroll',
+    maxHeight: '30vh',
     width: '100%',
+    // TODO: super dirty hax to push above statusline.
+    // plugins div should not cover statusline and should be moved
+    bottom: '24px',
   }
 }, [
   ,Input({
@@ -109,6 +112,7 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     hide: blur,
     down: scrollDown,
     up: scrollUp,
+    small: true,
     icon: 'search',
     desc: 'filter by files',
   })

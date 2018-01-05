@@ -76,12 +76,13 @@ export default ({
   ctrlH = nop
 }: Props) => h('div', {
   style: {
-    paddingTop: `${small ? 5 : 10}px`,
-    paddingBottom: `${small ? 5 : 10}px`,
-    paddingLeft: '12px',
-    paddingRight: '12px',
+    marginTop: `${small ? 5 : 10}px`,
+    marginBottom: `${small ? 5 : 10}px`,
+    marginLeft: '12px',
+    marginRight: '12px',
     display: 'flex',
     alignItems: 'center',
+    minHeight: `${small ? 16 : 22}px`,
   }
 }, [
 
