@@ -98,6 +98,8 @@ const sendKeys = async (e: KeyboardEvent) => {
   if (!key) return
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
 
+  // TODO: this might need more attention
+  if (inputKeys === '<S-Space>') return input('<space>')
   if (shortcuts.has(inputKeys)) return shortcuts.get(inputKeys)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else input(inputKeys)
