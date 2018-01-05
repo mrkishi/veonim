@@ -99,7 +99,7 @@ export default ({
     },
     value: val,
     placeholder: desc,
-    onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus ? e.focus() : e.blur(),
+    onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
     onkeyup: (e: KeyboardEvent) => {
       const prevKeyAndThisOne = lastDown + keToStr(e)
 
@@ -107,6 +107,8 @@ export default ({
         const { key } = xfrmUp.get(prevKeyAndThisOne)!(e)
         if (key.toLowerCase() === '<esc>') {
           lastDown = ''
+          const target = e.target as HTMLInputElement
+          target.blur()
           return hide()
         }
       }

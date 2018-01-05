@@ -5,6 +5,7 @@ import * as canvasContainer from '../core/canvas-container'
 import { QuickfixGroup } from '../ai/diagnostics'
 import { cmd, feedkeys } from '../core/neovim'
 import Input from '../components/text-input'
+import { filter } from 'fuzzaldrin-plus'
 import Icon from '../components/icon'
 import { join } from 'path'
 
@@ -12,6 +13,7 @@ interface State {
   focus: boolean,
   val: string,
   problems: QuickfixGroup[],
+  cache: QuickfixGroup[],
   vis: boolean,
   ix: number,
   subix: number,
@@ -55,6 +57,7 @@ const state: State = {
   focus: false,
   val: '',
   problems: [],
+  cache: [],
   vis: false,
   ix: 0,
   subix: 0,
@@ -79,7 +82,7 @@ const icons = {
 
 const getSeverityIcon = (severity = 1) => Reflect.get(icons, severity)
 
-const view = ({ val, focus, problems, vis, ix, subix }: State, { blur, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#quickfix', {
+const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#quickfix', {
   onupdate: (e: HTMLElement) => elref = e,
   style: {
     // TODO: vim colors
@@ -105,6 +108,7 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { blur, next, pre
 
   ,Input({
     val,
+    change,
     focus,
     next,
     prev,
@@ -158,12 +162,12 @@ const a: Actions<State> = {}
 a.toggle = s => ({ vis: !s.vis })
 a.blur = () => (vimFocus(), { focus: false })
 a.focus = () => (vimBlur(), { focus: true, vis: true })
-a.updateProblems = (_s, _a, problems) => ({ problems })
+a.updateProblems = (_s, _a, problems) => ({ problems, cache: problems })
 
-// TODO: filter
-a.change = (_s, _a, val: string) => {
-  return { val }
-}
+a.change = (s, _a, val: string) => ({ val, problems: val
+  ? filter(s.problems, val, { key: 'file' })
+  : s.cache
+})
 
 a.nextGroup = s => {
   const next = s.ix + 1 > s.problems.length - 1 ? 0 : s.ix + 1
