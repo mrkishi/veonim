@@ -2,8 +2,9 @@ import { h, app, style, Actions, vimBlur, vimFocus } from '../ui/uikit'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
 import { Row, RowHeader, RowGroup } from '../styles/common'
 import * as canvasContainer from '../core/canvas-container'
+import { cmd, feedkeys, current } from '../core/neovim'
 import { QuickfixGroup } from '../ai/diagnostics'
-import { cmd, feedkeys } from '../core/neovim'
+import { simplifyPath } from '../support/utils'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import Icon from '../components/icon'
@@ -97,15 +98,6 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     width: '100%',
   }
 }, [
-  ,h('div', {
-    style: {
-      paddingLeft: '10px',
-      paddingRight: '10px',
-      paddingBottom: '8px',
-      paddingTop: '8px',
-    }
-  }, 'Problems')
-
   ,Input({
     val,
     change,
@@ -118,7 +110,7 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     down: scrollDown,
     up: scrollUp,
     icon: 'search',
-    desc: 'search problems',
+    desc: 'filter by files',
   })
 
   ,h('div', problems.map(({ file, dir, items }, pos) => h('div', {
@@ -134,8 +126,15 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
       }
     }, [
       ,h('span', file),
-      ,h('span', dir),
-      ,h('span.bubble', { style: { 'margin-left': '12px' } }, items.length)
+      ,h('span', {
+        style: {
+          color: '#aaa',
+          marginLeft: '10px',
+          marginRight: '10px',
+          fontSize: `${canvasContainer.font.size} - 2px`,
+        }
+      }, simplifyPath(dir, current.cwd)),
+      ,h('span.bubble', items.length)
     ])
 
     ,pos === ix && RowGroup({}, items.map(({ severity, message, range }, itemPos) => Row({

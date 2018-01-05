@@ -1,10 +1,10 @@
 import { list, action, current, getCurrent, cmd } from '../core/neovim'
 import { VimBuffer } from '../core/vim-functions'
+import { simplifyPath } from '../support/utils'
 import { h, app, Actions } from '../ui/uikit'
 import TermInput from '../components/input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
-import { homedir } from 'os'
 
 interface BufferInfo {
   name: string,
@@ -21,16 +21,6 @@ interface State {
   vis: boolean,
   ix: number
 }
-
-const $HOME = homedir()
-
-const simplifyHomedir = (path: string) => path.includes($HOME)
-  ? path.replace($HOME, '~')
-  : path
-
-const cleanup = (fullpath: string, cwd: string) => fullpath.includes(cwd)
-  ? fullpath.split(cwd + '/')[1]
-  : simplifyHomedir(fullpath)
 
 const getVimBuffers = async () => {
   const buffers = await list.buffers
@@ -53,7 +43,7 @@ const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
       name,
       base: basename(name),
       modified: mod,
-      dir: cleanup(dirname(name), cwd)
+      dir: simplifyPath(dirname(name), cwd)
     }))
     .map((m, ix, arr) => ({ ...m, duplicate: arr.some((n, ixf) => ixf !== ix && n.base === m.base) }))
     .map(m => ({ ...m, name: m.duplicate ? `${m.dir}/${m.base}` : m.base }))

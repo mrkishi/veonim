@@ -18,6 +18,8 @@ export const Row = style('div')(row)
 
 export const RowHeader = style('div')({
   ...row,
+  display: 'flex',
+  alignItems: 'center',
   paddingTop: '6px',
   paddingBottom: '6px',
   color: '#c7c7c7',
