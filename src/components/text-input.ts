@@ -99,7 +99,7 @@ export default ({
     },
     value: val,
     placeholder: desc,
-    onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
+    onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus ? e.focus() : e.blur(),
     onkeyup: (e: KeyboardEvent) => {
       const prevKeyAndThisOne = lastDown + keToStr(e)
 

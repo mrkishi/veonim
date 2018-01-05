@@ -4,7 +4,7 @@ import { on, call, action, getCurrent, current as vim } from '../core/neovim'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
-import * as quickfixUI from '../components/quickfix'
+import * as quickfixUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
 import { uriToPath } from '../support/utils'
@@ -208,9 +208,8 @@ action('prev-problem', async () => {
   window.setCursor(problem.range.start.line + 1, problem.range.start.character)
 })
 
-action('quickfix-open', () => quickfixUI.show())
-action('quickfix-close', () => quickfixUI.hide())
-action('quickfix-toggle', () => quickfixUI.toggle())
+action('problems-toggle', () => quickfixUI.toggle())
+action('problems-focus', () => quickfixUI.focus())
 
 // TODO: this is temporary. triggered via user autocmd, hooked up to ale or neomake
 // the idea is that whenever ale runs, it fires an autocmd. the quickfix list should be
