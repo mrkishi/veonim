@@ -4,6 +4,7 @@ import { onStateChange } from '../core/neovim'
 import { ExtContainer } from '../core/api'
 import { merge } from '../support/utils'
 import Icon from '../components/icon'
+import '../support/git'
 
 interface Tab {
   tab: ExtContainer,
@@ -27,9 +28,12 @@ interface State {
   cwd: string,
   errors: number,
   warnings: number,
+  branch: string,
+  additions: number,
+  deletions: number,
 }
 
-const state = {
+const state: State = {
   tabs: [],
   active: -1,
   filetype: '',
@@ -41,6 +45,9 @@ const state = {
   cwd: '',
   errors: 0,
   warnings: 0,
+  branch: '',
+  additions: 0,
+  deletions: 0,
 }
 
 const Statusline = style('div')({
@@ -95,39 +102,74 @@ merge(container.style, {
 // TODO: LOL NOPE
 const $PR = `/Users/a/Documents/projects/`
 
-const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers, errors, warnings }: State) => Statusline({}, [
+const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions }: State) => Statusline({}, [
   ,Left({}, [
+
     ,Item({
       style: {
         color: '#eee',
         background: 'rgb(74, 55, 83)',
         paddingRight: '30px',
+        marginRight: '-15px',
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 0 100%)',
       }
-    }, mode.toUpperCase())
+    }, cwd.replace($PR, '') || 'no project')
 
-    ,Item({
-    }, [
-      ,h('div', {
-        hide: !runningServers.has(filetype),
-        style: {
-          paddingRight: '4px',
-        }
-      }, [
-        ,Icon('zap')
-      ])
-
-      ,h('span', filetype || 'empty')
-    ])
-
+    // TODO: only show on git projects
     ,Item({
       style: {
-        paddingLeft: '36px',
-        paddingRight: '36px',
-        background: '#2a2a2a',
+        paddingLeft: '30px',
+        paddingRight: '30px',
+        marginRight: '-15px',
+        background: 'rgb(55, 44, 58)',
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 15px 100%)',
       }
-    }, cwd.replace($PR, '') || 'no project')
+    }, branch || 'git n/a')
+
+    // TODO: only show on git projects
+    ,Item({
+      style: {
+        paddingLeft: '30px',
+        paddingRight: '30px',
+        marginRight: '-15px',
+        background: 'rgb(41, 41, 41)',
+        clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 15px 100%)',
+      }
+    }, [
+      // ADDITIONS
+      ,IconBox({
+        style: {
+          color: additions > 0 && '#72a940',
+        }
+      }, [
+        ,Icon('plus-square')
+      ])
+
+      ,h('div', {
+        style: { color: additions > 0 && '#72a940' }
+      }, additions)
+
+      // DELETIONS
+      ,IconBox({
+        style: {
+          marginLeft: '12px',
+          color: deletions > 0 && '#ef2f2f',
+        }
+      }, [
+        ,Icon('minus-square')
+      ])
+
+      ,h('div', {
+        style: { color: deletions > 0 && '#ef2f2f' }
+      }, deletions)
+    ])
+
+    ,runningServers.has(filetype) && Item({}, [
+      ,h('div', [
+        ,Icon('zap', { color: '#555' })
+      ])
+    ])
+
   ])
 
   ,Center({}, [])
@@ -204,11 +246,12 @@ const view = ({ mode, cwd, line, column, tabs, active, filetype, runningServers,
 const a: Actions<State> = {}
 a.updateTabs = (_s, _a, { active, tabs }) => ({ active, tabs })
 a.setFiletype = (_s, _a, filetype) => ({ filetype })
-a.setMode = (_s, _a, mode) => ({ mode })
 a.setLine = (_s, _a, line) => ({ line })
 a.setColumn = (_s, _a, column) => ({ column })
 a.setCwd = (_s, _a, cwd) => ({ cwd })
 a.setDiagnostics = (_s, _a, { errors = 0, warnings = 0 }) => ({ errors, warnings })
+a.setGitBranch = (_s, _a, branch) => ({ branch })
+a.setGitStatus = (_s, _a, { additions, deletions }) => ({ additions, deletions })
 
 a.serverRunning = (s, _a, server) => ({
   runningServers: new Set([...s.runningServers, server]),
@@ -227,6 +270,11 @@ a.serverOffline = (s, _a, server) => ({
 
 const ui = app({ state, view, actions: a }, false, container)
 
+onStateChange.filetype(ui.setFiletype)
+onStateChange.cwd(ui.setCwd)
+onStateChange.line(ui.setLine)
+onStateChange.column(ui.setColumn)
+
 sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
   const mtabs: TabInfo[] = tabs.map(t => ({ id: t.tab.id, name: t.name }))
   mtabs.length > 1
@@ -234,15 +282,10 @@ sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
     : ui.updateTabs({ active: -1, tabs: [] })
 })
 
-sub('vim:mode', ui.setMode)
+sub('git:branch', branch => ui.setGitBranch(branch))
+sub('git:status', status => ui.setGitStatus(status))
 sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
 sub('ai:diagnostics.count', count => ui.setDiagnostics(count))
-
-onStateChange.filetype(ui.setFiletype)
-onStateChange.cwd(ui.setCwd)
-onStateChange.line(ui.setLine)
-onStateChange.column(ui.setColumn)
-
 sub('langserv:start.success', ft => ui.serverRunning(ft))
 sub('langserv:start.fail', ft => ui.serverErrored(ft))
 sub('langserv:error.load', ft => ui.serverErrored(ft))

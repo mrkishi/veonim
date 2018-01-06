@@ -1,4 +1,5 @@
 import { dirname, basename, join, extname } from 'path'
+import { exec } from 'child_process'
 import { Transform } from 'stream'
 import { createServer } from 'net'
 import { homedir } from 'os'
@@ -51,6 +52,7 @@ export const uriAsFile = (m = '') => basename(uriToPath(m))
 export const CreateTask = <T>(): Task<T> => ( (done = (_: T) => {}, promise = new Promise<T>(m => done = m)) => ({ done, promise }) )()
 export const Deferred = () => ( (ok = (_: any) => {}, no = () => {}, p = new Promise((y, n) => (ok = y, no = n))) => ({ done: ok, fail: no, promise: p }) )()
 export const uuid = (): string => (<any>[1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,(a: any)=>(a^Math.random()*16>>a/4).toString(16))
+export const shell = (cmd: string, opts?: object): Promise<string> => new Promise(fin => exec(cmd, opts, (_, out) => fin(out + '')))
 
 export const simplifyPath = (fullpath: string, cwd: string) => fullpath.includes(cwd)
   ? fullpath.split(cwd + '/')[1]

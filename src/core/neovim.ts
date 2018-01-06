@@ -30,6 +30,7 @@ interface Event {
   bufUnload(cb: EventCallback): void,
   bufChange(cb: EventCallback): void,
   bufChangeInsert(cb: EventCallback): void,
+  bufWrite(cb: EventCallback): void,
   cursorMove(cb: EventCallback): void,
   cursorMoveInsert(cb: (modified: boolean, state: NeovimState) => void): void,
   insertEnter(cb: EventCallback): void,
@@ -42,6 +43,7 @@ interface EventWait {
   bufUnload: Promise<any>,
   bufChange: Promise<any>,
   bufChangeInsert: Promise<any>,
+  bufWrite: Promise<any>
   cursorMove: Promise<any>,
   cursorMoveInsert: Promise<any>,
   insertEnter: Promise<any>,
@@ -406,6 +408,8 @@ autocmd.textChanged(async () => {
   current.revision = await expr(`b:changedtick`)
   notifyEvent('bufChange')
 })
+
+autocmd.bufWritePost(() => notifyEvent('bufWrite'))
 
 autocmd.cursorMovedI(async () => {
   const prevRevision = current.revision
