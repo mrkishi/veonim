@@ -359,6 +359,20 @@ export const render = async () => {
     return
   }
 
+  // TODO: what if we could calculate availableColumns BEFORE hand?
+  // it should be deterministic based on the current grid size and canvas-window paddings
+  // (how does this help?)
+
+  // TODO: what if we apply a grid resize operation BEFORE the split window event
+  // gets sent and processed. how could we intercept and freeze split cmds?
+  // api.getUserKeymap? listen for split key events? WinNew autocmd?
+  // if resize before, then there won't be a need to wincmd =
+  // there will still be some shift, but maybe not so much...
+
+  // TODO: what if resize grid so it will always fit n-windows + 1
+  // that is, if there is only 1 window, the grid will be resized to accomodate 2.
+  // when 2 happen, they will be resized for 3.
+
   if (gridResizeInProgress && availableColumns === actualColumns) gridResizeInProgress = false
 
   if (cache.windows) {
