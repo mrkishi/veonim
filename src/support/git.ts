@@ -1,6 +1,6 @@
 import { on, onStateChange, current } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
-import { shell } from '../support/utils'
+import { shell, exists } from '../support/utils'
 const watch = require('node-watch')
 import * as path from 'path'
 
@@ -36,18 +36,18 @@ const getBranch = async (cwd: string) => {
 
 on.bufWrite(() => getStatus(current.cwd))
 
-onStateChange.cwd((cwd: string) => {
+onStateChange.cwd(async (cwd: string) => {
   getBranch(cwd)
   getStatus(cwd)
 
   if (watchers.branch) watchers.branch.close()
   if (watchers.status) watchers.status.close()
 
-  const branchChanges = path.join(cwd, '.git/HEAD')
-  const statusChanges = path.join(cwd, '.git/index')
+  const headPath = path.join(cwd, '.git/HEAD')
+  const indexPath = path.join(cwd, '.git/index')
 
-  watchers.branch = watch(branchChanges, () => (getBranch(cwd), getStatus(cwd)))
-  watchers.status = watch(statusChanges, () => getStatus(cwd))
+  if (await exists(headPath)) watchers.branch = watch(headPath, () => (getBranch(cwd), getStatus(cwd)))
+  if (await exists(indexPath)) watchers.status = watch(indexPath, () => getStatus(cwd))
 })
 
 export default {
