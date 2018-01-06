@@ -1,6 +1,6 @@
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
-import { debounce, merge, listof } from '../support/utils'
+import { throttle, merge, listof } from '../support/utils'
 import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
@@ -374,6 +374,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 let winPos = [] as any
 
 export const render = async () => {
+  console.log('RENDER PSL!')
   const wins = await getWindows()
   //wins.forEach(w => console.log(w.name, w.terminal))
 
@@ -419,5 +420,4 @@ export const render = async () => {
   setImmediate(() => getSizes(horizontalSplits, verticalSplits))
 }
 
-// TODO: maybe use throttle as to be more responsive?
-dispatch.sub('redraw', debounce(() => render(), 32))
+dispatch.sub('redraw', throttle(render, 30))

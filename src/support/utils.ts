@@ -166,6 +166,20 @@ export function debounce (fn: Function, wait = 1) {
   }
 }
 
+export const throttle = (fn: (...args: any[]) => void, delay: number) => {
+  let throttling = false
+  let args: any[] | undefined
+
+  const executor = (...a: any[]) => {
+    if (throttling) return (args = a, undefined)
+    throttling = true
+    fn(...a)
+    setTimeout(() => (throttling = false, args && (executor(...args), args = undefined)), delay)
+  }
+
+  return executor
+}
+
 const pathGet = (obj: any, paths: string[]): any => {
   if (!paths.length) return obj
   const next = Reflect.get(obj, paths[0])
