@@ -359,14 +359,6 @@ export const render = async () => {
     return
   }
 
-  // the appearance of glitchy jumping borders is due to the canvas rendering below
-  // would need to clear or redo
-
-  if (gridResizeInProgress) {
-    const windowsEqual = wins.map(w => w.width).every((w, _, wins) => w === wins[0])
-    if (!windowsEqual) return
-  }
-
   if (gridResizeInProgress && availableColumns === actualColumns) gridResizeInProgress = false
 
   if (cache.windows) {

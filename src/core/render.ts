@@ -273,6 +273,7 @@ r.put = chars => {
 
   for (let ix = 0; ix < total; ix++) {
     if (chars[ix][0] !== ' ') {
+      // TODO: can we get window valid for the given range instead of each lookup?
       const w = getWindow(cursor.row, cursor.col)
       w && w.fillText(chars[ix][0], cursor.col, cursor.row)
     }
