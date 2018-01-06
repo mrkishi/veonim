@@ -124,7 +124,13 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
         background: 'rgb(55, 44, 58)',
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 15px 100%)',
       }
-    }, branch || 'git n/a')
+    }, [
+      ,IconBox({
+        style: { display: branch ? '' : 'none' }
+      }, [ Icon('git-branch') ])
+
+      ,h('span', branch || 'git n/a')
+    ])
 
     // TODO: only show on git projects
     ,Item({
