@@ -185,7 +185,7 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       style: {
         paddingLeft: '30px',
         paddingRight: '30px',
-        background: '#413d42',
+        background: 'rgb(61, 53, 62)',
         marginRight: '-15px',
         clipPath: 'polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%)',
       }
@@ -200,7 +200,7 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       ])
 
       ,h('div', {
-        style: { color: errors > 0 && '#ff9a9a' }
+        style: { color: errors > 0 && '#ef2f2f' }
       }, errors)
 
       // WARNINGS
@@ -214,14 +214,14 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       ])
 
       ,h('div', {
-        style: { color: warnings > 0 && '#ffd26c' }
+        style: { color: warnings > 0 && '#ffb100' }
       }, warnings)
     ])
 
     ,Item({
       style: {
-        paddingLeft: '36px',
-        paddingRight: '26px',
+        paddingLeft: '30px',
+        paddingRight: '20px',
         background: '#342d35',
         marginRight: '-20px',
         clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
