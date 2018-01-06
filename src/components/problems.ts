@@ -84,7 +84,6 @@ const icons = {
 const getSeverityIcon = (severity = 1) => Reflect.get(icons, severity)
 
 const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#problems', {
-  onupdate: (e: HTMLElement) => elref = e,
   style: {
     // TODO: vim colors
     background: '#222',
@@ -93,7 +92,6 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     flexFlow: 'column',
     position: 'absolute',
     alignSelf: 'flex-end',
-    overflowY: 'scroll',
     maxHeight: '30vh',
     width: '100%',
     // TODO: super dirty hax to push above statusline.
@@ -117,7 +115,10 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     desc: 'filter by files',
   })
 
-  ,h('div', problems.map(({ file, dir, items }, pos) => h('div', {
+  ,h('div', {
+    onupdate: (e: HTMLElement) => elref = e,
+    style: { overflowY: 'scroll' }
+  }, problems.map(({ file, dir, items }, pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
