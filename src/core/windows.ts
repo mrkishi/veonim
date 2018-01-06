@@ -48,8 +48,6 @@ export interface Window {
 }
 
 interface GridInfo {
-  horizontalSplits: number,
-  verticalSplits: number,
   gridTemplateRows: string,
   gridTemplateColumns: string,
   windows: RenderWindow[],
@@ -254,44 +252,15 @@ const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[
     w.width === lw.width
 })
 
-// TODO: super hacky but i'm lazy right now ok
-const maybeResize = ((time: number) => {
-  let canResize = true
-  return {
-    cooldown: () => {
-      canResize = false
-      setTimeout(() => canResize = true, time)
-    },
-    get canResize () { return canResize }
-  }
-})(100)
-
-const getSizes = (horizontalSplits: number, verticalSplits: number) => {
-  const { height, width } = container.getBoundingClientRect()
-  const { paddingX, paddingY } = windows[0].canvas.getSpecs()
-
-  const vh = height
-    - ((horizontalSplits + 1) * paddingY * 2)
-    - (horizontalSplits * (specs.gridGap + specs.nameplateHeight))
+const horizontalSpace = (splits: number) => {
+  const { width } = container.getBoundingClientRect()
+  const { paddingX } = windows[0].canvas.getSpecs()
 
   const vw = width
-    - ((verticalSplits + 1) * paddingX * 2)
-    - (verticalSplits * specs.gridGap)
+  - ((splits + 1) * paddingX * 2)
+  - (splits * specs.gridGap)
 
-  const rows = Math.floor(vh / canvasContainer.cell.height)
-  const cols = Math.floor(vw / canvasContainer.cell.width)
-  const resizeV = rows !== canvasContainer.size.rows
-  const resizeH = cols !== canvasContainer.size.cols
-
-  // TODO: do we need to resize vertically? or just use vertical overflows?
-  if (resizeV) {}
-
-  if (resizeH) {
-    maybeResize.cooldown()
-    canvasContainer.redoResize(canvasContainer.size.rows, cols + 1)
-    // TODO: hacky, could be better
-    setTimeout(() => cmd(`wincmd =`), 25)
-  }
+  return Math.floor(vw / canvasContainer.cell.width)
 }
 
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
@@ -300,22 +269,28 @@ const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows
   return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name && w.terminal === lw.terminal)
 })
 
+const getSplits = (wins: VimWindow[]) => {
+  const vertical = new Set<number>()
+  const horizontal = new Set<number>()
+  wins.forEach(w => (vertical.add(w.x), horizontal.add(w.y)))
+  return { vertical, horizontal }
+}
+
+const getSplitCount = (wins: VimWindow[]) => {
+  const { vertical, horizontal } = getSplits(wins)
+  return { vertical: vertical.size - 1, horizontal: horizontal.size - 1 }
+}
+
 const gogrid = (wins: VimWindow[]): GridInfo => {
-  const xPoints = new Set<number>()
-  const yPoints = new Set<number>()
   const totalRows = canvasContainer.size.rows - 1
   const totalColumns = canvasContainer.size.cols
+  const { vertical, horizontal } = getSplits(wins)
 
-  wins.forEach(w => {
-    xPoints.add(w.x)
-    yPoints.add(w.y)
-  })
+  vertical.add(totalColumns)
+  horizontal.add(totalRows)
 
-  xPoints.add(totalColumns)
-  yPoints.add(totalRows)
-
-  const yrows = [...yPoints].sort((a, b) => a - b)
-  const xcols = [...xPoints].sort((a, b) => a - b)
+  const yrows = [...horizontal].sort((a, b) => a - b)
+  const xcols = [...vertical].sort((a, b) => a - b)
 
   const rr = yrows.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
@@ -362,9 +337,6 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   })
 
   return {
-    // only include positions between container left and right edges (the actual splits)
-    horizontalSplits: yrows.length - 2,
-    verticalSplits: xcols.length - 2,
     gridTemplateRows,
     gridTemplateColumns,
     windows: windowsWithGridInfo,
@@ -372,11 +344,30 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 }
 
 let winPos = [] as any
+let gridResizeInProgress = false
 
 export const render = async () => {
-  console.log('RENDER PSL!')
   const wins = await getWindows()
-  //wins.forEach(w => console.log(w.name, w.terminal))
+
+  const actualColumns = canvasContainer.size.cols - 1
+  const availableColumns = horizontalSpace(getSplitCount(wins).vertical)
+
+  if (availableColumns !== actualColumns && !gridResizeInProgress) {
+    gridResizeInProgress = true
+    canvasContainer.redoResize(canvasContainer.size.rows, availableColumns + 1)
+    cmd(`wincmd =`)
+    return
+  }
+
+  // the appearance of glitchy jumping borders is due to the canvas rendering below
+  // would need to clear or redo
+
+  if (gridResizeInProgress) {
+    const windowsEqual = wins.map(w => w.width).every((w, _, wins) => w === wins[0])
+    if (!windowsEqual) return
+  }
+
+  if (gridResizeInProgress && availableColumns === actualColumns) gridResizeInProgress = false
 
   if (cache.windows) {
     findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {
@@ -405,7 +396,7 @@ export const render = async () => {
   }
 
   winPos = []
-  const { horizontalSplits, verticalSplits, gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
+  const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
   merge(container.style, { gridTemplateRows, gridTemplateColumns })
 
   for (let ix = 0; ix < windows.length; ix++) {
@@ -417,7 +408,6 @@ export const render = async () => {
   }
 
   setImmediate(() => moveCursor(current.bg))
-  setImmediate(() => getSizes(horizontalSplits, verticalSplits))
 }
 
 dispatch.sub('redraw', throttle(render, 30))
