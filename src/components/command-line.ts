@@ -22,12 +22,12 @@ const state: State = {
 
 let el: HTMLInputElement
 
-const view = ($: State) => Plugin.default('wildmenu', $.vis, [
+const view = ($: State) => Plugin.default('command-line', $.vis, [
 
   ,Input({
     val: $.val,
     focus: true,
-    icon: 'code',
+    icon: 'command',
   })
 
   // TODO: overflows. do the scrollable component thingy pls

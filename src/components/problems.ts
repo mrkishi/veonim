@@ -111,7 +111,7 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     down: scrollDown,
     up: scrollUp,
     small: true,
-    icon: 'search',
+    icon: 'filter',
     desc: 'filter by files',
   })
 
