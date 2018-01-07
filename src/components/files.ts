@@ -47,7 +47,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('files', $.vis,
     val: $.val,
     focus: true,
     icon: 'search',
-    desc: 'find files',
+    desc: 'open file',
   })
 
   ,h('div', $.files.map((f, key) => Row.files({ key, activeWhen: key === $.ix, }, [

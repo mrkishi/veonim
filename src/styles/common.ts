@@ -139,8 +139,9 @@ export const Row = {
   important: modstyl({
     normal: style('div')({
       ...row,
+      ...paddingH(8),
       color: '#ffd800',
-      background: '#222',
+      background: 'rgb(10, 10, 10)',
     })
   }),
 

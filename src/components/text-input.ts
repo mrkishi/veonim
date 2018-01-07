@@ -88,9 +88,9 @@ export default ({
 
   IconBox({}, [
     Icon(icon, {
-      color: '#555',
+      color: '#444',
       size: canvasContainer.font.size + (small ? 0 : 8),
-      weight: 3,
+      weight: 2,
     })
   ]),
 
