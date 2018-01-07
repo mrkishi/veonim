@@ -68,7 +68,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
       'overflow-y': 'hidden',
     }
   }, $.paths.map(({ name, dir }, key) => Row.normal({ key, activeWhen: key === $.ix }, [
-    ,setiIcon.file(name)
+    ,dir ? setiIcon.id('folder') : setiIcon.file(name)
 
     ,h('span', { style: { color: dir && key !== $.ix ? '#888' : undefined } }, name)
   ])))

@@ -22,5 +22,6 @@ const genIcon = (id: string, fontSize?: string) => h(`.seti-icon.${id}`, {
   }
 })
 
+export const id = (id: string, size?: string) => genIcon(`_${id}`, size)
 export const file = (path: string, size?: string) => genIcon(fileIcon(path), size)
 export const language = (language: string, size?: string) => genIcon(languageIcon(language), size)
