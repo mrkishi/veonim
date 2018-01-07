@@ -1,5 +1,7 @@
-import { h, app, style, Actions } from '../ui/uikit'
 import { CommandUpdate } from '../core/render'
+import { Plugin, Row } from '../styles/common'
+import { h, app, Actions } from '../ui/uikit'
+import Input from '../components/text-input'
 import { sub } from '../messaging/dispatch'
 
 interface State {
@@ -18,36 +20,19 @@ const state: State = {
   ix: 0,
 }
 
-const Input = style('input')({
-  display: 'flex',
-  paddingLeft: '8px',
-  background: '#222',
-  color: '#999',
-})
-
 let el: HTMLInputElement
 
-const view = ({ options, val, vis, ix }: State) => h('#wildmenu.plugin', {
-  hide: !vis,
-}, [
-  h('.dialog.xlarge', [
+const view = ($: State) => Plugin.default('wildmenu', $.vis, [
 
-    Input({
-      value: val,
-      onupdate: (e: HTMLInputElement) => {
-        if (e) el = e
-        e !== document.activeElement && e.focus()
-      },
-    }),
+  ,Input({
+    val: $.val,
+    focus: true,
+    icon: 'code',
+  })
 
-    h('div', options.map((name, key) => h('.row', {
-      key,
-      css: { active: key === ix },
-    }, [
-      h('span', name),
-    ]))),
+  // TODO: overflows. do the scrollable component thingy pls
+  ,h('div', $.options.map((name, key) => Row.normal({ key, activeWhen: key === $.ix }, name)))
 
-  ]),
 ])
 
 const a: Actions<State> = {}
