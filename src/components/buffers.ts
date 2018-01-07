@@ -1,8 +1,10 @@
 import { list, action, current, getCurrent, cmd } from '../core/neovim'
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { VimBuffer } from '../core/vim-functions'
+import * as setiIcon from '../styles/seti-icons'
 import { simplifyPath } from '../support/utils'
-import { h, app, Actions } from '../ui/uikit'
-import TermInput from '../components/input'
+import { Plugin, Row } from '../styles/common'
+import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
 
@@ -11,7 +13,7 @@ interface BufferInfo {
   base: string,
   modified?: boolean,
   dir: string,
-  duplicate: boolean
+  duplicate: boolean,
 }
 
 interface State {
@@ -19,7 +21,7 @@ interface State {
   buffers: BufferInfo[],
   cache: BufferInfo[],
   vis: boolean,
-  ix: number
+  ix: number,
 }
 
 const getVimBuffers = async () => {
@@ -49,27 +51,34 @@ const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
     .map(m => ({ ...m, name: m.duplicate ? `${m.dir}/${m.base}` : m.base }))
 }
 
-const state: State = { val: '', buffers: [], cache: [], vis: false, ix: 0 }
+const state: State = {
+  val: '',
+  buffers: [],
+  cache: [],
+  vis: false,
+  ix: 0,
+}
 
-const view = ({ val, buffers, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#buffers.plugin', {
-  hide: !vis
-}, [
-  h('.dialog.large', [
-    TermInput({ focus: true, val, next, prev, change, hide, select }),
+const view = ($: State, actions: ActionCaller) => Plugin.default('buffers', $.vis, [
+  ,Input({
+    ...actions,
+    val: $.val,
+    focus: true,
+    icon: 'list',
+    desc: 'switch buffer',
+  })
 
-    h('.row', { render: !buffers.length }, '...'),
+  ,h('div', $.buffers.map((f, key) => Row.files({ key, activeWhen: key === $.ix }, [
+    ,setiIcon.file(f.name)
 
-    h('div', buffers.map((f, key) => h('.row', {
-      key,
-      css: { active: key === ix },
-    }, [
-      h('span', {
-        render: f.duplicate,
-        style: { color: '#666' },
-      }, `${f.dir}/`),
-      h('span', f.duplicate ? f.base : f.name),
-    ]))),
-  ])
+    ,h('span', {
+      render: f.duplicate,
+      style: { color: '#666' },
+    }, `${f.dir}/`)
+
+    ,h('span', f.duplicate ? f.base : f.name),
+  ])))
+
 ])
 
 const a: Actions<State> = {}

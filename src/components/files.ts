@@ -52,7 +52,9 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('files', $.vis,
 
   ,h('div', $.files.map((f, key) => Row.files({ key, activeWhen: key === $.ix, }, [
     ,setiIcon.file(f.file)
+
     ,h('span', { style: { color: '#666' } }, f.dir)
+
     ,h('span', { style: {
       color: key === $.ix ? '#fff' : '#aaa'
     } }, f.file)
