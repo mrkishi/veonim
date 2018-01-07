@@ -20,7 +20,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('vim-create', $
     ...actions,
     val: $.val,
     focus: true,
-    icon: 'moon',
+    icon: 'folder-plus',
     desc: 'create new vim session',
   })
 

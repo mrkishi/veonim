@@ -32,7 +32,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('vim-switch', $
     ...actions,
     val: $.val,
     focus: true,
-    icon: 'search',
+    icon: 'grid',
     desc: 'switch vim session',
   })
 

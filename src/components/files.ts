@@ -46,7 +46,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('files', $.vis,
     ...actions,
     val: $.val,
     focus: true,
-    icon: 'search',
+    icon: 'file-text',
     desc: 'open file',
   })
 

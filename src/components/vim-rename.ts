@@ -20,7 +20,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('vim-rename', $
     ...actions,
     val: $.val,
     focus: true,
-    icon: 'moon',
+    icon: 'edit',
     desc: 'rename vim session',
   })
 
