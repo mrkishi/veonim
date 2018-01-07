@@ -18,13 +18,10 @@ merge(container.style, {
   flex: '1',
   // TODO: should lighten (or darken) % based on vim current.bg
   background: 'rgb(30, 30, 30)',
-  // TODO: this may need some tweaking
-  //'padding-top': '2px',
-  //'padding-left': '2px',
 })
 
 const _font = {
-  face: 'Roboto Mono',
+  face: 'Courier New',
   size: 14,
   lineHeight: 1.5,
 }
@@ -98,7 +95,9 @@ export const font = {
   get lineHeight() { return _font.lineHeight },
 }
 
-setFont({})
+process.platform === 'win32' && setFont({ face: 'Consolas' })
+process.platform === 'darwin' && setFont({ face: 'Menlo' })
+process.platform === 'linux' && setFont({ face: 'DejaVu Sans Mono' })
 setImmediate(() => resize())
 
 window.matchMedia('screen and (min-resolution: 2dppx)').addListener(resize)
