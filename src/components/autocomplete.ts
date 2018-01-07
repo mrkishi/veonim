@@ -49,7 +49,7 @@ const getCompletionIcon = (kind: CompletionItemKind) => {
   }
 }
 
-const docs = (data: string) => Row.default({
+const docs = (data: string) => Row.normal({
   style: {
     overflow: 'visible',
     whiteSpace: 'normal',

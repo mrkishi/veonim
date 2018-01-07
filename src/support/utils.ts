@@ -36,7 +36,7 @@ export const cc = (...a: any[]) => Promise.all(a)
 export const delay = (t: number) => new Promise(d => setTimeout(d, t))
 export const ID = (val = 0) => ({ next: () => (val++, val) })
 export const $ = (...fns: Function[]) => (...a: any[]) => fns.reduce((res, fn, ix) => ix ? fn(res) : fn(...res), a)
-export const type = (m :any) => (Object.prototype.toString.call(m).match(/^\[object (\w+)\]/) || [])[1].toLowerCase()
+export const type = (m: any) => (Object.prototype.toString.call(m).match(/^\[object (\w+)\]/) || [])[1].toLowerCase()
 export const is = new Proxy<Types>({} as Types, { get: (_, key) => (val: any) => type(val) === key })
 export const onProp = <T>(cb: (name: PropertyKey) => void): T => new Proxy({}, { get: (_, name) => cb(name) }) as T
 export const onFnCall = <T>(cb: (name: string, args: any[]) => void): T => new Proxy({}, { get: (_, name) => (...args: any[]) => cb(name as string, args) }) as T

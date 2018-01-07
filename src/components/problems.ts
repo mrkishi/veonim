@@ -135,7 +135,7 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
       ,h('span.bubble', items.length)
     ])
 
-    ,pos === ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.plain({
+    ,pos === ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.normal({
       activeWhen: itemPos === subix,
     }, [
       ,IconBox({}, getSeverityIcon(severity))

@@ -40,19 +40,19 @@ const state: State = {
   loading: false,
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('files', 600, $.vis, [
+const view = ($: State, actions: ActionCaller) => Plugin.default('files', $.vis, [
 
   ,Input({
-    val: $.val,
     ...actions,
-    icon: 'search',
+    val: $.val,
     focus: true,
+    icon: 'search',
     desc: 'find files',
   })
 
-  ,h('div', $.files.map((f, key) => Row.default({ key, activeWhen: key === $.ix, }, [
-    setiIcon.file(f.file),
-    ,h('span', { style: { color: '#666' } }, f.dir),
+  ,h('div', $.files.map((f, key) => Row.files({ key, activeWhen: key === $.ix, }, [
+    ,setiIcon.file(f.file)
+    ,h('span', { style: { color: '#666' } }, f.dir)
     ,h('span', { style: {
       color: key === $.ix ? '#fff' : '#aaa'
     } }, f.file)

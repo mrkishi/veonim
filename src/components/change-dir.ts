@@ -1,18 +1,43 @@
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { getDirFiles, exists } from '../support/utils'
 import { action, current, cmd } from '../core/neovim'
 import { renameCurrent } from '../core/sessions'
-import { h, app, Actions } from '../ui/uikit'
+import { Plugin, Row } from '../styles/common'
 import config from '../config/config-service'
-import TermInput from '../components/input'
+import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import { join, sep } from 'path'
 import { homedir } from 'os'
 
 const $HOME = homedir()
 
-interface FileDir { name: string, file: boolean, dir: boolean  }
-interface State { val: string, cwd: string, path: string, paths: FileDir[], cache: FileDir[], vis: boolean, ix: number, renameToDir: boolean }
-const state: State = { val: '', cwd: '', path: '',  paths: [], cache: [], vis: false, ix: 0, renameToDir: false }
+interface FileDir {
+  name: string,
+  file: boolean,
+  dir: boolean,
+}
+
+interface State {
+  val: string,
+  cwd: string,
+  path: string,
+  paths: FileDir[],
+  cache: FileDir[],
+  vis: boolean,
+  ix: number,
+  renameToDir: boolean,
+}
+
+const state: State = {
+  val: '',
+  cwd: '',
+  path: '',
+  paths: [],
+  cache: [],
+  vis: false,
+  ix: 0,
+  renameToDir: false,
+}
 
 const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~') : path
 const absPath = (path = '') => path.startsWith('~') ? join($HOME, path.slice(1)) : path
@@ -27,27 +52,26 @@ const filterDirs = (filedirs: FileDir[]) => filedirs.filter(f => f.dir && !ignor
 
 let listElRef: HTMLElement
 
-const view = ({ val, path, paths, vis, ix }: State, { jumpPrev, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom, tab }: any) => h('#change-dir.plugin', {
-  hide: !vis
-}, [
-  h('.dialog.medium', [
-    TermInput({ focus: true, val, next, prev, change, hide, select, jumpPrev, down: scrollDown, up: scrollUp, top, bottom, tab }),
+const view = ($: State, actions: ActionCaller) => Plugin.default('change-dir', $.vis, [
 
-    h('.row.important', shorten(path)),
+  ,Input({
+    ...actions,
+    val: $.val,
+    focus: true,
+    icon: 'home',
+    desc: 'change project'
+  })
 
-    h('.row', { render: !paths.length }, `...`),
+  ,Row.important(shorten($.path))
 
-    h('div', {
-      onupdate: (e: HTMLElement) => listElRef = e,
-      style: {
-        'max-height': '70vh',
-        'overflow-y': 'hidden',
-      }
-    }, paths.map(({ name, dir }, key) => h('.row', {
-      key,
-      css: { active: key === ix, dim: dir },
-    }, name))),
-  ])
+  ,h('div', {
+    onupdate: (e: HTMLElement) => listElRef = e,
+    style: {
+      'max-height': '50vh',
+      'overflow-y': 'hidden',
+    }
+  }, $.paths.map(({ name }, key) => Row.normal({ key, activeWhen: key === $.ix }, name)))
+
 ])
 
 const a: Actions<State> = {}
@@ -91,12 +115,12 @@ a.show = (s, _a, { paths, path, cwd = s.cwd, renameToDir }) => ({
 })
 
 // TODO: be more precise than this? also depends on scaled devices
-a.scrollDown = s => {
+a.down = s => {
   listElRef.scrollTop += 300
   return { ix: Math.min(s.ix + 17, s.paths.length - 1) }
 }
 
-a.scrollUp = s => {
+a.up = s => {
   listElRef.scrollTop -= 300
   return { ix: Math.max(s.ix - 17, 0) }
 }
