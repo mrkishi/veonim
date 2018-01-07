@@ -1,10 +1,10 @@
 import { action, current, call, cmd } from '../core/neovim'
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import * as setiIcon from '../styles/seti-icons'
-import { h, app, Actions } from '../ui/uikit'
+import { Plugin, Row } from '../styles/common'
 import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import Worker from '../messaging/worker'
-import { Row } from '../styles/common'
 
 interface FileDir {
   dir: string,
@@ -40,37 +40,24 @@ const state: State = {
   loading: false,
 }
 
-const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#files.plugin', {
-  hide: !vis,
-}, [
-  ,h('div', {
-    style: {
-      background: 'rgb(20, 20, 20)',
-      marginTop: '15%',
-      width: '600px',
-    },
-    hide: !vis,
-  }, [
-    ,Input({
-      val,
-      next,
-      prev,
-      change,
-      hide,
-      select,
-      icon: 'search',
-      focus: true,
-      desc: 'find files',
-    })
+const view = ($: State, actions: ActionCaller) => Plugin.default('files', 600, $.vis, [
 
-    ,h('div', files.map((f, key) => Row.default({ key, activeWhen: key === ix, }, [
-      setiIcon.file(f.file),
-      ,h('span', { style: { color: '#666' } }, f.dir),
-      ,h('span', { style: {
-        color: key === ix ? '#fff' : '#aaa'
-      } }, f.file)
-    ])))
-  ])
+  ,Input({
+    val: $.val,
+    ...actions,
+    icon: 'search',
+    focus: true,
+    desc: 'find files',
+  })
+
+  ,h('div', $.files.map((f, key) => Row.default({ key, activeWhen: key === $.ix, }, [
+    setiIcon.file(f.file),
+    ,h('span', { style: { color: '#666' } }, f.dir),
+    ,h('span', { style: {
+      color: key === $.ix ? '#fff' : '#aaa'
+    } }, f.file)
+  ])))
+
 ])
 
 const a: Actions<State> = {}

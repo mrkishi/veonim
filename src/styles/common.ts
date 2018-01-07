@@ -1,5 +1,5 @@
 import { paddingVH, paddingH } from '../ui/css'
-import { style } from '../ui/uikit'
+import { h, style } from '../ui/uikit'
 
 type WhateverObject = { [index: string]: any }
 type StyleParams = WhateverObject & { activeWhen?: boolean } | undefined
@@ -17,16 +17,42 @@ export const modstyl = (states: object) => (params: StyleParams, content: Conten
   else throw new Error(`styled component has no default 'active' state object`)
 }
 
-const plugin = {
+const pluginBase = {
   display: 'flex',
   width: '100%',
   justifyContent: 'center',
 }
 
+const plugin = {
+  default: style('div')({ ...pluginBase, alignItems: 'flex-start' }),
+  normal: style('div')({
+    ...pluginBase,
+    alignItems: 'flex-start',
+    background: 'rbg(20, 20, 20)',
+    marginTop: '15%',
+    width: '600px',
+  }),
+  bottom: style('div')({ ...pluginBase, alignItems: 'flex-end' }),
+  right: style('div')({ ...pluginBase, justifyContent: 'flex-end', alignItems: 'stretch' }),
+}
+
+const Dialog = style('div')({
+  background: 'rgb(20, 20, 20)',
+  marginTop: '15%',
+})
+
+const dialogCreator = (size: number, content: Content) => Dialog({ style: { width: `${size}px` } }, content)
+
+const pluginCreator = (id: string, visible: boolean, content: Content, type: string) =>
+  Reflect.get(plugin, type)({ id, style: { display: visible ? 'flex' : 'none' }}, content)
+
 export const Plugin = {
-  top: style('div')({ ...plugin, alignItems: 'flex-start' }),
-  bottom: style('div')({ ...plugin, alignItems: 'flex-end' }),
-  right: style('div')({ ...plugin, justifyContent: 'flex-end', alignItems: 'stretch' }),
+  default: (name: string, size: number, visible: boolean, content: Content) =>
+    pluginCreator(name, visible, dialogCreator(size, content), 'default'),
+  bottom: (name: string, visible: boolean, content: Content) =>
+    pluginCreator(name, visible, content, 'bottom'),
+  right: (name: string, visible: boolean, content: Content) =>
+    pluginCreator(name, visible, content, 'right'),
 }
 
 export const panelColors = {
