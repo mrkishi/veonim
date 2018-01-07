@@ -113,7 +113,10 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
         marginRight: '-15px',
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 0 100%)',
       }
-    }, cwd.replace($PR, '') || 'no project')
+    }, [
+      ,IconBox({}, [ Icon('hard-drive') ])
+      ,h('span', cwd.replace($PR, '') || 'no project')
+    ])
 
     // TODO: only show on git projects
     ,Item({
