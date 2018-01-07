@@ -345,6 +345,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 
 let winPos = [] as any
 let gridResizeInProgress = false
+let initialRenderPass = true
 
 export const render = async () => {
   const wins = await getWindows()
@@ -352,7 +353,7 @@ export const render = async () => {
   const actualColumns = canvasContainer.size.cols - 1
   const availableColumns = horizontalSpace(getSplitCount(wins).vertical)
 
-  if (availableColumns !== actualColumns && !gridResizeInProgress) {
+  if (!initialRenderPass && availableColumns !== actualColumns && !gridResizeInProgress) {
     gridResizeInProgress = true
     canvasContainer.redoResize(canvasContainer.size.rows, availableColumns + 1)
     cmd(`wincmd =`)
@@ -414,6 +415,7 @@ export const render = async () => {
   }
 
   setImmediate(() => moveCursor(current.bg))
+  initialRenderPass = false
 }
 
 dispatch.sub('redraw', throttle(render, 30))
