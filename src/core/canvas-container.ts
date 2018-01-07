@@ -8,7 +8,6 @@ export interface Font {
 }
 
 const watchers = new Watchers()
-
 const container = document.getElementById('canvas-container') as HTMLElement
 const sandboxCanvas = document.createElement('canvas')
 const canvas = sandboxCanvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
@@ -38,7 +37,6 @@ const _size = {
   height: 0,
   width: 0,
 }
-
 
 export const setFont = ({ size = _font.size, face = _font.face, lineHeight = _font.lineHeight }: Font) => {
   setVar('font', face)

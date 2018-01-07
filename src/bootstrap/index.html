@@ -7,6 +7,10 @@
   cursor: none;
 }
 
+.no-scroll-bar::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   --font: 'Courier New';
   --font-size: 12;
@@ -194,16 +198,6 @@ input {
 
 .active {
   color: #eee;
-}
-
-.complete {
-  background: #222;
-}
-
-.complete.active {
-  background: #303030;
-  color: #eee;
-  font-weight: bold;
 }
 
 .plugin {

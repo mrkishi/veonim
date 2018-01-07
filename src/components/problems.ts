@@ -1,12 +1,12 @@
 import { h, app, style, Actions, vimBlur, vimFocus } from '../ui/uikit'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
-import { Row, RowHeader, RowGroup } from '../styles/common'
 import * as canvasContainer from '../core/canvas-container'
 import { cmd, feedkeys, current } from '../core/neovim'
 import { QuickfixGroup } from '../ai/diagnostics'
 import { simplifyPath } from '../support/utils'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
+import { Row } from '../styles/common'
 import Icon from '../components/icon'
 import { join } from 'path'
 
@@ -115,21 +115,14 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
     desc: 'filter by files',
   })
 
-  ,h('div', {
+  ,h('.no-scroll-bar', {
     onupdate: (e: HTMLElement) => elref = e,
     style: { overflowY: 'scroll' }
   }, problems.map(({ file, dir, items }, pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
-    ,RowHeader({
-      // TODO: make this shared - grep needs it also
-      style: pos === ix && {
-        color: '#fff',
-        background: '#5a5a5a',
-        fontWeight: 'normal',
-      }
-    }, [
+    ,Row.header({ activeWhen: pos === ix }, [
       ,h('span', file),
       ,h('span', {
         style: {
@@ -142,13 +135,8 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
       ,h('span.bubble', items.length)
     ])
 
-    ,pos === ix && RowGroup({}, items.map(({ severity, message, range }, itemPos) => Row({
-      // TODO: how to make this shared
-      style: itemPos === subix && {
-        background: '#3f3f3f',
-        color: '#eee',
-        fontWeight: 'bold',
-      }
+    ,pos === ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.plain({
+      activeWhen: itemPos === subix,
     }, [
       ,IconBox({}, getSeverityIcon(severity))
 

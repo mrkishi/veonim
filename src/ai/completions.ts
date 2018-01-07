@@ -2,11 +2,9 @@ import { findIndexRight, hasUpperCase, EarlyPromise } from '../support/utils'
 import { completions, completionDetail, triggers } from '../langserv/adapter'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { CompletionItem } from 'vscode-languageserver-types'
-import * as canvasContainer from '../core/canvas-container'
 import { g, on, current as vimState } from '../core/neovim'
 import * as completionUI from '../components/autocomplete'
 import { harvester, update } from '../ai/update-server'
-import { activeWindow } from '../core/windows'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
@@ -22,32 +20,16 @@ export interface CompletionOption {
   raw?: CompletionItem,
 }
 
-const MAX_RESULTS = 8
+const MAX_SEARCH_RESULTS = 50
 export const cache: Cache = {
   semanticCompletions: new Map(),
   activeCompletion: '',
 }
 
-// TODO: should this just use smart pos?
-const calcMenuPosition = (startIndex: number, column: number, count: number) => {
-  // anchor menu above row if the maximum results are going to spill out of bounds.
-  // why maxResults instead of the # of items in options? because having the menu jump
-  // around over-under as you narrow down results by typing or undo is kinda annoying
-  const anchorAbove = cursor.row + MAX_RESULTS > canvasContainer.size.rows
-  const row = anchorAbove
-    ? cursor.row - count
-    : cursor.row + 1
-
-  const start = Math.max(0, startIndex)
-  const col = cursor.col - (column - start)
-  const win = activeWindow()
-
-  return {
-    anchorAbove,
-    y: win ? win.rowToY(row) : 0,
-    x: win ? win.colToX(col) : 0,
-  }
-}
+const calcMenuPosition = (startIndex: number, column: number) => ({
+  row: cursor.row,
+  col: cursor.col - (column - Math.max(0, startIndex)),
+})
 
 const orderCompletions = (m: CompletionOption[], query: string) => m
   .slice()
@@ -89,8 +71,8 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const options = orderCompletions(completions, query)
     g.veonim_completions = options.map(m => m.text)
     g.veonim_complete_pos = startIndex
-    const { x, y, anchorAbove } = calcMenuPosition(startIndex, column, options.length)
-    completionUI.show({ x, y, options, anchorAbove })
+    const { row, col } = calcMenuPosition(startIndex, column)
+    completionUI.show({ row, col, options })
   }
 
   const { startIndex, query, leftChar } = findQuery(lineContent, column)
@@ -122,14 +104,14 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const queryCased = smartCaseQuery(query)
     const pendingKeywords = harvester
       .request
-      .query(vimState.cwd, vimState.file, queryCased, MAX_RESULTS)
+      .query(vimState.cwd, vimState.file, queryCased, MAX_SEARCH_RESULTS)
       .then((res: string[]) => res.map(text => ({ text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
     // i mean could try to do some sort of combination with ranking/priority. idk if the filtering will interfere with it
-    // TODO: do we want more than MAX_RESULTS? i.e. i want to explore all of Array.prototype.* completions
+    // TODO: do we want more than MAX_SEARCH_RESULTS? i.e. i want to explore all of Array.prototype.* completions
     // and i want to scroll thru the list. should i support that use case? or just use the query to filter?
-    const resSemantic = filter(semanticCompletions, queryCased, { maxResults: MAX_RESULTS, key: 'text' })
+    const resSemantic = filter(semanticCompletions, queryCased, { maxResults: MAX_SEARCH_RESULTS, key: 'text' })
     const completionOptions = resSemantic.length ? resSemantic : await pendingKeywords
 
     if (!completionOptions.length) {

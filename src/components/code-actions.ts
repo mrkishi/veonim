@@ -54,10 +54,8 @@ const view = ({ x, y, val, vis, actions, ix }: State, { select, hide, change, ne
       desc: 'run code action',
     })
 
-    ,h('div', actions.map((s, key: number) => Row({
-      key,
-      style: key === ix ? { background: 'rgba(255, 255, 255, 0.08)' } : undefined,
-    }, s.title)))
+    ,h('div', actions.map((s, key: number) =>
+      Row.default({ key, activeWhen: key === ix }, s.title)))
 
   ])
 ])

@@ -5,6 +5,23 @@ export interface Point {
 
 const percent = (integer: number) => `${integer * 100}%`
 
+export const paddingVH = (vertical: number, horizontal: number) => ({
+  paddingLeft: `${vertical}px`,
+  paddingRight: `${vertical}px`,
+  paddingTop: `${horizontal}px`,
+  paddingBottom: `${horizontal}px`,
+})
+
+export const paddingH = (amount: number) => ({
+  paddingTop: `${amount}px`,
+  paddingBottom: `${amount}px`,
+})
+
+export const paddingV = (amount: number) => ({
+  paddingLeft: `${amount}px`,
+  paddingRight: `${amount}px`,
+})
+
 export const gradient = (deg: number, color1: string, fade1: number, color2: string, fade2: number) => `linear-gradient(${deg}deg, ${color1} ${fade1}%, ${color2} ${fade2}%)`
 export const partialFill = (direction: string, color: string, size: number) =>
   gradient(direction === 'horizontal' ? 0 : 90, color, size, 'rgba(0,0,0,0)', 0)

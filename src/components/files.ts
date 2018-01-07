@@ -63,11 +63,7 @@ const view = ({ val, files, vis, ix }: State, { change, hide, select, next, prev
       desc: 'find files',
     })
 
-    ,h('div', files.map((f, key) => Row({
-      // TODO: lol nope
-      key,
-      style: key === ix ? { background: 'rgba(255, 255, 255, 0.08)' } : undefined,
-    }, [
+    ,h('div', files.map((f, key) => Row.default({ key, activeWhen: key === ix, }, [
       setiIcon.file(f.file),
       ,h('span', { style: { color: '#666' } }, f.dir),
       ,h('span', { style: {
