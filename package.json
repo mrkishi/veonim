@@ -20,6 +20,7 @@
     "start": "electron build/bootstrap/main.js",
     "gen-api": "node tools/gen-api.js",
     "gen-seti-icons": "node tools/gen-seti-stylesheet.js",
+    "gen-icons": "node tools/build-icons.js",
     "bins-mac": "mkdir -p bindeps/mac && npm i -f @veonim/neovim-mac@0.0.3 @veonim/ripgrep-mac@0.0.1 --prefix ./bindeps/mac",
     "bins-linux": "mkdir -p bindeps/linux && npm i -f @veonim/neovim-linux@0.0.2 @veonim/ripgrep-linux@0.0.1 --prefix ./bindeps/linux",
     "bins-win": "mkdir -p bindeps/win && npm i -f @veonim/neovim-win@0.0.2 @veonim/ripgrep-win@0.0.1 --prefix ./bindeps/win",
@@ -103,19 +104,22 @@
     "node-watch": "0.5.5",
     "picostyle": "^0.1.4",
     "remove-markdown": "0.2.2",
-    "vscode-jsonrpc": "3.5.0",
-    "vscode-languageserver-types": "3.4.0"
+    "vscode-jsonrpc": "3.5.0"
   },
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "8.0.53",
+    "babel-core": "6.26.0",
+    "babel-plugin-transform-react-jsx": "6.24.1",
     "electron": "1.7.9",
     "electron-builder": "19.46.4",
+    "feather-icons": "4.5.0",
     "jscodeshift": "0.3.32",
     "mocha": "4.0.1",
     "proxyquire": "1.8.0",
     "spectron": "3.7.2",
-    "typescript": "2.5.3"
+    "typescript": "2.5.3",
+    "vscode-languageserver-types": "3.4.0"
   }
 }
