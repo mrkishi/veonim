@@ -1,5 +1,5 @@
+import { getDirFiles, exists, pathRelativeToHome } from '../support/utils'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
-import { getDirFiles, exists } from '../support/utils'
 import { action, current, cmd } from '../core/neovim'
 import { renameCurrent } from '../core/sessions'
 import { Plugin, Row } from '../styles/common'
@@ -39,7 +39,6 @@ const state: State = {
   renameToDir: false,
 }
 
-const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~') : path
 const absPath = (path = '') => path.startsWith('~') ? join($HOME, path.slice(1)) : path
 const validPath = async (path = '') => {
   if (!path) return ''
@@ -62,7 +61,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('change-dir', $
     desc: 'change project'
   })
 
-  ,Row.important(shorten($.path))
+  ,Row.important(pathRelativeToHome($.path))
 
   ,h('div', {
     onupdate: (e: HTMLElement) => listElRef = e,

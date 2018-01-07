@@ -1,19 +1,39 @@
+import { getDirFiles, pathRelativeToHome } from '../support/utils'
 import { action, current, call, cmd } from '../core/neovim'
-import { h, app, Actions } from '../ui/uikit'
-import { getDirFiles } from '../support/utils'
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import * as setiIcon from '../styles/seti-icons'
+import { Plugin, Row } from '../styles/common'
 import config from '../config/config-service'
-import TermInput from '../components/input'
+import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import { join, sep } from 'path'
-import { homedir } from 'os'
 
-const $HOME = homedir()
+interface FileDir {
+  name: string,
+  file: boolean,
+  dir: boolean,
+}
 
-interface FileDir { name: string, file: boolean, dir: boolean  }
-interface State { val: string, cwd: string, path: string, paths: FileDir[], cache: FileDir[], vis: boolean, ix: number }
-const state: State = { val: '', cwd: '', path: '',  paths: [], cache: [], vis: false, ix: 0 }
+interface State {
+  val: string,
+  cwd: string,
+  path: string,
+  paths: FileDir[],
+  cache: FileDir[],
+  vis: boolean,
+  ix: number,
+}
 
-const shorten = (path: string) => path.includes($HOME) ? path.replace($HOME, '~') : path
+const state: State = {
+  val: '',
+  cwd: '',
+  path: '',
+  paths: [],
+  cache: [],
+  vis: false,
+  ix: 0,
+}
+
 const relativeToCwd = (path: string, cwd: string) => path.includes(cwd) ? path.replace(cwd, '').replace(/^\//, '') : path
 
 const ignored: { dirs: string[], files: string[] } = {
@@ -29,27 +49,30 @@ const sortDirFiles = (filedirs: FileDir[]) => {
 
 let listElRef: HTMLElement
 
-const view = ({ val, path, paths, vis, ix }: State, { jumpPrev, change, hide, select, next, prev, scrollDown, scrollUp, top, bottom, jumpHome }: any) => h('#explorer.plugin', {
-  hide: !vis
-}, [
-  h('.dialog.xlarge', [
-    TermInput({ focus: true, val, next, prev, change, hide, select, jumpPrev, down: scrollDown, up: scrollUp, top, bottom, ctrlH: jumpHome }),
+const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.vis, [
 
-    h('.row.important', shorten(path)),
+  ,Input({
+    ...actions,
+    val: $.val,
+    focus: true,
+    icon: 'hard-drive',
+    desc: 'explorer',
+  })
 
-    h('.row', { render: !paths.length }, `...`),
+  ,Row.important(pathRelativeToHome($.path))
 
-    h('div', {
-      onupdate: (e: HTMLElement) => listElRef = e,
-      style: {
-        'max-height': '70vh',
-        'overflow-y': 'hidden',
-      }
-    }, paths.map(({ name, dir }, key) => h('.row', {
-      key,
-      css: { active: key === ix, dim: dir },
-    }, name))),
-  ])
+  ,h('div', {
+    onupdate: (e: HTMLElement) => listElRef = e,
+    style: {
+      'max-height': '50vh',
+      'overflow-y': 'hidden',
+    }
+  }, $.paths.map(({ name, dir }, key) => Row.normal({ key, activeWhen: key === $.ix }, [
+    ,setiIcon.file(name)
+
+    ,h('span', { style: { color: dir && key !== $.ix ? '#888' : undefined } }, name)
+  ])))
+
 ])
 
 const a: Actions<State> = {}
@@ -62,7 +85,7 @@ a.select = (s, a) => {
     cmd(`e ${relativeToCwd(join(s.path, name), s.cwd)}`)
     return a.hide()
   }
-  a.down(name)
+  a.diveDown(name)
 }
 
 a.change = (s, _a, val: string) => ({ val, paths: val
@@ -70,12 +93,12 @@ a.change = (s, _a, val: string) => ({ val, paths: val
   : s.cache
 })
 
-a.down = (s, a, next) => {
+a.diveDown = (s, a, next) => {
   const path = join(s.path, next)
   getDirFiles(path).then(paths => a.show({ path, paths: sortDirFiles(paths) }))
 }
 
-a.jumpHome = async (_s, a) => {
+a.ctrlH = async (_s, a) => {
   const { cwd } = current
   const filedirs = await getDirFiles(cwd)
   const paths = sortDirFiles(filedirs)
@@ -98,12 +121,12 @@ a.show = (s, _a, { paths, path, cwd = s.cwd }) => ({
 })
 
 // TODO: be more precise than this? also depends on scaled devices
-a.scrollDown = s => {
+a.down = s => {
   listElRef.scrollTop += 300
   return { ix: Math.min(s.ix + 17, s.paths.length - 1) }
 }
 
-a.scrollUp = s => {
+a.up = s => {
   listElRef.scrollTop -= 300
   return { ix: Math.max(s.ix - 17, 0) }
 }

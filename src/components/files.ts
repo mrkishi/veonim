@@ -55,9 +55,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('files', $.vis,
 
     ,h('span', { style: { color: '#666' } }, f.dir)
 
-    ,h('span', { style: {
-      color: key === $.ix ? '#fff' : '#aaa'
-    } }, f.file)
+    ,h('span', { style: { color: key === $.ix ? '#fff' : '#aaa' } }, f.file)
   ])))
 
 ])
