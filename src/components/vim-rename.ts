@@ -1,17 +1,29 @@
 import { renameCurrent, getCurrentName } from '../core/sessions'
-import { h, app, Actions } from '../ui/uikit'
-import TermInput from '../components/input'
+import { app, Actions, ActionCaller } from '../ui/uikit'
+import Input from '../components/text-input'
+import { Plugin } from '../styles/common'
 import { action } from '../core/neovim'
 
-interface State { val: string, vis: boolean }
-const state: State = { val: '', vis: false }
+interface State {
+  val: string,
+  vis: boolean,
+}
 
-const view = ({ val, vis }: State, { select, hide, change }: any) => h('#vim-rename.plugin', {
-  hide: !vis
-}, [
-  h('.dialog.small', [
-    TermInput({ focus: true, val, select, hide, change }),
-  ])
+const state: State = {
+  val: '',
+  vis: false,
+}
+
+const view = ($: State, actions: ActionCaller) => Plugin.default('vim-rename', $.vis, [
+
+  ,Input({
+    ...actions,
+    val: $.val,
+    focus: true,
+    icon: 'moon',
+    desc: 'rename vim session',
+  })
+
 ])
 
 const a: Actions<State> = {}
