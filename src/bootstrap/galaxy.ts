@@ -10,7 +10,7 @@ import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
 
-export const lazyLoadCSS = (href: string) => {
+const lazyLoadCSS = (href: string) => {
   const css = document.createElement('link')
   merge(css, { href, rel: 'stylesheet', type: 'text/css' })
   document.head.appendChild(css)

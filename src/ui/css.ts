@@ -1,5 +1,3 @@
-import { hexToRGB } from '../support/utils'
-
 export interface Point {
   x: number,
   y: number,
@@ -16,6 +14,11 @@ export const prop = (el: Element, name: string) => parseFloat(window.getComputed
 export const bold = (color: string) => ({ color, 'font-weight': 'bold' })
 export const faded = (color: string, amount: number) => ({ color: hexToRGBA(color, amount) })
 export const polygon = (...points: Point[]) => `polygon(${points.map(p => `${percent(p.x)} ${percent(p.y)}`).join(', ')})`
+
+export const hexToRGB = (color: string) => {
+  const hex = parseInt(color.replace(/#/, ''), 16)
+  return [hex >> 16, hex >> 8 & 0xFF, hex & 0xFF]
+}
 
 export const hexToRGBA = (color: string, alpha: number) => {
   if (!color) return ''

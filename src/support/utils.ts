@@ -111,11 +111,6 @@ export const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
   return hex.length < 2 ? ('0' + hex) : hex
 }).join('')
 
-export const hexToRGB = (color: string) => {
-  const hex = parseInt(color.replace(/#/, ''), 16)
-  return [hex >> 16, hex >> 8 & 0xFF, hex & 0xFF]
-}
-
 export const { readdir, stat } = promisifyApi(fs)
 export const exists = (path: string) => new Promise(fin => fs.access(path, e => fin(!e)))
 
