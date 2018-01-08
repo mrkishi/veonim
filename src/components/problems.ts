@@ -1,4 +1,4 @@
-import { h, app, style, Actions, vimBlur, vimFocus } from '../ui/uikit'
+import { h, app, style, Actions, ActionCaller, vimBlur, vimFocus } from '../ui/uikit'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
 import { cmd, feedkeys, current } from '../core/neovim'
@@ -83,33 +83,24 @@ const icons = {
 
 const getSeverityIcon = (severity = 1) => Reflect.get(icons, severity)
 
-const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#problems', {
+const view = ($: State, actions: ActionCaller) => h('#problems', {
   style: {
     // TODO: vim colors
-    background: '#222',
+    background: 'rgb(20, 20, 20)',
     color: '#eee',
-    display: vis ? 'flex' : 'none',
+    display: $.vis ? 'flex' : 'none',
     flexFlow: 'column',
     position: 'absolute',
     alignSelf: 'flex-end',
     maxHeight: '30vh',
     width: '100%',
-    // TODO: super dirty hax to push above statusline.
-    // plugins div should not cover statusline and should be moved
-    bottom: '24px',
   }
 }, [
+
   ,Input({
-    val,
-    change,
-    focus,
-    next,
-    prev,
-    nextGroup,
-    prevGroup,
-    hide: blur,
-    down: scrollDown,
-    up: scrollUp,
+    ...actions,
+    val: $.val,
+    focus: $.focus,
     small: true,
     icon: 'filter',
     desc: 'filter by files',
@@ -118,11 +109,11 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
   ,h('.no-scroll-bar', {
     onupdate: (e: HTMLElement) => elref = e,
     style: { overflowY: 'scroll' }
-  }, problems.map(({ file, dir, items }, pos) => h('div', {
+  }, $.problems.map(({ file, dir, items }, pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
-    ,Row.header({ activeWhen: pos === ix }, [
+    ,Row.header({ activeWhen: pos === $.ix }, [
       ,h('span', file),
       ,h('span', {
         style: {
@@ -135,8 +126,8 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
       ,h('span.bubble', items.length)
     ])
 
-    ,pos === ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.normal({
-      activeWhen: itemPos === subix,
+    ,pos === $.ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.normal({
+      activeWhen: itemPos === $.subix,
     }, [
       ,IconBox({}, getSeverityIcon(severity))
 
@@ -152,7 +143,7 @@ const view = ({ val, focus, problems, vis, ix, subix }: State, { change, blur, n
 const a: Actions<State> = {}
 
 a.toggle = s => ({ vis: !s.vis })
-a.blur = () => (vimFocus(), { focus: false })
+a.hide = () => (vimFocus(), { focus: false })
 a.focus = () => (vimBlur(), { focus: true, vis: true })
 a.updateProblems = (_s, _a, problems) => ({ problems, cache: problems })
 
@@ -187,12 +178,12 @@ a.prev = s => {
   return { subix: prev }
 }
 
-a.scrollDown = () => {
+a.down = () => {
   const { height } = elref.getBoundingClientRect()
   elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
 }
 
-a.scrollUp = () => {
+a.up = () => {
   const { height } = elref.getBoundingClientRect()
   elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
 }
