@@ -36,13 +36,15 @@ const view = ($: State) => h('#hover', {
     width: '100%',
   }
 }, [
-  h('div', {
+
+  ,h('div', {
     onupdate: (e: HTMLElement) => {
       spacer = e
     },
     style: { flex: `${$.x}px`, }
-  }),
-  h('div', {
+  })
+
+  ,h('div', {
     onupdate: (e: HTMLElement) => setTimeout(() => {
       const { width } = e.getBoundingClientRect()
       const okSize = Math.floor(window.innerWidth * 0.7)
@@ -54,7 +56,7 @@ const view = ($: State) => h('#hover', {
       opacity: '0',
     }
   }, [
-    h('div', {
+    ,h('div', {
       style: {
         background: '#222',
         color: '#eee',
@@ -65,8 +67,9 @@ const view = ($: State) => h('#hover', {
         color: color || vimstate.fg,
         'white-space': 'pre',
       }
-    }, text))))),
-  ]),
+    }, text)))))
+  ])
+
 ])
 
 const a: Actions<State> = {}
