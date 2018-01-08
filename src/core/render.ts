@@ -355,6 +355,7 @@ type NotificationKind = 'error' | 'warning' | 'info' | 'success'
 const msgKinds = new Map<string, NotificationKind>([
   ['emsg', 'error'],
   ['echo', 'info'],
+  ['echomsg', 'info'],
 ])
 
 const message = {
