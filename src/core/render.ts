@@ -344,6 +344,53 @@ r.cmdline_hide = () => {
 
 r.cmdline_pos = position => dispatch.pub('cmd.update', { position })
 
+// from neovim PR 7466:
+// Multiple msg_chunk calls build up a msg line, msg_end tells the line is finished.
+// msg_start_kind(...) tells the kind for some kinds of messages, but clients should be 
+// prepared msg_chunk:s come without a msg_start_kind(). msg_showcmd([attrs, text]) works 
+// independently of all other events.
+
+type NotificationKind = 'error' | 'warning' | 'info' | 'success'
+
+const msgKinds = new Map<string, NotificationKind>([
+  ['emsg', 'error'],
+  ['echo', 'info'],
+])
+
+const message = {
+  buffer: '',
+  kind: 'info',
+}
+
+const resetMsg = () => {
+  message.buffer = ''
+  // TODO: need some way to group together multiple messages of the same time
+  // sent as separate msgs. e.g. we might get 3 error messages one after the other
+  // however the 'emsg' kind is only sent on the first one
+  setTimeout(() => message.kind = 'info', 100)
+}
+
+// TODO: idk what to do with this. need to figure out what all the possible kinds can be
+// so far have found: emsg, echo
+// i suppose more will show up in the api docs?
+r.msg_start_kind = kind => {
+  console.log('msgkind:', kind)
+  if (msgKinds.has(kind)) message.kind = msgKinds.get(kind)!
+  else console.log('new msg kind:', kind)
+}
+
+r.msg_showcmd = (content = []) => dispatch.pub('notification:info', { message: content.join('') })
+
+r.msg_chunk = data => message.buffer += data
+
+// TODO: dedup identical messages by debouncing in short time frame
+r.msg_end = () => {
+  // TODO: not sure why we are getting these strange thingies...
+  if (message.buffer !== '<') dispatch.pub(`notification:${message.kind}`, { message: message.buffer })
+  resetMsg()
+}
+
+
 onRedraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {

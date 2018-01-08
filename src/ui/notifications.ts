@@ -1,14 +1,29 @@
-import { h, app, Actions } from '../ui/uikit'
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { sub } from '../messaging/dispatch'
 import { is } from '../support/utils'
 
-enum NotifyKind { error = 'error', warning = 'warning', info = 'info', success = 'success' }
-interface Notification { type: NotifyKind, title: string, message: string | string[] }
-interface State { notifications: Notification[] }
+enum NotifyKind {
+  error = 'error',
+  warning = 'warning',
+  info = 'info',
+  success = 'success',
+}
 
-const state: State = { notifications: [] }
+interface Notification {
+  type: NotifyKind,
+  title: string,
+  message: string | string[],
+}
 
-const view = ({ notifications }: State, { dismiss }: any) =>
+interface State {
+  notifications: Notification[],
+}
+
+const state: State = {
+  notifications: [],
+}
+
+const view = ({ notifications }: State, { dismiss }: ActionCaller) =>
 h('#notifications', notifications.map(({ type, title, message }, ix) => h(`.notification.${type}`, [
   h('.header', [
     h('.title', title),

@@ -34,6 +34,7 @@ const vimOptions = {
   ext_tabline: true,
   ext_wildmenu: true,
   ext_cmdline: true,
+  ext_messages: true,
 }
 
 const ids = {

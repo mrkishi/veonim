@@ -16,7 +16,6 @@ export const modstyl = (states: object): StyledComponent => (...args: any[]) => 
   const content: Content = args.find(isContent)
 
   if (params.activeWhen) {
-    console.log('get active pls', states)
     const styl = Reflect.get(states, 'active')
     if (is.function(style)) return styl(params, content)
     else throw new Error(`styled component defined 'activeWhen' property, however no 'active' state object was found`)

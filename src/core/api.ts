@@ -47,6 +47,10 @@ export interface Events {
   wildmenu_show(items: any[]): void,
   wildmenu_select(selected: number): void,
   wildmenu_hide(): void,
+  msg_start_kind(kind: string): void,
+  msg_chunk(data: string, attr: object): void,
+  msg_end(): void,
+  msg_showcmd(content: any[]): void,
 }
 
 export interface Api {
