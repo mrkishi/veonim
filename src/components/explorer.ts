@@ -64,8 +64,8 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
   ,h('div', {
     onupdate: (e: HTMLElement) => listElRef = e,
     style: {
-      'max-height': '50vh',
-      'overflow-y': 'hidden',
+      maxHeight: '50vh',
+      overflowY: 'hidden',
     }
   }, $.paths.map(({ name, dir }, key) => Row.normal({ key, activeWhen: key === $.ix }, [
     ,dir ? setiIcon.id('folder') : setiIcon.file(name)

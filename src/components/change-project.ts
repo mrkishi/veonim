@@ -66,8 +66,8 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('change-dir', $
   ,h('div', {
     onupdate: (e: HTMLElement) => listElRef = e,
     style: {
-      'max-height': '50vh',
-      'overflow-y': 'hidden',
+      maxHeight: '50vh',
+      overflowY: 'hidden',
     }
   }, $.paths.map(({ name }, key) => Row.normal({ key, activeWhen: key === $.ix }, name)))
 

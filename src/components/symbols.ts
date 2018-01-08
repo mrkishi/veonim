@@ -1,28 +1,47 @@
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { feedkeys, cmd } from '../core/neovim'
-import { h, app, Actions } from '../ui/uikit'
+import { Plugin, Row } from '../styles/common'
 import { Symbol } from '../langserv/adapter'
-import TermInput from '../components/input'
+import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 
-interface State { val: string, symbols: Symbol[], cache: Symbol[], vis: boolean, ix: number }
-const state: State = { val: '', symbols: [], cache: [], vis: false, ix: 0 }
+interface State {
+  val: string,
+  symbols: Symbol[],
+  cache: Symbol[],
+  vis: boolean,
+  ix: number,
+}
 
-const view = ({ val, symbols, vis, ix }: State, { change, hide, select, next, prev }: any) => h('#symbols.plugin', {
-  hide: !vis
-}, [
-  h('.dialog.medium', [
-    TermInput({ focus: true, val, next, prev, change, hide, select }),
+const state: State = {
+  val: '',
+  symbols: [],
+  cache: [],
+  vis: false,
+  ix: 0,
+}
 
-    h('.row', { render: !symbols.length }, '...'),
+const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vis, [
 
-    h('div', symbols.map(({ name }, key) => h('.row', {
-      key,
-      css: { active: key === ix },
-    }, [
-      // TODO: render symbol kind icon
-      h('span', name),
-    ]))),
-  ])
+  ,Input({
+    ...actions,
+    val: $.val,
+    focus: true,
+    icon: 'moon',
+    desc: 'go to symbol',
+  })
+
+  // TODO: pls scroll this kthx
+  ,h('div', {
+    style: {
+      maxHeight: '50vh',
+      overflowY: 'hidden',
+    }
+  }, $.symbols.map(({ name }, key) => Row.normal({ key, activeWhen: key === $.ix }, [
+    // TODO: render symbol kind icon (26 different types...)
+    ,h('span', name)
+  ])))
+
 ])
 
 const a: Actions<State> = {}
