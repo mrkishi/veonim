@@ -53,13 +53,12 @@ const Doc = style('div')({
   color: vimstate.fg || '#aaa',
 })
 
-// TODO: render info (documentation/more detail)
-const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, selectedSignature, totalSignatures, documentation, paramDoc }: State) => h('#hint', {
+const view = ($: State) => h('#hint', {
   style: {
-    display: vis ? 'flex' : 'none',
+    display: $.vis ? 'flex' : 'none',
     'z-index': 100,
     position: 'absolute',
-    transform: translate(0, y),
+    transform: translate(0, $.y),
     width: '100%',
   }
 }, [
@@ -67,20 +66,20 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, sel
     onupdate: (e: HTMLElement) => {
       spacer = e
     },
-    style: { flex: `${x}px`, }
+    style: { flex: `${$.x}px`, }
   })
 
   ,h('div', {
     onupdate: (e: HTMLElement) => setTimeout(() => {
       const { width } = e.getBoundingClientRect()
       const okSize = Math.floor(window.innerWidth * 0.7)
-      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${x}px`
+      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${$.x}px`
       // TODO: this was used for figuring out placement, but it was causing flickering
       // on every update, so temp disable to see how bad it is without pre-emptive pos calc
       //e.style[(<any>'opacity')] = '1'
     }, 1),
     style: {
-      transform: anchorBottom ? `translateY(-100%)` : undefined,
+      transform: $.anchorBottom ? `translateY(-100%)` : undefined,
       // TODO: need this?
       //opacity: '0',
     }
@@ -93,26 +92,26 @@ const view = ({ labelStart, currentParam, labelEnd, vis, x, y, anchorBottom, sel
       }
     }, [
       ,h('div', { style: {
-        paddingBottom: documentation || paramDoc ? '8px' : undefined
+        paddingBottom: $.documentation || $.paramDoc ? '8px' : undefined
       } }, [
-        ,documentation && Doc({}, documentation)
-        ,paramDoc && Doc({}, paramDoc)
+        ,$.documentation && Doc({}, $.documentation)
+        ,$.paramDoc && Doc({}, $.paramDoc)
       ])
 
       ,h('div', { style: { display: 'flex' } }, [
         ,h('div', [
-          ,h('span', { style: faded(vimstate.fg, 0.6) }, labelStart)
-          ,h('span', { style: bold(vimstate.fg) }, currentParam)
-          ,h('span', { style: faded(vimstate.fg, 0.6) }, labelEnd)
+          ,h('span', { style: faded(vimstate.fg, 0.6) }, $.labelStart)
+          ,h('span', { style: bold(vimstate.fg) }, $.currentParam)
+          ,h('span', { style: faded(vimstate.fg, 0.6) }, $.labelEnd)
         ])
 
         ,h('div', {
-          hide: totalSignatures < 2,
+          hide: $.totalSignatures < 2,
           style: {
             paddingLeft: '4px',
             color: vimstate.fg,
           },
-        }, `${selectedSignature}/${totalSignatures}`)
+        }, `${$.selectedSignature}/${$.totalSignatures}`)
       ])
     ])
   ])

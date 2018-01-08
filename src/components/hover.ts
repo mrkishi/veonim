@@ -28,11 +28,11 @@ const state: State = {
 
 let spacer: HTMLElement
 
-const view = ({ value, vis, x, y, anchorBottom }: State) => h('#hover', {
+const view = ($: State) => h('#hover', {
   style: {
-    display: vis ? 'flex' : 'none',
+    display: $.vis ? 'flex' : 'none',
     position: 'absolute',
-    transform: translate(0, y),
+    transform: translate(0, $.y),
     width: '100%',
   }
 }, [
@@ -40,17 +40,17 @@ const view = ({ value, vis, x, y, anchorBottom }: State) => h('#hover', {
     onupdate: (e: HTMLElement) => {
       spacer = e
     },
-    style: { flex: `${x}px`, }
+    style: { flex: `${$.x}px`, }
   }),
   h('div', {
     onupdate: (e: HTMLElement) => setTimeout(() => {
       const { width } = e.getBoundingClientRect()
       const okSize = Math.floor(window.innerWidth * 0.7)
-      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${x}px`
+      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${$.x}px`
       e.style[(<any>'opacity')] = '1'
     }, 1),
     style: {
-      transform: anchorBottom ? `translateY(-100%)` : undefined,
+      transform: $.anchorBottom ? `translateY(-100%)` : undefined,
       opacity: '0',
     }
   }, [
@@ -60,7 +60,7 @@ const view = ({ value, vis, x, y, anchorBottom }: State) => h('#hover', {
         color: '#eee',
         padding: '8px',
       }
-    }, value.map(m => h('div', m.map(({ color, text }) => h('span', {
+    }, $.value.map(m => h('div', m.map(({ color, text }) => h('span', {
       style: {
         color: color || vimstate.fg,
         'white-space': 'pre',
