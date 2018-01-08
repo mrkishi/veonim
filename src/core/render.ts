@@ -67,6 +67,7 @@ type CmdContent = [any, string]
 
 export enum CommandType {
   Ex,
+  Prompt,
   SearchForward,
   SearchBackward,
 }
@@ -325,9 +326,13 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
     '?': CommandType.SearchBackward,
   }, opChar) || CommandType.Ex
 
-  dispatch.pub('cmd.update', { cmd, kind, position } as CommandUpdate)
+  dispatch.pub('cmd.update', {
+    cmd,
+    kind: prompt ? CommandType.Prompt : kind,
+    position
+  } as CommandUpdate)
 
-  prompt && console.log('prompt?', prompt)
+  // TODO: do the indentings thingies
   indent && console.log('indent:', indent)
   level > 1 && console.log('level:', level)
 }
