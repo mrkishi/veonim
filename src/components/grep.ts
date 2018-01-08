@@ -1,6 +1,7 @@
 import { action, cmd, call, current, feedkeys, expr } from '../core/neovim'
-import { h, app, Actions } from '../ui/uikit'
-import TermInput from '../components/input'
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { Plugin, Row } from '../styles/common'
+import Input from '../components/text-input'
 import Worker from '../messaging/worker'
 
 type TextTransformer = (text: string) => string
@@ -9,7 +10,7 @@ type Result = [string, SearchResult[]]
 interface SearchResult {
   line: number,
   col: number,
-  text: string
+  text: string,
 }
 
 interface State {
@@ -19,7 +20,7 @@ interface State {
   vis: boolean,
   ix: number,
   subix: number,
-  loading: boolean
+  loading: boolean,
 }
 
 let elref: HTMLElement
@@ -79,42 +80,45 @@ const highlightPattern = (text: string, pattern: string, { normal, special }: { 
     }, [] as string[])
 }
 
-const view = ({ val, results, vis, ix, subix }: State, { change, hide, select, next, prev, nextGroup, prevGroup, scrollDown, scrollUp }: any) => h('#grep.plugin.right', {
-  hide: !vis
-}, [
-  h('.dialog.top.xlarge', [
-    TermInput({ focus: true, val, next, prev, nextGroup, prevGroup, change, hide, select, down: scrollDown, up: scrollUp }),
+const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
 
-    h('.row', { render: !results.length }, '...'),
+  ,Input({
+    ...actions,
+    val: $.val,
+    focus: true,
+    icon: 'search',
+    // TODO: 
+    small: false,
+    desc: 'find in project',
+  }),
 
-    // TODO: render keys? idk about keys they seem to not work like in react...
-    h('div', {
-      onupdate: (e: HTMLElement) => elref = e,
-      style: {
-        'max-height': '100%',
-        'overflow-y': 'hidden',
-      },
-    }, results.map(([ path, items ], pos) => h('div', {
-      oncreate: (e: HTMLElement) => els.set(pos, e),
-    }, [
-      h('.row.header', {
-        css: { active: pos === ix }
-      }, [
-        h('span', path),
-        h('span.bubble', { style: { 'margin-left': '12px' } }, items.length),
-      ]),
+  // TODO: render keys? idk about keys they seem to not work like in react...
+  ,h('div', {
+    onupdate: (e: HTMLElement) => elref = e,
+    style: {
+      maxHeight: '100%',
+      overflowY: 'hidden',
+    },
+  }, $.results.map(([ path, items ], pos) => h('div', {
+    oncreate: (e: HTMLElement) => els.set(pos, e),
+  }, [
 
-      // not using 'render: false' because don't want to evaluate items.map AT ALL
-      pos === ix ? h('.row-group', items.map((f, itemPos) => h('.row.dim', {
-        css: { active: pos === ix && itemPos === subix },
-      }, highlightPattern(f.text, val, {
-        normal: m => h('span', m),
-        special: m => h('span.highlight', {
-          css: { active: pos === ix && itemPos === subix },
-        }, m),
-      })))) : undefined,
-    ]))),
-  ])
+    ,Row.header({ activeWhen: pos === $.ix }, [
+      h('span', path),
+      h('span.bubble', { style: { 'margin-left': '12px' } }, items.length),
+    ])
+
+    ,pos === $.ix && Row.group({}, items.map((f, itemPos) => Row.normal({
+      activeWhen: pos === $.ix && itemPos === $.subix
+    }, highlightPattern(f.text, $.val, {
+      normal: m => h('span', m),
+      special: m => h('span.highlight', {
+        css: { active: pos === $.ix && itemPos === $.subix },
+      }, m),
+    }))))
+
+  ])))
+
 ])
 
 const a: Actions<State> = {}
@@ -167,7 +171,7 @@ a.prev = s => {
   return { subix: prev }
 }
 
-a.scrollDown = () => {
+a.down = () => {
   const { height } = elref.getBoundingClientRect()
   const maxScroll = elref.scrollHeight - height
   // TODO: should wait until get results back before calling loadNext again...
@@ -175,7 +179,7 @@ a.scrollDown = () => {
   elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
 }
 
-a.scrollUp = () => {
+a.up = () => {
   const { height } = elref.getBoundingClientRect()
   elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
 }

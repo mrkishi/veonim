@@ -55,6 +55,7 @@ const Statusline = style('div')({
   display: 'flex',
   justifyContent: 'space-between',
   background: '#222',
+  zIndex: 999,
 })
 
 const lineGroup = {

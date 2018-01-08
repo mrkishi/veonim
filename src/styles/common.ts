@@ -43,7 +43,11 @@ const plugin = {
     width: '600px',
   }),
   bottom: style('div')({ ...pluginBase, alignItems: 'flex-end' }),
-  right: style('div')({ ...pluginBase, justifyContent: 'flex-end', alignItems: 'stretch' }),
+  right: style('div')({
+    ...pluginBase,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch'
+  }),
 }
 
 const Dialog = style('div')({
@@ -62,7 +66,12 @@ export const Plugin = {
   bottom: (name: string, visible: boolean, content: Content) =>
     pluginCreator(name, visible, content, 'bottom'),
   right: (name: string, visible: boolean, content: Content) =>
-    pluginCreator(name, visible, content, 'right'),
+    pluginCreator(name, visible, Dialog({ style: {
+      height: '100%',
+      width: '500px',
+      flexFlow: 'column',
+      marginTop: '0px',
+    }}, content), 'right'),
 }
 
 export const panelColors = {

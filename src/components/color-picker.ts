@@ -1,16 +1,23 @@
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { action, call, cmd } from '../core/neovim'
-import { h, app, Actions } from '../ui/uikit'
+import { Plugin } from '../styles/common'
 
-interface State { val: string, vis: boolean }
-const state = { val: '', vis: false }
+interface State {
+  val: string,
+  vis: boolean,
+}
+
+const state = {
+  val: '',
+  vis: false,
+}
+
 let pickedColor = ''
 
-const view = ({ vis, val }: State, { hide, change }: any) => h('#color-picker.plugin', {
-  hide: !vis
-}, [
-  h('input', {
+const view = ($: State, { hide, change }: ActionCaller) => Plugin.default('color-picker', $.vis, [
+  ,h('input', {
     type: 'color',
-    value: val,
+    value: $.val,
     onchange: change,
     onkeydown: hide,
     onupdate: (e: HTMLInputElement) => e !== document.activeElement && e.focus(),

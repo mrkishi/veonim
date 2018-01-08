@@ -10,7 +10,16 @@ export interface ActionCaller { [index: string]: (data?: any) => void }
 export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
 export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
 
-const hostElement = document.getElementById('plugins')
+const hostElement = document.getElementById('plugins') as HTMLElement
+
+merge(hostElement.style, {
+  position: 'absolute',
+  display: 'flex',
+  width: '100vw',
+  zIndex: 420, // vape naysh yall
+  // TODO: 24px for statusline. do it better
+  height: 'calc(100vh - 24px)',
+})
 
 export const style = picostyle(hs)
 export const h = huu(hs)

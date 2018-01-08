@@ -1,7 +1,7 @@
+import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { Command } from 'vscode-languageserver-types'
 import { runCodeAction } from '../ai/diagnostics'
 import { activeWindow } from '../core/windows'
-import { h, app, Actions } from '../ui/uikit'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import { Row } from '../styles/common'
@@ -27,12 +27,12 @@ const state: State = {
   ix: 0,
 }
 
-const view = ({ x, y, val, vis, actions, ix }: State, { select, hide, change, next, prev }: any) => h('#code-actions', {
+const view = ($: State, actions: ActionCaller) => h('#code-actions', {
   style: {
-    display: vis ? 'flex' : 'none',
+    display: $.vis ? 'flex' : 'none',
     'z-index': 100,
     position: 'absolute',
-    transform: translate(x, y),
+    transform: translate($.x, $.y),
   },
 }, [
   ,h('div', {
@@ -42,19 +42,15 @@ const view = ({ x, y, val, vis, actions, ix }: State, { select, hide, change, ne
   }, [
 
     ,Input({
-      val,
-      next,
-      prev,
-      change,
-      hide,
-      select,
-      icon: 'code',
-      small: true,
+      ...actions,
+      val: $.val,
       focus: true,
+      small: true,
+      icon: 'code',
       desc: 'run code action',
     })
 
-    ,h('div', actions.map((s, key: number) => Row.normal({ key, activeWhen: key === ix }, s.title)))
+    ,h('div', $.actions.map((s, key: number) => Row.normal({ key, activeWhen: key === $.ix }, s.title)))
 
   ])
 ])
