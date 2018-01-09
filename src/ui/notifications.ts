@@ -27,7 +27,6 @@ const state: State = {
 }
 
 const container = document.getElementById('notifications') as HTMLElement
-
 merge(container.style, { zIndex: 80 })
 
 const notification = {
@@ -64,7 +63,38 @@ const IconBox = style('div')({
   alignItems: 'center',
 })
 
-const box = (StyleObject: Function, message: string, icon: string) => StyleObject({}, [
+// TODO: meme driven development
+interface AnimateElement {
+  animate(keyframes: object[], options?: object): AnimateElement,
+  finished: Promise<void>,
+}
+
+// TODO: chrome does not support .finished property on animate. move this common
+const animate = (element: HTMLElement & AnimateElement, keyframes: object[], options = {} as any) => {
+  if (options.duration) {
+    element.animate(keyframes, options)
+    return new Promise(fin => setTimeout(fin, options.duration - 2))
+  }
+
+  return element.animate(keyframes, options)
+}
+
+const box = (StyleObject: Function, message: string, icon: string) => StyleObject({
+  oncreate: (e: HTMLElement & AnimateElement) => e.animate([
+    { opacity: 0, transform: 'translateY(-100%) '},
+    { opacity: 1, transform: 'translateY(0)' },
+  ], { duration: 150 }),
+
+  onremove: async (e: HTMLElement & AnimateElement) => {
+    await animate(e, [
+      { opacity: 1 },
+      { opacity: 0 },
+    ], { duration: 250 })
+
+    // TODO: does not always remove...
+    e.remove()
+  }
+}, [
   ,IconBox({}, [ Icon(icon) ])
   ,h('span', message)
   // TODO: show count for multiple messages of the same type?
