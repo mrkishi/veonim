@@ -96,4 +96,4 @@ sub('notification:error', message => ui.notify({ message, kind: NotifyKind.Error
 sub('notification:warning', message => ui.notify({ message, kind: NotifyKind.Warning } as Notification))
 sub('notification:success', message => ui.notify({ message, kind: NotifyKind.Success } as Notification))
 sub('notification:info', message => ui.notify({ message, kind: NotifyKind.Info } as Notification))
-sub('notification:system', message => ui.notify({ message, kind: NotifyKind.Error } as Notification))
+sub('notification:system', message => ui.notify({ message, kind: NotifyKind.System } as Notification))
