@@ -52,80 +52,6 @@ input {
   padding: 0;
 }
 
-.term-input {
-  color: transparent;
-  text-shadow: 0 0 0 #999;
-}
-
-.close {
-  cursor: pointer;
-  background: none;
-  padding: 0;
-  padding-left: 10px;
-  padding-right: 10px;
-  font-size: 18px;
-  line-height: 0;
-  opacity: 0.4;
-}
-
-.close:hover {
-  pointer: cursor;
-  opacity: 1;
-}
-
-#notifications {
-  position: absolute;
-  width: 400px;
-  display: flex;
-  flex-direction: column;
-  top: 10px;
-  right: 10px;
-}
-
-.notification {
-  margin-bottom: 6px;
-}
-
-.notification .header {
-  display: flex;
-  justify-content: space-between;
-  color: #fff;
-}
-
-.notification .title {
-  padding: 10px;
-}
-
-.notification .message {
-  padding: 10px;
-}
-
-.notification .message .line {
-  margin-bottom: 8px;
-}
-
-.notification .message .line:last-child {
-  margin-bottom: 0;
-}
-
-.notification.error {
-  background: #332424;
-  color: #eab3b3;
-}
-
-.notification.error .header {
-  background: #962727;
-}
-
-.notification.info {
-  background: #444;
-  color: #eee;
-}
-
-.notification.info .header {
-  background: #555;
-}
-
 .alert {
   display: flex;
   background: #444;
@@ -252,6 +178,7 @@ input {
     </style>
   </head>
   <body>
+    <div id="notifications"></div>
     <div id="cursor"></div>
     <div id="cursorline"></div>
     <div id="canvas-container">
