@@ -45,6 +45,7 @@ const notification = {
   display: 'flex',
   marginBottom: '6px',
   padding: '10px',
+  justifyContent: 'space-between' ,
   background: colors.overlay.background,
 }
 
@@ -75,8 +76,9 @@ const IconBox = style('div')({
   alignItems: 'center',
 })
 
-const box = (StyleObject: Function, message: string, count: number, icon: string) => StyleObject({
-  style: { justifyContent: 'space-between' },
+const box = (StyleObject: Function, { id, message, count }: Notification, icon: string) => StyleObject({
+  key: id,
+  style: {},
 
   oncreate: (e: HTMLElement) => animate(e, [
     { opacity: 0, transform: 'translateY(-100%) '},
@@ -89,7 +91,6 @@ const box = (StyleObject: Function, message: string, count: number, icon: string
       { opacity: 0 },
     ], { duration: 250 })
 
-    // TODO: does not always remove...
     e.remove()
   }
 }, [
@@ -103,13 +104,14 @@ const box = (StyleObject: Function, message: string, count: number, icon: string
 
 const view = ($: State) => Plugin.top('notifications', true, [
 
-  ,h('div', $.notifications.map(({ kind, message, count }) => {
+  ,h('div', $.notifications.map(data => {
+    const { kind } = data
 
-    if (kind === NotifyKind.Error) return box(Err, message, count, 'error')
-    if (kind === NotifyKind.Warning) return box(Warn, message, count, 'warning')
-    if (kind === NotifyKind.Success) return box(Success, message, count, 'check-circle')
-    if (kind === NotifyKind.Info) return box(Notification, message, count, 'message-circle')
-    if (kind === NotifyKind.System) return box(Notification, message, count, 'info')
+    if (kind === NotifyKind.Error) return box(Err, data, 'error')
+    if (kind === NotifyKind.Warning) return box(Warn, data, 'warning')
+    if (kind === NotifyKind.Success) return box(Success, data, 'check-circle')
+    if (kind === NotifyKind.Info) return box(Notification, data, 'message-circle')
+    if (kind === NotifyKind.System) return box(Notification, data, 'info')
 
   }))
 
