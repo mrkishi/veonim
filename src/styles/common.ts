@@ -26,6 +26,12 @@ export const modstyl = (states: object): StyledComponent => (...args: any[]) => 
   else throw new Error(`styled component has no default 'active' state object`)
 }
 
+export const colors = {
+  error: '#ef2f2f',
+  warning: '#ffb100',
+  success: '#72a940',
+}
+
 const pluginBase = {
   zIndex: 99,
   display: 'flex',

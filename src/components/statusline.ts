@@ -2,6 +2,7 @@ import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { h, app, style, Actions } from '../ui/uikit'
 import { onStateChange } from '../core/neovim'
 import { ExtContainer } from '../core/api'
+import { colors } from '../styles/common'
 import { merge } from '../support/utils'
 import Icon from '../components/icon'
 import '../support/git'
@@ -149,28 +150,28 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       // ADDITIONS
       ,IconBox({
         style: {
-          color: additions > 0 && '#72a940',
+          color: additions > 0 && colors.success,
         }
       }, [
         ,Icon('plus-square')
       ])
 
       ,h('div', {
-        style: { color: additions > 0 && '#72a940' }
+        style: { color: additions > 0 && colors.success }
       }, additions)
 
       // DELETIONS
       ,IconBox({
         style: {
           marginLeft: '12px',
-          color: deletions > 0 && '#ef2f2f',
+          color: deletions > 0 && colors.error,
         }
       }, [
         ,Icon('minus-square')
       ])
 
       ,h('div', {
-        style: { color: deletions > 0 && '#ef2f2f' }
+        style: { color: deletions > 0 && colors.error }
       }, deletions)
     ])
 
@@ -197,28 +198,28 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       // ERRORS
       ,IconBox({
         style: {
-          color: errors > 0 && '#ef2f2f',
+          color: errors > 0 && colors.error,
         }
       }, [
         ,Icon('error')
       ])
 
       ,h('div', {
-        style: { color: errors > 0 && '#ef2f2f' }
+        style: { color: errors > 0 && colors.error }
       }, errors)
 
       // WARNINGS
       ,IconBox({
         style: {
           marginLeft: '12px',
-          color: warnings > 0 && '#ffb100',
+          color: warnings > 0 && colors.warning,
         }
       }, [
         ,Icon('warning')
       ])
 
       ,h('div', {
-        style: { color: warnings > 0 && '#ffb100' }
+        style: { color: warnings > 0 && colors.warning }
       }, warnings)
     ])
 

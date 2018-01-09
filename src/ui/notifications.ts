@@ -1,6 +1,6 @@
 import { h, app, style, Actions } from '../ui/uikit'
+import { Plugin, colors } from '../styles/common'
 import { sub } from '../messaging/dispatch'
-import { Plugin } from '../styles/common'
 import { merge } from '../support/utils'
 import Icon from '../components/icon'
 
@@ -43,17 +43,17 @@ const Notification = style('div')({
 
 const Err = style('div')({
   ...notification,
-  color: '#ef2f2f',
+  color: colors.error,
 })
 
 const Success = style('div')({
   ...notification,
-  color: '#72a940',
+  color: colors.success,
 })
 
 const Warn = style('div')({
   ...notification,
-  color: '#ffb100',
+  color: colors.warning,
 })
 
 // TODO: dedup with other similar styles
