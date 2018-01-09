@@ -1,6 +1,6 @@
+import { Badge, Plugin, colors } from '../styles/common'
+import { merge, uuid, debounce } from '../support/utils'
 import { h, app, style, Actions } from '../ui/uikit'
-import { Plugin, colors } from '../styles/common'
-import { merge, uuid } from '../support/utils'
 import Icon from '../components/icon'
 import { animate } from '../ui/css'
 
@@ -13,10 +13,16 @@ export enum NotifyKind {
   Hidden = 'hidden',
 }
 
+interface FlexibleExpire {
+  refresh(): void
+}
+
 interface Notification {
   id: string,
   kind: NotifyKind,
   message: string,
+  count: number,
+  expire?: FlexibleExpire,
 }
 
 interface State {
@@ -27,6 +33,11 @@ const state: State = {
   notifications: [],
 }
 
+const expire = (time: number, cb: Function): FlexibleExpire => {
+  const refresh = debounce(cb, time)
+  return (refresh(), { refresh })
+}
+
 const container = document.getElementById('notifications') as HTMLElement
 merge(container.style, { zIndex: 80 })
 
@@ -34,7 +45,7 @@ const notification = {
   display: 'flex',
   marginBottom: '6px',
   padding: '10px',
-  background: 'rgb(20, 20, 20)',
+  background: colors.overlay.background,
 }
 
 const Notification = style('div')({
@@ -64,7 +75,9 @@ const IconBox = style('div')({
   alignItems: 'center',
 })
 
-const box = (StyleObject: Function, message: string, icon: string) => StyleObject({
+const box = (StyleObject: Function, message: string, count: number, icon: string) => StyleObject({
+  style: { justifyContent: 'space-between' },
+
   oncreate: (e: HTMLElement) => animate(e, [
     { opacity: 0, transform: 'translateY(-100%) '},
     { opacity: 1, transform: 'translateY(0)' },
@@ -80,20 +93,23 @@ const box = (StyleObject: Function, message: string, icon: string) => StyleObjec
     e.remove()
   }
 }, [
-  ,IconBox({}, [ Icon(icon) ])
-  ,h('span', message)
-  // TODO: show count for multiple messages of the same type? (ie dedup)
+  ,h('div', { style: { display: 'flex' } }, [
+    ,IconBox({}, [ Icon(icon) ])
+    ,h('span', message)
+  ])
+
+  ,count > 1 && Badge(count, { alignSelf: 'flex-end' })
 ])
 
 const view = ($: State) => Plugin.top('notifications', true, [
 
-  ,h('div', $.notifications.map(({ kind, message }) => {
+  ,h('div', $.notifications.map(({ kind, message, count }) => {
 
-    if (kind === NotifyKind.Error) return box(Err, message, 'error')
-    if (kind === NotifyKind.Warning) return box(Warn, message, 'warning')
-    if (kind === NotifyKind.Success) return box(Success, message, 'check-circle')
-    if (kind === NotifyKind.Info) return box(Notification, message, 'message-circle')
-    if (kind === NotifyKind.System) return box(Notification, message, 'info')
+    if (kind === NotifyKind.Error) return box(Err, message, count, 'error')
+    if (kind === NotifyKind.Warning) return box(Warn, message, count, 'warning')
+    if (kind === NotifyKind.Success) return box(Success, message, count, 'check-circle')
+    if (kind === NotifyKind.Info) return box(Notification, message, count, 'message-circle')
+    if (kind === NotifyKind.System) return box(Notification, message, count, 'info')
 
   }))
 
@@ -106,8 +122,17 @@ const view = ($: State) => Plugin.top('notifications', true, [
 const a: Actions<State> = {}
 
 a.notify = (s, a, notification: Notification) => {
+  const existingIndex = s.notifications.findIndex(n => n.message === notification.message)
+
+  if (existingIndex > -1) {
+    const ns = s.notifications.slice()
+    ns[existingIndex].count += 1
+    ns[existingIndex].expire!.refresh()
+    return { notifications: ns }
+  }
+
   const time = notification.kind === NotifyKind.Info ? 1200 : 3e3
-  setTimeout(() => a.expire(notification.id), time)
+  notification.expire = expire(time, () => a.expire(notification.id))
   return { notifications: [...s.notifications, notification] }
 }
 
@@ -120,4 +145,5 @@ export const notify = (message: string, kind = NotifyKind.Info) => ui.notify({
   kind,
   message,
   id: uuid(),
+  count: 1,
 })

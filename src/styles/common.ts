@@ -30,6 +30,9 @@ export const colors = {
   error: '#ef2f2f',
   warning: '#ffb100',
   success: '#72a940',
+  overlay: {
+    background: 'rgb(20, 20, 20)'
+  }
 }
 
 const badge = style('span')({
