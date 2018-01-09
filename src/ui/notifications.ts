@@ -1,15 +1,16 @@
 import { h, app, style, Actions } from '../ui/uikit'
 import { Plugin, colors } from '../styles/common'
 import { merge, uuid } from '../support/utils'
-import { sub } from '../messaging/dispatch'
 import Icon from '../components/icon'
+import { animate } from '../ui/css'
 
-enum NotifyKind {
+export enum NotifyKind {
   Error = 'error',
   Warning = 'warning',
   Info = 'info',
   Success = 'success',
   System = 'system',
+  Hidden = 'hidden',
 }
 
 interface Notification {
@@ -63,29 +64,13 @@ const IconBox = style('div')({
   alignItems: 'center',
 })
 
-// TODO: meme driven development
-interface AnimateElement {
-  animate(keyframes: object[], options?: object): AnimateElement,
-  finished: Promise<void>,
-}
-
-// TODO: chrome does not support .finished property on animate. move this common
-const animate = (element: HTMLElement & AnimateElement, keyframes: object[], options = {} as any) => {
-  if (options.duration) {
-    element.animate(keyframes, options)
-    return new Promise(fin => setTimeout(fin, options.duration - 25))
-  }
-
-  return element.animate(keyframes, options)
-}
-
 const box = (StyleObject: Function, message: string, icon: string) => StyleObject({
-  oncreate: (e: HTMLElement & AnimateElement) => e.animate([
+  oncreate: (e: HTMLElement) => animate(e, [
     { opacity: 0, transform: 'translateY(-100%) '},
     { opacity: 1, transform: 'translateY(0)' },
   ], { duration: 150 }),
 
-  onremove: async (e: HTMLElement & AnimateElement) => {
+  onremove: async (e: HTMLElement) => {
     await animate(e, [
       { opacity: 1 },
       { opacity: 0 },
@@ -97,7 +82,7 @@ const box = (StyleObject: Function, message: string, icon: string) => StyleObjec
 }, [
   ,IconBox({}, [ Icon(icon) ])
   ,h('span', message)
-  // TODO: show count for multiple messages of the same type?
+  // TODO: show count for multiple messages of the same type? (ie dedup)
 ])
 
 const view = ($: State) => Plugin.top('notifications', true, [
@@ -131,33 +116,8 @@ a.expire = (s, _a, id: string) =>
 
 const ui = app({ state, view, actions: a }, false, container)
 
-// TODO: too much code here...
-sub('notification:error', message => ui.notify({
-  id: uuid(),
+export const notify = (message: string, kind = NotifyKind.Info) => ui.notify({
+  kind,
   message,
-  kind: NotifyKind.Error
-} as Notification))
-
-sub('notification:warning', message => ui.notify({
   id: uuid(),
-  message,
-  kind: NotifyKind.Warning
-} as Notification))
-
-sub('notification:success', message => ui.notify({
-  id: uuid(),
-  message,
-  kind: NotifyKind.Success
-} as Notification))
-
-sub('notification:info', message => ui.notify({
-  id: uuid(),
-  message,
-  kind: NotifyKind.Info
-} as Notification))
-
-sub('notification:system', message => ui.notify({
-  id: uuid(),
-  message,
-  kind: NotifyKind.System
-} as Notification))
+})

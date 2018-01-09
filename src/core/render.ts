@@ -2,8 +2,9 @@ import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from 
 import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'
 import { onRedraw, getColor } from '../core/master-control'
+import { asColor, merge, matchOn } from '../support/utils'
+import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
-import { asColor, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
 
@@ -350,7 +351,7 @@ r.cmdline_pos = position => dispatch.pub('cmd.update', { position })
 // prepared msg_chunk:s come without a msg_start_kind(). msg_showcmd([attrs, text]) works 
 // independently of all other events.
 
-type NotificationKind = 'error' | 'warning' | 'info' | 'success'
+type NotificationKind = 'error' | 'warning' | 'info' | 'success' | undefined
 
 const msgKinds = new Map<string, NotificationKind>([
   ['emsg', 'error'],
@@ -360,7 +361,7 @@ const msgKinds = new Map<string, NotificationKind>([
 
 const message = {
   buffer: '',
-  kind: 'info',
+  kind: 'info' as NotificationKind,
 }
 
 const resetMsg = () => {
@@ -368,7 +369,7 @@ const resetMsg = () => {
   // TODO: need some way to group together multiple messages of the same time
   // sent as separate msgs. e.g. we might get 3 error messages one after the other
   // however the 'emsg' kind is only sent on the first one
-  setTimeout(() => message.kind = 'info', 100)
+  setTimeout(() => message.kind = undefined, 100)
 }
 
 // TODO: idk what to do with this. need to figure out what all the possible kinds can be
@@ -380,14 +381,22 @@ r.msg_start_kind = kind => {
   else console.log('new msg kind:', kind)
 }
 
-r.msg_showcmd = (content = []) => dispatch.pub('notification:info', content.join(''))
+r.msg_showcmd = (content = []) => notify(content.join(''))
 
 r.msg_chunk = data => message.buffer += data
 
-// TODO: dedup identical messages by debouncing in short time frame
 r.msg_end = () => {
   // TODO: not sure why we are getting these strange thingies...
-  if (message.buffer !== '<') dispatch.pub(`notification:${message.kind}`, message.buffer)
+  if (message.buffer === '<') return resetMsg()
+  if (!message.kind) notify(message.buffer, NotifyKind.Hidden)
+
+  matchOn(message.kind)({
+    [NotifyKind.Error]: () => notify(message.buffer, NotifyKind.Error),
+    [NotifyKind.Warning]: () => notify(message.buffer, NotifyKind.Warning),
+    [NotifyKind.Info]: () => notify(message.buffer, NotifyKind.Info),
+    [NotifyKind.Success]: () => notify(message.buffer, NotifyKind.Success),
+  })
+
   resetMsg()
 }
 

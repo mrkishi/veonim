@@ -1,6 +1,6 @@
 import { read as readPluginsFromVimrc, install, remove, removeExtraneous, Plugin } from '@veonim/plugin-manager'
+import { NotifyKind, notify } from '../ui/notifications'
 import { watchConfig } from '../config/config-reader'
-import * as dispatch from '../messaging/dispatch'
 import { action, cmd } from '../core/neovim'
 
 // TODO: support other plugin host sites besides github.com?
@@ -8,12 +8,12 @@ import { action, cmd } from '../core/neovim'
 
 const installPlugins = async (plugins: Plugin[], { reinstall = false } = {}) => {
   if (!plugins.length) return removeExtraneous()
-  dispatch.pub('notification:system', `Found ${plugins.length} Vim plugins. Installing...`)
+  notify(`Found ${plugins.length} Vim plugins. Installing...`, NotifyKind.System)
 
   if (reinstall) await remove(plugins)
   // TODO: show install progress somehow
   await Promise.all(plugins.map(p => install(p)))
-  dispatch.pub('notification:success', `Installed ${plugins.length} Vim plugins!`)
+  notify(`Installed ${plugins.length} Vim plugins!`, NotifyKind.Success)
 
   removeExtraneous()
   cmd(`packloadall!`)

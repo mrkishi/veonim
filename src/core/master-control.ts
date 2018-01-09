@@ -1,9 +1,9 @@
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import NeovimUtils, { CmdGroup, FunctionGroup } from '../support/neovim-utils'
+import { NotifyKind, notify as notifyUI } from '../ui/notifications'
 import CreateTransport from '../messaging/transport'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
-import { pub } from '../messaging/dispatch'
 import SetupRPC from '../messaging/rpc'
 import Neovim from '@veonim/neovim'
 import { homedir } from 'os'
@@ -144,7 +144,7 @@ export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
   switchTo(id)
   const errors = await unblock()
 
-  if (errors.length) pub('notification:error', errors)
+  if (errors.length) notifyUI(errors.join('\n'), NotifyKind.Error)
 
   api.command(`let g:vn_loaded = 1`)
   api.command(`set laststatus=0`)
