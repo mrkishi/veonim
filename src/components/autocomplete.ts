@@ -72,6 +72,7 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
 }, [
   documentation && anchorAbove ? docs(documentation) : undefined,
 
+  // TODO: can we just use overflow hidden? NO MAUS K?
   h('.no-scroll-bar', {
     onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
     style: {
