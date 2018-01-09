@@ -14,6 +14,7 @@ const view = ({ ready, total, loading, vis }: State, { hide }: any) => h('#vim-p
     h('.message', { render: loading }, `Installing ${ready}/${total} Vim plugins...`),
     h('.message', { render: !loading }, `Installed ${total} Vim plugins`),
     h('div', { style: { display: 'flex' } }, [
+      // TODO: NO MAUSSS!
       h('button', {
         onclick: hide,
         style: { 'flex': 1, }

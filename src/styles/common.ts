@@ -27,6 +27,7 @@ export const modstyl = (states: object): StyledComponent => (...args: any[]) => 
 }
 
 const pluginBase = {
+  zIndex: 99,
   display: 'flex',
   width: '100%',
   justifyContent: 'center',
