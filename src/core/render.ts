@@ -376,7 +376,6 @@ const resetMsg = () => {
 // so far have found: emsg, echo
 // i suppose more will show up in the api docs?
 r.msg_start_kind = kind => {
-  console.log('msgkind:', kind)
   if (msgKinds.has(kind)) message.kind = msgKinds.get(kind)!
   else console.log('new msg kind:', kind)
 }

@@ -106,7 +106,7 @@ const view = ($: State) => Plugin.top('notifications', true, [
 const a: Actions<State> = {}
 
 a.notify = (s, a, notification: Notification) => {
-  const time = notification.kind === NotifyKind.Info ? 800 : 3e3
+  const time = notification.kind === NotifyKind.Info ? 1200 : 3e3
   setTimeout(() => a.expire(notification.id), time)
   return { notifications: [...s.notifications, notification] }
 }
