@@ -73,7 +73,7 @@ interface AnimateElement {
 const animate = (element: HTMLElement & AnimateElement, keyframes: object[], options = {} as any) => {
   if (options.duration) {
     element.animate(keyframes, options)
-    return new Promise(fin => setTimeout(fin, options.duration - 2))
+    return new Promise(fin => setTimeout(fin, options.duration - 25))
   }
 
   return element.animate(keyframes, options)
