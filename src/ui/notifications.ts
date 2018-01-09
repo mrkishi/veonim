@@ -1,7 +1,7 @@
 import { h, app, style, Actions } from '../ui/uikit'
 import { Plugin, colors } from '../styles/common'
+import { merge, uuid } from '../support/utils'
 import { sub } from '../messaging/dispatch'
-import { merge } from '../support/utils'
 import Icon from '../components/icon'
 
 enum NotifyKind {
@@ -13,6 +13,7 @@ enum NotifyKind {
 }
 
 interface Notification {
+  id: string,
   kind: NotifyKind,
   message: string,
 }
@@ -66,6 +67,7 @@ const IconBox = style('div')({
 const box = (StyleObject: Function, message: string, icon: string) => StyleObject({}, [
   ,IconBox({}, [ Icon(icon) ])
   ,h('span', message)
+  // TODO: show count for multiple messages of the same type?
 ])
 
 const view = ($: State) => Plugin.top('notifications', true, [
@@ -88,12 +90,44 @@ const view = ($: State) => Plugin.top('notifications', true, [
 
 const a: Actions<State> = {}
 
-a.notify = (s, _a, notification: Notification) => ({ notifications: [...s.notifications, notification] })
+a.notify = (s, a, notification: Notification) => {
+  const time = notification.kind === NotifyKind.Info ? 800 : 3e3
+  setTimeout(() => a.expire(notification.id), time)
+  return { notifications: [...s.notifications, notification] }
+}
+
+a.expire = (s, _a, id: string) =>
+  ({ notifications: s.notifications.filter(m => m.id !== id) })
 
 const ui = app({ state, view, actions: a }, false, container)
 
-sub('notification:error', message => ui.notify({ message, kind: NotifyKind.Error } as Notification))
-sub('notification:warning', message => ui.notify({ message, kind: NotifyKind.Warning } as Notification))
-sub('notification:success', message => ui.notify({ message, kind: NotifyKind.Success } as Notification))
-sub('notification:info', message => ui.notify({ message, kind: NotifyKind.Info } as Notification))
-sub('notification:system', message => ui.notify({ message, kind: NotifyKind.System } as Notification))
+// TODO: too much code here...
+sub('notification:error', message => ui.notify({
+  id: uuid(),
+  message,
+  kind: NotifyKind.Error
+} as Notification))
+
+sub('notification:warning', message => ui.notify({
+  id: uuid(),
+  message,
+  kind: NotifyKind.Warning
+} as Notification))
+
+sub('notification:success', message => ui.notify({
+  id: uuid(),
+  message,
+  kind: NotifyKind.Success
+} as Notification))
+
+sub('notification:info', message => ui.notify({
+  id: uuid(),
+  message,
+  kind: NotifyKind.Info
+} as Notification))
+
+sub('notification:system', message => ui.notify({
+  id: uuid(),
+  message,
+  kind: NotifyKind.System
+} as Notification))
