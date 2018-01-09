@@ -31,7 +31,7 @@ export const colors = {
   warning: '#ffb100',
   success: '#72a940',
   overlay: {
-    background: 'rgb(20, 20, 20)'
+    background: 'rgb(25, 25, 25)'
   }
 }
 
@@ -62,7 +62,7 @@ const plugin = {
 }
 
 const Dialog = style('div')({
-  background: 'rgb(20, 20, 20)',
+  background: 'rgb(25, 25, 25)',
   marginTop: '15%',
 })
 
