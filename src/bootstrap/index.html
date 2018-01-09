@@ -7,10 +7,6 @@
   cursor: none;
 }
 
-.no-scroll-bar::-webkit-scrollbar {
-  display: none;
-}
-
 body {
   --font: 'Courier New';
   --font-size: 12;
@@ -28,17 +24,6 @@ body {
   flex-flow: column;
 }
 
-button {
-  padding-left: 12px;
-  padding-right: 12px;
-  font-family: var(--font);
-  font-size: calc(var(--font-size) * 1px);
-  outline: none;
-  border: none;
-  background: #666;
-  color: #fff;
-}
-
 input {
   font-family: var(--font);
   font-size: calc(var(--font-size) * 1px);
@@ -50,130 +35,6 @@ input {
   background: none;
   line-height: var(--line-height);
   padding: 0;
-}
-
-.alert {
-  display: flex;
-  background: #444;
-}
-
-.alert .message {
-  padding-top: 6px;
-  padding-bottom: 6px;
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
-.highlight {
-  color: #aaa;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.bubble {
-  border-radius: 2px;
-  padding-left: 4px;
-  padding-right: 4px;
-  background: #212121;
-}
-
-.gui-cursor {
-  background: #bbb;
-  line-height: var(--line-height);
-}
-
-.gui-input {
-  display: flex;
-  padding-left: 8px;
-  background: #222;
-}
-
-.row {
-  padding-left: 8px;
-  padding-right: 8px;
-  line-height: var(--line-height);
-  background: #333;
-  color: #bbb;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.row.dim {
-  color: #888;
-}
-
-.row.important {
-  color: #ffd800;
-  background: #222;
-}
-
-.row.header {
-  padding-top: 2px;
-  padding-bottom: 2px;
-  color: #c7c7c7;
-  background: #2b2b2b;
-}
-
-.row.header.active {
-  color: #fff;
-  background: #5a5a5a;
-  font-weight: normal;
-}
-
-.row-group {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-.row.active {
-  background: #3f3f3f;
-  color: #eee;
-  font-weight: bold;
-}
-
-.active {
-  color: #eee;
-}
-
-.plugin {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.plugin.bottom {
-  align-items: flex-end;
-}
-
-.plugin.right {
-  justify-content: flex-end;
-  align-items: stretch;
-}
-
-.dialog {
-/*  background: #333; */
-  margin-top: 15%;
-}
-
-.dialog.small {
-  width: 200px;
-}
-
-.dialog.medium {
-  width: 300px;
-}
-
-.dialog.large {
-  width: 400px;
-}
-
-.dialog.xlarge {
-  width: 500px;
-}
-
-.dialog.top {
-  margin-top: 0;
 }
     </style>
   </head>

@@ -98,7 +98,7 @@ const container = document.getElementById('statusline') as HTMLElement
 merge(container.style, {
   height: '24px',
   display: 'flex',
-  'z-index': 240,
+  zIndex: 900,
 })
 
 // TODO: LOL NOPE

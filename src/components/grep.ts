@@ -1,6 +1,6 @@
 import { action, cmd, call, current, feedkeys, expr } from '../core/neovim'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
-import { Plugin, Row } from '../styles/common'
+import { Plugin, Row, Badge } from '../styles/common'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
 
@@ -104,8 +104,8 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
   }, [
 
     ,Row.header({ activeWhen: pos === $.ix }, [
-      h('span', path),
-      h('span.bubble', { style: { 'margin-left': '12px' } }, items.length),
+      ,h('span', path),
+      ,Badge(items.length, { marginLeft: '12px' })
     ])
 
     ,pos === $.ix && Row.group({}, items.map((f, itemPos) => Row.normal({
@@ -113,7 +113,10 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
     }, highlightPattern(f.text, $.val, {
       normal: m => h('span', m),
       special: m => h('span.highlight', {
-        css: { active: pos === $.ix && itemPos === $.subix },
+        style: pos === $.ix && itemPos === $.subix && {
+          color: '#aaa',
+          background: 'rgba(255, 255, 255, 0.1)',
+        }
       }, m),
     }))))
 

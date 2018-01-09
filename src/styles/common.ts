@@ -1,4 +1,4 @@
-import { paddingVH, paddingH } from '../ui/css'
+import { paddingVH, paddingH, paddingV } from '../ui/css'
 import { is } from '../support/utils'
 import { style } from '../ui/uikit'
 
@@ -31,6 +31,14 @@ export const colors = {
   warning: '#ffb100',
   success: '#72a940',
 }
+
+const badge = style('span')({
+  ...paddingV(4),
+  borderRadius: '2px',
+  background: '#212121',
+})
+
+export const Badge = (content: string | number, style = {}) => badge({ style }, content)
 
 const pluginBase = {
   zIndex: 99,

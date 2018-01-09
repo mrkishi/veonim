@@ -4,9 +4,9 @@ import * as canvasContainer from '../core/canvas-container'
 import { cmd, feedkeys, current } from '../core/neovim'
 import { QuickfixGroup } from '../ai/diagnostics'
 import { simplifyPath } from '../support/utils'
+import { Row, Badge } from '../styles/common'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
-import { Row } from '../styles/common'
 import Icon from '../components/icon'
 import { join } from 'path'
 
@@ -106,9 +106,9 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
     desc: 'filter by files',
   })
 
-  ,h('.no-scroll-bar', {
+  ,h('div', {
     onupdate: (e: HTMLElement) => elref = e,
-    style: { overflowY: 'scroll' }
+    style: { overflowY: 'hidden' }
   }, $.problems.map(({ file, dir, items }, pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
@@ -123,7 +123,7 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
           fontSize: `${canvasContainer.font.size} - 2px`,
         }
       }, simplifyPath(dir, current.cwd)),
-      ,h('span.bubble', items.length)
+      ,Badge(items.length)
     ])
 
     ,pos === $.ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.normal({
