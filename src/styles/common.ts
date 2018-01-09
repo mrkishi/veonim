@@ -34,13 +34,7 @@ const pluginBase = {
 
 const plugin = {
   default: style('div')({ ...pluginBase, alignItems: 'flex-start' }),
-  normal: style('div')({
-    ...pluginBase,
-    alignItems: 'flex-start',
-    background: 'rbg(20, 20, 20)',
-    marginTop: '15%',
-    width: '600px',
-  }),
+  top: style('div')({ ...pluginBase, alignItems: 'flex-start' }),
   bottom: style('div')({ ...pluginBase, alignItems: 'flex-end' }),
   right: style('div')({
     ...pluginBase,
@@ -54,7 +48,8 @@ const Dialog = style('div')({
   marginTop: '15%',
 })
 
-const dialogCreator = (size: number, content: Content) => Dialog({ style: { width: `${size}px` } }, content)
+const dialogCreator = (size: number, content: Content, style = {} as any) =>
+  Dialog({ style: { ...style, width: `${size}px` } }, content)
 
 const pluginCreator = (id: string, visible: boolean, content: Content, type: string) =>
   Reflect.get(plugin, type)({ id, style: { display: visible ? 'flex' : 'none' }}, content)
@@ -62,6 +57,8 @@ const pluginCreator = (id: string, visible: boolean, content: Content, type: str
 export const Plugin = {
   default: (name: string, visible: boolean, content: Content) =>
     pluginCreator(name, visible, dialogCreator(600, content), 'default'),
+  top: (name: string, visible: boolean, content: Content, style?: object) =>
+    pluginCreator(name, visible, dialogCreator(400, content, style), 'top'),
   bottom: (name: string, visible: boolean, content: Content) =>
     pluginCreator(name, visible, content, 'bottom'),
   right: (name: string, visible: boolean, content: Content) =>

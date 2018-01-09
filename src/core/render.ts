@@ -380,14 +380,14 @@ r.msg_start_kind = kind => {
   else console.log('new msg kind:', kind)
 }
 
-r.msg_showcmd = (content = []) => dispatch.pub('notification:info', { message: content.join('') })
+r.msg_showcmd = (content = []) => dispatch.pub('notification:info', content.join(''))
 
 r.msg_chunk = data => message.buffer += data
 
 // TODO: dedup identical messages by debouncing in short time frame
 r.msg_end = () => {
   // TODO: not sure why we are getting these strange thingies...
-  if (message.buffer !== '<') dispatch.pub(`notification:${message.kind}`, { message: message.buffer })
+  if (message.buffer !== '<') dispatch.pub(`notification:${message.kind}`, message.buffer)
   resetMsg()
 }
 

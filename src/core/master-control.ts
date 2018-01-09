@@ -144,10 +144,7 @@ export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
   switchTo(id)
   const errors = await unblock()
 
-  if (errors.length) pub('notification:error', {
-    title: 'Neovim startup problem',
-    message: errors,
-  })
+  if (errors.length) pub('notification:error', errors)
 
   api.command(`let g:vn_loaded = 1`)
   api.command(`set laststatus=0`)

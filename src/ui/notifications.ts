@@ -1,18 +1,18 @@
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { h, app, style, Actions } from '../ui/uikit'
 import { sub } from '../messaging/dispatch'
-import { is } from '../support/utils'
+import { Plugin } from '../styles/common'
+import Icon from '../components/icon'
 
 enum NotifyKind {
-  error = 'error',
-  warning = 'warning',
-  info = 'info',
-  success = 'success',
+  Error = 'error',
+  Warning = 'warning',
+  Info = 'info',
+  Success = 'success',
 }
 
 interface Notification {
-  type: NotifyKind,
-  title: string,
-  message: string | string[],
+  kind: NotifyKind,
+  message: string,
 }
 
 interface State {
@@ -23,27 +23,54 @@ const state: State = {
   notifications: [],
 }
 
-const view = ({ notifications }: State, { dismiss }: ActionCaller) =>
-h('#notifications', notifications.map(({ type, title, message }, ix) => h(`.notification.${type}`, [
-  h('.header', [
-    h('.title', title),
-    h('button.close', { onclick: () => dismiss(ix) }, `×`),
-  ]),
-  h('.message', is.array(message)
-    ? (message as string[]).map(m => h('.line', m))
-    : message
-  ),
-])))
-  
+const notification = {
+  display: 'flex',
+  marginBottom: '6px',
+  padding: '10px',
+  background: 'rgb(20, 20, 20)',
+}
+
+const ErrorNotification = style('div')({
+  ...notification,
+  color: '#ef2f2f',
+})
+
+const InfoNotification = style('div')({
+  ...notification,
+  color: '#eee',
+})
+
+// TODO: dedup with other similar styles
+const IconBox = style('div')({
+  display: 'flex',
+  paddingRight: '8px',
+  alignItems: 'center',
+})
+
+const box = (StyleObject: Function, message: string, icon: string) => StyleObject({}, [
+  ,IconBox({}, [ Icon(icon) ])
+  ,h('span', message)
+])
+
+const view = ($: State) => Plugin.top('notifications', true, [
+
+  ,h('div', $.notifications.map(({ kind, message }) => {
+
+    if (kind === NotifyKind.Error) return box(ErrorNotification, message, 'error')
+    if (kind === NotifyKind.Info) return box(InfoNotification, message, 'message-circle')
+
+  }))
+
+], {
+  background: 'none',
+  marginTop: '5px',
+})
+
 const a: Actions<State> = {}
 
-a.dismiss = (s, _a, ix: number) => ({ notifications: s.notifications.filter((_, index) => index !== ix) })
 a.notify = (s, _a, notification: Notification) => ({ notifications: [...s.notifications, notification] })
 
 const ui = app({ state, view, actions: a }, false)
 
-sub('notification:error', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.error }))
-sub('notification:warning', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.warning }))
-sub('notification:info', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.info }))
-sub('notification:success', ({ title, message }) => ui.notify({ title, message, type: NotifyKind.success }))
-// TODO: add styles for warning, info, success
+sub('notification:error', message => ui.notify({ message, kind: NotifyKind.Error } as Notification))
+sub('notification:info', message => ui.notify({ message, kind: NotifyKind.Info } as Notification))
