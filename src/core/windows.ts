@@ -1,4 +1,4 @@
-import { throttle, merge, listof, simplifyPath } from '../support/utils'
+import { throttle, merge, listof, simplifyPath, pathReducer, makel } from '../support/utils'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
 import { getCurrent, current, cmd } from '../core/neovim'
@@ -15,6 +15,7 @@ export interface VimWindow {
   modified: boolean,
   active: boolean,
   terminal: boolean,
+  dir?: string,
 }
 
 export interface RenderWindow extends VimWindow {
@@ -34,6 +35,7 @@ export interface WindowApi {
   modified: boolean,
   active: boolean,
   name?: string,
+  dir?: string,
   terminal: boolean,
   updateBackground(): void,
 }
@@ -70,34 +72,25 @@ merge(container.style, {
 })
 
 const createWindowEl = () => {
-  const element = document.createElement('div')
-  merge(element.style, {
+  const element = makel({
     display: 'none',
     flexFlow: 'column',
     background: 'none',
   })
 
-  const canvasBox = document.createElement('div')
-  const titleBar = document.createElement('div')
-  const nameplateBox = document.createElement('div')
-  const nameplate = document.createElement('div')
-  const canvas = createWindow(canvasBox)
-  const modifiedBubble = document.createElement('div')
-  const terminalIcon = document.createElement('div')
-
-  merge(canvasBox.style, {
+  const canvasBox = makel({
     flex: 1,
     overflow: 'hidden',
   })
 
-  merge(titleBar.style, {
+  const titleBar = makel({
     height: `${specs.nameplateHeight}px`,
     minHeight: `${specs.nameplateHeight}px`,
     display: 'flex',
     overflow: 'hidden',
   })
 
-  merge(nameplateBox.style, {
+  const nameplateBox = makel({
     maxWidth: 'calc(100% - 20px)',
     display: 'flex',
     alignItems: 'center',
@@ -105,14 +98,16 @@ const createWindowEl = () => {
     paddingRight: '10px',
   })
 
-  merge(nameplate.style, {
-    color: '#aaa',
+  const nameplate = makel({
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   })
 
-  merge(modifiedBubble.style, {
+  const nameplateName = makel('span', { color: '#aaa' })
+  const nameplateDir = makel('span', { color: '#555', marginRight: '1px' })
+
+  const modifiedBubble = makel({
     display: 'none',
     marginTop: '2px',
     marginLeft: '8px',
@@ -122,7 +117,7 @@ const createWindowEl = () => {
     width: `${Math.round(canvasContainer.font.size / 2)}px`,
   })
 
-  merge(terminalIcon.style, {
+  const terminalIcon = makel({
     display: 'none',
     marginRight: '8px',
     color: '#aaa',
@@ -144,6 +139,10 @@ const createWindowEl = () => {
     <line x1="12" y1="19" x2="20" y2="19"></line>
   </svg>`
 
+  const canvas = createWindow(canvasBox)
+
+  nameplate.appendChild(nameplateDir)
+  nameplate.appendChild(nameplateName)
   nameplateBox.appendChild(terminalIcon)
   nameplateBox.appendChild(nameplate)
   nameplateBox.appendChild(modifiedBubble)
@@ -155,7 +154,8 @@ const createWindowEl = () => {
   const api: WindowApi = {
     set modified(yes: boolean) { modifiedBubble.style.display = yes ? 'block' : 'none' },
     set active(yes: boolean) { nameplate.style.filter = `brightness(${yes ? 130 : 90}%)` },
-    set name(name: string) { nameplate.innerText = name || '[No Name]'},
+    set name(name: string) { nameplateName.innerText = name || '[No Name]' },
+    set dir(dir: string) { nameplateDir.innerText =  dir ? `${dir}/` : '' },
     set terminal(yes: boolean) { terminalIcon.style.display = yes ? 'flex' : 'none' },
     updateBackground: () => {
       canvasBox.style.background = current.bg
@@ -265,7 +265,7 @@ const horizontalSpace = (splits: number) => {
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
-  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name && w.terminal === lw.terminal)
+  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name && w.terminal === lw.terminal && w.dir === lw.dir)
 })
 
 const getSplits = (wins: VimWindow[]) => {
@@ -342,15 +342,34 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   }
 }
 
+const improvedWindowTitle = (name: string, uniqNames: Set<string>, terminal: boolean) => {
+  if (terminal || !name) return { name }
+
+  const uniqueNames = [...uniqNames].filter(m => m !== name)
+  const uniqueNameReducers = uniqueNames.map(m => pathReducer(m))
+  const nameReducer = pathReducer(name)
+
+  const file = nameReducer.reduce()
+  const uniqueFileNames = new Set(uniqueNameReducers.map(m => m.reduce()))
+
+  // TODO: go n-levels deeper
+  return { name: file, dir: uniqueFileNames.has(file) ? nameReducer.reduce() : undefined }
+}
+
+const betterTitles = (windows: VimWindow[]): VimWindow[] => {
+  const uniqNames = new Set(windows.map(w => w.name))
+  return windows.map(w => ({ ...w, ...improvedWindowTitle(w.name, uniqNames, w.terminal) }))
+}
+
 let winPos = [] as any
 let gridResizeInProgress = false
 let initialRenderPass = true
 
 export const render = async () => {
-  const wins = await getWindows()
+  const ws = await getWindows()
 
   const actualColumns = canvasContainer.size.cols - 1
-  const availableColumns = horizontalSpace(getSplitCount(wins).vertical)
+  const availableColumns = horizontalSpace(getSplitCount(ws).vertical)
 
   if (!initialRenderPass && availableColumns !== actualColumns && !gridResizeInProgress) {
     gridResizeInProgress = true
@@ -374,6 +393,8 @@ export const render = async () => {
   // when 2 happen, they will be resized for 3.
 
   if (gridResizeInProgress && availableColumns === actualColumns) gridResizeInProgress = false
+
+  const wins = betterTitles(ws)
 
   if (cache.windows) {
     findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {

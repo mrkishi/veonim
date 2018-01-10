@@ -27,7 +27,6 @@ app.on('ready', async () => {
   }})
 
   win = new BrowserWindow({
-    show: false,
     width: 800,
     height: 600,
     frame: config('window_frame', vimtype.bool).or(true),

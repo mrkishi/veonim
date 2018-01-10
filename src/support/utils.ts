@@ -247,3 +247,15 @@ export class NewlineSplitter extends Transform {
     done()
   }
 }
+
+type EL1 = (tagName: string, style: object) => HTMLElement
+type EL2 = (style: object) => HTMLElement
+
+export const makel: EL1 & EL2 = (...args: any[]) => {
+  const styleObject = args.find(is.object)
+
+  const el = document.createElement(args.find(is.string) || 'div')
+  styleObject && merge(el.style, styleObject)
+
+  return el
+}
