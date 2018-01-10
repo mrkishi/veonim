@@ -1,4 +1,4 @@
-import { throttle, merge, listof, simplifyPath, pathReducer, makel } from '../support/utils'
+import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
 import { getCurrent, current, cmd } from '../core/neovim'
@@ -53,6 +53,18 @@ interface GridInfo {
   gridTemplateRows: string,
   gridTemplateColumns: string,
   windows: RenderWindow[],
+}
+
+type EL1 = (tagName: string, style: object) => HTMLElement
+type EL2 = (style: object) => HTMLElement
+
+export const makel: EL1 & EL2 = (...args: any[]) => {
+  const styleObject = args.find(is.object)
+
+  const el = document.createElement(args.find(is.string) || 'div')
+  styleObject && merge(el.style, styleObject)
+
+  return el
 }
 
 const cache = { windows: [] as VimWindow[] }
