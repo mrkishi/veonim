@@ -29,6 +29,8 @@ app.on('ready', async () => {
   win = new BrowserWindow({
     width: 800,
     height: 600,
+    minWidth: 600,
+    minHeight: 400,
     frame: config('window_frame', vimtype.bool).or(true),
     backgroundColor: '#222',
     autoHideMenuBar: true,

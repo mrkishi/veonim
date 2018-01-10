@@ -36,9 +36,42 @@ input {
   line-height: var(--line-height);
   padding: 0;
 }
+
+#start {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-flow: column;
+  height: 100%;
+  width: 100%;
+}
+
+#start .logo {
+  margin-top: 100px;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  background: url('../assets/header.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position-x: center;
+}
+
+#start .detail {
+  padding-top: 10px;
+  font-size: 18px;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #555;
+  flex: 2;
+}
     </style>
   </head>
   <body>
+    <div id="start">
+      <div class="logo"></div>
+      <div class="detail">neovim with 100% more nyan cat</div>
+    </div>
     <div id="notifications"></div>
     <div id="cursor"></div>
     <div id="cursorline"></div>

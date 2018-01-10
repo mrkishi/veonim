@@ -56,5 +56,6 @@ const main = async () => {
 main().catch(log)
 
 export const touched = () => {
-  console.log('dont touch me')
+  const start = document.getElementById('start')
+  if (start) start.remove()
 }
