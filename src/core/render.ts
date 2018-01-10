@@ -366,15 +366,9 @@ const message = {
 
 const resetMsg = () => {
   message.buffer = ''
-  // TODO: need some way to group together multiple messages of the same time
-  // sent as separate msgs. e.g. we might get 3 error messages one after the other
-  // however the 'emsg' kind is only sent on the first one
-  setTimeout(() => message.kind = undefined, 100)
+  setTimeout(() => message.kind = undefined, 1)
 }
 
-// TODO: idk what to do with this. need to figure out what all the possible kinds can be
-// so far have found: emsg, echo
-// i suppose more will show up in the api docs?
 r.msg_start_kind = kind => {
   if (msgKinds.has(kind)) message.kind = msgKinds.get(kind)!
   else console.log('new msg kind:', kind)
@@ -385,7 +379,6 @@ r.msg_showcmd = (content = []) => notify(content.join(''))
 r.msg_chunk = data => message.buffer += data
 
 r.msg_end = () => {
-  // TODO: not sure why we are getting these strange thingies...
   if (message.buffer === '<') return resetMsg()
   if (!message.kind) notify(message.buffer, NotifyKind.Hidden)
 
