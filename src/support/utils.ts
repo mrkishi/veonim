@@ -16,7 +16,7 @@ const logger = (str: TemplateStringsArray | string, v: any[]) => Array.isArray(s
 
 export const log = (str: TemplateStringsArray | string, ...vars: any[]) => logger(str, vars)
 
-process.on('unhandledRejection', e => console.log(e))
+process.on('unhandledRejection', e => console.error(e))
 
 type TypeChecker = (thing: any) => boolean
 interface Types { string: TypeChecker, number: TypeChecker, array: TypeChecker, object: TypeChecker, null: TypeChecker, asyncfunction: TypeChecker, function: TypeChecker, promise: TypeChecker, map: TypeChecker, set: TypeChecker }
