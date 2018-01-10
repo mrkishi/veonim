@@ -1,6 +1,7 @@
 import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { action, call } from '../core/neovim'
+import { touched } from '../bootstrap/galaxy'
 import { $ } from '../support/utils'
 import { Script } from 'vm'
 
@@ -10,6 +11,7 @@ let isCapturing = false
 let holding = ''
 let xformed = false
 let lastDown = ''
+let initialKeyPress = true
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -94,6 +96,8 @@ export const transform = {
 }
 
 const sendKeys = async (e: KeyboardEvent) => {
+  if (initialKeyPress) (initialKeyPress = false, touched())
+
   const key = bypassEmptyMod(e.key)
   if (!key) return
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))

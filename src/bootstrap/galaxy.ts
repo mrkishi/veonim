@@ -54,3 +54,7 @@ const main = async () => {
 }
 
 main().catch(log)
+
+export const touched = () => {
+  console.log('dont touch me')
+}
