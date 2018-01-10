@@ -55,7 +55,7 @@ const Notification = style('div')({ ...notification, color: '#eee' })
 const Err = style('div')({ ...notification, color: colors.error })
 const Success = style('div')({ ...notification, color: colors.success })
 const Warn = style('div')({ ...notification, color: colors.warning })
-const System = style('div')({ ...notification, color: colors.success })
+const System = style('div')({ ...notification, color: colors.system })
 
 // TODO: dedup with other similar styles
 const IconBox = style('div')({
