@@ -1,6 +1,7 @@
 import { Badge, Plugin, colors } from '../styles/common'
 import { merge, uuid, debounce } from '../support/utils'
 import { h, app, style, Actions } from '../ui/uikit'
+import { addMessage } from '../components/messages'
 import Icon from '../components/icon'
 import { animate } from '../ui/css'
 
@@ -17,12 +18,13 @@ interface FlexibleExpire {
   refresh(): void
 }
 
-interface Notification {
+export interface Notification {
   id: string,
   kind: NotifyKind,
   message: string,
   count: number,
   expire?: FlexibleExpire,
+  time: number,
 }
 
 interface State {
@@ -49,25 +51,11 @@ const notification = {
   background: colors.overlay.background,
 }
 
-const Notification = style('div')({
-  ...notification,
-  color: '#eee',
-})
-
-const Err = style('div')({
-  ...notification,
-  color: colors.error,
-})
-
-const Success = style('div')({
-  ...notification,
-  color: colors.success,
-})
-
-const Warn = style('div')({
-  ...notification,
-  color: colors.warning,
-})
+const Notification = style('div')({ ...notification, color: '#eee' })
+const Err = style('div')({ ...notification, color: colors.error })
+const Success = style('div')({ ...notification, color: colors.success })
+const Warn = style('div')({ ...notification, color: colors.warning })
+const System = style('div')({ ...notification, color: colors.success })
 
 // TODO: dedup with other similar styles
 const IconBox = style('div')({
@@ -111,7 +99,7 @@ const view = ($: State) => Plugin.top('notifications', true, [
     if (kind === NotifyKind.Warning) return box(Warn, data, 'warning')
     if (kind === NotifyKind.Success) return box(Success, data, 'check-circle')
     if (kind === NotifyKind.Info) return box(Notification, data, 'message-circle')
-    if (kind === NotifyKind.System) return box(Notification, data, 'info')
+    if (kind === NotifyKind.System) return box(System, data, 'info')
 
   }))
 
@@ -143,9 +131,15 @@ a.expire = (s, _a, id: string) =>
 
 const ui = app({ state, view, actions: a }, false, container)
 
-export const notify = (message: string, kind = NotifyKind.Info) => ui.notify({
-  kind,
-  message,
-  id: uuid(),
-  count: 1,
-})
+export const notify = (message: string, kind = NotifyKind.Info) => {
+  const msg = {
+    kind,
+    message,
+    time: Date.now(),
+    id: uuid(),
+    count: 1,
+  }
+
+  ui.notify(msg)
+  addMessage(msg)
+}

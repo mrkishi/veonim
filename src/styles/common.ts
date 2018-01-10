@@ -30,6 +30,7 @@ export const colors = {
   error: '#ef2f2f',
   warning: '#ffb100',
   success: '#72a940',
+  system: '#28b0ff',
   overlay: {
     background: 'rgb(25, 25, 25)'
   }
