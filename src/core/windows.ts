@@ -1,6 +1,6 @@
+import { throttle, merge, listof, simplifyPath } from '../support/utils'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
-import { throttle, merge, listof } from '../support/utils'
 import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
@@ -94,13 +94,11 @@ const createWindowEl = () => {
     height: `${specs.nameplateHeight}px`,
     minHeight: `${specs.nameplateHeight}px`,
     display: 'flex',
-    // TODO: constrain canvasBox (and nameplateBox) to the size of the canvas. NO OVERFLOW
-    //whiteSpace: 'nowrap',
-    //overflow: 'hidden',
-    //textOverflow: 'ellipsis',
+    overflow: 'hidden',
   })
 
   merge(nameplateBox.style, {
+    maxWidth: 'calc(100% - 20px)',
     display: 'flex',
     alignItems: 'center',
     paddingLeft: '10px',
@@ -109,6 +107,9 @@ const createWindowEl = () => {
 
   merge(nameplate.style, {
     color: '#aaa',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   })
 
   merge(modifiedBubble.style, {
@@ -187,9 +188,7 @@ const getWindows = async (): Promise<VimWindow[]> => {
       active: w.id === activeWindow,
       height: await w.height,
       width: await w.width,
-      name: (await buffer.name)
-        .replace(current.cwd + '/', '')
-        .replace(/^term:\/\/\.\/\/\w+:/, ''),
+      name: (simplifyPath(await buffer.name, current.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
       modified: await buffer.getOption('modified'),
       terminal: (await buffer.getOption('buftype')) === 'terminal',
     }
