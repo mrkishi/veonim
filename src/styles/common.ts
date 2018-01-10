@@ -112,7 +112,7 @@ const activeRow = {
   ...row,
   color: '#fff',
   fontWeight: 'bold',
-  background: 'rgba(255, 255, 255, 0.08)',
+  background: 'rgba(255, 255, 255, 0.05)',
 }
 
 export const Row = {
