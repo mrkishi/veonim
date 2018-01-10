@@ -48,6 +48,7 @@ const main = async () => {
 
   setTimeout(() => {
     lazyLoadCSS('../assets/seti-icons.css')
+    requireDir(`${__dirname}/../services`)
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))
   }, 1)
