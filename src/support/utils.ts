@@ -62,6 +62,10 @@ export const simplifyPath = (fullpath: string, cwd: string) => fullpath.includes
   ? fullpath.split(cwd + '/')[1]
   : fullpath.includes($HOME) ? fullpath.replace($HOME, '~') : fullpath
 
+export const pathReducer = (p = '') => ((p, levels = 0) => ({ reduce: () =>
+  levels ? basename(join(p, '../'.repeat(levels++))) : (levels++, basename(p))
+}))(p)
+
 export const match = (...opts: [boolean, any][]): any => new Map(opts).get(true)
 export const matchOn = (val: any) => (opts: object): any => (Reflect.get(opts, val) || (() => {}))()
 
