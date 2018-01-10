@@ -8,6 +8,8 @@ import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
 
+type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
+
 interface Colors {
   fg: string,
   bg: string,
@@ -351,8 +353,6 @@ r.cmdline_pos = position => dispatch.pub('cmd.update', { position })
 // prepared msg_chunk:s come without a msg_start_kind(). msg_showcmd([attrs, text]) works 
 // independently of all other events.
 
-type NotificationKind = 'error' | 'warning' | 'info' | 'success' | undefined
-
 const msgKinds = new Map<string, NotificationKind>([
   ['emsg', 'error'],
   ['echo', 'info'],
@@ -366,7 +366,7 @@ const message = {
 
 const resetMsg = () => {
   message.buffer = ''
-  setTimeout(() => message.kind = undefined, 1)
+  setTimeout(() => message.kind = 'hidden', 1)
 }
 
 r.msg_start_kind = kind => {
@@ -374,11 +374,13 @@ r.msg_start_kind = kind => {
   else console.log('new msg kind:', kind)
 }
 
+// TODO: join or call foreach?
 r.msg_showcmd = (content = []) => notify(content.join(''))
 
 r.msg_chunk = data => message.buffer += data
 
 r.msg_end = () => {
+  // TODO: this only happens at startup, so maybe run this condition for a limitied period of time
   if (message.buffer === '<') return resetMsg()
   if (!message.kind) notify(message.buffer, NotifyKind.Hidden)
 
@@ -391,7 +393,6 @@ r.msg_end = () => {
 
   resetMsg()
 }
-
 
 onRedraw((m: any[]) => {
   const count = m.length
