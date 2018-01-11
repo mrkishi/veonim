@@ -100,8 +100,8 @@ a.toggle = s => {
 a.hide = () => (vimFocus(), { vis: false })
 
 a.addMessage = (s, _a, message) => ({
-  messages: [...s.messages, message],
-  cache: [...s.messages, message],
+  messages: [message, ...s.messages].slice(0, 500),
+  cache: [message, ...s.messages].slice(0, 500),
 })
 
 a.change = (s, _a, query: string) => ({ query, messages: query
