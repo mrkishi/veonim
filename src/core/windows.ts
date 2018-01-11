@@ -263,15 +263,22 @@ const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[
     w.width === lw.width
 })
 
-const horizontalSpace = (splits: number) => {
-  const { width } = container.getBoundingClientRect()
-  const { paddingX } = windows[0].canvas.getSpecs()
+const availableSpace = (verticalSplits: number, horizontalSplits: number) => {
+  const { height, width } = container.getBoundingClientRect()
+  const { paddingY, paddingX } = windows[0].canvas.getSpecs()
 
   const vw = width
-  - ((splits + 1) * paddingX * 2)
-  - (splits * specs.gridGap)
+  - ((verticalSplits + 1) * paddingX * 2)
+  - (verticalSplits * specs.gridGap)
 
-  return Math.floor(vw / canvasContainer.cell.width)
+  const vh = height
+    - ((horizontalSplits + 1) * paddingY * 2)
+    - (horizontalSplits * specs.gridGap)
+
+  const cols = Math.floor(vw / canvasContainer.cell.width)
+  const rows = Math.floor(vh / canvasContainer.cell.height)
+
+  return { cols, rows }
 }
 
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
@@ -292,6 +299,9 @@ const getSplitCount = (wins: VimWindow[]) => {
   return { vertical: vertical.size - 1, horizontal: horizontal.size - 1 }
 }
 
+const within = (target: number, tolerance: number) => (candidate: number) =>
+  Math.abs(target - candidate) <= tolerance
+
 const gogrid = (wins: VimWindow[]): GridInfo => {
   const totalRows = canvasContainer.size.rows - 1
   const totalColumns = canvasContainer.size.cols
@@ -302,6 +312,9 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 
   const yrows = [...horizontal].sort((a, b) => a - b)
   const xcols = [...vertical].sort((a, b) => a - b)
+
+  console.log('yrows', yrows.join(','))
+  console.log('xcols', xcols.join(','))
 
   const rr = yrows.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
@@ -335,10 +348,10 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
       end: w.y + w.height === totalRows ? w.y + w.height : w.y + w.height + 1,
     }
   })).map(w => {
-    const rowStart = yrows.indexOf(w.row.start) + 1
-    const rowEnd = yrows.indexOf(w.row.end) + 1
-    const colStart = xcols.indexOf(w.col.start) + 1
-    const colEnd = xcols.indexOf(w.col.end) + 1
+    const rowStart = yrows.findIndex(within(w.row.start, 2)) + 1
+    const rowEnd = yrows.findIndex(within(w.row.end, 2)) + 1
+    const colStart = xcols.findIndex(within(w.col.start, 2)) + 1
+    const colEnd = xcols.findIndex(within(w.col.end, 2)) + 1
 
     return {
       ...w,
@@ -375,17 +388,21 @@ const betterTitles = (windows: VimWindow[]): VimWindow[] => {
 
 let winPos = [] as any
 let gridResizeInProgress = false
-let initialRenderPass = true
 
 export const render = async () => {
   const ws = await getWindows()
 
+  const { vertical, horizontal } = getSplitCount(ws)
   const actualColumns = canvasContainer.size.cols - 1
-  const availableColumns = horizontalSpace(getSplitCount(ws).vertical)
+  const actualRows = canvasContainer.size.rows - 1
+  const { cols: availCols, rows: availRows } = availableSpace(vertical, horizontal)
 
-  if (!initialRenderPass && availableColumns !== actualColumns && !gridResizeInProgress) {
+  const colsNotSame = availCols !== actualColumns
+  const rowsNotSame = availRows !== actualRows
+
+  if (colsNotSame && rowsNotSame && !gridResizeInProgress) {
     gridResizeInProgress = true
-    canvasContainer.redoResize(canvasContainer.size.rows, availableColumns + 1)
+    canvasContainer.redoResize(availRows - 1, availCols + 1)
     cmd(`wincmd =`)
     return
   }
@@ -404,7 +421,8 @@ export const render = async () => {
   // that is, if there is only 1 window, the grid will be resized to accomodate 2.
   // when 2 happen, they will be resized for 3.
 
-  if (gridResizeInProgress && availableColumns === actualColumns) gridResizeInProgress = false
+  if (gridResizeInProgress && availCols === actualColumns && availRows === actualRows)
+    gridResizeInProgress = false
 
   const wins = betterTitles(ws)
 
@@ -447,7 +465,6 @@ export const render = async () => {
   }
 
   setImmediate(() => moveCursor(current.bg))
-  initialRenderPass = false
 }
 
 dispatch.sub('redraw', throttle(render, 30))
