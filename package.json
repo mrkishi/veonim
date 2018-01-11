@@ -1,7 +1,7 @@
 {
   "name": "veonim",
-  "version": "0.5.6",
-  "description": "vim end game",
+  "version": "0.7.0",
+  "description": "neovim gui with 100% more nyan cat",
   "main": "build/bootstrap/main.js",
   "scripts": {
     "test": "mocha test/unit",
@@ -21,7 +21,7 @@
     "gen-api": "node tools/gen-api.js",
     "gen-seti-icons": "node tools/gen-seti-stylesheet.js",
     "gen-icons": "node tools/build-icons.js",
-    "bins-mac": "mkdir -p bindeps/mac && npm i -f @veonim/neovim-mac@0.0.3 @veonim/ripgrep-mac@0.0.1 --prefix ./bindeps/mac",
+    "bins-mac": "mkdir -p bindeps/mac && npm i -f @veonim/neovim-mac@0.0.4 @veonim/ripgrep-mac@0.0.1 --prefix ./bindeps/mac",
     "bins-linux": "mkdir -p bindeps/linux && npm i -f @veonim/neovim-linux@0.0.2 @veonim/ripgrep-linux@0.0.1 --prefix ./bindeps/linux",
     "bins-win": "mkdir -p bindeps/win && npm i -f @veonim/neovim-win@0.0.2 @veonim/ripgrep-win@0.0.1 --prefix ./bindeps/win",
     "bins": "npm run bins-mac && npm run bins-win && npm run bins-linux",
@@ -94,7 +94,7 @@
   },
   "homepage": "https://github.com/veonim/veonim#readme",
   "dependencies": {
-    "@veonim/neovim": "0.0.13",
+    "@veonim/neovim": "0.0.14",
     "@veonim/plugin-manager": "0.4.2",
     "@veonim/ripgrep": "0.0.5",
     "fuzzaldrin-plus": "0.4.1",
@@ -102,9 +102,10 @@
     "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.5",
-    "picostyle": "^0.1.4",
+    "picostyle": "0.1.4",
     "remove-markdown": "0.2.2",
-    "vscode-jsonrpc": "3.5.0"
+    "vscode-jsonrpc": "3.5.0",
+    "vscode-languageserver-types": "3.4.0"
   },
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",
@@ -119,7 +120,6 @@
     "mocha": "4.0.1",
     "proxyquire": "1.8.0",
     "spectron": "3.7.2",
-    "typescript": "2.5.3",
-    "vscode-languageserver-types": "3.4.0"
+    "typescript": "2.5.3"
   }
 }
