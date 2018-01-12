@@ -4,7 +4,7 @@ import { on, action, getCurrent, current as vim } from '../core/neovim'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
-import * as quickfixUI from '../components/problems'
+import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { sessions } from '../core/sessions'
 import { setCursorColor } from '../core/cursor'
@@ -71,7 +71,7 @@ const findClosestProblem = (diagnostics: Diagnostic[], line: number, column: num
   return (validProblems[0] || {}).diagnostic
 }
 
-const updateUI = () => quickfixUI.update(mapAsProblems(current.diagnostics))
+const updateUI = () => problemsUI.update(mapAsProblems(current.diagnostics))
 
 const mapAsProblems = (diagsMap: Map<string, Diagnostic[]>): Problem[] =>
   [...diagsMap.entries()]
@@ -182,8 +182,8 @@ action('prev-problem', async () => {
   window.setCursor(problem.range.start.line + 1, problem.range.start.character)
 })
 
-action('problems-toggle', () => quickfixUI.toggle())
-action('problems-focus', () => quickfixUI.focus())
+action('problems-toggle', () => problemsUI.toggle())
+action('problems-focus', () => problemsUI.focus())
 
 export const setProblems = (problems: Problem[]) => {
   if (!problems || !problems.length) return
@@ -210,3 +210,8 @@ on.cursorMove(async state => {
 export const runCodeAction = (action: Command) => executeCommand(vim, action)
 
 action('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
+
+dispatch.sub('session:switch', () => {
+  dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
+  updateUI()
+})
