@@ -2,13 +2,12 @@ import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-t
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { on, action, getCurrent, current as vim } from '../core/neovim'
 import { positionWithinRange } from '../support/neovim-utils'
+import { uriToPath, limitedInterval } from '../support/utils'
 import * as problemInfoUI from '../components/problem-info'
-import * as canvasContainer from '../core/canvas-container'
 import * as codeActionUI from '../components/code-actions'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
-import { uriToPath } from '../support/utils'
 import { sessions } from '../core/sessions'
 import { cursor } from '../core/cursor'
 import '../ai/remote-problems'
@@ -117,8 +116,6 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
 const refreshProblemHighlights = async () => {
   const currentBufferPath = path.join(vim.cwd, vim.file)
   const diagnostics = current.diagnostics.get(currentBufferPath)
-  console.log('current:', currentBufferPath)
-  console.log('diagnostics:', diagnostics)
 
   const clearPreviousConcerns = cache.visibleProblems.get(`${sessions.current}:${currentBufferPath}`)
   if (clearPreviousConcerns) clearPreviousConcerns()
@@ -218,9 +215,7 @@ action('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.acti
 
 // because we resize vim grid to fit windows with padding (available columns + rows)
 // this will reset the highlights. thus we need to defer until that's done
-// would be nice to have a more deterministic way to wait until 2nd resize
-canvasContainer.on('resize', () => console.log('grid resize'))
-dispatch.sub('windows:resize.fit', () => console.log('resize fit!'))
+dispatch.sub('windows:redraw', () => limitedInterval(refreshProblemHighlights, 100, 1e3))
 
 dispatch.sub('session:switch', () => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))

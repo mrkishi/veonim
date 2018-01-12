@@ -183,6 +183,12 @@ export const throttle = (fn: (...args: any[]) => void, delay: number) => {
   return executor
 }
 
+export const limitedInterval = (fn: (...args: any[]) => void, interval: number, delay: number) => {
+  fn()
+  const timer = setInterval(fn, interval)
+  setTimeout(() => clearInterval(timer), delay)
+}
+
 const pathGet = (obj: any, paths: string[]): any => {
   if (!paths.length) return obj
   const next = Reflect.get(obj, paths[0])
