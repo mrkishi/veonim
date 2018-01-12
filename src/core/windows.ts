@@ -235,7 +235,7 @@ const fillCanvasFromGrid = (x: number, y: number, height: number, width: number,
   }
 }
 
-const setupWindow = async ({ element, canvas, canvasBox, api }: Window, window: RenderWindow) => {
+const setupWindow = ({ element, canvas, canvasBox, api }: Window, window: RenderWindow) => {
   merge(element.style, {
     display: 'flex',
     gridColumn: window.gridColumn,

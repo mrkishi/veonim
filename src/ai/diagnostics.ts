@@ -2,12 +2,12 @@ import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-t
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { on, action, getCurrent, current as vim } from '../core/neovim'
 import { positionWithinRange } from '../support/neovim-utils'
-import { uriToPath, limitedInterval } from '../support/utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
+import { uriToPath } from '../support/utils'
 import { sessions } from '../core/sessions'
 import { cursor } from '../core/cursor'
 import '../ai/remote-problems'
@@ -215,7 +215,8 @@ action('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.acti
 
 // because we resize vim grid to fit windows with padding (available columns + rows)
 // this will reset the highlights. thus we need to defer until that's done
-dispatch.sub('windows:redraw', () => limitedInterval(refreshProblemHighlights, 100, 1e3))
+dispatch.sub('windows:redraw', () => setTimeout(refreshProblemHighlights, 250))
+dispatch.sub('windows:resize.fit', () => setTimeout(refreshProblemHighlights, 250))
 
 dispatch.sub('session:switch', () => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
