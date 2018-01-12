@@ -398,6 +398,7 @@ export const render = async () => {
   const rowsNotSame = availRows !== actualRows
 
   if (colsNotSame && rowsNotSame && !gridResizeInProgress) {
+    console.log('resize to fit')
     gridResizeInProgress = true
     canvasContainer.redoResize(availRows - 1, availCols + 1)
     cmd(`wincmd =`)
@@ -418,8 +419,11 @@ export const render = async () => {
   // that is, if there is only 1 window, the grid will be resized to accomodate 2.
   // when 2 happen, they will be resized for 3.
 
-  if (gridResizeInProgress && availCols === actualColumns && availRows === actualRows)
+  if (gridResizeInProgress && availCols === actualColumns && availRows === actualRows) {
     gridResizeInProgress = false
+    console.log('done resizing to fit')
+    dispatch.pub('windows:resize.fit')
+  }
 
   const wins = betterTitles(ws)
 
