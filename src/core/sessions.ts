@@ -2,17 +2,26 @@ import { onExit, attachTo, switchTo, create } from '../core/master-control'
 import { pub } from '../messaging/dispatch'
 import { remote } from 'electron'
 
-interface Vim { id: number, name: string, active: boolean, path: string }
+interface Vim {
+  id: number,
+  name: string,
+  active: boolean,
+  path: string,
+}
+
 const vims = new Map<number, Vim>()
+const cache = { id: -1 }
 
 export default (id: number, path: string) => {
   vims.set(id, { id, path, name: 'main', active: true })
+  cache.id = id
   pub('session:create', { id, path })
   pub('session:switch', id)
 }
 
 export const createVim = async (name: string, nameAfterDir = false) => {
   const { id, path } = await create({ askCd: nameAfterDir })
+  cache.id = id
   pub('session:create', { id, path })
   attachTo(id)
   switchTo(id)
@@ -23,6 +32,7 @@ export const createVim = async (name: string, nameAfterDir = false) => {
 
 export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
+  cache.id = id
   switchTo(id)
   pub('session:switch', id)
   vims.forEach(v => v.active = false)
@@ -48,6 +58,10 @@ export const renameCurrent = (name: string) => {
 }
 
 export const list = () => [...vims.values()].filter(v => !v.active).map(v => ({ id: v.id, name: v.name }))
+
+export const sessions = {
+  get current() { return cache.id }
+}
 
 onExit((id: number) => {
   if (!vims.has(id)) return

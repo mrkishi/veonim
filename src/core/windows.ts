@@ -313,9 +313,6 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   const yrows = [...horizontal].sort((a, b) => a - b)
   const xcols = [...vertical].sort((a, b) => a - b)
 
-  console.log('yrows', yrows.join(','))
-  console.log('xcols', xcols.join(','))
-
   const rr = yrows.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
 

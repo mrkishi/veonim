@@ -2,7 +2,7 @@ import { h, app, style, Actions, ActionCaller, vimBlur, vimFocus } from '../ui/u
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
 import { cmd, feedkeys, current } from '../core/neovim'
-import { QuickfixGroup } from '../ai/diagnostics'
+import { Problem } from '../ai/diagnostics'
 import { simplifyPath } from '../support/utils'
 import { Row, Badge } from '../styles/common'
 import Input from '../components/text-input'
@@ -13,8 +13,8 @@ import { join } from 'path'
 interface State {
   focus: boolean,
   val: string,
-  problems: QuickfixGroup[],
-  cache: QuickfixGroup[],
+  problems: Problem[],
+  cache: Problem[],
   vis: boolean,
   ix: number,
   subix: number,
@@ -42,9 +42,9 @@ const scrollIntoView = (next: number) => setTimeout(() => {
   else if (top < containerTop) elref.scrollTop += top - containerTop
 }, 1)
 
-const selectResult = (results: QuickfixGroup[], ix: number, subix: number) => {
+const selectResult = (results: Problem[], ix: number, subix: number) => {
   if (subix < 0) return
-  const group: QuickfixGroup = Reflect.get(results, ix)
+  const group: Problem = Reflect.get(results, ix)
   if (!group) return
   const { file, dir, items } = group
   const { range: { start: { line, character } } } = items[subix]
@@ -193,4 +193,4 @@ const ui = app({ state, view, actions: a }, false)
 export const hide = () => ui.hide()
 export const focus = () => ui.focus()
 export const toggle = () => ui.toggle()
-export const update = (problems: QuickfixGroup[]) => ui.updateProblems(problems)
+export const update = (problems: Problem[]) => ui.updateProblems(problems)
