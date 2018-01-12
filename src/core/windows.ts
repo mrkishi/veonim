@@ -397,6 +397,8 @@ export const render = async () => {
   const colsNotSame = availCols !== actualColumns
   const rowsNotSame = availRows !== actualRows
 
+  // TODO: this is not working... like at all...
+  // at least not for columns
   if (colsNotSame && rowsNotSame && !gridResizeInProgress) {
     console.log('resize to fit')
     gridResizeInProgress = true
