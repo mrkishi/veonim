@@ -119,7 +119,9 @@ const refreshProblemHighlights = async () => {
 
   const clearPreviousConcerns = cache.visibleProblems.get(`${sessions.current}:${currentBufferPath}`)
   if (clearPreviousConcerns) clearPreviousConcerns()
-  if (!diagnostics || !diagnostics.length) return
+
+  const buffer = await getCurrent.buffer
+  if (!diagnostics || !diagnostics.length) return await buffer.clearAllHighlights()
 
   // TODO: handle severity (errors vs warnings, etc.)
   const concerns = diagnostics.map((d: Diagnostic) => ({
@@ -128,7 +130,6 @@ const refreshProblemHighlights = async () => {
     columnEnd: d.range.end.character,
   }))
 
-  const buffer = await getCurrent.buffer
   const clearToken = await buffer.highlightProblems(concerns)
   cache.visibleProblems.set(`${sessions.current}:${currentBufferPath}`, clearToken)
 }

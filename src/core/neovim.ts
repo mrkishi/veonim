@@ -98,7 +98,7 @@ export interface Buffer {
   getMark(name: string): Promise<number[]>,
   addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>,
   clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void,
-  clearAllHighlights(sourceId: number): void,
+  clearAllHighlights(): void,
   highlightProblems(problems: Problem[]): Promise<() => void>,
 }
 
@@ -478,7 +478,7 @@ const Buffer = (id: any) => ({
   getMark: name => req.buf.getMark(id, name),
   addHighlight: (sourceId, hlGroup, line, colStart, colEnd) => req.buf.addHighlight(id, sourceId, hlGroup, line, colStart, colEnd),
   clearHighlight: (sourceId, lineStart, lineEnd) => api.buf.clearHighlight(id, sourceId, lineStart, lineEnd),
-  clearAllHighlights: sourceId => api.buf.clearHighlight(id, sourceId, 1, -1),
+  clearAllHighlights: () => api.buf.clearHighlight(id, -1, 1, -1),
   highlightProblems: async problems => {
     const hlid = await req.buf.addHighlight(id, 0, '', 0, 0, 0)
     problems.forEach(c => api.buf.addHighlight(id, hlid, Highlight.Undercurl, c.line, c.columnStart, c.columnEnd))
