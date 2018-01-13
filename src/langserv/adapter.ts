@@ -3,6 +3,7 @@ import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind,
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
 import { NeovimState, applyPatches } from '../core/neovim'
+import * as path from 'path'
 
 export { onDiagnostics } from '../langserv/director'
 
@@ -57,7 +58,7 @@ const currentBuffer: CurrentBuffer = {
 // TODO: get typings for valid requests?
 const toProtocol = (data: NeovimState, more?: any) => {
   const { cwd, filetype, file, line: vimLine, column, revision } = data
-  const uri = 'file://' + cwd + '/' + file
+  const uri = `file://${path.resolve(cwd, file)}`
 
   const base = {
     cwd,
