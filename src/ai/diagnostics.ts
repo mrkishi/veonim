@@ -213,11 +213,6 @@ export const runCodeAction = (action: Command) => executeCommand(vim, action)
 
 action('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
 
-// because we resize vim grid to fit windows with padding (available columns + rows)
-// this will reset the highlights. thus we need to defer until that's done
-dispatch.sub('windows:redraw', () => setTimeout(refreshProblemHighlights, 250))
-dispatch.sub('windows:resize.fit', () => setTimeout(refreshProblemHighlights, 250))
-
 dispatch.sub('session:switch', () => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   updateUI()

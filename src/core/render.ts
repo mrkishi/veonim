@@ -211,6 +211,7 @@ r.update_sp = sp => {
   if (sp < 0) return
   merge(colors, { sp: asColor(sp) })
   dispatch.pub('colors.vim.sp', colors.sp)
+  grid.setSpecial(colors.sp)
 }
 
 r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
@@ -264,6 +265,7 @@ r.put = chars => {
   const total = chars.length
   if (!total) return
 
+  const underlinePls = !!(nextAttrs.undercurl || nextAttrs.underline)
   const { row: ogRow, col: ogCol } = cursor
   const win = getWindow(cursor.row, cursor.col)
   //// TODO: get all windows which apply for this range
@@ -282,11 +284,11 @@ r.put = chars => {
       w && w.fillText(chars[ix][0], cursor.col, cursor.row)
     }
 
-    grid.set(cursor.row, cursor.col, chars[ix][0], nextAttrs.fg, nextAttrs.bg)
+    grid.set(cursor.row, cursor.col, chars[ix][0], nextAttrs.fg, nextAttrs.bg, underlinePls, nextAttrs.sp)
     cursor.col++
   }
 
-  if (win && (nextAttrs.undercurl || nextAttrs.underline)) win.underline(ogCol, ogRow, total, nextAttrs.sp)
+  if (win && underlinePls) win.underline(ogCol, ogRow, total, nextAttrs.sp)
 }
 
 r.popupmenu_hide = () => dispatch.pub('pmenu.hide')

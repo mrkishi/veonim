@@ -187,6 +187,7 @@ export const limitedInterval = (fn: (...args: any[]) => void, interval: number, 
   fn()
   const timer = setInterval(fn, interval)
   setTimeout(() => clearInterval(timer), delay)
+  return { stop: () => clearInterval(timer) }
 }
 
 const pathGet = (obj: any, paths: string[]): any => {

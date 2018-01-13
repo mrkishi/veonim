@@ -66,6 +66,7 @@ export interface NeovimState {
   cwd: string,
   fg: string,
   bg: string,
+  sp: string,
 }
 
 export interface Problem {
@@ -232,6 +233,7 @@ export const current: NeovimState = new Proxy({
   column: 0,
   fg: '#ccc',
   bg: '#222',
+  sp: '#f00',
 }, {
   set: (target, key, value) => {
     const prevValue = Reflect.get(target, key)
@@ -363,8 +365,10 @@ const processBufferedActions = async () => {
 onCreate(() => {
   sub('colors.vim.fg', fg => current.fg = fg)
   sub('colors.vim.bg', bg => current.bg = bg)
+  sub('colors.vim.sp', sp => current.sp = sp)
   processAnyBuffered('colors.vim.fg')
   processAnyBuffered('colors.vim.bg')
+  processAnyBuffered('colors.vim.sp')
 
   g.veonim_completing = 0
   g.veonim_complete_pos = 1

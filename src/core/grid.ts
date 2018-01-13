@@ -4,25 +4,30 @@ import { listof } from '../support/utils'
 type Character = string
 type Foreground = string
 type Background = string
-type Cell = [ Character, Foreground, Background ]
+type Underline = boolean
+type UnderlineColor = string
+type Cell = [ Character, Foreground, Background, Underline, UnderlineColor ]
 
 let grid: Cell[][] = [[]]
 
-export const resize = (rows: number, columns: number) => {
-  grid = listof(rows, () => listof(columns, () => [' ', defaults.fg, defaults.bg] as Cell))
-}
-
-export const defaults = { fg: '', bg: '' }
+export const defaults = { fg: '', bg: '', sp: '' }
 export const setForeground = (fg: string) => defaults.fg = fg
 export const setBackground = (bg: string) => defaults.bg = bg
+export const setSpecial = (sp: string) => defaults.sp = sp
 export const get = (row: number, col: number): Cell => (grid[row] || [])[col] || []
 export const getLine = (row: number, start: number, end: number): Cell[] => grid[row].slice(start, end) || []
 
-export const set = (row: number, col: number, char: string, fg = defaults.fg, bg = defaults.bg) => {
+export const resize = (rows: number, columns: number) => {
+  grid = listof(rows, () => listof(columns, () => [' ', defaults.fg, defaults.bg, false, defaults.sp] as Cell))
+}
+
+export const set = (row: number, col: number, char: string, fg = defaults.fg, bg = defaults.bg, underline = false, underlineColor = defaults.sp) => {
   if (!grid[row] || !grid[row][col]) return
   grid[row][col][0] = char
   grid[row][col][1] = fg
   grid[row][col][2] = bg
+  grid[row][col][3] = underline
+  grid[row][col][4] = underlineColor
 }
 
 export const moveRegionDown = (amt: number, top: number, bottom: number, left: number, right: number) => {
@@ -35,14 +40,20 @@ export const moveRegionDown = (amt: number, top: number, bottom: number, left: n
         line[xix][0] = ' '
         line[xix][1] = defaults.fg
         line[xix][2] = defaults.bg
+        line[xix][3] = false
+        line[xix][4] = defaults.sp
       } else {
         if (!sourceLine) continue
         line[xix][0] = sourceLine[xix][0]
         line[xix][1] = sourceLine[xix][1]
         line[xix][2] = sourceLine[xix][2]
+        line[xix][3] = sourceLine[xix][3]
+        line[xix][4] = sourceLine[xix][4]
         sourceLine[xix][0] = ' '
         sourceLine[xix][1] = defaults.fg
         sourceLine[xix][2] = defaults.bg
+        sourceLine[xix][3] = false
+        sourceLine[xix][4] = defaults.sp
       }
     }
   }
@@ -58,15 +69,21 @@ export const moveRegionUp = (amt: number, top: number, bottom: number, left: num
         line[xix][0] = ' '
         line[xix][1] = defaults.fg
         line[xix][2] = defaults.bg
+        line[xix][3] = false
+        line[xix][4] = defaults.sp
       }
       else {
         if (!sourceLine) continue
         line[xix][0] = sourceLine[xix][0]
         line[xix][1] = sourceLine[xix][1]
         line[xix][2] = sourceLine[xix][2]
+        line[xix][3] = sourceLine[xix][3]
+        line[xix][4] = sourceLine[xix][4]
         sourceLine[xix][0] = ' '
         sourceLine[xix][1] = defaults.fg
         sourceLine[xix][2] = defaults.bg
+        sourceLine[xix][3] = false
+        sourceLine[xix][4] = defaults.sp
       }
     }
   }
@@ -83,6 +100,8 @@ export const clear = () => {
       line[charIx][0] = ' '
       line[charIx][1] = defaults.fg
       line[charIx][2] = defaults.bg
+      line[charIx][3] = false
+      line[charIx][4] = defaults.sp
     }
   }
 }
@@ -95,6 +114,8 @@ export const clearLine = (row: number, col: number) => {
     line[charIx][0] = ' '
     line[charIx][1] = defaults.fg
     line[charIx][2] = defaults.bg
+    line[charIx][3] = false
+    line[charIx][4] = defaults.sp
   }
 }
 

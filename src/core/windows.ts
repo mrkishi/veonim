@@ -223,7 +223,7 @@ export const activeWindow = () => getWindow(cursor.row, cursor.col)
 const fillCanvasFromGrid = (x: number, y: number, height: number, width: number, canvas: CanvasWindow) => {
   for (let lineIx = y; lineIx < y + height; lineIx++) {
     for (let charIx = x; charIx < x + width; charIx++) {
-      const [ ch, fg, bg ] = grid.get(lineIx, charIx)
+      const [ ch, fg, bg, underline, underlineColor ] = grid.get(lineIx, charIx)
 
       canvas
         .setColor(bg)
@@ -231,6 +231,8 @@ const fillCanvasFromGrid = (x: number, y: number, height: number, width: number,
         .setColor(fg)
         .setTextBaseline('top')
         .fillText(ch, charIx, lineIx)
+
+      underline && canvas.underline(charIx, lineIx, 1, underlineColor)
     }
   }
 }
