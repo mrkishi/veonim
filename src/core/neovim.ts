@@ -362,6 +362,8 @@ const processBufferedActions = async () => {
   g.vn_rpc_buf = []
 }
 
+sub('session:switch', refreshState())
+
 onCreate(() => {
   sub('colors.vim.fg', fg => current.fg = fg)
   sub('colors.vim.bg', bg => current.bg = bg)
@@ -385,7 +387,7 @@ onCreate(() => {
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   processBufferedActions()
-  refreshState()
+  refreshState()()
 })
 
 autocmd.bufAdd(refreshState())
@@ -423,8 +425,6 @@ autocmd.cursorMovedI(async () => {
   if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')
   events.notify('cursorMoveInsert', prevRevision !== current.revision, current)
 })
-
-sub('session:switch', refreshState)
 
 define.VeonimComplete`
   return a:1 ? g:veonim_complete_pos : g:veonim_completions
