@@ -215,6 +215,7 @@ export const callAtomic = (calls: AtomicCall[]) => req.core.callAtomic(calls)
 export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
   registeredEventActions.add(event)
+  cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
 export const list = {
