@@ -4,7 +4,7 @@ import { merge } from '../support/utils'
 export enum CursorShape {
   block,
   line,
-  underline
+  underline,
 }
 
 export interface TransferRegion {
@@ -92,9 +92,12 @@ export const createWindow = (container: HTMLElement) => {
   api.resize = (canvasBox, initBackgroundColor) => {
     const { height, width } = container.getBoundingClientRect()
 
-    canvas.height = height * window.devicePixelRatio
+    const vimHeight = px.row.height(specs.height) + (specs.paddingY * 2)
+    const heightToUse = Math.max(height, vimHeight)
+
+    canvas.height = heightToUse * window.devicePixelRatio
     canvas.width = width * window.devicePixelRatio
-    canvas.style.height = `${height}px`
+    canvas.style.height = `${heightToUse}px`
     canvas.style.width = `${width}px`
 
     // setting canvas properties resets font. need to reset it here
