@@ -56,7 +56,7 @@ export const setFont = ({ size = _font.size, face = _font.face, lineHeight = _fo
   watchers.notify('cell', { ..._cell })
 }
 
-const resize = () => {
+export const resize = () => {
   const { width, height } = container.getBoundingClientRect()
   merge(_size, {
     height,

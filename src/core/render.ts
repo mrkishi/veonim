@@ -291,6 +291,8 @@ r.put = chars => {
   if (win && underlinePls) win.underline(ogCol, ogRow, total, nextAttrs.sp)
 }
 
+r.set_title = title => dispatch.pub('vim:title', title)
+
 r.popupmenu_hide = () => dispatch.pub('pmenu.hide')
 r.popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
 r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>

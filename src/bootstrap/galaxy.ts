@@ -9,6 +9,7 @@ import * as uiInput from '../core/input'
 import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
+import '../core/title'
 
 const lazyLoadCSS = (href: string) => {
   const css = document.createElement('link')

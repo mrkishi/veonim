@@ -65,6 +65,18 @@ input {
   color: #555;
   flex: 2;
 }
+
+#title-bar {
+  -webkit-app-region: drag;
+  -webkit-user-select: none;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.15);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.5);
+}
     </style>
   </head>
   <body>
@@ -72,9 +84,15 @@ input {
       <div class="logo"></div>
       <div class="detail">neovim with 100% more nyan cat</div>
     </div>
+
     <div id="notifications"></div>
     <div id="cursor"></div>
     <div id="cursorline"></div>
+
+    <div id="title-bar">
+      <div>veonim</div>
+    </div>
+
     <div id="canvas-container">
       <div id="plugins"></div>
       <div id="windows"></div>
