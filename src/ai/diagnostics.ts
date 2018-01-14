@@ -117,11 +117,13 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
   //}, quickfix)
 //}
 
-const problemHighlightsNotSame = (current: ProblemHighlight, next: ProblemHighlight) =>
-  current.line !== next.line && current.columnStart !== next.columnStart && current.columnEnd !== next.columnEnd
+const problemHighlightsSame = (current: ProblemHighlight, compare: ProblemHighlight) =>
+  current.line === compare.line
+    && current.columnStart === compare.columnStart
+    && current.columnEnd === compare.columnEnd
 
-const problemHighlightsSame = (current: ProblemHighlight, next: ProblemHighlight) =>
-  current.line === next.line && current.columnStart === next.columnStart && current.columnEnd === next.columnEnd
+const includesProblemHighlight = (problems: ProblemHighlight[], problem: ProblemHighlight) =>
+  problems.some(p => problemHighlightsSame(p, problem))
 
 const refreshProblemHighlights = async () => {
   const currentBufferPath = path.join(vim.cwd, vim.file)
@@ -141,20 +143,9 @@ const refreshProblemHighlights = async () => {
     columnEnd: d.range.end.character,
   }))
 
-  const problemsToRemove = currentProblems.filter(cp =>
-    nextProblems.every(np => problemHighlightsNotSame(cp, np)))
-
-  const problemsToAdd = nextProblems.filter(np =>
-    currentProblems.every(cp => problemHighlightsNotSame(np, cp)))
-
-  const untouchedProblems = currentProblems.filter(cp =>
-    nextProblems.some(np => problemHighlightsSame(cp, np)))
-
-  console.log('next problems:', nextProblems.length)
-  console.log('current problems:', currentProblems.length)
-  console.log('remove problems:', problemsToRemove.length)
-  console.log('add problems:', problemsToAdd.length)
-  console.log('untouched problems:', untouchedProblems.length)
+  const problemsToRemove = currentProblems.filter(p => !includesProblemHighlight(nextProblems, p))
+  const problemsToAdd = nextProblems.filter(p => !includesProblemHighlight(currentProblems, p))
+  const untouchedProblems = currentProblems.filter(p => includesProblemHighlight(nextProblems, p))
 
   problemsToRemove.forEach(problem => problem.removeHighlight())
 
