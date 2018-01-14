@@ -70,7 +70,7 @@ export interface NeovimState {
   sp: string,
 }
 
-export interface Problem {
+export interface ProblemHighlight {
   line: number,
   columnStart: number,
   columnEnd: number,
@@ -100,7 +100,8 @@ export interface Buffer {
   addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>,
   clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void,
   clearAllHighlights(): void,
-  highlightProblems(problems: Problem[]): Promise<() => void>,
+  highlightProblems(problems: ProblemHighlight[]): Promise<() => void>,
+  highlightProblem(problem: ProblemHighlight): Promise<() => void>,
 }
 
 export interface Window {
@@ -485,6 +486,10 @@ const Buffer = (id: any) => ({
   highlightProblems: async problems => {
     const hlid = await req.buf.addHighlight(id, 0, '', 0, 0, 0)
     problems.forEach(c => api.buf.addHighlight(id, hlid, Highlight.Undercurl, c.line, c.columnStart, c.columnEnd))
+    return () => api.buf.clearHighlight(id, hlid, 1, -1)
+  },
+  highlightProblem: async problem => {
+    const hlid = await req.buf.addHighlight(id, 0, Highlight.Undercurl, problem.line, problem.columnStart, problem.columnEnd)
     return () => api.buf.clearHighlight(id, hlid, 1, -1)
   }
 } as Buffer)

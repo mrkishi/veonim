@@ -1,6 +1,6 @@
+import { ProblemHighlight, on, action, getCurrent, current as vim } from '../core/neovim'
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
-import { on, action, getCurrent, current as vim } from '../core/neovim'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
@@ -25,13 +25,17 @@ interface Distance {
   characters: number,
 }
 
+interface ActiveProblemHighlight extends ProblemHighlight {
+  removeHighlight(): void,
+}
+
 type Diags = Map<string, Diagnostic[]>
 
 const cache = {
   diagnostics: new Map<number, Diags>(new Map()),
   problems: new Map<number, Problem[]>(),
   actions: [] as Command[],
-  visibleProblems: new Map<string, () => void>(),
+  visibleProblems: new Map<string, ActiveProblemHighlight[]>(),
   currentBuffer: '',
 }
 
@@ -113,25 +117,55 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
   //}, quickfix)
 //}
 
+const problemHighlightsNotSame = (current: ProblemHighlight, next: ProblemHighlight) =>
+  current.line !== next.line && current.columnStart !== next.columnStart && current.columnEnd !== next.columnEnd
+
+const problemHighlightsSame = (current: ProblemHighlight, next: ProblemHighlight) =>
+  current.line === next.line && current.columnStart === next.columnStart && current.columnEnd === next.columnEnd
+
 const refreshProblemHighlights = async () => {
   const currentBufferPath = path.join(vim.cwd, vim.file)
-  const diagnostics = current.diagnostics.get(currentBufferPath)
+  const diagnostics = current.diagnostics.get(currentBufferPath) || []
+  const getBufReq = getCurrent.buffer
 
-  const clearPreviousConcerns = cache.visibleProblems.get(`${sessions.current}:${currentBufferPath}`)
-  if (clearPreviousConcerns) clearPreviousConcerns()
+  if (!diagnostics.length) {
+    cache.visibleProblems.set(`${sessions.current}:${currentBufferPath}`, [])
+    const buffer = await getBufReq
+    return buffer.clearAllHighlights()
+  }
 
-  const buffer = await getCurrent.buffer
-  if (!diagnostics || !diagnostics.length) return await buffer.clearAllHighlights()
-
-  // TODO: handle severity (errors vs warnings, etc.)
-  const concerns = diagnostics.map((d: Diagnostic) => ({
+  const currentProblems = cache.visibleProblems.get(`${sessions.current}:${currentBufferPath}`) || []
+  const nextProblems: ProblemHighlight[] = diagnostics.map((d: Diagnostic) => ({
     line: d.range.start.line,
     columnStart: d.range.start.character,
     columnEnd: d.range.end.character,
   }))
 
-  const clearToken = await buffer.highlightProblems(concerns)
-  cache.visibleProblems.set(`${sessions.current}:${currentBufferPath}`, clearToken)
+  const problemsToRemove = currentProblems.filter(cp =>
+    nextProblems.every(np => problemHighlightsNotSame(cp, np)))
+
+  const problemsToAdd = nextProblems.filter(np =>
+    currentProblems.every(cp => problemHighlightsNotSame(np, cp)))
+
+  const untouchedProblems = currentProblems.filter(cp =>
+    nextProblems.some(np => problemHighlightsSame(cp, np)))
+
+  console.log('next problems:', nextProblems.length)
+  console.log('current problems:', currentProblems.length)
+  console.log('remove problems:', problemsToRemove.length)
+  console.log('add problems:', problemsToAdd.length)
+  console.log('untouched problems:', untouchedProblems.length)
+
+  problemsToRemove.forEach(problem => problem.removeHighlight())
+
+  const buffer = await getBufReq
+  const nextVisibleProblems: ActiveProblemHighlight[] = await Promise.all(problemsToAdd.map(async m => ({
+    ...m,
+    removeHighlight: await buffer.highlightProblem(m)
+  })))
+
+  const visibleProblems = [...untouchedProblems, ...nextVisibleProblems]
+  cache.visibleProblems.set(`${sessions.current}:${currentBufferPath}`, visibleProblems)
 }
 
 onDiagnostics(async m => {
