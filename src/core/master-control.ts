@@ -96,8 +96,8 @@ startup.defineFunc.VeonimCallEvent`
 `
 
 startup.defineFunc.VK`
-  call VeonimRegisterEvent('key:' . a:1, a:2)
-  call Veonim('register-shortcut', a:1)
+  call VeonimRegisterEvent('key:' . a:2 . ':' . a:1, a:3)
+  call Veonim('register-shortcut', a:1, a:2)
 `
 
 const spawnVimInstance = () => Neovim([

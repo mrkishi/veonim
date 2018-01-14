@@ -1,6 +1,6 @@
+import { action, call, current } from '../core/neovim'
 import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
-import { action, call } from '../core/neovim'
 import { touched } from '../bootstrap/galaxy'
 import { $ } from '../support/utils'
 import { Script } from 'vm'
@@ -55,7 +55,9 @@ const mapKey = $(bypassEmptyMod, toVimKey)
 const formatInput = $(combineModsWithKey, wrapKey)
 const shortcuts = new Map<string, Function>()
 
-export const registerShortcut = (keys: string, cb: Function) => shortcuts.set(`<${keys.toUpperCase()}>`, cb)
+export const registerShortcut = (keys: string, mode: string, cb: Function) =>
+  shortcuts.set(`${mode}:<${keys.toUpperCase()}>`, cb)
+
 // TODO: can we use transform to do the same thing as remapModifier? seems similar
 export const remapModifier = (from: string, to: string) => remaps.set(from, to)
 export const focus = () => {
@@ -104,7 +106,7 @@ const sendKeys = async (e: KeyboardEvent) => {
 
   // TODO: this might need more attention
   if (inputKeys === '<S-Space>') return input('<space>')
-  if (shortcuts.has(inputKeys)) return shortcuts.get(inputKeys)!()
+  if (shortcuts.has(`${current.mode}:${inputKeys}`)) return shortcuts.get(`${current.mode}:${inputKeys}`)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else input(inputKeys)
 }
@@ -155,7 +157,7 @@ window.addEventListener('keyup', e => {
 // TODO: deprecate remapModifier and use transform instead?
 action('remap-modifier', (from, to) => remapModifier(from, to))
 
-action('register-shortcut', key => registerShortcut(key, () => call.VeonimCallEvent(`key:${key}`)))
+action('register-shortcut', (key, mode) => registerShortcut(key, mode, () => call.VeonimCallEvent(`key:${mode}:${key}`)))
 
 action('key-transform', (type, matcher, transformer) => {
   const fn = Reflect.get(transform, type)

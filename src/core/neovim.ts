@@ -62,6 +62,7 @@ export interface NeovimState {
   revision: number,
   column: number,
   file: string,
+  mode: string,
   line: number,
   cwd: string,
   fg: string,
@@ -225,6 +226,7 @@ export const list = {
 }
 
 export const current: NeovimState = new Proxy({
+  mode: 'normal',
   file: '',
   filetype: '',
   cwd: '',
@@ -366,6 +368,7 @@ const processBufferedActions = async () => {
 sub('session:switch', refreshState())
 
 onCreate(() => {
+  sub('vim:mode', mode => current.mode = mode)
   sub('colors.vim.fg', fg => current.fg = fg)
   sub('colors.vim.bg', bg => current.bg = bg)
   sub('colors.vim.sp', sp => current.sp = sp)
