@@ -114,6 +114,12 @@ startup.defineFunc.VeonimMenu`
   call Veonim('user-menu', g:vn_callback_id, a:1, a:2)
 `
 
+startup.defineFunc.VeonimOverlayMenu`
+  let g:vn_callback_id += 1
+  call VeonimRegisterMenuCallback(g:vn_callback_id, a:3)
+  call Veonim('user-overlay-menu', g:vn_callback_id, a:1, a:2)
+`
+
 startup.defineFunc.VK`
   call VeonimRegisterEvent('key:' . a:2 . ':' . a:1, a:3)
   call Veonim('register-shortcut', a:1, a:2)

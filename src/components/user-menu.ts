@@ -46,6 +46,7 @@ a.select = (s, a) => {
   a.hide()
 }
 
+// TODO: not hardcoded 14
 a.change = (s, _a, val: string) => ({ val, items: val
   ? filter(s.cache, val).slice(0, 14)
   : s.cache.slice(0, 14)
