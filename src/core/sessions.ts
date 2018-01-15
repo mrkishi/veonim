@@ -19,8 +19,8 @@ export default (id: number, path: string) => {
   pub('session:switch', id)
 }
 
-export const createVim = async (name: string, nameAfterDir = false) => {
-  const { id, path } = await create({ askCd: nameAfterDir })
+export const createVim = async (name: string, dir?: string) => {
+  const { id, path } = await create({ dir })
   cache.id = id
   pub('session:create', { id, path })
   attachTo(id)

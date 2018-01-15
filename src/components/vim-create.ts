@@ -38,4 +38,3 @@ a.select = (s, a) => {
 
 const ui = app({ state, view, actions: a })
 action('vim-create', () => ui.show())
-action('vim-create-dir', () => createVim('dir-unnamed', true))

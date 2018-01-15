@@ -1,7 +1,7 @@
 import { getDirFiles, exists, pathRelativeToHome } from '../support/utils'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { action, current, cmd } from '../core/neovim'
-import { renameCurrent } from '../core/sessions'
+import { createVim } from '../core/sessions'
 import { Plugin, Row } from '../styles/common'
 import config from '../config/config-service'
 import Input from '../components/text-input'
@@ -25,7 +25,7 @@ interface State {
   cache: FileDir[],
   vis: boolean,
   ix: number,
-  renameToDir: boolean,
+  create: boolean,
 }
 
 const state: State = {
@@ -36,7 +36,7 @@ const state: State = {
   cache: [],
   vis: false,
   ix: 0,
-  renameToDir: false,
+  create: false,
 }
 
 const absPath = (path = '') => path.startsWith('~') ? join($HOME, path.slice(1)) : path
@@ -79,9 +79,11 @@ a.select = (s, a) => {
   if (!s.paths.length) return a.hide()
   const { name } = s.paths[s.ix]
   if (!name) return
-  cmd(`cd ${join(s.path, name)}`)
-  cmd(`pwd`)
-  if (s.renameToDir) renameCurrent(name)
+  if (s.create) createVim(name, join(s.path, name))
+  else {
+    cmd(`cd ${join(s.path, name)}`)
+    cmd(`pwd`)
+  }
   return a.hide()
 }
 
@@ -105,8 +107,8 @@ a.jumpPrev = (s, a) => {
   getDirFiles(path).then(paths => a.show({ path, paths: filterDirs(paths) }))
 }
 
-a.show = (s, _a, { paths, path, cwd = s.cwd, renameToDir }) => ({
-  cwd, path, paths, renameToDir,
+a.show = (s, _a, { paths, path, cwd = s.cwd, create }) => ({
+  cwd, path, paths, create,
   ix: 0,
   val: '',
   vis: true,
@@ -132,12 +134,12 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 })
 
 const ui = app({ state, view, actions: a })
 
-const go = async (userPath: string, renameToDir = false) => {
+const go = async (userPath: string, create = false) => {
   const cwd = await validPath(userPath) || current.cwd
   const filedirs = await getDirFiles(cwd)
   const paths = filterDirs(filedirs)
-  ui.show({ paths, cwd, path: cwd, renameToDir })
+  ui.show({ paths, cwd, path: cwd, create })
 }
 
 action('change-dir', (path = '') => go(path, false))
-action('init-dir', (path = '') => go(path, true))
+action('vim-create-dir', (path = '') => go(path, true))

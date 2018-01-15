@@ -168,7 +168,7 @@ export const switchTo = (id: number) => {
   if (attached) api.uiTryResize(clientSize.width, clientSize.height)
 }
 
-export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> => {
+export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimResponse> => {
   const id = createNewVimInstance()
   switchTo(id)
   const errors = await unblock()
@@ -183,10 +183,7 @@ export const create = async ({ askCd = false } = {}): Promise<NewVimResponse> =>
   api.command(`set noshowcmd`)
   api.command(`set noruler`)
 
-  // TODO: why not just ask for dir BEFORE creating new vim instance then inject :cd cmd with chosen dir?
-  // TODO: this doesn't always work
-  // TODO: there should be a more deterministic way to do this. i tried VimEnter autocmd but...
-  askCd && setTimeout(() => api.command(`doautocmd <nomodeline> User VeonimStartupDir`), 11)
+  dir && api.command(`cd ${dir}`)
 
   const path = await req.eval('v:servername')
   vimInstances.get(id)!.path = path
