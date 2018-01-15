@@ -58,7 +58,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('change-dir', $
     val: $.val,
     focus: true,
     icon: 'home',
-    desc: 'change project'
+    desc: $.create ? 'create new vim session with project' : 'change project',
   })
 
   ,Row.important(pathRelativeToHome($.path))
