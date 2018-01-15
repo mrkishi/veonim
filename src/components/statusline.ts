@@ -32,6 +32,7 @@ interface State {
   branch: string,
   additions: number,
   deletions: number,
+  macro: string,
 }
 
 const state: State = {
@@ -49,6 +50,7 @@ const state: State = {
   branch: '',
   additions: 0,
   deletions: 0,
+  macro: '',
 }
 
 const Statusline = style('div')({
@@ -104,7 +106,7 @@ merge(container.style, {
 // TODO: LOL NOPE
 const $PR = `/Users/a/Documents/projects/`
 
-const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions }: State) => Statusline({}, [
+const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions, macro }: State) => Statusline({}, [
   ,Left({}, [
 
     ,Item({
@@ -183,7 +185,20 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
 
   ])
 
-  ,Center({}, [])
+  ,Center({}, [
+    ,macro && Item({}, [
+      ,IconBox({
+        style: { color: colors.error }
+      }, [
+        ,Icon('target')
+      ])
+
+      ,h('div', {
+        style: { color: colors.error }
+      }, macro)
+    ])
+
+  ])
 
   ,Right({}, [
     ,Item({
@@ -263,6 +278,7 @@ a.setCwd = (_s, _a, cwd) => ({ cwd })
 a.setDiagnostics = (_s, _a, { errors = 0, warnings = 0 }) => ({ errors, warnings })
 a.setGitBranch = (_s, _a, branch) => ({ branch })
 a.setGitStatus = (_s, _a, { additions, deletions }) => ({ additions, deletions })
+a.setMacro = (_s, _a, macro = '') => ({ macro })
 
 a.serverRunning = (s, _a, server) => ({
   runningServers: new Set([...s.runningServers, server]),
@@ -302,5 +318,7 @@ sub('langserv:start.fail', ft => ui.serverErrored(ft))
 sub('langserv:error.load', ft => ui.serverErrored(ft))
 sub('langserv:error', ft => ui.serverErrored(ft))
 sub('langserv:exit', ft => ui.serverOffline(ft))
+sub('vim:macro.start', reg => ui.setMacro(reg))
+sub('vim:macro.end', () => ui.setMacro())
 
 setImmediate(() => processAnyBuffered('tabs'))

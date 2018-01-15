@@ -375,6 +375,14 @@ const resetMsg = () => {
 
 r.msg_start_kind = kind => {
   if (msgKinds.has(kind)) message.kind = msgKinds.get(kind)!
+
+  else if (kind === 'showmode') setTimeout(() => {
+    if (message.buffer.includes('recording @')) {
+      const [ , register ] = message.buffer.match(/recording @(\w)/) || [] as string[]
+      dispatch.pub('vim:macro.start', register)
+    }
+  }, 30)
+
   else console.log('new msg kind:', kind)
 }
 
@@ -387,6 +395,8 @@ r.msg_end = () => {
   // TODO: this only happens at startup, so maybe run this condition for a limitied period of time
   if (message.buffer === '<') return resetMsg()
   if (!message.kind) notify(message.buffer, NotifyKind.Hidden)
+
+  if (/recording @\w/.test(message.buffer)) return dispatch.pub('vim:macro.end')
 
   matchOn(message.kind)({
     [NotifyKind.Error]: () => notify(message.buffer, NotifyKind.Error),
