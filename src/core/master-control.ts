@@ -61,6 +61,8 @@ const startupCmds = CmdGroup`
   let g:vn_rpc_buf = []
   let g:vn_platform = '${process.platform}'
   let g:vn_events = {}
+  let g:vn_callbacks = {}
+  let g:vn_callback_id = 0
   set laststatus=0
   set shortmess+=Ic
   set noshowcmd
@@ -93,6 +95,23 @@ startup.defineFunc.VeonimCallEvent`
     let Func = g:vn_events[a:1]
     call Func()
   endif
+`
+
+startup.defineFunc.VeonimCallback`
+  if has_key(g:vn_callbacks, a:1)
+    let Funky = g:vn_callbacks[a:1]
+    call Funky(a:2)
+  endif
+`
+
+startup.defineFunc.VeonimRegisterMenuCallback`
+  let g:vn_callbacks[a:1] = a:2
+`
+
+startup.defineFunc.VeonimMenu`
+  let g:vn_callback_id += 1
+  call VeonimRegisterMenuCallback(g:vn_callback_id, a:3)
+  call Veonim('user-menu', g:vn_callback_id, a:1, a:2)
 `
 
 startup.defineFunc.VK`

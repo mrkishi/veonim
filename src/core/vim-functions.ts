@@ -20,6 +20,7 @@ type WindowPosition = [ string, number, number, number ]
 
 export interface Functions {
   VeonimCallEvent(event: string): void,
+  VeonimCallback(id: number, result: any): void,
   Commands(): Promise<string[]>,
   Buffers(): Promise<VimBuffer[]>,
   OpenPaths(): Promise<string[]>,
