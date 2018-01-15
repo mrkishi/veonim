@@ -50,7 +50,7 @@ const view = ($: State, actions: ActionCaller) => h('#user-overlay-menu', {
       val: $.val,
       focus: true,
       small: true,
-      icon: 'search',
+      icon: 'user',
       desc: $.desc,
     })
 

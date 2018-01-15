@@ -30,7 +30,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('user-menu', $.
     val: $.val,
     desc: $.desc,
     focus: true,
-    icon: 'search',
+    icon: 'user',
   })
 
   ,h('div', $.items.map((item, key) => Row.normal({ key, activeWhen: key === $.ix }, item)))

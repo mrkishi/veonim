@@ -63,8 +63,9 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
   style: {
     zIndex: 200,
     minWidth: '100px',
+    maxWidth: '600px',
     position: 'absolute',
-    transform: (console.log('place Y:', y), translate(x, y)),
+    transform: translate(x, y),
   }
 }, [
   documentation && anchorAbove ? docs(documentation) : undefined,

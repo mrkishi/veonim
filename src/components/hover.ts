@@ -34,6 +34,7 @@ const view = ($: State) => h('#hover', {
     position: 'absolute',
     transform: translate(0, $.y),
     width: '100%',
+    maxWidth: '600px',
   }
 }, [
 

@@ -56,10 +56,11 @@ const Doc = style('div')({
 const view = ($: State) => h('#hint', {
   style: {
     display: $.vis ? 'flex' : 'none',
-    'z-index': 100,
+    zIndex: 100,
     position: 'absolute',
     transform: translate(0, $.y),
     width: '100%',
+    maxWidth: '600px',
   }
 }, [
   ,h('div', {
