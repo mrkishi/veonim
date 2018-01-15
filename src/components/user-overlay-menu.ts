@@ -83,9 +83,8 @@ const ui = app({ state, view, actions: a })
 
 action('user-overlay-menu', (id: number, desc: string, items = []) => {
   if (!items.length) return
-  const { row, col } = cursor
-  const x = activeWindow() ? activeWindow()!.colToX(col) : 0
+  const x = activeWindow() ? activeWindow()!.colToX(cursor.col) : 0
   // TODO: anchorBottom maybe?
-  const y = activeWindow() ? activeWindow()!.rowToY(row) : 0
+  const y = activeWindow() ? activeWindow()!.rowToY(cursor.row + 1) : 0
   ui.show({ x, y, id, items, desc })
 })
