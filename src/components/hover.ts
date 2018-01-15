@@ -78,7 +78,7 @@ a.hide = () => ({ vis: false })
 a.show = (_s, _a, { value, row, col }) => ({
   value,
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToY(row > 2 ? row : row + 1) : 0,
+  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
   anchorBottom: row > 2,
   vis: true
 })

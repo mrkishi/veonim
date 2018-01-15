@@ -80,6 +80,6 @@ const ui = app({ state, view, actions: a })
 export const show = (row: number, col: number, actions: Command[]) => {
   if (!actions.length) return
   const x = activeWindow() ? activeWindow()!.colToX(col) : 0
-  const y = activeWindow() ? activeWindow()!.rowToY(row + 1) : 0
+  const y = activeWindow() ? activeWindow()!.rowToTransformY(row + 1) : 0
   ui.show({ x, y, actions })
 }

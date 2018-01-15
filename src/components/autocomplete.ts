@@ -64,7 +64,7 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
     zIndex: 200,
     minWidth: '100px',
     position: 'absolute',
-    transform: translate(x, y),
+    transform: (console.log('place Y:', y), translate(x, y)),
   }
 }, [
   documentation && anchorAbove ? docs(documentation) : undefined,
@@ -135,6 +135,6 @@ export const show = ({ row, col, options }: ShowParams) => {
     options,
     anchorAbove,
     x: activeWindow() ? activeWindow()!.colToX(col) : 0,
-    y: activeWindow() ? activeWindow()!.rowToY(anchorAbove ? row : row + 1) : 0,
+    y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row : row + 1) : 0,
   })
 }

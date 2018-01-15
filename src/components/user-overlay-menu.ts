@@ -85,6 +85,6 @@ action('user-overlay-menu', (id: number, desc: string, items = []) => {
   if (!items.length) return
   const x = activeWindow() ? activeWindow()!.colToX(cursor.col) : 0
   // TODO: anchorBottom maybe?
-  const y = activeWindow() ? activeWindow()!.rowToY(cursor.row + 1) : 0
+  const y = activeWindow() ? activeWindow()!.rowToTransformY(cursor.row + 1) : 0
   ui.show({ x, y, id, items, desc })
 })

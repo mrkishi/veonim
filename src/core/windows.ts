@@ -69,10 +69,7 @@ export const makel: EL1 & EL2 = (...args: any[]) => {
 
 const cache = { windows: [] as VimWindow[] }
 const container = document.getElementById('windows') as HTMLElement
-const specs = {
-  gridGap: 2,
-  nameplateHeight: canvasContainer.cell.height + 4
-}
+const specs = { gridGap: 2 }
 
 merge(container.style, {
   flex: 1,
@@ -96,8 +93,8 @@ const createWindowEl = () => {
   })
 
   const titleBar = makel({
-    height: `${specs.nameplateHeight}px`,
-    minHeight: `${specs.nameplateHeight}px`,
+    height: `${canvasContainer.size.nameplateHeight}px`,
+    minHeight: `${canvasContainer.size.nameplateHeight}px`,
     display: 'flex',
     overflow: 'hidden',
   })

@@ -33,6 +33,7 @@ export interface CanvasWindow {
   getSpecs(): Specs,
   setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): CanvasWindow,
   rowToY(row: number): number,
+  rowToTransformY(row: number): number,
   colToX(col: number): number,
   resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow,
   moveRegion(region: TransferRegion): CanvasWindow,
@@ -83,6 +84,10 @@ export const createWindow = (container: HTMLElement) => {
 
   api.colToX = col => position.x + px.col.x(col)
   api.rowToY = row => position.y + px.row.y(row)
+
+  // because css transform is relative to the parent div, not absolute pos
+  // so... dirty hack. i'm sure there's a better way to do it. i need an adult
+  api.rowToTransformY = row => px.row.y(row) + canvasContainer.size.nameplateHeight
 
   const grabPosition = (canvasBox: HTMLElement) => setImmediate(() => {
     const { top: y, left: x } = canvasBox.getBoundingClientRect()

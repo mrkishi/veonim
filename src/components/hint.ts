@@ -140,7 +140,7 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selected
     selectedSignature,
     totalSignatures,
     x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-    y: activeWindow() ? activeWindow()!.rowToY(row > 2 ? row : row + 1) : 0,
+    y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
     anchorBottom: row > 2,
     vis: true
   }

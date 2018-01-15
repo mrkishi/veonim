@@ -80,6 +80,7 @@ export const size = {
   get cols() { return _size.cols },
   get height() { return _size.height },
   get width() { return _size.width },
+  get nameplateHeight() { return _cell.height + 4 },
 }
 
 export const cell = {
