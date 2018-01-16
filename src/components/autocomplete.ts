@@ -66,13 +66,10 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
     maxWidth: '600px',
     position: 'absolute',
     transform: translate(x, y),
-    // TODO: this does nothing useful...
-    transformOrigin: anchorAbove ? 'left bottom' : 'left top',
   }
 }, [
   ,h('div', {
-    // TODO: idk about this...
-    //transform: anchorAbove ? 'translateY(-100%)' : undefined,
+    transform: anchorAbove ? 'translateY(-100%)' : undefined,
   }, [
     ,documentation && anchorAbove && docs(documentation)
 
@@ -80,6 +77,8 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
       onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
       style: {
         background: panelColors.bg,
+        //transformOrigin: anchorAbove ? 'left bottom' : 'left top',
+        transform: anchorAbove ? 'translateY(-100%)' : undefined,
         overflowY: 'hidden',
         maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
       }
@@ -143,6 +142,6 @@ export const show = ({ row, col, options }: ShowParams) => {
     options,
     anchorAbove,
     x: activeWindow() ? activeWindow()!.colToX(col) : 0,
-    y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row - 1 : row + 1) : 0,
+    y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row : row + 1) : 0,
   })
 }
