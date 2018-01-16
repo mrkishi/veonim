@@ -66,47 +66,54 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
     maxWidth: '600px',
     position: 'absolute',
     transform: translate(x, y),
+    // TODO: this does nothing useful...
+    transformOrigin: anchorAbove ? 'left bottom' : 'left top',
   }
 }, [
-  documentation && anchorAbove ? docs(documentation) : undefined,
-
-  h('div', {
-    onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
-    style: {
-      background: panelColors.bg,
-      overflowY: 'hidden',
-      transform: anchorAbove ? 'translateY(-100%)' : undefined,
-      maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
-    }
-  }, options.map(({ text, kind }, id) => Row.complete({
-    key: id,
-    activeWhen: id === ix,
-    onupdate: (e: HTMLElement) => {
-      if (id !== ix) return
-      const { top, bottom } = e.getBoundingClientRect()
-      if (top < pos.container.top) return e.scrollIntoView(true)
-      if (bottom > pos.container.bottom) return e.scrollIntoView(false)
-    }
+  ,h('div', {
+    // TODO: idk about this...
+    //transform: anchorAbove ? 'translateY(-100%)' : undefined,
   }, [
-    h('div', {
+    ,documentation && anchorAbove && docs(documentation)
+
+    ,h('div', {
+      onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
       style: {
-        display: 'flex',
-        marginLeft: '-8px',
-        background: 'rgba(255, 255, 255, 0.03)',
-        // TODO: this doesn't scale with font size?
-        // TODO: shouldn't there be different fonts for UI vs vim
-        width: '24px',
-        marginRight: '8px',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: panelColors.bg,
+        overflowY: 'hidden',
+        maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
+      }
+    }, options.map(({ text, kind }, id) => Row.complete({
+      key: id,
+      activeWhen: id === ix,
+      onupdate: (e: HTMLElement) => {
+        if (id !== ix) return
+        const { top, bottom } = e.getBoundingClientRect()
+        if (top < pos.container.top) return e.scrollIntoView(true)
+        if (bottom > pos.container.bottom) return e.scrollIntoView(false)
       }
     }, [
-      getCompletionIcon(kind),
-    ]),
-    h('div', text)
-  ]))),
+      ,h('div', {
+        style: {
+          display: 'flex',
+          marginLeft: '-8px',
+          background: 'rgba(255, 255, 255, 0.03)',
+          // TODO: this doesn't scale with font size?
+          // TODO: shouldn't there be different fonts for UI vs vim
+          width: '24px',
+          marginRight: '8px',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }
+      }, [
+        getCompletionIcon(kind),
+      ])
 
-  documentation && !anchorAbove ? docs(documentation) : undefined,
+      ,h('div', text)
+    ])))
+
+    ,documentation && !anchorAbove && docs(documentation)
+  ])
 ])
 
 const a: Actions<State> = {}
@@ -136,6 +143,6 @@ export const show = ({ row, col, options }: ShowParams) => {
     options,
     anchorAbove,
     x: activeWindow() ? activeWindow()!.colToX(col) : 0,
-    y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row : row + 1) : 0,
+    y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row - 1 : row + 1) : 0,
   })
 }
