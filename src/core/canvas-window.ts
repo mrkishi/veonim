@@ -1,5 +1,6 @@
 import * as canvasContainer from '../core/canvas-container'
 import { merge } from '../support/utils'
+import * as title from '../core/title'
 
 export enum CursorShape {
   block,
@@ -85,9 +86,8 @@ export const createWindow = (container: HTMLElement) => {
   api.colToX = col => position.x + px.col.x(col)
   api.rowToY = row => position.y + px.row.y(row)
 
-  // because css transform is relative to the parent div, not absolute pos
-  // so... dirty hack. i'm sure there's a better way to do it. i need an adult
-  api.rowToTransformY = row => px.row.y(row) + canvasContainer.size.nameplateHeight
+  // because i suck at css
+  api.rowToTransformY = row => position.y + px.row.y(row) - title.specs.height
 
   const grabPosition = (canvasBox: HTMLElement) => setImmediate(() => {
     const { top: y, left: x } = canvasBox.getBoundingClientRect()
