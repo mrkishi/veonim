@@ -1,8 +1,9 @@
+import * as canvasContainer from '../core/canvas-container'
 import { current as vimstate } from '../core/neovim'
+import { translate, paddingVH } from '../ui/css'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
 import { ColorData } from '../ai/hover'
-import { translate } from '../ui/css'
 
 interface State {
   value: ColorData[][],
@@ -10,12 +11,14 @@ interface State {
   x: number,
   y: number,
   anchorBottom: boolean,
+  doc?: string,
 }
 
 interface ShowParams {
   row: number,
   col: number,
   data: ColorData[][],
+  doc?: string,
 }
 
 const state: State = {
@@ -25,6 +28,18 @@ const state: State = {
   y: 0,
   anchorBottom: true,
 }
+
+// TODO: dedup this style with autocomplete and others
+const docs = (data: string) => h('div', {
+  style: {
+    overflow: 'visible',
+    whiteSpace: 'normal',
+    background: '#1e1e1e',
+    ...paddingVH(8, 6),
+    fontSize: `${canvasContainer.font.size - 2}px`,
+    color: 'rgba(255, 255, 255, 0.5)',
+  }
+}, data)
 
 let spacer: HTMLElement
 
@@ -57,6 +72,8 @@ const view = ($: State) => h('#hover', {
       opacity: '0',
     }
   }, [
+    $.doc && !$.anchorBottom && docs($.doc),
+
     ,h('div', {
       style: {
         background: '#222',
@@ -69,6 +86,8 @@ const view = ($: State) => h('#hover', {
         'white-space': 'pre',
       }
     }, text)))))
+
+    ,$.doc && $.anchorBottom && docs($.doc),
   ])
 
 ])
@@ -76,7 +95,8 @@ const view = ($: State) => h('#hover', {
 const a: Actions<State> = {}
 
 a.hide = () => ({ vis: false })
-a.show = (_s, _a, { value, row, col }) => ({
+a.show = (_s, _a, { value, row, col, doc }) => ({
+  doc,
   value,
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
@@ -86,5 +106,5 @@ a.show = (_s, _a, { value, row, col }) => ({
 
 const ui = app({ state, view, actions: a }, false)
 
-export const show = ({ row, col, data }: ShowParams) => ui.show({ value: data, row, col })
+export const show = ({ row, col, data, doc }: ShowParams) => ui.show({ value: data, doc, row, col })
 export const hide = () => ui.hide()

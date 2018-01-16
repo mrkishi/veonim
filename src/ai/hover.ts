@@ -13,12 +13,12 @@ export interface ColorData {
 export const colorizer = Worker('neovim-colorizer')
 
 action('hover', async () => {
-  const text = await hover(vimState)
-  if (!text) return
-  const cleanData = markdown.remove(text)
+  const { value, doc } = await hover(vimState)
+  if (!value) return
+  const cleanData = markdown.remove(value)
   const data: ColorData[][] = await colorizer.request.colorize(cleanData, vimState.filetype)
 
-  hoverUI.show({ data, row: cursor.row, col: cursor.col })
+  hoverUI.show({ data, doc, row: cursor.row, col: cursor.col })
 })
 
 on.cursorMove(() => hoverUI.hide())

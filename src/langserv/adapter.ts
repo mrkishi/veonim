@@ -14,6 +14,11 @@ export interface Symbol {
   containerName?: string,
 }
 
+export interface HoverResult {
+  value?: string,
+  doc?: string,
+}
+
 interface VimLocation {
   cwd: string,
   file: string,
@@ -160,21 +165,22 @@ export const rename = async (data: NeovimState & { newName: string }): Promise<P
   return workspaceEditToPatch(workspaceEdit)
 }
 
-export const hover = async (data: NeovimState): Promise<string> => {
+export const hover = async (data: NeovimState): Promise<HoverResult> => {
   const req = toProtocol(data)
   const res = await textDocument.hover(req) as Hover
-  if (!res) return ''
+  if (!res) return {}
   const { contents } = res
 
-  // TODO: there is more than meets the eye here. make sure we are grabbing all the data
-  // that we need. could be all sorts of other goodies hidden in here. TREASURE HUNT YAY
-  if (is.string(contents)) return (contents as string)
-  if (is.object(contents)) return (contents as MarkedStringPart).value
-  if (is.array(contents)) return (contents as MarkedStringPart[])
-    .filter(is.object)
-    .map(m => m.value)[0]
+  if (is.string(contents)) return { value: (contents as string) }
+  if (is.object(contents)) return { value: (contents as MarkedStringPart).value }
+  if (is.array(contents)) return (contents as MarkedStringPart[]).reduce((obj: HoverResult, m: any, ix) => {
+    if (is.object(m)) obj.value = m.value
+    // i think the documentation is in the 3rd place... maybe wrong
+    else if (is.string(m) && ix === 2) obj.doc = m
+    return obj
+  }, { value: '', doc: '' } as HoverResult)
 
-  return ''
+  return {}
 }
 
 const toVimLocation = ({ uri, range }: Location): VimLocation => ({
