@@ -99,11 +99,13 @@ const shadeColor = (color: string, percent: number) => {
 export const contrast = (color: string, amount: number) => {
   (amount)
   const [ r, g, b ] = hexToRGB(color)
-  const res = rgbToHSL(r, g, b)
-  console.log('HSL:', res)
-  return color
+  const { luminosity } = rgbToHSL(r, g, b)
+  const lum = Math.floor(luminosity * 100)
+  const shouldDarken = lum > 50
+  return shadeColor(color, shouldDarken ? -((amount + 0.3) / 100) : (amount / 100))
 }
 
+export const brighten = (color: string, amount: number) => shadeColor(color, (amount / 100))
 export const darken = (color: string, amount: number) => shadeColor(color, -(amount / 100))
 
 // chrome does not support .finished property on animate()

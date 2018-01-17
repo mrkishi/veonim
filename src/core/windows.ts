@@ -115,12 +115,17 @@ const createWindowEl = () => {
     textOverflow: 'ellipsis',
   })
 
-  const nameplateName = makel('span', { color: '#aaa' })
-  const nameplateDir = makel('span', { color: '#555', marginRight: '1px' })
+  const nameplateName = makel('span', {
+    color: 'var(--foreground-50)',
+  })
+
+  const nameplateDir = makel('span', {
+    color: 'var(--foreground-30)',
+    marginRight: '1px'
+  })
 
   const modifiedBubble = makel({
-    filter: 'brightness(250%)',
-    background: 'var(--background)',
+    background: 'var(--foreground-20)',
     display: 'none',
     marginTop: '2px',
     marginLeft: '8px',
@@ -131,7 +136,7 @@ const createWindowEl = () => {
 
   const terminalIcon = makel({
     background: 'var(--background)',
-    filter: 'brightness(250%)',
+    color: 'var(--foreground-20)',
     display: 'none',
     marginRight: '8px',
     alignItems: 'center,'
@@ -166,6 +171,7 @@ const createWindowEl = () => {
 
   const api: WindowApi = {
     set modified(yes: boolean) { modifiedBubble.style.display = yes ? 'block' : 'none' },
+    // TODO: need to contrast, not brighten
     set active(yes: boolean) { nameplate.style.filter = `brightness(${yes ? 130 : 90}%)` },
     set name(name: string) { nameplateName.innerText = name || '[No Name]' },
     set dir(dir: string) { nameplateDir.innerText =  dir ? `${dir}/` : '' },
