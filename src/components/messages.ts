@@ -49,8 +49,7 @@ const getIcon = (kind: NotifyKind) => {
 
 const view = ($: State, actions: ActionCaller) => h('#messages', {
   style: {
-    // TODO: vim colors
-    background: 'rgb(20, 20, 20)',
+    background: 'var(--background-45)',
     color: '#eee',
     display: $.vis ? 'flex' : 'none',
     flexFlow: 'column',
