@@ -11,6 +11,7 @@ type SC2 = (params: StyleParams, content: Content) => any
 type StyledComponent = SC1 & SC2
 
 const refreshColors = (bg = $.background) => {
+  setVar('background', bg)
   setVar('background-15', contrast(bg, 15))
   setVar('background-20', contrast(bg, 20))
   setVar('background-30', contrast(bg, 30))

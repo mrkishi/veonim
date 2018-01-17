@@ -4,7 +4,6 @@ import * as canvasContainer from '../core/canvas-container'
 import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
-import $, { watch } from '../core/state'
 import * as grid from '../core/grid'
 
 export interface VimWindow {
@@ -38,7 +37,6 @@ export interface WindowApi {
   name?: string,
   dir?: string,
   terminal: boolean,
-  updateBackground(bg?: string): void,
 }
 
 export interface Window {
@@ -81,6 +79,7 @@ merge(container.style, {
   alignItems: 'stretch',
 })
 
+
 const createWindowEl = () => {
   const element = makel({
     display: 'none',
@@ -91,6 +90,7 @@ const createWindowEl = () => {
   const canvasBox = makel({
     flex: 1,
     overflow: 'hidden',
+    background: 'var(--background)',
   })
 
   const titleBar = makel({
@@ -101,6 +101,7 @@ const createWindowEl = () => {
   })
 
   const nameplateBox = makel({
+    background: 'var(--background)',
     maxWidth: 'calc(100% - 20px)',
     display: 'flex',
     alignItems: 'center',
@@ -118,6 +119,8 @@ const createWindowEl = () => {
   const nameplateDir = makel('span', { color: '#555', marginRight: '1px' })
 
   const modifiedBubble = makel({
+    filter: 'brightness(250%)',
+    background: 'var(--background)',
     display: 'none',
     marginTop: '2px',
     marginLeft: '8px',
@@ -127,6 +130,8 @@ const createWindowEl = () => {
   })
 
   const terminalIcon = makel({
+    background: 'var(--background)',
+    filter: 'brightness(250%)',
     display: 'none',
     marginRight: '8px',
     alignItems: 'center,'
@@ -165,14 +170,6 @@ const createWindowEl = () => {
     set name(name: string) { nameplateName.innerText = name || '[No Name]' },
     set dir(dir: string) { nameplateDir.innerText =  dir ? `${dir}/` : '' },
     set terminal(yes: boolean) { terminalIcon.style.display = yes ? 'flex' : 'none' },
-    updateBackground: (bg?: string) => {
-      canvasBox.style.background = bg || $.background
-      nameplateBox.style.background = bg || $.background
-      modifiedBubble.style.background = bg || $.background
-      modifiedBubble.style.filter = `brightness(250%)`
-      terminalIcon.style.color = bg || $.background
-      terminalIcon.style.filter = `brightness(250%)`
-    },
   }
 
   return { element, canvas, nameplateBox, nameplate, canvasBox, api }
@@ -247,7 +244,6 @@ const setupWindow = ({ element, canvas, canvasBox, api }: Window, window: Render
   winPos.push([window.y, window.x, window.height, window.width, canvas])
   fillCanvasFromGrid(window.x, window.y, window.height, window.width, canvas)
 
-  api.updateBackground()
   merge(api, window)
 }
 
@@ -380,8 +376,6 @@ const betterTitles = (windows: VimWindow[]): VimWindow[] => {
   const uniqNames = new Set(windows.map(w => w.name))
   return windows.map(w => ({ ...w, ...improvedWindowTitle(w.name, uniqNames, w.terminal) }))
 }
-
-watch.background(bg => windows.forEach(w => w.api.updateBackground(bg)))
 
 let winPos = [] as any
 let gridResizeInProgress = false
