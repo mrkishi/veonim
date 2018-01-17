@@ -136,7 +136,7 @@ const createWindowEl = () => {
 
   const terminalIcon = makel({
     background: 'var(--background)',
-    color: 'var(--foreground-20)',
+    color: 'var(--foreground-30)',
     display: 'none',
     marginRight: '8px',
     alignItems: 'center,'

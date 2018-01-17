@@ -21,7 +21,7 @@ const refreshBackground = (bg = $.background) => {
   setVar('background-45', darken(bg, 45))
   setVar('background-50', darken(bg, 50))
 
-  setVar('foreground-b10', contrast(bg, -10))
+  setVar('foreground-d10', contrast(bg, -10))
   setVar('foreground', bg)
   setVar('foreground-10', contrast(bg, 10))
   setVar('foreground-15', contrast(bg, 15))
