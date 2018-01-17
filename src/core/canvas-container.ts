@@ -9,6 +9,7 @@ export interface Font {
   lineHeight?: number,
 }
 
+const colorize = { background: contrastFuture(30) }
 const watchers = new Watchers()
 const container = document.getElementById('canvas-container') as HTMLElement
 const sandboxCanvas = document.createElement('canvas')
@@ -17,8 +18,7 @@ const canvas = sandboxCanvas.getContext('2d', { alpha: false }) as CanvasRenderi
 merge(container.style, {
   display: 'flex',
   flex: '1',
-  // TODO: should lighten (or darken) % based on vim current.bg
-  background: 'rgb(30, 30, 30)',
+  background: colorize.background($.background),
 })
 
 const _font = {
@@ -101,6 +101,7 @@ process.platform === 'darwin' && setFont({ face: 'Menlo' })
 process.platform === 'linux' && setFont({ face: 'DejaVu Sans Mono' })
 setImmediate(() => resize())
 
+watch.background(bg => container.style.background = colorize.background(bg))
 window.matchMedia('screen and (min-resolution: 2dppx)').addListener(resize)
 window.addEventListener('resize', debounce(() => resize(), 150))
 electron.screen.on('display-added', () => resize())
