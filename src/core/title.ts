@@ -1,10 +1,7 @@
 import { action, onStateChange, current } from '../core/neovim'
 import * as canvasContainer from '../core/canvas-container'
 import { merge, simplifyPath } from '../support/utils'
-import { contrastFuture } from '../ui/css'
-import $, { watch } from '../core/state'
 
-const colorize = { background: contrastFuture(15) }
 const height = 22
 const titleBar = document.getElementById('title-bar') as HTMLElement
 const title = document.querySelector('#title-bar > div') as HTMLElement
@@ -12,10 +9,8 @@ const title = document.querySelector('#title-bar > div') as HTMLElement
 merge(titleBar.style, {
   height: `${height}px`,
   color: `rgba(255, 255, 255, 0.5)`,
-  background: colorize.background($.background),
+  background: 'var(--background-15)',
 })
-
-watch.background(bg => titleBar.style.background = colorize.background(bg))
 
 onStateChange.file((file: string) => {
   const path = simplifyPath(file, current.cwd)

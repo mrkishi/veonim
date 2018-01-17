@@ -11,8 +11,11 @@ type SC2 = (params: StyleParams, content: Content) => any
 type StyledComponent = SC1 & SC2
 
 const refreshColors = (bg = $.background) => {
-  setVar('badge-background', contrast(bg, 30))
-  setVar('dialog-background', contrast(bg, 40))
+  setVar('background-15', contrast(bg, 15))
+  setVar('background-20', contrast(bg, 20))
+  setVar('background-30', contrast(bg, 30))
+  setVar('background-40', contrast(bg, 40))
+  setVar('background-45', contrast(bg, 45))
 }
 
 refreshColors()
@@ -48,7 +51,7 @@ export const colors = {
 const badge = style('span')({
   ...paddingV(4),
   borderRadius: '2px',
-  background: 'var(--badge-background)'
+  background: 'var(--background-30)'
 })
 
 export const Badge = (content: string | number, style = {}) => badge({ style }, content)
@@ -72,7 +75,7 @@ const plugin = {
 }
 
 const Dialog = style('div')({
-  background: 'var(--dialog-background)',
+  background: 'var(--background-40)',
   marginTop: '15%',
 })
 

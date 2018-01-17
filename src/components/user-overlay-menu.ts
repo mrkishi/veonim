@@ -41,7 +41,7 @@ const view = ($: State, actions: ActionCaller) => h('#user-overlay-menu', {
 }, [
   ,h('div', {
     style: {
-      background: 'rgb(20, 20, 20)',
+      background: 'var(--dialog-background)',
     }
   }, [
 

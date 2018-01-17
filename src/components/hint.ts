@@ -87,7 +87,7 @@ const view = ($: State) => h('#hint', {
   }, [
     ,h('div', {
       style: {
-        background: '#222',
+        background: 'var(--background-30)',
         color: '#eee',
         padding: '8px',
       }

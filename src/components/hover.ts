@@ -34,7 +34,7 @@ const docs = (data: string) => h('div', {
   style: {
     overflow: 'visible',
     whiteSpace: 'normal',
-    background: '#1e1e1e',
+    background: 'var(--background-45)',
     ...paddingVH(8, 6),
     fontSize: `${canvasContainer.font.size - 2}px`,
     color: 'rgba(255, 255, 255, 0.5)',
@@ -76,7 +76,7 @@ const view = ($: State) => h('#hover', {
 
     ,h('div', {
       style: {
-        background: '#222',
+        background: 'var(--background-30)',
         color: '#eee',
         padding: '8px',
       }

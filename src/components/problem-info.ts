@@ -59,8 +59,7 @@ const view = ($: State) => h('#problem-info', {
 
     ,h('div', {
       style: {
-        // TODO: vim colors pls
-        background: '#222',
+        background: 'var(--background-30)',
         color: '#eee',
         padding: '8px',
         display: 'flex',
