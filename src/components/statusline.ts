@@ -87,7 +87,7 @@ const Tab = style('div')({
   paddingRight: '8px',
   paddingTop: '4px',
   paddingBottom: '4px',
-  color: '#aaa',
+  color: 'var(--foreground-40)',
 })
 
 const IconBox = style('div')({
@@ -253,7 +253,6 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
     ,Item({
       style: {
         paddingRight: '0',
-        background: '#2a2a2a',
         //clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
       }
     }, [
@@ -261,8 +260,8 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
         // TODO: also display name if config declares it to
         key: id,
         style: active === id ? { 
-          background: '#333',
-          color: '#ddd',
+          background: 'var(--background-10)',
+          color: 'var(--foreground)',
         } : undefined
       }, ix + 1))
     ])
