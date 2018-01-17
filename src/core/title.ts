@@ -16,7 +16,6 @@ merge(titleBar.style, {
 })
 
 watch.background(bg => titleBar.style.background = colorize.background(bg))
-watch.background(bg => console.log('bg changed:', bg))
 
 onStateChange.file((file: string) => {
   const path = simplifyPath(file, current.cwd)

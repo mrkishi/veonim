@@ -1,4 +1,5 @@
-import { paddingVH, paddingH, paddingV } from '../ui/css'
+import { setVar, paddingVH, paddingH, paddingV, contrast } from '../ui/css'
+import $, { watch } from '../core/state'
 import { is } from '../support/utils'
 import { style } from '../ui/uikit'
 
@@ -8,6 +9,14 @@ type Content = any[] | string | number
 type SC1 = (content: Content) => any
 type SC2 = (params: StyleParams, content: Content) => any
 type StyledComponent = SC1 & SC2
+
+const refreshColors = (bg = $.background) => {
+  setVar('badge-background', contrast(bg, 30))
+  setVar('dialog-background', contrast(bg, 40))
+}
+
+refreshColors()
+watch.background(bg => refreshColors(bg))
 
 const isContent = (thing: any) => is.array(thing) || is.string(thing) || is.number(thing)
 
@@ -32,14 +41,14 @@ export const colors = {
   success: '#72a940',
   system: '#28b0ff',
   overlay: {
-    background: 'rgb(25, 25, 25)'
+    background: contrast($.background, 25),
   }
 }
 
 const badge = style('span')({
   ...paddingV(4),
   borderRadius: '2px',
-  background: '#212121',
+  background: 'var(--badge-background)'
 })
 
 export const Badge = (content: string | number, style = {}) => badge({ style }, content)
@@ -63,7 +72,7 @@ const plugin = {
 }
 
 const Dialog = style('div')({
-  background: 'rgb(25, 25, 25)',
+  background: 'var(--dialog-background)',
   marginTop: '15%',
 })
 
@@ -149,13 +158,13 @@ export const Row = {
       display: 'flex',
       alignItems: 'center',
       color: '#c7c7c7',
-      background: '#2b2b2b',
+      background: contrast($.background, 30),
     }),
     active: style('div')({
       ...row,
       ...paddingH(6),
       color: '#fff',
-      background: '#5a5a5a',
+      background: contrast($.background, 20),
       fontWeight: 'normal',
     })
   }),
@@ -165,7 +174,7 @@ export const Row = {
       ...row,
       ...paddingH(8),
       color: '#ffd800',
-      background: 'rgb(10, 10, 10)',
+      background: contrast($.background, 50),
     })
   }),
 
