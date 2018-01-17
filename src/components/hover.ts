@@ -37,7 +37,7 @@ const docs = (data: string) => h('div', {
     background: 'var(--background-45)',
     ...paddingVH(8, 6),
     fontSize: `${canvasContainer.font.size - 2}px`,
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'var(--foreground-40)',
   }
 }, data)
 
