@@ -14,7 +14,7 @@ interface WatchState {
   mode(fn: (mode: string) => void): void,
 }
 
-const initialState: State = {
+const state: State = {
   background: '#2d2d2d',
   foreground: '#dddddd',
   special: '#ff0000',
@@ -27,6 +27,10 @@ export const watch = new Proxy({} as WatchState, {
   get: (_, key: string) => (fn: (value: any) => void) => watchers.add(key, fn),
 })
 
-export default new Proxy(initialState, {
-  set: (_, key: string, val) => (watchers.notify(key, val), true),
+export default new Proxy(state, {
+  set: (_, key: string, val: any) => {
+    Reflect.set(state, key, val)
+    watchers.notify(key, val)
+    return true
+  }
 })

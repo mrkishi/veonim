@@ -4,6 +4,7 @@ import * as canvasContainer from '../core/canvas-container'
 import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
+import $, { watch } from '../core/state'
 import * as grid from '../core/grid'
 
 export interface VimWindow {
@@ -37,7 +38,7 @@ export interface WindowApi {
   name?: string,
   dir?: string,
   terminal: boolean,
-  updateBackground(): void,
+  updateBackground(bg?: string): void,
 }
 
 export interface Window {
@@ -120,7 +121,6 @@ const createWindowEl = () => {
     display: 'none',
     marginTop: '2px',
     marginLeft: '8px',
-    background: '#aaa',
     borderRadius: '50%',
     height: `${Math.round(canvasContainer.font.size / 2)}px`,
     width: `${Math.round(canvasContainer.font.size / 2)}px`,
@@ -129,7 +129,6 @@ const createWindowEl = () => {
   const terminalIcon = makel({
     display: 'none',
     marginRight: '8px',
-    color: '#aaa',
     alignItems: 'center,'
   })
 
@@ -166,12 +165,12 @@ const createWindowEl = () => {
     set name(name: string) { nameplateName.innerText = name || '[No Name]' },
     set dir(dir: string) { nameplateDir.innerText =  dir ? `${dir}/` : '' },
     set terminal(yes: boolean) { terminalIcon.style.display = yes ? 'flex' : 'none' },
-    updateBackground: () => {
-      canvasBox.style.background = current.bg
-      nameplateBox.style.background = current.bg
-      modifiedBubble.style.background = current.bg
+    updateBackground: (bg?: string) => {
+      canvasBox.style.background = bg || $.background
+      nameplateBox.style.background = bg || $.background
+      modifiedBubble.style.background = bg || $.background
       modifiedBubble.style.filter = `brightness(250%)`
-      terminalIcon.style.color = current.bg
+      terminalIcon.style.color = bg || $.background
       terminalIcon.style.filter = `brightness(250%)`
     },
   }
@@ -381,6 +380,8 @@ const betterTitles = (windows: VimWindow[]): VimWindow[] => {
   const uniqNames = new Set(windows.map(w => w.name))
   return windows.map(w => ({ ...w, ...improvedWindowTitle(w.name, uniqNames, w.terminal) }))
 }
+
+watch.background(bg => windows.forEach(w => w.api.updateBackground(bg)))
 
 let winPos = [] as any
 let gridResizeInProgress = false

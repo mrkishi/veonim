@@ -9,7 +9,6 @@ const height = 22
 const titleBar = document.getElementById('title-bar') as HTMLElement
 const title = document.querySelector('#title-bar > div') as HTMLElement
 
-console.log('initial', $.background)
 merge(titleBar.style, {
   height: `${height}px`,
   color: `rgba(255, 255, 255, 0.5)`,

@@ -1,6 +1,7 @@
 import { Watchers, merge, debounce } from '../support/utils'
+import { setVar, contrastFuture } from '../ui/css'
+import $, { watch } from '../core/state'
 import * as electron from 'electron'
-import { setVar } from '../ui/css'
 
 export interface Font {
   face?: string,
