@@ -1,7 +1,8 @@
-import { current as vimstate } from '../core/neovim'
-import { h, app, style, Actions } from '../ui/uikit'
-import { translate, bold, faded } from '../ui/css'
+import { translate, bold, faded, paddingVH } from '../ui/css'
+import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
+import { h, app, Actions } from '../ui/uikit'
+import $$ from '../core/state'
 
 interface State {
   label: string,
@@ -48,10 +49,21 @@ const state: State = {
 
 let spacer: HTMLElement
 
-const Doc = style('div')({
-  paddingBottom: '4px',
-  color: vimstate.fg || '#aaa',
-})
+//const Doc = style('div')({
+  //paddingBottom: '4px',
+  //color: $$.foreground,
+  //fontSize: `${canvasContainer.font.size - 2}px`,
+//})
+
+const docs = (data: string) => h('div', {
+  style: {
+    overflow: 'visible',
+    whiteSpace: 'normal',
+    ...paddingVH(8, 6),
+    fontSize: `${canvasContainer.font.size - 2}px`,
+    color: 'var(--foreground-40)',
+  }
+}, data)
 
 const view = ($: State) => h('#hint', {
   style: {
@@ -88,29 +100,31 @@ const view = ($: State) => h('#hint', {
     ,h('div', {
       style: {
         background: 'var(--background-30)',
-        color: '#eee',
-        padding: '8px',
       }
     }, [
       ,h('div', { style: {
-        paddingBottom: $.documentation || $.paramDoc ? '8px' : undefined
+        background: 'var(--background-45)',
+        paddingBottom: $.documentation || $.paramDoc ? '2px' : undefined
       } }, [
-        ,$.documentation && Doc({}, $.documentation)
-        ,$.paramDoc && Doc({}, $.paramDoc)
+        ,$.documentation && docs($.documentation)
+        ,$.paramDoc && docs($.paramDoc)
       ])
 
-      ,h('div', { style: { display: 'flex' } }, [
+      ,h('div', { style: {
+        display: 'flex',
+        padding: '8px',
+      } }, [
         ,h('div', [
-          ,h('span', { style: faded(vimstate.fg, 0.6) }, $.labelStart)
-          ,h('span', { style: bold(vimstate.fg) }, $.currentParam)
-          ,h('span', { style: faded(vimstate.fg, 0.6) }, $.labelEnd)
+          ,h('span', { style: faded($$.foreground, 0.6) }, $.labelStart)
+          ,h('span', { style: bold($$.foreground) }, $.currentParam)
+          ,h('span', { style: faded($$.foreground, 0.6) }, $.labelEnd)
         ])
 
         ,h('div', {
           hide: $.totalSignatures < 2,
           style: {
             paddingLeft: '4px',
-            color: vimstate.fg,
+            color: 'var(--foreground)',
           },
         }, `${$.selectedSignature}/${$.totalSignatures}`)
       ])

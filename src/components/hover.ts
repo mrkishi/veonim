@@ -1,9 +1,9 @@
 import * as canvasContainer from '../core/canvas-container'
-import { current as vimstate } from '../core/neovim'
 import { translate, paddingVH } from '../ui/css'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
 import { ColorData } from '../ai/hover'
+import $$ from '../core/state'
 
 interface State {
   value: ColorData[][],
@@ -77,12 +77,11 @@ const view = ($: State) => h('#hover', {
     ,h('div', {
       style: {
         background: 'var(--background-30)',
-        color: '#eee',
         padding: '8px',
       }
     }, $.value.map(m => h('div', m.map(({ color, text }) => h('span', {
       style: {
-        color: color || vimstate.fg,
+        color: color || $$.foreground,
         'white-space': 'pre',
       }
     }, text)))))

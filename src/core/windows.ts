@@ -125,7 +125,7 @@ const createWindowEl = () => {
   })
 
   const modifiedBubble = makel({
-    background: 'var(--foreground-20)',
+    background: 'var(--foreground-50)',
     display: 'none',
     marginTop: '2px',
     marginLeft: '8px',
