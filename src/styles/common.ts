@@ -17,6 +17,7 @@ const refreshColors = (bg = $.background) => {
   setVar('background-30', contrast(bg, 30))
   setVar('background-40', contrast(bg, 40))
   setVar('background-45', contrast(bg, 45))
+  setVar('background-50', contrast(bg, 50))
 }
 
 refreshColors()
@@ -44,9 +45,6 @@ export const colors = {
   warning: '#ffb100',
   success: '#72a940',
   system: '#28b0ff',
-  overlay: {
-    background: contrast($.background, 25),
-  }
 }
 
 const badge = style('span')({
@@ -100,10 +98,6 @@ export const Plugin = {
       flexFlow: 'column',
       marginTop: '0px',
     }}, content), 'right'),
-}
-
-export const panelColors = {
-  bg: '#222',
 }
 
 const rowLastPad = {

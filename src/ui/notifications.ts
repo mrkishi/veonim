@@ -48,7 +48,7 @@ const notification = {
   marginBottom: '6px',
   padding: '10px',
   justifyContent: 'space-between' ,
-  background: colors.overlay.background,
+  background: 'var(--background-50)',
 }
 
 const Notification = style('div')({ ...notification, color: '#eee' })

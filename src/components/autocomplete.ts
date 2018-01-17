@@ -1,10 +1,10 @@
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
-import { Row, panelColors } from '../styles/common'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
 import { cursor } from '../core/cursor'
+import { Row } from '../styles/common'
 import Icon from '../components/icon'
 import { translate } from '../ui/css'
 
@@ -50,7 +50,7 @@ const docs = (data: string) => Row.normal({
   style: {
     overflow: 'visible',
     whiteSpace: 'normal',
-    background: '#1e1e1e',
+    background: 'var(--background-45)',
     paddingTop: '4px',
     paddingBottom: '4px',
     fontSize: `${canvasContainer.font.size - 2}px`,
@@ -76,7 +76,7 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
     ,h('div', {
       onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
       style: {
-        background: panelColors.bg,
+        background: 'var(--background-30)',
         //transformOrigin: anchorAbove ? 'left bottom' : 'left top',
         transform: anchorAbove ? 'translateY(-100%)' : undefined,
         overflowY: 'hidden',
