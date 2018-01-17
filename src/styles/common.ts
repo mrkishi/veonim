@@ -30,6 +30,11 @@ const refreshBackground = (bg = $.background) => {
   setVar('foreground-40', contrast(bg, 40))
   setVar('foreground-45', contrast(bg, 45))
   setVar('foreground-50', contrast(bg, 50))
+  setVar('foreground-60', contrast(bg, 60))
+  setVar('foreground-70', contrast(bg, 70))
+  setVar('foreground-80', contrast(bg, 80))
+  setVar('foreground-90', contrast(bg, 90))
+  setVar('foreground-100', contrast(bg, 100))
 }
 
 refreshBackground()
@@ -124,12 +129,12 @@ const row = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   display: 'flex',
-  color: '#aaa',
+  color: 'var(--foreground-60)',
 }
 
 const activeRow = {
   ...row,
-  color: '#fff',
+  color: 'var(--foreground-90)',
   fontWeight: 'bold',
   background: 'rgba(255, 255, 255, 0.05)',
 }

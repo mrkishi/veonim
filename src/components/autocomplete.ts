@@ -51,10 +51,10 @@ const docs = (data: string) => Row.normal({
     overflow: 'visible',
     whiteSpace: 'normal',
     background: 'var(--background-45)',
+    color: 'var(--foreground-20)',
     paddingTop: '4px',
     paddingBottom: '4px',
     fontSize: `${canvasContainer.font.size - 2}px`,
-    color: 'rgba(255, 255, 255, 0.5)',
   }
 }, data)
 
@@ -98,7 +98,6 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
           marginLeft: '-8px',
           background: 'rgba(255, 255, 255, 0.03)',
           // TODO: this doesn't scale with font size?
-          // TODO: shouldn't there be different fonts for UI vs vim
           width: '24px',
           marginRight: '8px',
           alignItems: 'center',
