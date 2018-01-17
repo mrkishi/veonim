@@ -96,13 +96,13 @@ const shadeColor = (color: string, percent: number) => {
 }
 
 
-export const contrast = (color: string, amount: number) => {
+export const contrast = (color: string, contrastAgainst: string, amount: number) => {
   (amount)
-  const [ r, g, b ] = hexToRGB(color)
+  const [ r, g, b ] = hexToRGB(contrastAgainst)
   const { luminosity } = rgbToHSL(r, g, b)
   const lum = Math.floor(luminosity * 100)
-  const shouldDarken = lum > 50
-  return shadeColor(color, shouldDarken ? -((amount + 10) / 100) : (amount / 100))
+  const shouldDarken = lum < 50
+  return shadeColor(color, shouldDarken ? -(amount / 100) : (amount / 100))
 }
 
 export const brighten = (color: string, amount: number) => shadeColor(color, (amount / 100))

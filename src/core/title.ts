@@ -8,7 +8,7 @@ const title = document.querySelector('#title-bar > div') as HTMLElement
 
 merge(titleBar.style, {
   height: `${height}px`,
-  color: 'var(--foreground-40)',
+  color: 'var(--foreground-60)',
   background: 'var(--background-15)',
 })
 

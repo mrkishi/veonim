@@ -10,7 +10,7 @@ type SC1 = (content: Content) => any
 type SC2 = (params: StyleParams, content: Content) => any
 type StyledComponent = SC1 & SC2
 
-const refreshBackground = (bg = $.background) => {
+const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
   setVar('background-b10', brighten(bg, 10))
   setVar('background', bg)
   setVar('background-10', darken(bg, 10))
@@ -21,24 +21,23 @@ const refreshBackground = (bg = $.background) => {
   setVar('background-45', darken(bg, 45))
   setVar('background-50', darken(bg, 50))
 
-  setVar('foreground-d10', contrast(bg, -10))
-  setVar('foreground', bg)
-  setVar('foreground-10', contrast(bg, 10))
-  setVar('foreground-15', contrast(bg, 15))
-  setVar('foreground-20', contrast(bg, 20))
-  setVar('foreground-30', contrast(bg, 30))
-  setVar('foreground-40', contrast(bg, 40))
-  setVar('foreground-45', contrast(bg, 45))
-  setVar('foreground-50', contrast(bg, 50))
-  setVar('foreground-60', contrast(bg, 60))
-  setVar('foreground-70', contrast(bg, 70))
-  setVar('foreground-80', contrast(bg, 80))
-  setVar('foreground-90', contrast(bg, 90))
-  setVar('foreground-100', contrast(bg, 100))
+  setVar('foreground', fg)
+  setVar('foreground-10', contrast(fg, bg, 10))
+  setVar('foreground-15', contrast(fg, bg, 15))
+  setVar('foreground-20', contrast(fg, bg, 20))
+  setVar('foreground-30', contrast(fg, bg, 30))
+  setVar('foreground-40', contrast(fg, bg, 40))
+  setVar('foreground-45', contrast(fg, bg, 45))
+  setVar('foreground-50', contrast(fg, bg, 50))
+  setVar('foreground-60', contrast(fg, bg, 60))
+  setVar('foreground-70', contrast(fg, bg, 70))
+  setVar('foreground-80', contrast(fg, bg, 80))
+  setVar('foreground-90', contrast(fg, bg, 90))
+  setVar('foreground-100', contrast(fg, bg, 100))
 }
 
-refreshBackground()
-watch.background(bg => refreshBackground(bg))
+watch.background(bg => refreshColors({ bg }))
+watch.foreground(fg => refreshColors({ fg }))
 
 const isContent = (thing: any) => is.array(thing) || is.string(thing) || is.number(thing)
 
@@ -129,7 +128,7 @@ const row = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   display: 'flex',
-  color: 'var(--foreground-60)',
+  color: 'var(--foreground-30)',
 }
 
 const activeRow = {
