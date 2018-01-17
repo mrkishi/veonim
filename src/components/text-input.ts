@@ -40,7 +40,7 @@ const Input = style('input')({
   '::placeholder': {
     color: 'var(--foreground-70)',
   },
-  color: 'var(--foreground-b40)',
+  color: 'var(--foreground-b60)',
   outline: 'none',
   border: 'none',
   fontFamily: 'var(--font)',

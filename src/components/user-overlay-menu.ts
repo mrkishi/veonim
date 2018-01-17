@@ -34,14 +34,14 @@ const state: State = {
 const view = ($: State, actions: ActionCaller) => h('#user-overlay-menu', {
   style: {
     display: $.vis ? 'flex' : 'none',
-    'z-index': 100,
+    zIndex: 100,
     position: 'absolute',
     transform: translate($.x, $.y),
   },
 }, [
   ,h('div', {
     style: {
-      background: 'var(--dialog-background)',
+      background: 'var(--background-40)',
     }
   }, [
 
