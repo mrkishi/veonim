@@ -70,7 +70,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
   }, $.paths.map(({ name, dir }, key) => Row.normal({ key, activeWhen: key === $.ix }, [
     ,dir ? setiIcon.id('folder') : setiIcon.file(name)
 
-    ,h('span', { style: { color: dir && key !== $.ix ? '#888' : undefined } }, name)
+    ,h('span', { style: { color: dir && key !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
   ])))
 
 ])

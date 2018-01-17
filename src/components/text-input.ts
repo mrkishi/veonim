@@ -38,9 +38,9 @@ const keToStr = (e: KeyboardEvent) => [
 
 const Input = style('input')({
   '::placeholder': {
-    color: 'rgba(255, 255, 255, 0.2)',
+    color: 'var(--foreground-70)',
   },
-  color: 'rgba(255, 255, 255, 0.9)',
+  color: 'var(--foreground-b40)',
   outline: 'none',
   border: 'none',
   fontFamily: 'var(--font)',
@@ -88,7 +88,7 @@ export default ({
 
   IconBox({}, [
     Icon(icon, {
-      color: '#444',
+      color: 'var(--foreground-70)',
       size: canvasContainer.font.size + (small ? 0 : 8),
       weight: 2,
     })

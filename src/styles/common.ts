@@ -22,6 +22,9 @@ const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
   setVar('background-45', darken(bg, 45))
   setVar('background-50', darken(bg, 50))
 
+  setVar('foreground-b40', brighten(fg, 40))
+  setVar('foreground-b20', brighten(fg, 20))
+  setVar('foreground-b10', brighten(fg, 10))
   setVar('foreground', fg)
   setVar('foreground-10', contrast(fg, bg, 10))
   setVar('foreground-15', contrast(fg, bg, 15))
@@ -134,7 +137,7 @@ const row = {
 
 const activeRow = {
   ...row,
-  color: 'var(--foreground)',
+  color: 'var(--foreground-b20)',
   fontWeight: 'bold',
   background: 'var(--background-10)'
 }
