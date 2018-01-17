@@ -1,4 +1,4 @@
-import { setVar, paddingVH, paddingH, paddingV, contrast } from '../ui/css'
+import { setVar, paddingVH, paddingH, paddingV, contrast, darken } from '../ui/css'
 import $, { watch } from '../core/state'
 import { is } from '../support/utils'
 import { style } from '../ui/uikit'
@@ -10,20 +10,34 @@ type SC1 = (content: Content) => any
 type SC2 = (params: StyleParams, content: Content) => any
 type StyledComponent = SC1 & SC2
 
-const refreshColors = (bg = $.background) => {
-  setVar('background-b10', contrast(bg, -10))
+const refreshBackground = (bg = $.background) => {
+  setVar('background-b10', darken(bg, -10))
   setVar('background', bg)
-  setVar('background-10', contrast(bg, 10))
-  setVar('background-15', contrast(bg, 15))
-  setVar('background-20', contrast(bg, 20))
-  setVar('background-30', contrast(bg, 30))
-  setVar('background-40', contrast(bg, 40))
-  setVar('background-45', contrast(bg, 45))
-  setVar('background-50', contrast(bg, 50))
+  setVar('background-10', darken(bg, 10))
+  setVar('background-15', darken(bg, 15))
+  setVar('background-20', darken(bg, 20))
+  setVar('background-30', darken(bg, 30))
+  setVar('background-40', darken(bg, 40))
+  setVar('background-45', darken(bg, 45))
+  setVar('background-50', darken(bg, 50))
 }
 
-refreshColors()
-watch.background(bg => refreshColors(bg))
+const refreshForeground = (fg = $.foreground) => {
+  //setVar('foreground-b10', contrast(fg, -10))
+  //setVar('foreground', fg)
+  setVar('foreground-10', contrast(fg, 10))
+  //setVar('foreground-15', contrast(fg, 15))
+  //setVar('foreground-20', contrast(fg, 20))
+  //setVar('foreground-30', contrast(fg, 30))
+  //setVar('foreground-40', contrast(fg, 40))
+  //setVar('foreground-45', contrast(fg, 45))
+  //setVar('foreground-50', contrast(fg, 50))
+}
+
+refreshBackground()
+refreshForeground()
+watch.background(bg => refreshBackground(bg))
+watch.foreground(fg => refreshForeground(fg))
 
 const isContent = (thing: any) => is.array(thing) || is.string(thing) || is.number(thing)
 

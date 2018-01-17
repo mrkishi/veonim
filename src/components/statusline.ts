@@ -1,10 +1,8 @@
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { h, app, style, Actions } from '../ui/uikit'
 import { onStateChange } from '../core/neovim'
-import { contrastFuture } from '../ui/css'
 import { ExtContainer } from '../core/api'
 import { colors } from '../styles/common'
-import $, { watch } from '../core/state'
 import { merge } from '../support/utils'
 import Icon from '../components/icon'
 import '../support/git'
@@ -37,8 +35,6 @@ interface State {
   macro: string,
 }
 
-const colorize = { background: contrastFuture(30) }
-
 const state: State = {
   tabs: [],
   active: -1,
@@ -61,7 +57,7 @@ const Statusline = style('div')({
   flex: 1,
   display: 'flex',
   justifyContent: 'space-between',
-  background: colorize.background($.background),
+  background: 'var(--background-30)',
   zIndex: 999,
 })
 
@@ -110,9 +106,7 @@ merge(container.style, {
 // TODO: LOL NOPE
 const $PR = `/Users/a/Documents/projects/`
 
-const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions, macro }: State) => Statusline({
-  style: { background: colorize.background($.background) }
-}, [
+const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions, macro }: State) => Statusline({}, [
   ,Left({}, [
 
     ,Item({
@@ -307,8 +301,6 @@ onStateChange.filetype(ui.setFiletype)
 onStateChange.cwd(ui.setCwd)
 onStateChange.line(ui.setLine)
 onStateChange.column(ui.setColumn)
-
-watch.background(() => ui.update())
 
 sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
   const mtabs: TabInfo[] = tabs.map(t => ({ id: t.tab.id, name: t.name }))

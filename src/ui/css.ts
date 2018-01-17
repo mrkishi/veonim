@@ -48,6 +48,36 @@ export const hexToRGBA = (color: string, alpha: number) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
+const rgbToHSL = (red: number, green: number, blue: number) => {
+  const r = red / 255
+  const g = green / 255
+  const b = blue / 255
+
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+
+  let h: number = (max + min) / 2
+  let s: number = (max + min) / 2
+  let l: number = (max + min) / 2
+
+  if (max == min) {
+    h = s = 0 // achromatic
+  } else {
+    const d = max - min
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break
+      case g: h = (b - r) / d + 2; break
+      case b: h = (r - g) / d + 4; break
+    }
+
+    h /= 6
+  }
+
+  return { hue: h, saturation: s, luminosity: l }
+}
+
 // https://stackoverflow.com/a/13542669
 const shadeColor = (color: string, percent: number) => {   
   const f = parseInt(color.slice(1),16)
@@ -65,11 +95,16 @@ const shadeColor = (color: string, percent: number) => {
     .slice(1)
 }
 
-// TODO: should darken color, but if below threshold, lighten. use hsl?
-const _contrast = (color: string, amount: number) => shadeColor(color, -(amount / 100))
 
-export const contrast = (color: string, amount: number) => _contrast(color, amount)
-export const contrastFuture = (amount: number) => (color: string) => _contrast(color, amount)
+export const contrast = (color: string, amount: number) => {
+  (amount)
+  const [ r, g, b ] = hexToRGB(color)
+  const res = rgbToHSL(r, g, b)
+  console.log('HSL:', res)
+  return color
+}
+
+export const darken = (color: string, amount: number) => shadeColor(color, -(amount / 100))
 
 // chrome does not support .finished property on animate()
 export const animate = (element: HTMLElement, keyframes: object[], options = {} as any): Promise<void> => {
