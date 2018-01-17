@@ -12,6 +12,7 @@ type StyledComponent = SC1 & SC2
 
 const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
   setVar('background-b10', brighten(bg, 10))
+  setVar('background-b5', brighten(bg, 5))
   setVar('background', bg)
   setVar('background-10', darken(bg, 10))
   setVar('background-15', darken(bg, 15))
@@ -133,9 +134,9 @@ const row = {
 
 const activeRow = {
   ...row,
-  color: 'var(--foreground-90)',
+  color: 'var(--foreground)',
   fontWeight: 'bold',
-  background: 'rgba(255, 255, 255, 0.05)',
+  background: 'var(--background-10)'
 }
 
 export const Row = {
@@ -159,8 +160,6 @@ export const Row = {
       ...activeRow,
       ...paddingVH(8, 0),
       lineHeight: `var(--line-height)`,
-      background: 'rgba(255, 255, 255, 0.08)',
-      color: '#eee',
       fontWeight: 'bold',
     })
   }),
