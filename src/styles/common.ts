@@ -11,7 +11,9 @@ type SC2 = (params: StyleParams, content: Content) => any
 type StyledComponent = SC1 & SC2
 
 const refreshColors = (bg = $.background) => {
+  setVar('background-b10', contrast(bg, -10))
   setVar('background', bg)
+  setVar('background-10', contrast(bg, 10))
   setVar('background-15', contrast(bg, 15))
   setVar('background-20', contrast(bg, 20))
   setVar('background-30', contrast(bg, 30))
@@ -156,13 +158,13 @@ export const Row = {
       display: 'flex',
       alignItems: 'center',
       color: '#c7c7c7',
-      background: contrast($.background, 30),
+      background: 'var(--background-20)',
     }),
     active: style('div')({
       ...row,
       ...paddingH(6),
       color: '#fff',
-      background: contrast($.background, 20),
+      background: 'var(--background-b10)',
       fontWeight: 'normal',
     })
   }),
@@ -172,7 +174,7 @@ export const Row = {
       ...row,
       ...paddingH(8),
       color: '#ffd800',
-      background: contrast($.background, 50),
+      background: 'var(--background-50)',
     })
   }),
 
