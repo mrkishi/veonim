@@ -7,6 +7,7 @@ import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
 import * as grid from '../core/grid'
+import $ from '../core/state'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
@@ -98,9 +99,9 @@ const r: Events = new Proxy(api, {
 })
 
 const colors: Colors = {
-  fg: '#ccc',
-  bg: '#222',
-  sp: '#f00'
+  fg: '#dddddd',
+  bg: '#2d2d2d',
+  sp: '#ff0000'
 }
 
 const nextAttrs: NextAttrs = {
@@ -197,6 +198,7 @@ r.update_fg = fg => {
   if (fg < 0) return
   merge(colors, { fg: asColor(fg) })
   dispatch.pub('colors.vim.fg', colors.fg)
+  $.foreground = colors.fg
   grid.setForeground(colors.fg)
 }
 
@@ -204,6 +206,7 @@ r.update_bg = bg => {
   if (bg < 0) return
   merge(colors, { bg: asColor(bg) })
   dispatch.pub('colors.vim.bg', colors.bg)
+  $.background = colors.bg
   grid.setBackground(colors.bg)
 }
 
@@ -211,6 +214,7 @@ r.update_sp = sp => {
   if (sp < 0) return
   merge(colors, { sp: asColor(sp) })
   dispatch.pub('colors.vim.sp', colors.sp)
+  $.special = colors.sp
   grid.setSpecial(colors.sp)
 }
 
@@ -234,6 +238,7 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 
 r.mode_change = async mode => {
   dispatch.pub('vim:mode', mode)
+  $.mode = mode
   currentMode = mode
   const info = modes.get(mode)
   if (!info) return
