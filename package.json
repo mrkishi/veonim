@@ -94,7 +94,7 @@
   },
   "homepage": "https://github.com/veonim/veonim#readme",
   "dependencies": {
-    "@veonim/neovim": "0.0.14",
+    "@veonim/neovim": "0.0.15",
     "@veonim/plugin-manager": "0.4.2",
     "@veonim/ripgrep": "0.0.5",
     "fuzzaldrin-plus": "0.4.1",
