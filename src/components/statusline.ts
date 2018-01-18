@@ -72,7 +72,7 @@ const Center = style('div')(lineGroup)
 const Right = style('div')(lineGroup)
 
 const Item = style('div')({
-  color: '#777',
+  color: 'var(--foreground-40)',
   display: 'flex',
   height: '100%',
   alignItems: 'center',
