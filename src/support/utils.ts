@@ -1,4 +1,4 @@
-import { dirname, basename, join, extname } from 'path'
+import { dirname, basename, join, extname, resolve } from 'path'
 import { exec } from 'child_process'
 import { Transform } from 'stream'
 import { createServer } from 'net'
@@ -57,6 +57,8 @@ export const shell = (cmd: string, opts?: object): Promise<string> => new Promis
 export const pathRelativeToHome = (path: string) => path.includes($HOME)
   ? path.replace($HOME, '~')
   : path
+
+export const absolutePath = (path: string) => resolve(path.replace(/^~\//, `${homedir()}/`))
 
 export const simplifyPath = (fullpath: string, cwd: string) => fullpath.includes(cwd)
   ? fullpath.split(cwd + '/')[1]

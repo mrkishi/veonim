@@ -1,9 +1,10 @@
+import { merge, simplifyPath, absolutePath } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { h, app, style, Actions } from '../ui/uikit'
+import configReader from '../config/config-service'
 import { onStateChange } from '../core/neovim'
 import { ExtContainer } from '../core/api'
 import { colors } from '../styles/common'
-import { merge } from '../support/utils'
 import Icon from '../components/icon'
 import '../support/git'
 
@@ -103,9 +104,6 @@ merge(container.style, {
   zIndex: 900,
 })
 
-// TODO: LOL NOPE
-const $PR = `/Users/a/Documents/projects/`
-
 const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions, macro }: State) => Statusline({}, [
   ,Left({}, [
 
@@ -119,7 +117,7 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       }
     }, [
       ,IconBox({}, [ Icon('hard-drive') ])
-      ,h('span', cwd.replace($PR, '') || 'no project')
+      ,h('span', cwd || 'no project')
     ])
 
     // TODO: only show on git projects
@@ -273,7 +271,7 @@ a.updateTabs = (_s, _a, { active, tabs }) => ({ active, tabs })
 a.setFiletype = (_s, _a, filetype) => ({ filetype })
 a.setLine = (_s, _a, line) => ({ line })
 a.setColumn = (_s, _a, column) => ({ column })
-a.setCwd = (_s, _a, cwd) => ({ cwd })
+a.setCwd = (_s, _a, { cwd, projectRoot }) => ({ cwd, projectRoot })
 a.setDiagnostics = (_s, _a, { errors = 0, warnings = 0 }) => ({ errors, warnings })
 a.setGitBranch = (_s, _a, branch) => ({ branch })
 a.setGitStatus = (_s, _a, { additions, deletions }) => ({ additions, deletions })
@@ -297,9 +295,11 @@ a.serverOffline = (s, _a, server) => ({
 const ui = app({ state, view, actions: a }, false, container)
 
 onStateChange.filetype(ui.setFiletype)
-onStateChange.cwd(ui.setCwd)
 onStateChange.line(ui.setLine)
 onStateChange.column(ui.setColumn)
+onStateChange.cwd((cwd: string) => configReader('project.root', (root: string) => {
+  ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(root)) })
+}))
 
 sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
   const mtabs: TabInfo[] = tabs.map(t => ({ id: t.tab.id, name: t.name }))
