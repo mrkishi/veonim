@@ -104,7 +104,7 @@
     "node-watch": "0.5.5",
     "picostyle": "0.1.4",
     "vscode-jsonrpc": "3.5.0",
-    "vscode-languageserver-types": "3.4.0"
+    "vscode-languageserver-types": "3.5.0"
   },
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",

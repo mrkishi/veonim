@@ -49,7 +49,7 @@ const icons = new Map([
   [ CompletionItemKind.Variable, Icon('database', { color: '#ff70e4' }) ],
   [ CompletionItemKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
   [ CompletionItemKind.Interface, Icon('map', { color: '#ffa354' }) ],
-  [ CompletionItemKind.Module, Icon('package', { color: '#ff5f54' }) ],
+  [ CompletionItemKind.Module, Icon('grid', { color: '#ff5f54' }) ],
   [ CompletionItemKind.Unit, Icon('cpu', { color: '#ffadc5' }) ],
   [ CompletionItemKind.Value, Icon('bell', { color: '#ffa4d0' }) ],
   [ CompletionItemKind.Enum, Icon('award', { color: '#84ff54' }) ],
@@ -58,7 +58,7 @@ const icons = new Map([
   [ CompletionItemKind.Color, Icon('eye', { color: '#54ffe5' }) ],
   [ CompletionItemKind.File, Icon('file', { color: '#a5c3ff' }) ],
   [ CompletionItemKind.Reference, Icon('link', { color: '#ffdca3' }) ],
-  // TODO: but these exist online?
+  // TODO: but these exist in the protocol?
   //[ CompletionItemKind.Folder, Icon('folder', { color: '#' }) ],
   //[ CompletionItemKind.EnumMember, Icon('menu', { color: '#' }) ],
   //[ CompletionItemKind.Constant, Icon('triangle', { color: '#' }) ],
@@ -68,9 +68,7 @@ const icons = new Map([
   //[ CompletionItemKind.TypeParameter, Icon('type', { color: '#' }) ],
 ])
 
-const getCompletionIcon = (kind: CompletionItemKind) => {
-  return icons.get(kind) || Icon('code')
-}
+const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || Icon('code')
 
 const docs = (data: string) => Row.normal({
   style: {
@@ -116,7 +114,7 @@ const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => 
         const { top, bottom } = e.getBoundingClientRect()
         if (top < pos.container.top) return e.scrollIntoView(true)
         if (bottom > pos.container.bottom) return e.scrollIntoView(false)
-      }
+      },
     }, [
       ,h('div', {
         style: {
