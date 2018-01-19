@@ -1,5 +1,7 @@
 'use strict'
 
+console.log('BUILDING ICONS')
+console.log('by the way! need to build first, because i was lazy and decided to use some compiled code for support utils')
 const { getDirFiles, readFile, writeFile } = require('../build/support/utils')
 const babel = require('babel-core')
 const j = require('jscodeshift')
