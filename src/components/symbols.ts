@@ -41,7 +41,7 @@ const icons = new Map([
   [ SymbolKind.Interface, Icon('map', { color: '#ffa354' }) ],
   [ SymbolKind.Function, Icon('share-2', { color: '#428aff' }) ],
   [ SymbolKind.Variable, Icon('database', { color: '#ff70e4' }) ],
-  [ SymbolKind.Constant, Icon('triangle', { color: '#54ffe5' }) ],
+  [ SymbolKind.Constant, Icon('save', { color: '#54ffe5' }) ],
   [ SymbolKind.String, Icon('star', { color: '#ffdca3' }) ],
   [ SymbolKind.Number, Icon('hash', { color: '#ff0c53' }) ],
   [ SymbolKind.Boolean, Icon('flag', { color: '#0c2dff' }) ],
@@ -109,6 +109,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
     }
   }, $.symbols.map(({ name, kind }, key) => Row.normal({
     key,
+    style: { justifyContent: 'space-between' },
     activeWhen: key === $.ix,
     onupdate: (e: HTMLElement) => {
       if (key !== $.ix) return
@@ -117,29 +118,35 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
       if (bottom > pos.container.bottom) return e.scrollIntoView(false)
     },
   }, [
-    ,h('div', {
-      style: {
-        display: 'flex',
-        // TODO: this doesn't scale with font size?
-        width: '24px',
-        marginRight: '8px',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }
-    }, [
-      getSymbolIcon(kind),
-    ])
 
-    ,h('span', name)
+    ,h('div', {
+      style: { display: 'flex' },
+    }, [
+
+      ,h('div', {
+        style: {
+          display: 'flex',
+          // TODO: this doesn't scale with font size?
+          width: '24px',
+          marginRight: '8px',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }
+      }, [
+        getSymbolIcon(kind),
+      ])
+
+      ,h('span', name)
+
+    ])
 
     ,h('span', {
       style: {
-        color: 'rgba(255, 255, 255, 0.3)',
-        alignSelf: 'flex-end',
+        fontWeight: 'normal',
+        color: 'rgba(255, 255, 255, 0.2)',
       }
-    }, getSymbolDescription(kind))
+    }, getSymbolDescription(kind).toLowerCase())
 
-    // TODO: maybe also print out symbol description?
   ])))
 
 ])
