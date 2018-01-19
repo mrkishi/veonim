@@ -57,7 +57,38 @@ const icons = new Map([
   //[ SymbolKind.TypeParameter, Icon('type', { color: '#' }) ],
 ])
 
+const symbolDescription = new Map([
+  [ SymbolKind.File, 'File' ],
+  [ SymbolKind.Module, 'Module' ],
+  [ SymbolKind.Namespace, 'Namespace' ],
+  [ SymbolKind.Package, 'Package' ],
+  [ SymbolKind.Class, 'Class' ],
+  [ SymbolKind.Method, 'Method' ],
+  [ SymbolKind.Property, 'Property' ],
+  [ SymbolKind.Field, 'Field' ],
+  [ SymbolKind.Constructor, 'Constructor' ],
+  [ SymbolKind.Enum, 'Enum' ],
+  [ SymbolKind.Interface, 'Interface' ],
+  [ SymbolKind.Function, 'Function' ],
+  [ SymbolKind.Variable, 'Variable' ],
+  [ SymbolKind.Constant, 'Constant' ],
+  [ SymbolKind.String, 'String' ],
+  [ SymbolKind.Number, 'Number' ],
+  [ SymbolKind.Boolean, 'Boolean' ],
+  [ SymbolKind.Array, 'Array' ],
+  // TODO: but these exist in the protocol?
+  //[ SymbolKind.Object, 'Object' ],
+  //[ SymbolKind.Key, 'Key' ],
+  //[ SymbolKind.Null, 'Null' ],
+  //[ SymbolKind.EnumMember, 'EnumMember' ],
+  //[ SymbolKind.Struct, 'Struct' ],
+  //[ SymbolKind.Event, 'Event' ],
+  //[ SymbolKind.Operator, 'Operator' ],
+  //[ SymbolKind.TypeParameter, 'TypeParameter' ],
+])
+
 const getSymbolIcon = (kind: SymbolKind) => icons.get(kind) || Icon('code')
+const getSymbolDescription = (kind: SymbolKind) => symbolDescription.get(kind) || ''
 
 const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vis, [
 
@@ -89,7 +120,6 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
     ,h('div', {
       style: {
         display: 'flex',
-        marginLeft: '-8px',
         // TODO: this doesn't scale with font size?
         width: '24px',
         marginRight: '8px',
@@ -101,6 +131,13 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
     ])
 
     ,h('span', name)
+
+    ,h('span', {
+      style: {
+        color: 'rgba(255, 255, 255, 0.3)',
+        alignSelf: 'flex-end',
+      }
+    }, getSymbolDescription(kind))
 
     // TODO: maybe also print out symbol description?
   ])))
