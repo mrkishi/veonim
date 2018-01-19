@@ -39,7 +39,7 @@ const icons = new Map([
   [ SymbolKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
   [ SymbolKind.Enum, Icon('award', { color: '#84ff54' }) ],
   [ SymbolKind.Interface, Icon('map', { color: '#ffa354' }) ],
-  [ SymbolKind.Function, Icon('share-2', { color: '#428aff' }) ],
+  [ SymbolKind.Function, Icon('share-2', { color: '#6da7ff' }) ],
   [ SymbolKind.Variable, Icon('database', { color: '#ff70e4' }) ],
   [ SymbolKind.Constant, Icon('save', { color: '#54ffe5' }) ],
   [ SymbolKind.String, Icon('star', { color: '#ffdca3' }) ],

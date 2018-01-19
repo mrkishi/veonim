@@ -43,7 +43,7 @@ const icons = new Map([
   [ CompletionItemKind.Text, Icon('play') ],
   [ CompletionItemKind.Method, Icon('box', { color: '#bb5ef1' }) ],
   [ CompletionItemKind.Property, Icon('disc', { color: '#54c8ff' }) ],
-  [ CompletionItemKind.Function, Icon('share-2', { color: '#428aff' }) ],
+  [ CompletionItemKind.Function, Icon('share-2', { color: '#6da7ff' }) ],
   [ CompletionItemKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
   [ CompletionItemKind.Field, Icon('feather', { color: '#9866ff' }) ],
   [ CompletionItemKind.Variable, Icon('database', { color: '#ff70e4' }) ],
@@ -61,7 +61,7 @@ const icons = new Map([
   // TODO: but these exist in the protocol?
   //[ CompletionItemKind.Folder, Icon('folder', { color: '#' }) ],
   //[ CompletionItemKind.EnumMember, Icon('menu', { color: '#' }) ],
-  //[ CompletionItemKind.Constant, Icon('triangle', { color: '#' }) ],
+  //[ CompletionItemKind.Constant, Icon('save', { color: '#' }) ],
   //[ CompletionItemKind.Struct, Icon('layers', { color: '#' }) ],
   //[ CompletionItemKind.Event, Icon('video', { color: '#' }) ],
   //[ CompletionItemKind.Operator, Icon('anchor', { color: '#' }) ],
