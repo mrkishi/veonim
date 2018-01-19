@@ -39,11 +39,37 @@ const pos: { container: ClientRect } = {
   container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
 }
 
+const icons = new Map([
+  [ CompletionItemKind.Text, Icon('play') ],
+  [ CompletionItemKind.Method, Icon('box', { color: '#bb5ef1' }) ],
+  [ CompletionItemKind.Property, Icon('disc', { color: '#54c8ff' }) ],
+  [ CompletionItemKind.Function, Icon('share-2', { color: '#428aff' }) ],
+  [ CompletionItemKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
+  [ CompletionItemKind.Field, Icon('feather', { color: '#9866ff' }) ],
+  [ CompletionItemKind.Variable, Icon('database', { color: '#ff70e4' }) ],
+  [ CompletionItemKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
+  [ CompletionItemKind.Interface, Icon('map', { color: '#ffa354' }) ],
+  [ CompletionItemKind.Module, Icon('package', { color: '#ff5f54' }) ],
+  [ CompletionItemKind.Unit, Icon('cpu', { color: '#ffadc5' }) ],
+  [ CompletionItemKind.Value, Icon('bell', { color: '#ffa4d0' }) ],
+  [ CompletionItemKind.Enum, Icon('award', { color: '#84ff54' }) ],
+  [ CompletionItemKind.Keyword, Icon('navigation', { color: '#' }) ],
+  [ CompletionItemKind.Snippet, Icon('paperclip', { color: '#' }) ],
+  [ CompletionItemKind.Color, Icon('eye', { color: '#54ffe5' }) ],
+  [ CompletionItemKind.File, Icon('file', { color: '#a5c3ff' }) ],
+  [ CompletionItemKind.Reference, Icon('link', { color: '#ffdca3' }) ],
+  // TODO: but these exist online?
+  //[ CompletionItemKind.Folder, Icon('folder', { color: '#' }) ],
+  //[ CompletionItemKind.EnumMember, Icon('menu', { color: '#' }) ],
+  //[ CompletionItemKind.Constant, Icon('triangle', { color: '#' }) ],
+  //[ CompletionItemKind.Struct, Icon('layers', { color: '#' }) ],
+  //[ CompletionItemKind.Event, Icon('video', { color: '#' }) ],
+  //[ CompletionItemKind.Operator, Icon('anchor', { color: '#' }) ],
+  //[ CompletionItemKind.TypeParameter, Icon('type', { color: '#' }) ],
+])
+
 const getCompletionIcon = (kind: CompletionItemKind) => {
-  if (kind === CompletionItemKind.Text) return Icon('shield')
-  if (kind === CompletionItemKind.Method) return Icon('box', { color: '#bb5ef1' })
-  if (kind === CompletionItemKind.Property) return Icon('disc', { color: '#54c8ff' })
-  else return Icon('code')
+  return icons.get(kind) || Icon('code')
 }
 
 const docs = (data: string) => Row.normal({
