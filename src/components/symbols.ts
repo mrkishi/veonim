@@ -30,8 +30,8 @@ const pos: { container: ClientRect } = {
 const icons = new Map([
   [ SymbolKind.File, Icon('file', { color: '#a5c3ff' }) ],
   [ SymbolKind.Module, Icon('grid', { color: '#ff5f54' }) ],
-  [ SymbolKind.Namespace, Icon('cloud-snow', { color: '#' }) ],
-  [ SymbolKind.Package, Icon('package', { color: '#' }) ],
+  [ SymbolKind.Namespace, Icon('cloud-snow', { color: '#ffadc5' }) ],
+  [ SymbolKind.Package, Icon('package', { color: '#ffa4d0' }) ],
   [ SymbolKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
   [ SymbolKind.Method, Icon('box', { color: '#bb5ef1' }) ],
   [ SymbolKind.Property, Icon('disc', { color: '#54c8ff' }) ],
@@ -41,11 +41,11 @@ const icons = new Map([
   [ SymbolKind.Interface, Icon('map', { color: '#ffa354' }) ],
   [ SymbolKind.Function, Icon('share-2', { color: '#428aff' }) ],
   [ SymbolKind.Variable, Icon('database', { color: '#ff70e4' }) ],
-  [ SymbolKind.Constant, Icon('triangle', { color: '#' }) ],
-  [ SymbolKind.String, Icon('star', { color: '#' }) ],
-  [ SymbolKind.Number, Icon('hash', { color: '#' }) ],
-  [ SymbolKind.Boolean, Icon('flag', { color: '#' }) ],
-  [ SymbolKind.Array, Icon('film', { color: '#' }) ],
+  [ SymbolKind.Constant, Icon('triangle', { color: '#54ffe5' }) ],
+  [ SymbolKind.String, Icon('star', { color: '#ffdca3' }) ],
+  [ SymbolKind.Number, Icon('hash', { color: '#ff0c53' }) ],
+  [ SymbolKind.Boolean, Icon('flag', { color: '#0c2dff' }) ],
+  [ SymbolKind.Array, Icon('film', { color: '#0cffff' }) ],
   // TODO: but these exist in the protocol?
   //[ SymbolKind.Object, Icon('copy', { color: '#' }) ],
   //[ SymbolKind.Key, Icon('tag', { color: '#' }) ],
@@ -102,6 +102,8 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
     ])
 
     ,h('span', name)
+
+    // TODO: maybe also print out symbol description?
   ])))
 
 ])
