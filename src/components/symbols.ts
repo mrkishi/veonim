@@ -90,7 +90,6 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
       style: {
         display: 'flex',
         marginLeft: '-8px',
-        background: 'rgba(255, 255, 255, 0.03)',
         // TODO: this doesn't scale with font size?
         width: '24px',
         marginRight: '8px',
@@ -119,12 +118,14 @@ a.select = (s, a) => {
 }
 
 a.change = (s, _a, val: string) => ({ val, symbols: val
+  // TODO: DON'T TRUNCATE!
   ? filter(s.cache, val, { key: 'name' }).slice(0, 10)
   : s.cache.slice(0, 10)
 })
 
 a.show = (_s, _a, symbols: Symbol[]) => ({ symbols, cache: symbols, vis: true })
 a.hide = () => ({ val: '', vis: false, ix: 0 })
+// TODO: DON'T TRUNCATE!
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 
