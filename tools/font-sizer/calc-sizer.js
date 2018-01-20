@@ -28,6 +28,7 @@ const main = () => {
   write('{')
 
   console.log('wrote the sizes, done here!')
+  remote.process.exit(0)
 }
 
 document.fonts.onloadingdone = main
