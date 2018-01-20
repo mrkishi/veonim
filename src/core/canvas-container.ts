@@ -41,7 +41,8 @@ const _size = {
 
 const getCharWidth = (font: string, size: number): number => {
   const possibleSize = Math.floor(canvas.measureText('m').width)
-  // roboto mono is built-in
+  // roboto mono is built-in. because font-loading is a bit slow,
+  // we have precomputed most common font sizes in advance
   if (font !== 'Roboto Mono' && (size < 4 || size > 53)) return possibleSize
 
   const floatWidth = Reflect.get(robotoSizes, size + '')
@@ -106,9 +107,7 @@ export const font = {
   get lineHeight() { return _font.lineHeight },
 }
 
-process.platform === 'win32' && setFont({ face: 'Consolas' })
-process.platform === 'darwin' && setFont({ face: 'Menlo' })
-process.platform === 'linux' && setFont({ face: 'DejaVu Sans Mono' })
+setFont({})
 setImmediate(() => resize())
 
 window.matchMedia('screen and (min-resolution: 2dppx)').addListener(resize)
