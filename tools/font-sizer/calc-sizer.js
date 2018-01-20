@@ -22,10 +22,11 @@ const main = () => {
 
   const points = [...Array(50)].map((_, ix) => ix + 4)
   const widths = points.map(p => ({ size: p, width: getWidth(p) }))
+  const lastIx = widths.length - 1
 
   write('{')
-  widths.forEach(m => write(`"${m.size}": "${m.width}",`, 2))
-  write('{')
+  widths.forEach((m, ix) => write(`"${m.size}": "${m.width}"${ix === lastIx ? '' : ','}`, 2))
+  write('}')
 
   console.log('wrote the sizes, done here!')
   remote.process.exit(0)

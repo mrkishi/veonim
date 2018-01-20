@@ -1,4 +1,5 @@
 import { Watchers, merge, debounce } from '../support/utils'
+const robotoSizes = require('../assets/roboto-sizes.json')
 import * as electron from 'electron'
 import { setVar } from '../ui/css'
 
@@ -38,6 +39,17 @@ const _size = {
   width: 0,
 }
 
+const getCharWidth = (font: string, size: number): number => {
+  const possibleSize = Math.floor(canvas.measureText('m').width)
+  // roboto mono is built-in
+  if (font !== 'Roboto Mono' && (size < 4 || size > 53)) return possibleSize
+
+  const floatWidth = Reflect.get(robotoSizes, size + '')
+  if (!floatWidth) return possibleSize
+
+  return floatWidth - 0
+}
+
 export const setFont = ({ size = _font.size, face = _font.face, lineHeight = _font.lineHeight }: Font) => {
   setVar('font', face)
   setVar('font-size', size)
@@ -45,7 +57,7 @@ export const setFont = ({ size = _font.size, face = _font.face, lineHeight = _fo
   canvas.font = `${size}px ${face}`
   merge(_font, { size, face, lineHeight })
   merge(_cell, {
-    width: Math.floor(canvas.measureText('m').width),
+    width: getCharWidth(face, size),
     height: Math.floor(size * lineHeight)
   })
 
