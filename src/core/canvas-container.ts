@@ -49,7 +49,7 @@ const getCharWidth = (font: string, size: number): number => {
   return floatWidth || possibleSize
 }
 
-export const setFont = ({ size, face = _font.face, lineHeight }: Font) => {
+export const setFont = ({ size, lineHeight, face = _font.face }: Font) => {
   const fontSize = !size || isNaN(size) ? _font.size : size
   const fontLineHeight = !lineHeight || isNaN(lineHeight) ? _font.lineHeight : lineHeight
 
@@ -64,8 +64,6 @@ export const setFont = ({ size, face = _font.face, lineHeight }: Font) => {
     width: getCharWidth(face, fontSize),
     height: Math.floor(fontSize * fontLineHeight)
   })
-
-  console.log('cell wh', _cell.width, _cell.height)
 
   _cell.padding = Math.floor((_cell.height - _font.size) / 2)
 

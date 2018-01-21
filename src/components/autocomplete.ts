@@ -6,7 +6,6 @@ import { h, app, Actions } from '../ui/uikit'
 import { cursor } from '../core/cursor'
 import { Row } from '../styles/common'
 import Icon from '../components/icon'
-import { translate } from '../ui/css'
 
 interface State {
   options: CompletionOption[],
@@ -83,58 +82,79 @@ const docs = (data: string) => Row.normal({
 }, data)
 
 const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => h('#autocomplete', {
-  hide: !vis,
   style: {
     zIndex: 200,
-    minWidth: '100px',
-    maxWidth: '600px',
+    display: vis ? 'flex' : 'none',
+    height: '100%',
+    width: '100%',
+    flexFlow: anchorAbove ? 'column-reverse' : 'column',
     position: 'absolute',
-    transform: translate(x, y),
   }
 }, [
+  ,h('.spacer', {
+    style: {
+      height: anchorAbove ? `calc(100% - ${y}px)` : `${y}px`,
+    }
+  })
+
   ,h('div', {
-    transform: anchorAbove ? 'translateY(-100%)' : undefined,
+    style: {
+      display: 'flex',
+      flexFlow: 'row nowrap',
+    }
   }, [
-    ,documentation && anchorAbove && docs(documentation)
+
+    ,h('.col', {
+      style: {
+        width: `${x}px`,
+      }
+    })
 
     ,h('div', {
-      onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
       style: {
-        background: 'var(--background-30)',
-        //transformOrigin: anchorAbove ? 'left bottom' : 'left top',
-        transform: anchorAbove ? 'translateY(-100%)' : undefined,
-        overflowY: 'hidden',
-        maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
+        maxWidth: '400px',
       }
-    }, options.map(({ text, kind }, id) => Row.complete({
-      key: id,
-      activeWhen: id === ix,
-      onupdate: (e: HTMLElement) => {
-        if (id !== ix) return
-        const { top, bottom } = e.getBoundingClientRect()
-        if (top < pos.container.top) return e.scrollIntoView(true)
-        if (bottom > pos.container.bottom) return e.scrollIntoView(false)
-      },
     }, [
+
+      ,documentation && docs(documentation)
+
       ,h('div', {
+        onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
         style: {
-          display: 'flex',
-          marginLeft: '-8px',
-          background: 'rgba(255, 255, 255, 0.03)',
-          // TODO: this doesn't scale with font size?
-          width: '24px',
-          marginRight: '8px',
-          alignItems: 'center',
-          justifyContent: 'center',
+          background: 'var(--background-30)',
+          overflowY: 'hidden',
+          maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
         }
+      }, options.map(({ text, kind }, id) => Row.complete({
+        key: id,
+        activeWhen: id === ix,
+        onupdate: (e: HTMLElement) => {
+          if (id !== ix) return
+          const { top, bottom } = e.getBoundingClientRect()
+          if (top < pos.container.top) return e.scrollIntoView(true)
+          if (bottom > pos.container.bottom) return e.scrollIntoView(false)
+        },
       }, [
-        getCompletionIcon(kind),
-      ])
+        ,h('div', {
+          style: {
+            display: 'flex',
+            marginLeft: '-8px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            // TODO: this doesn't scale with font size?
+            width: '24px',
+            marginRight: '8px',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }
+        }, [
+          getCompletionIcon(kind),
+        ])
 
-      ,h('div', text)
-    ])))
+        ,h('div', text)
+      ])))
 
-    ,documentation && !anchorAbove && docs(documentation)
+    ])
+
   ])
 ])
 
