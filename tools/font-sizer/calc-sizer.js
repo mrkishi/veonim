@@ -12,20 +12,20 @@ const canvas = canvasEl.getContext('2d', { alpha: false })
 
 const fontSizer = face => size => {
   canvas.font = `${size}px ${face}`
-  return canvas.measureText('m').width
+  return Math.floor(canvas.measureText('m').width)
 }
 
 
 const main = () => {
   console.log('fonts loaded k thx')
-  const getWidth = fontSizer('Roboto Mono')
+  const getWidth = fontSizer('Roboto Mono Builtin')
 
   const points = [...Array(50)].map((_, ix) => ix + 4)
   const widths = points.map(p => ({ size: p, width: getWidth(p) }))
   const lastIx = widths.length - 1
 
   write('{')
-  widths.forEach((m, ix) => write(`"${m.size}": "${m.width}"${ix === lastIx ? '' : ','}`, 2))
+  widths.forEach((m, ix) => write(`"${m.size}": ${m.width}${ix === lastIx ? '' : ','}`, 2))
   write('}')
 
   console.log('wrote the sizes, done here!')

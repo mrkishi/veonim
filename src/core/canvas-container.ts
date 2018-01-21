@@ -21,7 +21,7 @@ merge(container.style, {
 })
 
 const _font = {
-  face: 'Courier New',
+  face: 'Roboto Mono Builtin',
   size: 14,
   lineHeight: 1.5,
 }
@@ -43,24 +43,29 @@ const getCharWidth = (font: string, size: number): number => {
   const possibleSize = Math.floor(canvas.measureText('m').width)
   // roboto mono is built-in. because font-loading is a bit slow,
   // we have precomputed most common font sizes in advance
-  if (font !== 'Roboto Mono' && (size < 4 || size > 53)) return possibleSize
+  if (font !== 'Roboto Mono Builtin' && (size > 3 || size < 54)) return possibleSize
 
   const floatWidth = Reflect.get(robotoSizes, size + '')
-  if (!floatWidth) return possibleSize
-
-  return floatWidth - 0
+  return floatWidth || possibleSize
 }
 
-export const setFont = ({ size = _font.size, face = _font.face, lineHeight = _font.lineHeight }: Font) => {
+export const setFont = ({ size, face = _font.face, lineHeight }: Font) => {
+  const fontSize = !size || isNaN(size) ? _font.size : size
+  const fontLineHeight = !lineHeight || isNaN(lineHeight) ? _font.lineHeight : lineHeight
+
   setVar('font', face)
-  setVar('font-size', size)
-  setVar('line-height', lineHeight)
-  canvas.font = `${size}px ${face}`
-  merge(_font, { size, face, lineHeight })
+  setVar('font-size', fontSize)
+  setVar('line-height', fontLineHeight)
+
+  canvas.font = `${fontSize}px ${face}`
+
+  merge(_font, { size: fontSize, face, lineHeight: fontLineHeight })
   merge(_cell, {
-    width: getCharWidth(face, size),
-    height: Math.floor(size * lineHeight)
+    width: getCharWidth(face, fontSize),
+    height: Math.floor(fontSize * fontLineHeight)
   })
+
+  console.log('cell wh', _cell.width, _cell.height)
 
   _cell.padding = Math.floor((_cell.height - _font.size) / 2)
 
