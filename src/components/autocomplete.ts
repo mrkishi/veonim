@@ -92,7 +92,7 @@ const view = ($: State) => Overlay({
   anchorAbove: $.anchorAbove,
 }, [
 
-  ,$.documentation && docs($.documentation)
+  ,$.documentation && $.anchorAbove && docs($.documentation)
 
   ,h('div', {
     onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
@@ -128,6 +128,8 @@ const view = ($: State) => Overlay({
 
     ,h('div', text)
   ])))
+
+  ,$.documentation && !$.anchorAbove && docs($.documentation)
 
 ])
 
