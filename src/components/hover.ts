@@ -1,13 +1,14 @@
 import * as canvasContainer from '../core/canvas-container'
-import { translate, paddingVH } from '../ui/css'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
+import Overlay from '../components/overlay'
 import { ColorData } from '../ai/hover'
+import { paddingVH } from '../ui/css'
 import $$ from '../core/state'
 
 interface State {
   value: ColorData[][],
-  vis: boolean,
+  visible: boolean,
   x: number,
   y: number,
   anchorBottom: boolean,
@@ -23,84 +24,65 @@ interface ShowParams {
 
 const state: State = {
   value: [[]],
-  vis: false,
+  visible: false,
   x: 0,
   y: 0,
   anchorBottom: true,
 }
 
-// TODO: dedup this style with autocomplete and others
 const docs = (data: string) => h('div', {
   style: {
+    ...paddingVH(8, 6),
     overflow: 'visible',
     whiteSpace: 'normal',
     background: 'var(--background-45)',
-    ...paddingVH(8, 6),
-    fontSize: `${canvasContainer.font.size - 2}px`,
     color: 'var(--foreground-40)',
+    fontSize: `${canvasContainer.font.size - 2}px`,
   }
 }, data)
 
-let spacer: HTMLElement
-
-const view = ($: State) => h('#hover', {
-  style: {
-    display: $.vis ? 'flex' : 'none',
-    position: 'absolute',
-    transform: translate(0, $.y),
-    width: '100%',
-    maxWidth: '600px',
-  }
+const view = ($: State) => Overlay({
+  name: 'hover',
+  x: $.x,
+  y: $.y,
+  maxWidth: 600,
+  visible: $.visible,
+  anchorAbove: $.anchorBottom,
 }, [
 
-  ,h('div', {
-    onupdate: (e: HTMLElement) => {
-      spacer = e
-    },
-    style: { flex: `${$.x}px`, }
-  })
+  $.doc && !$.anchorBottom && docs($.doc),
 
   ,h('div', {
-    onupdate: (e: HTMLElement) => setTimeout(() => {
-      const { width } = e.getBoundingClientRect()
-      const okSize = Math.floor(window.innerWidth * 0.7)
-      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${$.x}px`
-      e.style[(<any>'opacity')] = '1'
-    }, 1),
     style: {
-      transform: $.anchorBottom ? `translateY(-100%)` : undefined,
-      opacity: '0',
+      background: 'var(--background-30)',
+      padding: '8px',
     }
-  }, [
-    $.doc && !$.anchorBottom && docs($.doc),
+  }, $.value.map(m => h('div', {
+    style: {
+      display: 'flex',
+      flexFlow: 'row wrap',
+    }
+  }, m.map(({ color, text }) => h('span', {
+    style: {
+      color: color || $$.foreground,
+      'white-space': 'pre',
+    }
+  }, text)))))
 
-    ,h('div', {
-      style: {
-        background: 'var(--background-30)',
-        padding: '8px',
-      }
-    }, $.value.map(m => h('div', m.map(({ color, text }) => h('span', {
-      style: {
-        color: color || $$.foreground,
-        'white-space': 'pre',
-      }
-    }, text)))))
-
-    ,$.doc && $.anchorBottom && docs($.doc),
-  ])
+  ,$.doc && $.anchorBottom && docs($.doc),
 
 ])
 
 const a: Actions<State> = {}
 
-a.hide = () => ({ vis: false })
+a.hide = () => ({ visible: false })
 a.show = (_s, _a, { value, row, col, doc }) => ({
   doc,
   value,
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
   anchorBottom: row > 2,
-  vis: true
+  visible: true
 })
 
 const ui = app({ state, view, actions: a }, false)

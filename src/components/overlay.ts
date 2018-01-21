@@ -10,7 +10,8 @@ interface Props {
   zIndex?: number,
 }
 
-export default ($: Props, content: any[]) => h($.name, {
+export default ($: Props, content: any[]) => h('div', {
+  id: $.name,
   style: {
     zIndex: $.zIndex,
     display: $.visible ? 'flex' : 'none',
@@ -42,6 +43,7 @@ export default ($: Props, content: any[]) => h($.name, {
 
     ,h('div', {
       style: {
+        flexShrink: '0',
         maxWidth: $.maxWidth && `${$.maxWidth}px`,
       }
     }, content)

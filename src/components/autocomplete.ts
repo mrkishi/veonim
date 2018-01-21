@@ -7,6 +7,7 @@ import Overlay from '../components/overlay'
 import { cursor } from '../core/cursor'
 import { Row } from '../styles/common'
 import Icon from '../components/icon'
+import { paddingH } from '../ui/css'
 
 interface State {
   options: CompletionOption[],
@@ -72,12 +73,11 @@ const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || Icon(
 
 const docs = (data: string) => Row.normal({
   style: {
+    ...paddingH(4),
     overflow: 'visible',
     whiteSpace: 'normal',
-    background: 'var(--background-45)',
     color: 'var(--foreground-20)',
-    paddingTop: '4px',
-    paddingBottom: '4px',
+    background: 'var(--background-45)',
     fontSize: `${canvasContainer.font.size - 2}px`,
   }
 }, data)
@@ -135,9 +135,19 @@ const view = ($: State) => Overlay({
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, { anchorAbove, options, x, y, ix = -1 }) => ({ anchorAbove, options, ix, x, y, visible: true, documentation: undefined })
-a.showDocs = (_s, _a, documentation) => ({ documentation })
 a.hide = () => ({ visible: false, ix: 0 })
+a.showDocs = (_s, _a, documentation) => ({ documentation })
+
+a.show = (_s, _a, { anchorAbove, options, x, y, ix = -1 }) => ({
+  anchorAbove,
+  options,
+  ix,
+  x,
+  y,
+  visible: true,
+  documentation: undefined
+})
+
 a.select = (s, a, ix: number) => {
   const completionItem = (s.options[ix] || {}).raw
 
