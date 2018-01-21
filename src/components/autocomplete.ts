@@ -3,13 +3,14 @@ import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
+import Overlay from '../components/overlay'
 import { cursor } from '../core/cursor'
 import { Row } from '../styles/common'
 import Icon from '../components/icon'
 
 interface State {
   options: CompletionOption[],
-  vis: boolean,
+  visible: boolean,
   ix: number,
   x: number,
   y: number,
@@ -28,7 +29,7 @@ const MAX_VISIBLE_OPTIONS = 12
 const state: State = {
   anchorAbove: false,
   options: [],
-  vis: false,
+  visible: false,
   ix: 0,
   x: 0,
   y: 0,
@@ -81,88 +82,60 @@ const docs = (data: string) => Row.normal({
   }
 }, data)
 
-const view = ({ options, anchorAbove, documentation, vis, ix, x, y }: State) => h('#autocomplete', {
-  style: {
-    zIndex: 200,
-    display: vis ? 'flex' : 'none',
-    height: '100%',
-    width: '100%',
-    flexFlow: anchorAbove ? 'column-reverse' : 'column',
-    position: 'absolute',
-  }
+const view = ($: State) => Overlay({
+  name: 'autocomplete',
+  x: $.x,
+  y: $.y,
+  zIndex: 200,
+  maxWidth: 400,
+  visible: $.visible,
+  anchorAbove: $.anchorAbove,
 }, [
-  ,h('.spacer', {
-    style: {
-      height: anchorAbove ? `calc(100% - ${y}px)` : `${y}px`,
-    }
-  })
+
+  ,$.documentation && docs($.documentation)
 
   ,h('div', {
+    onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
     style: {
-      display: 'flex',
-      flexFlow: 'row nowrap',
+      background: 'var(--background-30)',
+      overflowY: 'hidden',
+      maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
     }
+  }, $.options.map(({ text, kind }, id) => Row.complete({
+    key: id,
+    activeWhen: id === $.ix,
+    onupdate: (e: HTMLElement) => {
+      if (id !== $.ix) return
+      const { top, bottom } = e.getBoundingClientRect()
+      if (top < pos.container.top) return e.scrollIntoView(true)
+      if (bottom > pos.container.bottom) return e.scrollIntoView(false)
+    },
   }, [
-
-    ,h('.col', {
-      style: {
-        width: `${x}px`,
-      }
-    })
-
     ,h('div', {
       style: {
-        maxWidth: '400px',
+        display: 'flex',
+        marginLeft: '-8px',
+        background: 'rgba(255, 255, 255, 0.03)',
+        // TODO: this doesn't scale with font size?
+        width: '24px',
+        marginRight: '8px',
+        alignItems: 'center',
+        justifyContent: 'center',
       }
     }, [
-
-      ,documentation && docs(documentation)
-
-      ,h('div', {
-        onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
-        style: {
-          background: 'var(--background-30)',
-          overflowY: 'hidden',
-          maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
-        }
-      }, options.map(({ text, kind }, id) => Row.complete({
-        key: id,
-        activeWhen: id === ix,
-        onupdate: (e: HTMLElement) => {
-          if (id !== ix) return
-          const { top, bottom } = e.getBoundingClientRect()
-          if (top < pos.container.top) return e.scrollIntoView(true)
-          if (bottom > pos.container.bottom) return e.scrollIntoView(false)
-        },
-      }, [
-        ,h('div', {
-          style: {
-            display: 'flex',
-            marginLeft: '-8px',
-            background: 'rgba(255, 255, 255, 0.03)',
-            // TODO: this doesn't scale with font size?
-            width: '24px',
-            marginRight: '8px',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }
-        }, [
-          getCompletionIcon(kind),
-        ])
-
-        ,h('div', text)
-      ])))
-
+      getCompletionIcon(kind),
     ])
 
-  ])
+    ,h('div', text)
+  ])))
+
 ])
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, { anchorAbove, options, x, y, ix = -1 }) => ({ anchorAbove, options, ix, x, y, vis: true, documentation: undefined })
+a.show = (_s, _a, { anchorAbove, options, x, y, ix = -1 }) => ({ anchorAbove, options, ix, x, y, visible: true, documentation: undefined })
 a.showDocs = (_s, _a, documentation) => ({ documentation })
-a.hide = () => ({ vis: false, ix: 0 })
+a.hide = () => ({ visible: false, ix: 0 })
 a.select = (s, a, ix: number) => {
   const completionItem = (s.options[ix] || {}).raw
 
