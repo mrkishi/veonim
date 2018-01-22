@@ -2,6 +2,7 @@ import * as canvasContainer from '../core/canvas-container'
 import { xfrmUp } from '../core/input'
 import { h, style } from '../ui/uikit'
 import Icon from '../components/icon'
+import { paddingVH } from '../ui/css'
 
 interface Props {
   val: string,
@@ -76,10 +77,7 @@ export default ({
   ctrlH = nop
 }: Props) => h('div', {
   style: {
-    marginTop: `${small ? 5 : 10}px`,
-    marginBottom: `${small ? 5 : 10}px`,
-    marginLeft: '12px',
-    marginRight: '12px',
+    ...paddingVH(12, small ? 5 : 10),
     display: 'flex',
     alignItems: 'center',
     minHeight: `${small ? 16 : 22}px`,

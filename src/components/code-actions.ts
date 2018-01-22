@@ -3,15 +3,15 @@ import { Command } from 'vscode-languageserver-types'
 import { runCodeAction } from '../ai/diagnostics'
 import { activeWindow } from '../core/windows'
 import Input from '../components/text-input'
+import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
 import { Row } from '../styles/common'
-import { translate } from '../ui/css'
 
 interface State {
   x: number,
   y: number,
   val: string,
-  vis: boolean,
+  visible: boolean,
   actions: Command[],
   cache: Command[],
   ix: number,
@@ -21,20 +21,21 @@ const state: State = {
   x: 0,
   y: 0,
   val: '',
-  vis: false,
+  visible: false,
   actions: [],
   cache: [],
   ix: 0,
 }
 
-const view = ($: State, actions: ActionCaller) => h('#code-actions', {
-  style: {
-    display: $.vis ? 'flex' : 'none',
-    'z-index': 100,
-    position: 'absolute',
-    transform: translate($.x, $.y),
-  },
+const view = ($: State, actions: ActionCaller) => Overlay({
+  name: 'code-actions',
+  x: $.x,
+  y: $.y,
+  zIndex: 100,
+  visible: $.visible,
+  anchorAbove: false,
 }, [
+
   ,h('div', {
     style: {
       background: 'rgb(20, 20, 20)',
@@ -53,12 +54,13 @@ const view = ($: State, actions: ActionCaller) => h('#code-actions', {
     ,h('div', $.actions.map((s, key: number) => Row.normal({ key, activeWhen: key === $.ix }, s.title)))
 
   ])
+
 ])
 
 const a: Actions<State> = {}
 
-a.show = (_s, _a, { x, y, actions }) => ({ x, y, actions, cache: actions, vis: true }),
-a.hide = () => ({ val: '', vis: false })
+a.show = (_s, _a, { x, y, actions }) => ({ x, y, actions, cache: actions, visible: true }),
+a.hide = () => ({ val: '', visible: false })
 
 a.change = (s, _a, val: string) => ({ val, actions: val
   ? filter(s.actions, val, { key: 'title' })
