@@ -1,7 +1,8 @@
-import { translate, bold, faded, paddingVH } from '../ui/css'
 import * as canvasContainer from '../core/canvas-container'
+import { bold, faded, paddingVH } from '../ui/css'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
+import Overlay from '../components/overlay'
 import $$ from '../core/state'
 
 interface State {
@@ -12,7 +13,7 @@ interface State {
   labelEnd: string,
   documentation: string,
   paramDoc: string,
-  vis: boolean,
+  visible: boolean,
   x: number,
   y: number,
   anchorBottom: boolean,
@@ -39,21 +40,13 @@ const state: State = {
   labelEnd: '',
   documentation: '',
   paramDoc: '',
-  vis: false,
+  visible: false,
   x: 0,
   y: 0,
   anchorBottom: true,
   totalSignatures: 0,
   selectedSignature: 0,
 }
-
-let spacer: HTMLElement
-
-//const Doc = style('div')({
-  //paddingBottom: '4px',
-  //color: $$.foreground,
-  //fontSize: `${canvasContainer.font.size - 2}px`,
-//})
 
 const docs = (data: string) => h('div', {
   style: {
@@ -65,71 +58,49 @@ const docs = (data: string) => h('div', {
   }
 }, data)
 
-const view = ($: State) => h('#hint', {
-  style: {
-    display: $.vis ? 'flex' : 'none',
-    zIndex: 100,
-    position: 'absolute',
-    transform: translate(0, $.y),
-    width: '100%',
-    maxWidth: '600px',
-  }
+const view = ($: State) => Overlay({
+  name: 'hint',
+  x: $.x,
+  y: $.y,
+  zIndex: 200,
+  maxWidth: 600,
+  visible: $.visible,
+  anchorAbove: $.anchorBottom,
 }, [
-  ,h('div', {
-    onupdate: (e: HTMLElement) => {
-      spacer = e
-    },
-    style: { flex: `${$.x}px`, }
-  })
 
   ,h('div', {
-    onupdate: (e: HTMLElement) => setTimeout(() => {
-      const { width } = e.getBoundingClientRect()
-      const okSize = Math.floor(window.innerWidth * 0.7)
-      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${$.x}px`
-      // TODO: this was used for figuring out placement, but it was causing flickering
-      // on every update, so temp disable to see how bad it is without pre-emptive pos calc
-      //e.style[(<any>'opacity')] = '1'
-    }, 1),
     style: {
-      transform: $.anchorBottom ? `translateY(-100%)` : undefined,
-      // TODO: need this?
-      //opacity: '0',
+      background: 'var(--background-30)',
     }
   }, [
-    ,h('div', {
-      style: {
-        background: 'var(--background-30)',
-      }
-    }, [
-      ,h('div', { style: {
-        background: 'var(--background-45)',
-        paddingBottom: $.documentation || $.paramDoc ? '2px' : undefined
-      } }, [
-        ,$.documentation && docs($.documentation)
-        ,$.paramDoc && docs($.paramDoc)
+    ,h('div', { style: {
+      background: 'var(--background-45)',
+      paddingBottom: $.documentation || $.paramDoc ? '2px' : undefined
+    } }, [
+      ,$.documentation && docs($.documentation)
+      ,$.paramDoc && docs($.paramDoc)
+    ])
+
+    ,h('div', { style: {
+      display: 'flex',
+      padding: '8px',
+    } }, [
+      ,h('div', [
+        ,h('span', { style: faded($$.foreground, 0.6) }, $.labelStart)
+        ,h('span', { style: bold($$.foreground) }, $.currentParam)
+        ,h('span', { style: faded($$.foreground, 0.6) }, $.labelEnd)
       ])
 
-      ,h('div', { style: {
-        display: 'flex',
-        padding: '8px',
-      } }, [
-        ,h('div', [
-          ,h('span', { style: faded($$.foreground, 0.6) }, $.labelStart)
-          ,h('span', { style: bold($$.foreground) }, $.currentParam)
-          ,h('span', { style: faded($$.foreground, 0.6) }, $.labelEnd)
-        ])
-
-        ,h('div', {
-          hide: $.totalSignatures < 2,
-          style: {
-            paddingLeft: '4px',
-            color: 'var(--foreground)',
-          },
-        }, `${$.selectedSignature}/${$.totalSignatures}`)
-      ])
+      ,h('div', {
+        hide: $.totalSignatures < 2,
+        style: {
+          paddingLeft: '4px',
+          color: 'var(--foreground)',
+        },
+      }, `${$.selectedSignature}/${$.totalSignatures}`)
     ])
   ])
+
 ])
 
 const a: Actions<State> = {}
@@ -142,7 +113,7 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selected
     currentParam,
     labelEnd,
     paramDoc,
-    vis: true
+    visible: true
   }
   : {
     row,
@@ -157,10 +128,10 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selected
     x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
     y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
     anchorBottom: row > 2,
-    vis: true
+    visible: true
   }
 
-a.hide = () => ({ label: '', vis: false, row: 0 })
+a.hide = () => ({ label: '', visible: false, row: 0 })
 
 const ui = app({ state, view, actions: a }, false)
 
