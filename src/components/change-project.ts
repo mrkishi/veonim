@@ -79,11 +79,8 @@ a.select = (s, a) => {
   if (!s.paths.length) return a.hide()
   const { name } = s.paths[s.ix]
   if (!name) return
-  if (s.create) createVim(name, join(s.path, name))
-  else {
-    cmd(`cd ${join(s.path, name)}`)
-    cmd(`pwd`)
-  }
+  const dirpath = join(s.path, name)
+  s.create ? createVim(name, dirpath) : cmd(`cd ${dirpath}`)
   return a.hide()
 }
 
@@ -96,6 +93,13 @@ a.tab = (s, a) => {
   if (!s.paths.length) return a.hide()
   const { name } = s.paths[s.ix]
   if (!name) return
+  const path = join(s.path, name)
+  getDirFiles(path).then(paths => a.show({ path, paths: filterDirs(paths) }))
+}
+
+a.jumpNext = (s, a) => {
+  const { name, dir } = s.paths[s.ix]
+  if (!dir) return
   const path = join(s.path, name)
   getDirFiles(path).then(paths => a.show({ path, paths: filterDirs(paths) }))
 }
