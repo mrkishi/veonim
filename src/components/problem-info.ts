@@ -1,12 +1,13 @@
 import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
-import { translate } from '../ui/css'
+import Overlay from '../components/overlay'
+import { colors } from '../styles/common'
 import Icon from '../components/icon'
 
 interface State {
   value: string,
-  vis: boolean,
+  visible: boolean,
   x: number,
   y: number,
   anchorBottom: boolean,
@@ -20,80 +21,59 @@ interface ShowParams {
 
 const state: State = {
   value: '',
-  vis: false,
+  visible: false,
   x: 0,
   y: 0,
   anchorBottom: true,
 }
 
-let spacer: HTMLElement
-
-const view = ($: State) => h('#problem-info', {
-  style: {
-    display: $.vis ? 'flex' : 'none',
-    position: 'absolute',
-    transform: translate(0, $.y),
-    width: '100%',
-    maxWidth: '600px',
-  }
+const view = ($: State) => Overlay({
+  name: 'problem-info',
+  x: $.x,
+  y: $.y,
+  maxWidth: 600,
+  visible: $.visible,
+  anchorAbove: $.anchorBottom,
 }, [
-  ,h('div', {
-    onupdate: (e: HTMLElement) => {
-      spacer = e
-    },
-    style: { flex: `${$.x}px`, }
-  })
 
   ,h('div', {
-    onupdate: (e: HTMLElement) => setTimeout(() => {
-      const { width } = e.getBoundingClientRect()
-      const okSize = Math.floor(window.innerWidth * 0.7)
-      spacer.style[(<any>'max-width')] = width > okSize ? '30vw' : `${$.x}px`
-      e.style[(<any>'opacity')] = '1'
-    }, 1),
     style: {
-      transform: $.anchorBottom ? `translateY(-100%)` : undefined,
-      opacity: '0',
+      background: 'var(--background-30)',
+      color: 'var(--foreground)',
+      padding: '8px',
+      display: 'flex',
+      alignItems: 'center',
     }
   }, [
 
     ,h('div', {
       style: {
-        background: 'var(--background-30)',
-        color: '#eee',
-        padding: '8px',
         display: 'flex',
+        alignItems: 'center',
+        paddingRight: '8px',
       }
     }, [
-
-      ,h('div', {
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          paddingRight: '8px',
-        }
-      }, [
-        Icon('error', {
-          color: '#ef2f2f',
-          size: canvasContainer.font.size + 4,
-        })
-      ])
-
-      ,h('div', $.value)
-
+      Icon('error', {
+        color: colors.error,
+        size: canvasContainer.font.size + 4,
+      })
     ])
+
+    ,h('div', $.value)
+
   ])
+
 ])
 
 const a: Actions<State> = {}
 
-a.hide = () => ({ vis: false })
+a.hide = () => ({ visible: false })
 a.show = (_s, _a, { value, row, col }) => ({
   value,
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
   anchorBottom: row > 2,
-  vis: true
+  visible: true
 })
 
 const ui = app({ state, view, actions: a }, false)
