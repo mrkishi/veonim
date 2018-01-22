@@ -220,6 +220,8 @@ export const action = (event: string, cb: GenericCallback): void => {
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
+export const systemAction = (event: string, cb: GenericCallback) => actionWatchers.add(event, cb)
+
 export const list = {
   get buffers() { return as.bufl(req.core.listBufs()) },
   get windows() { return as.winl(req.core.listWins()) },

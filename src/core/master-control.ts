@@ -63,6 +63,7 @@ const startupCmds = CmdGroup`
   let g:vn_events = {}
   let g:vn_callbacks = {}
   let g:vn_callback_id = 0
+  let g:vn_jobs_connected = {}
   set laststatus=0
   set shortmess+=Ic
   set noshowcmd
@@ -70,6 +71,34 @@ const startupCmds = CmdGroup`
   set noruler
   set nocursorline
   call serverstart()
+`
+
+// TODO: okay i think a bunch of these are internal functions and should be moved to a plugin.vim file
+startup.defineFunc.VeonimAttachTerm`
+  if b:terminal_job_id
+    let g:vn_jobs_connected[b:terminal_job_id] = 1
+  endif
+`
+
+startup.defineFunc.VeonimDetachTerm`
+  if b:terminal_job_id
+    call remove(g:vn_jobs_connected, b:terminal_job_id)
+  endif
+`
+
+startup.defineFunc.VeonimTermReader`
+  if has_key(g:vn_jobs_connected, a:1)
+    call rpcnotify(0, 'veonim', 'job-output', [a:1, a:2])
+  endif
+`
+
+startup.defineFunc.VeonimTermExit`
+  call remove(g:vn_jobs_connected, a:1)
+`
+
+// TODO: default /bin/bash as a:1 term command?
+startup.defineFunc.VeonimTermOpen`
+  call termopen(a:1, {'on_stdout': 'VeonimTermReader', 'on_exit': 'VeonimTermExit'})
 `
 
 startup.defineFunc.Veonim`
