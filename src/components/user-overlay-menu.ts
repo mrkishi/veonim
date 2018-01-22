@@ -2,14 +2,14 @@ import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { activeWindow } from '../core/windows'
 import { action, call } from '../core/neovim'
 import Input from '../components/text-input'
+import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
 import { Row } from '../styles/common'
-import { translate } from '../ui/css'
 
 interface State {
   id: number,
-  vis: boolean,
+  visible: boolean,
   val: string,
   desc: string,
   items: string[],
@@ -21,7 +21,7 @@ interface State {
 
 const state: State = {
   id: 0,
-  vis: false,
+  visible: false,
   val: '',
   items: [],
   cache: [],
@@ -31,14 +31,16 @@ const state: State = {
   y: 0,
 }
 
-const view = ($: State, actions: ActionCaller) => h('#user-overlay-menu', {
-  style: {
-    display: $.vis ? 'flex' : 'none',
-    zIndex: 100,
-    position: 'absolute',
-    transform: translate($.x, $.y),
-  },
+const view = ($: State, actions: ActionCaller) => Overlay({
+  name: 'user-overlay-menu',
+  x: $.x,
+  y: $.y,
+  zIndex: 100,
+  maxWidth: 600,
+  visible: $.visible,
+  anchorAbove: false,
 }, [
+
   ,h('div', {
     style: {
       background: 'var(--background-40)',
@@ -57,6 +59,7 @@ const view = ($: State, actions: ActionCaller) => h('#user-overlay-menu', {
     ,h('div', $.items.map((item, key: number) => Row.normal({ key, activeWhen: key === $.ix }, item)))
 
   ])
+
 ])
 
 const a: Actions<State> = {}
@@ -74,8 +77,8 @@ a.change = (s, _a, val: string) => ({ val, items: val
   : s.cache.slice(0, 14)
 })
 
-a.show = (_s, _a, { x, y, id, items, desc }) => ({ x, y, id, desc, items, cache: items, vis: true })
-a.hide = () => ({ val: '', vis: false, ix: 0 })
+a.show = (_s, _a, { x, y, id, items, desc }) => ({ x, y, id, desc, items, cache: items, visible: true })
+a.hide = () => ({ val: '', visible: false, ix: 0 })
 a.next = s => ({ ix: s.ix + 1 > Math.min(s.items.length - 1, 13) ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.items.length - 1, 13) : s.ix - 1 })
 

@@ -32,13 +32,14 @@ const view = ($: State, actions: ActionCaller) => Overlay({
   x: $.x,
   y: $.y,
   zIndex: 100,
+  maxWidth: 600,
   visible: $.visible,
   anchorAbove: false,
 }, [
 
   ,h('div', {
     style: {
-      background: 'rgb(20, 20, 20)',
+      background: 'var(--background-40)',
     }
   }, [
 
