@@ -10,7 +10,8 @@ app.on('ready', async () => {
     height: 600,
     minWidth: 600,
     minHeight: 400,
-    frame: false,
+    frame: true,
+    titleBarStyle: 'hidden',
     backgroundColor: '#222',
     autoHideMenuBar: true,
     webPreferences: {
