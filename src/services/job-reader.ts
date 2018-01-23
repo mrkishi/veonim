@@ -17,3 +17,5 @@ systemAction('job-output', (jobId: number, data: string[]) => {
 
   else buffer(jobId, data)
 })
+
+//const tscformat = `%E%f %#(%l\,%c): error %m,%E%f %#(%l\,%c): %m,%Eerror %m,%C%\s%\+%m`
