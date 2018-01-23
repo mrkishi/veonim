@@ -1,7 +1,8 @@
-import { getDirFiles, exists, pathRelativeToHome } from '../support/utils'
+import { getDirFiles, exists, pathRelativeToHome, simplifyPath, absolutePath } from '../support/utils'
+import { action, current, cmd, onStateChange } from '../core/neovim'
+import { createVim, renameCurrentToCwd } from '../core/sessions'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
-import { action, current, cmd } from '../core/neovim'
-import { createVim } from '../core/sessions'
+import configReader from '../config/config-service'
 import { Plugin, Row } from '../styles/common'
 import config from '../config/config-service'
 import Input from '../components/text-input'
@@ -147,3 +148,7 @@ const go = async (userPath: string, create = false) => {
 
 action('change-dir', (path = '') => go(path, false))
 action('vim-create-dir', (path = '') => go(path, true))
+
+onStateChange.cwd((cwd: string) => configReader('project.root', (root: string) => {
+  renameCurrentToCwd(simplifyPath(cwd, absolutePath(root)))
+}))
