@@ -6,6 +6,7 @@ import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 import Neovim from '@veonim/neovim'
+import { resolve } from 'path'
 import { homedir } from 'os'
 
 type RedrawFn = (m: any[]) => void
@@ -52,9 +53,11 @@ const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
 const { encoder, decoder } = CreateTransport()
 const startup = FunctionGroup()
+const runtimeDir = resolve(__dirname, '..', 'runtime')
 
 const startupCmds = CmdGroup`
-  let $PATH .= ':${__dirname}/runtime/${process.platform}'
+  let &runtimepath .= ',${runtimeDir}'
+  let $PATH .= ':${runtimeDir}/${process.platform}'
   let g:veonim = 1
   let g:vn_loaded = 0
   let g:vn_cmd_completions = ''
@@ -64,6 +67,8 @@ const startupCmds = CmdGroup`
   let g:vn_callbacks = {}
   let g:vn_callback_id = 0
   let g:vn_jobs_connected = {}
+  colorscheme gruvbox
+  set background=dark
   set laststatus=0
   set shortmess+=Ic
   set noshowcmd
