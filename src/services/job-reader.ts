@@ -9,6 +9,7 @@ const parserPath = '/Users/a/go/bin/errorformat'
 //const formats = new Map([
   //[ParserFormat.Typescript, `%E%f %#(%l\,%c): error %m,%E%f %#(%l\,%c): %m,%Eerror %m,%C%\s%\+%m`],
 //])
+//"set efm=%f(%l\\\,%c):\ %t%*\\w\ TS%n:\ %m
 
 const bufferings = new Map<number, string[]>()
 const buffer = (id: number, stuff: string[]) => bufferings.has(id)

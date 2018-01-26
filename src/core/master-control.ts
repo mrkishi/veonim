@@ -67,7 +67,8 @@ const startupCmds = CmdGroup`
   let g:vn_callbacks = {}
   let g:vn_callback_id = 0
   let g:vn_jobs_connected = {}
-  colorscheme gruvbox
+  colorscheme veonord
+  set guicursor=n:block-CursorNormal,i:hor10-CursorInsert,v:block-CursorVisual
   set background=dark
   set laststatus=0
   set shortmess+=Ic
