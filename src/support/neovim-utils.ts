@@ -18,13 +18,14 @@ interface VimMode {
 // when neovim implements external dialogs, please revisit
 const unblock = (notify: Api, request: Api) => (): Promise<string[]> => new Promise(fin => {
   let neverGonnaGiveYouUp = false
+  const typescript_y_u_do_dis = (): Promise<VimMode> => request.getMode() as Promise<VimMode>
 
   const timer = setTimeout(() => {
     neverGonnaGiveYouUp = true // never gonna let you down
     fin([])
   }, 2e3)
 
-  const tryToUnblock = () => request.getMode().then((mode: VimMode) => {
+  const tryToUnblock = () => typescript_y_u_do_dis().then(mode => {
     if (!mode.blocking) {
       Promise.race([
         request.commandOutput('messages').then(m => m.split('\n').filter(m => m)),

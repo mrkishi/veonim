@@ -110,7 +110,7 @@
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/msgpack-lite": "0.1.4",
-    "@types/node": "8.0.53",
+    "@types/node": "9.3.0",
     "babel-core": "6.26.0",
     "babel-plugin-transform-react-jsx": "6.24.1",
     "electron": "1.7.11",
@@ -120,6 +120,6 @@
     "mocha": "4.0.1",
     "proxyquire": "1.8.0",
     "spectron": "3.7.2",
-    "typescript": "2.5.3"
+    "typescript": "2.6.2"
   }
 }

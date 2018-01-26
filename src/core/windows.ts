@@ -320,7 +320,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
     const diff = next - curr
     const rowSize = Math.round((diff / totalRows) * 100).toFixed(1)
     return [...res, rowSize]
-  }, [])
+  }, [] as string[])
 
   const cc = xcols.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
@@ -329,7 +329,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
     const diff = next - curr
     const rowSize = Math.round((diff / totalColumns) * 100).toFixed(1)
     return [...res, rowSize]
-  }, [])
+  }, [] as string[])
 
   const gridTemplateRows = rr.length < 2 ? '100%' : rr.reduce((s, m) => s + m + '% ', '')
   const gridTemplateColumns = cc.length < 2 ? '100%' : cc.reduce((s, m) => s + m + '% ', '')
