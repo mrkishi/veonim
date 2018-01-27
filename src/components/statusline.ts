@@ -3,10 +3,10 @@ import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { h, app, style, Actions } from '../ui/uikit'
 import configReader from '../config/config-service'
 import { onStateChange } from '../core/neovim'
+import { darken, brighten } from '../ui/css'
 import { ExtContainer } from '../core/api'
 import { colors } from '../styles/common'
 import Icon from '../components/icon'
-import { darken } from '../ui/css'
 import '../support/git'
 
 interface Tab {
@@ -56,7 +56,7 @@ const state: State = {
 }
 
 // TODO: inherit this from vim colorscheme
-const baseColor = '#5989af'
+const baseColor = '#6d576a'
 
 const Statusline = style('div')({
   flex: 1,
@@ -113,7 +113,7 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
 
     ,Item({
       style: {
-        color: darken(baseColor, 90),
+        color: brighten(baseColor, 90),
         background: darken(baseColor, 20),
         paddingRight: '30px',
         marginRight: '-15px',
@@ -130,8 +130,8 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
         paddingLeft: '30px',
         paddingRight: '30px',
         marginRight: '-15px',
-        color: darken(baseColor, 90),
-        background: darken(baseColor, 50),
+        color: brighten(baseColor, 40),
+        background: darken(baseColor, 35),
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 15px 100%)',
       }
     }, [
@@ -148,8 +148,8 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
         paddingLeft: '30px',
         paddingRight: '30px',
         marginRight: '-15px',
-        color: darken(baseColor, 80),
-        background: darken(baseColor, 65),
+        color: brighten(baseColor, 10),
+        background: darken(baseColor, 50),
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 15px 100%)',
       }
     }, [
@@ -209,8 +209,8 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       style: {
         paddingLeft: '30px',
         paddingRight: '30px',
-        color: darken(baseColor, 80),
-        background: darken(baseColor, 60),
+        color: brighten(baseColor, 10),
+        background: darken(baseColor, 50),
         marginRight: '-15px',
         clipPath: 'polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%)',
       }
@@ -247,8 +247,8 @@ const view = ({ cwd, line, column, tabs, active, filetype, runningServers, error
       style: {
         paddingLeft: '30px',
         paddingRight: '20px',
-        color: darken(baseColor, 90),
-        background: darken(baseColor, 40),
+        color: brighten(baseColor, 60),
+        background: darken(baseColor, 30),
         marginRight: '-20px',
         clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
       }
