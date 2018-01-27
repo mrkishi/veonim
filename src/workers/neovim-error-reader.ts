@@ -4,7 +4,6 @@ import WorkerClient from '../messaging/worker-client'
 import { QuickFixList } from '../core/vim-functions'
 import CreateTransport from '../messaging/transport'
 import NeovimUtils from '../support/neovim-utils'
-import { Problem } from '../ai/diagnostics'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 import Neovim from '@veonim/neovim'
@@ -55,16 +54,50 @@ unblock().then(errors => {
   api.uiAttach(5, 2, vimOptions)
 })
 
-const qfGroup = (fixes: object[]) => fixes.reduce((map, item) => {
+const severityOptions = new Map([
+  [ '0', DiagnosticSeverity.Error ],
+  [ 'e', DiagnosticSeverity.Error ],
+  [ 'w', DiagnosticSeverity.Warning ],
+  [ 'i', DiagnosticSeverity.Information ],
+])
 
-}, new Map<string, Diagnostic[]>)
+const qfTypeToSeverity = (type?: string | number): DiagnosticSeverity => {
+  if (!type) return DiagnosticSeverity.Error
+  return severityOptions.get((type + '').toLowerCase()) || DiagnosticSeverity.Error
+}
+
+const qfGroup = (fixes: QuickFixList[], source = '') => fixes.reduce((map, item: QuickFixList) => {
+  if (!item.filename) return map
+
+  const diagnostic: Diagnostic = {
+    source,
+    code: item.nr,
+    message: item.text,
+    severity: qfTypeToSeverity(item.type),
+    range: {
+      start: { line: item.lnum, character: item.col },
+      end: { line: item.lnum, character: item.col },
+    },
+  }
+
+  if (!map.has(item.filename)) return (map.set(item.filename, [ diagnostic ]), map)
+
+  map.get(item.filename)!.push(diagnostic)
+  return map
+}, new Map<string, Diagnostic[]>())
+
+const qfBufnames = (fixes: QuickFixList[]) => Promise.all(fixes.map(async m => ({
+  ...m,
+  filename: await req.callFunction('bufname', [ m.bufnr ]),
+})))
 
 // TODO: probably need some mechanism to queue requests and do them serially.
 // don't want to override vim buffer while another req is processing
-on.getErrors(async (file: string, format: string): Problem[] => {
+on.getErrors(async (file: string, format: string) => {
   api.command(`set errorformat=${format}`)
   api.command(`cgetfile ${file}`)
-  const qf = await api.commandOutput(`filter(getqflist(), {k,v->v.valid})`) as QuickFixList[]
-  // TODO: translate to bufname here?
-  return qf
+  const items = await api.callFunction('getqflist', []) as QuickFixList[]
+  const validItems = items.filter(m => m.valid)
+  const namedItems = await qfBufnames(validItems)
+  return qfGroup(namedItems)
 })

@@ -149,6 +149,19 @@ export const Row = {
     active: style('div')(activeRow)
   }),
 
+  desc: modstyl({
+    normal: style('div')({
+      ...row,
+      whitespace: 'normal',
+      overflow: 'normal',
+    }),
+    active: style('div')({
+      ...activeRow,
+      whitespace: 'normal',
+      overflow: 'normal',
+    })
+  }),
+
   files: modstyl({
     normal: style('div')({ ...row, ...rowLastPad }),
     active: style('div')({ ...activeRow, ...rowLastPad }),

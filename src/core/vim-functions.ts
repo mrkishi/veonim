@@ -14,6 +14,7 @@ export interface QuickFixList {
   bufnr?: number,
   filename?: string,
   type?: string,
+  valid?: boolean,
 }
 
 type WindowPosition = [ string, number, number, number ]

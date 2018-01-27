@@ -13,7 +13,7 @@
     "clean": "rm -rf build",
     "clean-all": "npm run clean && rm -rf dist && rm -rf bindeps",
     "fixexp": "jscodeshift -t tools/dummy-exports.js build/workers",
-    "typescript": "tsc -p tsconfig.json && tsc -p tsconfig.workers.json",
+    "typescript": "tsc -p tsconfig.json && tsc -p src/workers/tsconfig.json",
     "watch": "node tools/watch-build.js",
     "build": "npm run typescript && npm run fixexp && npm run html && npm run runtime && npm run assets",
     "rebuild": "npm run clean && npm run build",
@@ -110,16 +110,16 @@
   "devDependencies": {
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/msgpack-lite": "0.1.4",
-    "@types/node": "9.3.0",
+    "@types/node": "9.4.0",
     "babel-core": "6.26.0",
     "babel-plugin-transform-react-jsx": "6.24.1",
     "electron": "1.7.11",
     "electron-builder": "19.55.2",
     "feather-icons": "4.5.0",
     "jscodeshift": "0.3.32",
-    "mocha": "4.0.1",
+    "mocha": "5.0.0",
     "proxyquire": "1.8.0",
-    "spectron": "3.7.2",
+    "spectron": "3.8.0",
     "typescript": "2.6.2"
   }
 }

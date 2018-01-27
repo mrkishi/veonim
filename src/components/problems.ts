@@ -107,7 +107,10 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
 
   ,h('div', {
     onupdate: (e: HTMLElement) => elref = e,
-    style: { overflowY: 'hidden' }
+    style: {
+      display: 'flex',
+      overflowY: 'hidden',
+    }
   }, $.problems.map(({ file, dir, items }, pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
@@ -125,7 +128,7 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
       ,Badge(items.length)
     ])
 
-    ,pos === $.ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.normal({
+    ,pos === $.ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.desc({
       activeWhen: itemPos === $.subix,
     }, [
       ,IconBox({}, getSeverityIcon(severity))

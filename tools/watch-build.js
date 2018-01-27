@@ -12,7 +12,7 @@ watch(`${cwd}/src/bootstrap/index.html`, () => {
 })
 
 tsc('tsconfig.json').stdout.pipe(process.stdout)
-tsc('tsconfig.workers.json').stdout.on('data', m => {
+tsc('src/workers/tsconfig.json').stdout.on('data', m => {
   const line = m.toString()
   process.stdout.write(`WW: ${line}`)
   if (line.includes('Compilation complete')) {

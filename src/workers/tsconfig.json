@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig",
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "./*.ts",
+    "../messaging/worker-client.ts"
+  ],
+  "compilerOptions": {
+    "lib": ["es2017", "scripthost", "webworker"]
+  }
+}
