@@ -1,5 +1,5 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
-import { ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase, camelCase, prefixWith } from '../support/utils'
+import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase, camelCase, prefixWith } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { Functions } from '../core/vim-functions'
 import { Patch } from '../langserv/patch'
@@ -23,6 +23,11 @@ type EventCallback = (state: NeovimState) => void
 export enum Highlight {
   Underline = 'VeonimUnderline',
   Undercurl = 'VeonimUndercurl',
+}
+
+export interface Color {
+  background: number,
+  foreground: number,
 }
 
 interface Event {
@@ -218,6 +223,14 @@ export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
   registeredEventActions.add(event)
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
+}
+
+export const getColor = async (name: string) => {
+  const { foreground: fg, background: bg } = await req.core.getHlByName(name, true) as Color
+  return {
+    foreground: asColor(fg || 0),
+    background: asColor(bg || 0),
+  }
 }
 
 export const systemAction = (event: string, cb: GenericCallback) => actionWatchers.add(event, cb)

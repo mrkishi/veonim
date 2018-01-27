@@ -5,17 +5,13 @@ import CreateTransport from '../messaging/transport'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
+import { Color } from '../core/neovim'
 import Neovim from '@veonim/neovim'
 import { resolve } from 'path'
 import { homedir } from 'os'
 
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
-
-interface VimColor {
-  background: number,
-  foreground: number,
-}
 
 interface VimInstance {
   id: number,
@@ -251,7 +247,7 @@ export const resize = (width: number, height: number) => {
 }
 
 export const getColor = async (id: number) => {
-  const { foreground, background } = await req.getHlById(id, true) as VimColor
+  const { foreground, background } = await req.getHlById(id, true) as Color
   return {
     fg: asColor(foreground || 0),
     bg: asColor(background || 0),

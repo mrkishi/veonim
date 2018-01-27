@@ -1,8 +1,8 @@
 import { merge, simplifyPath, absolutePath } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
+import { onStateChange, getColor } from '../core/neovim'
 import { h, app, style, Actions } from '../ui/uikit'
 import configReader from '../config/config-service'
-import { onStateChange } from '../core/neovim'
 import { darken, brighten } from '../ui/css'
 import { ExtContainer } from '../core/api'
 import { colors } from '../styles/common'
@@ -35,6 +35,7 @@ interface State {
   additions: number,
   deletions: number,
   macro: string,
+  baseColor: string,
 }
 
 const state: State = {
@@ -53,10 +54,13 @@ const state: State = {
   additions: 0,
   deletions: 0,
   macro: '',
+  baseColor: '#6d576a',
 }
 
-// TODO: inherit this from vim colorscheme
-const baseColor = '#6d576a'
+const refreshBaseColor = async () => {
+  const { background } = await getColor('StatusLine')
+  if (background) ui.setColor(background)
+}
 
 const Statusline = style('div')({
   flex: 1,
@@ -108,7 +112,7 @@ merge(container.style, {
   zIndex: 900,
 })
 
-const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions, macro }: State) => Statusline({}, [
+const view = ({ cwd, line, column, tabs, active, filetype, runningServers, errors, warnings, branch, additions, deletions, macro, baseColor }: State) => Statusline({}, [
   ,Left({}, [
 
     ,Item({
@@ -284,6 +288,7 @@ a.setDiagnostics = (_s, _a, { errors = 0, warnings = 0 }) => ({ errors, warnings
 a.setGitBranch = (_s, _a, branch) => ({ branch })
 a.setGitStatus = (_s, _a, { additions, deletions }) => ({ additions, deletions })
 a.setMacro = (_s, _a, macro = '') => ({ macro })
+a.setColor = (_s, _a, baseColor) => ({ baseColor })
 
 a.serverRunning = (s, _a, server) => ({
   runningServers: new Set([...s.runningServers, server]),
@@ -302,6 +307,7 @@ a.serverOffline = (s, _a, server) => ({
 
 const ui = app({ state, view, actions: a }, false, container)
 
+onStateChange.colorscheme(refreshBaseColor)
 onStateChange.filetype(ui.setFiletype)
 onStateChange.line(ui.setLine)
 onStateChange.column(ui.setColumn)
@@ -328,4 +334,7 @@ sub('langserv:exit', ft => ui.serverOffline(ft))
 sub('vim:macro.start', reg => ui.setMacro(reg))
 sub('vim:macro.end', () => ui.setMacro())
 
-setImmediate(() => processAnyBuffered('tabs'))
+setImmediate(() => {
+  processAnyBuffered('tabs')
+  refreshBaseColor()
+})
