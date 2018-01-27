@@ -1,6 +1,6 @@
 {
   "name": "veonim",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "neovim gui with 100% more nyan cat",
   "main": "build/bootstrap/main.js",
   "scripts": {
