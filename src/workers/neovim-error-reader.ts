@@ -1,5 +1,5 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
-import { prefixWith, onFnCall } from '../support/utils'
+import { prefixWith, onFnCall, is } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { QuickFixList } from '../core/vim-functions'
 import CreateTransport from '../messaging/transport'
@@ -96,7 +96,9 @@ const qfBufnames = (fixes: QuickFixList[]) => Promise.all(fixes.map(async m => (
 on.getErrors(async (file: string, format: string) => {
   api.command(`set errorformat=${format}`)
   api.command(`cgetfile ${file}`)
-  const items = await api.callFunction('getqflist', []) as QuickFixList[]
+  const items = await req.callFunction('getqflist', []) as QuickFixList[]
+  if (!is.array(items)) return []
+
   const validItems = items.filter(m => m.valid)
   const namedItems = await qfBufnames(validItems)
   return qfGroup(namedItems)

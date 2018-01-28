@@ -1,41 +1,40 @@
+import { writeFile, uuid } from '../support/utils'
 import { systemAction } from '../core/neovim'
-import { shell } from '../support/utils'
+import Worker from '../messaging/worker'
+import { join } from 'path'
 
 enum ParserFormat {
   Typescript,
 }
 
-const parserPath = '/Users/a/go/bin/errorformat'
-//const formats = new Map([
-  //[ParserFormat.Typescript, `%E%f %#(%l\,%c): error %m,%E%f %#(%l\,%c): %m,%Eerror %m,%C%\s%\+%m`],
-//])
-//"set efm=%f(%l\\\,%c):\ %t%*\\w\ TS%n:\ %m
+const formatter = Worker('neovim-error-reader')
+
+const formats = new Map([
+  [ParserFormat.Typescript, `%f(%l\\\\\\,%c):\\ %t%*\\\\w\\ TS%n:\\ %m`],
+])
 
 const bufferings = new Map<number, string[]>()
 const buffer = (id: number, stuff: string[]) => bufferings.has(id)
   ? bufferings.get(id)!.push(...stuff)
   : bufferings.set(id, stuff)
 
-const fuckgo = (text: string) => {
-///path/to/F1.scala|203 col 13 warning 1234| local val in method f is never used: (warning smaple 3)
-
-  const res = text.match(/^(\w+)|(\d+) col (\d+) (\w+) (\d+)| (\w+)/) || [] as any
-  //const res = { path, line, col, type, typeNum, msg }
-  console.log(res)
+const writeData = async (lines: string[]) => {
+  const location = join(__dirname, '..', uuid())
+  await writeFile(location, lines.join('\n'))
+  return location
 }
 
 const parse = async (lines: string[], _format: ParserFormat) => {
-  const p = lines.map(l => l.replace(/\r\n/, ''))
-  //console.log('before', JSON.stringify(p))
-  //const errformat = formats.get(format)
-  // TODO: need to escape lines doublequotes
-  p.forEach(async thing => {
-    const results = await shell(`echo "${thing}" | ${parserPath} -name=tsc`)
-    if (!results.startsWith('||')) {
-      console.log('>>>:', results)
-      fuckgo(results)
-    }
-  })
+  const filepath = await writeData(lines)
+  const list = await formatter.request.getErrors(filepath, formats.get(ParserFormat.Typescript))
+
+  // TODO: ok now we need to do a few things:
+  // - figure out how to group job outputs into logical groupings... timeout based? wait for token
+  // like 'build/compile done/success/etc?'
+  // - need to cleanup the errorformat files generated
+  //    either that, or need to queue output requests together so the file is "locked"
+  //    to only one vim parsing request at a time
+  console.log('list', [...list])
 }
 
 systemAction('job-output', (jobId: number, data: string[]) => {
