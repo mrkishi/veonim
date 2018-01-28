@@ -5,6 +5,7 @@ import NeovimUtils from '../support/neovim-utils'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 import Neovim from '@veonim/neovim'
+import { resolve } from 'path'
 
 interface ColorData {
   color: string,
@@ -31,8 +32,10 @@ const asVimFunc = (name: string, fn: string) => {
   return `exe ":fun! ${pascalCase(name)}(...) range\n${expr}\nendfun"`
 }
 
+const runtimeDir = resolve(__dirname, '..', 'runtime')
 const { encoder, decoder } = CreateTransport()
 const proc = Neovim([
+  '--cmd', `let &runtimepath .= ',${runtimeDir}'`,
   '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,
   '--cmd', `exe ":fun! Veonim(...)\\n endfun"`,
   '--cmd', `exe ":fun! VK(...)\\n endfun"`,
