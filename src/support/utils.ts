@@ -59,6 +59,10 @@ export const pathRelativeToHome = (path: string) => path.includes($HOME)
   ? path.replace($HOME, '~')
   : path
 
+export const pathRelativeToCwd = (path: string, cwd: string) => path.includes(cwd)
+  ? path.replace(cwd, '').replace(/^\//, '')
+  : path
+
 export const absolutePath = (path: string) => resolve(path.replace(/^~\//, `${homedir()}/`))
 
 export const simplifyPath = (fullpath: string, cwd: string) => fullpath.includes(cwd)

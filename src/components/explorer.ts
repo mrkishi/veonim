@@ -1,4 +1,4 @@
-import { getDirFiles, pathRelativeToHome } from '../support/utils'
+import { getDirFiles, pathRelativeToHome, pathRelativeToCwd } from '../support/utils'
 import { action, current, call, cmd } from '../core/neovim'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import * as setiIcon from '../styles/seti-icons'
@@ -33,8 +33,6 @@ const state: State = {
   vis: false,
   ix: 0,
 }
-
-const relativeToCwd = (path: string, cwd: string) => path.includes(cwd) ? path.replace(cwd, '').replace(/^\//, '') : path
 
 const ignored: { dirs: string[], files: string[] } = {
   dirs: config('explorer.ignore.dirs', m => ignored.dirs = m),
@@ -82,7 +80,7 @@ a.select = (s, a) => {
   const { name, file } = s.paths[s.ix]
   if (!name) return
   if (file) {
-    cmd(`e ${relativeToCwd(join(s.path, name), s.cwd)}`)
+    cmd(`e ${pathRelativeToCwd(join(s.path, name), s.cwd)}`)
     return a.hide()
   }
   a.diveDown(name)

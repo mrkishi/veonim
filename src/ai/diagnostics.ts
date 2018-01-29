@@ -1,13 +1,13 @@
 import { ProblemHighlight, on, action, getCurrent, current as vim } from '../core/neovim'
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
+import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
-import { uriToPath } from '../support/utils'
 import { sessions } from '../core/sessions'
 import { cursor } from '../core/cursor'
 import '../ai/remote-problems'
@@ -97,11 +97,7 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
 }
 
 export const addQF = (items: Map<string, Diagnostic[]>) => {
-  mapAsProblems(items).forEach(m => {
-    const location = path.join(m.dir, m.file)
-    updateDiagnostics(location, m.items)
-  })
-
+  items.forEach((diags, loc) => updateDiagnostics(loc, diags))
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   updateUI()
 }
@@ -151,7 +147,8 @@ const refreshProblemHighlights = async () => {
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.currentBuffer = path
-  updateDiagnostics(path, m.diagnostics)
+  const relativePath = pathRelativeToCwd(path, vim.cwd)
+  updateDiagnostics(relativePath, m.diagnostics)
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   if (cache.diagnostics.size) updateUI()
   refreshProblemHighlights()
