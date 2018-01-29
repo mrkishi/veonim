@@ -36,4 +36,5 @@ export interface Functions {
   bufname(expr: string | number): Promise<string>,
   getbufline(expr: string | number, startLine: number, endLine?: number | string): Promise<string[]>,
   getbufvar(expr: string | number, varname?: string, defaultValue?: any): Promise<any>,
+  termopen(cmd: string, options: object): void,
 }

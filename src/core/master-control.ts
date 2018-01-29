@@ -75,19 +75,7 @@ const startupCmds = CmdGroup`
   call serverstart()
 `
 
-// TODO: okay i think a bunch of these are internal functions and should be moved to a plugin.vim file
-startup.defineFunc.VeonimAttachTerm`
-  if b:terminal_job_id
-    let g:vn_jobs_connected[b:terminal_job_id] = 1
-  endif
-`
-
-startup.defineFunc.VeonimDetachTerm`
-  if b:terminal_job_id
-    call remove(g:vn_jobs_connected, b:terminal_job_id)
-  endif
-`
-
+// TODO: internalize (private) these functions to plugin file?
 startup.defineFunc.VeonimTermReader`
   if has_key(g:vn_jobs_connected, a:1)
     call rpcnotify(0, 'veonim', 'job-output', [a:1, a:2])
@@ -96,11 +84,6 @@ startup.defineFunc.VeonimTermReader`
 
 startup.defineFunc.VeonimTermExit`
   call remove(g:vn_jobs_connected, a:1)
-`
-
-// TODO: default /bin/bash as a:1 term command?
-startup.defineFunc.VeonimTermOpen`
-  call termopen(a:1, {'on_stdout': 'VeonimTermReader', 'on_exit': 'VeonimTermExit'})
 `
 
 startup.defineFunc.Veonim`

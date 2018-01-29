@@ -1,5 +1,6 @@
-import { writeFile, debounce } from '../support/utils'
-import { systemAction } from '../core/neovim'
+import { action, systemAction, call, cmd, getCurrent } from '../core/neovim'
+import { is, writeFile, debounce } from '../support/utils'
+import * as dispatch from '../messaging/dispatch'
 import { addQF } from '../ai/diagnostics'
 import Worker from '../messaging/worker'
 import { join } from 'path'
@@ -13,6 +14,11 @@ const formatter = Worker('neovim-error-reader')
 const formats = new Map([
   [ParserFormat.Typescript, `%f(%l\\\\\\,%c):\\ %t%*\\\\w\\ TS%n:\\ %m`],
 ])
+
+// TODO: need to keep track of terminal job ids across sessions
+const terminals = new Map<number, Set<number>>()
+let activeSession = -1
+dispatch.sub('session:switch', id => activeSession = id)
 
 const bufferings = new Map<number, string[]>()
 const buffer = (id: number, stuff: string[]) => bufferings.has(id)
@@ -61,3 +67,20 @@ systemAction('job-output', (jobId: number, data: string[]) => {
   else buffer(jobId, data)
 })
 
+action('TermAttach', async () => {
+  const buffer = await getCurrent.buffer
+  const jobId = await buffer.getVar('terminal_job_id')
+  if (!is.number(jobId)) return
+
+  cmd(`let g:vn_jobs_connected[${jobId}] = 1`)
+  //cmd(`if b:terminal_job_id | let g:vn_jobs_connected[b:terminal_job_id] = 1 | endif`)
+})
+
+action('TermDetach', () => {
+  cmd(`if b:terminal_job_id | call remove(g:vn_jobs_connected, b:terminal_job_id) | endif`)
+})
+
+action('TermOpen', (cmd = '/bin/bash') => call.termopen(cmd, {
+  on_stdout: 'VeonimTermReader',
+  on_exit: 'VeonimTermExit',
+}))
