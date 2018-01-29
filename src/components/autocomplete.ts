@@ -17,6 +17,7 @@ interface State {
   y: number,
   documentation?: string,
   anchorAbove: boolean,
+  visibleOptions: number,
 }
 
 interface ShowParams {
@@ -34,6 +35,7 @@ const state: State = {
   ix: 0,
   x: 0,
   y: 0,
+  visibleOptions: MAX_VISIBLE_OPTIONS,
 }
 
 const pos: { container: ClientRect } = {
@@ -99,7 +101,7 @@ const view = ($: State) => Overlay({
     style: {
       background: 'var(--background-30)',
       overflowY: 'hidden',
-      maxHeight: `${canvasContainer.cell.height * MAX_VISIBLE_OPTIONS}px`,
+      maxHeight: `${canvasContainer.cell.height * $.visibleOptions}px`,
     }
   }, $.options.map(({ text, kind }, id) => Row.complete({
     key: id,
@@ -138,7 +140,8 @@ const a: Actions<State> = {}
 a.hide = () => ({ visible: false, ix: 0 })
 a.showDocs = (_s, _a, documentation) => ({ documentation })
 
-a.show = (_s, _a, { anchorAbove, options, x, y, ix = -1 }) => ({
+a.show = (_s, _a, { anchorAbove, visibleOptions, options, x, y, ix = -1 }) => ({
+  visibleOptions,
   anchorAbove,
   options,
   ix,
@@ -169,6 +172,7 @@ export const show = ({ row, col, options }: ShowParams) => {
   ui.show({
     options,
     anchorAbove,
+    visibleOptions,
     x: activeWindow() ? activeWindow()!.colToX(col) : 0,
     y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row : row + 1) : 0,
   })
