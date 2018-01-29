@@ -25,6 +25,7 @@ interface Props {
   jumpNext?: () => void,
   tab?: () => void,
   ctrlH?: () => void,
+  yank?: () => void,
 }
 
 let lastDown = ''
@@ -74,7 +75,8 @@ export default ({
   jumpPrev = nop,
   jumpNext = nop,
   tab = nop,
-  ctrlH = nop
+  ctrlH = nop,
+  yank = nop,
 }: Props) => h('div', {
   style: {
     ...paddingVH(12, small ? 5 : 10),
@@ -133,6 +135,7 @@ export default ({
       if (cm && key === 'u') return up()
       if (cm && key === 'i') return jumpNext()
       if (cm && key === 'o') return jumpPrev()
+      if (cm && key === 'y') return yank()
       if (cm && e.shiftKey && key === 'D') return bottom()
       if (cm && e.shiftKey && key === 'U') return top()
 

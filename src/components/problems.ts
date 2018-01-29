@@ -8,6 +8,7 @@ import Input from '../components/text-input'
 import { Problem } from '../ai/diagnostics'
 import { filter } from 'fuzzaldrin-plus'
 import Icon from '../components/icon'
+import { clipboard } from 'electron'
 import { join } from 'path'
 
 interface State {
@@ -109,6 +110,7 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
     onupdate: (e: HTMLElement) => elref = e,
     style: {
       display: 'flex',
+      flexFlow: 'column',
       overflowY: 'hidden',
     }
   }, $.problems.map(({ file, dir, items }, pos) => h('div', {
@@ -148,6 +150,7 @@ a.toggle = s => ({ vis: !s.vis })
 a.hide = () => (vimFocus(), { focus: false })
 a.focus = () => (vimBlur(), { focus: true, vis: true })
 a.updateProblems = (_s, _a, problems) => ({ problems, cache: problems })
+a.yank = s => clipboard.writeText(s.val)
 
 a.change = (s, _a, val: string) => ({ val, problems: val
   ? filter(s.problems, val, { key: 'file' })
