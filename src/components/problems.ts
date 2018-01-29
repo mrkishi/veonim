@@ -138,7 +138,7 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
       ,h('span', message)
       ,h('span', {
         style: { marginLeft: '10px' }
-      }, `(${range.start.line}, ${range.start.character})`)
+      }, `(${range.start.line + 1}, ${range.start.character + 1})`)
     ])))
 
   ])))

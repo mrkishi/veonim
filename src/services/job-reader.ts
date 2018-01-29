@@ -28,11 +28,9 @@ const writeData = async (lines: string[]) => {
 }
 
 const destroyQ = async (format: ParserFormat) => {
-  console.log('destroying the queue', parsingQueue.length)
   const filepath = await writeData(parsingQueue)
   parsingQueue = []
   const list = await formatter.request.getErrors(filepath, formats.get(format))
-  console.log('RES:', list)
   addQF(list)
 }
 

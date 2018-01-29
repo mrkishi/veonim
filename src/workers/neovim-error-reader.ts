@@ -75,8 +75,8 @@ const qfGroup = (fixes: QuickFixList[], source = '') => fixes.reduce((map, item:
     message: item.text,
     severity: qfTypeToSeverity(item.type),
     range: {
-      start: { line: item.lnum, character: item.col },
-      end: { line: item.lnum, character: item.col },
+      start: { line: item.lnum - 1, character: item.col - 1 },
+      end: { line: item.lnum - 1, character: item.col - 1 },
     },
   }
 
