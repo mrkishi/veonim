@@ -45,7 +45,7 @@ describe('grid', function () {
     await input.meta(`'`)
     await input('attach')
     await enter()
-    await input('npx tsc')
+    await input('npx tsc --watch')
     await enter()
 
     await app.webContents.openDevTools()

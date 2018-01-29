@@ -1,5 +1,6 @@
 import { writeFile, debounce } from '../support/utils'
 import { systemAction } from '../core/neovim'
+import { addQF } from '../ai/diagnostics'
 import Worker from '../messaging/worker'
 import { join } from 'path'
 
@@ -32,6 +33,7 @@ const destroyQ = async (format: ParserFormat) => {
   parsingQueue = []
   const list = await formatter.request.getErrors(filepath, formats.get(format))
   console.log('RES:', list)
+  addQF(list)
 }
 
 const tryEmptyQ = debounce(destroyQ, 2e3)

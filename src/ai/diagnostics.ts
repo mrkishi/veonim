@@ -96,26 +96,15 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
   return { errors, warnings }
 }
 
-// TODO: ok i want to set external problems in the UI and set highlighting too
-//const mergeProblems = (problems: Problem[], diagnostics: Problem[]): Problem[] => {
-  //// in my observation langserv only updates diangnostics for the current buffer.
-  //// this means that any other buffer could be outdated. external diagnostics
-  //// population via linter/compiler should be the ultimate source of truth,
-  //// overriding any outdated buffer diagnostics
-  //// however, because the current buffer has langserv support, it should be more up to date
-  //// than a compiler or linter run output. (thus current buf takes highest priority)
-  //if (!problems.length) return diagnostics
+export const addQF = (items: Map<string, Diagnostic[]>) => {
+  mapAsProblems(items).forEach(m => {
+    const location = path.join(m.dir, m.file)
+    updateDiagnostics(location, m.items)
+  })
 
-  //return diagnostics.reduce((qf, d) => {
-    //const diagPath = path.join(d.dir, d.file)
-    //if (diagPath === cache.currentBuffer) return (qf.push(d), qf)
-
-    //const has = qf.some(q => path.join(q.dir, q.file) === diagPath)
-    //if (!has) qf.push(d)
-
-    //return qf
-  //}, quickfix)
-//}
+  dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
+  updateUI()
+}
 
 const problemHighlightsSame = (current: ProblemHighlight, compare: ProblemHighlight) =>
   current.line === compare.line
