@@ -1,4 +1,4 @@
-import { writeFile, uuid } from '../support/utils'
+import { writeFile, debounce } from '../support/utils'
 import { systemAction } from '../core/neovim'
 import Worker from '../messaging/worker'
 import { join } from 'path'
@@ -18,23 +18,34 @@ const buffer = (id: number, stuff: string[]) => bufferings.has(id)
   ? bufferings.get(id)!.push(...stuff)
   : bufferings.set(id, stuff)
 
+let parsingQueue = [] as any[]
+
 const writeData = async (lines: string[]) => {
-  const location = join(__dirname, '..', uuid())
+  const location = join(__dirname, '..', 'errorz')
   await writeFile(location, lines.join('\n'))
   return location
 }
 
-const parse = async (lines: string[], _format: ParserFormat) => {
-  const filepath = await writeData(lines)
-  const list = await formatter.request.getErrors(filepath, formats.get(ParserFormat.Typescript))
+const destroyQ = async (format: ParserFormat) => {
+  console.log('destroying the queue', parsingQueue.length)
+  const filepath = await writeData(parsingQueue)
+  parsingQueue = []
+  const list = await formatter.request.getErrors(filepath, formats.get(format))
+  console.log('RES:', list)
+}
+
+const tryEmptyQ = debounce(destroyQ, 2e3)
+const parseLater = (lines: string[], format: ParserFormat) => {
+  parsingQueue.push(...lines)
+  tryEmptyQ(format)
+}
+
+const parse = (lines: string[], format: ParserFormat) => {
+  parseLater(lines, format)
 
   // TODO: ok now we need to do a few things:
   // - figure out how to group job outputs into logical groupings... timeout based? wait for token
   // like 'build/compile done/success/etc?'
-  // - need to cleanup the errorformat files generated
-  //    either that, or need to queue output requests together so the file is "locked"
-  //    to only one vim parsing request at a time
-  console.log('list', [...list])
 }
 
 systemAction('job-output', (jobId: number, data: string[]) => {

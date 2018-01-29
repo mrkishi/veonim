@@ -13,6 +13,8 @@ describe('grid', function () {
     await app.client.keys(m)
   }
 
+  const enter = async () => input('Enter')
+
   input.meta = async m => {
     await input('\uE03D')
     await input(m)
@@ -35,13 +37,28 @@ describe('grid', function () {
 
   it('do stuff', async () => {
     await delay(235)
-    await input(':cd ~/Documents/projects/veonim')
-    await input('Enter')
-    await input(':e src/core/canvas-container.ts')
-    await input('Enter')
-    await input(':Veonim uadd')
-    await input('Enter')
+    await input(':cd ~/Documents/projects/plugin-manager')
+    await enter()
+    await input.meta(`'`)
+    await input('open')
+    await enter()
+    await input.meta(`'`)
+    await input('attach')
+    await enter()
+    await input('npx tsc')
+    await enter()
 
     await app.webContents.openDevTools()
   })
 })
+//it('do stuff', async () => {
+  //await delay(235)
+  //await input(':cd ~/Documents/projects/veonim')
+  //await input('Enter')
+  //await input(':e src/core/canvas-container.ts')
+  //await input('Enter')
+  //await input(':Veonim uadd')
+  //await input('Enter')
+
+  //await app.webContents.openDevTools()
+//})
