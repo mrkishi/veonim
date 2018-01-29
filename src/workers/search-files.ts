@@ -1,6 +1,5 @@
 import WorkerClient from '../messaging/worker-client'
 import { NewlineSplitter } from '../support/utils'
-import { filter as fuzzy } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
 
 interface Request {
@@ -39,7 +38,9 @@ const sendResults = () => {
   if (!results.length) return
 
   const searchResults = filterQuery
-    ? fuzzy(results, filterQuery, { key: 'path' }).slice(range.start, range.end)
+    // in my testing it feels better to not fuzzy search on paths. not accurate enough
+    //? fuzzy(results, filterQuery, { key: 'path' }).slice(range.start, range.end)
+    ? results.filter(m => m.path.toLowerCase().includes(filterQuery)).slice(range.start, range.end)
     : results.slice(range.start, range.end)
 
   if (searchResults.length) {

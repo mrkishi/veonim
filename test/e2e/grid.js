@@ -37,20 +37,15 @@ describe('grid', function () {
 
   it('do stuff', async () => {
     await delay(235)
-    await input(':cd ~/Documents/projects/plugin-manager')
+    await input(':cd ~/Documents/projects/veonim')
     await enter()
-    await input.meta(`'`)
-    await input('open')
-    await enter()
-    await input.meta(`'`)
-    await input('attach')
-    await enter()
-    await input('npx tsc --watch')
+    await input(':Veonim grep')
     await enter()
 
     await app.webContents.openDevTools()
   })
 })
+// TODO: define a way to select tests from command line and/or veonim
 //it('do stuff', async () => {
   //await delay(235)
   //await input(':cd ~/Documents/projects/veonim')
@@ -59,6 +54,21 @@ describe('grid', function () {
   //await input('Enter')
   //await input(':Veonim uadd')
   //await input('Enter')
+
+  //await app.webContents.openDevTools()
+//})
+//it('do stuff', async () => {
+  //await delay(235)
+  //await input(':cd ~/Documents/projects/plugin-manager')
+  //await enter()
+  //await input.meta(`'`)
+  //await input('open')
+  //await enter()
+  //await input.meta(`'`)
+  //await input('attach')
+  //await enter()
+  //await input('npx tsc --watch')
+  //await enter()
 
   //await app.webContents.openDevTools()
 //})

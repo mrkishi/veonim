@@ -7,6 +7,11 @@ import Worker from '../messaging/worker'
 type TextTransformer = (text: string) => string
 type Result = [string, SearchResult[]]
 
+enum FocusedElement {
+  Search,
+  Filter,
+}
+
 interface SearchResult {
   line: number,
   col: number,
@@ -15,12 +20,14 @@ interface SearchResult {
 
 interface State {
   val: string,
+  filterVal: string,
   cwd: string,
   results: Result[],
   vis: boolean,
   ix: number,
   subix: number,
   loading: boolean,
+  focused: FocusedElement,
 }
 
 let elref: HTMLElement
@@ -30,12 +37,14 @@ const els = new Map<number, HTMLElement>()
 
 const state: State = {
   val: '',
+  filterVal: '',
   cwd: '',
   results: [],
   vis: false,
   ix: 0,
   subix: -1,
-  loading: false
+  loading: false,
+  focused: FocusedElement.Search,
 }
 
 // scroll after next section has been rendered as expanded (a little hacky)
@@ -83,13 +92,38 @@ const highlightPattern = (text: string, pattern: string, { normal, special }: { 
 const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
 
   ,Input({
-    ...actions,
     val: $.val,
-    focus: true,
+    change: actions.change,
+    hide: actions.hide,
+    tab: actions.focusFilter,
+    select: actions.select,
+    nextGroup: actions.nextGroup,
+    prevGroup: actions.prevGroup,
+    next: actions.next,
+    prev: actions.prev,
+    down: actions.down,
+    up: actions.up,
+    focus: $.focused === FocusedElement.Search,
     icon: 'search',
-    // TODO: 
-    small: false,
     desc: 'find in project',
+  }),
+
+  ,Input({
+    val: $.filterVal,
+    change: actions.changeFilter,
+    hide: actions.hide,
+    tab: actions.focusSearch,
+    select: actions.select,
+    nextGroup: actions.nextGroup,
+    prevGroup: actions.prevGroup,
+    next: actions.next,
+    prev: actions.prev,
+    down: actions.down,
+    up: actions.up,
+    focus: $.focused === FocusedElement.Filter,
+    icon: 'filter',
+    small: true,
+    desc: 'filter files',
   }),
 
   // TODO: render keys? idk about keys they seem to not work like in react...
@@ -126,6 +160,9 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
 
 const a: Actions<State> = {}
 
+a.focusSearch = () => ({ focused: FocusedElement.Search })
+a.focusFilter = () => ({ focused: FocusedElement.Filter })
+
 a.hide = () => ({ vis: false })
 a.show = (_s, _a, { cwd, val, reset = true }) => reset
   ? ({ vis: true, cwd, val, ix: 0, subix: -1, results: [], loading: false })
@@ -140,6 +177,11 @@ a.select = (s, a) => {
 a.change = (s, _a, val: string) => {
   val && worker.call.query({ query: val, cwd: s.cwd })
   return val ? { val } : { val, results: [], ix: 0, subix: 0 }
+}
+
+a.changeFilter = (_s, _a, filterVal: string) => {
+  worker.call.filter(filterVal)
+  return { filterVal }
 }
 
 a.results = (_s, _a, results: Result[]) => ({ results })
