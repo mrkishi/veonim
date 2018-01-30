@@ -1,16 +1,22 @@
 import { action, systemAction, call, cmd, getCurrent } from '../core/neovim'
+import userPicksAnOption, { MenuOption } from '../components/generic-menu'
 import { is, writeFile, debounce } from '../support/utils'
-import userPicksAnOption from '../components/generic-menu'
 import { sessions } from '../core/sessions'
 import { addQF } from '../ai/diagnostics'
 import Worker from '../messaging/worker'
 import { join } from 'path'
 
 enum ParserFormat {
-  Typescript = 'typescript',
-  CSharp = 'c#',
-  CPlusPlus = 'c++',
+  Typescript,
+  CSharp,
+  CPlusPlus,
 }
+
+const parserFormatOptions: MenuOption[] = [
+  { key: ParserFormat.Typescript, value: 'TypeScript' },
+  { key: ParserFormat.CSharp, value: 'C#' },
+  { key: ParserFormat.CPlusPlus, value: 'C++' },
+]
 
 const formatter = Worker('neovim-error-reader')
 
@@ -80,7 +86,7 @@ systemAction('job-output', (jobId: number, data: string[]) => {
     bufferings.delete(jobId)
     const msg = [...prevMsg, ...data]
     const format = getTerminalFormat(jobId)
-    if (format) parse(msg, format)
+    if (is.number(format)) parse(msg, format!)
   }
 
   else buffer(jobId, data)
@@ -94,8 +100,10 @@ action('TermAttach', async (providedFormat?: ParserFormat) => {
   const format = providedFormat || await userPicksAnOption<ParserFormat>({
     icon: 'mail',
     description: 'choose parser error format',
-    options: Object.keys(ParserFormat),
+    options: parserFormatOptions,
   })
+
+  if (!is.number(format)) return
 
   cmd(`let g:vn_jobs_connected[${jobId}] = 1`)
   registerTerminal(jobId, format)

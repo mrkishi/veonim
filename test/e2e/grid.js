@@ -26,23 +26,26 @@ describe('grid', function () {
     get normal() { input('Escape') },
   }
 
+  const printLogs = () => {
+    console.log(...app.client.getMainProcessLogs())
+    console.log(...app.client.getRenderProcessLogs())
+  }
+
   beforeEach(async () => {
     app = new Application({
       path: './node_modules/.bin/electron',
-      args: [path.join(__dirname, '../../build/bootstrap/main.js')]
+      args: [ path.join(__dirname, '../../build/bootstrap/main.js') ],
     })
     await app.start()
-    await delay(800)
+    await app.client.waitUntilWindowLoaded()
   })
 
   it('do stuff', async () => {
-    await delay(235)
-    await input(':cd ~/Documents/projects/veonim')
+    await input(':cd ~/Documents/projects/plugin-manager')
     await enter()
-    await input(':Veonim grep')
+    await input(':Veonim TermOpen')
     await enter()
-
-    await app.webContents.openDevTools()
+    await input(':Veonim TermAttach')
   })
 })
 // TODO: define a way to select tests from command line and/or veonim
@@ -54,21 +57,6 @@ describe('grid', function () {
   //await input('Enter')
   //await input(':Veonim uadd')
   //await input('Enter')
-
-  //await app.webContents.openDevTools()
-//})
-//it('do stuff', async () => {
-  //await delay(235)
-  //await input(':cd ~/Documents/projects/plugin-manager')
-  //await enter()
-  //await input.meta(`'`)
-  //await input('open')
-  //await enter()
-  //await input.meta(`'`)
-  //await input('attach')
-  //await enter()
-  //await input('npx tsc --watch')
-  //await enter()
 
   //await app.webContents.openDevTools()
 //})
