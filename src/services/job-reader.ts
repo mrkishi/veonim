@@ -1,12 +1,15 @@
 import { action, systemAction, call, cmd, getCurrent } from '../core/neovim'
 import { is, writeFile, debounce } from '../support/utils'
+import userPicksAnOption from '../components/generic-menu'
 import { sessions } from '../core/sessions'
 import { addQF } from '../ai/diagnostics'
 import Worker from '../messaging/worker'
 import { join } from 'path'
 
 enum ParserFormat {
-  Typescript,
+  Typescript = 'typescript',
+  CSharp = 'c#',
+  CPlusPlus = 'c++',
 }
 
 const formatter = Worker('neovim-error-reader')
@@ -23,6 +26,11 @@ const registerTerminal = (jobId: number, format: ParserFormat) => {
   if (sessionTerminals) return sessionTerminals.set(jobId, format)
   const newSessionTerminals = new Map([ [ jobId, format ] ])
   terminals.set(sessions.current, newSessionTerminals)
+}
+
+const unregisterTerminal = (jobId: number) => {
+  const sessionTerminals = terminals.get(sessions.current)
+  if (sessionTerminals) return sessionTerminals.delete(jobId)
 }
 
 const getTerminalFormat = (jobId: number) => {
@@ -83,15 +91,23 @@ action('TermAttach', async (providedFormat?: ParserFormat) => {
   const jobId = await buffer.getVar('terminal_job_id')
   if (!is.number(jobId)) return
 
-// TODO: please ask teh user for format
-  const format = providedFormat || ParserFormat.Typescript
+  const format = providedFormat || await userPicksAnOption<ParserFormat>({
+    icon: 'mail',
+    description: 'choose parser error format',
+    options: Object.keys(ParserFormat),
+  })
 
   cmd(`let g:vn_jobs_connected[${jobId}] = 1`)
   registerTerminal(jobId, format)
 })
 
-action('TermDetach', () => {
-  cmd(`if b:terminal_job_id | call remove(g:vn_jobs_connected, b:terminal_job_id) | endif`)
+action('TermDetach', async () => {
+  const buffer = await getCurrent.buffer
+  const jobId = await buffer.getVar('terminal_job_id')
+  if (!is.number(jobId)) return
+
+  cmd(`call remove(g:vn_jobs_connected, ${jobId})`)
+  unregisterTerminal(jobId)
 })
 
 action('TermOpen', (cmd = '/bin/bash') => call.termopen(cmd, {
