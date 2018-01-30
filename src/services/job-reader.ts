@@ -1,6 +1,6 @@
 import { action, systemAction, call, cmd, getCurrent } from '../core/neovim'
 import { is, writeFile, debounce } from '../support/utils'
-import * as dispatch from '../messaging/dispatch'
+import { sessions } from '../core/sessions'
 import { addQF } from '../ai/diagnostics'
 import Worker from '../messaging/worker'
 import { join } from 'path'
@@ -16,9 +16,19 @@ const formats = new Map([
 ])
 
 // TODO: need to keep track of terminal job ids across sessions
-const terminals = new Map<number, Set<number>>()
-let activeSession = -1
-dispatch.sub('session:switch', id => activeSession = id)
+const terminals = new Map<number, Map<number, ParserFormat>>()
+
+const registerTerminal = (jobId: number, format: ParserFormat) => {
+  const sessionTerminals = terminals.get(sessions.current)
+  if (sessionTerminals) return sessionTerminals.set(jobId, format)
+  const newSessionTerminals = new Map([ [ jobId, format ] ])
+  terminals.set(sessions.current, newSessionTerminals)
+}
+
+const getTerminalFormat = (jobId: number) => {
+  const sessionTerminals = terminals.get(sessions.current)
+  return sessionTerminals ? sessionTerminals.get(jobId) : undefined
+}
 
 const bufferings = new Map<number, string[]>()
 const buffer = (id: number, stuff: string[]) => bufferings.has(id)
@@ -61,19 +71,23 @@ systemAction('job-output', (jobId: number, data: string[]) => {
     const prevMsg = bufferings.get(jobId) || []
     bufferings.delete(jobId)
     const msg = [...prevMsg, ...data]
-    parse(msg, ParserFormat.Typescript)
+    const format = getTerminalFormat(jobId)
+    if (format) parse(msg, format)
   }
 
   else buffer(jobId, data)
 })
 
-action('TermAttach', async () => {
+action('TermAttach', async (providedFormat?: ParserFormat) => {
   const buffer = await getCurrent.buffer
   const jobId = await buffer.getVar('terminal_job_id')
   if (!is.number(jobId)) return
 
+// TODO: please ask teh user for format
+  const format = providedFormat || ParserFormat.Typescript
+
   cmd(`let g:vn_jobs_connected[${jobId}] = 1`)
-  //cmd(`if b:terminal_job_id | let g:vn_jobs_connected[b:terminal_job_id] = 1 | endif`)
+  registerTerminal(jobId, format)
 })
 
 action('TermDetach', () => {
