@@ -24,7 +24,6 @@ const formats = new Map([
   [ParserFormat.Typescript, `%f(%l\\\\\\,%c):\\ %t%*\\\\w\\ TS%n:\\ %m`],
 ])
 
-// TODO: need to keep track of terminal job ids across sessions
 const terminals = new Map<number, Map<number, ParserFormat>>()
 
 const registerTerminal = (jobId: number, format: ParserFormat) => {
