@@ -1,10 +1,6 @@
-import { is, configPath, readFile, exists, getDirs } from '../support/utils'
+import { configPath, readFile, exists, getDirs } from '../support/utils'
 import { downloadRepo } from '../support/download'
 import removePath from 'nimraf'
-
-export interface InstallResult {
-  name: string
-}
 
 export interface Plugin {
   path: string,
@@ -51,33 +47,12 @@ export const removeExtraneous = async () => {
   return tasks.every(t => !!t)
 }
 
-const downloadPlugin = async (plugin: Plugin) => {
+const downloadPlugin = async (plugin: Plugin): Promise<Plugin> => {
   await downloadRepo(plugin.user, plugin.repo, plugin.path)
   return { ...plugin, installed: true }
 }
 
-type InstallPlugin = (plugin: Plugin) => Promise<InstallResult>
-type InstallPlugins = (plugins: Plugin[]) => Promise<InstallResult[]>
-type Install = InstallPlugin & InstallPlugins
+const removePlugin = async (plugin: Plugin): Promise<boolean> => removePath(plugin.path)
 
-const install: Install = (plugins: Plugin | Plugin[]) => is.array(plugins)
-  ? Promise.all(plugins.map(downloadPlugin))
-  : downloadPlugin(plugins)
-
-//function install(plugins: Plugin): Promise<InstallResult | InstallResult[]>
-//function install(plugins: Plugin[]): Promise<InstallResult | InstallResult[]>
-//function install(plugins: any): Promise<InstallResult | InstallResult[]> {
-  //return Array.isArray(plugins)
-    //? Promise.all(plugins.map(download))
-    //: download(plugins)
-//}
-
-function remove(plugins: Plugin): Promise<boolean | boolean[]>
-function remove(plugins: Plugin[]): Promise<boolean | boolean[]>
-function remove(plugins: any): Promise<boolean | boolean[]> {
-  return is.array(plugins)
-    ? Promise.all(plugins.map((p: Plugin) => p.path).map(async (path: string) => removePath(path)))
-    : removePath(plugins.path)
-}
-
-export { install, remove }
+export const install = (plugins: Plugin[]) => Promise.all(plugins.map(downloadPlugin))
+export const remove = (plugins: Plugin[]) => Promise.all(plugins.map(removePlugin))
