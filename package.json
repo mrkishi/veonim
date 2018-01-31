@@ -102,6 +102,7 @@
     "huu": "2.0.1",
     "hyperapp": "0.10.1",
     "msgpack-lite": "0.1.26",
+    "nimraf": "1.1.0",
     "node-watch": "0.5.5",
     "picostyle": "0.1.4",
     "vscode-jsonrpc": "3.5.0",
