@@ -127,7 +127,8 @@ export const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
 }).join('')
 
 export const { readdir, stat } = promisifyApi(fs)
-export const exists = (path: string) => new Promise(fin => fs.access(path, e => fin(!e)))
+export const exists = (path: string): Promise<boolean> =>
+  new Promise(fin => fs.access(path, e => fin(!e)))
 
 export const readFile = (path: string, encoding = 'utf8'): Promise<string | Buffer> =>
   new Promise((y, n) => fs.readFile(path, encoding, (err, res) => err ? n(err) : y(res)))
@@ -149,6 +150,9 @@ export const getDirFiles = async (path: string) => {
     .map(({ name, path, stats }) => ({ name, path, dir: stats.isDirectory(), file: stats.isFile() }))
     .filter(m => m.dir || m.file)
 }
+
+export const getDirs = async (path: string) => (await getDirFiles(path)).filter(m => m.dir)
+export const getFiles = async (path: string) => (await getDirFiles(path)).filter(m => m.file)
 
 export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
   let delayExpired = false
