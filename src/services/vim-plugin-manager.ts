@@ -1,26 +1,39 @@
-import { read as readPluginsFromVimrc, install, remove, removeExtraneous, Plugin } from '@veonim/plugin-manager'
+import { Dependency, DependencyKind, discoverDependencies, install, remove, removeExtraneous } from '../support/dependency-manager'
 import { NotifyKind, notify } from '../ui/notifications'
 import { watchConfig } from '../config/config-reader'
 import { action, cmd } from '../core/neovim'
 
 // TODO: support other plugin host sites besides github.com?
-// TODO: move out of components (no UI) -> services folder?
+// TODO: show install progress somehow
+const installDependencies = async (
+  dependencies: Dependency[],
+  kind: DependencyKind,
+  { reinstall = false } = {},
+) => {
+  if (!dependencies.length) return removeExtraneous(kind)
+  notify(`Found ${dependencies.length} Vim plugins. Installing...`, NotifyKind.System)
 
-const installPlugins = async (plugins: Plugin[], { reinstall = false } = {}) => {
-  if (!plugins.length) return removeExtraneous()
-  notify(`Found ${plugins.length} Vim plugins. Installing...`, NotifyKind.System)
+  if (reinstall) await remove(dependencies)
+  await install(dependencies)
+  notify(`Installed ${dependencies.length} Vim plugins!`, NotifyKind.Success)
 
-  if (reinstall) await remove(plugins)
-  // TODO: show install progress somehow
-  await Promise.all(plugins.map(p => install(p)))
-  notify(`Installed ${plugins.length} Vim plugins!`, NotifyKind.Success)
-
-  removeExtraneous()
+  removeExtraneous(kind)
   cmd(`packloadall!`)
 }
 
-const refreshPlugins = () => readPluginsFromVimrc().then(async plugins => installPlugins(plugins.filter(p => !p.installed)))
-action('reinstall-plugins', () => readPluginsFromVimrc().then(plugins => installPlugins(plugins, { reinstall: true })))
+const refreshDependencies = async (kind: DependencyKind) => {
+  const dependencies = await discoverDependencies(kind)
+  const notInstalled = dependencies.filter(p => !p.installed)
+  installDependencies(notInstalled, kind, { reinstall: true })
+}
 
-refreshPlugins()
-watchConfig('nvim/init.vim', () => refreshPlugins())
+const refreshAllDependencies = () => {
+  refreshDependencies(DependencyKind.Plugin)
+  refreshDependencies(DependencyKind.Extension)
+}
+
+action('reinstall-plugins', () => refreshDependencies(DependencyKind.Plugin))
+action('reinstall-extensions', () => refreshDependencies(DependencyKind.Extension))
+
+refreshAllDependencies()
+watchConfig('nvim/init.vim', () => refreshAllDependencies())

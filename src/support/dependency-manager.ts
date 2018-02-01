@@ -47,7 +47,7 @@ const parseDependencies = async (kind: DependencyKind) => {
     .map(splitUserRepo)
 }
 
-const discoverDependencies = async (kind: DependencyKind): Promise<Dependency[]> => {
+export const discoverDependencies = async (kind: DependencyKind): Promise<Dependency[]> => {
   const deps = (await parseDependencies(kind)).map(m => ({
     ...m,
     installed: false,
