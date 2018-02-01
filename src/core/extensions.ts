@@ -35,7 +35,7 @@ interface LanguageActivationResult {
 
 // TODO: remove in build?
 const DEV_MODE = !!+process.env.VEONIM_DEV!
-const EXT_PATH = path.join(configPath, 'veonim', 'extensions')
+export const EXT_PATH = path.join(configPath, 'veonim', 'extensions')
 const extensions = new Map<string, Extension>()
 const languageExtensions = new Map<string, string>()
 

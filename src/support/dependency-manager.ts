@@ -1,5 +1,6 @@
 import { configPath, readFile, exists, getDirs } from '../support/utils'
 import { downloadRepo } from '../support/download'
+import { EXT_PATH } from '../core/extensions'
 import removePath from 'nimraf'
 import { join } from 'path'
 
@@ -17,7 +18,7 @@ export enum DependencyKind {
 
 const dependencyLocations = new Map<DependencyKind, string>([
   [ DependencyKind.Plugin, `${configPath}/nvim/pack` ],
-  [ DependencyKind.Extension, `${configPath}/veonim/extensions` ],
+  [ DependencyKind.Extension, EXT_PATH ],
 ])
 
 const dependencyMatchers = new Map<DependencyKind, { filter: RegExp, matcher: RegExp }>([
@@ -58,9 +59,11 @@ export const discoverDependencies = async (kind: DependencyKind): Promise<Depend
 }
 
 export const removeExtraneous = async (kind: DependencyKind) => {
+  const location = dependencyLocations.get(kind)!
+
   const [ dependencies, dirs ] = await Promise.all([
     discoverDependencies(kind),
-    getDirs(`${configPath}/nvim/pack`)
+    getDirs(location),
   ])
 
   const installedDependencies = new Set(dependencies.map(p => p.repo))
