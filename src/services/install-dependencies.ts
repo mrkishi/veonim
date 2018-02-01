@@ -9,7 +9,7 @@ const dependencyMessages = new Map<DependencyKind, string>([
   [ DependencyKind.Extension, 'Veonim extensions' ],
 ])
 
-const dependencyKindAsMessage = (kind: DependencyKind) => dependencyMessages.get(kind)!
+const depAsString = (kind: DependencyKind) => dependencyMessages.get(kind)!
 
 // TODO: support other plugin host sites besides github.com?
 // TODO: show install progress somehow
@@ -19,11 +19,11 @@ const installDependencies = async (
   { reinstall = false } = {},
 ) => {
   if (!dependencies.length) return removeExtraneous(kind)
-  notify(`Found ${dependencies.length} ${dependencyKindAsMessage}. Installing...`, NotifyKind.System)
+  notify(`Found ${dependencies.length} ${depAsString(kind)}. Installing...`, NotifyKind.System)
 
   if (reinstall) await remove(dependencies)
   await install(dependencies)
-  notify(`Installed ${dependencies.length} ${dependencyKindAsMessage}!`, NotifyKind.Success)
+  notify(`Installed ${dependencies.length} ${depAsString(kind)}!`, NotifyKind.Success)
 
   removeExtraneous(kind)
   if (kind === DependencyKind.Plugin) cmd(`packloadall!`)

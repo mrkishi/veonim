@@ -1,9 +1,9 @@
 import { createWriteStream } from 'fs'
 import { createGunzip } from 'zlib'
-import * as http from 'http'
+import * as https from 'https'
 
 const request = (url: string): Promise<NodeJS.ReadableStream> =>
-  new Promise(fin => http.get(url, fin))
+  new Promise(fin => https.get(url, fin))
 
 export const download = (url: string, destination: string) => new Promise(async done => {
   const downloadStream = await request(url)
@@ -13,7 +13,7 @@ export const download = (url: string, destination: string) => new Promise(async 
   downloadStream
     .pipe(unzipper)
     .pipe(writeStream)
-    .on('close', () => done({ url, destination }))
+    .on('finish', () => done({ url, destination }))
 })
 
 export const downloadRepo = (user: string, repo: string, destination: string) => 
