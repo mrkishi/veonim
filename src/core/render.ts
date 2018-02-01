@@ -101,7 +101,7 @@ const r: Events = new Proxy(api, {
 const colors: Colors = {
   fg: '#dddddd',
   bg: '#2d2d2d',
-  sp: '#ff0000'
+  sp: '#ef5188'
 }
 
 const nextAttrs: NextAttrs = {

@@ -252,7 +252,7 @@ export const current: NeovimState = new Proxy({
   column: 0,
   fg: '#ccc',
   bg: '#222',
-  sp: '#f00',
+  sp: '#ef5188',
 }, {
   set: (target, key, value) => {
     const prevValue = Reflect.get(target, key)
