@@ -1,8 +1,8 @@
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import NeovimUtils, { CmdGroup, FunctionGroup } from '../support/neovim-utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
+import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
 import CreateTransport from '../messaging/transport'
-import Neovim, { vimpath } from '@veonim/neovim'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
@@ -146,7 +146,14 @@ const spawnVimInstance = () => Neovim([
   '--cmd', `com! -nargs=* VeonimExt 1`,
   '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
   '--embed'
-], { cwd: homedir() })
+], {
+  cwd: homedir(),
+  env: {
+    ...process.env,
+    '$VIM': vimpath,
+    '$VIMRUNTIME': vimruntime,
+  }
+})
 
 const createNewVimInstance = (): number => {
   const proc = spawnVimInstance()

@@ -1,10 +1,10 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
+import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
 import { prefixWith, onFnCall, is } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { QuickFixList } from '../core/vim-functions'
 import CreateTransport from '../messaging/transport'
 import NeovimUtils from '../support/neovim-utils'
-import Neovim, { vimpath } from '@veonim/neovim'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 
@@ -27,7 +27,13 @@ const proc = Neovim([
   '--cmd', `com! -nargs=+ -range Veonim 1`,
   '--cmd', 'com! -nargs=* Plug 1',
   '--embed',
-])
+], {
+  env: {
+    ...process.env,
+    '$VIM': vimpath,
+    '$VIMRUNTIME': vimruntime,
+  }
+})
 
 proc.on('error', e => console.error('vim error-reader err', e))
 proc.stdout.on('error', e => console.error('vim error-reader stdout err', e))

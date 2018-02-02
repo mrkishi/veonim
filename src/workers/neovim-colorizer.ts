@@ -1,8 +1,8 @@
 import { prefixWith, onFnCall, pascalCase } from '../support/utils'
+import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
 import WorkerClient from '../messaging/worker-client'
 import CreateTransport from '../messaging/transport'
 import NeovimUtils from '../support/neovim-utils'
-import Neovim, { vimpath } from '@veonim/neovim'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 import { resolve } from 'path'
@@ -43,7 +43,13 @@ const proc = Neovim([
   '--cmd', `com! -nargs=+ -range Veonim 1`,
   '--cmd', 'com! -nargs=* Plug 1',
   '--embed',
-])
+], {
+  env: {
+    ...process.env,
+    '$VIM': vimpath,
+    '$VIMRUNTIME': vimruntime,
+  }
+})
 
 proc.on('error', e => console.error('vim colorizer err', e))
 proc.stdout.on('error', e => console.error('vim colorizer stdout err', e))
