@@ -4,9 +4,9 @@ import WorkerClient from '../messaging/worker-client'
 import { QuickFixList } from '../core/vim-functions'
 import CreateTransport from '../messaging/transport'
 import NeovimUtils from '../support/neovim-utils'
+import Neovim, { vimpath } from '@veonim/neovim'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
-import Neovim from '@veonim/neovim'
 
 const { on } = WorkerClient()
 const prefix = { core: prefixWith(Prefixes.Core) }
@@ -20,6 +20,7 @@ const vimOptions = {
 
 const { encoder, decoder } = CreateTransport()
 const proc = Neovim([
+  '--cmd', `let $VIM = '${vimpath}'`,
   '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,
   '--cmd', `exe ":fun! Veonim(...)\\n endfun"`,
   '--cmd', `exe ":fun! VK(...)\\n endfun"`,
