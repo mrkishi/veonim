@@ -37,8 +37,10 @@ const splitUserRepo = (text: string) => {
   return { user, repo }
 }
 
+const vimrcLocation = () => `${configPath}/nvim/init.vim`
+
 const parseDependencies = async (kind: DependencyKind) => {
-  const vimrcLines = await readFile(`${configPath}/nvim/init.vim`)
+  const vimrcLines = await readFile(vimrcLocation())
 
   return vimrcLines
     .toString()
@@ -49,6 +51,9 @@ const parseDependencies = async (kind: DependencyKind) => {
 }
 
 export const discoverDependencies = async (kind: DependencyKind): Promise<Dependency[]> => {
+  const vimrcExists = await exists(vimrcLocation())
+  if (!vimrcExists) return []
+
   const deps = (await parseDependencies(kind)).map(m => ({
     ...m,
     installed: false,
