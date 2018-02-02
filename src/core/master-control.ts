@@ -2,11 +2,11 @@ import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import NeovimUtils, { CmdGroup, FunctionGroup } from '../support/neovim-utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
 import CreateTransport from '../messaging/transport'
+import Neovim, { vimruntime } from '@veonim/neovim'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 import { Color } from '../core/neovim'
-import Neovim from '@veonim/neovim'
 import { resolve } from 'path'
 import { homedir } from 'os'
 
@@ -52,6 +52,7 @@ const startup = FunctionGroup()
 const runtimeDir = resolve(__dirname, '..', 'runtime')
 
 const startupCmds = CmdGroup`
+  let $VIMRUNTIME = '${vimruntime}'
   let &runtimepath .= ',${runtimeDir}'
   let $PATH .= ':${runtimeDir}/${process.platform}'
   let g:veonim = 1
