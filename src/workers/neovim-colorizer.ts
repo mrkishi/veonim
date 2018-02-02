@@ -36,6 +36,7 @@ const runtimeDir = resolve(__dirname, '..', 'runtime')
 const { encoder, decoder } = CreateTransport()
 const proc = Neovim([
   '--cmd', `let $VIM = '${vimpath}'`,
+  '--cmd', `let $VIMRUNTIME = '${vimruntime}'`,
   '--cmd', `let &runtimepath .= ',${runtimeDir}'`,
   '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,
   '--cmd', `exe ":fun! Veonim(...)\\n endfun"`,
@@ -43,13 +44,7 @@ const proc = Neovim([
   '--cmd', `com! -nargs=+ -range Veonim 1`,
   '--cmd', 'com! -nargs=* Plug 1',
   '--embed',
-], {
-  env: {
-    ...process.env,
-    '$VIM': vimpath,
-    '$VIMRUNTIME': vimruntime,
-  }
-})
+])
 
 proc.on('error', e => console.error('vim colorizer err', e))
 proc.stdout.on('error', e => console.error('vim colorizer stdout err', e))

@@ -123,7 +123,7 @@ export const Plugin = {
 
 const rowLastPad = {
   ':last-child': {
-    paddingBottom: '9px',
+    paddingBottom: '4px',
   },
 }
 

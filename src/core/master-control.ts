@@ -44,7 +44,7 @@ const clientSize = {
   height: 0,
 }
 
-let onExitFn: ExitFn = function () {}
+let onExitFn: ExitFn = () => {}
 const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
 const { encoder, decoder } = CreateTransport()
@@ -53,6 +53,7 @@ const runtimeDir = resolve(__dirname, '..', 'runtime')
 
 const startupCmds = CmdGroup`
   let $VIM = '${vimpath}'
+  let $VIMRUNTIME = '${vimruntime}'
   let &runtimepath .= ',${runtimeDir}'
   let $PATH .= ':${runtimeDir}/${process.platform}'
   let g:veonim = 1
@@ -146,14 +147,7 @@ const spawnVimInstance = () => Neovim([
   '--cmd', `com! -nargs=* VeonimExt 1`,
   '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
   '--embed'
-], {
-  cwd: homedir(),
-  env: {
-    ...process.env,
-    '$VIM': vimpath,
-    '$VIMRUNTIME': vimruntime,
-  }
-})
+], { cwd: homedir() })
 
 const createNewVimInstance = (): number => {
   const proc = spawnVimInstance()
