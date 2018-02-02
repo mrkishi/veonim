@@ -50,6 +50,13 @@ const parseDependencies = async (kind: DependencyKind) => {
     .map(splitUserRepo)
 }
 
+const getPath = (kind: DependencyKind, dir: string) => {
+  const base = dependencyLocations.get(kind)!
+  if (kind === DependencyKind.Plugin) return join(base, dir, 'start')
+  if (kind === DependencyKind.Extension) return base
+  else return join(base, dir)
+}
+
 export const discoverDependencies = async (kind: DependencyKind): Promise<Dependency[]> => {
   const vimrcExists = await exists(vimrcLocation())
   if (!vimrcExists) return []
@@ -57,7 +64,7 @@ export const discoverDependencies = async (kind: DependencyKind): Promise<Depend
   const deps = (await parseDependencies(kind)).map(m => ({
     ...m,
     installed: false,
-    path: join(dependencyLocations.get(kind)!, m.repo),
+    path: getPath(kind, m.repo),
   }))
 
   return addInstallStatus(deps)

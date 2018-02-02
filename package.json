@@ -104,6 +104,8 @@
     "nimraf": "1.1.0",
     "node-watch": "0.5.5",
     "picostyle": "0.1.4",
+    "request": "2.83.0",
+    "unzipper": "0.8.11",
     "vscode-jsonrpc": "3.5.0",
     "vscode-languageserver-types": "3.5.0"
   },

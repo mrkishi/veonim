@@ -1,20 +1,12 @@
-import { createWriteStream } from 'fs'
-import { createGunzip } from 'zlib'
-import * as https from 'https'
+const unzipper = require('unzipper')
+const request = require('request')
 
-const request = (url: string): Promise<NodeJS.ReadableStream> =>
-  new Promise(fin => https.get(url, fin))
-
-export const download = (url: string, destination: string) => new Promise(async done => {
-  const downloadStream = await request(url)
-  const writeStream = createWriteStream(destination)
-  const unzipper = createGunzip()
-
-  downloadStream
-    .pipe(unzipper)
-    .pipe(writeStream)
-    .on('finish', () => done({ url, destination }))
+export const download = (url: string, path: string) => new Promise(done => {
+  request(url)
+    .pipe(unzipper.Extract({ path }))
+    .on('close', () => done({ url, path, success: true }))
+    .on('error', (error: any) => done({ url, path, success: false, error }))
 })
 
 export const downloadRepo = (user: string, repo: string, destination: string) => 
-  download(`https://github.com/${user}/${repo}/tarball/master`, destination)
+  download(`https://github.com/${user}/${repo}/archive/master.zip`, destination)
