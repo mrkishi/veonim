@@ -1,3 +1,8 @@
+export enum BufferVar {
+  TermAttached = 'veonim_term_attached',
+  TermFormat = 'veonim_term_format',
+}
+
 export interface VimBuffer {
   name: string,
   cur: boolean,

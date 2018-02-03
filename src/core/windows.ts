@@ -4,6 +4,7 @@ import * as canvasContainer from '../core/canvas-container'
 import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
+import { BufferVar } from '../core/vim-functions'
 import * as grid from '../core/grid'
 
 export interface VimWindow {
@@ -16,6 +17,8 @@ export interface VimWindow {
   active: boolean,
   terminal: boolean,
   dir?: string,
+  termAttached: boolean,
+  termFormat: string,
 }
 
 export interface RenderWindow extends VimWindow {
@@ -37,6 +40,8 @@ export interface WindowApi {
   name?: string,
   dir?: string,
   terminal: boolean,
+  termAttached: boolean,
+  termFormat: string,
 }
 
 export interface Window {
@@ -124,6 +129,10 @@ const createWindowEl = () => {
     marginRight: '1px'
   })
 
+  const readerType = makel({
+    color: 'var(--foreground-30)',
+  })
+
   const modifiedBubble = makel({
     background: 'var(--foreground-50)',
     display: 'none',
@@ -159,6 +168,7 @@ const createWindowEl = () => {
 
   const canvas = createWindow(canvasBox)
 
+  nameplate.appendChild(readerType)
   nameplate.appendChild(nameplateDir)
   nameplate.appendChild(nameplateName)
   nameplateBox.appendChild(terminalIcon)
@@ -176,6 +186,8 @@ const createWindowEl = () => {
     set name(name: string) { nameplateName.innerText = name || '[No Name]' },
     set dir(dir: string) { nameplateDir.innerText =  dir ? `${dir}/` : '' },
     set terminal(yes: boolean) { terminalIcon.style.display = yes ? 'flex' : 'none' },
+    set termAttached(yes: boolean) { readerType.style.display = yes ? 'block' : 'none' },
+    set termFormat(name: string) { readerType.innerText = name },
   }
 
   return { element, canvas, nameplateBox, nameplate, canvasBox, api }
@@ -202,6 +214,8 @@ const getWindows = async (): Promise<VimWindow[]> => {
       name: (simplifyPath(await buffer.name, current.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
       modified: await buffer.getOption('modified'),
       terminal: (await buffer.getOption('buftype')) === 'terminal',
+      termAttached: await buffer.getVar(BufferVar.TermAttached).catch(() => false),
+      termFormat: await buffer.getVar(BufferVar.TermFormat).catch(() => ''),
     }
   }))
 }
@@ -284,7 +298,7 @@ const availableSpace = (verticalSplits: number, horizontalSplits: number) => {
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
-  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name && w.terminal === lw.terminal && w.dir === lw.dir)
+  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name && w.terminal === lw.terminal && w.dir === lw.dir && w.termAttached === lw.termAttached && w.termFormat === lw.termFormat)
 })
 
 const getSplits = (wins: VimWindow[]) => {
@@ -423,6 +437,8 @@ export const render = async () => {
         active: vw.active,
         modified: vw.modified,
         terminal: vw.terminal,
+        termAttached: vw.termAttached,
+        termFormat: vw.termFormat,
       })
     })
 

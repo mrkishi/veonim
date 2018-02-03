@@ -1,6 +1,7 @@
 import { action, systemAction, call, cmd, getCurrent } from '../core/neovim'
 import userPicksAnOption, { MenuOption } from '../components/generic-menu'
 import { is, writeFile, debounce } from '../support/utils'
+import { BufferVar } from '../core/vim-functions'
 import { sessions } from '../core/sessions'
 import { addQF } from '../ai/diagnostics'
 import Worker from '../messaging/worker'
@@ -37,6 +38,9 @@ const unregisterTerminal = (jobId: number) => {
   const sessionTerminals = terminals.get(sessions.current)
   if (sessionTerminals) return sessionTerminals.delete(jobId)
 }
+
+const getFormatValue = (format: ParserFormat) =>
+  (parserFormatOptions.find(m => m.key === format) || {} as any).value
 
 const getTerminalFormat = (jobId: number) => {
   const sessionTerminals = terminals.get(sessions.current)
@@ -104,6 +108,8 @@ action('TermAttach', async (providedFormat?: ParserFormat) => {
 
   if (!is.number(format)) return
 
+  buffer.setVar(BufferVar.TermAttached, true)
+  buffer.setVar(BufferVar.TermFormat, getFormatValue(format))
   cmd(`let g:vn_jobs_connected[${jobId}] = 1`)
   registerTerminal(jobId, format)
 })
@@ -113,6 +119,8 @@ action('TermDetach', async () => {
   const jobId = await buffer.getVar('terminal_job_id')
   if (!is.number(jobId)) return
 
+  buffer.setVar(BufferVar.TermAttached, false)
+  buffer.setVar(BufferVar.TermFormat, undefined)
   cmd(`call remove(g:vn_jobs_connected, ${jobId})`)
   unregisterTerminal(jobId)
 })
