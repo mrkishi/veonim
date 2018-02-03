@@ -8,6 +8,7 @@ export interface Dependency {
   path: string,
   user: string,
   repo: string,
+  installPath: string,
   installed: boolean,
 }
 
@@ -30,7 +31,7 @@ const getFilter = (kind: DependencyKind): RegExp => dependencyMatchers.get(kind)
 const getMatcher = (kind: DependencyKind): RegExp => dependencyMatchers.get(kind)!.matcher
 
 const addInstallStatus = async (deps: Dependency[]): Promise<Dependency[]> =>
-  Promise.all(deps.map(async m => ({ ...m, installed: await exists(m.path) })))
+  Promise.all(deps.map(async m => ({ ...m, installed: await exists(m.installPath) })))
 
 const splitUserRepo = (text: string) => {
   const [ , user = '', repo = '' ] = (text.match(/^([^/]+)\/(.*)/) || [])
@@ -57,6 +58,13 @@ const getPath = (kind: DependencyKind, dir: string) => {
   else return join(base, dir)
 }
 
+const getInstallPath = (kind: DependencyKind, dir: string) => {
+  const base = dependencyLocations.get(kind)!
+  if (kind === DependencyKind.Plugin) return join(base, dir, 'start')
+  if (kind === DependencyKind.Extension) return join(base, `${dir}-master`)
+  else return join(base, dir)
+}
+
 export const discoverDependencies = async (kind: DependencyKind): Promise<Dependency[]> => {
   const vimrcExists = await exists(vimrcLocation())
   if (!vimrcExists) return []
@@ -64,6 +72,7 @@ export const discoverDependencies = async (kind: DependencyKind): Promise<Depend
   const deps = (await parseDependencies(kind)).map(m => ({
     ...m,
     installed: false,
+    installPath: getInstallPath(kind, m.repo),
     path: getPath(kind, m.repo),
   }))
 
