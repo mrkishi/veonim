@@ -130,7 +130,16 @@ const createWindowEl = () => {
   })
 
   const readerType = makel({
+    color: 'var(--foreground-50)',
+    fontSize: `${canvasContainer.font.size - 4}px`,
+  })
+
+  const readerIcon = makel({
     color: 'var(--foreground-30)',
+    display: 'none',
+    marginLeft: '15px',
+    marginRight: '4px',
+    alignItems: 'center',
   })
 
   const modifiedBubble = makel({
@@ -144,11 +153,10 @@ const createWindowEl = () => {
   })
 
   const terminalIcon = makel({
-    background: 'var(--background)',
     color: 'var(--foreground-30)',
     display: 'none',
     marginRight: '8px',
-    alignItems: 'center,'
+    alignItems: 'center',
   })
 
   terminalIcon.innerHTML = `<svg
@@ -166,14 +174,31 @@ const createWindowEl = () => {
     <line x1="12" y1="19" x2="20" y2="19"></line>
   </svg>`
 
+  readerIcon.innerHTML = `<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="${canvasContainer.font.size - 4}"
+    height="${canvasContainer.font.size - 4}"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+  `
+
   const canvas = createWindow(canvasBox)
 
-  nameplate.appendChild(readerType)
   nameplate.appendChild(nameplateDir)
   nameplate.appendChild(nameplateName)
   nameplateBox.appendChild(terminalIcon)
   nameplateBox.appendChild(nameplate)
   nameplateBox.appendChild(modifiedBubble)
+  nameplateBox.appendChild(readerIcon)
+  nameplateBox.appendChild(readerType)
   titleBar.appendChild(nameplateBox)
   element.appendChild(titleBar)
   element.appendChild(canvasBox)
@@ -186,8 +211,11 @@ const createWindowEl = () => {
     set name(name: string) { nameplateName.innerText = name || '[No Name]' },
     set dir(dir: string) { nameplateDir.innerText =  dir ? `${dir}/` : '' },
     set terminal(yes: boolean) { terminalIcon.style.display = yes ? 'flex' : 'none' },
-    set termAttached(yes: boolean) { readerType.style.display = yes ? 'block' : 'none' },
     set termFormat(name: string) { readerType.innerText = name },
+    set termAttached(yes: boolean) {
+      readerType.style.display = yes ? 'block' : 'none'
+      readerIcon.style.display = yes ? 'flex' : 'none'
+    },
   }
 
   return { element, canvas, nameplateBox, nameplate, canvasBox, api }
