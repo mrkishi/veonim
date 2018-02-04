@@ -82,7 +82,12 @@ const box = (StyleObject: Function, { id, message, count }: Notification, icon: 
     e.remove()
   }
 }, [
-  ,h('div', { style: { display: 'flex' } }, [
+  ,h('div', {
+    style: {
+      display: 'flex',
+      wordBreak: 'break-all',
+    }
+  }, [
     ,IconBox({}, [ Icon(icon) ])
     ,h('span', message)
   ])

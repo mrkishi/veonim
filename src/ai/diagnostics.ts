@@ -97,6 +97,8 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
 }
 
 export const addQF = (items: Map<string, Diagnostic[]>) => {
+  // TODO: reset cached diagnostics to a clean state. assume incoming diagnostics
+  // are the source of truth (for the given source designator)
   items.forEach((diags, loc) => updateDiagnostics(loc, diags))
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   updateUI()
