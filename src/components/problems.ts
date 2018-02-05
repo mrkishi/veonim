@@ -111,7 +111,7 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
     style: {
       display: 'flex',
       flexFlow: 'column',
-      overflowY: 'hidden',
+      overflow: 'hidden',
     }
   }, $.problems.map(({ file, dir, items }, pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
@@ -135,10 +135,13 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
     }, [
       ,IconBox({}, getSeverityIcon(severity))
 
-      ,h('span', message)
-      ,h('span', {
-        style: { marginLeft: '10px' }
-      }, `(${range.start.line + 1}, ${range.start.character + 1})`)
+      ,h('div', {
+        style: {
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word',
+          whiteSpace: 'normal',
+        }
+      }, `${message}  (${range.start.line + 1}, ${range.start.character + 1})`)
     ])))
 
   ])))
