@@ -119,7 +119,6 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
       }, m),
 
       special: m => h('span.highlight', {
-        //style: pos === $.ix && itemPos === $.subix && {
         style: {
           color: '#aaa',
           background: 'rgba(255, 255, 255, 0.1)',

@@ -77,9 +77,13 @@ const openResult = (path: string, line: number) => {
   feedkeys(`${line}G`)
 }
 
-const highlightPattern = (text: string, pattern: string, { normal, special }: { normal: TextTransformer, special: TextTransformer }) => {
+const highlightPattern = (text: string, pattern: string, { normal, special }: {
+  normal: TextTransformer,
+  special: TextTransformer,
+}) => {
   const stext = special(pattern)
   return text
+    .trimLeft()
     .split(pattern)
     .reduce((grp, part, ix) => {
       if (!part && ix) return (grp.push(stext), grp)
@@ -145,9 +149,13 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
     ,pos === $.ix && Row.group({}, items.map((f, itemPos) => Row.normal({
       activeWhen: pos === $.ix && itemPos === $.subix
     }, highlightPattern(f.text, $.val, {
-      normal: m => h('span', m),
+
+      normal: m => h('span', {
+        style: { whiteSpace: 'pre' },
+      }, m),
+
       special: m => h('span.highlight', {
-        style: pos === $.ix && itemPos === $.subix && {
+        style: {
           color: '#aaa',
           background: 'rgba(255, 255, 255, 0.1)',
         }
