@@ -84,7 +84,7 @@ const highlightPattern = (text: string, pattern: string, { normal, special }: {
     }, [] as string[])
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
+const view = ($: State, actions: ActionCaller) => Plugin.right('references', $.vis, [
 
   ,Input({
     ...actions,
