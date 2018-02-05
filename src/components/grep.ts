@@ -74,7 +74,7 @@ const selectResult = (results: Result[], ix: number, subix: number) => {
 
 const openResult = (path: string, line: number) => {
   cmd(`e ${path}`)
-  feedkeys(`${line}Gzz`)
+  feedkeys(`${line}G`)
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: { normal: TextTransformer, special: TextTransformer }) => {
