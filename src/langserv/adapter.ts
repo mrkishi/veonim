@@ -25,7 +25,7 @@ interface VimLocation {
   position: VimPosition,
 }
 
-interface VimQFItem {
+export interface VimQFItem {
   desc: string,
   column: number,
   file: string,
