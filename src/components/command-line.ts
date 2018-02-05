@@ -49,9 +49,11 @@ const a: Actions<State> = {}
 a.show = () => ({ vis: true })
 a.hide = () => ({ vis: false, ix: -1, val: '', options: [] })
 a.selectOption = (_s, _a, ix: number) => ({ ix })
-a.updateValue = (_s, _a, val: string) => ({ val })
 a.updateOptions = (_s, _a, options) => ({ options, ix: -1 })
 a.setKind = (_s, _a, kind: CommandType) => ({ kind })
+a.updateValue = (s, _a, val: string) => {
+  if (s.val !== val) return { val }
+}
 
 const ui = app({ state, view, actions: a }, false)
 
@@ -66,7 +68,7 @@ sub('cmd.show', () => ui.show())
 sub('cmd.update', ({ cmd, kind, position }: CommandUpdate) => {
   ui.show()
   ui.setKind(kind)
-  cmd && ui.updateValue(cmd)
+  ui.updateValue(cmd)
   setTimeout(() => el && el.setSelectionRange(position, position), 0)
   if (!cmd) ui.updateOptions([])
 })
