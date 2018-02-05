@@ -90,7 +90,7 @@ const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line, column } = toVimPosition(range.start)
   const cwd = uriAsCwd(uri)
   const file = uriAsFile(uri)
-  const desc = currentBuffer.contents[line]
+  const desc = currentBuffer.contents[line - 1]
 
   return { cwd, file, line, column, desc }
 }
