@@ -4,6 +4,7 @@ const { h: hs, app: makeApp } = require('hyperapp')
 import { merge, proxyFn } from '../support/utils'
 import * as viminput from '../core/input'
 const picostyle = require('picostyle')
+import { specs as titleSpecs } from '../core/title'
 import huu from 'huu'
 
 export interface ActionCaller { [index: string]: (data?: any) => void }
@@ -18,7 +19,8 @@ merge(hostElement.style, {
   width: '100vw',
   zIndex: 420, // vape naysh yall
   // TODO: 24px for statusline. do it better
-  height: 'calc(100vh - 24px)',
+  // TODO: and title. bruv do i even know css?
+  height: `calc(100vh - 24px - ${titleSpecs.height}px)`,
 })
 
 export const style = picostyle(hs)

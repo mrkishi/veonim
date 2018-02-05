@@ -84,6 +84,10 @@ const icons = {
 
 const getSeverityIcon = (severity = 1) => Reflect.get(icons, severity)
 
+const position: { container: ClientRect } = {
+  container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
+}
+
 const view = ($: State, actions: ActionCaller) => h('#problems', {
   style: {
     background: 'var(--background-45)',
@@ -132,6 +136,12 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
 
     ,pos === $.ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.desc({
       activeWhen: itemPos === $.subix,
+      onupdate: (e: HTMLElement) => {
+        if (itemPos !== $.subix) return
+        const { top, bottom } = e.getBoundingClientRect()
+        if (top < position.container.top) return e.scrollIntoView(true)
+        if (bottom > position.container.bottom) return e.scrollIntoView(false)
+      },
     }, [
       ,IconBox({}, getSeverityIcon(severity))
 
