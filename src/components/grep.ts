@@ -4,7 +4,7 @@ import { Plugin, Row, Badge } from '../styles/common'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
 
-type TextTransformer = (text: string) => string
+type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, SearchResult[]]
 
 enum FocusedElement {
@@ -85,10 +85,11 @@ const highlightPattern = (text: string, pattern: string, { normal, special }: {
   return text
     .trimLeft()
     .split(pattern)
-    .reduce((grp, part, ix) => {
+    .reduce((grp, part, ix, arr) => {
       if (!part && ix) return (grp.push(stext), grp)
       if (!part) return grp
-      ix ? grp.push(stext, normal(part)) : grp.push(normal(part))
+      const last = ix === arr.length - 1
+      ix ? grp.push(stext, normal(part, last)) : grp.push(normal(part, last))
       return grp
     }, [] as string[])
 }
@@ -150,16 +151,20 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
       activeWhen: pos === $.ix && itemPos === $.subix
     }, highlightPattern(f.text, $.val, {
 
-      normal: m => h('span', {
-        style: { whiteSpace: 'pre' },
-      }, m),
+      normal: (text, last) => h('span', {
+        style: {
+          whiteSpace: 'pre',
+          textOverflow: last ? 'ellipsis' : undefined,
+          overflow: last ? 'inherit' : undefined,
+        },
+      }, text),
 
-      special: m => h('span.highlight', {
+      special: text => h('span.highlight', {
         style: {
           color: '#aaa',
           background: 'rgba(255, 255, 255, 0.1)',
         }
-      }, m),
+      }, text),
     }))))
 
   ])))
