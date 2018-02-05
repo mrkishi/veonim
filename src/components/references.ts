@@ -14,7 +14,8 @@ export interface SearchResult {
 
 interface State {
   val: string,
-  results: Result[],
+  referencedSymbol: string,
+  references: Result[],
   cache: Result[],
   vis: boolean,
   ix: number,
@@ -28,7 +29,8 @@ const els = new Map<number, HTMLElement>()
 
 const state: State = {
   val: '',
-  results: [],
+  referencedSymbol: '',
+  references: [],
   cache: [],
   vis: false,
   ix: 0,
@@ -54,9 +56,9 @@ const scrollIntoView = (next: number) => setTimeout(() => {
   else if (top < containerTop) elref.scrollTop += top - containerTop
 }, 1)
 
-const selectResult = (results: Result[], ix: number, subix: number) => {
+const selectResult = (references: Result[], ix: number, subix: number) => {
   if (subix < 0) return
-  const [ path, items ] = results[ix]
+  const [ path, items ] = references[ix]
   const { line } = items[subix]
   openResult(path, line)
 }
@@ -66,9 +68,13 @@ const openResult = (path: string, line: number) => {
   feedkeys(`${line}G`)
 }
 
-const highlightPattern = (text: string, pattern: string, { normal, special }: { normal: TextTransformer, special: TextTransformer }) => {
+const highlightPattern = (text: string, pattern: string, { normal, special }: {
+  normal: TextTransformer,
+  special: TextTransformer,
+}) => {
   const stext = special(pattern)
   return text
+    .trimLeft()
     .split(pattern)
     .reduce((grp, part, ix) => {
       if (!part && ix) return (grp.push(stext), grp)
@@ -95,7 +101,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
       maxHeight: '100%',
       overflow: 'hidden',
     },
-  }, $.results.map(([ path, items ], pos) => h('div', {
+  }, $.references.map(([ path, items ], pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
@@ -106,14 +112,20 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
 
     ,pos === $.ix && Row.group({}, items.map((f, itemPos) => Row.normal({
       activeWhen: pos === $.ix && itemPos === $.subix
-    }, highlightPattern(f.text, $.val, {
-      normal: m => h('span', m),
+    }, highlightPattern(f.text, $.referencedSymbol, {
+
+      normal: m => h('span', {
+        style: { whiteSpace: 'pre' },
+      }, m),
+
       special: m => h('span.highlight', {
-        style: pos === $.ix && itemPos === $.subix && {
+        //style: pos === $.ix && itemPos === $.subix && {
+        style: {
           color: '#aaa',
           background: 'rgba(255, 255, 255, 0.1)',
         }
       }, m),
+
     }))))
 
   ])))
@@ -122,11 +134,12 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
 
 const a: Actions<State> = {}
 
-a.hide = () => ({ vis: false, results: [] })
+a.hide = () => ({ vis: false, references: [] })
 
-a.show = (_s, _a, results: Result[]) => ({
-  results,
-  cache: results,
+a.show = (_s, _a, { references, referencedSymbol }) => ({
+  references,
+  referencedSymbol,
+  cache: references,
   vis: true,
   val: '',
   ix: 0,
@@ -135,37 +148,37 @@ a.show = (_s, _a, results: Result[]) => ({
 })
 
 a.select = (s, a) => {
-  if (!s.results.length) return a.hide()
-  selectResult(s.results, s.ix, s.subix)
+  if (!s.references.length) return a.hide()
+  selectResult(s.references, s.ix, s.subix)
   a.hide()
 }
 
-a.change = (s, _a, val: string) => ({ val, results: val
+a.change = (s, _a, val: string) => ({ val, references: val
   ? s.cache.filter(m => m[0].toLowerCase().includes(val))
   : s.cache
 })
 
 a.nextGroup = s => {
-  const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
+  const next = s.ix + 1 > s.references.length - 1 ? 0 : s.ix + 1
   scrollIntoView(next)
   return { subix: -1, ix: next }
 }
 
 a.prevGroup = s => {
-  const next = s.ix - 1 < 0 ? s.results.length - 1 : s.ix - 1
+  const next = s.ix - 1 < 0 ? s.references.length - 1 : s.ix - 1
   scrollIntoView(next)
   return { subix: -1, ix: next }
 }
 
 a.next = s => {
-  const next = s.subix + 1 < s.results[s.ix][1].length ? s.subix + 1 : 0
-  selectResult(s.results, s.ix, next)
+  const next = s.subix + 1 < s.references[s.ix][1].length ? s.subix + 1 : 0
+  selectResult(s.references, s.ix, next)
   return { subix: next }
 }
 
 a.prev = s => {
-  const prev = s.subix - 1 < 0 ? s.results[s.ix][1].length - 1 : s.subix - 1
-  selectResult(s.results, s.ix, prev)
+  const prev = s.subix - 1 < 0 ? s.references[s.ix][1].length - 1 : s.subix - 1
+  selectResult(s.references, s.ix, prev)
   return { subix: prev }
 }
 
@@ -181,4 +194,5 @@ a.up = () => {
 
 const ui = app({ state, view, actions: a })
 
-export const show = (references: Result[]) => ui.show(references)
+export const show = (references: Result[], referencedSymbol?: string) =>
+  ui.show({ references, referencedSymbol })

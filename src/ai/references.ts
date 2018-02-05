@@ -25,7 +25,8 @@ const asResult = (m: VimQFItem): Result => ({
 
 action('references', async () => {
   const refs = await references(vimState)
+  const referencedSymbol = refs[0].keyword
   const adjustedRefs = refs.map(asResult)
   const items = groupResults(adjustedRefs)
-  show(items)
+  show(items, referencedSymbol)
 })
