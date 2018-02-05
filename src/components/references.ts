@@ -15,6 +15,7 @@ export interface SearchResult {
 interface State {
   val: string,
   results: Result[],
+  cache: Result[],
   vis: boolean,
   ix: number,
   subix: number,
@@ -28,6 +29,7 @@ const els = new Map<number, HTMLElement>()
 const state: State = {
   val: '',
   results: [],
+  cache: [],
   vis: false,
   ix: 0,
   subix: -1,
@@ -61,7 +63,7 @@ const selectResult = (results: Result[], ix: number, subix: number) => {
 
 const openResult = (path: string, line: number) => {
   cmd(`e ${path}`)
-  feedkeys(`${line}Gzz`)
+  feedkeys(`${line}G`)
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: { normal: TextTransformer, special: TextTransformer }) => {
@@ -91,7 +93,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
     onupdate: (e: HTMLElement) => elref = e,
     style: {
       maxHeight: '100%',
-      overflowY: 'hidden',
+      overflow: 'hidden',
     },
   }, $.results.map(([ path, items ], pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
@@ -124,6 +126,7 @@ a.hide = () => ({ vis: false, results: [] })
 
 a.show = (_s, _a, results: Result[]) => ({
   results,
+  cache: results,
   vis: true,
   val: '',
   ix: 0,
@@ -137,18 +140,10 @@ a.select = (s, a) => {
   a.hide()
 }
 
-a.change = (_s, _a, val: string) => {
-  // TODO: call fuzzaldrin and filter
-  return val ? { val } : { val, results: [], ix: 0, subix: 0 }
-}
-
-a.results = (_s, _a, results: Result[]) => ({ results })
-
-a.moreResults = (s, _a, results: Result[]) => {
-  const merged = [ ...s.results, ...results ]
-  const deduped = merged.filter((m, ix, arr) => arr.findIndex(e => e[0] === m[0]) === ix)
-  return { results: deduped }
-}
+a.change = (s, _a, val: string) => ({ val, results: val
+  ? s.cache.filter(m => m[0].toLowerCase().includes(val))
+  : s.cache
+})
 
 a.nextGroup = s => {
   const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
