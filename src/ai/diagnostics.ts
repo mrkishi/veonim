@@ -1,6 +1,7 @@
 import { ProblemHighlight, on, action, getCurrent, current as vim } from '../core/neovim'
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
+import { findNext, findPrevious } from '../support/relative-finder'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
@@ -17,12 +18,6 @@ export interface Problem {
   file: string,
   dir: string,
   items: Diagnostic[],
-}
-
-interface Distance {
-  diagnostic: Diagnostic,
-  lines: number,
-  characters: number,
 }
 
 interface ActiveProblemHighlight extends ProblemHighlight {
@@ -49,30 +44,6 @@ const updateDiagnostics = (path: string, diagnostics: Diagnostic[]) => {
 const current = {
   get diagnostics(): Diags { return cache.diagnostics.get(sessions.current) || new Map() },
   get problems(): Problem[] { return cache.problems.get(sessions.current) || [] },
-}
-
-const distanceAsc = (a: Distance, b: Distance) =>
-  a.lines === b.lines ? a.characters < b.characters : a.lines < b.lines
-
-const distanceDesc = (a: Distance, b: Distance) =>
-  a.lines === b.lines ? a.characters > b.characters : a.lines > b.lines
-
-const findClosestProblem = (diagnostics: Diagnostic[], line: number, column: number, findNext: boolean) => {
-  const distances = diagnostics.map(d => ({
-    diagnostic: d,
-    lines: d.range.start.line - line,
-    characters: d.range.start.character - column,
-  } as Distance))
-
-  const sortedProblems = distances.sort((a, b) => findNext
-    ? distanceDesc(a, b) ? 1 : 0
-    : distanceAsc(a, b) ? 1 : 0)
-
-  const validProblems = findNext
-    ? sortedProblems.filter(m => m.lines === 0 ? m.characters > 0 : m.lines > 0)
-    : sortedProblems.filter(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
-
-  return (validProblems[0] || {}).diagnostic
 }
 
 const updateUI = () => problemsUI.update(mapAsProblems(current.diagnostics))
@@ -179,7 +150,7 @@ action('next-problem', async () => {
   const diagnostics = current.diagnostics.get(path.join(cwd, file))
   if (!diagnostics) return
 
-  const problem = findClosestProblem(diagnostics, line - 1, column - 1, true)
+  const problem = findNext<Diagnostic>(diagnostics, line - 1, column - 1)
   if (!problem) return
 
   const window = await getCurrent.window
@@ -191,7 +162,7 @@ action('prev-problem', async () => {
   const diagnostics = current.diagnostics.get(path.join(cwd, file))
   if (!diagnostics) return
 
-  const problem = findClosestProblem(diagnostics, line - 1, column - 1, false)
+  const problem = findPrevious<Diagnostic>(diagnostics, line - 1, column - 1)
   if (!problem) return
 
   const window = await getCurrent.window

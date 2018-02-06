@@ -1,4 +1,5 @@
 import { action, current as vimState, cmd, feedkeys } from '../core/neovim'
+import { findNext, findPrevious } from '../support/relative-finder'
 import { SearchResult, show }from '../components/references'
 import { VimQFItem, references } from '../langserv/adapter'
 import { pathRelativeToCwd } from '../support/utils'
@@ -9,12 +10,6 @@ interface Reference {
   text: string,
   line: number,
   col: number,
-}
-
-interface Distance {
-  reference: Reference,
-  lines: number,
-  characters: number,
 }
 
 const groupResults = (m: Reference[]) => [...m.reduce((map, { path, text, line, col }: Reference) => {
@@ -29,30 +24,8 @@ const asReference = (m: VimQFItem): Reference => ({
   path: pathRelativeToCwd(join(m.cwd, m.file), vimState.cwd),
 })
 
-const distanceAsc = (a: Distance, b: Distance) =>
-  a.lines === b.lines ? a.characters < b.characters : a.lines < b.lines
-
-const distanceDesc = (a: Distance, b: Distance) =>
-  a.lines === b.lines ? a.characters > b.characters : a.lines > b.lines
-
 // TODO: this needs to find across multiple files
-const findClosestReference = (references: Reference[], line: number, column: number, findNext: boolean) => {
-  const distances = references.map(r => ({
-    reference: r,
-    lines: r.line - line,
-    characters: r.col - column,
-  } as Distance))
-
-  const sortedReferences = distances.sort((a, b) => findNext
-    ? distanceDesc(a, b) ? 1 : 0
-    : distanceAsc(a, b) ? 1 : 0)
-
-  const validReferences = findNext
-    ? sortedReferences.filter(m => m.lines === 0 ? m.characters > 0 : m.lines > 0)
-    : sortedReferences.filter(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
-
-  return (validReferences[0] || {}).reference
-}
+// and cycle around
 
 action('references', async () => {
   const refs = await references(vimState)
@@ -68,7 +41,7 @@ action('next-usage', async () => {
 
   const { line, column } = vimState
   const adjustedRefs = refs.map(asReference)
-  const reference = findClosestReference(adjustedRefs, line, column, true)
+  const reference = findNext<Reference>(adjustedRefs, line, column)
   if (!reference) return
 
   cmd(`e ${reference.path}`)
@@ -81,7 +54,7 @@ action('prev-usage', async () => {
 
   const { line, column } = vimState
   const adjustedRefs = refs.map(asReference)
-  const reference = findClosestReference(adjustedRefs, line, column, false)
+  const reference = findPrevious<Reference>(adjustedRefs, line, column)
   if (!reference) return
 
   cmd(`e ${reference.path}`)
