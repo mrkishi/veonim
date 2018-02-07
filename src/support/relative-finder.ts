@@ -37,6 +37,22 @@ const findPreviousItem = <T extends LocationItem>(items: T[], line: number, colu
   return sortedDistances.find(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
 }
 
+const findPath = <T extends LocationItem>(items: T[], current: string, next: boolean): string => {
+  const justPaths = items.map(m => m.path)
+  const uniquePaths = [...new Set(justPaths)]
+  const currentPathIndex = uniquePaths.indexOf(current)
+  const nextIndex = next
+    ? currentPathIndex + 1 > uniquePaths.length - 1 ? 0 : currentPathIndex + 1
+    : currentPathIndex - 1 < 0 ? uniquePaths.length - 1 : currentPathIndex - 1
+
+  return Reflect.has(uniquePaths, currentPathIndex)
+    ? Reflect.get(uniquePaths, nextIndex)
+    : current
+}
+
+const setupItemPathFinder = <T extends LocationItem>(items: T[]) => (path: string) =>
+  items.filter(m => m.path === path)
+
 const findClosest = <T extends LocationItem>(
   items: T[],
   currentPath: string,
@@ -49,7 +65,8 @@ const findClosest = <T extends LocationItem>(
     : orderAsc(a.path, b.path)
   )
 
-  const currentItems = sortedItems.filter(m => m.path === currentPath)
+  const getItemsForPath = setupItemPathFinder(sortedItems)
+  const currentItems = getItemsForPath(currentPath)
 
   const foundItem = findNext
     ? findNextItem(currentItems, line, column)
@@ -57,9 +74,12 @@ const findClosest = <T extends LocationItem>(
 
   if (foundItem) return foundItem.reference
 
-    // NEXT: go to the first item in the next path list.
-    //    if next path does not exist, try the first path (which may be the current file again)
-    //    retry findNext
+  const nextOrPreviousPath = findPath(sortedItems, currentPath, findNext)
+  const nextItems = getItemsForPath(nextOrPreviousPath)
+
+  return findNext
+    ? nextItems[0]
+    : nextItems[nextItems.length - 1]
 }
 
 export const findNext = <T extends LocationItem>(
