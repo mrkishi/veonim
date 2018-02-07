@@ -1,4 +1,4 @@
-import { ProblemHighlight, on, action, getCurrent, current as vim } from '../core/neovim'
+import { ProblemHighlight, on, action, getCurrent, current as vim, jumpTo } from '../core/neovim'
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
@@ -62,7 +62,7 @@ const getDiagnosticLocations = (diags: Map<string, Diagnostic[]>): LocationItem[
     const pathDiags = diagnostics.map(d => ({
       path,
       line: d.range.start.line,
-      col: d.range.start.character,
+      column: d.range.start.character,
     }))
 
     return [...res, ...pathDiags]
@@ -165,8 +165,7 @@ action('next-problem', async () => {
   const problem = findNext(diagnosticLocations, currentPath, line - 1, column - 1)
   if (!problem) return
 
-  const window = await getCurrent.window
-  window.setCursor(problem.line + 1, problem.col)
+  jumpTo(problem)
 })
 
 action('prev-problem', async () => {
@@ -178,8 +177,7 @@ action('prev-problem', async () => {
   const problem = findPrevious(diagnosticLocations, currentPath, line - 1, column - 1)
   if (!problem) return
 
-  const window = await getCurrent.window
-  window.setCursor(problem.line + 1, problem.col)
+  jumpTo(problem)
 })
 
 action('problems-toggle', () => problemsUI.toggle())

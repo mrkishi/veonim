@@ -8,7 +8,7 @@ type Result = [string, SearchResult[]]
 
 export interface SearchResult {
   line: number,
-  col: number,
+  column: number,
   text: string,
 }
 

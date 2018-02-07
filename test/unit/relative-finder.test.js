@@ -5,23 +5,23 @@ const { deepStrictEqual: eq } = require('assert')
 const getItems = () => [{
   path: '/main/a.ts',
   line: 1,
-  col: 1,
+  column: 1,
 }, {
   path: '/main/a.ts',
   line: 4,
-  col: 7,
+  column: 7,
 }, {
   path: '/main/a.ts',
   line: 9,
-  col: 2,
+  column: 2,
 }, {
   path: '/main/c.ts',
   line: 1,
-  col: 7,
+  column: 7,
 }, {
   path: '/main/c.ts',
   line: 3,
-  col: 1,
+  column: 1,
 }]
 
 describe('relative finder', () => {
@@ -31,7 +31,7 @@ describe('relative finder', () => {
     eq(next, {
       path: '/main/a.ts',
       line: 4,
-      col: 7,
+      column: 7,
     })
   })
 
@@ -41,7 +41,7 @@ describe('relative finder', () => {
     eq(next, {
       path: '/main/c.ts',
       line: 1,
-      col: 7,
+      column: 7,
     })
   })
 
@@ -51,7 +51,7 @@ describe('relative finder', () => {
     eq(next, {
       path: '/main/a.ts',
       line: 1,
-      col: 1,
+      column: 1,
     })
   })
 
@@ -61,7 +61,7 @@ describe('relative finder', () => {
     eq(next, {
       path: '/main/a.ts',
       line: 1,
-      col: 1,
+      column: 1,
     })
   })
 
@@ -71,7 +71,7 @@ describe('relative finder', () => {
     eq(next, {
       path: '/main/a.ts',
       line: 9,
-      col: 2,
+      column: 2,
     })
   })
 
@@ -81,7 +81,7 @@ describe('relative finder', () => {
     eq(next, {
       path: '/main/c.ts',
       line: 3,
-      col: 1,
+      column: 1,
     })
   })
 })

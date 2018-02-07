@@ -7,7 +7,7 @@ export interface Distance<T> {
 export interface LocationItem {
   path: string,
   line: number,
-  col: number,
+  column: number,
 }
 
 const distanceAsc = <T>(a: Distance<T>, b: Distance<T>) =>
@@ -22,7 +22,7 @@ const orderDesc = (a: string, b: string) => b.toLowerCase().localeCompare(a.toLo
 const locationItemAsDistance = (line: number, column: number) => <T extends LocationItem>(item: T) => ({
   reference: item,
   lines: item.line - line,
-  characters: item.col - column,
+  characters: item.column - column,
 } as Distance<T>)
 
 const findNextItem = <T extends LocationItem>(items: T[], line: number, column: number) => {

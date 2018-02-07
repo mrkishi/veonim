@@ -4,6 +4,7 @@ import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { Functions } from '../core/vim-functions'
 import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
+import { join as pathJoin } from 'path'
 
 type GenericCallback = (...args: any[]) => void
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
@@ -28,6 +29,12 @@ export enum Highlight {
 export interface Color {
   background: number,
   foreground: number,
+}
+
+export interface HyperspaceCoordinates {
+  line: number,
+  column: number,
+  path?: string,
 }
 
 interface Event {
@@ -225,6 +232,14 @@ export const action = (event: string, cb: GenericCallback): void => {
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
+
+export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
+  const currentPath = pathJoin(current.cwd, current.file)
+  if (path && path !== currentPath) cmd(`e ${path}`)
+  const window = await getCurrent.window
+  window.setCursor(line, column)
+}
+
 export const getColor = async (name: string) => {
   const { foreground: fg, background: bg } = await req.core.getHlByName(name, true) as Color
   return {
@@ -266,6 +281,7 @@ export const getCurrent = {
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
   get window() { return as.win(req.core.getCurrentWin()) },
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
+  // TODO: why not use nvim_win_get_position which returns 0 based location?
   get position(): Promise<Position> { return new Promise(fin => call.getpos('.').then(m => fin({ line: m[1], column: m[2] }))) },
   get lineContent(): Promise<string> { return req.core.getCurrentLine() },
   get bufferContents(): Promise<string[]> { return call.getline(1, '$') as Promise<string[]> },
