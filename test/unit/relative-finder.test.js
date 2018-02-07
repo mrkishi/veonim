@@ -79,7 +79,7 @@ describe('relative finder', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 1, 1)
 
     eq(next, {
-      path: '/main/a.ts',
+      path: '/main/c.ts',
       line: 3,
       col: 1,
     })
