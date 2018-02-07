@@ -1,7 +1,7 @@
 import { ProblemHighlight, on, action, getCurrent, current as vim } from '../core/neovim'
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
+import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
-import { findNext, findPrevious } from '../support/relative-finder'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as problemInfoUI from '../components/problem-info'
@@ -56,6 +56,17 @@ const mapAsProblems = (diagsMap: Map<string, Diagnostic[]>): Problem[] =>
     items: diagnostics,
   }))
   .filter(m => m.items.length)
+
+const getDiagnosticLocations = (diags: Map<string, Diagnostic[]>): LocationItem[] => [...diags.entries()]
+  .reduce((res, [ path, diagnostics ]) => {
+    const pathDiags = diagnostics.map(d => ({
+      path,
+      line: d.range.start.line,
+      col: d.range.start.character,
+    }))
+
+    return [...res, ...pathDiags]
+  }, [] as LocationItem[])
 
 const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
   const diagsList = [...diagsMap.values()]
@@ -148,27 +159,27 @@ on.insertLeave(() => problemInfoUI.hide())
 action('next-problem', async () => {
   const { line, column, cwd, file } = vim
   const currentPath = path.join(cwd, file)
-  const diagnostics = current.diagnostics.get(currentPath)
-  if (!diagnostics) return
+  const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
+  if (!diagnosticLocations) return
 
-  const problem = findNext<Diagnostic>(diagnostics, currentPath, line - 1, column - 1)
+  const problem = findNext(diagnosticLocations, currentPath, line - 1, column - 1)
   if (!problem) return
 
   const window = await getCurrent.window
-  window.setCursor(problem.range.start.line + 1, problem.range.start.character)
+  window.setCursor(problem.line + 1, problem.col)
 })
 
 action('prev-problem', async () => {
   const { line, column, cwd, file } = vim
   const currentPath = path.join(cwd, file)
-  const diagnostics = current.diagnostics.get(currentPath)
-  if (!diagnostics) return
+  const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
+  if (!diagnosticLocations) return
 
-  const problem = findPrevious<Diagnostic>(diagnostics, currentPath, line - 1, column - 1)
+  const problem = findPrevious(diagnosticLocations, currentPath, line - 1, column - 1)
   if (!problem) return
 
   const window = await getCurrent.window
-  window.setCursor(problem.range.start.line + 1, problem.range.start.character)
+  window.setCursor(problem.line + 1, problem.col)
 })
 
 action('problems-toggle', () => problemsUI.toggle())
