@@ -16,7 +16,26 @@ const distanceAsc = <T>(a: Distance<T>, b: Distance<T>) =>
 const distanceDesc = <T>(a: Distance<T>, b: Distance<T>) =>
   a.lines === b.lines ? a.characters > b.characters : a.lines > b.lines
 
-const orderDesc = (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase())
+const orderAsc = (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase())
+const orderDesc = (a: string, b: string) => b.toLowerCase().localeCompare(a.toLowerCase())
+
+const locationItemAsDistance = (line: number, column: number) => <T extends LocationItem>(item: T) => ({
+  reference: item,
+  lines: item.line - line,
+  characters: item.col - column,
+} as Distance<T>)
+
+const findNextItem = <T extends LocationItem>(items: T[], line: number, column: number) => {
+  const distances = items.map(locationItemAsDistance(line, column))
+  const sortedDistances = distances.sort((a, b) => distanceDesc(a, b) ? 1 : 0)
+  return sortedDistances.find(m => m.lines === 0 ? m.characters > 0 : m.lines > 0)
+}
+
+const findPreviousItem = <T extends LocationItem>(items: T[], line: number, column: number) => {
+  const distances = items.map(locationItemAsDistance(line, column))
+  const sortedDistances = distances.sort((a, b) => distanceAsc(a, b) ? 1 : 0)
+  return sortedDistances.find(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
+}
 
 const findClosest = <T extends LocationItem>(
   items: T[],
@@ -25,23 +44,22 @@ const findClosest = <T extends LocationItem>(
   column: number,
   findNext: boolean,
 ) => {
-  const sortedItems = items.sort((a, b) => orderDesc(a.path, b.path))
+  const sortedItems = items.sort((a, b) => findNext
+    ? orderDesc(a.path, b.path)
+    : orderAsc(a.path, b.path)
+  )
 
-  const distances = sortedItems.map(r => ({
-    reference: r,
-    lines: r.line - line,
-    characters: r.col - column,
-  } as Distance<T>))
+  const currentItems = sortedItems.filter(m => m.path === currentPath)
 
-  const sortedDistances = distances.sort((a, b) => findNext
-    ? distanceDesc(a, b) ? 1 : 0
-    : distanceAsc(a, b) ? 1 : 0)
+  const foundItem = findNext
+    ? findNextItem(currentItems, line, column)
+    : findPreviousItem(currentItems, line, column)
 
-  const validItem = findNext
-    ? sortedDistances.find(m => m.lines === 0 ? m.characters > 0 : m.lines > 0)
-    : sortedDistances.find(m => m.lines === 0 ? m.characters < 0 : m.lines < 0)
+  if (foundItem) return foundItem.reference
 
-  return (validItem || {} as Distance<T>).reference
+    // NEXT: go to the first item in the next path list.
+    //    if next path does not exist, try the first path (which may be the current file again)
+    //    retry findNext
 }
 
 export const findNext = <T extends LocationItem>(

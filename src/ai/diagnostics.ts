@@ -147,10 +147,11 @@ on.insertLeave(() => problemInfoUI.hide())
 
 action('next-problem', async () => {
   const { line, column, cwd, file } = vim
-  const diagnostics = current.diagnostics.get(path.join(cwd, file))
+  const currentPath = path.join(cwd, file)
+  const diagnostics = current.diagnostics.get(currentPath)
   if (!diagnostics) return
 
-  const problem = findNext<Diagnostic>(diagnostics, line - 1, column - 1)
+  const problem = findNext<Diagnostic>(diagnostics, currentPath, line - 1, column - 1)
   if (!problem) return
 
   const window = await getCurrent.window
@@ -159,10 +160,11 @@ action('next-problem', async () => {
 
 action('prev-problem', async () => {
   const { line, column, cwd, file } = vim
-  const diagnostics = current.diagnostics.get(path.join(cwd, file))
+  const currentPath = path.join(cwd, file)
+  const diagnostics = current.diagnostics.get(currentPath)
   if (!diagnostics) return
 
-  const problem = findPrevious<Diagnostic>(diagnostics, line - 1, column - 1)
+  const problem = findPrevious<Diagnostic>(diagnostics, currentPath, line - 1, column - 1)
   if (!problem) return
 
   const window = await getCurrent.window

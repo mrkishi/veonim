@@ -39,9 +39,10 @@ action('next-usage', async () => {
   const refs = await references(vimState)
   if (!refs) return
 
-  const { line, column } = vimState
+  const { line, column, cwd, file } = vimState
+  const currentPath = join(cwd, file)
   const adjustedRefs = refs.map(asReference)
-  const reference = findNext<Reference>(adjustedRefs, line, column)
+  const reference = findNext<Reference>(adjustedRefs, currentPath, line, column)
   if (!reference) return
 
   cmd(`e ${reference.path}`)
@@ -52,9 +53,10 @@ action('prev-usage', async () => {
   const refs = await references(vimState)
   if (!refs) return
 
-  const { line, column } = vimState
+  const { line, column, cwd, file } = vimState
+  const currentPath = join(cwd, file)
   const adjustedRefs = refs.map(asReference)
-  const reference = findPrevious<Reference>(adjustedRefs, line, column)
+  const reference = findPrevious<Reference>(adjustedRefs, currentPath, line, column)
   if (!reference) return
 
   cmd(`e ${reference.path}`)
