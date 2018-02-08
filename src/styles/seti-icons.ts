@@ -4,7 +4,7 @@ import { basename, extname } from 'path'
 import { h } from '../ui/uikit'
 
 const languageIcon = (language: string) => Reflect.get(languageIds, language)
-const fileIcon = (path: string) => {
+const fileIcon = (path = '') => {
   const filename = basename(path)
   const extension = extname(filename).replace(/^\./, '')
   return (Reflect.get(iconDefinitions, `_${extension}`) ? `_${extension}` : undefined)

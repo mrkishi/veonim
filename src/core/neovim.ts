@@ -232,7 +232,7 @@ export const action = (event: string, cb: GenericCallback): void => {
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
-
+// TODO: accept column as optional. sometimes we just wanna hang out
 export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
   const currentPath = pathJoin(current.cwd, current.file)
   if (path && path !== currentPath) cmd(`e ${path}`)

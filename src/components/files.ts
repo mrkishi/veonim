@@ -48,6 +48,10 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('files', $.vis,
     focus: true,
     icon: 'file-text',
     desc: 'open file',
+    // TODO: loading is so fast that this flickers and looks janky
+    // use debounce or throttle to only show this if a loading operation
+    // has already been going for a few ms. e.g. 150ms or more, etc.
+    //loading: $.loading,
   })
 
   ,h('div', $.files.map((f, key) => Row.files({ key, activeWhen: key === $.ix, }, [
@@ -64,7 +68,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('files', $.vis,
 
 const a: Actions<State> = {}
 
-a.show = (s, _a, currentFile: string) => ({ vis: true, currentFile, files: s.cache })
+a.show = (s, _a, currentFile: string) => ({ vis: true, currentFile, files: s.cache, loading: true })
 
 a.hide = () => {
   worker.call.stop()
@@ -88,11 +92,14 @@ a.results = (s, _a, files: string[]) => ({
   files: asDirFile(files, s.currentFile)
 })
 
+a.loadingDone = () => ({ loading: false })
+
 a.next = s => ({ ix: s.ix + 1 > Math.min(s.files.length - 1, 9) ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.files.length - 1, 9) : s.ix - 1 })
 
 const ui = app({ state, view, actions: a })
 worker.on.results((files: string[]) => ui.results(files))
+worker.on.done(ui.loadingDone)
 
 action('files', async () => {
   worker.call.load(current.cwd)

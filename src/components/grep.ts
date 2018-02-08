@@ -72,6 +72,7 @@ const selectResult = (results: Result[], ix: number, subix: number) => {
   openResult(path, line)
 }
 
+// TODO: use neovim.jumpTo
 const openResult = (path: string, line: number) => {
   cmd(`e ${path}`)
   feedkeys(`${line}G`)
@@ -111,6 +112,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('grep', $.vis, [
     focus: $.focused === FocusedElement.Search,
     icon: 'search',
     desc: 'find in project',
+    loading: $.loading,
   }),
 
   ,Input({
@@ -176,9 +178,9 @@ const a: Actions<State> = {}
 a.focusSearch = () => ({ focused: FocusedElement.Search })
 a.focusFilter = () => ({ focused: FocusedElement.Filter })
 
-a.hide = () => ({ vis: false })
+a.hide = () => ({ vis: false, loading: false })
 a.show = (_s, _a, { cwd, val, reset = true }) => reset
-  ? ({ vis: true, cwd, val, ix: 0, subix: -1, results: [], loading: false })
+  ? ({ vis: true, cwd, val, ix: 0, subix: -1, results: [], loading: !!val })
   : ({ vis: true })
 
 a.select = (s, a) => {
@@ -189,7 +191,16 @@ a.select = (s, a) => {
 
 a.change = (s, _a, val: string) => {
   val && worker.call.query({ query: val, cwd: s.cwd })
-  return val ? { val } : { val, results: [], ix: 0, subix: 0 }
+  return val ? {
+    val,
+    loading: true,
+  } : {
+    val,
+    results: [],
+    ix: 0,
+    subix: 0,
+    loading: false,
+  }
 }
 
 a.changeFilter = (_s, _a, filterVal: string) => {
@@ -242,9 +253,12 @@ a.up = () => {
   elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
 }
 
+a.loadingDone = () => ({ loading: false })
+
 const ui = app({ state, view, actions: a })
 worker.on.results((results: Result[]) => ui.results(results))
 worker.on.moreResults((results: Result[]) => ui.moreResults(results))
+worker.on.done(ui.loadingDone)
 
 action('grep-resume', () => ui.show({ reset: false }))
 
