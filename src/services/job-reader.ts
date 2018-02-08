@@ -60,21 +60,21 @@ const writeData = async (lines: string[]) => {
   return location
 }
 
-const destroyQ = async (format: ParserFormat) => {
+const destroyQ = async (format: ParserFormat, id: string) => {
   const filepath = await writeData(parsingQueue)
   parsingQueue = []
   const list = await formatter.request.getErrors(filepath, formats.get(format))
-  addQF(list)
+  addQF(list, ParserFormat + id)
 }
 
 const tryEmptyQ = debounce(destroyQ, 2e3)
-const parseLater = (lines: string[], format: ParserFormat) => {
+const parseLater = (lines: string[], format: ParserFormat, id: string) => {
   parsingQueue.push(...lines)
-  tryEmptyQ(format)
+  tryEmptyQ(format, id)
 }
 
-const parse = (lines: string[], format: ParserFormat) => {
-  parseLater(lines, format)
+const parse = (lines: string[], format: ParserFormat, id: string) => {
+  parseLater(lines, format, id)
 
   // TODO: ok now we need to do a few things:
   // - figure out how to group job outputs into logical groupings... timeout based? wait for token
@@ -89,7 +89,7 @@ systemAction('job-output', (jobId: number, data: string[]) => {
     bufferings.delete(jobId)
     const msg = [...prevMsg, ...data]
     const format = getTerminalFormat(jobId)
-    if (is.number(format)) parse(msg, format!)
+    if (is.number(format)) parse(msg, format!, jobId + '')
   }
 
   else buffer(jobId, data)

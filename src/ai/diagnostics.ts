@@ -34,6 +34,20 @@ const cache = {
   currentBuffer: '',
 }
 
+const clearAllDiagnosticsForSource = (source: string) => {
+  const sessionDiagnostics = cache.diagnostics.get(sessions.current)
+  if (!sessionDiagnostics) return
+
+  const diagValues = [...sessionDiagnostics.entries()]
+  const filteredDiagnostics = diagValues.reduce((next, [ path, diagnostics ]) => {
+    const cleaned = diagnostics.filter(m => m.source !== source)
+    next.set(path, cleaned)
+    return next
+  }, new Map())
+
+  cache.diagnostics.set(sessions.current, filteredDiagnostics)
+}
+
 const updateDiagnostics = (path: string, diagnostics: Diagnostic[]) => {
   const sessionDiagnostics = cache.diagnostics.get(sessions.current)
   if (sessionDiagnostics) return sessionDiagnostics.set(path, diagnostics)
@@ -81,9 +95,8 @@ const getProblemCount = (diagsMap: Map<string, Diagnostic[]>) => {
   return { errors, warnings }
 }
 
-export const addQF = (items: Map<string, Diagnostic[]>) => {
-  // TODO: reset cached diagnostics to a clean state. assume incoming diagnostics
-  // are the source of truth (for the given source designator)
+export const addQF = (items: Map<string, Diagnostic[]>, source: string) => {
+  clearAllDiagnosticsForSource(source)
   items.forEach((diags, loc) => updateDiagnostics(loc, diags))
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   updateUI()
