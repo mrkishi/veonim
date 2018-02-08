@@ -43,7 +43,7 @@ const pos: { container: ClientRect } = {
 }
 
 const icons = new Map([
-  [ CompletionItemKind.Text, Icon('play') ],
+  [ CompletionItemKind.Text, Icon('chevrons-right') ],
   [ CompletionItemKind.Method, Icon('box', { color: '#bb5ef1' }) ],
   [ CompletionItemKind.Property, Icon('disc', { color: '#54c8ff' }) ],
   [ CompletionItemKind.Function, Icon('share-2', { color: '#6da7ff' }) ],
@@ -117,10 +117,9 @@ const view = ($: State) => Overlay({
       style: {
         display: 'flex',
         marginLeft: '-8px',
-        background: 'rgba(255, 255, 255, 0.03)',
         // TODO: this doesn't scale with font size?
         width: '24px',
-        marginRight: '8px',
+        marginRight: '2px',
         alignItems: 'center',
         justifyContent: 'center',
       }
