@@ -8,6 +8,8 @@ export interface LocationItem {
   path: string,
   line: number,
   column: number,
+  endLine: number,
+  endColumn: number,
 }
 
 const distanceAsc = <T>(a: Distance<T>, b: Distance<T>) =>
@@ -53,6 +55,11 @@ const findPath = <T extends LocationItem>(items: T[], current: string, next: boo
 const setupItemPathFinder = <T extends LocationItem>(items: T[]) => (path: string) =>
   items.filter(m => m.path === path)
 
+const itemContainsPosition = <T extends LocationItem>(item: T, line: number, column: number) => {
+  if (item.line !== line) return false
+  return column >= item.column && column <= item.endColumn
+}
+
 const findClosest = <T extends LocationItem>(
   items: T[],
   currentPath: string,
@@ -72,7 +79,14 @@ const findClosest = <T extends LocationItem>(
     ? findNextItem(currentItems, line, column)
     : findPreviousItem(currentItems, line, column)
 
-  if (foundItem) return foundItem.reference
+  if (foundItem && !itemContainsPosition(foundItem.reference, line, column))
+    return foundItem.reference
+
+  // this really only happens when trying to find items backwards
+  if (foundItem && itemContainsPosition(foundItem.reference, line, column)) {
+    const possiblyAnother = findPreviousItem(currentItems, line, foundItem.reference.column - 1)
+    if (possiblyAnother) return possiblyAnother.reference
+  }
 
   const nextOrPreviousPath = findPath(sortedItems, currentPath, findNext)
   const nextItems = getItemsForPath(nextOrPreviousPath)

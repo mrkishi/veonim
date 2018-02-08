@@ -9,6 +9,8 @@ interface Reference {
   text: string,
   line: number,
   column: number,
+  endLine: number,
+  endColumn: number,
 }
 
 const groupResults = (m: Reference[]) => [...m.reduce((map, { path, text, line, column }: Reference) => {
@@ -20,6 +22,8 @@ const asReference = (m: VimQFItem): Reference => ({
   text: m.desc,
   line: m.line,
   column: m.column - 1,
+  endLine: m.endLine,
+  endColumn: m.column - 1,
   path: join(m.cwd, m.file),
 })
 

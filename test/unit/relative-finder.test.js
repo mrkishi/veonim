@@ -6,22 +6,32 @@ const getItems = () => [{
   path: '/main/a.ts',
   line: 1,
   column: 1,
+  endLine: 1,
+  endColumn: 5,
 }, {
   path: '/main/a.ts',
   line: 4,
   column: 7,
+  endLine: 4,
+  endColumn: 9,
 }, {
   path: '/main/a.ts',
   line: 9,
   column: 2,
+  endLine: 9,
+  endColumn: 4,
 }, {
   path: '/main/c.ts',
   line: 1,
   column: 7,
+  endLine: 1,
+  endColumn: 9,
 }, {
   path: '/main/c.ts',
   line: 3,
   column: 1,
+  endLine: 3,
+  endColumn: 9,
 }]
 
 describe('relative finder', () => {
@@ -32,6 +42,8 @@ describe('relative finder', () => {
       path: '/main/a.ts',
       line: 4,
       column: 7,
+      endLine: 4,
+      endColumn: 9,
     })
   })
 
@@ -42,6 +54,8 @@ describe('relative finder', () => {
       path: '/main/c.ts',
       line: 1,
       column: 7,
+      endLine: 1,
+      endColumn: 9,
     })
   })
 
@@ -52,6 +66,8 @@ describe('relative finder', () => {
       path: '/main/a.ts',
       line: 1,
       column: 1,
+      endLine: 1,
+      endColumn: 5,
     })
   })
 
@@ -62,6 +78,8 @@ describe('relative finder', () => {
       path: '/main/a.ts',
       line: 1,
       column: 1,
+      endLine: 1,
+      endColumn: 5,
     })
   })
 
@@ -72,6 +90,8 @@ describe('relative finder', () => {
       path: '/main/a.ts',
       line: 9,
       column: 2,
+      endLine: 9,
+      endColumn: 4,
     })
   })
 
@@ -82,6 +102,21 @@ describe('relative finder', () => {
       path: '/main/c.ts',
       line: 3,
       column: 1,
+      endLine: 3,
+      endColumn: 9,
+    })
+  })
+
+  it('find previous when in middle of current item', () => {
+    const next = findPrevious(getItems(), '/main/a.ts', 4, 8)
+
+    eq(next, {
+      path: '/main/a.ts',
+      line: 1,
+      column: 1,
+      endLine: 1,
+      endColumn: 5,
     })
   })
 })
+

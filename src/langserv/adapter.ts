@@ -31,6 +31,8 @@ export interface VimQFItem {
   file: string,
   line: number,
   cwd: string,
+  endLine: number,
+  endColumn: number,
   keyword?: string,
 }
 
@@ -89,12 +91,13 @@ const toVimPosition = ({ line, character }: Position): VimPosition => ({ line: l
 
 const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line, column } = toVimPosition(range.start)
+  const { line: endLine, column: endColumn } = toVimPosition(range.end)
   const cwd = uriAsCwd(uri)
   const file = uriAsFile(uri)
   const desc = currentBuffer.contents[line - 1]
   const keyword = desc.slice(range.start.character, range.end.character)
 
-  return { cwd, file, line, column, desc, keyword }
+  return { cwd, file, line, column, desc, keyword, endLine, endColumn }
 }
 
 const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
