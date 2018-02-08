@@ -1,10 +1,11 @@
 // TODO: get the typings when ready: https://github.com/hyperapp/hyperapp/pull/311
 import { showCursor, hideCursor } from '../core/cursor'
 const { h: hs, app: makeApp } = require('hyperapp')
+import { specs as titleSpecs } from '../core/title'
 import { merge, proxyFn } from '../support/utils'
+import * as dispatch from '../messaging/dispatch'
 import * as viminput from '../core/input'
 const picostyle = require('picostyle')
-import { specs as titleSpecs } from '../core/title'
 import huu from 'huu'
 
 export interface ActionCaller { [index: string]: (data?: any) => void }
@@ -21,6 +22,10 @@ merge(hostElement.style, {
   // TODO: 24px for statusline. do it better
   // TODO: and title. bruv do i even know css?
   height: `calc(100vh - 24px - ${titleSpecs.height}px)`,
+})
+
+dispatch.sub('window.change', () => {
+  hostElement.style.height = `calc(100vh - 24px - ${titleSpecs.height}px)`
 })
 
 export const style = picostyle(hs)

@@ -1,6 +1,7 @@
 import * as canvasContainer from '../core/canvas-container'
 import { onStateChange, current } from '../core/neovim'
 import { merge, simplifyPath } from '../support/utils'
+import * as dispatch from '../messaging/dispatch'
 import { remote } from 'electron'
 
 let titleBarVisible = false
@@ -34,8 +35,15 @@ if (process.platform === 'darwin') {
   typescriptSucks(document.body, titleBar)
   titleBarVisible = true
 
-  remote.getCurrentWindow().on('enter-full-screen', () => setTitleVisibility(titleBar, false))
-  remote.getCurrentWindow().on('leave-full-screen', () => setTitleVisibility(titleBar, true))
+  remote.getCurrentWindow().on('enter-full-screen', () => {
+    setTitleVisibility(titleBar, false)
+    dispatch.pub('window.change')
+  })
+
+  remote.getCurrentWindow().on('leave-full-screen', () => {
+    setTitleVisibility(titleBar, true)
+    dispatch.pub('window.change')
+  })
 
   onStateChange.file((file: string) => {
     const path = simplifyPath(file, current.cwd)
