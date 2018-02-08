@@ -162,8 +162,14 @@ const a: Actions<State> = {}
 a.toggle = s => ({ vis: !s.vis })
 a.hide = () => (vimFocus(), { focus: false })
 a.focus = () => (vimBlur(), { focus: true, vis: true })
-a.updateProblems = (_s, _a, problems) => ({ problems, cache: problems })
 a.yank = s => clipboard.writeText(s.val)
+
+a.updateProblems = (_s, _a, problems) => ({
+  ix: 0,
+  subix: -1,
+  problems,
+  cache: problems,
+})
 
 a.change = (s, _a, val: string) => ({ val, problems: val
   ? filter(s.problems, val, { key: 'file' })
