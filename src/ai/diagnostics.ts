@@ -80,6 +80,8 @@ const getDiagnosticLocations = (diags: Map<string, Diagnostic[]>): LocationItem[
       path,
       line: d.range.start.line + 1,
       column: d.range.start.character,
+      endLine: d.range.end.line + 1,
+      endColumn: d.range.end.character,
     }))
 
     return [...res, ...pathDiags]

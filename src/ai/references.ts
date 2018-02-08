@@ -23,7 +23,7 @@ const asReference = (m: VimQFItem): Reference => ({
   line: m.line,
   column: m.column - 1,
   endLine: m.endLine,
-  endColumn: m.column - 1,
+  endColumn: m.endColumn - 1,
   path: join(m.cwd, m.file),
 })
 

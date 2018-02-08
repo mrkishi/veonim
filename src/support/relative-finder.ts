@@ -83,6 +83,7 @@ const findClosest = <T extends LocationItem>(
     return foundItem.reference
 
   // this really only happens when trying to find items backwards
+  // (because distances and jump locations always use the start range)
   if (foundItem && itemContainsPosition(foundItem.reference, line, column)) {
     const possiblyAnother = findPreviousItem(currentItems, line, foundItem.reference.column - 1)
     if (possiblyAnother) return possiblyAnother.reference
