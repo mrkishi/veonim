@@ -46,14 +46,17 @@ const current = {
   get problems(): Problem[] { return cache.problems.get(sessions.current) || [] },
 }
 
-const updateUI = () => problemsUI.update(mapAsProblems(current.diagnostics))
+const updateUI = () => {
+  const problems = mapAsProblems(current.diagnostics)
+  problemsUI.update(problems)
+}
 
 const mapAsProblems = (diagsMap: Map<string, Diagnostic[]>): Problem[] =>
   [...diagsMap.entries()]
   .map(([ filepath, diagnostics ]) => ({
-    file: path.basename(filepath),
-    dir: path.dirname(filepath),
     items: diagnostics,
+    file: path.basename(pathRelativeToCwd(filepath, vim.cwd)),
+    dir: path.dirname(pathRelativeToCwd(filepath, vim.cwd)),
   }))
   .filter(m => m.items.length)
 
@@ -61,7 +64,7 @@ const getDiagnosticLocations = (diags: Map<string, Diagnostic[]>): LocationItem[
   .reduce((res, [ path, diagnostics ]) => {
     const pathDiags = diagnostics.map(d => ({
       path,
-      line: d.range.start.line,
+      line: d.range.start.line + 1,
       column: d.range.start.character,
     }))
 
@@ -131,8 +134,7 @@ const refreshProblemHighlights = async () => {
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.currentBuffer = path
-  const relativePath = pathRelativeToCwd(path, vim.cwd)
-  updateDiagnostics(relativePath, m.diagnostics)
+  updateDiagnostics(path, m.diagnostics)
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   if (cache.diagnostics.size) updateUI()
   refreshProblemHighlights()
@@ -162,7 +164,7 @@ action('next-problem', async () => {
   const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
   if (!diagnosticLocations) return
 
-  const problem = findNext(diagnosticLocations, currentPath, line - 1, column - 1)
+  const problem = findNext(diagnosticLocations, currentPath, line, column - 1)
   if (!problem) return
 
   jumpTo(problem)
@@ -174,7 +176,7 @@ action('prev-problem', async () => {
   const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
   if (!diagnosticLocations) return
 
-  const problem = findPrevious(diagnosticLocations, currentPath, line - 1, column - 1)
+  const problem = findPrevious(diagnosticLocations, currentPath, line, column - 1)
   if (!problem) return
 
   jumpTo(problem)
