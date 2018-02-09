@@ -1,12 +1,12 @@
-import { getDirFiles, pathRelativeToHome, pathRelativeToCwd } from '../support/utils'
+import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { action, current, call, cmd } from '../core/neovim'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { join, sep, basename, dirname } from 'path'
 import * as setiIcon from '../styles/seti-icons'
 import { Plugin, Row } from '../styles/common'
 import config from '../config/config-service'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
-import { join, sep } from 'path'
 
 interface FileDir {
   name: string,
@@ -22,6 +22,8 @@ interface State {
   cache: FileDir[],
   vis: boolean,
   ix: number,
+  pathMode: boolean,
+  pathValue: string,
 }
 
 const state: State = {
@@ -32,6 +34,8 @@ const state: State = {
   cache: [],
   vis: false,
   ix: 0,
+  pathMode: false,
+  pathValue: '',
 }
 
 const ignored: { dirs: string[], files: string[] } = {
@@ -45,6 +49,18 @@ const sortDirFiles = (filedirs: FileDir[]) => {
   return [...dirs, ...files]
 }
 
+const absolutePath = (path: string) => path.replace(/^~\//, `${$HOME}/`) 
+
+const pathExplore = async (path: string) => {
+  const fullpath = absolutePath(path)
+  const complete = fullpath.endsWith('/')
+  const dir = complete ? fullpath : dirname(fullpath)
+  const top = basename(fullpath)
+  const dirs = await getDirs(dir)
+  const goodDirs = dirs.filter(d => !ignored.dirs.includes(d.name))
+  return complete ? goodDirs : filter(goodDirs, top, { key: 'name' })
+}
+
 let listElRef: HTMLElement
 
 const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.vis, [
@@ -52,12 +68,24 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
   ,Input({
     ...actions,
     val: $.val,
-    focus: true,
+    focus: !$.pathMode,
     icon: 'hard-drive',
     desc: 'explorer',
   })
 
-  ,Row.important(pathRelativeToHome($.path))
+  ,!$.pathMode && Row.important(pathRelativeToHome($.path))
+
+  ,$.pathMode && Input({
+    change: actions.changePath,
+    hide: actions.normalMode,
+    select: actions.selectPath,
+    tab: actions.completePath,
+    val: $.pathValue,
+    focus: true,
+    icon: 'search',
+    desc: 'open path',
+    small: true,
+  })
 
   ,h('div', {
     onupdate: (e: HTMLElement) => listElRef = e,
@@ -75,6 +103,31 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
 
 const a: Actions<State> = {}
 
+a.ctrlG = s => ({ pathMode: true, pathValue: s.path })
+
+a.completePath = (s, a) => {
+  if (!s.paths.length) return
+  const dir = dirname(absolutePath(s.pathValue))
+  const { name } = s.paths[s.ix]
+  // TODO: if was ~ relative, also make it relative
+  const next = `${join(dir, name)}/`
+  a.changePath(next)
+  return { pathValue: next }
+}
+
+a.normalMode = () => ({ pathMode: false })
+a.updatePaths = (_s, _a, paths: string[]) => ({ paths })
+
+a.selectPath = (s, a) => {
+  getDirFiles(s.pathValue).then(paths => a.updatePaths(sortDirFiles(paths)))
+  return { pathMode: false, path: s.pathValue }
+}
+
+a.changePath = (_s, a, pathValue: string) => {
+  pathExplore(pathValue).then(a.updatePaths)
+  return { pathValue }
+}
+
 a.select = (s, a) => {
   if (!s.paths.length) return a.hide()
   const { name, file } = s.paths[s.ix]
@@ -91,6 +144,7 @@ a.change = (s, _a, val: string) => ({ val, paths: val
   : s.cache
 })
 
+// TODO: conder using a.updatePaths
 a.diveDown = (s, a, next) => {
   const path = join(s.path, next)
   getDirFiles(path).then(paths => a.show({ path, paths: sortDirFiles(paths) }))

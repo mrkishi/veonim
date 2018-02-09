@@ -26,6 +26,7 @@ interface Props {
   jumpNext?: () => void,
   tab?: () => void,
   ctrlH?: () => void,
+  ctrlG?: () => void,
   yank?: () => void,
   loading?: boolean,
   loadingSize?: number,
@@ -80,6 +81,7 @@ export default ({
   jumpNext = nop,
   tab = nop,
   ctrlH = nop,
+  ctrlG = nop,
   yank = nop,
   loading = false,
   loadingSize,
@@ -143,6 +145,7 @@ export default ({
         const cm = ctrl || meta
         if (cm && key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
         if (cm && key === 'h') return ctrlH()
+        if (cm && key === 'g') return ctrlG()
         if (cm && key === 'j') return next()
         if (cm && key === 'k') return prev()
         if (cm && key === 'n') return nextGroup()
