@@ -33,6 +33,7 @@ interface Props {
   loading?: boolean,
   loadingSize?: number,
   loadingColor?: string,
+  pathMode?: boolean,
 }
 
 let lastDown = ''
@@ -67,6 +68,7 @@ export default ({
   val = '',
   small = false,
   focus: shouldFocus = false,
+  pathMode = false,
   background,
   color,
   // TODO: what about a proxy here for noops?
@@ -140,6 +142,8 @@ export default ({
       },
       onkeydown: (e: KeyboardEvent) => {
         const { ctrlKey: ctrl, metaKey: meta, key } = e
+        const cm = ctrl || meta
+
         e.preventDefault()
         lastDown = keToStr(e)
 
@@ -148,8 +152,10 @@ export default ({
         if (key === 'Enter') return select(val)
         if (key === 'Backspace') return change(val.slice(0, -1))
 
-        const cm = ctrl || meta
-        if (cm && key === 'w') return change(val.split(' ').slice(0, -1).join(' '))
+        if (cm && key === 'w') return pathMode
+          ? change(val.split('/').slice(0, -1).join('/'))
+          : change(val.split(' ').slice(0, -1).join(' '))
+
         if (cm && key === 'h') return ctrlH()
         if (cm && key === 'g') return ctrlG()
         if (cm && key === 'j') return next()

@@ -80,13 +80,16 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
     hide: actions.normalMode,
     select: actions.selectPath,
     tab: actions.completePath,
-    val: $.pathValue,
-    focus: true,
+    next: actions.nextPath,
+    prev: actions.prevPath,
+    val: pathRelativeToHome($.pathValue),
     background: 'var(--background-50)',
     color: colors.important,
     icon: 'search',
     desc: 'open path',
     small: true,
+    focus: true,
+    pathMode: true,
   })
 
   ,h('div', {
@@ -104,25 +107,28 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
 ])
 
 const a: Actions<State> = {}
+// TODO: when choosing custom path and go back, make sure it updates correctly
+// like ~/proj/veonim/ -> OK
+// but  ~/proj/veonim -> DERP!
 
 a.updatePathValue = (_s, _a, pathValue: string) => ({ pathValue })
 
 a.ctrlG = (s, a) => {
   // because for whatever reason the 'onupdate' lifecycle event does not
-  // get triggered on render pass including 'pathMode' value update
-  setImmediate(() => a.updatePathValue(s.path))
-  pathExplore(s.path).then(a.updatePaths)
-  return { pathMode: true }
+  // get triggered on render pass which includes 'pathMode' value update
+  const goodPath = !s.path.endsWith('/') ? `${s.path}/` : s.path
+  setImmediate(() => a.updatePathValue(goodPath))
+  pathExplore(goodPath).then(a.updatePaths)
+  return { pathMode: true, ix: 0, val: '' }
 }
 
 a.completePath = (s, a) => {
   if (!s.paths.length) return
   const dir = dirname(absolutePath(s.pathValue))
   const { name } = s.paths[s.ix]
-  // TODO: if was ~ relative, also make it relative
   const next = `${join(dir, name)}/`
   a.changePath(next)
-  return { pathValue: next }
+  return { ix: 0 }
 }
 
 a.normalMode = () => ({ pathMode: false })
@@ -130,12 +136,30 @@ a.updatePaths = (_s, _a, paths: string[]) => ({ paths })
 
 a.selectPath = (s, a) => {
   getDirFiles(s.pathValue).then(paths => a.updatePaths(sortDirFiles(paths)))
-  return { pathMode: false, path: s.pathValue }
+  return { pathMode: false, path: s.pathValue, ix: 0 }
 }
 
 a.changePath = (_s, a, pathValue: string) => {
   pathExplore(pathValue).then(a.updatePaths)
   return { pathValue }
+}
+
+a.nextPath = s => {
+  const ix = s.ix + 1 >= s.paths.length ? 0 : s.ix + 1
+  const fullpath = absolutePath(s.pathValue)
+  const goodPath = fullpath.endsWith('/') ? fullpath : dirname(fullpath)
+  const { name } = s.paths[ix]
+  const pathValue = `${join(goodPath, name)}`
+  return { ix, pathValue }
+}
+
+a.prevPath = s => {
+  const ix = s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1
+  const fullpath = absolutePath(s.pathValue)
+  const goodPath = fullpath.endsWith('/') ? fullpath : dirname(fullpath)
+  const { name } = s.paths[ix]
+  const pathValue = `${join(goodPath, name)}`
+  return { ix, pathValue }
 }
 
 a.select = (s, a) => {
