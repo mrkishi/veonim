@@ -8,6 +8,8 @@ import { paddingVH } from '../ui/css'
 interface Props {
   val: string,
   icon: string,
+  background?: string,
+  color?: string,
   small?: boolean,
   desc?: string,
   focus?: boolean,
@@ -65,6 +67,8 @@ export default ({
   val = '',
   small = false,
   focus: shouldFocus = false,
+  background,
+  color,
   // TODO: what about a proxy here for noops?
   change = nop,
   hide = nop,
@@ -88,6 +92,7 @@ export default ({
   loadingColor,
 }: Props) => h('div', {
   style: {
+    background,
     ...paddingVH(12, small ? 5 : 10),
     display: 'flex',
     alignItems: 'center',
@@ -114,6 +119,7 @@ export default ({
 
     ,Input({
       style: {
+        color,
         fontSize: `${canvasContainer.font.size + (small ? 0 : 4)}px`
       },
       value: val,

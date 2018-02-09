@@ -1,9 +1,9 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { action, current, call, cmd } from '../core/neovim'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { Plugin, Row, colors } from '../styles/common'
 import { join, sep, basename, dirname } from 'path'
 import * as setiIcon from '../styles/seti-icons'
-import { Plugin, Row } from '../styles/common'
 import config from '../config/config-service'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
@@ -82,6 +82,8 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
     tab: actions.completePath,
     val: $.pathValue,
     focus: true,
+    background: 'var(--background-50)',
+    color: colors.important,
     icon: 'search',
     desc: 'open path',
     small: true,
@@ -103,7 +105,15 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
 
 const a: Actions<State> = {}
 
-a.ctrlG = s => ({ pathMode: true, pathValue: s.path })
+a.updatePathValue = (_s, _a, pathValue: string) => ({ pathValue })
+
+a.ctrlG = (s, a) => {
+  // because for whatever reason the 'onupdate' lifecycle event does not
+  // get triggered on render pass including 'pathMode' value update
+  setImmediate(() => a.updatePathValue(s.path))
+  pathExplore(s.path).then(a.updatePaths)
+  return { pathMode: true }
+}
 
 a.completePath = (s, a) => {
   if (!s.paths.length) return

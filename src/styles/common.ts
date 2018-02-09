@@ -66,6 +66,7 @@ export const colors = {
   warning: '#ffb100',
   success: '#72a940',
   system: '#28b0ff',
+  important: '#ffd800',
 }
 
 const badge = style('span')({
@@ -203,7 +204,7 @@ export const Row = {
     normal: style('div')({
       ...row,
       ...paddingH(8),
-      color: '#ffd800',
+      color: colors.important,
       background: 'var(--background-50)',
     })
   }),
