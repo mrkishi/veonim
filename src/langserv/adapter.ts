@@ -94,7 +94,7 @@ const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line: endLine, column: endColumn } = toVimPosition(range.end)
   const cwd = uriAsCwd(uri)
   const file = uriAsFile(uri)
-  const desc = currentBuffer.contents[line - 1]
+  const desc = currentBuffer.contents[line - 1] || ''
   const keyword = desc.slice(range.start.character, range.end.character)
 
   return { cwd, file, line, column, desc, keyword, endLine, endColumn }
