@@ -34,6 +34,7 @@ interface Props {
   loadingSize?: number,
   loadingColor?: string,
   pathMode?: boolean,
+  thisIsGarbage?: (element: HTMLInputElement) => void,
 }
 
 let lastDown = ''
@@ -62,6 +63,11 @@ const IconBox = style('div')({
   paddingRight: '8px',
 })
 
+const focusMaybe = (e: HTMLInputElement, shouldFocus: boolean, thisIsGarbage: Function) => {
+  e !== document.activeElement && shouldFocus && e.focus()
+  thisIsGarbage(e)
+}
+
 export default ({
   desc,
   icon,
@@ -89,6 +95,7 @@ export default ({
   ctrlH = nop,
   ctrlG = nop,
   yank = nop,
+  thisIsGarbage = nop,
   loading = false,
   loadingSize,
   loadingColor,
@@ -126,7 +133,8 @@ export default ({
       },
       value: val,
       placeholder: desc,
-      onupdate: (e: HTMLInputElement) => e !== document.activeElement && shouldFocus && e.focus(),
+      onupdate: (e: HTMLInputElement) => focusMaybe(e, shouldFocus, thisIsGarbage),
+      oncreate: (e: HTMLInputElement) => focusMaybe(e, shouldFocus, thisIsGarbage),
       onkeyup: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
 

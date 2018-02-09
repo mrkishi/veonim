@@ -62,6 +62,7 @@ const pathExplore = async (path: string) => {
 }
 
 let listElRef: HTMLElement
+let pathInputRef: HTMLInputElement
 
 const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.vis, [
 
@@ -89,6 +90,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('explorer', $.v
     desc: 'open path',
     small: true,
     focus: true,
+    thisIsGarbage: (e: HTMLInputElement) => pathInputRef = e,
     pathMode: true,
   })
 
@@ -111,15 +113,11 @@ const a: Actions<State> = {}
 // like ~/proj/veonim/ -> OK
 // but  ~/proj/veonim -> DERP!
 
-a.updatePathValue = (_s, _a, pathValue: string) => ({ pathValue })
-
-a.ctrlG = (s, a) => {
+a.ctrlG = () => {
   // because for whatever reason the 'onupdate' lifecycle event does not
   // get triggered on render pass which includes 'pathMode' value update
-  const goodPath = !s.path.endsWith('/') ? `${s.path}/` : s.path
-  setImmediate(() => a.updatePathValue(goodPath))
-  pathExplore(goodPath).then(a.updatePaths)
-  return { pathMode: true, ix: 0, val: '' }
+  setTimeout(() => pathInputRef.focus(), 1)
+  return { pathMode: true, ix: 0, val: '', pathValue: '' }
 }
 
 a.completePath = (s, a) => {
@@ -135,6 +133,7 @@ a.normalMode = () => ({ pathMode: false })
 a.updatePaths = (_s, _a, paths: string[]) => ({ paths })
 
 a.selectPath = (s, a) => {
+  if (!s.pathValue) return { pathMode: false, ix: 0 }
   getDirFiles(s.pathValue).then(paths => a.updatePaths(sortDirFiles(paths)))
   return { pathMode: false, path: s.pathValue, ix: 0 }
 }
