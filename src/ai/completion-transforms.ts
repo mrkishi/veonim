@@ -5,11 +5,7 @@ import { parse } from 'path'
 export interface CompletionTransformRequest {
   completionKind: CompletionKind,
   lineContent: string,
-  leftChar: string,
-  query: string,
-  line: number,
   column: number,
-  startIndex: number,
   completionOptions: CompletionOption[],
 }
 
@@ -24,7 +20,7 @@ export default (filetype: string, request: CompletionTransformRequest) => {
 }
 
 const isModuleImport = (lineContent: string, column: number) => {
-  const fragment = lineContent.slice(0, column)
+  const fragment = lineContent.slice(0, column - 1)
   return /\b(from|import)\s*["'][^'"]*$/.test(fragment)
     || /\b(import|require)\(['"][^'"]*$/.test(fragment)
 }
@@ -48,6 +44,5 @@ const removeFileExtensionsInImportPaths = ({
   }))
 }
 
-// TODO: should use normalized language ids?
 transforms.set('typescript', removeFileExtensionsInImportPaths)
 transforms.set('javascript', removeFileExtensionsInImportPaths)

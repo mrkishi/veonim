@@ -1,6 +1,7 @@
 import { findIndexRight, hasUpperCase, EarlyPromise, exists, getDirFiles, resolvePath } from '../support/utils'
 import { completions, completionDetail, triggers } from '../langserv/adapter'
 import { CompletionItemKind } from 'vscode-languageserver-types'
+import transformCompletions from '../ai/completion-transforms'
 import { CompletionItem } from 'vscode-languageserver-types'
 import { g, on, current as vimState } from '../core/neovim'
 import * as completionUI from '../components/autocomplete'
@@ -120,9 +121,17 @@ const smartCaseQuery = (query: string): string => hasUpperCase(query[0])
   ? query
   : query[0] + query.slice(1).toUpperCase()
 
-const showCompletionsRaw = (column: number, query: string, startIndex: number) => (completions: CompletionOption[]) => {
-  const options = orderCompletions(completions, query)
-  g.veonim_completions = options.map(m => m.text)
+const showCompletionsRaw = (column: number, query: string, startIndex: number, lineContent: string) =>
+  (completions: CompletionOption[], completionKind: CompletionKind) => {
+  const transformedCompletions = transformCompletions(vimState.filetype, {
+    completionKind,
+    lineContent,
+    column,
+    completionOptions: completions,
+  })
+
+  const options = orderCompletions(transformedCompletions, query)
+  g.veonim_completions = options.map(m => m.insertText)
   g.veonim_complete_pos = startIndex
   const { row, col } = calcMenuPosition(startIndex, column)
   completionUI.show({ row, col, options })
@@ -131,7 +140,7 @@ const showCompletionsRaw = (column: number, query: string, startIndex: number) =
 // TODO: merge global semanticCompletions with keywords?
 const getCompletions = async (lineContent: string, line: number, column: number) => {
   const { startIndex, query, leftChar } = findQuery(lineContent, column)
-  const showCompletions = showCompletionsRaw(column, query, startIndex)
+  const showCompletions = showCompletionsRaw(column, query, startIndex, lineContent)
   const triggerChars = triggers.completion(vimState.cwd, vimState.filetype)
   let semanticCompletions: CompletionOption[] = []
 
@@ -147,7 +156,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (looksLikeWeNeedToCompleteAPath) {
     const options = await getPathCompletions(fullpath, pathQuery)
     if (!options.length) return
-    showCompletionsRaw(column, pathQuery, pathStartIndex)(options)
+    showCompletionsRaw(column, pathQuery, pathStartIndex, lineContent)(options, CompletionKind.Path)
     return
   }
 
@@ -160,7 +169,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
       // this returned late; we started another completion and now this one is irrelevant
       if (cache.activeCompletion !== `${line}:${startIndex}`) return
       semanticCompletions = completions
-      if (!query.length) showCompletions(completions)
+      if (!query.length) showCompletions(completions, CompletionKind.Semantic)
 
       // how annoying is delayed semantic completions overriding pmenu? enable this if so:
       //else showCompletions([...cache.completionItems.slice(0, 1), ...completions])
@@ -169,7 +178,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
   }
 
-  if (!query.length && semanticCompletions.length) return showCompletions(semanticCompletions)
+  if (!query.length && semanticCompletions.length) return showCompletions(semanticCompletions, CompletionKind.Semantic)
 
   if (query.length || semanticCompletions.length) {
     const queryCased = smartCaseQuery(query)
@@ -191,7 +200,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
       return
     }
 
-    showCompletions(completionOptions)
+    showCompletions(completionOptions, resSemantic.length ? CompletionKind.Semantic : CompletionKind.Keyword)
   } else {
     completionUI.hide()
     g.veonim_completions = []
