@@ -15,8 +15,15 @@ interface Cache {
   activeCompletion: string,
 }
 
+export enum CompletionKind {
+  Path,
+  Semantic,
+  Keyword,
+}
+
 export interface CompletionOption {
   text: string,
+  insertText: string,
   kind: CompletionItemKind,
   // TODO: raw is used to get more completion detail. perhaps should change
   // prop name to reflect that
@@ -86,6 +93,7 @@ const getPathCompletions = async (path: string, query: string) => {
 
   return results.map(path => ({
     text: path,
+    insertText: path,
     kind: CompletionItemKind.File,
   }))
 }
@@ -98,6 +106,7 @@ const getSemanticCompletions = (line: number, column: number) => EarlyPromise(as
 
   const options = items.map(m => ({
     raw: m,
+    insertText: m.insertText || m.label,
     text: m.label,
     kind: m.kind || CompletionItemKind.Text,
   }))
@@ -145,7 +154,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   if (triggerChars.includes(leftChar) || query.length) {
     const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
 
-    // TODO: send a $/cancelRequest on insertLeave if not intersted anymore
+    // TODO: send a $/cancelRequest on insertLeave if not interested anymore
     // maybe there is also a way to cancel if we moved to another completion location in the doc
     pendingSemanticCompletions.eventually(completions => {
       // this returned late; we started another completion and now this one is irrelevant
@@ -167,7 +176,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const pendingKeywords = harvester
       .request
       .query(vimState.cwd, vimState.file, queryCased, MAX_SEARCH_RESULTS)
-      .then((res: string[]) => res.map(text => ({ text, kind: CompletionItemKind.Text })))
+      .then((res: string[]) => res.map(text => ({ text, insertText: text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
     // i mean could try to do some sort of combination with ranking/priority. idk if the filtering will interfere with it
