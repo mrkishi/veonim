@@ -29,16 +29,25 @@ const isModuleImport = (lineContent: string, column: number) => {
     || /\b(import|require)\(['"][^'"]*$/.test(fragment)
 }
 
-transforms.set('typescript', m => {
+const removeFileExtensionsInImportPaths = ({
+  completionKind,
+  completionOptions,
+  lineContent,
+  column,
+}: CompletionTransformRequest) => {
   // in the future these can be separated into different modules and organized
   // better. for MVP this will be good enough
-  if (m.completionKind !== CompletionKind.Path) return m.completionOptions
+  if (completionKind !== CompletionKind.Path) return completionOptions
 
-  const tryingToCompleteInsideImportPath = isModuleImport(m.lineContent, m.column)
-  if (!tryingToCompleteInsideImportPath) return m.completionOptions
+  const tryingToCompleteInsideImportPath = isModuleImport(lineContent, column)
+  if (!tryingToCompleteInsideImportPath) return completionOptions
 
-  return m.completionOptions.map(o => ({
+  return completionOptions.map(o => ({
     ...o,
     insertText: parse(o.text).name,
   }))
-})
+}
+
+// TODO: should use normalized language ids?
+transforms.set('typescript', removeFileExtensionsInImportPaths)
+transforms.set('javascript', removeFileExtensionsInImportPaths)
