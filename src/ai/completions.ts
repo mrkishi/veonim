@@ -1,5 +1,5 @@
 import { findIndexRight, hasUpperCase, EarlyPromise, exists, getDirFiles, resolvePath } from '../support/utils'
-import { completions, completionDetail } from '../langserv/adapter'
+import { completions, completionDetail, triggers } from '../langserv/adapter'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { CompletionItem } from 'vscode-languageserver-types'
 import { g, on, current as vimState } from '../core/neovim'
@@ -114,8 +114,9 @@ const showCompletionsRaw = (column: number, query: string, startIndex: number) =
 
 // TODO: merge global semanticCompletions with keywords?
 const getCompletions = async (lineContent: string, line: number, column: number) => {
-  const { startIndex, query } = findQuery(lineContent, column)
+  const { startIndex, query, leftChar } = findQuery(lineContent, column)
   const showCompletions = showCompletionsRaw(column, query, startIndex)
+  const triggerChars = triggers.completion(vimState.cwd, vimState.filetype)
   let semanticCompletions: CompletionOption[] = []
 
   cache.activeCompletion = `${line}:${startIndex}`
@@ -134,21 +135,23 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     return
   }
 
-  const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
+  if (triggerChars.includes(leftChar) || query.length) {
+    const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
 
-  // TODO: send a $/cancelRequest on insertLeave if not intersted anymore
-  // maybe there is also a way to cancel if we moved to another completion location in the doc
-  pendingSemanticCompletions.eventually(completions => {
-    // this returned late and we started another completion and this one is irrelevant
-    if (cache.activeCompletion !== `${line}:${startIndex}`) return
-    semanticCompletions = completions
-    if (!query.length) showCompletions(completions)
+    // TODO: send a $/cancelRequest on insertLeave if not intersted anymore
+    // maybe there is also a way to cancel if we moved to another completion location in the doc
+    pendingSemanticCompletions.eventually(completions => {
+      // this returned late; we started another completion and now this one is irrelevant
+      if (cache.activeCompletion !== `${line}:${startIndex}`) return
+      semanticCompletions = completions
+      if (!query.length) showCompletions(completions)
 
-    // how annoying is delayed semantic completions overriding pmenu? enable this if so:
-    //else showCompletions([...cache.completionItems.slice(0, 1), ...completions])
-  })
+      // how annoying is delayed semantic completions overriding pmenu? enable this if so:
+      //else showCompletions([...cache.completionItems.slice(0, 1), ...completions])
+    })
 
-  semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
+    semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
+  }
 
   if (!query.length && semanticCompletions.length) return showCompletions(semanticCompletions)
 
