@@ -1,6 +1,8 @@
 import { CompletionOption, CompletionKind } from '../ai/completions'
 import { is } from '../support/utils'
 import { parse } from 'path'
+// uhh.. this doesn't belong here
+// import '../support/find-node-modules'
 
 export interface CompletionTransformRequest {
   completionKind: CompletionKind,
