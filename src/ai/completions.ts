@@ -47,15 +47,21 @@ const findQuery = (line: string, column: number) => {
 }
 
 const findPathPerhaps = (lineContent: string, column: number) => {
+  const invalid = { foundPath: '', startIndex: -1, query: '' }
   const match = lineContent.match(/(?:\/|\.\/|\.\.\/|~\/).*\//)
     || lineContent.match(/(\/|\.\/|\.\.\/|~\/)/)
     || [] as RegExpMatchArray
 
-  if (!match[0] || !match.index) return { foundPath: '', startIndex: -1, query: '' }
+  if (!match[0] || !match.index) return invalid
+
+  const querySearchResults = findQuery(lineContent, column)
 
   const foundPath = match[0]
   const startIndex = match.index + match[0].length
   const query = lineContent.slice(startIndex, column - 1)
+
+  if (querySearchResults.startIndex < startIndex || querySearchResults.leftChar !== '/')
+    return invalid
 
   return { foundPath, startIndex, query }
 }
@@ -68,6 +74,7 @@ const reallyResolvePath = (path: string) => {
 
 const possiblePathCompletion = async (lineContent: string, column: number) => {
   const { foundPath, startIndex, query } = findPathPerhaps(lineContent, column)
+  if (startIndex < 0) return { valid: false, fullpath: '', startIndex, query }
   const fullpath = reallyResolvePath(foundPath) || ''
   const valid = fullpath && await exists(fullpath)
   return { valid, startIndex, query, fullpath }
