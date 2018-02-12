@@ -63,7 +63,14 @@ export const pathRelativeToCwd = (path: string, cwd: string) => path.includes(cw
   ? path.replace(cwd, '').replace(/^\//, '')
   : path
 
+// TODO: i don't think this does what you think it does. try giving ./relative/path
 export const absolutePath = (path: string) => resolve(path.replace(/^~\//, `${homedir()}/`))
+
+export const resolvePath = (path: string, dir: string) => {
+  if (path.startsWith('/')) return resolve(path)
+  if (path.startsWith('~/')) return resolve(path.replace(/^~\//, `${homedir()}/`))
+  if (path.startsWith('./') || path.startsWith('../')) return join(dir, path)
+}
 
 export const simplifyPath = (fullpath: string, cwd: string) => fullpath.includes(cwd)
   ? fullpath.split(cwd + '/')[1]

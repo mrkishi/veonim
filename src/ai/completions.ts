@@ -1,5 +1,5 @@
-import { findIndexRight, hasUpperCase, EarlyPromise } from '../support/utils'
-import { completions, completionDetail, triggers } from '../langserv/adapter'
+import { findIndexRight, hasUpperCase, EarlyPromise, exists, getDirFiles, resolvePath } from '../support/utils'
+import { completions, completionDetail } from '../langserv/adapter'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import { CompletionItem } from 'vscode-languageserver-types'
 import { g, on, current as vimState } from '../core/neovim'
@@ -8,6 +8,7 @@ import { harvester, update } from '../ai/update-server'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
+import { join, dirname } from 'path'
 
 interface Cache {
   semanticCompletions: Map<string, CompletionOption[]>,
@@ -17,6 +18,8 @@ interface Cache {
 export interface CompletionOption {
   text: string,
   kind: CompletionItemKind,
+  // TODO: raw is used to get more completion detail. perhaps should change
+  // prop name to reflect that
   raw?: CompletionItem,
 }
 
@@ -43,6 +46,43 @@ const findQuery = (line: string, column: number) => {
   return { startIndex, query, leftChar }
 }
 
+const findPathPerhaps = (lineContent: string, column: number) => {
+  const match = lineContent.match(/(?:\/|\.\/|\.\.\/|~\/).*\//)
+    || lineContent.match(/(\/|\.\/|\.\.\/|~\/)/)
+    || [] as RegExpMatchArray
+
+  if (!match[0] || !match.index) return { foundPath: '', startIndex: -1, query: '' }
+
+  const foundPath = match[0]
+  const startIndex = match.index + match[0].length
+  const query = lineContent.slice(startIndex, column - 1)
+
+  return { foundPath, startIndex, query }
+}
+
+const reallyResolvePath = (path: string) => {
+  const filepath = join(vimState.cwd, vimState.file)
+  const fileDir = dirname(filepath)
+  return resolvePath(path, fileDir)
+}
+
+const possiblePathCompletion = async (lineContent: string, column: number) => {
+  const { foundPath, startIndex, query } = findPathPerhaps(lineContent, column)
+  const fullpath = reallyResolvePath(foundPath) || ''
+  const valid = fullpath && await exists(fullpath)
+  return { valid, startIndex, query, fullpath }
+}
+
+const getPathCompletions = async (path: string, query: string) => {
+  const dirFiles = (await getDirFiles(path)).map(m => m.name)
+  const results = query ? filter(dirFiles, query) : dirFiles.slice(0, 50)
+
+  return results.map(path => ({
+    text: path,
+    kind: CompletionItemKind.File,
+  }))
+}
+
 const getSemanticCompletions = (line: number, column: number) => EarlyPromise(async done => {
   if (cache.semanticCompletions.has(`${line}:${column}`)) 
     return done(cache.semanticCompletions.get(`${line}:${column}`)!)
@@ -64,39 +104,51 @@ const smartCaseQuery = (query: string): string => hasUpperCase(query[0])
   ? query
   : query[0] + query.slice(1).toUpperCase()
 
-// TODO: call completionItem/resolve to get more info about selected completion item
-// TODO: call semanticCompletions for global typings.merge with keywords? (aka non-trigger char stuff)
-const getCompletions = async (lineContent: string, line: number, column: number) => {
-  const showCompletions = (completions: CompletionOption[]) => {
-    const options = orderCompletions(completions, query)
-    g.veonim_completions = options.map(m => m.text)
-    g.veonim_complete_pos = startIndex
-    const { row, col } = calcMenuPosition(startIndex, column)
-    completionUI.show({ row, col, options })
-  }
+const showCompletionsRaw = (column: number, query: string, startIndex: number) => (completions: CompletionOption[]) => {
+  const options = orderCompletions(completions, query)
+  g.veonim_completions = options.map(m => m.text)
+  g.veonim_complete_pos = startIndex
+  const { row, col } = calcMenuPosition(startIndex, column)
+  completionUI.show({ row, col, options })
+}
 
-  const { startIndex, query, leftChar } = findQuery(lineContent, column)
-  const triggerChars = triggers.completion(vimState.cwd, vimState.filetype)
+// TODO: merge global semanticCompletions with keywords?
+const getCompletions = async (lineContent: string, line: number, column: number) => {
+  const { startIndex, query } = findQuery(lineContent, column)
+  const showCompletions = showCompletionsRaw(column, query, startIndex)
   let semanticCompletions: CompletionOption[] = []
 
-  if (triggerChars.includes(leftChar)) {
-    const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
-    cache.activeCompletion = `${line}:${startIndex}`
+  cache.activeCompletion = `${line}:${startIndex}`
 
-    // TODO: send a $/cancelRequest on insertLeave if not intersted anymore
-    // maybe there is also a way to cancel if we moved to another completion location in the doc
-    pendingSemanticCompletions.eventually(completions => {
-      // this returned late and we started another completion and this one is irrelevant
-      if (cache.activeCompletion !== `${line}:${startIndex}`) return
-      semanticCompletions = completions
-      if (!query.length) showCompletions(completions)
+  const {
+    fullpath,
+    query: pathQuery,
+    startIndex: pathStartIndex,
+    valid: looksLikeWeNeedToCompleteAPath,
+  } = await possiblePathCompletion(lineContent, column)
 
-      // how annoying is delayed semantic completions overriding pmenu? enable this if so:
-      //else showCompletions([...cache.completionItems.slice(0, 1), ...completions])
-    })
-
-    semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
+  if (looksLikeWeNeedToCompleteAPath) {
+    const options = await getPathCompletions(fullpath, pathQuery)
+    if (!options.length) return
+    showCompletionsRaw(column, pathQuery, pathStartIndex)(options)
+    return
   }
+
+  const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
+
+  // TODO: send a $/cancelRequest on insertLeave if not intersted anymore
+  // maybe there is also a way to cancel if we moved to another completion location in the doc
+  pendingSemanticCompletions.eventually(completions => {
+    // this returned late and we started another completion and this one is irrelevant
+    if (cache.activeCompletion !== `${line}:${startIndex}`) return
+    semanticCompletions = completions
+    if (!query.length) showCompletions(completions)
+
+    // how annoying is delayed semantic completions overriding pmenu? enable this if so:
+    //else showCompletions([...cache.completionItems.slice(0, 1), ...completions])
+  })
+
+  semanticCompletions = await pendingSemanticCompletions.maybeAfter({ time: 50, or: [] })
 
   if (!query.length && semanticCompletions.length) return showCompletions(semanticCompletions)
 
