@@ -398,6 +398,7 @@ r.msg_chunk = data => message.buffer += data
 
 r.msg_end = () => {
   // TODO: this only happens at startup, so maybe run this condition for a limitied period of time
+  // TODO: test without plugins!
   if (message.buffer === '<') return resetMsg()
   if (!message.kind) notify(message.buffer, NotifyKind.Hidden)
 

@@ -152,8 +152,9 @@ export const createWindow = (container: HTMLElement) => {
   })
 
   api.underline = (col, row, width, color) => {
+    const cellBottom = canvasContainer.cell.height - canvasContainer.cell.padding
     const x = px.col.x(col)
-    const y = px.row.y(row) + (canvasContainer.cell.height - canvasContainer.cell.padding + 2)
+    const y = px.row.y(row) + cellBottom
     const w = px.col.width(width)
 
     ui.beginPath()
