@@ -6,7 +6,7 @@ import { h, app, Actions } from '../ui/uikit'
 import Overlay from '../components/overlay'
 import { cursor } from '../core/cursor'
 import { Row } from '../styles/common'
-// import Icon from '../components/icon'
+import Icon from '../components/icon'
 import { paddingH } from '../ui/css'
 
 interface State {
@@ -42,63 +42,36 @@ const state: State = {
 //   container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
 // }
 
-interface DomFailInfo {
-  text: string,
-  color?: string,
-}
-
-const domSucks = new Map<CompletionItemKind, DomFailInfo>([
-  [ CompletionItemKind.Text, { text: '>' } ],
-  [ CompletionItemKind.Method, { text: 'm', color: '#bb5ef1' } ],
-  [ CompletionItemKind.Property, { text: 'p', color: '#54c8ff' } ],
-  [ CompletionItemKind.Function, { text: 'f', color: '#6da7ff' } ],
-  [ CompletionItemKind.Constructor, { text: 'c', color: '#c9ff56' } ],
-  [ CompletionItemKind.Field, { text: 'f', color: '#9866ff' } ],
-  [ CompletionItemKind.Variable, { text: 'v', color: '#ff70e4' } ],
-  [ CompletionItemKind.Class, { text: 'c', color: '#ffeb5b' } ],
-  [ CompletionItemKind.Interface, { text: 'i', color: '#ffa354' } ],
-  [ CompletionItemKind.Module, { text: 'm', color: '#ff5f54' } ],
-  [ CompletionItemKind.Unit, { text: 'u', color: '#ffadc5' } ],
-  [ CompletionItemKind.Value, { text: 'v', color: '#ffa4d0' } ],
-  [ CompletionItemKind.Enum, { text: 'e', color: '#84ff54' } ],
-  [ CompletionItemKind.Keyword, { text: 'k', color: '#ff0c53' } ],
-  [ CompletionItemKind.Snippet, { text: 's', color: '#0c2dff' } ],
-  [ CompletionItemKind.Color, { text: 'c', color: '#54ffe5' } ],
-  [ CompletionItemKind.File, { text: 'f', color: '#a5c3ff' } ],
-  [ CompletionItemKind.Reference, { text: 'r', color: '#ffdca3' } ],
+const icons = new Map([
+  [ CompletionItemKind.Text, Icon('chevrons-right') ],
+  [ CompletionItemKind.Method, Icon('box', { color: '#bb5ef1' }) ],
+  [ CompletionItemKind.Property, Icon('disc', { color: '#54c8ff' }) ],
+  [ CompletionItemKind.Function, Icon('share-2', { color: '#6da7ff' }) ],
+  [ CompletionItemKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
+  [ CompletionItemKind.Field, Icon('feather', { color: '#9866ff' }) ],
+  [ CompletionItemKind.Variable, Icon('database', { color: '#ff70e4' }) ],
+  [ CompletionItemKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
+  [ CompletionItemKind.Interface, Icon('map', { color: '#ffa354' }) ],
+  [ CompletionItemKind.Module, Icon('grid', { color: '#ff5f54' }) ],
+  [ CompletionItemKind.Unit, Icon('cpu', { color: '#ffadc5' }) ],
+  [ CompletionItemKind.Value, Icon('bell', { color: '#ffa4d0' }) ],
+  [ CompletionItemKind.Enum, Icon('award', { color: '#84ff54' }) ],
+  [ CompletionItemKind.Keyword, Icon('navigation', { color: '#ff0c53' }) ],
+  [ CompletionItemKind.Snippet, Icon('paperclip', { color: '#0c2dff' }) ],
+  [ CompletionItemKind.Color, Icon('eye', { color: '#54ffe5' }) ],
+  [ CompletionItemKind.File, Icon('file', { color: '#a5c3ff' }) ],
+  [ CompletionItemKind.Reference, Icon('link', { color: '#ffdca3' }) ],
+  // TODO: but these exist in the protocol?
+  //[ CompletionItemKind.Folder, Icon('folder', { color: '#' }) ],
+  //[ CompletionItemKind.EnumMember, Icon('menu', { color: '#' }) ],
+  //[ CompletionItemKind.Constant, Icon('save', { color: '#' }) ],
+  //[ CompletionItemKind.Struct, Icon('layers', { color: '#' }) ],
+  //[ CompletionItemKind.Event, Icon('video', { color: '#' }) ],
+  //[ CompletionItemKind.Operator, Icon('anchor', { color: '#' }) ],
+  //[ CompletionItemKind.TypeParameter, Icon('type', { color: '#' }) ],
 ])
 
-//const icons = new Map([
-//  [ CompletionItemKind.Text, Icon('chevrons-right') ],
-//  [ CompletionItemKind.Method, Icon('box', { color: '#bb5ef1' }) ],
-//  [ CompletionItemKind.Property, Icon('disc', { color: '#54c8ff' }) ],
-//  [ CompletionItemKind.Function, Icon('share-2', { color: '#6da7ff' }) ],
-//  [ CompletionItemKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
-//  [ CompletionItemKind.Field, Icon('feather', { color: '#9866ff' }) ],
-//  [ CompletionItemKind.Variable, Icon('database', { color: '#ff70e4' }) ],
-//  [ CompletionItemKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
-//  [ CompletionItemKind.Interface, Icon('map', { color: '#ffa354' }) ],
-//  [ CompletionItemKind.Module, Icon('grid', { color: '#ff5f54' }) ],
-//  [ CompletionItemKind.Unit, Icon('cpu', { color: '#ffadc5' }) ],
-//  [ CompletionItemKind.Value, Icon('bell', { color: '#ffa4d0' }) ],
-//  [ CompletionItemKind.Enum, Icon('award', { color: '#84ff54' }) ],
-//  [ CompletionItemKind.Keyword, Icon('navigation', { color: '#ff0c53' }) ],
-//  [ CompletionItemKind.Snippet, Icon('paperclip', { color: '#0c2dff' }) ],
-//  [ CompletionItemKind.Color, Icon('eye', { color: '#54ffe5' }) ],
-//  [ CompletionItemKind.File, Icon('file', { color: '#a5c3ff' }) ],
-//  [ CompletionItemKind.Reference, Icon('link', { color: '#ffdca3' }) ],
-//  // TODO: but these exist in the protocol?
-//  //[ CompletionItemKind.Folder, Icon('folder', { color: '#' }) ],
-//  //[ CompletionItemKind.EnumMember, Icon('menu', { color: '#' }) ],
-//  //[ CompletionItemKind.Constant, Icon('save', { color: '#' }) ],
-//  //[ CompletionItemKind.Struct, Icon('layers', { color: '#' }) ],
-//  //[ CompletionItemKind.Event, Icon('video', { color: '#' }) ],
-//  //[ CompletionItemKind.Operator, Icon('anchor', { color: '#' }) ],
-//  //[ CompletionItemKind.TypeParameter, Icon('type', { color: '#' }) ],
-//])
-
-// const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || Icon('code')
-const whyDoesHtmlSuckSoBad = (kind: CompletionItemKind) => domSucks.get(kind) || { text: '>' }
+const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || Icon('code')
 
 const docs = (data: string) => Row.normal({
   style: {
@@ -131,8 +104,9 @@ const view = ($: State) => Overlay({
       maxHeight: `${canvasContainer.cell.height * $.visibleOptions}px`,
     }
   }, $.options.map(({ text, kind }, id) => Row.complete({
-    key: id,
+    key: text,
     activeWhen: id === $.ix,
+    // TODO: no scrolling because slow
     // onupdate: (e: HTMLElement) => {
     //   if (id !== $.ix) return
     //   const { top, bottom } = e.getBoundingClientRect()
@@ -151,12 +125,7 @@ const view = ($: State) => Overlay({
         justifyContent: 'center',
       }
     }, [
-      // getCompletionIcon(kind),
-      ,h('div', {
-        style: {
-          color: whyDoesHtmlSuckSoBad(kind).color,
-        }
-      }, whyDoesHtmlSuckSoBad(kind).text)
+      getCompletionIcon(kind),
     ])
 
     ,h('div', text)
@@ -201,9 +170,9 @@ export const show = ({ row, col, options }: ShowParams) => {
   const anchorAbove = cursor.row + visibleOptions > canvasContainer.size.rows 
 
   ui.show({
-    options,
     anchorAbove,
     visibleOptions,
+    options: options.slice(0, visibleOptions),
     x: activeWindow() ? activeWindow()!.colToX(col) : 0,
     y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row : row + 1) : 0,
   })
