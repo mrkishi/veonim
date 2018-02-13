@@ -1,13 +1,17 @@
 import * as canvasContainer from '../core/canvas-container'
 import { bold, faded, paddingVH } from '../ui/css'
+import * as dispatch from '../messaging/dispatch'
+import { current as vim } from '../core/neovim'
 import { activeWindow } from '../core/windows'
 import { h, app, Actions } from '../ui/uikit'
 import Overlay from '../components/overlay'
+import { throttle } from '../support/utils'
 import $$ from '../core/state'
 
 interface State {
   label: string,
   row: number,
+  col: number,
   labelStart: string,
   currentParam: string,
   labelEnd: string,
@@ -35,6 +39,7 @@ interface ShowParams {
 const state: State = {
   label: '',
   row: 0,
+  col: 0,
   labelStart: '',
   currentParam: '',
   labelEnd: '',
@@ -117,6 +122,7 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selected
   }
   : {
     row,
+    col,
     label,
     labelStart,
     labelEnd,
@@ -132,6 +138,15 @@ a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selected
   }
 
 a.hide = () => ({ label: '', visible: false, row: 0 })
+
+a.updatePosition = (s, _a, { nextRow, nextCol }) => {
+  if (!s.visible) return
+
+  const x = activeWindow() ? activeWindow()!.colToX(s.col - 1) : 0
+  const y = activeWindow() ? activeWindow()!.rowToTransformY(s.row > 2 ? s.row : s.row + 1) : 0
+
+  return { x, y }
+}
 
 const ui = app({ state, view, actions: a }, false)
 
@@ -161,3 +176,9 @@ export const show = ({ row, col, label, currentParam, documentation, paramDoc, s
 }
 
 export const hide = () => ui.hide()
+
+// const refreshPosition = () => {
+
+// }
+
+// dispatch.sub('redraw', throttle(refreshPosition, 50))

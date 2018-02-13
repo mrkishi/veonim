@@ -104,7 +104,10 @@ const view = ($: State) => Overlay({
       maxHeight: `${canvasContainer.cell.height * $.visibleOptions}px`,
     }
   }, $.options.map(({ text, kind }, id) => Row.complete({
-    key: text,
+    // TODO: upgrade hyperapp
+    // THIS BREAKS EVERYTHING WHAT THE FUCK HYPERAPP IS GARBAGE
+    // (entire app freezes and hangs)
+    // key: text,
     activeWhen: id === $.ix,
     // TODO: no scrolling because slow
     // onupdate: (e: HTMLElement) => {
