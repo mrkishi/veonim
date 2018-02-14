@@ -15,11 +15,15 @@
 // WHAT THE FUCK
 // web development is a meme.
 
-// TODO: production build because apparently the only way to use
-// react is with a bundler or umd. nice meme.
-// const React = require('react/umd/react.production.min')
-const React = require('react')
-const ReactDom = require('react-dom')
+let reactModule = 'react/umd/react.production.min'
+let reactDomModule = 'react-dom/umd/react-dom.production.min.js'
+
+if (process.env.VEONIM_DEV) reactModule = 'react'
+if (process.env.VEONIM_DEV) reactDomModule = 'react-dom'
+
+const React = require(reactModule)
+const ReactDom = require(reactDomModule)
+
 import huu from 'huu'
 
 export const h = huu(React.createElement)
