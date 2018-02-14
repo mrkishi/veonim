@@ -7,6 +7,7 @@ import { h, app, Actions } from '../ui/uikit'
 import Overlay from '../components/overlay'
 // import { throttle } from '../support/utils'
 import $$ from '../core/state'
+import '../ui/coffee'
 
 interface State {
   label: string,

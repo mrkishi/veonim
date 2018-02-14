@@ -67,7 +67,7 @@ const searchFiles = ({ query, cwd }: Request) => {
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (m: string) => {
     const [ , path = '', line = 0, col = 0, text = '' ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/) || []
-    path && results.push({ path, text: text.trim(), line: <any>line-0, col: <any>col-0 })
+    path && results.push({ path, text: (text as string).trim(), line: <any>line-0, col: <any>col-0 })
   })
 
   rg.on('exit', () => {
