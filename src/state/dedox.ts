@@ -1,9 +1,10 @@
+import { RegisteredActionTypes } from '../state/action-types'
 import { createStore, Action } from 'redux'
 import produce from 'immer'
 
-// typescript reports that 'produce is declared but never used'
-// it clearly is used in the code below, so i don't know what the
-// fuck typescript is smoking
+// typescript reports that 'produce is declared but never used' it clearly is
+// used in the code below (DedoxRegisterAction), so i don't know what the fuck
+// typescript is smoking
 (() => produce)
 
 export interface DedoxAction extends Action {
@@ -11,8 +12,8 @@ export interface DedoxAction extends Action {
 }
 
 export type DedoxReducer = <T>(state: T, data?: any) => T
-export type DedoxRegisterAction<T> = { [index: string]: (actionFn: (state: T, data: any) => any) => void }
-export type DedoxCallAction = { [index: string]: (data: any) => void }
+export type DedoxRegisterAction<T> = { [action: string]: (actionFn: (state: T, data: any) => any) => void }
+export type DedoxCallAction = { [action in RegisteredActionTypes]: (data: any) => void }
 
 export default <T>(initialState: T) => {
   const actions = new Map<string, Function>()
@@ -28,7 +29,7 @@ export default <T>(initialState: T) => {
   const onStateChange = (fn: (state: T) => void) => store.subscribe(() => fn(store.getState() as T))
   const getReducer = (action: string) => actions.get(action)
 
-  const go: DedoxCallAction = new Proxy({}, {
+  const go: DedoxCallAction = new Proxy({} as any, {
     get: (_, type) => (data: any) => store.dispatch({ type, data })
   })
 
