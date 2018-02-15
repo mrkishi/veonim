@@ -2,10 +2,13 @@ import { merge, CreateTask, requireDir, log, delay as timeout } from '../support
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
+import { store } from '../state/trade-federation'
 import setDefaultSession from '../core/sessions'
 import { sub } from '../messaging/dispatch'
+import { h, renderDom } from '../ui/coffee'
 import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
+import { Provider } from 'react-redux'
 import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
@@ -52,6 +55,15 @@ const main = async () => {
     requireDir(`${__dirname}/../services`)
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))
+
+    const targetEl = document.getElementById('plugins') as HTMLElement
+    const { default: hover } = require('../components/hover2')
+
+    const components = [
+      hover,
+    ]
+
+    renderDom(h(Provider, { store }, components), targetEl)
   }, 1)
 }
 

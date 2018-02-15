@@ -1,6 +1,7 @@
 import { font } from '../core/canvas-container'
 import { Hover } from '../state/s-hover'
 import { paddingVH } from '../ui/css'
+import { connect } from 'react-redux'
 import { h } from '../ui/coffee'
 
 const docs = (data: string) => h('div', {
@@ -39,4 +40,4 @@ const view = ($: Hover) => h('div', [
 
 ])
 
-export default view
+export default connect()(view)

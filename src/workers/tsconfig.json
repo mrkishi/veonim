@@ -8,6 +8,7 @@
     "../messaging/worker-client.ts"
   ],
   "compilerOptions": {
+    "skipLibCheck": true,
     "lib": ["es2017", "scripthost", "webworker"]
   }
 }
