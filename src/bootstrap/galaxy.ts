@@ -56,15 +56,28 @@ const main = async () => {
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))
 
-    const targetEl = document.getElementById('plugins') as HTMLElement
-    const { default: hover } = require('../components/hover2')
-
-    const components = [
-      hover,
-    ]
-
-    renderDom(h(Provider, { store }, components), targetEl)
+    bootstrapReact()
   }, 1)
+}
+
+const bootstrapReact = () => {
+  const targetEl = document.getElementById('plugins') as HTMLElement
+  const { default: hover } = require('../components/hover2')
+
+  // TODO: require dir?
+  require('../state/s-hint')
+  require('../state/s-hover')
+
+  const components = h('div', [
+    h(hover),
+  ])
+
+  const rootComponent = h(Provider, {
+    store,
+    children: components,
+  })
+
+  renderDom(rootComponent, targetEl)
 }
 
 main().catch(log)

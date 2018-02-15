@@ -1,17 +1,12 @@
 import NegotiateNewEconomicTradeAgreement from '../state/dedox'
-import hint, { Hint, ActionTypes as HintAT } from '../state/s-hint'
-import hover, { Hover, ActionTypes as HoverAT } from '../state/s-hover'
+import { Hint, ActionTypes as HintAT } from '../state/s-hint'
+import { Hover, ActionTypes as HoverAT } from '../state/s-hover'
 
 export type RegisteredActionTypes = HintAT & HoverAT
 
 export interface Federation {
   hint: Hint,
   hover: Hover,
-}
-
-const initialState: Federation = {
-  hint,
-  hover,
 }
 
 export const {
@@ -21,4 +16,14 @@ export const {
   connect,
   go,
   on,
-} = NegotiateNewEconomicTradeAgreement<Federation>(initialState)
+} = NegotiateNewEconomicTradeAgreement<Federation>({
+  hint: {},
+  hover: {},
+} as Federation)
+
+on.initState((s, { part, initialState }) => Reflect.set(s, part, initialState))
+
+export const initState = (part: string, initialState: object) => store.dispatch({
+  type: 'initState',
+  data: { part, initialState },
+})

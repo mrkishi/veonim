@@ -1,4 +1,4 @@
-import { on } from '../state/trade-federation'
+import { on, initState } from '../state/trade-federation'
 
 export interface Hint {
   label: string,
@@ -30,7 +30,8 @@ const state: Hint = {
   col: 0,
 }
 
-export default state
+initState('hint', state)
+
 export type ActionTypes = 'showHint' | 'hideHint'
 
 on.showHint((s, label) => s.hint = {

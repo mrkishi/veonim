@@ -17,7 +17,10 @@ const docs = (data: string) => h('div', {
 
 (() => docs /* WHAT THE FUCK TYPESCRIPT?! */)
 
-const view = ($: Hover) => h('div', [
+const view = ({ hover: $ }: { hover: Hover }) => h('div', {
+  render: $.visible,
+  id: 'hover2',
+}, [
 
   ,$.doc && !$.anchorBottom && docs($.doc)
 
@@ -42,4 +45,4 @@ const view = ($: Hover) => h('div', [
 
 ])
 
-export default connect(s => s.hover)(view)
+export default connect(s => ({ hover: s.hover }))(view)

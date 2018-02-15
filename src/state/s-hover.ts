@@ -1,4 +1,4 @@
-import { on } from '../state/trade-federation'
+import { on, initState } from '../state/trade-federation'
 import { ColorData } from '../ai/hover'
 
 export interface Hover {
@@ -14,7 +14,7 @@ const state: Hover = {
   anchorBottom: true,
 }
 
-export default state
+initState('hover', state)
 export type ActionTypes = 'showHover' | 'hideHover'
 
 on.showHover((s, colorData) => s.hover = {
