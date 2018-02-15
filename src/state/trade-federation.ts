@@ -1,4 +1,4 @@
-import NegotiateNewEconomicTradeAgreement from '../support/dedox'
+import NegotiateNewEconomicTradeAgreement from '../state/dedox'
 
 interface Federation {
   hint: {
@@ -9,7 +9,14 @@ interface Federation {
   }
 }
 
-const federation = NegotiateNewEconomicTradeAgreement()
+export default NegotiateNewEconomicTradeAgreement<Federation>({
+  hint: {
+    label: '',
+    visible: false,
+    row: 0,
+    col: 0,
+  }
+})
 
 // onStateChange(s => console.log(s))
 
