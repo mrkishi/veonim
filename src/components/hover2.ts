@@ -15,6 +15,8 @@ const docs = (data: string) => h('div', {
   }
 }, data)
 
+(() => docs /* WHAT THE FUCK TYPESCRIPT?! */)
+
 const view = ($: Hover) => h('div', [
 
   ,$.doc && !$.anchorBottom && docs($.doc)
