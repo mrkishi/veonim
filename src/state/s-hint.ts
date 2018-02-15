@@ -32,7 +32,10 @@ const state: Hint = {
 
 initState('hint', state)
 
-export type ActionTypes = 'showHint' | 'hideHint'
+export interface Actions {
+  showHint: (label: string) => void,
+  hideHint: () => void,
+}
 
 on.showHint((s, label) => s.hint = {
   ...s.hint,

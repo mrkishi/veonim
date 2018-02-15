@@ -11,4 +11,4 @@ action('fullscreen', () => {
   win.setFullScreen(!win.isFullScreen())
 })
 
-action('blarg', () => go.showHover())
+action('blarg', () => go.showHint('eat a bag of dicks'))

@@ -1,6 +1,6 @@
 import { action, current as vimState, on } from '../core/neovim'
 import * as markdown from '../support/markdown'
-import * as hoverUI from '../components/hover'
+import { go } from '../state/trade-federation'
 import { hover } from '../langserv/adapter'
 import Worker from '../messaging/worker'
 import { cursor } from '../core/cursor'
@@ -18,9 +18,9 @@ action('hover', async () => {
   const cleanData = markdown.remove(value)
   const data: ColorData[][] = await colorizer.request.colorize(cleanData, vimState.filetype)
 
-  hoverUI.show({ data, doc, row: cursor.row, col: cursor.col })
+  go.showHover({ data, doc, row: cursor.row, col: cursor.col })
 })
 
-on.cursorMove(() => hoverUI.hide())
-on.insertEnter(() => hoverUI.hide())
-on.insertLeave(() => hoverUI.hide())
+on.cursorMove(() => go.hideHover())
+on.insertEnter(() => go.hideHover())
+on.insertLeave(() => go.hideHover())

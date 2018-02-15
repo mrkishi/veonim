@@ -1,8 +1,8 @@
 import NegotiateNewEconomicTradeAgreement from '../state/dedox'
-import { Hint, ActionTypes as HintAT } from '../state/s-hint'
-import { Hover, ActionTypes as HoverAT } from '../state/s-hover'
+import { Hover, Actions as HoverA } from '../state/s-hover'
+import { Hint, Actions as HintA } from '../state/s-hint'
 
-export type RegisteredActionTypes = HintAT & HoverAT
+export type RegisteredActions = HintA & HoverA
 
 export interface Federation {
   hint: Hint,

@@ -6,20 +6,38 @@ export interface Hover {
   anchorBottom: boolean,
   visible: boolean,
   doc?: string,
+  row: number,
+  col: number,
+}
+
+export interface ShowParams {
+  row: number,
+  col: number,
+  data: ColorData[][],
+  doc?: string,
 }
 
 const state: Hover = {
   value: [[]],
   visible: false,
   anchorBottom: true,
+  row: 0,
+  col: 0,
 }
 
 initState('hover', state)
-export type ActionTypes = 'showHover' | 'hideHover'
 
-on.showHover((s, colorData) => s.hover = {
+export interface Actions {
+  showHover: (params: ShowParams) => void,
+  hideHover: () => void,
+}
+
+on.showHover((s, { row, col, data, doc }) => s.hover = {
   ...s.hover,
-  value: colorData,
+  row,
+  col,
+  doc,
+  value: data,
   visible: true,
 })
 
