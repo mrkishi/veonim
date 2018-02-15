@@ -1,7 +1,7 @@
+import { connect } from '../state/trade-federation'
 import { font } from '../core/canvas-container'
 import { Hover } from '../state/s-hover'
 import { paddingVH } from '../ui/css'
-import { connect } from 'react-redux'
 import { h } from '../ui/coffee'
 
 const docs = (data: string) => h('div', {
@@ -40,4 +40,4 @@ const view = ($: Hover) => h('div', [
 
 ])
 
-export default connect()(view)
+export default connect(s => s.hover)(view)

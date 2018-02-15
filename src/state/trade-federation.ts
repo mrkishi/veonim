@@ -4,7 +4,7 @@ import hover, { Hover, ActionTypes as HoverAT } from '../state/s-hover'
 
 export type RegisteredActionTypes = HintAT & HoverAT
 
-interface Federation {
+export interface Federation {
   hint: Hint,
   hover: Hover,
 }
@@ -18,6 +18,7 @@ export const {
   store,
   onStateChange,
   getReducer,
+  connect,
   go,
   on,
 } = NegotiateNewEconomicTradeAgreement<Federation>(initialState)
