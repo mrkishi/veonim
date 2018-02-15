@@ -1,26 +1,18 @@
 import NegotiateNewEconomicTradeAgreement from '../state/dedox'
+import hint, { Hint } from '../state/s-hint'
 
 interface Federation {
-  hint: {
-    label: string,
-    visible: boolean,
-    row: number,
-    col: number,
-  }
+  hint: Hint,
 }
 
-export default NegotiateNewEconomicTradeAgreement<Federation>({
-  hint: {
-    label: '',
-    visible: false,
-    row: 0,
-    col: 0,
-  }
-})
+const initialState: Federation = {
+  hint
+}
 
-// onStateChange(s => console.log(s))
-
-// on.blarg((state, data) => state.pets.push(data))
-
-// go.blarg('nice')
-// go.blarg('ayyy')
+export const {
+  store,
+  onStateChange,
+  getReducer,
+  go,
+  on,
+} = NegotiateNewEconomicTradeAgreement<Federation>(initialState)
