@@ -31,6 +31,7 @@ const state: Hint = {
 }
 
 export default state
+export type ActionTypes = 'showHint' | 'hideHint'
 
 on.showHint((s, label) => s.hint = {
   ...s.hint,

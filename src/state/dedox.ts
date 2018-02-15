@@ -1,4 +1,4 @@
-import { RegisteredActionTypes } from '../state/action-types'
+import { RegisteredActionTypes } from '../state/trade-federation'
 import { createStore, Action } from 'redux'
 import produce from 'immer'
 
