@@ -39,6 +39,7 @@ on.showHover((s, { row, col, data, doc }) => s.hover = {
   doc,
   value: data,
   visible: true,
+  anchorBottom: row > 2,
 })
 
 on.hideHover(s => s.hover.visible = false)

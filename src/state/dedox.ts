@@ -3,12 +3,6 @@ import { connect as connectToStore } from 'react-redux'
 import { createStore, Action } from 'redux'
 import produce from 'immer'
 
-// typescript reports that 'produce is declared but never used' it clearly is
-// used in the code below (DedoxRegisterAction), so i don't know what the fuck
-// typescript is smoking
-// typescript also reports that 'connectToStore is never used' wtf...
-(() => produce);(() => connectToStore)
-
 export interface DedoxAction extends Action {
   data: any,
 }
