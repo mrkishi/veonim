@@ -11,9 +11,9 @@ const docs = (data: string) => h('div', {
     ...paddingVH(8, 6),
     overflow: 'visible',
     whiteSpace: 'normal',
-    background: 'var(--background-45)',
-    color: 'var(--foreground-40)',
-    fontSize: `${font.size - 2}px`,
+    background: cvar('background-45'),
+    color: cvar('foreground-40'),
+    fontSize: '0.9rem',
   }
 }, data)
 

@@ -1,18 +1,27 @@
 import { connect } from '../state/trade-federation'
-import { bold, faded, paddingVH } from '../ui/css'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay2'
+import { h, styled } from '../ui/coffee'
 import { Hint } from '../state/s-hint'
-import { h } from '../ui/coffee'
+import { paddingVH } from '../ui/css'
 import { cvar } from '../ui/css'
-import $$ from '../core/state'
+
+const Faded = styled.span`
+  color: var(--foreground);
+  opacity: 0.6;
+`
+
+const Strong = styled.span`
+  color: var(--foreground);
+  font-weight: bold;
+`
 
 const docs = (data: string) => h('div', {
   style: {
+    ...paddingVH(8, 6),
     overflow: 'visible',
     whiteSpace: 'normal',
-    ...paddingVH(8, 6),
-    fontSize: '0.9em',
+    fontSize: '0.9rem',
     color: cvar('foreground-40'),
   }
 }, data)
@@ -45,10 +54,9 @@ const view = ({ data: $ }: { data: Hint }) => Overlay({
       padding: '8px',
     } }, [
       ,h('div', [
-        // TODO: i think we can do this with css only
-        ,h('span', { style: faded($$.foreground, 0.6) }, $.labelStart)
-        ,h('span', { style: bold($$.foreground) }, $.currentParam)
-        ,h('span', { style: faded($$.foreground, 0.6) }, $.labelEnd)
+        ,h(Faded, [ h('span', $.labelStart) ])
+        ,h(Strong, [ h('span', $.currentParam) ])
+        ,h(Faded, [ h('span', $.labelEnd) ])
       ])
 
       ,h('div', {

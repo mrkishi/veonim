@@ -8,7 +8,9 @@ const React = require(reactModule)
 const ReactDom = require(reactDomModule)
 
 import hyperscript from '../ui/hyperscript'
+import sc from 'styled-components'
 
+export const styled = sc
 export const h = hyperscript(React.createElement)
 export const createElement = React.createElement
 export const renderDom = (vNode: any, element: HTMLElement) => ReactDom.render(vNode, element)
