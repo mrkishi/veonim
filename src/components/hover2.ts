@@ -4,6 +4,7 @@ import Overlay from '../components/overlay2'
 import { Hover } from '../state/s-hover'
 import { paddingVH } from '../ui/css'
 import { h } from '../ui/coffee'
+import { cvar } from '../ui/css'
 
 const docs = (data: string) => h('div', {
   style: {
@@ -29,7 +30,7 @@ const view = ({ data: $ }: { data: Hover }) => Overlay({
 
   ,h('div', {
     style: {
-      background: 'var(--background-30)',
+      background: cvar('background-30'),
       padding: '8px',
     }
   }, $.value.map(m => h('div', {
@@ -39,7 +40,7 @@ const view = ({ data: $ }: { data: Hover }) => Overlay({
     }
   }, m.map(({ color, text }) => h('span', {
     style: {
-      color: color || 'var(--foreground)',
+      color: color || cvar('foreground'),
       whiteSpace: 'pre',
     }
   }, text)))))

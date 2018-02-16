@@ -1,10 +1,10 @@
-import * as canvasContainer from '../core/canvas-container'
 import { connect } from '../state/trade-federation'
 import { bold, faded, paddingVH } from '../ui/css'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay2'
 import { Hint } from '../state/s-hint'
 import { h } from '../ui/coffee'
+import { cvar } from '../ui/css'
 import $$ from '../core/state'
 
 const docs = (data: string) => h('div', {
@@ -12,8 +12,8 @@ const docs = (data: string) => h('div', {
     overflow: 'visible',
     whiteSpace: 'normal',
     ...paddingVH(8, 6),
-    fontSize: `${canvasContainer.font.size - 2}px`,
-    color: 'var(--foreground-40)',
+    fontSize: '0.9em',
+    color: cvar('foreground-40'),
   }
 }, data)
 
@@ -29,11 +29,11 @@ const view = ({ data: $ }: { data: Hint }) => Overlay({
 
   ,h('div', {
     style: {
-      background: 'var(--background-30)',
+      background: cvar('background-30'),
     }
   }, [
     ,h('div', { style: {
-      background: 'var(--background-45)',
+      background: cvar('background-45'),
       paddingBottom: $.documentation || $.paramDoc ? '2px' : undefined
     } }, [
       ,$.documentation && docs($.documentation)
@@ -45,6 +45,7 @@ const view = ({ data: $ }: { data: Hint }) => Overlay({
       padding: '8px',
     } }, [
       ,h('div', [
+        // TODO: i think we can do this with css only
         ,h('span', { style: faded($$.foreground, 0.6) }, $.labelStart)
         ,h('span', { style: bold($$.foreground) }, $.currentParam)
         ,h('span', { style: faded($$.foreground, 0.6) }, $.labelEnd)
@@ -54,7 +55,7 @@ const view = ({ data: $ }: { data: Hint }) => Overlay({
         render: $.totalSignatures > 1,
         style: {
           paddingLeft: '4px',
-          color: 'var(--foreground)',
+          color: cvar('foreground'),
         },
       }, `${$.selectedSignature}/${$.totalSignatures}`)
     ])
