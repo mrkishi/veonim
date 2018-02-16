@@ -1,73 +1,27 @@
-import * as canvasContainer from '../core/canvas-container'
-import { bold, faded, paddingVH } from '../ui/css'
-// import * as dispatch from '../messaging/dispatch'
-// import { current as vim } from '../core/neovim'
+import { connect } from '../state/trade-federation'
+import { Documentation } from '../styles/common'
 import { activeWindow } from '../core/windows'
-import { h, app, Actions } from '../ui/uikit'
-import Overlay from '../components/overlay'
-// import { throttle } from '../support/utils'
-import $$ from '../core/state'
-import '../ui/coffee'
+import Overlay from '../components/overlay2'
+import { h, styled } from '../ui/coffee'
+import { Hint } from '../state/hint'
+import { cvar } from '../ui/css'
 
-interface State {
-  label: string,
-  row: number,
-  col: number,
-  labelStart: string,
-  currentParam: string,
-  labelEnd: string,
-  documentation: string,
-  paramDoc: string,
-  visible: boolean,
-  x: number,
-  y: number,
-  anchorBottom: boolean,
-  totalSignatures: number,
-  selectedSignature: number,
-}
+const Faded = styled.span`
+  color: var(--foreground);
+  filter: opacity(60%);
+`
 
-interface ShowParams {
-  row: number,
-  col: number,
-  label: string,
-  currentParam: string,
-  documentation?: string,
-  paramDoc?: string,
-  totalSignatures: number,
-  selectedSignature: number,
-}
+const Strong = styled.span`
+  color: var(--foreground);
+  font-weight: bold;
+`
 
-const state: State = {
-  label: '',
-  row: 0,
-  col: 0,
-  labelStart: '',
-  currentParam: '',
-  labelEnd: '',
-  documentation: '',
-  paramDoc: '',
-  visible: false,
-  x: 0,
-  y: 0,
-  anchorBottom: true,
-  totalSignatures: 0,
-  selectedSignature: 0,
-}
+const docs = (data: string) => h(Documentation, [ h('div', data) ])
 
-const docs = (data: string) => h('div', {
-  style: {
-    overflow: 'visible',
-    whiteSpace: 'normal',
-    ...paddingVH(8, 6),
-    fontSize: `${canvasContainer.font.size - 2}px`,
-    color: 'var(--foreground-40)',
-  }
-}, data)
-
-const view = ($: State) => Overlay({
+const view = ({ data: $ }: { data: Hint }) => Overlay({
   name: 'hint',
-  x: $.x,
-  y: $.y,
+  x: activeWindow() ? activeWindow()!.colToX($.col - 1) : 0,
+  y: activeWindow() ? activeWindow()!.rowToTransformY($.row > 2 ? $.row : $.row + 1) : 0,
   zIndex: 200,
   maxWidth: 600,
   visible: $.visible,
@@ -76,11 +30,11 @@ const view = ($: State) => Overlay({
 
   ,h('div', {
     style: {
-      background: 'var(--background-30)',
+      background: cvar('background-30'),
     }
   }, [
     ,h('div', { style: {
-      background: 'var(--background-45)',
+      background: cvar('background-45'),
       paddingBottom: $.documentation || $.paramDoc ? '2px' : undefined
     } }, [
       ,$.documentation && docs($.documentation)
@@ -92,16 +46,16 @@ const view = ($: State) => Overlay({
       padding: '8px',
     } }, [
       ,h('div', [
-        ,h('span', { style: faded($$.foreground, 0.6) }, $.labelStart)
-        ,h('span', { style: bold($$.foreground) }, $.currentParam)
-        ,h('span', { style: faded($$.foreground, 0.6) }, $.labelEnd)
+        ,h(Faded, [ h('span', $.labelStart) ])
+        ,h(Strong, [ h('span', $.currentParam) ])
+        ,h(Faded, [ h('span', $.labelEnd) ])
       ])
 
       ,h('div', {
-        hide: $.totalSignatures < 2,
+        render: $.totalSignatures > 1,
         style: {
           paddingLeft: '4px',
-          color: 'var(--foreground)',
+          color: cvar('foreground'),
         },
       }, `${$.selectedSignature}/${$.totalSignatures}`)
     ])
@@ -109,77 +63,4 @@ const view = ($: State) => Overlay({
 
 ])
 
-const a: Actions<State> = {}
-
-// this equals check will not refresh if we do sig hint calls > 1 on the same row... problem? umad?
-a.show = (s, _a, { label, labelStart, currentParam, labelEnd, row, col, selectedSignature, totalSignatures, documentation, paramDoc }) => s.label === label && s.row === row
-  ? {
-    label,
-    labelStart,
-    currentParam,
-    labelEnd,
-    paramDoc,
-    visible: true
-  }
-  : {
-    row,
-    col,
-    label,
-    labelStart,
-    labelEnd,
-    documentation,
-    paramDoc,
-    currentParam,
-    selectedSignature,
-    totalSignatures,
-    x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-    y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
-    anchorBottom: row > 2,
-    visible: true
-  }
-
-a.hide = () => ({ label: '', visible: false, row: 0 })
-
-// a.updatePosition = (s, _a, { nextRow, nextCol }) => {
-//   if (!s.visible) return
-
-//   const x = activeWindow() ? activeWindow()!.colToX(s.col - 1) : 0
-//   const y = activeWindow() ? activeWindow()!.rowToTransformY(s.row > 2 ? s.row : s.row + 1) : 0
-
-//   return { x, y }
-// }
-
-const ui = app({ state, view, actions: a }, false)
-
-const sliceAndDiceLabel = (label: string, currentParam: string) => {
-  const paramStart = label.indexOf(currentParam)
-  const labelStart = label.slice(0, paramStart)
-  const activeParam = label.slice(paramStart, paramStart + currentParam.length)
-  const labelEnd = label.slice(paramStart + currentParam.length)
-  return { labelStart, labelEnd, activeParam }
-}
-
-export const show = ({ row, col, label, currentParam, documentation, paramDoc, selectedSignature, totalSignatures }: ShowParams) => {
-  const { labelStart, labelEnd, activeParam } = sliceAndDiceLabel(label, currentParam)
-
-  ui.show({
-    row,
-    col,
-    paramDoc,
-    documentation,
-    label,
-    labelStart,
-    labelEnd,
-    selectedSignature,
-    totalSignatures,
-    currentParam: activeParam,
-  })
-}
-
-export const hide = () => ui.hide()
-
-// const refreshPosition = () => {
-
-// }
-
-// dispatch.sub('redraw', throttle(refreshPosition, 50))
+export default connect(s => ({ data: s.hint }))(view)

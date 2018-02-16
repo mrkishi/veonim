@@ -63,15 +63,15 @@ const main = async () => {
 const bootstrapReact = () => {
   const targetEl = document.getElementById('plugins') as HTMLElement
   // TODO: require all of them? move them into separate folder?
-  require('../state/s-hover')
-  require('../state/s-hint')
-  require('../state/s-problem-info')
+  require('../state/hover')
+  require('../state/hint')
+  require('../state/problem-info')
 
   const components = h('div', [
     // TODO: requireDir automate wildcard imports?
-    h(require('../components/hover2').default),
-    h(require('../components/hint2').default),
-    h(require('../components/problem-info2').default),
+    h(require('../components/hover').default),
+    h(require('../components/hint').default),
+    h(require('../components/problem-info').default),
   ])
 
   const rootComponent = h(Provider, { store, children: components })

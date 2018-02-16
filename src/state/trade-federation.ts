@@ -1,6 +1,6 @@
-import { ProblemInfo, Actions as ProblemInfoA } from '../state/s-problem-info'
-import { Hover, Actions as HoverA } from '../state/s-hover'
-import { Hint, Actions as HintA } from '../state/s-hint'
+import { ProblemInfo, Actions as ProblemInfoA } from '../state/problem-info'
+import { Hover, Actions as HoverA } from '../state/hover'
+import { Hint, Actions as HintA } from '../state/hint'
 import LOL from '../state/dedox'
 
 export type RegisteredActions = HintA & HoverA & ProblemInfoA

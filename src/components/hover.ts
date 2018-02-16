@@ -1,47 +1,13 @@
-import * as canvasContainer from '../core/canvas-container'
-import { activeWindow } from '../core/windows'
-import { h, app, Actions } from '../ui/uikit'
-import Overlay from '../components/overlay'
-import { ColorData } from '../ai/hover'
-import { paddingVH } from '../ui/css'
-import $$ from '../core/state'
+import { connect } from '../state/trade-federation'
+import { Documentation } from '../styles/common'
+import Overlay from '../components/overlay2'
+import { Hover } from '../state/hover'
+import { h } from '../ui/coffee'
+import { cvar } from '../ui/css'
 
-interface State {
-  value: ColorData[][],
-  visible: boolean,
-  x: number,
-  y: number,
-  anchorBottom: boolean,
-  doc?: string,
-}
+const docs = (data: string) => h(Documentation, [ h('div', data) ])
 
-interface ShowParams {
-  row: number,
-  col: number,
-  data: ColorData[][],
-  doc?: string,
-}
-
-const state: State = {
-  value: [[]],
-  visible: false,
-  x: 0,
-  y: 0,
-  anchorBottom: true,
-}
-
-const docs = (data: string) => h('div', {
-  style: {
-    ...paddingVH(8, 6),
-    overflow: 'visible',
-    whiteSpace: 'normal',
-    background: 'var(--background-45)',
-    color: 'var(--foreground-40)',
-    fontSize: `${canvasContainer.font.size - 2}px`,
-  }
-}, data)
-
-const view = ($: State) => Overlay({
+const view = ({ data: $ }: { data: Hover }) => Overlay({
   name: 'hover',
   x: $.x,
   y: $.y,
@@ -50,11 +16,11 @@ const view = ($: State) => Overlay({
   anchorAbove: $.anchorBottom,
 }, [
 
-  $.doc && !$.anchorBottom && docs($.doc),
+  ,$.doc && !$.anchorBottom && docs($.doc)
 
   ,h('div', {
     style: {
-      background: 'var(--background-30)',
+      background: cvar('background-30'),
       padding: '8px',
     }
   }, $.value.map(m => h('div', {
@@ -64,28 +30,13 @@ const view = ($: State) => Overlay({
     }
   }, m.map(({ color, text }) => h('span', {
     style: {
-      color: color || $$.foreground,
-      'white-space': 'pre',
+      color: color || cvar('foreground'),
+      whiteSpace: 'pre',
     }
   }, text)))))
 
-  ,$.doc && $.anchorBottom && docs($.doc),
+  ,$.doc && $.anchorBottom && docs($.doc)
 
 ])
 
-const a: Actions<State> = {}
-
-a.hide = () => ({ visible: false })
-a.show = (_s, _a, { value, row, col, doc }) => ({
-  doc,
-  value,
-  x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
-  anchorBottom: row > 2,
-  visible: true
-})
-
-const ui = app({ state, view, actions: a }, false)
-
-export const show = ({ row, col, data, doc }: ShowParams) => ui.show({ value: data, doc, row, col })
-export const hide = () => ui.hide()
+export default connect(s => ({ data: s.hover }))(view)
