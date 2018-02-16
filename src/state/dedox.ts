@@ -40,6 +40,7 @@ export default <T>(initialState: T) => {
   })
 
   const connect: DedoxConnect<T> = connectToStore
+  const getState = () => store.getState() as T
 
-  return { store, onStateChange, getReducer, connect, go, on }
+  return { store, onStateChange, getReducer, connect, go, on, getState }
 }

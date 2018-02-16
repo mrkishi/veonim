@@ -3,7 +3,6 @@ import * as markdown from '../support/markdown'
 import { go } from '../state/trade-federation'
 import { hover } from '../langserv/adapter'
 import Worker from '../messaging/worker'
-import { cursor } from '../core/cursor'
 
 export interface ColorData {
   color: string,
@@ -18,7 +17,7 @@ action('hover', async () => {
   const cleanData = markdown.remove(value)
   const data: ColorData[][] = await colorizer.request.colorize(cleanData, vimState.filetype)
 
-  go.showHover({ data, doc, row: cursor.row, col: cursor.col })
+  go.showHover({ data, doc })
 })
 
 on.cursorMove(() => go.hideHover())

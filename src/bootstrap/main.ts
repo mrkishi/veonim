@@ -5,7 +5,11 @@ app.setName('veonim')
 Menu.setApplicationMenu(new Menu())
 
 app.on('ready', async () => {
+  let position = {}
+  if (process.env.VEONIM_DEV) position = { x: 0, y: 0 }
+
   win = new BrowserWindow({
+    ...position,
     width: 800,
     height: 600,
     minWidth: 600,
@@ -28,7 +32,6 @@ app.on('ready', async () => {
       default: installExtension,
       REACT_DEVELOPER_TOOLS,
       REDUX_DEVTOOLS,
-      REACT_PERF,
     } = require('electron-devtools-installer')
 
     const load = (ext: any) => installExtension(ext)
@@ -37,7 +40,6 @@ app.on('ready', async () => {
 
     load(REACT_DEVELOPER_TOOLS)
     load(REDUX_DEVTOOLS)
-    load(REACT_PERF)
 
     win.webContents.openDevTools()
   }

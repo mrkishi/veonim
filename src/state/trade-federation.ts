@@ -16,6 +16,7 @@ export const {
   connect,
   go,
   on,
+  getState,
 } = NegotiateNewEconomicTradeAgreement<Federation>({
   hint: {},
   hover: {},

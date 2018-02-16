@@ -1,23 +1,20 @@
-import { on, go, initState } from '../state/trade-federation'
+import { on, go, initState, getState } from '../state/trade-federation'
 import { debounce, merge } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import { activeWindow } from '../core/windows'
 import { ColorData } from '../ai/hover'
+import { cursor } from '../core/cursor'
 
 export interface Hover {
   value: ColorData[][],
   anchorBottom: boolean,
   visible: boolean,
   doc?: string,
-  row: number,
-  col: number,
   x: number,
   y: number,
 }
 
 export interface ShowParams {
-  row: number,
-  col: number,
   data: ColorData[][],
   doc?: string,
 }
@@ -26,8 +23,6 @@ initState('hover', {
   value: [[]],
   visible: false,
   anchorBottom: true,
-  row: 0,
-  col: 0,
   x: 0,
   y: 0,
 } as Hover)
@@ -43,23 +38,26 @@ const getPosition = (row: number, col: number) => ({
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
 })
 
-on.showHover((s, { row, col, data, doc }) => s.hover = {
+on.showHover((s, { data, doc }) => s.hover = {
   ...s.hover,
-  ...getPosition(row, col),
-  row,
-  col,
+  ...getPosition(cursor.row, cursor.col),
   doc,
   value: data,
   visible: true,
-  anchorBottom: row > 2,
+  anchorBottom: cursor.row > 2,
 })
 
 on.hideHover(s => s.hover.visible = false)
 
 on.updateHoverPosition(s => {
   if (!s.hover.visible) return
-  const { row, col } = s.hover
-  merge(s.hover, getPosition(row, col))
+
+  merge(s.hover, {
+    ...getPosition(cursor.row, cursor.col),
+    anchorBottom: cursor.row > 2,
+  })
 })
 
-dispatch.sub('redraw', debounce(go.updateHoverPosition, 500))
+dispatch.sub('redraw', debounce(() => {
+  getState().hover.visible && go.updateHoverPosition()
+}, 100))
