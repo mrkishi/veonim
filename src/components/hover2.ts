@@ -1,21 +1,11 @@
 import { connect } from '../state/trade-federation'
-import { font } from '../core/canvas-container'
+import { Documentation } from '../styles/common'
 import Overlay from '../components/overlay2'
 import { Hover } from '../state/s-hover'
-import { paddingVH } from '../ui/css'
 import { h } from '../ui/coffee'
 import { cvar } from '../ui/css'
 
-const docs = (data: string) => h('div', {
-  style: {
-    ...paddingVH(8, 6),
-    overflow: 'visible',
-    whiteSpace: 'normal',
-    background: cvar('background-45'),
-    color: cvar('foreground-40'),
-    fontSize: '0.9rem',
-  }
-}, data)
+const docs = (data: string) => h(Documentation, [ h('div', data) ])
 
 const view = ({ data: $ }: { data: Hover }) => Overlay({
   name: 'hover2',

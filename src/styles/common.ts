@@ -1,6 +1,7 @@
 import { setVar, paddingVH, paddingH, paddingV, contrast, darken, brighten } from '../ui/css'
 import $, { watch } from '../core/state'
 import { is } from '../support/utils'
+import { styled } from '../ui/coffee'
 import { style } from '../ui/uikit'
 
 type WhateverObject = { [index: string]: any }
@@ -218,3 +219,15 @@ export const Row = {
 
   group: style('div')(paddingH(4)),
 }
+
+export const Documentation = styled.div`
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 8px;
+  padding-right: 8px;
+  overflow: visible;
+  white-space: normal;
+  font-size: 0.9rem;
+  color: var(--foreground-40);
+  background: var(--background-45);
+`

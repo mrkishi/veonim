@@ -1,9 +1,9 @@
 import { connect } from '../state/trade-federation'
+import { Documentation } from '../styles/common'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay2'
 import { h, styled } from '../ui/coffee'
 import { Hint } from '../state/s-hint'
-import { paddingVH } from '../ui/css'
 import { cvar } from '../ui/css'
 
 const Faded = styled.span`
@@ -16,15 +16,7 @@ const Strong = styled.span`
   font-weight: bold;
 `
 
-const docs = (data: string) => h('div', {
-  style: {
-    ...paddingVH(8, 6),
-    overflow: 'visible',
-    whiteSpace: 'normal',
-    fontSize: '0.9rem',
-    color: cvar('foreground-40'),
-  }
-}, data)
+const docs = (data: string) => h(Documentation, [ h('div', data) ])
 
 const view = ({ data: $ }: { data: Hint }) => Overlay({
   name: 'hint',
