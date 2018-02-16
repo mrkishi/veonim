@@ -8,7 +8,7 @@ import { cvar } from '../ui/css'
 
 const Faded = styled.span`
   color: var(--foreground);
-  opacity: 0.6;
+  filter: opacity(60%);
 `
 
 const Strong = styled.span`
