@@ -48,5 +48,5 @@ on.updateProblemPosition(s => {
 
 dispatch.sub('redraw', debounce(() => {
   getState().problemInfo.visible && go.updateProblemPosition()
-}, 100))
+}, 50))
 

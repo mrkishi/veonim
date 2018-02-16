@@ -1,8 +1,7 @@
-// import * as canvasContainer from '../core/canvas-container'
 import { ProblemInfo } from '../state/s-problem-info'
 import { connect } from '../state/trade-federation'
 import Overlay from '../components/overlay2'
-import Icon from '../components/icon'
+import Icon from '../components/icon2'
 import { h } from '../ui/coffee'
 import { cvar } from '../ui/css'
 
@@ -32,12 +31,10 @@ const view = ({ data: $ }: { data: ProblemInfo }) => Overlay({
         paddingRight: '8px',
       }
     }, [
-      // Icon('error', {
-      //   color: cvar('error'),
-      //   size: `1.2rem`,
-      //   // TODO: use em/rem pls
-      //   // size: canvasContainer.font.size + 4,
-      // })
+      Icon('XCircle', {
+        color: cvar('error'),
+        size: '1.2rem',
+      })
     ])
 
     ,h('div', $.value)

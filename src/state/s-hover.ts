@@ -56,4 +56,4 @@ on.updateHoverPosition(s => {
 
 dispatch.sub('redraw', debounce(() => {
   getState().hover.visible && go.updateHoverPosition()
-}, 100))
+}, 50))
