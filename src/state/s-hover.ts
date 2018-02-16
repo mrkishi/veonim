@@ -17,15 +17,13 @@ export interface ShowParams {
   doc?: string,
 }
 
-const state: Hover = {
+initState('hover', {
   value: [[]],
   visible: false,
   anchorBottom: true,
   row: 0,
   col: 0,
-}
-
-initState('hover', state)
+} as Hover)
 
 export interface Actions {
   showHover: (params: ShowParams) => void,

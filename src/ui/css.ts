@@ -33,7 +33,7 @@ export const partialFill = (direction: string, color: string, size: number) =>
 export const translate = (x: number | string, y: number | string) => `translate(${x}px, ${y}px)`
 export const setVar = (name: string, val: number | string) => document.body.style.setProperty(`--${name}`, val + '')
 export const prop = (el: Element, name: string) => parseFloat(window.getComputedStyle(el).getPropertyValue(name))
-export const bold = (color: string) => ({ color, 'font-weight': 'bold' })
+export const bold = (color: string) => ({ color, fontWeight: 'bold' })
 export const faded = (color: string, amount: number) => ({ color: hexToRGBA(color, amount) })
 export const polygon = (...points: Point[]) => `polygon(${points.map(p => `${percent(p.x)} ${percent(p.y)}`).join(', ')})`
 
