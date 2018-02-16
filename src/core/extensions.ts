@@ -33,8 +33,7 @@ interface LanguageActivationResult {
   server?: Server,
 }
 
-// TODO: remove in build?
-const DEV_MODE = !!+process.env.VEONIM_DEV!
+const DEV_MODE = false // TODO: only want this in difficult dev/debug sessions
 export const EXT_PATH = path.join(configPath, 'veonim', 'extensions')
 const extensions = new Map<string, Extension>()
 const languageExtensions = new Map<string, string>()
