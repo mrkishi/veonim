@@ -1,12 +1,14 @@
-import NegotiateNewEconomicTradeAgreement from '../state/dedox'
+import { ProblemInfo, Actions as ProblemInfoA } from '../state/s-problem-info'
 import { Hover, Actions as HoverA } from '../state/s-hover'
 import { Hint, Actions as HintA } from '../state/s-hint'
+import LOL from '../state/dedox'
 
-export type RegisteredActions = HintA & HoverA
+export type RegisteredActions = HintA & HoverA & ProblemInfoA
 
 export interface Federation {
   hint: Hint,
   hover: Hover,
+  problemInfo: ProblemInfo,
 }
 
 export const {
@@ -17,9 +19,10 @@ export const {
   go,
   on,
   getState,
-} = NegotiateNewEconomicTradeAgreement<Federation>({
+} = LOL<Federation>({
   hint: {},
   hover: {},
+  problemInfo: {},
 } as Federation)
 
 on.initState((s, { part, initialState }) => Reflect.set(s, part, initialState))

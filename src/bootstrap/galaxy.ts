@@ -65,11 +65,13 @@ const bootstrapReact = () => {
   // TODO: require all of them? move them into separate folder?
   require('../state/s-hover')
   require('../state/s-hint')
+  require('../state/s-problem-info')
 
   const components = h('div', [
     // TODO: requireDir automate wildcard imports?
     h(require('../components/hover2').default),
     h(require('../components/hint2').default),
+    h(require('../components/problem-info2').default),
   ])
 
   const rootComponent = h(Provider, { store, children: components })

@@ -4,11 +4,11 @@ import { LocationItem, findNext, findPrevious } from '../support/relative-finder
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
-import * as problemInfoUI from '../components/problem-info'
 import * as codeActionUI from '../components/code-actions'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
+import { go } from '../state/trade-federation'
 import { sessions } from '../core/sessions'
 import { cursor } from '../core/cursor'
 import '../ai/remote-problems'
@@ -161,17 +161,12 @@ action('show-problem', async () => {
   if (!diagnostics) return
 
   const targetProblem = diagnostics.find(d => positionWithinRange(line - 1, column - 1, d.range))
-
-  targetProblem && problemInfoUI.show({
-    row: cursor.row,
-    col: cursor.col,
-    data: targetProblem.message
-  })
+  if (targetProblem) go.showProblem(targetProblem.message)
 })
 
-on.cursorMove(() => problemInfoUI.hide())
-on.insertEnter(() => problemInfoUI.hide())
-on.insertLeave(() => problemInfoUI.hide())
+on.cursorMove(() => go.hideProblem())
+on.insertEnter(() => go.hideProblem())
+on.insertLeave(() => go.hideProblem())
 
 action('next-problem', async () => {
   const { line, column, cwd, file } = vim
