@@ -21,6 +21,7 @@ export default ($: Props, content: any[]) => h('div', {
     position: 'absolute',
   }
 }, [
+  console.log('render overlay2:', $.x, $.y)
 
   ,h('.spacer', {
     style: {

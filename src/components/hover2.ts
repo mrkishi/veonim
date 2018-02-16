@@ -1,6 +1,5 @@
 import { connect } from '../state/trade-federation'
 import { font } from '../core/canvas-container'
-import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay2'
 import { Hover } from '../state/s-hover'
 import { paddingVH } from '../ui/css'
@@ -18,13 +17,14 @@ const docs = (data: string) => h('div', {
 }, data)
 
 const view = ({ hover: $ }: { hover: Hover }) => Overlay({
+  x: $.x,
+  y: $.y,
   name: 'hover2',
-  x: activeWindow() ? activeWindow()!.colToX($.col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToTransformY($.row > 2 ? $.row : $.row + 1) : 0,
   maxWidth: 600,
   visible: $.visible,
   anchorAbove: $.anchorBottom,
 }, [
+  console.log('render hover2:', $.x,$.y)
 
   ,$.doc && !$.anchorBottom && docs($.doc)
 
