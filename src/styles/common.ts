@@ -10,6 +10,7 @@ type SC1 = (content: Content) => any
 type SC2 = (params: StyleParams, content: Content) => any
 type StyledComponent = SC1 & SC2
 
+// TODO: investigate if css filters would be better suited for this
 const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
   setVar('background-b10', brighten(bg, 10))
   setVar('background-b5', brighten(bg, 5))
@@ -60,6 +61,12 @@ export const modstyl = (states: object): StyledComponent => (...args: any[]) => 
   if (is.function(style)) return styl(params, content)
   else throw new Error(`styled component has no default 'active' state object`)
 }
+
+setVar('error', '#ef2f2f')
+setVar('warning', '#ffb100')
+setVar('success', '#72a940')
+setVar('system', '#28b0ff')
+setVar('important', '#ffd800')
 
 export const colors = {
   error: '#ef2f2f',
