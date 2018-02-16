@@ -36,6 +36,7 @@ export interface Actions {
 const getPosition = (row: number, col: number) => ({
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
+  anchorBottom: cursor.row > 2,
 })
 
 on.showHover((s, { data, doc }) => s.hover = {
@@ -44,18 +45,13 @@ on.showHover((s, { data, doc }) => s.hover = {
   doc,
   value: data,
   visible: true,
-  anchorBottom: cursor.row > 2,
 })
 
 on.hideHover(s => s.hover.visible = false)
 
 on.updateHoverPosition(s => {
   if (!s.hover.visible) return
-
-  merge(s.hover, {
-    ...getPosition(cursor.row, cursor.col),
-    anchorBottom: cursor.row > 2,
-  })
+  merge(s.hover, getPosition(cursor.row, cursor.col))
 })
 
 dispatch.sub('redraw', debounce(() => {
