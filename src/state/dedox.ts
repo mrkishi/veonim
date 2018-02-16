@@ -21,7 +21,13 @@ export default <T>(initialState: T) => {
       : state
   }
 
-  const store = createStore(mainReducer as any)
+  let arg2 = undefined
+  if (process.env.VEONIM_DEV) {
+    arg2 = (window as any).__REDUX_DEVTOOLS_EXTENSION__
+      && (window as any).__REDUX_DEVTOOLS_EXTENSION__()
+  }
+
+  const store = createStore(mainReducer as any, arg2)
   const onStateChange = (fn: (state: T) => void) => store.subscribe(() => fn(store.getState() as T))
   const getReducer = (action: string) => actions.get(action)
 
