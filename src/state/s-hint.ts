@@ -1,4 +1,5 @@
 import { on, initState } from '../state/trade-federation'
+import { merge } from '../support/utils'
 
 export interface Hint {
   label: string,
@@ -89,19 +90,8 @@ on.showHint((s, {
   }
 })
 
-on.hideHint(s => s.hint.visible = false)
-// a.hide = () => ({ label: '', visible: false, row: 0 })
-// a.updatePosition = (s, _a, { nextRow, nextCol }) => {
-// const refreshPosition = () => {
-
-// }
-
-// dispatch.sub('redraw', throttle(refreshPosition, 50))
-
-//   if (!s.visible) return
-
-//   const x = activeWindow() ? activeWindow()!.colToX(s.col - 1) : 0
-//   const y = activeWindow() ? activeWindow()!.rowToTransformY(s.row > 2 ? s.row : s.row + 1) : 0
-
-//   return { x, y }
-// }
+on.hideHint(s => merge(s.hint, {
+  visible: false,
+  label: '',
+  row: 0,
+}))
