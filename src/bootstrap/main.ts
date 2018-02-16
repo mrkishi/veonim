@@ -1,5 +1,12 @@
 import { app, BrowserWindow, Menu } from 'electron'
 
+console.log('FUCL:', process.env.VEONIM_DEV)
+
+if (process.env.VEONIM_DEV) {
+  const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer')
+  installExtension(REACT_DEVELOPER_TOOLS)
+}
+
 let win: Electron.BrowserWindow
 app.setName('veonim')
 Menu.setApplicationMenu(new Menu())
@@ -20,5 +27,9 @@ app.on('ready', async () => {
   })
 
   win.loadURL(`file:///${__dirname}/index.html`)
-  win.webContents.openDevTools()
+
+  if (process.env.VEONIM_DEV) {
+    console.log(`veonim started in develop mode. you're welcome`)
+    win.webContents.openDevTools()
+  }
 })
