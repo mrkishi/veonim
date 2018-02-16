@@ -17,6 +17,9 @@ action('hover', async () => {
   const cleanData = markdown.remove(value)
   const data: ColorData[][] = await colorizer.request.colorize(cleanData, vimState.filetype)
 
+  // TODO: split each group by word
+  // ['hello world how', 'are you today?']
+  // ['hello', 'world', 'how', 'are', 'you', 'today']
   go.showHover({ data, doc })
 })
 

@@ -1,14 +1,11 @@
 import * as canvasContainer from '../core/canvas-container'
 import { connect } from '../state/trade-federation'
 import { bold, faded, paddingVH } from '../ui/css'
-// import * as dispatch from '../messaging/dispatch'
-// import { current as vim } from '../core/neovim'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay2'
-// import { throttle } from '../support/utils'
-import $$ from '../core/state'
-import { h } from '../ui/coffee'
 import { Hint } from '../state/s-hint'
+import { h } from '../ui/coffee'
+import $$ from '../core/state'
 
 const docs = (data: string) => h('div', {
   style: {
@@ -20,7 +17,7 @@ const docs = (data: string) => h('div', {
   }
 }, data)
 
-const view = ({ hint: $ }: { hint: Hint }) => Overlay({
+const view = ({ data: $ }: { data: Hint }) => Overlay({
   name: 'hint',
   x: activeWindow() ? activeWindow()!.colToX($.col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY($.row > 2 ? $.row : $.row + 1) : 0,
@@ -65,4 +62,4 @@ const view = ({ hint: $ }: { hint: Hint }) => Overlay({
 
 ])
 
-export default connect(s => ({ hint: s.hint }))(view)
+export default connect(s => ({ data: s.hint }))(view)

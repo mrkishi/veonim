@@ -16,15 +16,14 @@ const docs = (data: string) => h('div', {
   }
 }, data)
 
-const view = ({ hover: $ }: { hover: Hover }) => Overlay({
+const view = ({ data: $ }: { data: Hover }) => Overlay({
+  name: 'hover2',
   x: $.x,
   y: $.y,
-  name: 'hover2',
   maxWidth: 600,
   visible: $.visible,
   anchorAbove: $.anchorBottom,
 }, [
-  console.log('render hover2:', $.x,$.y)
 
   ,$.doc && !$.anchorBottom && docs($.doc)
 
@@ -49,4 +48,4 @@ const view = ({ hover: $ }: { hover: Hover }) => Overlay({
 
 ])
 
-export default connect(s => ({ hover: s.hover }))(view)
+export default connect(s => ({ data: s.hover }))(view)
