@@ -173,10 +173,23 @@ export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, rejec
   return { maybeAfter, eventually, fail: promise.catch }
 }
 
+export const requireDirSync = (path: string) => {
+  const items = fs.readdirSync(path).map(m => ({
+    name: m,
+    path: join(path, m),
+  }))
+
+  const files = items
+    .filter(m => fs.statSync(m.path).isFile())
+    .filter(m => extname(m.name) === '.js')
+
+  return files.map(m => require(m.path))
+}
+
 export const requireDir = async (path: string) => (await getDirFiles(path))
   .filter(m => m.file)
   .filter(m => extname(m.name) === '.js')
-  .forEach(m => require(m.path))
+  .map(m => require(m.path))
 
 export function debounce (fn: Function, wait = 1) {
   let timeout: NodeJS.Timer

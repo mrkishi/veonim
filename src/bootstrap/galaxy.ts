@@ -1,4 +1,4 @@
-import { merge, CreateTask, requireDir, log, delay as timeout } from '../support/utils'
+import { merge, CreateTask, requireDir, requireDirSync, log, delay as timeout } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
@@ -53,28 +53,29 @@ const main = async () => {
   setTimeout(() => {
     lazyLoadCSS('../assets/seti-icons.css')
     requireDir(`${__dirname}/../services`)
+    // TODO: deprecate this in the near future
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))
 
-    bootstrapReact()
+    requireDirSync(`${__dirname}/../state`)
+    loadComponents()
   }, 1)
 }
 
-const bootstrapReact = () => {
+const loadComponents = async () => {
   const targetEl = document.getElementById('plugins') as HTMLElement
-  // TODO: require all of them? move them into separate folder?
-  require('../state/hover')
-  require('../state/hint')
-  require('../state/problem-info')
+  const importedComponents = await requireDir(`${__dirname}/../components`)
+  // const children = h('div', importedComponents.map(m => h(m.default)))
 
-  const components = h('div', [
-    // TODO: requireDir automate wildcard imports?
-    h(require('../components/hover').default),
-    h(require('../components/hint').default),
-    h(require('../components/problem-info').default),
-  ])
+  // TODO: temporary because react components mixed with hyperapp
+  const names = importedComponents
+    .filter(m => m.default)
+    .filter(m => m.default.name === 'Connect')
+  console.log('ic:', names)
 
-  const rootComponent = h(Provider, { store, children: components })
+  const children = h('div', names.map(m => h(m.default)))
+
+  const rootComponent = h(Provider, { store, children })
   renderDom(rootComponent, targetEl)
 }
 
