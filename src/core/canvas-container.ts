@@ -65,9 +65,7 @@ export const setFont = ({ size, lineHeight, face = _font.face }: Font) => {
     height: Math.floor(fontSize * fontLineHeight)
   })
 
-  // TODO: this needs reworking...
-  // for example, try using other font + line-height + size combinations
-  _cell.padding = Math.round((_cell.height - _font.size) / 2) - Math.round(_font.lineHeight * 2)
+  _cell.padding = Math.floor((_cell.height - _font.size) / 2)
 
   watchers.notify('font', { ..._font })
   watchers.notify('cell', { ..._cell })
