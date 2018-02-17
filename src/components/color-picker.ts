@@ -1,19 +1,17 @@
-import { connect } from '../state/trade-federation'
+import { go, connect } from '../state/trade-federation'
 const { ChromePicker } = require('react-color')
 import { debounce } from '../support/utils'
 import { h } from '../ui/coffee'
 
 export interface ColorPickerProps {
   color: string,
-  onColor: Function,
-  onChange: Function,
   visible: boolean,
 }
 
-const view = ({ color, onColor, onChange, visible }: ColorPickerProps) => h(ChromePicker, {
+const view = ({ color, visible }: ColorPickerProps) => h(ChromePicker, {
   color,
-  onChange: debounce(onChange, 50),
-  onChangeComplete: onColor,
+  onChange: debounce(go.colorPickerChange, 50),
+  onChangeComplete: go.colorPicked,
   render: visible,
 })
 

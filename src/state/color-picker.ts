@@ -4,8 +4,6 @@ import { cursor } from '../core/cursor'
 
 export interface ColorPicker {
   color: string,
-  onChange: (color: object) => void,
-  onColor: (color: object) => void,
   anchorBottom: boolean,
   visible: boolean,
   x: number,
@@ -14,8 +12,6 @@ export interface ColorPicker {
 
 initState('colorPicker', {
   color: '',
-  onChange: () => {},
-  onColor: () => {},
   anchorBottom: true,
   visible: false,
   x: 0,
@@ -24,7 +20,6 @@ initState('colorPicker', {
 
 export interface Actions {
   pickColor: (color: string) => void,
-  pickColorRealtime: (color: string) => void,
   cancelPickColor: () => void,
 }
 
