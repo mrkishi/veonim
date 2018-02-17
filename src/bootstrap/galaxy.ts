@@ -65,15 +65,14 @@ const main = async () => {
 const loadComponents = async () => {
   const targetEl = document.getElementById('plugins') as HTMLElement
   const importedComponents = await requireDir(`${__dirname}/../components`)
-  // const children = h('div', importedComponents.map(m => h(m.default)))
 
   // TODO: temporary because react components mixed with hyperapp
   const names = importedComponents
     .filter(m => m.default)
     .filter(m => m.default.name === 'Connect')
-  console.log('ic:', names)
 
   const children = h('div', names.map(m => h(m.default)))
+  // const children = h('div', importedComponents.map(m => h(m.default)))
 
   const rootComponent = h(Provider, { store, children })
   renderDom(rootComponent, targetEl)

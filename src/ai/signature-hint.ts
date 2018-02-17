@@ -90,9 +90,9 @@ const getSignatureHint = async (lineContent: string) => {
   showSignature(signatures, activeSignature, activeParameter)
 }
 
-on.cursorMove(() => go.hideHint())
-on.insertEnter(() => go.hideHint())
-on.insertLeave(() => go.hideHint())
+on.cursorMove(go.hideHint)
+on.insertEnter(go.hideHint)
+on.insertLeave(go.hideHint)
 
 action('signature-help-next', () => {
   const next = cache.selectedSignature + 1
