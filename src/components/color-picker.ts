@@ -1,7 +1,9 @@
 import { connect } from '../state/trade-federation'
+import { ColorPicker } from '../state/color-picker'
 import * as dispatch from '../messaging/dispatch'
 const { ChromePicker } = require('react-color')
-import { debounce } from '../support/utils'
+import Overlay from '../components/overlay2'
+import { throttle } from '../support/utils'
 import { h, styled } from '../ui/coffee'
 
 export interface ColorPickerProps {
@@ -16,22 +18,22 @@ const ShowCursor = styled.div`
   }
 `
 
-const view = ({ color, visible }: ColorPickerProps) => h('div', {
-  id: 'color-picker',
-  render: visible,
+const view = ({ data: $ }: { data: ColorPicker }) => Overlay({
+  name: 'color-picker',
+  x: $.x,
+  y: $.y,
+  visible: $.visible,
+  anchorAbove: $.anchorBottom,
 }, [
 
   h(ShowCursor, [
     h(ChromePicker, {
-      color,
+      color: $.color,
       onChangeComplete: (color: any) => dispatch.pub('colorpicker.complete', color.hex),
-      onChange: debounce((color: any) => dispatch.pub('colorpicker.change', color.hex), 50),
+      onChange: throttle((color: any) => dispatch.pub('colorpicker.change', color.hex), 150),
     })
   ])
 
 ])
 
-export default connect(s => ({
-  color: s.colorPicker.color,
-  visible: s.colorPicker.visible,
-}))(view)
+export default connect(s => ({ data: s.colorPicker }))(view)

@@ -3,12 +3,11 @@ import * as dispatch from '../messaging/dispatch'
 import { go } from '../state/trade-federation'
 
 dispatch.sub('colorpicker.change', (color: string) => {
-  console.log('color change:', color)
+  cmd(`exec "normal! ciw${color}"`)
 })
 
 dispatch.sub('colorpicker.complete', (color: string) => {
-  if (color) cmd(`exec "normal! ciw${color}"`)
-  go.hideColorPicker()
+  cmd(`exec "normal! ciw${color}"`)
 })
 
 action('pick-color', async () => {

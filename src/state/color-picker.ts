@@ -5,6 +5,7 @@ import { cursor } from '../core/cursor'
 export interface ColorPicker {
   color: string,
   visible: boolean,
+  anchorBottom: boolean,
   x: number,
   y: number,
 }
@@ -12,6 +13,7 @@ export interface ColorPicker {
 initState('colorPicker', {
   color: '',
   visible: false,
+  anchorBottom: true,
   x: 0,
   y: 0,
 } as ColorPicker)
@@ -21,10 +23,10 @@ export interface Actions {
   hideColorPicker: () => void,
 }
 
-// TODO: i think we can share this between state modules?
 const getPosition = (row: number, col: number) => ({
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
+  anchorBottom: row > 12,
 })
 
 on.pickColor((s, color) => s.colorPicker = {
