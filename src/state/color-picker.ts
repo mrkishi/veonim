@@ -4,7 +4,6 @@ import { cursor } from '../core/cursor'
 
 export interface ColorPicker {
   color: string,
-  anchorBottom: boolean,
   visible: boolean,
   x: number,
   y: number,
@@ -12,7 +11,6 @@ export interface ColorPicker {
 
 initState('colorPicker', {
   color: '',
-  anchorBottom: true,
   visible: false,
   x: 0,
   y: 0,
@@ -27,7 +25,6 @@ export interface Actions {
 const getPosition = (row: number, col: number) => ({
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
-  anchorBottom: cursor.row > 2,
 })
 
 on.pickColor((s, color) => s.colorPicker = {
