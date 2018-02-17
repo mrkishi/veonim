@@ -2,26 +2,32 @@ import { connect } from '../state/trade-federation'
 import * as dispatch from '../messaging/dispatch'
 const { ChromePicker } = require('react-color')
 import { debounce } from '../support/utils'
-import { h } from '../ui/coffee'
+import { h, styled } from '../ui/coffee'
 
 export interface ColorPickerProps {
   color: string,
   visible: boolean,
 }
 
+const ShowCursor = styled.div`
+  cursor: default;
+  & * {
+    cursor: default;
+  }
+`
+
 const view = ({ color, visible }: ColorPickerProps) => h('div', {
   id: 'color-picker',
   render: visible,
-  style: {
-    cursor: 'default',
-  }
 }, [
 
-  h(ChromePicker, {
-    color,
-    onChangeComplete: (color: any) => dispatch.pub('colorpicker.complete', color.hex),
-    onChange: debounce((color: any) => dispatch.pub('colorpicker.change', color.hex), 50),
-  })
+  h(ShowCursor, [
+    h(ChromePicker, {
+      color,
+      onChangeComplete: (color: any) => dispatch.pub('colorpicker.complete', color.hex),
+      onChange: debounce((color: any) => dispatch.pub('colorpicker.change', color.hex), 50),
+    })
+  ])
 
 ])
 
