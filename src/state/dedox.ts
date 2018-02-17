@@ -7,6 +7,8 @@ export interface DedoxAction extends Action {
   data: any,
 }
 
+type AnyCallable = { [name: string]: (...args: any[]) => void }
+export type DedoxCallableAction = RegisteredActions & AnyCallable
 export type DedoxReducer = <T>(state: T, data?: any) => T
 export type DedoxRegisterAction<T> = { [action: string]: (actionFn: (state: T, data: any) => any) => void }
 export type DedoxConnect<T> = (selector: (state: T) => any) => Function
@@ -31,7 +33,7 @@ export default <T>(initialState: T) => {
   const onStateChange = (fn: (state: T) => void) => store.subscribe(() => fn(store.getState() as T))
   const getReducer = (action: string) => actions.get(action)
 
-  const go: RegisteredActions = new Proxy({} as any, {
+  const go: DedoxCallableAction = new Proxy({} as any, {
     get: (_, type) => (data: any) => store.dispatch({ type, data })
   })
 
