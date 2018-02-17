@@ -1,4 +1,5 @@
-import { go, connect } from '../state/trade-federation'
+import { connect } from '../state/trade-federation'
+import * as dispatch from '../messaging/dispatch'
 const { ChromePicker } = require('react-color')
 import { debounce } from '../support/utils'
 import { h } from '../ui/coffee'
@@ -10,20 +11,9 @@ export interface ColorPickerProps {
 
 const view = ({ color, visible }: ColorPickerProps) => h(ChromePicker, {
   color,
-  onChange: debounce(go.colorPickerChange, 50),
-  onChangeComplete: go.colorPicked,
   render: visible,
+  onChangeComplete: (color: any) => dispatch.pub('colorpicker.complete', color.hex),
+  onChange: debounce((color: any) => dispatch.pub('colorpicker.change', color.hex), 50),
 })
 
 export default connect(s => ({ data: s.colorPicker }))(view)
-
-
-// a.hide = () => {
-//   if (pickedColor) cmd(`exec "normal! ciw${pickedColor}"`)
-//   return { val: '#ffffff', vis: false }
-// }
-
-// action('pick-color', async () => {
-//   const word = await call.expand('<cword>')
-//   ui.show(word)
-// })

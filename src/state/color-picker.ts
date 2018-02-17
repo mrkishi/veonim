@@ -20,7 +20,7 @@ initState('colorPicker', {
 
 export interface Actions {
   pickColor: (color: string) => void,
-  cancelPickColor: () => void,
+  hideColorPicker: () => void,
 }
 
 // TODO: i think we can share this between state modules?
@@ -37,4 +37,4 @@ on.pickColor((s, color) => s.colorPicker = {
   visible: true,
 })
 
-on.cancelPickColor(s => s.colorPicker.visible = false)
+on.hideColorPicker(s => s.colorPicker.visible = false)
