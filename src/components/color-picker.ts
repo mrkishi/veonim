@@ -28,8 +28,6 @@ const view = ({ data: $ }: { data: ColorPicker }) => Overlay({
   onElement: el => el && onLoseFocus(el, go.hideColorPicker),
 }, [
 
-  console.log('go render the color picker ok?')
-
   ,h(ShowCursor, [
     ,h(ChromePicker, {
       color: $.color,

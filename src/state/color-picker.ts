@@ -25,7 +25,7 @@ export interface Actions {
 
 const getPosition = (row: number, col: number) => ({
   x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
+  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 12 ? row : row + 1) : 0,
   anchorBottom: row > 12,
 })
 

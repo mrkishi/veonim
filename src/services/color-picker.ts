@@ -1,4 +1,4 @@
-import { action, call, cmd } from '../core/neovim'
+import { action, call, cmd, on } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
 import { go } from '../state/trade-federation'
 
@@ -14,3 +14,5 @@ action('pick-color', async () => {
   const word = await call.expand('<cword>')
   go.pickColor(word)
 })
+
+on.cursorMove(go.hideColorPicker)
