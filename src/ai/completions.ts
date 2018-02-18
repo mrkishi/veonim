@@ -104,6 +104,7 @@ const getSemanticCompletions = (line: number, column: number) => EarlyPromise(as
     return done(cache.semanticCompletions.get(`${line}:${column}`)!)
 
   const items = await completions(vimState)
+  if (!items) return done([])
 
   const options = items.map(m => ({
     raw: m,

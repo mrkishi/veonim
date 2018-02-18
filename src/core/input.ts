@@ -112,7 +112,6 @@ const sendKeys = async (e: KeyboardEvent) => {
 }
 
 window.addEventListener('keydown', e => {
-  e.preventDefault()
   if (!isCapturing) return
   const es = keToStr(e)
 
@@ -140,7 +139,6 @@ window.addEventListener('keydown', e => {
 })
 
 window.addEventListener('keyup', e => {
-  e.preventDefault()
   if (!isCapturing) return
   const es = keToStr(e)
 

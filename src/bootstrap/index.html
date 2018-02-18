@@ -4,7 +4,7 @@
     <title>veonim</title>
     <style>
 * {
-  cursor: none;
+/**  cursor: none;**/
 }
 
 @font-face {
@@ -38,11 +38,15 @@ input {
   width: 100%;
   box-sizing: border-box;
   outline: none;
-  color: #eee;
   border: none;
   background: none;
   line-height: var(--line-height);
   padding: 0;
+  color: var(--foreground-b60);
+}
+
+input::placeholder {
+  color: var(--foreground-70);
 }
 
 #start {

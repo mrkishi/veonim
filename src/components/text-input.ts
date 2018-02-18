@@ -48,13 +48,10 @@ const keToStr = (e: KeyboardEvent) => [
 ].join('')
 
 const Input = style('input')({
-  '::placeholder': {
-    color: 'var(--foreground-70)',
-  },
-  color: 'var(--foreground-b60)',
-  outline: 'none',
-  border: 'none',
-  fontFamily: 'var(--font)',
+  // '::placeholder': {
+  //   color: 'var(--foreground-70)',
+  // },
+  // color: 'var(--foreground-b60)',
 })
 
 const IconBox = style('div')({

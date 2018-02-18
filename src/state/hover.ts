@@ -7,6 +7,7 @@ import { cursor } from '../core/cursor'
 
 export interface Hover {
   value: ColorData[][],
+  shit: string,
   anchorBottom: boolean,
   visible: boolean,
   doc?: string,
@@ -20,6 +21,7 @@ export interface ShowParams {
 }
 
 initState('hover', {
+  shit: '',
   value: [[]],
   visible: false,
   anchorBottom: true,
@@ -31,6 +33,7 @@ export interface Actions {
   showHover: (params: ShowParams) => void,
   hideHover: () => void,
   updateHoverPosition: () => void,
+    updateHover: (val: string) => void,
 }
 
 const getPosition = (row: number, col: number) => ({
@@ -48,6 +51,8 @@ on.showHover((s, { data, doc }) => s.hover = {
 })
 
 on.hideHover(s => s.hover.visible = false)
+
+on.updateHover((s, d) => s.hover.shit = d)
 
 on.updateHoverPosition(s => {
   if (!s.hover.visible) return
