@@ -1,9 +1,10 @@
-import { connect } from '../state/trade-federation'
+import { connect, go } from '../state/trade-federation'
 import { ColorPicker } from '../state/color-picker'
 import * as dispatch from '../messaging/dispatch'
 const { ChromePicker } = require('react-color')
 import Overlay from '../components/overlay2'
 import { throttle } from '../support/utils'
+import onLoseFocus from '../ui/lose-focus'
 import { h, styled } from '../ui/coffee'
 
 export interface ColorPickerProps {
@@ -24,10 +25,13 @@ const view = ({ data: $ }: { data: ColorPicker }) => Overlay({
   y: $.y,
   visible: $.visible,
   anchorAbove: $.anchorBottom,
+  onElement: el => el && onLoseFocus(el, go.hideColorPicker),
 }, [
 
-  h(ShowCursor, [
-    h(ChromePicker, {
+  console.log('go render the color picker ok?')
+
+  ,h(ShowCursor, [
+    ,h(ChromePicker, {
       color: $.color,
       onChangeComplete: (color: any) => dispatch.pub('colorpicker.complete', color.hex),
       onChange: throttle((color: any) => dispatch.pub('colorpicker.change', color.hex), 150),

@@ -8,10 +8,11 @@ interface Props {
   maxWidth?: number,
   anchorAbove: boolean,
   zIndex?: number,
+  onElement?: (element: HTMLElement) => void,
 }
 
 export default ($: Props, content: any[]) => h('div', {
-  id: $.name,
+  id: `@-${$.name}`,
   style: {
     zIndex: $.zIndex,
     display: $.visible ? 'flex' : 'none',
@@ -42,6 +43,8 @@ export default ($: Props, content: any[]) => h('div', {
     })
 
     ,h('div', {
+      id: $.name,
+      ref: $.onElement,
       style: {
         flexShrink: '0',
         maxWidth: $.maxWidth && `${$.maxWidth}px`,
