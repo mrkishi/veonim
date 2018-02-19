@@ -15,10 +15,10 @@ const modeSwitch = new Map([
 
 const view = ({ data: $ }: { data: CommandLine }) => PluginNormal('command-line', $.visible, [
 
-  // TODO: need to set input text caret position based on state kthx
   ,Input({
-    value: $.value,
     focus: true,
+    value: $.value,
+    position: $.position,
     icon: modeSwitch.get($.kind) || 'command',
   })
 
