@@ -1,4 +1,5 @@
 import { blur as vimBlur, focus as vimFocus } from '../core/input'
+import Loading from '../components/loading2'
 import { paddingVH, cvar } from '../ui/css'
 import { h, styled } from '../ui/coffee'
 import { xfrmUp } from '../core/input'
@@ -66,13 +67,13 @@ const view = ({
   icon,
   color,
   background,
-  // loadingSize,
-  // loadingColor,
+  loadingSize,
+  loadingColor,
   value = '',
   small = false,
   focus = false,
+  loading = false,
   pathMode = false,
-  // loading = false,
   ...$,
 }: Props) => h('div', {
   style: {
@@ -86,7 +87,7 @@ const view = ({
 }, [
 
   ,h(IconBox, [
-    Icon(icon, {
+    ,Icon(icon, {
       color: cvar('foreground-70'),
       size: small ? '1rem' : '1.571rem',
       weight: 2,
@@ -161,6 +162,7 @@ const view = ({
       },
     })
 
+    ,loading && Loading({ color: loadingColor, size: loadingSize })
   ])
 
 ])
