@@ -24,9 +24,8 @@ export interface Actions {
   updateCommandLine: (params: CommandUpdate) => void,
   showCommandLine: () => void,
   hideCommandLine: () => void,
-  showWildmenu: (options: string[]) => void,
+  updateWildmenu: (options: string[]) => void,
   selectWildmenu: (index: number) => void,
-  hideWildmenu: () => void,
 }
 
 on.updateCommandLine((s, { cmd, kind, position }: CommandUpdate) => {
@@ -42,6 +41,5 @@ on.updateCommandLine((s, { cmd, kind, position }: CommandUpdate) => {
 on.showCommandLine(s => s.commandLine.visible = true)
 on.hideCommandLine(s => s.commandLine.visible = false)
 
-on.showWildmenu((s, options) => s.commandLine.options = options)
+on.updateWildmenu((s, options) => s.commandLine.options = options)
 on.selectWildmenu((s, ix) => s.commandLine.ix = ix)
-on.hideWildmenu(s => s.commandLine.options = [])

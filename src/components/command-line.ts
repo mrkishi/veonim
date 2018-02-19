@@ -1,29 +1,10 @@
-import { CommandUpdate, CommandType } from '../core/render'
 import { PluginNormal } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import { CommandLine } from '../state/command-line'
+import { connect } from '../state/trade-federation'
 import Input from '../components/text-input2'
-import { sub } from '../messaging/dispatch'
+import { CommandType } from '../core/render'
 import { h } from '../ui/coffee'
-
-interface State {
-  options: string[],
-  cache: string[],
-  vis: boolean,
-  val: string,
-  ix: number,
-  kind: CommandType,
-}
-
-const state: State = {
-  options: [],
-  cache: [],
-  vis: false,
-  val: '',
-  ix: 0,
-  kind: CommandType.Ex,
-}
-
-let el: HTMLInputElement
 
 const modeSwitch = new Map([
   [ CommandType.Ex, 'command' ],
@@ -32,28 +13,20 @@ const modeSwitch = new Map([
   [ CommandType.SearchBackward, 'search' ],
 ])
 
-const view = ($: State) => PluginNormal('command-line', $.vis, [
+const view = ({ data: $ }: { data: CommandLine }) => PluginNormal('command-line', $.visible, [
 
+  // TODO: need to set input text caret position based on state kthx
   ,Input({
-    value: $.val,
+    value: $.value,
     focus: true,
     icon: modeSwitch.get($.kind) || 'command',
   })
 
-  // TODO: overflows. do the scrollable component thingy pls
-  ,h('div', $.options.map((name, key) => RowNormal({ key, activeWhen: key === $.ix }, name)))
+  ,h('div', $.options.map((name, ix) => h(RowNormal, {
+    key: name,
+    active: ix === $.ix,
+  }, name)))
 
 ])
 
-
-a.show = () => ({ vis: true })
-a.hide = () => ({ vis: false, ix: -1, val: '', options: [] })
-a.selectOption = (_s, _a, ix: number) => ({ ix })
-a.updateOptions = (_s, _a, options) => ({ options, ix: -1 })
-a.setKind = (_s, _a, kind: CommandType) => ({ kind })
-a.updateValue = (s, _a, val: string) => {
-  if (s.val !== val) return { val }
-}
-
-const ui = app({ state, view, actions: a }, false)
-
+export default connect(s => ({ data: s.commandLine }))(view)

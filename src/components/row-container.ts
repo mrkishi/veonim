@@ -1,4 +1,4 @@
-import { h, s, styled } from '../ui/coffee'
+import { s, styled } from '../ui/coffee'
 
 interface Props {
   active: boolean
