@@ -1,4 +1,4 @@
-import { styled } from '../ui/coffee'
+import { h, styled } from '../ui/coffee'
 
 const base = `
   z-index: 99;
@@ -9,24 +9,24 @@ const base = `
   margin-top: 15%;
 `
 
-export const normal = styled.div`
+const NormalContainer = styled.div`
   ${base}
   align-items: flex-start;
   width: 600px;
 `
 
-export const top = styled.div`
+const TopContainer = styled.div`
   ${base}
   align-items: flex-start;
   width: 400px;
 `
 
-export const bottom = styled.div`
+const BottomContainer = styled.div`
   ${base}
   align-items: flex-end;
 `
 
-export const right = styled.div`
+const RightContainer = styled.div`
   ${base}
   flex-flow: column;
   justify-content: flex-end;
@@ -35,3 +35,31 @@ export const right = styled.div`
   width: 500px;
   margin-top: 0;
 `
+
+export const Normal = (name: string, visible: boolean, children: any[]) => h(NormalContainer, {
+  id: name,
+  style: {
+    display: visible ? 'flex' : 'none',
+  }
+}, children)
+
+export const Top = (name: string, visible: boolean, children: any[]) => h(TopContainer, {
+  id: name,
+  style: {
+    display: visible ? 'flex' : 'none',
+  }
+}, children)
+
+export const Bottom = (name: string, visible: boolean, children: any[]) => h(BottomContainer, {
+  id: name,
+  style: {
+    display: visible ? 'flex' : 'none',
+  }
+}, children)
+
+export const Right = (name: string, visible: boolean, children: any[]) => h(RightContainer, {
+  id: name,
+  style: {
+    display: visible ? 'flex' : 'none',
+  }
+}, children)

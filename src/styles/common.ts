@@ -220,6 +220,7 @@ export const Row = {
   group: style('div')(paddingH(4)),
 }
 
+// TODO: maybe just stick these common styles in CSS file?
 export const Documentation = styled.div`
   padding-top: 6px;
   padding-bottom: 6px;

@@ -8,8 +8,10 @@ const React = require(reactModule)
 const ReactDom = require(reactDomModule)
 
 import hyperscript from '../ui/hyperscript'
+import sct from 'styled-components-ts'
 import sc from 'styled-components'
 
+export const s = sct
 export const styled = sc
 export const h = hyperscript(React.createElement)
 export const createElement = React.createElement

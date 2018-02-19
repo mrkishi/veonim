@@ -1,8 +1,9 @@
 import { CommandUpdate, CommandType } from '../core/render'
-import { Plugin, Row } from '../styles/common'
-import { h, app, Actions } from '../ui/uikit'
-import Input from '../components/text-input'
+import { Row } from '../styles/common'
+import { Normal } from '../components/plugin-container'
+import Input from '../components/text-input2'
 import { sub } from '../messaging/dispatch'
+import { h } from '../ui/coffee'
 
 interface State {
   options: string[],
@@ -31,10 +32,10 @@ const modeSwitch = new Map([
   [ CommandType.SearchBackward, 'search' ],
 ])
 
-const view = ($: State) => Plugin.default('command-line', $.vis, [
+const view = ($: State) => Normal('command-line', $.vis, [
 
   ,Input({
-    val: $.val,
+    value: $.val,
     focus: true,
     icon: modeSwitch.get($.kind) || 'command',
   })
