@@ -32,7 +32,7 @@ const modeSwitch = new Map([
   [ CommandType.SearchBackward, 'search' ],
 ])
 
-const view = ($: State) => Normal('command-line', $.vis, [
+const view = ($: State) => PluginNormal('command-line', $.vis, [
 
   ,Input({
     value: $.val,
@@ -41,11 +41,10 @@ const view = ($: State) => Normal('command-line', $.vis, [
   })
 
   // TODO: overflows. do the scrollable component thingy pls
-  ,h('div', $.options.map((name, key) => Row.normal({ key, activeWhen: key === $.ix }, name)))
+  ,h('div', $.options.map((name, key) => RowNormal({ key, activeWhen: key === $.ix }, name)))
 
 ])
 
-const a: Actions<State> = {}
 
 a.show = () => ({ vis: true })
 a.hide = () => ({ vis: false, ix: -1, val: '', options: [] })
@@ -58,18 +57,3 @@ a.updateValue = (s, _a, val: string) => {
 
 const ui = app({ state, view, actions: a }, false)
 
-// TODO: use export cns. this component is a high priority so it should be loaded early
-// because someone might open cmdline early
-sub('wildmenu.show', opts => ui.updateOptions(opts))
-sub('wildmenu.select', ix => ui.selectOption(ix))
-sub('wildmenu.hide', () => ui.updateOptions([]))
-
-sub('cmd.hide', () => ui.hide())
-sub('cmd.show', () => ui.show())
-sub('cmd.update', ({ cmd, kind, position }: CommandUpdate) => {
-  ui.show()
-  ui.setKind(kind)
-  ui.updateValue(cmd)
-  setTimeout(() => el && el.setSelectionRange(position, position), 0)
-  if (!cmd) ui.updateOptions([])
-})
