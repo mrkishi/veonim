@@ -11,7 +11,7 @@ export interface CommandLine {
   kind: CommandType,
 }
 
-initState('hover', {
+initState('commandLine', {
   options: [],
   visible: false,
   value: '',

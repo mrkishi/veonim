@@ -22,7 +22,7 @@ const view = ({ data: $ }: { data: CommandLine }) => PluginNormal('command-line'
     icon: modeSwitch.get($.kind) || 'command',
   })
 
-  ,h('div', $.options.map((name, ix) => h(RowNormal, {
+  ,$.options.length && h('div', $.options.map((name, ix) => h(RowNormal, {
     key: name,
     active: ix === $.ix,
   }, name)))

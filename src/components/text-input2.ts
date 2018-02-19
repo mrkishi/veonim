@@ -1,4 +1,5 @@
 import { blur as vimBlur, focus as vimFocus } from '../core/input'
+import * as canvasContainer from '../core/canvas-container'
 import Loading from '../components/loading2'
 import { paddingVH, cvar } from '../ui/css'
 import { h, styled } from '../ui/coffee'
@@ -45,6 +46,10 @@ export interface TextInputProps extends Partial<Props> {
 
 let lastDown = ''
 
+const setPosition = (e?: HTMLInputElement, position?: number) => {
+  if (!e || !position) return
+}
+
 const nopMaybe = (obj: object) => new Proxy(obj, {
   get: (_, key) => Reflect.get(obj, key) || (() => {})
 }) as Props
@@ -67,17 +72,16 @@ const view = ({
   desc,
   icon,
   color,
-  position,
   background,
   loadingSize,
   loadingColor,
   value = '',
+  position = -1,
   small = false,
   focus = false,
   loading = false,
   pathMode = false,
-  ...$,
-}: Props) => h('div', {
+}: TextInputProps, $: Props) => h('div', {
   style: {
     background,
     ...paddingVH(12, small ? 5 : 10),
@@ -91,7 +95,7 @@ const view = ({
   ,h(IconBox, [
     ,Icon(icon, {
       color: cvar('foreground-70'),
-      size: small ? '1rem' : '1.571rem',
+      size: canvasContainer.font.size + (small ? 0 : 8),
       weight: 2,
     })
   ])
@@ -112,7 +116,8 @@ const view = ({
       },
       type: 'text',
       value,
-      ref: (e: HTMLInputElement) => position > 0 && e.setSelectionRange(position, position),
+      // TODO: make this work
+      // ref: (e: HTMLInputElement) => position > -1 && e.setSelectionRange(position, position),
       autoFocus: focus,
       placeholder: desc,
       onFocus: () => vimBlur(),
@@ -170,4 +175,4 @@ const view = ({
 
 ])
 
-export default (props: TextInputProps) => view(nopMaybe(props))
+export default (props: TextInputProps) => view(props, nopMaybe(props))
