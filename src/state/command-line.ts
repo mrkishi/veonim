@@ -32,6 +32,7 @@ on.updateCommandLine((s, { cmd, kind, position }: CommandUpdate) => {
   merge(s.commandLine, {
     kind,
     position,
+    value: cmd,
     visible: true,
   })
 

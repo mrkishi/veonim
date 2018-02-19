@@ -48,6 +48,7 @@ let lastDown = ''
 
 const setPosition = (e?: HTMLInputElement, position?: number) => {
   if (!e || !position) return
+  position > -1 && e.setSelectionRange(position, position)
 }
 
 const nopMaybe = (obj: object) => new Proxy(obj, {
@@ -116,8 +117,7 @@ const view = ({
       },
       type: 'text',
       value,
-      // TODO: make this work
-      // ref: (e: HTMLInputElement) => position > -1 && e.setSelectionRange(position, position),
+      ref: (e: HTMLInputElement) => setPosition(e, position),
       autoFocus: focus,
       placeholder: desc,
       onFocus: () => vimBlur(),
