@@ -36,28 +36,28 @@ const RightContainer = styled.div`
   margin-top: 0;
 `
 
-export const Normal = (name: string, visible: boolean, children: any[]) => h(NormalContainer, {
+export const PluginNormal = (name: string, visible: boolean, children: any[]) => h(NormalContainer, {
   id: name,
   style: {
     display: visible ? 'flex' : 'none',
   }
 }, children)
 
-export const Top = (name: string, visible: boolean, children: any[]) => h(TopContainer, {
+export const PluginTop = (name: string, visible: boolean, children: any[]) => h(TopContainer, {
   id: name,
   style: {
     display: visible ? 'flex' : 'none',
   }
 }, children)
 
-export const Bottom = (name: string, visible: boolean, children: any[]) => h(BottomContainer, {
+export const PluginBottom = (name: string, visible: boolean, children: any[]) => h(BottomContainer, {
   id: name,
   style: {
     display: visible ? 'flex' : 'none',
   }
 }, children)
 
-export const Right = (name: string, visible: boolean, children: any[]) => h(RightContainer, {
+export const PluginRight = (name: string, visible: boolean, children: any[]) => h(RightContainer, {
   id: name,
   style: {
     display: visible ? 'flex' : 'none',

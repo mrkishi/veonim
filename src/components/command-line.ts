@@ -1,6 +1,6 @@
 import { CommandUpdate, CommandType } from '../core/render'
-import { Row } from '../styles/common'
-import { Normal } from '../components/plugin-container'
+import { PluginNormal } from '../components/plugin-container'
+import { RowNormal } from '../components/row-container'
 import Input from '../components/text-input2'
 import { sub } from '../messaging/dispatch'
 import { h } from '../ui/coffee'
