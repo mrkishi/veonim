@@ -1,19 +1,19 @@
 import WorkerClient from '../messaging/worker-client'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
+import { join } from 'path'
 
 const { on } = WorkerClient()
 
 const keywords = (() => {
-  const p = (cwd: string, file: string) => `${cwd}/${file}`
   const m = new Map<string, string[]>()
 
   return {
-    set: (cwd: string, file: string, words: string[]) => m.set(p(cwd, file), words),
-    get: (cwd: string, file: string) => m.get(p(cwd, file)),
+    set: (cwd: string, file: string, words: string[]) => m.set(join(cwd, file), words),
+    get: (cwd: string, file: string) => m.get(join(cwd, file)),
     add: (cwd: string, file: string, word: string) => {
-      const e = m.get(p(cwd, file)) || []
+      const e = m.get(join(cwd, file)) || []
       if (e.includes(word)) return
-      m.set(p(cwd, file), (e.push(word), e))
+      m.set(join(cwd, file), (e.push(word), e))
     }
   }
 })()
