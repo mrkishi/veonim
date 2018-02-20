@@ -5,20 +5,16 @@ const base = `
   display: flex;
   width: 100%;
   justify-content: center;
-  background: var(--background-40);
-  margin-top: 15%;
 `
 
 const NormalContainer = styled.div`
   ${base}
   align-items: flex-start;
-  width: 600px;
 `
 
 const TopContainer = styled.div`
   ${base}
   align-items: flex-start;
-  width: 400px;
 `
 
 const BottomContainer = styled.div`
@@ -28,38 +24,66 @@ const BottomContainer = styled.div`
 
 const RightContainer = styled.div`
   ${base}
-  flex-flow: column;
   justify-content: flex-end;
   align-items: stretch;
-  height: 100%;
-  width: 500px;
-  margin-top: 0;
 `
 
-export const PluginNormal = (name: string, visible: boolean, children: any[]) => h(NormalContainer, {
+const Dialog = styled.div`
+  background: var(--background-40);
+  margin-top: 15%;
+  flex-flow: column;
+`
+
+export const Plugin = (name: string, visible: boolean, children: any[]) => h(NormalContainer, {
   id: name,
-  style: {
-    display: visible ? 'flex' : 'none',
-  }
-}, children)
+}, [
+
+  ,h(Dialog, {
+    style: {
+      width: '600px',
+      display: visible ? 'flex' : 'none',
+    }
+  }, children)
+
+])
 
 export const PluginTop = (name: string, visible: boolean, children: any[]) => h(TopContainer, {
   id: name,
-  style: {
-    display: visible ? 'flex' : 'none',
-  }
-}, children)
+}, [
+
+  ,h(Dialog, {
+    style: {
+      width: '400px',
+      display: visible ? 'flex' : 'none',
+    }
+  }, children)
+
+])
 
 export const PluginBottom = (name: string, visible: boolean, children: any[]) => h(BottomContainer, {
   id: name,
-  style: {
-    display: visible ? 'flex' : 'none',
-  }
-}, children)
+}, [
+
+  ,h('div', {
+    style: {
+      display: visible ? 'flex' : 'none',
+    }
+  }, children)
+
+])
 
 export const PluginRight = (name: string, visible: boolean, children: any[]) => h(RightContainer, {
   id: name,
-  style: {
-    display: visible ? 'flex' : 'none',
-  }
-}, children)
+}, [
+
+  ,h(Dialog, {
+    style: {
+      width: '500px',
+      height: '100%',
+      flexFlow: 'column',
+      marginTop: 0,
+      display: visible ? 'flex' : 'none',
+    }
+  }, children)
+
+])

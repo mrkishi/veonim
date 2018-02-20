@@ -1,4 +1,4 @@
-import { PluginNormal } from '../components/plugin-container'
+import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { CommandLine } from '../state/command-line'
 import { connect } from '../state/trade-federation'
@@ -13,7 +13,7 @@ const modeSwitch = new Map([
   [ CommandType.SearchBackward, 'search' ],
 ])
 
-const view = ({ data: $ }: { data: CommandLine }) => PluginNormal('command-line', $.visible, [
+const view = ({ data: $ }: { data: CommandLine }) => Plugin('command-line', $.visible, [
 
   ,Input({
     focus: true,
@@ -25,7 +25,9 @@ const view = ({ data: $ }: { data: CommandLine }) => PluginNormal('command-line'
   ,h('div', $.options.map((name, ix) => h(RowNormal, {
     key: name,
     active: ix === $.ix,
-  }, name)))
+  }, [
+    ,h('div', name)
+  ])))
 
 ])
 

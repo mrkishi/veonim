@@ -71,7 +71,7 @@ const loadComponents = async () => {
     .filter(m => m.default)
     .filter(m => m.default.name === 'Connect')
 
-  const children = h('div', names.map(m => h(m.default)))
+  const children = h('div', { style: { width: '100%' } }, names.map(m => h(m.default)))
   // const children = h('div', importedComponents.map(m => h(m.default)))
 
   const rootComponent = h(Provider, { store, children })
