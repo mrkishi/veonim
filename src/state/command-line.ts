@@ -1,6 +1,6 @@
 import { CommandUpdate, CommandType } from '../core/render'
 import { on, initState } from '../state/trade-federation'
-import { merge } from '../support/utils'
+import { merge, is } from '../support/utils'
 
 export interface CommandLine {
   options: string[],
@@ -32,8 +32,10 @@ on.updateCommandLine((s, { cmd, kind, position }: CommandUpdate) => {
   merge(s.commandLine, {
     kind,
     position,
-    value: cmd,
     visible: true,
+    value: is.string(cmd) && s.commandLine.value !== cmd
+      ? cmd
+      : s.commandLine.value,
   })
 
   if (!cmd) s.commandLine.options = []

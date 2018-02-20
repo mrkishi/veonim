@@ -15,6 +15,7 @@ interface Props {
   desc: string,
   focus: boolean,
   position: number,
+  useVimInput: boolean,
   change: (val: string) => void,
   select: (val: string) => void,
   hide: () => void,
@@ -51,6 +52,10 @@ const setPosition = (e?: HTMLInputElement, position?: number) => {
   position > -1 && e.setSelectionRange(position, position)
 }
 
+const setFocus = (e: HTMLInputElement, shouldFocus: boolean) => {
+  if (e && e !== document.activeElement && shouldFocus) e.focus()
+}
+
 const nopMaybe = (obj: object) => new Proxy(obj, {
   get: (_, key) => Reflect.get(obj, key) || (() => {})
 }) as Props
@@ -82,6 +87,7 @@ const view = ({
   focus = false,
   loading = false,
   pathMode = false,
+  useVimInput = false,
 }: TextInputProps, $: Props) => h('div', {
   style: {
     background,
@@ -117,11 +123,13 @@ const view = ({
       },
       type: 'text',
       value,
-      ref: (e: HTMLInputElement) => setPosition(e, position),
-      autoFocus: focus,
+      ref: (e: HTMLInputElement) => {
+        setFocus(e, focus)
+        setPosition(e, position)
+      },
       placeholder: desc,
-      onFocus: () => vimBlur(),
-      onBlur: () => vimFocus(),
+      onFocus: () => !useVimInput && vimBlur(),
+      onBlur: () => !useVimInput && vimFocus(),
       onChange: (e: any) => $.change(e.target.value),
       onKeyUp: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
@@ -140,7 +148,6 @@ const view = ({
         const { ctrlKey: ctrl, metaKey: meta, key } = e
         const cm = ctrl || meta
 
-        e.preventDefault()
         lastDown = keToStr(e)
 
         if (key === 'Tab') return $.tab()
