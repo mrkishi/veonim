@@ -130,7 +130,6 @@ const view = ({
       placeholder: desc,
       onFocus: () => !useVimInput && vimBlur(),
       onBlur: () => !useVimInput && vimFocus(),
-      onChange: (e: any) => $.change(e.target.value),
       onKeyUp: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
 

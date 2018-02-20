@@ -6,8 +6,10 @@ const { on } = WorkerClient()
 
 const buffers = new Map<string, string[]>()
 
-const filter = (cwd: string, file: string, query: string, maxResults = 20): string[] =>
-  fuzzy(buffers.get(join(cwd, file)) || [], query, { maxResults })
+const filter = (cwd: string, file: string, query: string, maxResults = 20): string[] => {
+  const results = fuzzy(buffers.get(join(cwd, file)) || [], query, { maxResults })
+  return [...new Set(results)]
+}
 
 on.set((cwd: string, file: string, buffer: string[]) => buffers.set(join(cwd, file), buffer))
 
