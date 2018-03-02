@@ -1,5 +1,5 @@
 import { on, initState, go } from '../state/trade-federation'
-import { current as vim } from '../core/neovim'
+import { current as vim, cmd } from '../core/neovim'
 import { finder } from '../ai/update-server'
 
 interface FilterResult {
@@ -33,10 +33,30 @@ export interface Actions {
   updateBufferSearchQuery: (query: string) => void,
 }
 
+const searchInBuffer = (query: string, results: FilterResult[]) => {
+  const visibleRows = 24
+  if (!results.length) return
+
+  const range = {
+    top: results[0].start.line,
+    end: results[0].start.line + visibleRows,
+  }
+
+  const substrings = results.map(m => m.line.slice(m.start.column, m.end.column + 1))
+  const parts = [...new Set(substrings)].filter(m => m).map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
+
+  // TODO: ONLY USE PATTERN IF QUERY NOT FOUND IN BUFFER!
+  const pattern = parts.length ? parts.join('\\|') : query
+
+  const searchQuery = `/\\%>${range.top}l\\%<${range.end}l${pattern}`
+  console.log('qry:', searchQuery)
+  cmd(searchQuery)
+}
+
 on.updateBufferSearchQuery((s, query) => {
   s.bufferSearch.value = query
   finder.request.query(vim.cwd, vim.file, query).then((results: FilterResult[]) => {
-    console.log('filter results:', results)
+    searchInBuffer(query, results)
     go.updateBufferSearchOptions(results.map(m => m.line))
   })
 })
