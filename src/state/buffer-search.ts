@@ -53,6 +53,8 @@ const searchInBuffer = (query: string, results: FilterResult[]) => {
   // visible buffer. so i think we will need to implement our own search in js via web worker.
   // use for loop to search for first occurange in line, otherwise exit early
   // or maybe try regex if faster? or regex per line?
+  //
+  // ALSO start search in visible area first!!!
   const pattern = parts.length ? parts.join('\\|') : query
 
   const searchQuery = `/\\%>${range.top}l\\%<${range.end}l${pattern}`
