@@ -14,6 +14,11 @@ interface FilterResult {
   }
 }
 
+interface QueryResult {
+  results: FilterResult[],
+  performVimSearch: boolean,
+}
+
 export interface BufferSearch {
   value: string,
   options: string[],
@@ -33,28 +38,26 @@ export interface Actions {
   updateBufferSearchQuery: (query: string) => void,
 }
 
-const searchInBuffer = (query: string, results: FilterResult[]) => {
+const searchInBuffer = (query: string, results: FilterResult[], performVimSearch: boolean) => {
+  if (!results.length || performVimSearch) {
+    return cmd(`/${query}`)
+  }
+
+  // TODO: get actual number of visibleRows
   const visibleRows = 24
-  if (!results.length) return
 
   const range = {
     top: results[0].start.line,
     end: results[0].start.line + visibleRows,
   }
 
-  const substrings = results.map(m => m.line.slice(m.start.column, m.end.column + 1))
-  const parts = [...new Set(substrings)].filter(m => m).map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
-
   // TODO: parts slice only to visible region. if none in visible, only then expand more
+  const parts = results
+    .map(m => m.line.slice(m.start.column, m.end.column + 1))
+    .filter((m, ix, arr) => arr.indexOf(m) === ix)
+    .filter(m => m)
+    .map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
 
-  // TODO: ONLY USE PATTERN IF QUERY NOT FOUND IN BUFFER!
-  //
-  // using vim search() only works forwards or backwards from current cursor, but i want to search
-  // visible buffer. so i think we will need to implement our own search in js via web worker.
-  // use for loop to search for first occurange in line, otherwise exit early
-  // or maybe try regex if faster? or regex per line?
-  //
-  // ALSO start search in visible area first!!!
   const pattern = parts.length ? parts.join('\\|') : query
 
   const searchQuery = `/\\%>${range.top}l\\%<${range.end}l${pattern}`
@@ -64,12 +67,21 @@ const searchInBuffer = (query: string, results: FilterResult[]) => {
 
 on.updateBufferSearchQuery((s, query) => {
   s.bufferSearch.value = query
-  finder.request.query(vim.cwd, vim.file, query).then((results: FilterResult[]) => {
-    searchInBuffer(query, results)
+  finder.request.query(vim.cwd, vim.file, query).then((res: QueryResult) => {
+    const { performVimSearch = true, results = [] } = res || {}
+    searchInBuffer(query, results, performVimSearch)
     go.updateBufferSearchOptions(results.map(m => m.line))
   })
 })
 
 on.updateBufferSearchOptions((s, options) => s.bufferSearch.options = options)
-on.showBufferSearch(s => s.bufferSearch.visible = true)
-on.hideBufferSearch(s => s.bufferSearch.visible = false)
+
+on.showBufferSearch(s => {
+  s.bufferSearch.value = ''
+  s.bufferSearch.visible = true
+})
+
+on.hideBufferSearch(s => {
+  s.bufferSearch.value = ''
+  s.bufferSearch.visible = false
+})

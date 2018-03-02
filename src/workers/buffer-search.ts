@@ -14,6 +14,11 @@ interface FilterResult {
   }
 }
 
+interface QueryResult {
+  results: FilterResult[],
+  performVimSearch: boolean,
+}
+
 const { on } = WorkerClient()
 const buffers = new Map<string, string[]>()
 
@@ -27,6 +32,7 @@ const getLocations = (str: string, query: string, buffer: string[]) => {
   }
 }
 
+// TODO: filter visible area first
 const filter = (cwd: string, file: string, query: string, maxResults = 20): FilterResult[] => {
   const bufferData = buffers.get(join(cwd, file)) || []
   const results = fuzzy(bufferData, query, { maxResults })
@@ -38,12 +44,24 @@ const filter = (cwd: string, file: string, query: string, maxResults = 20): Filt
     }))
 }
 
+// TODO: find in visible area first
+const vimSearchPossible = (cwd: string, file: string, query: string): boolean => {
+  const bufferData = buffers.get(join(cwd, file)) || []
+  return bufferData.some(line => line.includes(query))
+}
+
 // TODO: allow query over a range of lines this would be useful to first search
 // over only the lines visible in the current vim window. if not found, only
 // then search entire buffer.
 
 on.set((cwd: string, file: string, buffer: string[]) => buffers.set(join(cwd, file), buffer))
 
-on.query(async (cwd: string, file: string, query: string, max?: number) =>
-  filter(cwd, file, query, max))
+on.query(async (cwd: string, file: string, query: string, max?: number): Promise<QueryResult> => {
+  const performVimSearch = vimSearchPossible(cwd, file, query)
+
+  return {
+    performVimSearch,
+    results: performVimSearch ? [] : filter(cwd, file, query, max),
+  }
+})
 
