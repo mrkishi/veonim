@@ -45,7 +45,14 @@ const searchInBuffer = (query: string, results: FilterResult[]) => {
   const substrings = results.map(m => m.line.slice(m.start.column, m.end.column + 1))
   const parts = [...new Set(substrings)].filter(m => m).map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
 
+  // TODO: parts slice only to visible region. if none in visible, only then expand more
+
   // TODO: ONLY USE PATTERN IF QUERY NOT FOUND IN BUFFER!
+  //
+  // using vim search() only works forwards or backwards from current cursor, but i want to search
+  // visible buffer. so i think we will need to implement our own search in js via web worker.
+  // use for loop to search for first occurange in line, otherwise exit early
+  // or maybe try regex if faster? or regex per line?
   const pattern = parts.length ? parts.join('\\|') : query
 
   const searchQuery = `/\\%>${range.top}l\\%<${range.end}l${pattern}`
