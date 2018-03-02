@@ -1,5 +1,6 @@
 import { on, initState } from '../state/trade-federation'
 import { current as vim, cmd } from '../core/neovim'
+import { activeWindow } from '../core/windows'
 import { finder } from '../ai/update-server'
 import { merge } from '../support/utils'
 
@@ -41,17 +42,20 @@ const getVisibleResults = (results: FilterResult[], start: number, end: number):
   return visibleOnly.length ? visibleOnly : results
 }
 
+const getVisibleRows = () => {
+  const win = activeWindow()
+  if (!win) return 20
+  return win.getSpecs().height
+}
+
 const searchInBuffer = (query: string, results: FilterResult[], performVimSearch: boolean) => {
   if (!results.length || performVimSearch) {
     return query ? cmd(`/${query}`) : cmd(`noh`)
   }
 
-  // TODO: get actual number of visibleRows
-  const visibleRows = 23
-
   const range = {
     start: results[0].start.line,
-    end: results[0].start.line + visibleRows,
+    end: results[0].start.line + getVisibleRows(),
   }
 
   const visibleResults = getVisibleResults(results, range.start, range.end)
