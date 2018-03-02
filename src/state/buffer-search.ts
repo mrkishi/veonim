@@ -38,21 +38,27 @@ export interface Actions {
   updateBufferSearchQuery: (query: string) => void,
 }
 
+const getVisibleResults = (results: FilterResult[], start: number, end: number): FilterResult[] => {
+  const visibleOnly = results.filter(m => m.start.line >= start && m.end.line <= end)
+  return visibleOnly.length ? visibleOnly : results
+}
+
 const searchInBuffer = (query: string, results: FilterResult[], performVimSearch: boolean) => {
   if (!results.length || performVimSearch) {
     return cmd(`/${query}`)
   }
 
   // TODO: get actual number of visibleRows
-  const visibleRows = 24
+  const visibleRows = 23
 
   const range = {
-    top: results[0].start.line,
+    start: results[0].start.line,
     end: results[0].start.line + visibleRows,
   }
 
-  // TODO: parts slice only to visible region. if none in visible, only then expand more
-  const parts = results
+  const visibleResults = getVisibleResults(results, range.start, range.end)
+
+  const parts = visibleResults
     .map(m => m.line.slice(m.start.column, m.end.column + 1))
     .filter((m, ix, arr) => arr.indexOf(m) === ix)
     .filter(m => m)
@@ -60,7 +66,7 @@ const searchInBuffer = (query: string, results: FilterResult[], performVimSearch
 
   const pattern = parts.length ? parts.join('\\|') : query
 
-  const searchQuery = `/\\%>${range.top}l\\%<${range.end}l${pattern}`
+  const searchQuery = `/\\%>${range.start}l\\%<${range.end}l${pattern}`
   console.log('qry:', searchQuery)
   cmd(searchQuery)
 }
