@@ -1,6 +1,7 @@
 import { on, initState, go } from '../state/trade-federation'
 import { current as vim, cmd } from '../core/neovim'
 import { finder } from '../ai/update-server'
+import { merge } from '../support/utils'
 
 interface FilterResult {
   line: string,
@@ -45,7 +46,7 @@ const getVisibleResults = (results: FilterResult[], start: number, end: number):
 
 const searchInBuffer = (query: string, results: FilterResult[], performVimSearch: boolean) => {
   if (!results.length || performVimSearch) {
-    return cmd(`/${query}`)
+    return query ? cmd(`/${query}`) : cmd(`noh`)
   }
 
   // TODO: get actual number of visibleRows
@@ -65,10 +66,9 @@ const searchInBuffer = (query: string, results: FilterResult[], performVimSearch
     .map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
 
   const pattern = parts.length ? parts.join('\\|') : query
+  if (!pattern) return cmd(`noh`)
 
-  const searchQuery = `/\\%>${range.start}l\\%<${range.end}l${pattern}`
-  console.log('qry:', searchQuery)
-  cmd(searchQuery)
+  cmd(`/\\%>${range.start}l\\%<${range.end}l${pattern}`)
 }
 
 on.updateBufferSearchQuery((s, query) => {
@@ -81,13 +81,5 @@ on.updateBufferSearchQuery((s, query) => {
 })
 
 on.updateBufferSearchOptions((s, options) => s.bufferSearch.options = options)
-
-on.showBufferSearch(s => {
-  s.bufferSearch.value = ''
-  s.bufferSearch.visible = true
-})
-
-on.hideBufferSearch(s => {
-  s.bufferSearch.value = ''
-  s.bufferSearch.visible = false
-})
+on.showBufferSearch(s => merge(s.bufferSearch, { value: '', visible: true, options: [] }))
+on.hideBufferSearch(s => merge(s.bufferSearch, { value: '', visible: false, options: [] }))
