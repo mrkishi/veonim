@@ -1,5 +1,5 @@
+import { current as vim, cmd, jumpTo } from '../core/neovim'
 import { on, initState } from '../state/trade-federation'
-import { current as vim, cmd } from '../core/neovim'
 import { activeWindow } from '../core/windows'
 import { finder } from '../ai/update-server'
 import { merge } from '../support/utils'
@@ -35,6 +35,7 @@ export interface Actions {
   showBufferSearch: () => void,
   hideBufferSearch: () => void,
   updateBufferSearchQuery: (query: string) => void,
+  completeBufferSearch: () => void,
 }
 
 const getVisibleResults = (results: FilterResult[], start: number, end: number): FilterResult[] => {
@@ -48,14 +49,23 @@ const getVisibleRows = () => {
   return win.getSpecs().height
 }
 
+const topMatchPosition = { line: -1, column: -1 }
+
 const searchInBuffer = (query: string, results: FilterResult[], performVimSearch: boolean) => {
   if (!results.length || performVimSearch) {
     return query ? cmd(`/${query}`) : cmd(`noh`)
   }
 
+  const { line, column } = results[0].start
+
+  merge(topMatchPosition, {
+    line: line + 1,
+    column: column,
+  })
+
   const range = {
-    start: results[0].start.line,
-    end: results[0].start.line + getVisibleRows(),
+    start: line,
+    end: line + getVisibleRows(),
   }
 
   const visibleResults = getVisibleResults(results, range.start, range.end)
@@ -80,5 +90,10 @@ on.updateBufferSearchQuery((s, query) => {
   })
 })
 
-on.showBufferSearch(s => merge(s.bufferSearch, { value: '', visible: true, options: [] }))
-on.hideBufferSearch(s => merge(s.bufferSearch, { value: '', visible: false, options: [] }))
+on.showBufferSearch(s => merge(s.bufferSearch, { value: '', visible: true }))
+on.hideBufferSearch(s => merge(s.bufferSearch, { value: '', visible: false }))
+
+on.completeBufferSearch(s => {
+  jumpTo(topMatchPosition)
+  merge(s.bufferSearch, { value: '', visible: false })
+})
