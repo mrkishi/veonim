@@ -1,4 +1,4 @@
-import { on, initState, go } from '../state/trade-federation'
+import { on, initState } from '../state/trade-federation'
 import { current as vim, cmd } from '../core/neovim'
 import { finder } from '../ai/update-server'
 import { merge } from '../support/utils'
@@ -22,18 +22,15 @@ interface QueryResult {
 
 export interface BufferSearch {
   value: string,
-  options: string[],
   visible: boolean,
 }
 
 initState('bufferSearch', {
-  options: [],
   visible: false,
   value: '',
 } as BufferSearch)
 
 export interface Actions {
-  updateBufferSearchOptions: (options: string[]) => void,
   showBufferSearch: () => void,
   hideBufferSearch: () => void,
   updateBufferSearchQuery: (query: string) => void,
@@ -76,10 +73,8 @@ on.updateBufferSearchQuery((s, query) => {
   finder.request.query(vim.cwd, vim.file, query).then((res: QueryResult) => {
     const { performVimSearch = true, results = [] } = res || {}
     searchInBuffer(query, results, performVimSearch)
-    go.updateBufferSearchOptions(results.map(m => m.line))
   })
 })
 
-on.updateBufferSearchOptions((s, options) => s.bufferSearch.options = options)
 on.showBufferSearch(s => merge(s.bufferSearch, { value: '', visible: true, options: [] }))
 on.hideBufferSearch(s => merge(s.bufferSearch, { value: '', visible: false, options: [] }))
