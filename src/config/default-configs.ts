@@ -9,3 +9,9 @@ export const explorer = {
     root: homedir(),
   }
 }
+
+export const workspace = {
+  ignore: {
+    dirs: ['build', 'dist'],
+  }
+}

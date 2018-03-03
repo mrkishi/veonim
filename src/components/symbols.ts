@@ -1,13 +1,20 @@
+import { feedkeys, cmd, current as vimState } from '../core/neovim'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { SymbolKind } from 'vscode-languageserver-types'
-import { feedkeys, cmd } from '../core/neovim'
+import { workspaceSymbols } from '../langserv/adapter'
 import { Plugin, Row } from '../styles/common'
-import { Symbol } from '../langserv/adapter'
 import Input from '../components/text-input'
+import { Symbol } from '../langserv/adapter'
 import { filter } from 'fuzzaldrin-plus'
 import Icon from '../components/icon'
 
+export enum SymbolMode {
+  Buffer,
+  Workspace,
+}
+
 interface State {
+  mode: SymbolMode,
   val: string,
   symbols: Symbol[],
   cache: Symbol[],
@@ -16,6 +23,7 @@ interface State {
 }
 
 const state: State = {
+  mode: SymbolMode.Buffer,
   val: '',
   symbols: [],
   cache: [],
@@ -161,13 +169,23 @@ a.select = (s, a) => {
   a.hide()
 }
 
-a.change = (s, _a, val: string) => ({ val, symbols: val
-  // TODO: DON'T TRUNCATE!
-  ? filter(s.cache, val, { key: 'name' }).slice(0, 10)
-  : s.cache.slice(0, 10)
-})
+a.change = (s, a, val: string) => {
 
-a.show = (_s, _a, symbols: Symbol[]) => ({ symbols, cache: symbols, vis: true })
+  if (s.mode === SymbolMode.Buffer) return { val, symbols: val
+    // TODO: DON'T TRUNCATE!
+    ? filter(s.cache, val, { key: 'name' }).slice(0, 10)
+    : s.cache.slice(0, 10)
+  } 
+
+  if (s.mode === SymbolMode.Workspace) {
+    workspaceSymbols(vimState, val).then(symbols => a.updateOptions(symbols))
+    return { val }
+  }
+}
+
+a.updateOptions = (_s, _a, symbols) => ({ symbols })
+
+a.show = (_s, _a, { symbols, mode }) => ({ mode, symbols, cache: symbols, vis: true })
 a.hide = () => ({ val: '', vis: false, ix: 0 })
 // TODO: DON'T TRUNCATE!
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
@@ -175,4 +193,4 @@ a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
 
 const ui = app({ state, view, actions: a })
 
-export const show = (symbols: Symbol[]) => ui.show(symbols)
+export const show = (symbols: Symbol[], mode: SymbolMode) => ui.show({ symbols, mode })

@@ -1,13 +1,10 @@
-import { symbols, workspaceSymbols } from '../langserv/adapter'
 import { action, current as vimState } from '../core/neovim'
-import * as symbolsUI from '../components/symbols'
+import { show, SymbolMode } from '../components/symbols'
+import { symbols } from '../langserv/adapter'
 
 action('symbols', async () => {
   const listOfSymbols = await symbols(vimState)
-  listOfSymbols && symbolsUI.show(listOfSymbols)
+  listOfSymbols && show(listOfSymbols, SymbolMode.Buffer)
 })
 
-action('workspace-symbols', async () => {
-  const listOfSymbols = await workspaceSymbols(vimState)
-  listOfSymbols && symbolsUI.show(listOfSymbols)
-})
+action('workspace-symbols', () => show([], SymbolMode.Workspace))

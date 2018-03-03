@@ -1,8 +1,9 @@
 import { CodeLens, Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
 import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind, triggers } from '../langserv/director'
+import { NeovimState, applyPatches, current as vim } from '../core/neovim'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
-import { NeovimState, applyPatches } from '../core/neovim'
+import config from '../config/config-service'
 import * as path from 'path'
 
 export { onDiagnostics } from '../langserv/director'
@@ -61,6 +62,15 @@ const currentBuffer: CurrentBuffer = {
   cwd: '',
   file: '',
   contents: [],
+}
+
+const ignored: { dirs: string[] } = {
+  dirs: config('workspace.ignore.dirs', m => ignored.dirs = m),
+}
+
+const filterWorkspaceSymbols = (symbols: Symbol[]): Symbol[] => {
+  const excluded = ignored.dirs.map(m => path.join(vim.cwd, m))
+  return symbols.filter(s => !excluded.some(dir => s.location.cwd.includes(dir)))
 }
 
 // TODO: get typings for valid requests?
@@ -201,11 +211,12 @@ export const symbols = async (data: NeovimState): Promise<Symbol[]> => {
   return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
 }
 
-export const workspaceSymbols = async (data: NeovimState): Promise<Symbol[]> => {
-  const req = toProtocol(data)
+export const workspaceSymbols = async (data: NeovimState, query: string): Promise<Symbol[]> => {
+  const req = { query, ...toProtocol(data) }
   const symbols = await workspace.symbol(req) as SymbolInformation[]
   if (!symbols || !symbols.length) return []
-  return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
+  const mappedSymbols = symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
+  return filterWorkspaceSymbols(mappedSymbols)
 }
 
 export const completions = async (data: NeovimState): Promise<CompletionItem[]> => {
