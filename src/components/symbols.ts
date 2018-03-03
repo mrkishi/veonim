@@ -53,7 +53,7 @@ const icons = new Map([
   [ SymbolKind.Number, Icon('hash', { color: '#ff0c53' }) ],
   [ SymbolKind.Boolean, Icon('flag', { color: '#0c2dff' }) ],
   [ SymbolKind.Array, Icon('film', { color: '#0cffff' }) ],
-  // TODO: but these exist in the protocol?
+  // TODO: enable when protocol upgrade to 3.6.0 in npm
   //[ SymbolKind.Object, Icon('copy', { color: '#' }) ],
   //[ SymbolKind.Key, Icon('tag', { color: '#' }) ],
   //[ SymbolKind.Null, Icon('x-square', { color: '#' }) ],
@@ -83,7 +83,7 @@ const symbolDescription = new Map([
   [ SymbolKind.Number, 'Number' ],
   [ SymbolKind.Boolean, 'Boolean' ],
   [ SymbolKind.Array, 'Array' ],
-  // TODO: but these exist in the protocol?
+  // TODO: enable when protocol upgrade to 3.6.0 in npm
   //[ SymbolKind.Object, 'Object' ],
   //[ SymbolKind.Key, 'Key' ],
   //[ SymbolKind.Null, 'Null' ],

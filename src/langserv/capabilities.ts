@@ -1,3 +1,5 @@
+import { SymbolKind, CompletionItemKind } from 'vscode-languageserver-types'
+
 export default (cwd: string) => ({
   rootPath: cwd,
   rootUri: 'file://' + cwd,
@@ -14,7 +16,10 @@ export default (cwd: string) => ({
         dynamicRegistration: true
       },
       symbol: {
-        dynamicRegistration: true
+        dynamicRegistration: true,
+        symbolKind: {
+          valueSet: SymbolKind,
+        }
       },
       executeCommand: {
         dynamicRegistration: true
@@ -31,6 +36,9 @@ export default (cwd: string) => ({
         dynamicRegistration: true,
         completionItem: {
           snippetSupport: true
+        },
+        completionItemKind: {
+          valueSet: CompletionItemKind,
         }
       },
       hover: {
@@ -46,7 +54,10 @@ export default (cwd: string) => ({
         dynamicRegistration: true
       },
       documentSymbol: {
-        dynamicRegistration: true
+        dynamicRegistration: true,
+        symbolKind: {
+          valueSet: SymbolKind,
+        }
       },
       formatting: {
         dynamicRegistration: true

@@ -61,7 +61,7 @@ const icons = new Map([
   [ CompletionItemKind.Color, Icon('eye', { color: '#54ffe5' }) ],
   [ CompletionItemKind.File, Icon('file', { color: '#a5c3ff' }) ],
   [ CompletionItemKind.Reference, Icon('link', { color: '#ffdca3' }) ],
-  // TODO: but these exist in the protocol?
+  // TODO: enable when protocol upgrade to 3.6.0 in npm
   //[ CompletionItemKind.Folder, Icon('folder', { color: '#' }) ],
   //[ CompletionItemKind.EnumMember, Icon('menu', { color: '#' }) ],
   //[ CompletionItemKind.Constant, Icon('save', { color: '#' }) ],
