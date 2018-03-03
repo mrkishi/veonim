@@ -1,10 +1,9 @@
 import { feedkeys, cmd, current as vimState } from '../core/neovim'
+import { workspaceSymbols, Symbol } from '../langserv/adapter'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { SymbolKind } from 'vscode-languageserver-types'
-import { workspaceSymbols } from '../langserv/adapter'
 import { Plugin, Row } from '../styles/common'
 import Input from '../components/text-input'
-import { Symbol } from '../langserv/adapter'
 import { filter } from 'fuzzaldrin-plus'
 import Icon from '../components/icon'
 
@@ -98,6 +97,22 @@ const symbolDescription = new Map([
 const getSymbolIcon = (kind: SymbolKind) => icons.get(kind) || Icon('code')
 const getSymbolDescription = (kind: SymbolKind) => symbolDescription.get(kind) || ''
 
+const symbolCache = (() => {
+  let cache: Symbol[] = []
+
+  const clear = () => cache = []
+  const find = (query: string) => filter(cache, query, { key: 'name' })
+
+  const update = (symbols: Symbol[]) => {
+    symbols.forEach(s => {
+      const alreadyHas = cache.some(m => m.name === s.name)
+      if (!alreadyHas) cache.push(s)
+    })
+  }
+
+  return { update, find, clear }
+})()
+
 const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vis, [
 
   ,Input({
@@ -178,7 +193,12 @@ a.change = (s, a, val: string) => {
   } 
 
   if (s.mode === SymbolMode.Workspace) {
-    workspaceSymbols(vimState, val).then(symbols => a.updateOptions(symbols))
+    workspaceSymbols(vimState, val).then(symbols => {
+      symbolCache.update(symbols)
+      const results = symbols.length ? symbols : symbolCache.find(val)
+      a.updateOptions(results)
+    })
+
     return { val }
   }
 }
@@ -186,7 +206,10 @@ a.change = (s, a, val: string) => {
 a.updateOptions = (_s, _a, symbols) => ({ symbols })
 
 a.show = (_s, _a, { symbols, mode }) => ({ mode, symbols, cache: symbols, vis: true })
-a.hide = () => ({ val: '', vis: false, ix: 0 })
+a.hide = () => {
+  symbolCache.clear()
+  return { val: '', vis: false, ix: 0 }
+}
 // TODO: DON'T TRUNCATE!
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
 a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
