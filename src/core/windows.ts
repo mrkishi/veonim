@@ -248,14 +248,17 @@ const getWindows = async (): Promise<VimWindow[]> => {
   }))
 }
 
-export const applyToWindows = (transformFn: (window: CanvasWindow) => void) => windows.forEach(w => transformFn(w.canvas))
+export const applyToWindows = (transformFn: (window: CanvasWindow) => void) =>
+  windows.forEach(w => transformFn(w.canvas))
 
 // TODO: how to make this even faster? (besides a memory intensive hashtable)
 export const getWindow = (targetRow: number, targetCol: number): CanvasWindow | undefined => {
   const winCount = winPos.length
   for (let ix = 0; ix < winCount; ix++) {
     const [ row, col, height, width, canvas ] = winPos[ix]
-    if ((row <= targetRow && targetRow < (height + row)) && (col <= targetCol && targetCol < (width + col))) return canvas
+    const rowMatch = (row <= targetRow && targetRow < (height + row))
+    const colMatch = (col <= targetCol && targetCol < (width + col))
+    if (rowMatch && colMatch) return canvas
   }
 }
 
@@ -310,8 +313,8 @@ const availableSpace = (verticalSplits: number, horizontalSplits: number) => {
   const { paddingY, paddingX } = windows[0].canvas.getSpecs()
 
   const vw = width
-  - ((verticalSplits + 1) * paddingX * 2)
-  - (verticalSplits * specs.gridGap)
+    - ((verticalSplits + 1) * paddingX * 2)
+    - (verticalSplits * specs.gridGap)
 
   const vh = height
     - ((horizontalSplits + 1) * paddingY * 2)
@@ -326,7 +329,16 @@ const availableSpace = (verticalSplits: number, horizontalSplits: number) => {
 const findWindowsWithDifferentNameplate = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.filter((w, ix) => {
   const lw = previousWindows[ix]
   if (!lw) return false
-  return !(w.modified === lw.modified && w.active === lw.active && w.name === lw.name && w.terminal === lw.terminal && w.dir === lw.dir && w.termAttached === lw.termAttached && w.termFormat === lw.termFormat)
+
+  const same = w.modified === lw.modified
+    && w.active === lw.active
+    && w.name === lw.name
+    && w.terminal === lw.terminal
+    && w.dir === lw.dir
+    && w.termAttached === lw.termAttached
+    && w.termFormat === lw.termFormat
+
+  return !same
 })
 
 const getSplits = (wins: VimWindow[]) => {
