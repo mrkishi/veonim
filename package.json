@@ -19,6 +19,7 @@
     "build": "npm run typescript && npm run no-dev && npm run fixexp && npm run html && npm run runtime && npm run assets",
     "rebuild": "npm run clean && npm run build",
     "start": "node tools/start.js",
+    "simple-start": "node tools/simple-start.js",
     "gen-font-sizes": "electron tools/font-sizer/index.js",
     "gen-api": "node tools/gen-api.js",
     "gen-seti-icons": "node tools/gen-seti-stylesheet.js",

@@ -26,6 +26,26 @@ app.on('ready', async () => {
   win.loadURL(`file:///${__dirname}/index.html`)
 
   if (process.env.VEONIM_DEV) {
+    function debounce (fn: Function, wait = 1) {
+      let timeout: NodeJS.Timer
+      return function(this: any, ...args: any[]) {
+        const ctx = this
+        clearTimeout(timeout)
+        timeout = setTimeout(() => fn.apply(ctx, args), wait)
+      }
+    }
+
+    const watch = require('node-watch')
+    const srcDir = require('path').resolve(__dirname, '../../build')
+    console.log('scrdir:', srcDir)
+
+    const reloader = () => {
+      console.log('reloading changes...')
+      win.webContents.reload()
+    }
+
+    watch(srcDir, { recursive: true }, debounce(reloader, 250))
+
     console.log(`veonim started in develop mode. you're welcome`)
 
     const {
