@@ -14,6 +14,17 @@ const drawChar = (ui: CanvasRenderingContext2D, col: number, y: number, char: st
   ui.restore()
 }
 
+// TODO: maybe allow in the future to draw both bg and fg?
+const drawCharLine = (ui: CanvasRenderingContext2D, color: string, row: number) => {
+  ui.fillStyle = color
+
+  let column = 0
+  for (let ix = charStart; ix < charEnd; ix++) {
+    drawChar(ui, column, row, String.fromCharCode(ix))
+    column++
+  }
+}
+
 export const createSprite = (background: string, foreground: string) => {
   const canvas = document.createElement('canvas')
   canvas.setAttribute('id', 'trolelol')
@@ -25,6 +36,10 @@ export const createSprite = (background: string, foreground: string) => {
   canvas.height = height * window.devicePixelRatio
   canvas.width = width * window.devicePixelRatio
 
+  // TODO: only needed for visual testing
+  canvas.style.height = `${height}px`
+  canvas.style.width = `${width}px`
+
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
@@ -32,13 +47,7 @@ export const createSprite = (background: string, foreground: string) => {
   ui.fillRect(0, 0, canvas.width, canvas.height)
   ui.textBaseline = 'top'
 
-  ui.fillStyle = foreground
-
-  let column = 0
-  for (let ix = charStart; ix < charEnd; ix++) {
-    drawChar(ui, column, 0, String.fromCharCode(ix))
-    column++
-  }
+  drawCharLine(ui, foreground, 0)
 
   // TODO: testing only
   document.body.appendChild(canvas)
