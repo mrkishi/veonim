@@ -534,6 +534,8 @@ hi! link typescriptType Keyword
 hi! link typescriptIdentifier Keyword
 hi! link typescriptOpSymbols Keyword
 hi! link typescriptParens Keyword
+hi! link typescriptNumber Number
+hi! link typescriptFloat Number
 
 " Markdown
 " > plasticboy/vim-markdown
