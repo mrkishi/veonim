@@ -17,7 +17,7 @@ some of the npm scripts may only work on macOS and linux. windows should get its
 
 ### building for your target platform
 
-after installing all dependencies (`npm start`) pick and run one of the release targets listed below
+after installing all dependencies (`npm start`) pick and run one of the release targets listed below. it is unlikely that cross-compiling will work.
 
 ```
 npm run release-mac
