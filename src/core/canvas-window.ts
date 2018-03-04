@@ -53,7 +53,8 @@ export const createWindow = (container: HTMLElement) => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
   const specs = { row: 0, col: 0, height: 0, width: 0, paddingX: 0, paddingY: 0 }
-  const position = { x: 0, y: 0 }
+  const canvasBoxDimensions = { x: 0, y: 0, height: 0, width: 0 }
+  const canvasDimensions = { height: 0 }
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
@@ -83,15 +84,15 @@ export const createWindow = (container: HTMLElement) => {
   api.getSpecs = () => specs
   api.setSpecs = (row, col, height, width, paddingX = 0, paddingY = 0) => (merge(specs, { row, col, height, width, paddingX, paddingY }), api)
 
-  api.colToX = col => position.x + px.col.x(col)
-  api.rowToY = row => position.y + px.row.y(row)
+  api.colToX = col => canvasBoxDimensions.x + px.col.x(col)
+  api.rowToY = row => canvasBoxDimensions.y + px.row.y(row)
 
   // because i suck at css
-  api.rowToTransformY = row => position.y + px.row.y(row) - title.specs.height
+  api.rowToTransformY = row => canvasBoxDimensions.y + px.row.y(row) - title.specs.height
 
-  const grabPosition = (canvasBox: HTMLElement) => setImmediate(() => {
-    const { top: y, left: x } = canvasBox.getBoundingClientRect()
-    merge(position, { y, x })
+  const grabCanvasBoxDimensions = (canvasBox: HTMLElement) => setImmediate(() => {
+    const { top: y, left: x, height, width } = canvasBox.getBoundingClientRect()
+    merge(canvasBoxDimensions, { y, x, height, width })
   })
 
   api.resize = (canvasBox, initBackgroundColor) => {
@@ -111,7 +112,8 @@ export const createWindow = (container: HTMLElement) => {
     ui.fillStyle = initBackgroundColor
     ui.fillRect(0, 0, canvas.width, canvas.height)
 
-    grabPosition(canvasBox)
+    canvasDimensions.height = heightToUse
+    grabCanvasBoxDimensions(canvasBox)
 
     return api
   }
@@ -145,11 +147,22 @@ export const createWindow = (container: HTMLElement) => {
     return api
   }
 
-  api.whereLine = row => ({
-    x: position.x,
-    y: position.y + px.row.y(row),
-    width: Math.ceil(canvas.width / window.devicePixelRatio),
-  })
+  api.whereLine = row => {
+    const positionY = px.row.y(row)
+    const bottomOfCurrentRow = positionY + px.row.height(1)
+    const scrollPls = canvasBoxDimensions.height && bottomOfCurrentRow > canvasBoxDimensions.height
+    const readjust = scrollPls
+      ? (canvasDimensions.height - canvasBoxDimensions.height) + canvasContainer.cell.padding
+      : 0
+
+    container.scrollTop = scrollPls ? container.scrollHeight : 0
+
+    return {
+      x: canvasBoxDimensions.x,
+      y: canvasBoxDimensions.y + positionY - readjust,
+      width: Math.ceil(canvas.width / window.devicePixelRatio),
+    }
+  }
 
   api.underline = (col, row, width, color) => {
     const cellBottom = canvasContainer.cell.height - canvasContainer.cell.padding
