@@ -61,6 +61,7 @@ app.on('ready', async () => {
     load(REACT_DEVELOPER_TOOLS)
     load(REDUX_DEVTOOLS)
 
+    win.webContents.on('devtools-opened', () => setImmediate(() => win.focus()))
     win.webContents.openDevTools()
   }
 })

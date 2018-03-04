@@ -9,7 +9,6 @@ import { h, renderDom } from '../ui/coffee'
 import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
 import { Provider } from 'react-redux'
-import { remote } from 'electron'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
@@ -48,7 +47,6 @@ const main = async () => {
   uiInput.focus()
   attachTo(id)
   setDefaultSession(id, path)
-  remote.getCurrentWindow().show()
 
   setTimeout(() => {
     lazyLoadCSS('../assets/seti-icons.css')
