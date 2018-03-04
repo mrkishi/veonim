@@ -1,5 +1,6 @@
-import * as canvasContainer from '../core/canvas-container'
 import { hexToRGBA, partialFill, translate } from '../ui/css'
+import * as canvasContainer from '../core/canvas-container'
+import { CanvasWindow } from '../core/canvas-window'
 import { getWindow } from '../core/windows'
 import { merge } from '../support/utils'
 import { get } from '../core/grid'
@@ -71,11 +72,23 @@ export const showCursor = () => {
   cursorline.style.display = ''
 }
 
+const moveCursorLine = (win: CanvasWindow, backgroundColor: string) => {
+  const { x, y, width } = win.whereLine(cursor.row)
+
+  merge(cursorline.style, {
+    display: '',
+    background: hexToRGBA(backgroundColor, 0.2),
+    transform: translate(x, y),
+    width: `${width}px`,
+  })
+}
+
 export const moveCursor = (backgroundColor: string) => {
   const win = getWindow(cursor.row, cursor.col)
   if (!win) return
 
-  cursorEl.style.transform = translate(win.colToX(cursor.col), win.rowToY(cursor.row))
+  const { x, y } = win.getCursorPosition(cursor.row, cursor.col)
+  cursorEl.style.transform = translate(x, y)
 
   if (cursor.type === CursorShape.block) {
     const [ char ] = get(cursor.row, cursor.col)
@@ -88,14 +101,7 @@ export const moveCursor = (backgroundColor: string) => {
     cursorChar.innerText = ''
   }
 
-  const { x, y, width } = win.whereLine(cursor.row)
-
-  merge(cursorline.style, {
-    display: '',
-    background: hexToRGBA(backgroundColor, 0.2),
-    transform: translate(x, y),
-    width: `${width}px`,
-  })
+  moveCursorLine(win, backgroundColor)
 }
 
 setCursorShape(CursorShape.block)

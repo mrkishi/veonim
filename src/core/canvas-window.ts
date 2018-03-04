@@ -44,6 +44,7 @@ export interface CanvasWindow {
   setTextBaseline(mode: string): CanvasWindow,
   clear(): CanvasWindow,
   whereLine(row: number): { x: number, y: number, width: number },
+  getCursorPosition(row: number, col: number): { x: number, y: number },
   setColor(color: string): CanvasWindow,
   readonly width: string,
   readonly height: string,
@@ -94,6 +95,12 @@ export const createWindow = (container: HTMLElement) => {
     const { top: y, left: x, height, width } = canvasBox.getBoundingClientRect()
     merge(canvasBoxDimensions, { y, x, height, width })
   })
+
+  const shouldScrollOverflow = (row: number) => canvasBoxDimensions.height
+    && px.row.y(row) + px.row.height(1) > canvasBoxDimensions.height
+
+  const scrollReadjustAmount = () => (canvasDimensions.height - canvasBoxDimensions.height)
+    + canvasContainer.cell.padding
 
   api.resize = (canvasBox, initBackgroundColor) => {
     const { height, width } = container.getBoundingClientRect()
@@ -147,19 +154,25 @@ export const createWindow = (container: HTMLElement) => {
     return api
   }
 
+  api.getCursorPosition = (row, col) => {
+    const scrollPls = shouldScrollOverflow(row)
+    const readjust = scrollPls ? scrollReadjustAmount() : 0
+
+    return {
+      x: canvasBoxDimensions.x + px.col.x(col),
+      y: canvasBoxDimensions.y + px.row.y(row) - readjust,
+    }
+  }
+
   api.whereLine = row => {
-    const positionY = px.row.y(row)
-    const bottomOfCurrentRow = positionY + px.row.height(1)
-    const scrollPls = canvasBoxDimensions.height && bottomOfCurrentRow > canvasBoxDimensions.height
-    const readjust = scrollPls
-      ? (canvasDimensions.height - canvasBoxDimensions.height) + canvasContainer.cell.padding
-      : 0
+    const scrollPls = shouldScrollOverflow(row)
+    const readjust = scrollPls ? scrollReadjustAmount() : 0
 
     container.scrollTop = scrollPls ? container.scrollHeight : 0
 
     return {
       x: canvasBoxDimensions.x,
-      y: canvasBoxDimensions.y + positionY - readjust,
+      y: canvasBoxDimensions.y + px.row.y(row) - readjust,
       width: Math.ceil(canvas.width / window.devicePixelRatio),
     }
   }
