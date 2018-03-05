@@ -25,12 +25,16 @@ const drawCharLine = (ui: CanvasRenderingContext2D, color: string, row: number) 
   }
 }
 
-export const createSprite = (background: string, foreground: string) => {
+
+
+export const createSprite = async (background: string, foreground: string) => {
   const canvas = document.createElement('canvas')
   canvas.setAttribute('id', 'trolelol')
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
 
-  const height = canvasContainer.cell.height
+  // TODO: yo this is not the actual font height. it's just font size * lineHeight
+  // should get actual correct height measurement?
+  const height = canvasContainer.cell.height * 2
   const width = 94 * canvasContainer.cell.width
 
   canvas.height = height * window.devicePixelRatio
@@ -47,10 +51,38 @@ export const createSprite = (background: string, foreground: string) => {
   ui.fillRect(0, 0, canvas.width, canvas.height)
   ui.textBaseline = 'top'
 
-  drawCharLine(ui, foreground, 0)
+  const colorLines = new Map<string, number>()
+  colorLines.set(foreground, 0)
+  colorLines.set('#ff0000', canvasContainer.cell.height)
 
-  // TODO: testing only
+  drawCharLine(ui, foreground, 0)
+  drawCharLine(ui, '#ff0000', canvasContainer.cell.height)
+
+  // TODO: visual testing only
   document.body.appendChild(canvas)
+
+  const getCharPosition = (char: string, color: string) => {
+    const code = char.charCodeAt(0)
+    if (code < charStart || code > charEnd) return
+    const x = code - charStart
+    const y = colorLines.get(color)
+    if (!y) return
+    return { x, y }
+  }
+
+  return {
+    getCharPosition,
+    bitmap: await createImageBitmap(canvas),
+  }
 }
 
-createSprite('#222222', '#ffffff')
+const main = async () => {
+  console.time('createSprite')
+  const { bitmap, getCharPosition } = await createSprite('#222222', '#ffffff')
+  console.timeEnd('createSprite')
+  console.log('bitmap', bitmap)
+  const pos = getCharPosition('a', '#ff0000')
+  console.log('char pos:', pos)
+}
+
+main().catch(console.error)
