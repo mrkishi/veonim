@@ -517,7 +517,7 @@ export const render = async () => {
 }
 
 onStateChange.fg(() => {
-  generateFontAtlas(current.bg, [ current.fg ]).then(fa => fontAtlas = fa)
+  generateFontAtlas([ current.fg ]).then(fa => fontAtlas = fa)
 })
 
 

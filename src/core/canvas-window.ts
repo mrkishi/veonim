@@ -154,15 +154,16 @@ export const createWindow = (container: HTMLElement) => {
     const pos = atlas.getCharPosition(char, ui.fillStyle as string)
     if (!pos) return drawText(char, col, row)
 
+    const srcWidth = px.col.width(1, true)
+    const srcHeight = px.row.height(1, true)
+
     const destX = px.col.x(col)
-    const destY = px.row.y(row)
-    // TODO: do we need to add cell padding to y position?
-    // const destY = px.row.y(row) + canvasContainer.cell.padding
-    const width = px.col.width(1)
-    const height = px.row.height(1)
+    const destY = px.row.y(row) + canvasContainer.cell.padding
+    const destWidth = px.col.width(1)
+    const destHeight = px.row.height(1)
 
     // TODO: verify these parameters
-    ui.drawImage(atlas.bitmap, pos.x, pos.y, width, height, destX, destY, width, height)
+    ui.drawImage(atlas.bitmap, pos.x, pos.y, srcWidth, srcHeight, destX, destY, destWidth, destHeight)
 
     return api
   }
