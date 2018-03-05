@@ -57,11 +57,6 @@ const main = async () => {
 
     requireDirSync(`${__dirname}/../state`)
     loadComponents()
-
-    if (process.env.VEONIM_DEV) {
-      // experimental: only enabled for dev builds
-      require('../core/sprite')
-    }
   }, 1)
 }
 

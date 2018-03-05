@@ -14,11 +14,15 @@ export interface FontAtlas {
 const charStart = 32
 const charEnd = 126
 
+// TODO: have neovim renderer collect usage information for various colors being rendered
+// and number of chars for each. lots of usages will regenerate the font atlast
+
 // TODO: add support for preparing an atlast for a collection of foreground colors
 export const generate = async (
   backgroundColor: string,
   foregroundColors: string[],
 ): Promise<FontAtlas> => {
+  if (!foregroundColors.length) throw new Error('cannot generate font atlas for no fg colors')
   const colorLines = new Map<string, number>()
 
   const drawChar = (col: number, y: number, char: string) => {
@@ -54,8 +58,8 @@ export const generate = async (
   // TODO: yo this is not the actual font height. it's just font size *
   // lineHeight should get actual correct height measurement? does it matter?
   // padding takes up wasted space in the bitmap
-  const height = canvasContainer.cell.height * 2
-  const width = 94 * canvasContainer.cell.width
+  const height = canvasContainer.cell.height * foregroundColors.length
+  const width = (charEnd - charStart) * canvasContainer.cell.width
 
   canvas.height = height * window.devicePixelRatio
   canvas.width = width * window.devicePixelRatio
@@ -83,7 +87,7 @@ export const generate = async (
     if (code < charStart || code > charEnd) return
     const x = code - charStart
     const y = colorLines.get(color)
-    if (!y) return
+    if (typeof y !== 'number') return
     return { x, y }
   }
 

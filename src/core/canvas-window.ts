@@ -1,5 +1,5 @@
 import * as canvasContainer from '../core/canvas-container'
-import { FontAtlas } from '../core/sprite'
+import { FontAtlas } from '../core/font-atlas'
 import { merge } from '../support/utils'
 import * as title from '../core/title'
 
