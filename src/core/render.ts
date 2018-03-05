@@ -84,6 +84,11 @@ export interface CommandUpdate {
 
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
+const commonColors = new Map<string, number>()
+const recordColor = (color: string) => {
+  const count = commonColors.get(color) || 0
+  commonColors.set(color, count + 1)
+}
 
 const attrDefaults: Attrs = {
   underline: false,
@@ -281,6 +286,8 @@ r.put = chars => {
     .fillRect(cursor.col, cursor.row, total, 1)
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
+
+  recordColor(nextAttrs.fg)
 
   for (let ix = 0; ix < total; ix++) {
     if (chars[ix][0] !== ' ') {
