@@ -1,5 +1,15 @@
 import * as canvasContainer from '../core/canvas-container'
 
+export interface CharPosition {
+  x: number,
+  y: number,
+}
+
+export interface FontAtlas {
+  getCharPosition(char: string, color: string): CharPosition | undefined,
+  bitmap: ImageBitmap,
+}
+
 const charStart = 32
 const charEnd = 126
 
@@ -25,9 +35,8 @@ const drawCharLine = (ui: CanvasRenderingContext2D, color: string, row: number) 
   }
 }
 
-
-
-export const createSprite = async (background: string, foreground: string) => {
+// TODO: add support for preparing an atlast for a collection of foreground colors
+export const createSprite = async (background: string, foreground: string): Promise<FontAtlas> => {
   const canvas = document.createElement('canvas')
   canvas.setAttribute('id', 'trolelol')
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
@@ -41,8 +50,9 @@ export const createSprite = async (background: string, foreground: string) => {
   canvas.width = width * window.devicePixelRatio
 
   // TODO: only needed for visual testing
-  canvas.style.height = `${height}px`
-  canvas.style.width = `${width}px`
+  // canvas.style.height = `${height}px`
+  // canvas.style.width = `${width}px`
+  // document.body.appendChild(canvas)
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
@@ -57,9 +67,6 @@ export const createSprite = async (background: string, foreground: string) => {
 
   drawCharLine(ui, foreground, 0)
   drawCharLine(ui, '#ff0000', canvasContainer.cell.height)
-
-  // TODO: visual testing only
-  document.body.appendChild(canvas)
 
   const getCharPosition = (char: string, color: string) => {
     const code = char.charCodeAt(0)

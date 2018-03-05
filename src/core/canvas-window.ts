@@ -1,4 +1,5 @@
 import * as canvasContainer from '../core/canvas-container'
+import { FontAtlas } from '../core/sprite'
 import { merge } from '../support/utils'
 import * as title from '../core/title'
 
@@ -39,6 +40,7 @@ export interface CanvasWindow {
   resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow,
   moveRegion(region: TransferRegion): CanvasWindow,
   fillText(text: string, col: number, row: number): CanvasWindow,
+  fillTextSlower(text: string, col: number, row: number): CanvasWindow,
   fillRect(col: number, row: number, width: number, height: number): CanvasWindow,
   underline(col: number, row: number, width: number, color: string): CanvasWindow,
   setTextBaseline(mode: string): CanvasWindow,
@@ -46,6 +48,7 @@ export interface CanvasWindow {
   whereLine(row: number): { x: number, y: number, width: number },
   getCursorPosition(row: number, col: number): { x: number, y: number },
   setColor(color: string): CanvasWindow,
+  loadFontAtlas(atlas: FontAtlas): void,
   readonly width: string,
   readonly height: string,
 }
@@ -56,6 +59,7 @@ export const createWindow = (container: HTMLElement) => {
   const specs = { row: 0, col: 0, height: 0, width: 0, paddingX: 0, paddingY: 0 }
   const canvasBoxDimensions = { x: 0, y: 0, height: 0, width: 0 }
   const canvasDimensions = { height: 0 }
+  let atlas: FontAtlas
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
@@ -90,6 +94,8 @@ export const createWindow = (container: HTMLElement) => {
 
   // because i suck at css
   api.rowToTransformY = row => canvasBoxDimensions.y + px.row.y(row) - title.specs.height
+
+  api.loadFontAtlas = fa => atlas = fa
 
   const grabCanvasBoxDimensions = (canvasBox: HTMLElement) => setImmediate(() => {
     const { top: y, left: x, height, width } = canvasBox.getBoundingClientRect()
@@ -128,8 +134,36 @@ export const createWindow = (container: HTMLElement) => {
   api.setColor = color => (ui.fillStyle = color, api)
   api.clear = () => (ui.fillRect(0, 0, canvas.width, canvas.height), api)
   api.setTextBaseline = mode => (ui.textBaseline = mode, api)
-  api.fillText = (m, c, r) => {
+  api.fillTextSlower = (m, c, r) => {
     ui.fillText(m, px.col.x(c), px.row.y(r) + canvasContainer.cell.padding)
+    return api
+  }
+
+  const drawText = (char: string, col: number, row: number) => {
+    ui.fillText(char, px.col.x(col), px.row.y(row) + canvasContainer.cell.padding)
+    return api
+  }
+
+  api.fillText = (char, col, row) => {
+    if (!atlas) return drawText(char, col, row)
+    if (char.length > 1) throw new Error(`fill text faster does not implement
+    the ability to wrender strings of chars, but only a single char. should
+    refactor if needed. at the time of this writing the vim render strategy wrenders
+      only one charater at a time`)
+
+    const pos = atlas.getCharPosition(char, ui.fillStyle as string)
+    if (!pos) return drawText(char, col, row)
+
+    const destX = px.col.x(col)
+    const destY = px.row.y(row)
+    // TODO: do we need to add cell padding to y position?
+    // const destY = px.row.y(row) + canvasContainer.cell.padding
+    const width = px.col.width(1)
+    const height = px.row.height(1)
+
+    // TODO: verify these parameters
+    ui.drawImage(atlas.bitmap, pos.x, pos.y, width, height, destX, destY, width, height)
+
     return api
   }
 
