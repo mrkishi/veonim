@@ -6,6 +6,7 @@ import { colorizer } from '../ai/hover'
 import '../ai/diagnostics'
 import '../ai/references'
 import '../ai/definition'
+import '../ai/highlights'
 import '../ai/symbols'
 import '../ai/rename'
 

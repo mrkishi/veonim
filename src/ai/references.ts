@@ -1,6 +1,6 @@
 import { action, current as vimState, jumpTo } from '../core/neovim'
 import { findNext, findPrevious } from '../support/relative-finder'
-import { SearchResult, show }from '../components/references'
+import { SearchResult, show } from '../components/references'
 import { VimQFItem, references } from '../langserv/adapter'
 import { join } from 'path'
 

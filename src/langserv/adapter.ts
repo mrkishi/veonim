@@ -1,4 +1,4 @@
-import { CodeLens, Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem } from 'vscode-languageserver-types'
+import { CodeLens, Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem, DocumentHighlight } from 'vscode-languageserver-types'
 import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind, triggers } from '../langserv/director'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
@@ -172,6 +172,27 @@ export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
 
   const references = await textDocument.references(req) || []
   return references.map(asQfList)
+}
+
+export const highlights = async (data: NeovimState): Promise<VimQFItem[]> => {
+  const req = toProtocol(data)
+  const result = await textDocument.documentHighlight(req) as DocumentHighlight[]
+  if (!result) return [] as VimQFItem[]
+
+  return result.map(m => {
+    const { line, column } = toVimPosition(m.range.start)
+    const { line: endLine, column: endColumn } = toVimPosition(m.range.end)
+
+    return {
+      line,
+      column,
+      endLine,
+      endColumn,
+      cwd: data.cwd,
+      file: data.file,
+      desc: ''
+    }
+  })
 }
 
 export const rename = async (data: NeovimState & { newName: string }): Promise<Patch[]> => {
