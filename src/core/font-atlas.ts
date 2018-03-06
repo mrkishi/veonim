@@ -13,12 +13,16 @@ export interface FontAtlas {
 // only support the common basic ascii
 const charStart = 32
 const charEnd = 126
+const canvas = document.createElement('canvas')
+const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+document.body.appendChild(canvas)
 
-// TODO: have neovim renderer collect usage information for various colors being rendered
-// and number of chars for each. lots of usages will regenerate the font atlast
-export const generate = async (colors: string[]): Promise<FontAtlas> => {
+let atlas: FontAtlas
+
+const generate = async (colors: string[]): Promise<FontAtlas> => {
   if (!colors.length) throw new Error('cannot generate font atlas for no fg colors')
   const colorLines = new Map<string, number>()
+  console.log('FAGEN:', colors)
 
   const drawChar = (col: number, y: number, char: string) => {
     const { height, width } = canvasContainer.cell
@@ -40,11 +44,7 @@ export const generate = async (colors: string[]): Promise<FontAtlas> => {
       drawChar(column, row, String.fromCharCode(ix))
       column++
     }
-}
-  // TODO: what happens to this canvas? will it get GC? should we reuse canvas
-  // for future regen purposes?
-  const canvas = document.createElement('canvas')
-  const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+  }
 
   const height = canvasContainer.cell.height * colors.length
   const width = (charEnd - charStart) * canvasContainer.cell.width
@@ -53,9 +53,8 @@ export const generate = async (colors: string[]): Promise<FontAtlas> => {
   canvas.width = width * window.devicePixelRatio
 
   // TODO: only needed for visual testing
-  // canvas.style.height = `${height}px`
-  // canvas.style.width = `${width}px`
-  // document.body.appendChild(canvas)
+  canvas.style.height = `${height}px`
+  canvas.style.width = `${width}px`
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
@@ -81,4 +80,14 @@ export const generate = async (colors: string[]): Promise<FontAtlas> => {
     getCharPosition,
     bitmap: await createImageBitmap(canvas),
   }
+}
+
+export default {
+  get exists() { return !!atlas },
+  get bitmap() { return (atlas || {}).bitmap },
+  generate: (colors: string[]) => generate(colors).then(fa => atlas = fa),
+  getCharPosition: (char: string, color: string) => {
+    if (!atlas) return
+    return atlas.getCharPosition(char, color)
+  },
 }

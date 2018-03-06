@@ -1,8 +1,7 @@
 import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
-import { FontAtlas, generate as generateFontAtlas }from '../core/font-atlas'
-import { getCurrent, current, cmd, onStateChange } from '../core/neovim'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
+import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
@@ -224,10 +223,6 @@ const createWindowEl = () => {
 
 const windows = [ createWindowEl() ]
 
-const updateWindowFontAtlas = (canvas: CanvasWindow, fontAtlas: FontAtlas) => {
-  canvas.loadFontAtlas(fontAtlas)
-}
-
 const getWindows = async (): Promise<VimWindow[]> => {
   const activeWindow = (await getCurrent.window).id
   const wins = await (await getCurrent.tab).windows
@@ -444,7 +439,6 @@ const betterTitles = (windows: VimWindow[]): VimWindow[] => {
 
 let winPos = [] as any
 let gridResizeInProgress = false
-let fontAtlas: FontAtlas
 
 export const render = async () => {
   const ws = await getWindows()
@@ -508,17 +502,10 @@ export const render = async () => {
 
     else if (windows[ix].element.style.display !== 'none')
       merge(windows[ix].element.style, { display: 'none' })
-
-    if (fontAtlas) updateWindowFontAtlas(windows[ix].canvas, fontAtlas)
   }
 
   setImmediate(() => moveCursor(current.bg))
   setImmediate(() => dispatch.pub('windows:redraw'))
 }
-
-onStateChange.fg(() => {
-  generateFontAtlas([ current.fg ]).then(fa => fontAtlas = fa)
-})
-
 
 dispatch.sub('redraw', throttle(render, 30))

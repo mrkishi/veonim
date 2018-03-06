@@ -1,11 +1,12 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
+import { asColor, merge, matchOn, CreateTask } from '../support/utils'
 import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'
 import { onRedraw, getColor } from '../core/master-control'
-import { asColor, merge, matchOn } from '../support/utils'
 import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
+import fontAtlas from '../core/font-atlas'
 import * as grid from '../core/grid'
 import $ from '../core/state'
 
@@ -89,6 +90,12 @@ const recordColor = (color: string) => {
   const count = commonColors.get(color) || 0
   commonColors.set(color, count + 1)
 }
+
+const getTopColors = (amount = 16) => Array
+  .from(commonColors.entries())
+  .sort((a, b) => a[1] < b[1] ? 1 : -1)
+  .slice(0, amount)
+  .map(m => m[0])
 
 const attrDefaults: Attrs = {
   underline: false,
@@ -421,6 +428,27 @@ r.msg_end = () => {
   resetMsg()
 }
 
+let lastTop: string[] = []
+let initialAtlasGenerated = false
+const initalFontAtlas = CreateTask()
+
+initalFontAtlas.promise.then(() => {
+  fontAtlas.generate([ colors.fg ])
+  initialAtlasGenerated = true
+})
+
+const sameColors = (colors: string[]) => colors.every(c => lastTop.includes(c))
+
+setInterval(() => {
+  const topColors = getTopColors()
+  if (!sameColors(topColors)) {
+    const genColors = [...new Set([ ...topColors, colors.fg ])]
+    fontAtlas.generate(genColors)
+  }
+  lastTop = topColors
+  // TODO: increate interval time and add event to trigger this fn on colorscheme autocmd
+}, 5e3)
+
 onRedraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
@@ -435,5 +463,9 @@ onRedraw((m: any[]) => {
 
   lastScrollRegion = null
   moveCursor(colors.bg)
-  setImmediate(() => dispatch.pub('redraw'))
+
+  setImmediate(() => {
+    dispatch.pub('redraw')
+    if (!initialAtlasGenerated) initalFontAtlas.done(true)
+  })
 })
