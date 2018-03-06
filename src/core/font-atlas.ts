@@ -10,19 +10,16 @@ export interface FontAtlas {
   bitmap: ImageBitmap,
 }
 
-// only support the common basic ascii
-const charStart = 32
-const charEnd = 126
+const CHAR_START = 32
+const CHAR_END = 126
 const canvas = document.createElement('canvas')
 const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
-document.body.appendChild(canvas)
 
 let atlas: FontAtlas
 
 const generate = async (colors: string[]): Promise<FontAtlas> => {
-  if (!colors.length) throw new Error('cannot generate font atlas for no fg colors')
+  if (!colors.length) throw new Error('cannot generate font atlas because no colors were given')
   const colorLines = new Map<string, number>()
-  console.log('FAGEN:', colors)
 
   const drawChar = (col: number, y: number, char: string) => {
     const { height, width } = canvasContainer.cell
@@ -35,26 +32,21 @@ const generate = async (colors: string[]): Promise<FontAtlas> => {
     ui.restore()
   }
 
-  // TODO: maybe allow in the future to draw both bg and fg?
   const drawCharLine = (color: string, row: number) => {
     ui.fillStyle = color
 
     let column = 0
-    for (let ix = charStart; ix < charEnd; ix++) {
+    for (let ix = CHAR_START; ix < CHAR_END; ix++) {
       drawChar(column, row, String.fromCharCode(ix))
       column++
     }
   }
 
   const height = canvasContainer.cell.height * colors.length
-  const width = (charEnd - charStart) * canvasContainer.cell.width
+  const width = (CHAR_END - CHAR_START) * canvasContainer.cell.width
 
   canvas.height = height * window.devicePixelRatio
   canvas.width = width * window.devicePixelRatio
-
-  // TODO: only needed for visual testing
-  canvas.style.height = `${height}px`
-  canvas.style.width = `${width}px`
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
@@ -69,10 +61,11 @@ const generate = async (colors: string[]): Promise<FontAtlas> => {
 
   const getCharPosition = (char: string, color: string) => {
     const code = char.charCodeAt(0)
-    if (code < charStart || code > charEnd) return
-    const y = colorLines.get(color)
-    if (typeof y !== 'number') return
-    const x = (code - charStart) * canvasContainer.cell.width * window.devicePixelRatio
+    if (code < CHAR_START || code > CHAR_END) return
+    const srcRow = colorLines.get(color)
+    if (typeof srcRow !== 'number') return
+    const x = (code - CHAR_START) * canvasContainer.cell.width * window.devicePixelRatio
+    const y = srcRow * window.devicePixelRatio
     return { x, y }
   }
 

@@ -40,7 +40,6 @@ export interface CanvasWindow {
   resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow,
   moveRegion(region: TransferRegion): CanvasWindow,
   fillText(text: string, col: number, row: number): CanvasWindow,
-  fillTextSlower(text: string, col: number, row: number): CanvasWindow,
   fillRect(col: number, row: number, width: number, height: number): CanvasWindow,
   underline(col: number, row: number, width: number, color: string): CanvasWindow,
   setTextBaseline(mode: string): CanvasWindow,
@@ -130,10 +129,6 @@ export const createWindow = (container: HTMLElement) => {
   api.setColor = color => (ui.fillStyle = color, api)
   api.clear = () => (ui.fillRect(0, 0, canvas.width, canvas.height), api)
   api.setTextBaseline = mode => (ui.textBaseline = mode, api)
-  api.fillTextSlower = (m, c, r) => {
-    ui.fillText(m, px.col.x(c), px.row.y(r) + canvasContainer.cell.padding)
-    return api
-  }
 
   const drawText = (char: string, col: number, row: number) => {
     ui.fillText(char, px.col.x(col), px.row.y(row) + canvasContainer.cell.padding)
