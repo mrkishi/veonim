@@ -130,6 +130,13 @@ const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] 
   return (server.canDo[kind] || {}).triggerCharacters || []
 }
 
+export const canCall = (cwd: string, filetype: string, capability: string) => {
+  const server = runningServers.get(cwd, filetype)
+  if (!server) return false
+  const provider = `${capability}Provider`
+  return !!server.canDo[provider]
+}
+
 export const triggers = {
   completion: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'completionProvider'),
   signatureHelp: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'signatureHelpProvider'),
