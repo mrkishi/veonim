@@ -1,5 +1,5 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { asColor, merge, matchOn, CreateTask } from '../support/utils'
+import { asColor, merge, matchOn, CreateTask, debounce } from '../support/utils'
 import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'
 import { onRedraw, getColor } from '../core/master-control'
@@ -86,7 +86,11 @@ export interface CommandUpdate {
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 const commonColors = new Map<string, number>()
+
+const notifyColorUpdate = debounce(() => dispatch.pub('colors.vim.add'), 999)
+
 const recordColor = (color: string) => {
+  notifyColorUpdate()
   const count = commonColors.get(color) || 0
   commonColors.set(color, count + 1)
 }
@@ -439,15 +443,14 @@ initalFontAtlas.promise.then(() => {
 
 const sameColors = (colors: string[]) => colors.every(c => lastTop.includes(c))
 
-setInterval(() => {
+dispatch.sub('colors.vim.add', () => {
   const topColors = getTopColors()
   if (!sameColors(topColors)) {
     const genColors = [...new Set([ ...topColors, colors.fg ])]
     fontAtlas.generate(genColors)
   }
   lastTop = topColors
-  // TODO: increate interval time and add event to trigger this fn on colorscheme autocmd
-}, 5e3)
+})
 
 onRedraw((m: any[]) => {
   const count = m.length
