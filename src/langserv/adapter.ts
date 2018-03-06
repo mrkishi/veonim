@@ -1,5 +1,8 @@
-import { CodeLens, Diagnostic, Command, Location, Position, Range, WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem, DocumentHighlight } from 'vscode-languageserver-types'
-import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind, triggers } from '../langserv/director'
+import { CodeLens, Diagnostic, Command, Location, Position, Range,
+  WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind,
+  CompletionItem, DocumentHighlight } from 'vscode-languageserver-types'
+import { notify, workspace, textDocument, completionItem, getSyncKind,
+  SyncKind, triggers } from '../langserv/director'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
 import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
