@@ -37,3 +37,7 @@ action('highlight', async () => {
     .map(asHighlight)
     .forEach(hi => buffer.addHighlight(HL_ID, HL_GROUP, hi.line, hi.start, hi.end))
 })
+
+action('highlight-clear', async () => {
+  (await getCurrent.buffer).clearHighlight(HL_ID, 1, -1)
+})
