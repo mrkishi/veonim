@@ -3,7 +3,7 @@ import { highlights, references, VimQFItem } from '../langserv/adapter'
 import { canCall } from '../langserv/director'
 import { brighten } from '../ui/css'
 
-// has no meaning, just need a random id representing document highlights
+// has no meaning - just need a random id that represents document highlights
 const HL_ID = 900422
 const HL_GROUP = 'VeonimDocumentHighlight'
 
