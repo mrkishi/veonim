@@ -2,6 +2,7 @@ import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import NeovimUtils, { CmdGroup, FunctionGroup } from '../support/neovim-utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
 import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
+import { colorscheme } from '../config/default-configs'
 import CreateTransport from '../messaging/transport'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
@@ -65,7 +66,7 @@ const startupCmds = CmdGroup`
   let g:vn_callbacks = {}
   let g:vn_callback_id = 0
   let g:vn_jobs_connected = {}
-  colorscheme veonord
+  colorscheme ${colorscheme}
   set guicursor=n:block-CursorNormal,i:hor10-CursorInsert,v:block-CursorVisual
   set background=dark
   set laststatus=0
@@ -155,10 +156,10 @@ const createNewVimInstance = (): number => {
 
   vimInstances.set(id, { id, proc, attached: false })
 
-  proc.on('error', e => log `vim ${id} err ${e}`)
-  proc.stdout.on('error', e => log `vim ${id} stdout err ${(JSON.stringify(e))}`)
-  proc.stdin.on('error', e => log `vim ${id} stdin err ${(JSON.stringify(e))}`)
-  proc.on('exit', c => onExitFn(id, c))
+  proc.on('error', (e: any) => log `vim ${id} err ${e}`)
+  proc.stdout.on('error', (e: any) => log `vim ${id} stdout err ${(JSON.stringify(e))}`)
+  proc.stdin.on('error', (e: any) => log `vim ${id} stdin err ${(JSON.stringify(e))}`)
+  proc.on('exit', (c: any) => onExitFn(id, c))
 
   return id
 }

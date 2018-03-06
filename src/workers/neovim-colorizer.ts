@@ -1,5 +1,6 @@
 import { prefixWith, onFnCall, pascalCase } from '../support/utils'
 import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
+import { colorscheme } from '../config/default-configs'
 import WorkerClient from '../messaging/worker-client'
 import CreateTransport from '../messaging/transport'
 import NeovimUtils from '../support/neovim-utils'
@@ -38,6 +39,7 @@ const proc = Neovim([
   '--cmd', `let $VIM = '${vimpath}'`,
   '--cmd', `let $VIMRUNTIME = '${vimruntime}'`,
   '--cmd', `let &runtimepath .= ',${runtimeDir}'`,
+  '--cmd', `colorscheme ${colorscheme}`,
   '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,
   '--cmd', `exe ":fun! Veonim(...)\\n endfun"`,
   '--cmd', `exe ":fun! VK(...)\\n endfun"`,
@@ -46,10 +48,10 @@ const proc = Neovim([
   '--embed',
 ])
 
-proc.on('error', e => console.error('vim colorizer err', e))
-proc.stdout.on('error', e => console.error('vim colorizer stdout err', e))
-proc.stdin.on('error', e => console.error('vim colorizer stdin err', e))
-proc.stderr.on('data', e => console.error('vim colorizer stderr', e))
+proc.on('error', (e: any) => console.error('vim colorizer err', e))
+proc.stdout.on('error', (e: any) => console.error('vim colorizer stdout err', e))
+proc.stdin.on('error', (e: any) => console.error('vim colorizer stdin err', e))
+proc.stderr.on('data', (e: any) => console.error('vim colorizer stderr', e))
 proc.on('exit', () => console.error('vim colorizer exit'))
 
 encoder.pipe(proc.stdin)

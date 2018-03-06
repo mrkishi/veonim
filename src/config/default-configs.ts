@@ -15,3 +15,5 @@ export const workspace = {
     dirs: ['build', 'dist'],
   }
 }
+
+export const colorscheme = 'veonord'
