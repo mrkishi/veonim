@@ -15,6 +15,7 @@ export enum SymbolMode {
 interface State {
   mode: SymbolMode,
   val: string,
+  loading: boolean,
   symbols: Symbol[],
   cache: Symbol[],
   vis: boolean,
@@ -22,6 +23,7 @@ interface State {
 }
 
 const state: State = {
+  loading: false,
   mode: SymbolMode.Buffer,
   val: '',
   symbols: [],
@@ -118,6 +120,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
   ,Input({
     ...actions,
     val: $.val,
+    loading: $.loading,
     focus: true,
     icon: 'moon',
     desc: 'go to symbol',
@@ -199,16 +202,16 @@ a.change = (s, a, val: string) => {
       a.updateOptions(results)
     })
 
-    return { val }
+    return { val, loading: true }
   }
 }
 
-a.updateOptions = (_s, _a, symbols) => ({ symbols })
+a.updateOptions = (_s, _a, symbols) => ({ symbols, loading: false })
 
 a.show = (_s, _a, { symbols, mode }) => ({ mode, symbols, cache: symbols, vis: true })
 a.hide = () => {
   symbolCache.clear()
-  return { val: '', vis: false, ix: 0 }
+  return { val: '', vis: false, ix: 0, loading: false }
 }
 // TODO: DON'T TRUNCATE!
 a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
