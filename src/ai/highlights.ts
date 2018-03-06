@@ -1,12 +1,13 @@
-import { action, current as vimState } from '../core/neovim'
-import { highlights } from '../langserv/adapter'
+import { highlights, references } from '../langserv/adapter'
+import { action, current as vim } from '../core/neovim'
+import { canCall } from '../langserv/director'
 
 action('highlight', async () => {
-  const positions = await highlights(vimState)
+  const highlightFeatureEnabled = canCall(vim.cwd, vim.filetype, 'documentHighlight')
+  const positions = highlightFeatureEnabled
+    ? await highlights(vim)
+    : await references(vim)
 
-  // TODO: not implemented for TS. need to check capabilities before calling!
-  // actually could call references as a fallback, since they both present
-  // roughly the same data (usually identical, no?)
 
   // TODO: create new highlight group
   // use nvim api to highlight positions
