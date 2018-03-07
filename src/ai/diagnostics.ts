@@ -5,6 +5,7 @@ import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as codeActionUI from '../components/code-actions'
+import { addUnderlines } from '../core/canvas-underlines'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
@@ -113,6 +114,19 @@ const includesProblemHighlight = (problems: ProblemHighlight[], problem: Problem
   problems.some(p => problemHighlightsSame(p, problem))
 
 const refreshProblemHighlights = async () => {
+  const currentBufferPath = path.join(vim.cwd, vim.file)
+  const diagnostics = current.diagnostics.get(currentBufferPath) || []
+  const renderPositions = diagnostics.map(d => ({
+    row: d.range.start.line - 1,
+    col: d.range.start.character,
+    width: d.range.end.character - d.range.start.character,
+    color: '#e5ff00'
+  }))
+
+  addUnderlines(renderPositions)
+}
+
+const refreshProblemHighlights2 = async () => {
   const currentBufferPath = path.join(vim.cwd, vim.file)
   const diagnostics = current.diagnostics.get(currentBufferPath) || []
   const getBufReq = getCurrent.buffer

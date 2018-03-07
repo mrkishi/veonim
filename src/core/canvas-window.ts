@@ -36,6 +36,7 @@ export interface CanvasWindow {
   setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): CanvasWindow,
   rowToY(row: number): number,
   rowToTransformY(row: number): number,
+  cellsToPixelWidth(cells: number): number,
   colToX(col: number): number,
   resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow,
   moveRegion(region: TransferRegion): CanvasWindow,
@@ -88,6 +89,7 @@ export const createWindow = (container: HTMLElement) => {
 
   api.colToX = col => canvasBoxDimensions.x + px.col.x(col)
   api.rowToY = row => canvasBoxDimensions.y + px.row.y(row)
+  api.cellsToPixelWidth = cells => px.col.width(cells)
 
   // because i suck at css
   api.rowToTransformY = row => canvasBoxDimensions.y + px.row.y(row) - title.specs.height
