@@ -30,15 +30,6 @@ export const set = (row: number, col: number, char: string, fg = defaults.fg, bg
   grid[row][col][4] = underlineColor
 }
 
-export const same = (row: number, col: number, char: string, fg: string, bg: string, sp: string, underline: boolean): boolean => {
-  if (!grid[row] || !grid[row][col]) return false
-  return grid[row][col][0] === char
-    && grid[row][col][1] === fg
-    && grid[row][col][2] === bg
-    && grid[row][col][3] === underline
-    && grid[row][col][4] === sp
-}
-
 export const moveRegionDown = (amt: number, top: number, bottom: number, left: number, right: number) => {
   for (let yix = bottom; yix - amt >= top; yix--) {
     const line = grid[yix]

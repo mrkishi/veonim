@@ -91,6 +91,8 @@ export interface NeovimState {
 }
 
 export interface ProblemHighlight {
+  group: Highlight,
+  id: HighlightGroupId,
   line: number,
   columnStart: number,
   columnEnd: number,
@@ -120,8 +122,7 @@ export interface Buffer {
   addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>,
   clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void,
   clearAllHighlights(): void,
-  highlightProblems(problems: ProblemHighlight[]): Promise<() => void>,
-  highlightProblem(problem: ProblemHighlight): Promise<() => void>,
+  highlightProblems(problems: ProblemHighlight[]): Promise<any[]>,
 }
 
 export interface Window {
@@ -492,6 +493,9 @@ define.Commands`
   return split(cmds, '\\\\s\\\\+')
 `
 
+const HL_CLR = 'nvim_buf_clear_highlight'
+const HL_ADD = 'nvim_buf_add_highlight'
+
 const Buffer = (id: any) => ({
   id,
   get number() { return req.buf.getNumber(id) },
@@ -522,15 +526,10 @@ const Buffer = (id: any) => ({
   addHighlight: (sourceId, hlGroup, line, colStart, colEnd) => req.buf.addHighlight(id, sourceId, hlGroup, line, colStart, colEnd),
   clearHighlight: (sourceId, lineStart, lineEnd) => api.buf.clearHighlight(id, sourceId, lineStart, lineEnd),
   clearAllHighlights: () => api.buf.clearHighlight(id, -1, 1, -1),
-  highlightProblems: async problems => {
-    const hlid = await req.buf.addHighlight(id, 0, '', 0, 0, 0)
-    problems.forEach(c => api.buf.addHighlight(id, hlid, Highlight.Undercurl, c.line, c.columnStart, c.columnEnd))
-    return () => api.buf.clearHighlight(id, hlid, 1, -1)
-  },
-  highlightProblem: async problem => {
-    const hlid = await req.buf.addHighlight(id, 0, Highlight.Undercurl, problem.line, problem.columnStart, problem.columnEnd)
-    return () => api.buf.clearHighlight(id, hlid, 1, -1)
-  }
+  highlightProblems: async problems => callAtomic([
+    [HL_CLR, [id, problems[0].id, 0, -1]],
+    ...problems.map(p => [HL_ADD, [id, p.id, p.group, p.line, p.columnStart, p.columnEnd]]),
+  ]),
 } as Buffer)
 
 const Window = (id: any) => ({

@@ -1,5 +1,5 @@
 import { ProblemHighlight, Highlight, HighlightGroupId, on, action, getCurrent,
-  current as vim, jumpTo, callAtomic } from '../core/neovim'
+  current as vim, jumpTo } from '../core/neovim'
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
@@ -21,17 +21,12 @@ export interface Problem {
   items: Diagnostic[],
 }
 
-interface ActiveProblemHighlight extends ProblemHighlight {
-  removeHighlight(): void,
-}
-
 type Diags = Map<string, Diagnostic[]>
 
 const cache = {
   diagnostics: new Map<number, Diags>(new Map()),
   problems: new Map<number, Problem[]>(),
   actions: [] as Command[],
-  visibleProblems: new Map<string, ActiveProblemHighlight[]>(),
   currentBuffer: '',
 }
 
@@ -105,9 +100,6 @@ export const addQF = (items: Map<string, Diagnostic[]>, source: string) => {
   updateUI()
 }
 
-const HL_CLR = 'nvim_buf_clear_highlight'
-const HL_ADD = 'nvim_buf_add_highlight'
-
 const refreshProblemHighlights = async () => {
   const currentBufferPath = path.join(vim.cwd, vim.file)
   const diagnostics = current.diagnostics.get(currentBufferPath) || []
@@ -115,45 +107,15 @@ const refreshProblemHighlights = async () => {
 
   if (!diagnostics.length) return buffer.clearHighlight(HighlightGroupId.Diagnostics, 0, -1)
 
-  const addCalls = diagnostics.map(d => [HL_ADD, [
-    buffer.id,
-    HighlightGroupId.Diagnostics,
-    Highlight.Undercurl,
-    d.range.start.line,
-    d.range.start.character,
-    d.range.end.character,
-  ]])
+  const problems: ProblemHighlight[] = diagnostics.map(d => ({
+    id: HighlightGroupId.Diagnostics,
+    group: Highlight.Undercurl,
+    line: d.range.start.line,
+    columnStart: d.range.start.character,
+    columnEnd: d.range.end.character,
+  }))
 
-  const calls = [
-    [HL_CLR, [buffer.id, HighlightGroupId.Diagnostics, 0, -1]],
-    ...addCalls,
-  ]
-
-  // renderFlags.screenDiffCheck = true
-  await callAtomic(calls)
-  // renderFlags.screenDiffCheck = false
-  // console.log(calls)
-  // const res = await callAtomic(calls)
-  // console.log('res:', res)
-
-  // renderFlags.skipRender = true
-  // buffer.clearHighlight(HighlightGroupId.Diagnostics, 0, -1)
-  // renderFlags.skipRender = false
-
-  // await delay(1)
-
-  // renderFlags.screenDiffCheck = true
-
-  // diagnostics.forEach(d => buffer.addHighlight(
-  //   HighlightGroupId.Diagnostics,
-  //   Highlight.Undercurl,
-  //   d.range.start.line,
-  //   d.range.start.character,
-  //   d.range.end.character,
-  // ))
-
-  // await delay(150)
-  // renderFlags.screenDiffCheck = false
+  buffer.highlightProblems(problems)
 }
 
 onDiagnostics(async m => {
