@@ -18,12 +18,20 @@ interface Autocmd {
   [index: string]: AutocmdEvent & AutocmdArgEvent,
 }
 
-type AtomicCall = [string, any[]]
 type EventCallback = (state: NeovimState) => void
 
 export enum Highlight {
   Underline = 'VeonimUnderline',
   Undercurl = 'VeonimUndercurl',
+  DocumentHighlight = 'DocumentHighlight',
+}
+
+export enum HighlightGroupId {
+  // as per nvim api for buf_(add|clear)highlight sourceId of 0
+  // is a special number used to generate a highlight id from
+  // neovim. we want to use our own, so we will skip 0
+  Diagnostics = 2,
+  DocumentHighlight = 3,
 }
 
 export interface Color {
@@ -225,7 +233,7 @@ export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
 export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
 export const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
-export const callAtomic = (calls: AtomicCall[]) => req.core.callAtomic(calls)
+export const callAtomic = (calls: any[]) => req.core.callAtomic(calls)
 export const action = (event: string, cb: GenericCallback): void => {
   actionWatchers.add(event, cb)
   registeredEventActions.add(event)

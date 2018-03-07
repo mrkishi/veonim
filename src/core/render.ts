@@ -83,6 +83,11 @@ export interface CommandUpdate {
   position: number,
 }
 
+export const renderFlags = {
+  skipRender: false,
+  screenDiffCheck: false,
+}
+
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 const commonColors = new Map<string, number>()
@@ -124,6 +129,19 @@ const nextAttrs: NextAttrs = {
   fg: colors.fg,
   bg: colors.bg,
   sp: colors.sp,
+}
+
+const differentFromScreen = (chars: string, row: number, col: number, underline: boolean): boolean => {
+  const total = chars.length
+  if (!total) return true
+
+  let currentCol = col
+
+  return (chars as any).some((c: any) => {
+    const same = grid.same(row, currentCol, c[0], nextAttrs.fg, nextAttrs.bg, nextAttrs.sp, underline)
+    currentCol++
+    return !same
+  })
 }
 
 const defaultScrollRegion = (): ScrollRegion => ({
@@ -286,7 +304,15 @@ r.put = chars => {
   const total = chars.length
   if (!total) return
 
+  if (renderFlags.skipRender) return
+
   const underlinePls = !!(nextAttrs.undercurl || nextAttrs.underline)
+  const needToUpdate = renderFlags.screenDiffCheck
+    ? differentFromScreen(chars, cursor.row, cursor.col, underlinePls)
+    : true
+
+  if (!needToUpdate) return
+
   const { row: ogRow, col: ogCol } = cursor
   const win = getWindow(cursor.row, cursor.col)
   //// TODO: get all windows which apply for this range
@@ -308,6 +334,7 @@ r.put = chars => {
     }
 
     grid.set(cursor.row, cursor.col, chars[ix][0], nextAttrs.fg, nextAttrs.bg, underlinePls, nextAttrs.sp)
+
     cursor.col++
   }
 

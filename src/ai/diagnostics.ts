@@ -1,11 +1,11 @@
-import { ProblemHighlight, on, action, getCurrent, current as vim, jumpTo } from '../core/neovim'
+import { ProblemHighlight, Highlight, HighlightGroupId, on, action, getCurrent,
+  current as vim, jumpTo, callAtomic } from '../core/neovim'
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
 import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as codeActionUI from '../components/code-actions'
-import { addUnderlines } from '../core/canvas-underlines'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
@@ -105,59 +105,55 @@ export const addQF = (items: Map<string, Diagnostic[]>, source: string) => {
   updateUI()
 }
 
-const problemHighlightsSame = (current: ProblemHighlight, compare: ProblemHighlight) =>
-  current.line === compare.line
-    && current.columnStart === compare.columnStart
-    && current.columnEnd === compare.columnEnd
-
-const includesProblemHighlight = (problems: ProblemHighlight[], problem: ProblemHighlight) =>
-  problems.some(p => problemHighlightsSame(p, problem))
+const HL_CLR = 'nvim_buf_clear_highlight'
+const HL_ADD = 'nvim_buf_add_highlight'
 
 const refreshProblemHighlights = async () => {
   const currentBufferPath = path.join(vim.cwd, vim.file)
   const diagnostics = current.diagnostics.get(currentBufferPath) || []
-  const renderPositions = diagnostics.map(d => ({
-    row: d.range.start.line - 1,
-    col: d.range.start.character,
-    width: d.range.end.character - d.range.start.character,
-    color: '#e5ff00'
-  }))
+  const buffer = await getCurrent.buffer
 
-  addUnderlines(renderPositions)
-}
+  if (!diagnostics.length) return buffer.clearHighlight(HighlightGroupId.Diagnostics, 0, -1)
 
-const refreshProblemHighlights2 = async () => {
-  const currentBufferPath = path.join(vim.cwd, vim.file)
-  const diagnostics = current.diagnostics.get(currentBufferPath) || []
-  const getBufReq = getCurrent.buffer
+  const addCalls = diagnostics.map(d => [HL_ADD, [
+    buffer.id,
+    HighlightGroupId.Diagnostics,
+    Highlight.Undercurl,
+    d.range.start.line,
+    d.range.start.character,
+    d.range.end.character,
+  ]])
 
-  if (!diagnostics.length) {
-    cache.visibleProblems.set(`${sessions.current}:${currentBufferPath}`, [])
-    const buffer = await getBufReq
-    return buffer.clearAllHighlights()
-  }
+  const calls = [
+    [HL_CLR, [buffer.id, HighlightGroupId.Diagnostics, 0, -1]],
+    ...addCalls,
+  ]
 
-  const currentProblems = cache.visibleProblems.get(`${sessions.current}:${currentBufferPath}`) || []
-  const nextProblems: ProblemHighlight[] = diagnostics.map((d: Diagnostic) => ({
-    line: d.range.start.line,
-    columnStart: d.range.start.character,
-    columnEnd: d.range.end.character,
-  }))
+  // renderFlags.screenDiffCheck = true
+  await callAtomic(calls)
+  // renderFlags.screenDiffCheck = false
+  // console.log(calls)
+  // const res = await callAtomic(calls)
+  // console.log('res:', res)
 
-  const problemsToRemove = currentProblems.filter(p => !includesProblemHighlight(nextProblems, p))
-  const problemsToAdd = nextProblems.filter(p => !includesProblemHighlight(currentProblems, p))
-  const untouchedProblems = currentProblems.filter(p => includesProblemHighlight(nextProblems, p))
+  // renderFlags.skipRender = true
+  // buffer.clearHighlight(HighlightGroupId.Diagnostics, 0, -1)
+  // renderFlags.skipRender = false
 
-  problemsToRemove.forEach(problem => problem.removeHighlight())
+  // await delay(1)
 
-  const buffer = await getBufReq
-  const nextVisibleProblems: ActiveProblemHighlight[] = await Promise.all(problemsToAdd.map(async m => ({
-    ...m,
-    removeHighlight: await buffer.highlightProblem(m)
-  })))
+  // renderFlags.screenDiffCheck = true
 
-  const visibleProblems = [...untouchedProblems, ...nextVisibleProblems]
-  cache.visibleProblems.set(`${sessions.current}:${currentBufferPath}`, visibleProblems)
+  // diagnostics.forEach(d => buffer.addHighlight(
+  //   HighlightGroupId.Diagnostics,
+  //   Highlight.Undercurl,
+  //   d.range.start.line,
+  //   d.range.start.character,
+  //   d.range.end.character,
+  // ))
+
+  // await delay(150)
+  // renderFlags.screenDiffCheck = false
 }
 
 onDiagnostics(async m => {
