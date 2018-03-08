@@ -1,5 +1,7 @@
-import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
-import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase, camelCase, prefixWith } from '../support/utils'
+import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow,
+  Tabpage as ITabpage } from '../core/api'
+import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
+  camelCase, prefixWith } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { Functions } from '../core/vim-functions'
 import { Patch } from '../langserv/patch'
@@ -241,12 +243,41 @@ export const action = (event: string, cb: GenericCallback): void => {
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
+const getBuffersWithNames = async () => {
+  const buffers = await list.buffers
+  return Promise.all(buffers.map(async b => ({
+    ...b,
+    name: await b.name,
+  })))
+}
+
+const loadBuffer = async (file: string): Promise<boolean> => {
+  const buffers = await getBuffersWithNames()
+  const targetBuffer = buffers.find(b => b.name === file)
+  if (!targetBuffer) return false
+
+  api.core.setCurrentBuf(targetBuffer.id)
+  return true
+}
+
+export const openBuffer = async (file: string): Promise<boolean> => {
+  const loaded = await loadBuffer(file)
+  if (loaded) return true
+
+  ex(`badd ${file}`)
+  return loadBuffer(file)
+}
+
 // TODO: accept column as optional. sometimes we just wanna hang out
 export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
   const currentPath = pathJoin(current.cwd, current.file)
-  if (path && path !== currentPath) cmd(`e ${path}`)
-  const window = await getCurrent.window
-  window.setCursor(line, column)
+
+  if (path && path !== currentPath) {
+    openBuffer(path)
+    await until.bufLoad
+  }
+
+  (await getCurrent.window).setCursor(line, column)
 }
 
 export const getColor = async (name: string) => {
