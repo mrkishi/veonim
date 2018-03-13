@@ -61,7 +61,7 @@ const main = async () => {
 }
 
 const loadComponents = async () => {
-  const targetEl = document.getElementById('plugins') as HTMLElement
+  const targetEl = document.getElementById('plugins2') as HTMLElement
   const importedComponents = await requireDir(`${__dirname}/../components`)
 
   // TODO: temporary because react components mixed with hyperapp

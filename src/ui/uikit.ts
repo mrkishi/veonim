@@ -13,8 +13,19 @@ export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller,
 export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
 
 const hostElement = document.getElementById('plugins') as HTMLElement
+const hostElement2 = document.getElementById('plugins2') as HTMLElement
 
 merge(hostElement.style, {
+  position: 'absolute',
+  display: 'flex',
+  width: '100vw',
+  zIndex: 420, // vape naysh yall
+  // TODO: 24px for statusline. do it better
+  // TODO: and title. bruv do i even know css?
+  height: `calc(100vh - 24px - ${titleSpecs.height}px)`,
+})
+
+merge(hostElement2.style, {
   position: 'absolute',
   display: 'flex',
   width: '100vw',
