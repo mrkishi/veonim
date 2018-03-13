@@ -113,8 +113,11 @@ export const font = {
 setFont({})
 setImmediate(() => resize())
 
-window.matchMedia('screen and (min-resolution: 2dppx)').addListener(resize)
 window.addEventListener('resize', debounce(() => resize(), 150))
+window.matchMedia('screen and (min-resolution: 2dppx)').addListener(() => {
+  resize()
+  watchers.notify('device-pixel-ratio-changed')
+})
 electron.screen.on('display-added', () => resize())
 electron.screen.on('display-removed', () => resize())
 electron.screen.on('display-metrics-changed', () => resize())

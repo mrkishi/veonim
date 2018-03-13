@@ -441,6 +441,12 @@ initalFontAtlas.promise.then(() => {
 
 const sameColors = (colors: string[]) => colors.every(c => lastTop.includes(c))
 
+const generateFontAtlas = () => {
+  const topColors = getTopColors()
+  const genColors = [...new Set([...topColors, colors.fg])]
+  fontAtlas.generate(genColors)
+}
+
 const regenerateFontAtlastIfNecessary = debounce(() => {
   const topColors = getTopColors()
   if (!sameColors(topColors)) {
@@ -470,4 +476,9 @@ onRedraw((m: any[]) => {
     if (!initialAtlasGenerated) initalFontAtlas.done(true)
     regenerateFontAtlastIfNecessary()
   })
+})
+
+canvasContainer.on('device-pixel-ratio-changed', () => {
+  console.log('device pixel ratio changed!')
+  generateFontAtlas()
 })
