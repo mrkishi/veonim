@@ -11,7 +11,7 @@ export interface FontAtlas {
 }
 
 const CHAR_START = 32
-const CHAR_END = 126
+const CHAR_END = 127
 const canvas = document.createElement('canvas')
 const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 
