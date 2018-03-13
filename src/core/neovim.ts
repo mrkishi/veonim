@@ -264,7 +264,7 @@ export const openBuffer = async (file: string): Promise<boolean> => {
   const loaded = await loadBuffer(file)
   if (loaded) return true
 
-  ex(`badd ${file}`)
+  cmd(`badd ${file}`)
   return loadBuffer(file)
 }
 
@@ -394,7 +394,7 @@ export const applyPatches = async (patches: Patch[]) => {
   // when loading the buffer. might be nice to use on a rename op. see :h badd
   patches
     .filter(p => buffers.some(b => b.path !== p.path))
-    .map(b => ex(`badd ${b.file}`))
+    .forEach(b => cmd(`badd ${b.file}`))
 
   applyPatchesToBuffers(patches, buffers)
 }
@@ -412,7 +412,7 @@ const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => bu
       buffer.replace(start.line, newLine)
     }
 
-    if (!ix) ex('undojoin')
+    if (!ix) cmd('undojoin')
   })
 })
 
