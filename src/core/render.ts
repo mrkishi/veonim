@@ -87,12 +87,7 @@ let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 const commonColors = new Map<string, number>()
 
-const notifyColorUpdate = debounce(() => dispatch.pub('colors.vim.add'), 999)
-
-// TODO: this function is too slow for rendering hot path
-// gets triggered too many times + messy with timers
 const recordColor = (color: string) => {
-  notifyColorUpdate()
   const count = commonColors.get(color) || 0
   commonColors.set(color, count + 1)
 }
@@ -272,6 +267,8 @@ r.highlight_set = (attrs: Attrs) => {
   attrs.reverse
     ? merge(nextAttrs, attrDefaults, attrs, { sp, bg: fg, fg: bg })
     : merge(nextAttrs, attrDefaults, attrs, { sp, fg, bg })
+
+  recordColor(nextAttrs.fg)
 }
 
 r.scroll = amount => {
@@ -299,8 +296,6 @@ r.put = chars => {
     .fillRect(cursor.col, cursor.row, total, 1)
     .setColor(nextAttrs.fg)
     .setTextBaseline('top')
-
-  recordColor(nextAttrs.fg)
 
   for (let ix = 0; ix < total; ix++) {
     if (chars[ix][0] !== ' ') {
@@ -446,14 +441,14 @@ initalFontAtlas.promise.then(() => {
 
 const sameColors = (colors: string[]) => colors.every(c => lastTop.includes(c))
 
-dispatch.sub('colors.vim.add', () => {
+const regenerateFontAtlastIfNecessary = debounce(() => {
   const topColors = getTopColors()
   if (!sameColors(topColors)) {
     const genColors = [...new Set([ ...topColors, colors.fg ])]
     fontAtlas.generate(genColors)
   }
   lastTop = topColors
-})
+}, 100)
 
 onRedraw((m: any[]) => {
   const count = m.length
@@ -473,5 +468,6 @@ onRedraw((m: any[]) => {
   setImmediate(() => {
     dispatch.pub('redraw')
     if (!initialAtlasGenerated) initalFontAtlas.done(true)
+    regenerateFontAtlastIfNecessary()
   })
 })
