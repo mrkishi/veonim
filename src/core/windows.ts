@@ -251,14 +251,51 @@ const getWindows = async (): Promise<VimWindow[]> => {
 export const applyToWindows = (transformFn: (window: CanvasWindow) => void) =>
   windows.forEach(w => transformFn(w.canvas))
 
-// TODO: how to make this even faster? (besides a memory intensive hashtable)
+// TODO: wrap this in a module/function/etc
+const emptyLastWindow = {
+  canvas: {} as CanvasWindow,
+  row: -1,
+  col: -1,
+  height: -1,
+  width: -1,
+}
+
+const lastWindow = { ...emptyLastWindow }
+
+const isWindowRangeValid = (
+  targetRow: number,
+  targetCol: number,
+  row: number,
+  col: number,
+  height: number,
+  width: number,
+) => {
+  const rowMatch = (row <= targetRow && targetRow < (height + row))
+  const colMatch = (col <= targetCol && targetCol < (width + col))
+  return rowMatch && colMatch
+}
+
 export const getWindow = (targetRow: number, targetCol: number): CanvasWindow | undefined => {
+  const lastWindowValid = isWindowRangeValid(
+    targetRow,
+    targetCol,
+    lastWindow.row,
+    lastWindow.col,
+    lastWindow.height,
+    lastWindow.width,
+  )
+
+  if (lastWindowValid) return lastWindow.canvas
+
   const winCount = winPos.length
   for (let ix = 0; ix < winCount; ix++) {
     const [ row, col, height, width, canvas ] = winPos[ix]
-    const rowMatch = (row <= targetRow && targetRow < (height + row))
-    const colMatch = (col <= targetCol && targetCol < (width + col))
-    if (rowMatch && colMatch) return canvas
+    const windowValid = isWindowRangeValid(targetRow, targetCol, row, col, height, width)
+
+    if (windowValid) {
+      merge(lastWindow, { row, col, height, width, canvas })
+      return canvas
+    }
   }
 }
 
@@ -292,6 +329,7 @@ const setupWindow = ({ element, canvas, canvasBox, api }: Window, window: Render
     .setSpecs(window.y, window.x, window.height, window.width, 10, 6)
     .resize(canvasBox, current.bg)
 
+  merge(lastWindow, emptyLastWindow)
   winPos.push([window.y, window.x, window.height, window.width, canvas])
   fillCanvasFromGrid(window.x, window.y, window.height, window.width, canvas)
 

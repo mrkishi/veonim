@@ -89,6 +89,8 @@ const commonColors = new Map<string, number>()
 
 const notifyColorUpdate = debounce(() => dispatch.pub('colors.vim.add'), 999)
 
+// TODO: this function is too slow for rendering hot path
+// gets triggered too many times + messy with timers
 const recordColor = (color: string) => {
   notifyColorUpdate()
   const count = commonColors.get(color) || 0
