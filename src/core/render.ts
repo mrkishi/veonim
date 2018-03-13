@@ -478,7 +478,4 @@ onRedraw((m: any[]) => {
   })
 })
 
-canvasContainer.on('device-pixel-ratio-changed', () => {
-  console.log('device pixel ratio changed!')
-  generateFontAtlas()
-})
+canvasContainer.on('device-pixel-ratio-changed', generateFontAtlas)
