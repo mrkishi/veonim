@@ -1,5 +1,5 @@
-import { action, current, call, cmd } from '../core/neovim'
 import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { action, current, cmd } from '../core/neovim'
 import * as setiIcon from '../styles/seti-icons'
 import { Plugin, Row } from '../styles/common'
 import Input from '../components/text-input'
@@ -101,8 +101,7 @@ const ui = app({ state, view, actions: a })
 worker.on.results((files: string[]) => ui.results(files))
 worker.on.done(ui.loadingDone)
 
-action('files', async () => {
+action('files', () => {
   worker.call.load(current.cwd)
-  const currentFile = await call.expand('%f')
-  ui.show(currentFile)
+  ui.show(current.file)
 })
