@@ -2,6 +2,7 @@ import WorkerClient from '../messaging/worker-client'
 import { NewlineSplitter } from '../support/utils'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
+import { spawn } from 'child_process'
 
 const INTERVAL = 250
 const AMOUNT = 10
@@ -15,6 +16,13 @@ const sendResults = ({ filter = true } = {}) => call.results(filter && query
   ? fuzzy(results, query).slice(0, AMOUNT)
   : results.slice(0, AMOUNT)
 )
+
+const getGitFiles = (cwd: string) => {
+  const proc = spawn('git', ['ls-files'], { cwd, shell: true })
+  proc.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
+    // console.log('@', path)
+  })
+}
 
 const getFiles = (cwd: string) => {
   results = []
@@ -53,5 +61,9 @@ const getFiles = (cwd: string) => {
 }
 
 on.stop(() => stopSearch())
-on.load((cwd: string) => stopSearch = getFiles(cwd))
+// on.load((cwd: string) => stopSearch = getFiles(cwd))
+on.load((cwd: string) => {
+  stopSearch = getFiles(cwd)
+  getGitFiles(cwd)
+})
 on.query((data: string) => (query = data, sendResults()))
