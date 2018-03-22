@@ -8,64 +8,78 @@ const INTERVAL = 250
 const AMOUNT = 10
 const TIMEOUT = 15e3
 const { on, call } = WorkerClient()
-let results: string[] = []
-let stopSearch = () => {}
+const results = new Set<string>()
+const cancelTokens = new Set<Function>()
 let query = ''
 
 const sendResults = ({ filter = true } = {}) => call.results(filter && query
-  ? fuzzy(results, query).slice(0, AMOUNT)
-  : results.slice(0, AMOUNT)
+  ? fuzzy([ ...results ], query).slice(0, AMOUNT)
+  : [ ...results ].slice(0, AMOUNT)
 )
 
-const getGitFiles = (cwd: string) => {
-  if (!commandExists('git')) return
+const getFilesWithGit = (cwd: string) => {
+  if (!commandExists('git')) return () => {}
 
-  const proc = spawn('git', ['ls-files'], { cwd, shell: true })
-  proc.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
-    // console.log('@', path)
-  })
+  const git = spawn('git', ['ls-files'], { cwd, shell: true })
+  git.stdout.pipe(new NewlineSplitter()).on('data', m => results.add(m as string))
+
+  const reset = () => results.clear()
+  const stop = () => git.kill()
+
+  setTimeout(stop, TIMEOUT)
+  return () => (stop(), reset())
 }
 
-const getFiles = (cwd: string) => {
-  results = []
-  query = ''
-  let alive = true
-  let initialSent = false
+const getFilesWithRipgrep = (cwd: string) => {
   const timer = setInterval(sendResults, INTERVAL)
   const rg = Ripgrep(['--files'], { cwd })
+  let initialSent = false
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
-    if (!initialSent && results.length >= AMOUNT) (initialSent = true, sendResults({ filter: false }))
-    results.push(path)
+    const shouldSendInitialBatch = !initialSent && results.size >= AMOUNT 
+    results.add(path)
+
+    if (shouldSendInitialBatch) {
+      sendResults({ filter: false })
+      initialSent = true
+    }
   })
 
   rg.on('exit', () => {
-    alive = false
-    if (!initialSent) (initialSent = true, sendResults({ filter: false }))
     clearInterval(timer)
-    sendResults()
+    sendResults({ filter: initialSent })
     call.done()
   })
 
+  const reset = () => results.clear()
   const stop = () => {
-    if (alive) rg.kill()
+    rg.kill()
     clearInterval(timer)
   }
   
-  const reset = () => {
-    query = ''
-    results = []
-  }
-
   setImmediate(() => sendResults({ filter: false }))
   setTimeout(stop, TIMEOUT)
   return () => (stop(), reset())
 }
 
-on.stop(() => stopSearch())
-// on.load((cwd: string) => stopSearch = getFiles(cwd))
 on.load((cwd: string) => {
-  stopSearch = getFiles(cwd)
-  getGitFiles(cwd)
+  results.clear()
+  query = ''
+
+  const stopRipgrepSearch = getFilesWithRipgrep(cwd)
+  const stopGitSearch = getFilesWithGit(cwd)
+
+  cancelTokens.add(stopRipgrepSearch)
+  cancelTokens.add(stopGitSearch)
 })
-on.query((data: string) => (query = data, sendResults()))
+
+on.stop(() => {
+  query = ''
+  cancelTokens.forEach(cancel => cancel())
+  cancelTokens.clear()
+})
+
+on.query((data: string) => {
+  query = data
+  sendResults()
+})
