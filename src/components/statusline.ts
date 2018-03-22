@@ -307,6 +307,7 @@ a.serverOffline = (s, _a, server) => ({
 
 const ui = app({ state, view, actions: a }, false, container)
 
+sub('colorscheme.modified', refreshBaseColor)
 onStateChange.colorscheme(refreshBaseColor)
 onStateChange.filetype(ui.setFiletype)
 onStateChange.line(ui.setLine)
