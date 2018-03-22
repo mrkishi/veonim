@@ -1,5 +1,5 @@
+import { NewlineSplitter, commandExists } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
-import { NewlineSplitter } from '../support/utils'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
 import { spawn } from 'child_process'
@@ -18,6 +18,8 @@ const sendResults = ({ filter = true } = {}) => call.results(filter && query
 )
 
 const getGitFiles = (cwd: string) => {
+  if (!commandExists('git')) return
+
   const proc = spawn('git', ['ls-files'], { cwd, shell: true })
   proc.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
     // console.log('@', path)

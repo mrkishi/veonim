@@ -55,6 +55,14 @@ export const uuid = (): string => (<any>[1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[01
 export const shell = (cmd: string, opts?: object): Promise<string> => new Promise(fin => exec(cmd, opts, (_, out) => fin(out + '')))
 export const run = (cmd: string, opts?: object): Promise<string> => new Promise(fin => execFile(cmd, opts, (_, out) => fin(out + '')))
 
+export const commandExists = (cmd: string) => new Promise(done => {
+  const checker = process.platform === 'win32' ? 'where' : 'command -v'
+  exec(`${checker} ${cmd}`, (err, stdout) => {
+    if (err) return done(false)
+    return done(!!stdout)
+  })
+})
+
 export const pathRelativeToHome = (path: string) => path.includes($HOME)
   ? path.replace($HOME, '~')
   : path
