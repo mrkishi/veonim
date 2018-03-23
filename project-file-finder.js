@@ -21,7 +21,9 @@ const getFilesWithGit = (cwd: string) => {
   if (!commandExists('git')) return () => {}
 
   const git = spawn('git', ['ls-files'], { cwd, shell: true })
-  git.stdout.pipe(new NewlineSplitter()).on('data', m => results.add(m as string))
+  git.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
+    if (!path.includes('node_modules')) results.add(path)
+  })
 
   const reset = () => results.clear()
   const stop = () => git.kill()

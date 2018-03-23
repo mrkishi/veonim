@@ -21,7 +21,7 @@ interface State {
   loading: boolean,
 }
 
-const worker = Worker('fs-fuzzy')
+const worker = Worker('project-file-finder')
 const formatDir = (dir: string) => dir === '.' ? '' : `${dir}/`
 const asDirFile = (files: string[], currentFile: string) => files
   .filter(m => m !== currentFile)
