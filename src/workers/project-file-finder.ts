@@ -34,7 +34,7 @@ const getFilesWithGit = (cwd: string) => {
 
 const getFilesWithRipgrep = (cwd: string) => {
   const timer = setInterval(sendResults, INTERVAL)
-  const rg = Ripgrep(['-g', '!node_modules', '--files'], { cwd })
+  const rg = Ripgrep(['--files', '--glob', '!node_modules'], { cwd })
   let initialSent = false
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
