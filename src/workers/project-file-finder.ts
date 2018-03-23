@@ -34,12 +34,12 @@ const getFilesWithGit = (cwd: string) => {
 
 const getFilesWithRipgrep = (cwd: string) => {
   const timer = setInterval(sendResults, INTERVAL)
-  const rg = Ripgrep(['--files'], { cwd })
+  const rg = Ripgrep(['-g', '!node_modules', '--files'], { cwd })
   let initialSent = false
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
     const shouldSendInitialBatch = !initialSent && results.size >= AMOUNT 
-    if (!path.includes('node_modules')) results.add(path)
+    results.add(path)
 
     if (shouldSendInitialBatch) {
       sendResults({ filter: false })
