@@ -39,7 +39,7 @@ const getFilesWithRipgrep = (cwd: string) => {
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
     const shouldSendInitialBatch = !initialSent && results.size >= AMOUNT 
-    results.add(path)
+    if (!path.includes('node_modules')) results.add(path)
 
     if (shouldSendInitialBatch) {
       sendResults({ filter: false })
