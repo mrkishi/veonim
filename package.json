@@ -1,7 +1,7 @@
 {
   "name": "veonim",
   "version": "0.8.2",
-  "description": "neovim gui with 100% more nyan cat",
+  "description": "modern lightweight modal IDE built on neovim",
   "main": "build/bootstrap/main.js",
   "scripts": {
     "test": "mocha test/unit",
