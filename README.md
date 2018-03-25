@@ -47,14 +47,14 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 ### fuzzy file finder
 ![](https://veonim.github.io/veonim/files.png)
 
-### hover information
-![](https://veonim.github.io/veonim/hover.png)
-
 ### find in project
 ![](https://veonim.github.io/veonim/grep.png)
 
-### explorer
-![](https://veonim.github.io/veonim/explorer.png)
+### symbol search
+![](https://veonim.github.io/veonim/symbols.png)
+
+### hover information
+![](https://veonim.github.io/veonim/hover.png)
 
 ### signature hint
 ![](https://veonim.github.io/veonim/hint.png)
@@ -62,8 +62,8 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 ### problems
 ![](https://veonim.github.io/veonim/problems.png)
 
-### symbol search
-![](https://veonim.github.io/veonim/symbols.png)
+### explorer
+![](https://veonim.github.io/veonim/explorer.png)
 
 ### references
 ![](https://veonim.github.io/veonim/references.png)
