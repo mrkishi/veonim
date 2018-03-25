@@ -2,6 +2,7 @@ import { action, current as vimState, jumpTo } from '../core/neovim'
 import { findNext, findPrevious } from '../support/relative-finder'
 import { SearchResult, show } from '../components/references'
 import { VimQFItem, references } from '../langserv/adapter'
+import { pathRelativeToCwd } from '../support/utils'
 import { join } from 'path'
 
 interface Reference {
@@ -24,7 +25,7 @@ const asReference = (m: VimQFItem): Reference => ({
   column: m.column - 1,
   endLine: m.endLine,
   endColumn: m.endColumn - 1,
-  path: join(m.cwd, m.file),
+  path: pathRelativeToCwd(join(m.cwd, m.file), vimState.cwd),
 })
 
 action('references', async () => {
