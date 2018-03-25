@@ -28,6 +28,32 @@ export enum Highlight {
   DocumentHighlight = 'DocumentHighlight',
 }
 
+export enum BufferOption {
+  Modifiable = 'modifiable',
+  Listed = 'buflisted',
+  Modified = 'modified',
+  Filetype = 'filetype',
+  Hidden = 'bufhidden',
+  Type = 'buftype',
+}
+
+export enum BufferType {
+  Normal = '',
+  Help = 'help',
+  NonFile = 'nofile',
+  Quickfix = 'quickfix',
+  Terminal = 'terminal',
+  NonWritable = 'nowrite',
+  OnlyWrittenWithAutocmd = 'acwrite',
+}
+
+export enum BufferHide {
+  Hide = 'hide',
+  Unload = 'unload',
+  Delete = 'delete',
+  Wipe = 'wipe',
+}
+
 export enum HighlightGroupId {
   // as per nvim api for buf_(add|clear)highlight sourceId of 0
   // is a special number used to generate a highlight id from
@@ -251,14 +277,23 @@ const getBuffersWithNames = async () => {
   })))
 }
 
-const loadBuffer = async (file: string): Promise<boolean> => {
+const findBuffer = async (name: string, { approximate = false } = {}) => {
   const buffers = await getBuffersWithNames()
-  const targetBuffer = buffers.find(b => b.name === file)
+
+  return approximate
+    ? buffers.find(b => b.name.toLowerCase().includes(name))
+    : buffers.find(b => b.name === name)
+}
+
+const loadBuffer = async (file: string): Promise<boolean> => {
+  const targetBuffer = await findBuffer(file)
   if (!targetBuffer) return false
 
   api.core.setCurrentBuf(targetBuffer.id)
   return true
 }
+
+export const SHADOW_BUFFER_TYPE = 'veonim-shadow-buffer'
 
 export const openBuffer = async (file: string): Promise<boolean> => {
   const loaded = await loadBuffer(file)
@@ -266,6 +301,22 @@ export const openBuffer = async (file: string): Promise<boolean> => {
 
   cmd(`badd ${file}`)
   return loadBuffer(file)
+}
+
+export const createShadowBuffer = async (name: string) => {
+  const id = `__veonim-shadow-${name}`
+  cmd(`badd ${id}`)
+
+  const buffer = await findBuffer(id, { approximate: true })
+  if (!buffer) return false
+
+  buffer.setOption(BufferOption.Type, BufferType.NonFile)
+  buffer.setOption(BufferOption.Hidden, BufferHide.Hide)
+  buffer.setOption(BufferOption.Listed, false)
+  buffer.setOption(BufferOption.Modifiable, false)
+  buffer.setOption(BufferOption.Filetype, SHADOW_BUFFER_TYPE)
+
+  return true
 }
 
 // TODO: accept column as optional. sometimes we just wanna hang out

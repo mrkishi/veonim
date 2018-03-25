@@ -1,7 +1,7 @@
 import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
+import { getCurrent, current, cmd, BufferType, BufferOption } from '../core/neovim'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
-import { getCurrent, current, cmd } from '../core/neovim'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
@@ -240,8 +240,8 @@ const getWindows = async (): Promise<VimWindow[]> => {
       height: await w.height,
       width: await w.width,
       name: (simplifyPath(await buffer.name, current.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
-      modified: await buffer.getOption('modified'),
-      terminal: (await buffer.getOption('buftype')) === 'terminal',
+      modified: await buffer.getOption(BufferOption.Modified),
+      terminal: (await buffer.getOption(BufferOption.Type)) === BufferType.Terminal,
       termAttached: await buffer.getVar(BufferVar.TermAttached).catch(() => false),
       termFormat: await buffer.getVar(BufferVar.TermFormat).catch(() => ''),
     }
