@@ -1,7 +1,6 @@
+import { exists, watchPath } from '../support/utils'
 import { sub } from '../messaging/dispatch'
-import { exists } from '../support/utils'
 import { cmd, on } from '../core/neovim'
-const watch = require('node-watch')
 import { join } from 'path'
 
 const sessions = new Map<number, Set<string>>()
@@ -21,7 +20,7 @@ on.bufLoad(async ({ cwd, file }) => {
   if (!filepath) return
   if (!await exists(filepath)) return
   currentSession.add(filepath)
-  const w = watch(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
+  const w = watchPath(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
   watchers.set(filepath, w)
 })
 

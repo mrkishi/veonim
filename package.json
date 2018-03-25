@@ -99,13 +99,12 @@
   "dependencies": {
     "@veonim/neovim": "0.0.22",
     "@veonim/ripgrep": "0.0.5",
+    "fs-extra": "5.0.0",
     "fuzzaldrin-plus": "0.4.1",
     "huu": "2.0.1",
     "hyperapp": "0.10.1",
     "immer": "1.0.2",
     "msgpack-lite": "0.1.26",
-    "nimraf": "1.1.0",
-    "node-watch": "0.5.8",
     "picostyle": "0.1.4",
     "react": "16.2.0",
     "react-color": "2.13.8",
@@ -121,6 +120,7 @@
     "vscode-languageserver-types": "3.5.0"
   },
   "devDependencies": {
+    "@types/fs-extra": "5.0.1",
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "9.4.0",

@@ -1,7 +1,7 @@
 import { configPath, readFile, exists, getDirs } from '../support/utils'
 import { downloadRepo } from '../support/download'
+import { remove as removePath } from 'fs-extra'
 import { EXT_PATH } from '../core/extensions'
-import removePath from 'nimraf'
 import { join } from 'path'
 
 export interface Dependency {
@@ -98,7 +98,7 @@ const downloadDependency = async (dep: Dependency): Promise<Dependency> => {
   return { ...dep, installed: true }
 }
 
-const removePlugin = async (dep: Dependency): Promise<boolean> => removePath(dep.path)
+const removePlugin = async (dep: Dependency) => removePath(dep.path)
 
 export const install = (deps: Dependency[]) => Promise.all(deps.map(downloadDependency))
 export const remove = (deps: Dependency[]) => Promise.all(deps.map(removePlugin))

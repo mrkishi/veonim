@@ -2,8 +2,8 @@ import { dirname, basename, join, extname, resolve } from 'path'
 import { exec, execFile } from 'child_process'
 import { Transform } from 'stream'
 import { createServer } from 'net'
+import * as fs from 'fs-extra'
 import { homedir } from 'os'
-import * as fs from 'fs'
 
 export interface Task<T> {
   done: (value: T) => void,
@@ -88,6 +88,11 @@ export const pathReducer = (p = '') => ((p, levels = 0) => ({ reduce: () =>
   levels ? basename(join(p, '../'.repeat(levels++))) : (levels++, basename(p))
 }))(p)
 
+export const watchPath = (path: string, callback: () => void) => {
+  const throttledCallback = throttle(callback, 15)
+  fs.watch(path, () => throttledCallback())
+}
+
 export const match = (...opts: [boolean, any][]): any => new Map(opts).get(true)
 export const matchOn = (val: any) => (opts: object): any => (Reflect.get(opts, val) || (() => {}))()
 
@@ -141,15 +146,9 @@ export const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
   return hex.length < 2 ? ('0' + hex) : hex
 }).join('')
 
-export const { readdir, stat } = promisifyApi(fs)
-export const exists = (path: string): Promise<boolean> =>
-  new Promise(fin => fs.access(path, e => fin(!e)))
-
-export const readFile = (path: string, encoding = 'utf8'): Promise<string | Buffer> =>
-  new Promise((y, n) => fs.readFile(path, encoding, (err, res) => err ? n(err) : y(res)))
-
-export const writeFile = (path: string, data: string | Buffer): Promise<boolean> =>
-  new Promise(fin => fs.writeFile(path, data, e => fin(!e)))
+export const { readdir, stat, writeFile } = fs
+export const readFile = (path: string, encoding = 'utf8') => fs.readFile(path, encoding)
+export const exists = (path: string): Promise<boolean> => new Promise(fin => fs.access(path, e => fin(!e)))
 
 const emptyStat = { isDirectory: () => false, isFile: () => false }
 

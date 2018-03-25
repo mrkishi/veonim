@@ -35,7 +35,7 @@ app.on('ready', async () => {
       }
     }
 
-    const watch = require('node-watch')
+    const { watch } = require('fs')
     const srcDir = require('path').resolve(__dirname, '../../build')
     console.log('scrdir:', srcDir)
 
