@@ -39,5 +39,5 @@ export const watchConfig = async (location: string, cb: Function) => {
   const path = `${base}/${location}`
   const pathExists = await exists(path)
   if (!pathExists) return log `config file at ${path} not found`
-  watch(path, () => cb())
+  watch(path, cb)
 }

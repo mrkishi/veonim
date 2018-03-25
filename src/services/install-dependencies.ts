@@ -45,4 +45,4 @@ action('reinstall-plugins', () => refreshDependencies(DependencyKind.Plugin))
 action('reinstall-extensions', () => refreshDependencies(DependencyKind.Extension))
 
 refreshAllDependencies()
-watchConfig('nvim/init.vim', () => refreshAllDependencies())
+watchConfig('nvim/init.vim', refreshAllDependencies)
