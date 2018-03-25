@@ -86,6 +86,13 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 ### nyan cat
 ![](https://veonim.github.io/veonim/nyan.png)
 
+## similar projects
+
+the great neovim team have allowed the community to build some kick-ass projects. some of the more interesting ones that i'm excited about are:
+
+- [oni](https://github.com/dzhou121/gonvim)
+- [gonvim](https://github.com/onivim/oni)
+
 ## development
 
 install dependencies and start automagic watch build and live reload instance
