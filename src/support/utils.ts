@@ -90,7 +90,7 @@ export const pathReducer = (p = '') => ((p, levels = 0) => ({ reduce: () =>
 
 export const watchPath = (path: string, callback: () => void) => {
   const throttledCallback = throttle(callback, 15)
-  fs.watch(path, () => throttledCallback())
+  return fs.watch(path, () => throttledCallback())
 }
 
 export const match = (...opts: [boolean, any][]): any => new Map(opts).get(true)
