@@ -546,4 +546,4 @@ export const render = async () => {
   setImmediate(() => dispatch.pub('windows:redraw'))
 }
 
-dispatch.sub('redraw', throttle(render, 30))
+dispatch.sub('redraw', throttle(render, 5))
