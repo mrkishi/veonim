@@ -43,7 +43,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('vim-switch', $
 const a: Actions<State> = {}
 
 a.show = (_s, _a, d: Session[]) => ({ list: d, cache: d, vis: true }),
-a.hide = () => ({ val: '', vis: false })
+a.hide = () => ({ val: '', vis: false, ix: 0 })
 a.change = (s, _a, val: string) => ({ val, list: val
   ? filter(s.list, val, { key: 'name' }).slice(0, 10)
   : s.cache.slice(0, 10)
