@@ -7,7 +7,7 @@ import Overlay from '../components/overlay'
 import { cursor } from '../core/cursor'
 import { Row } from '../styles/common'
 import Icon from '../components/icon'
-import { paddingH } from '../ui/css'
+import { paddingVH } from '../ui/css'
 
 interface State {
   options: CompletionOption[],
@@ -75,7 +75,8 @@ const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || Icon(
 
 const docs = (data: string) => Row.normal({
   style: {
-    ...paddingH(4),
+    ...paddingVH(6, 4),
+    paddingTop: '6px',
     overflow: 'visible',
     whiteSpace: 'normal',
     color: 'var(--foreground-20)',
@@ -120,7 +121,7 @@ const view = ($: State) => Overlay({
     ,h('div', {
       style: {
         display: 'flex',
-        marginLeft: '-8px',
+        marginLeft: '-6px',
         // TODO: this doesn't scale with font size?
         width: '24px',
         marginRight: '2px',
