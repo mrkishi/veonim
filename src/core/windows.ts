@@ -1,5 +1,5 @@
+import { getCurrent, current, cmd, BufferType, BufferOption, SHADOW_BUFFER_TYPE } from '../core/neovim'
 import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
-import { getCurrent, current, cmd, BufferType, BufferOption } from '../core/neovim'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
 import { cursor, moveCursor } from '../core/cursor'
@@ -16,6 +16,7 @@ export interface VimWindow {
   modified: boolean,
   active: boolean,
   terminal: boolean,
+  filetype: string,
   dir?: string,
   termAttached: boolean,
   termFormat: string,
@@ -239,6 +240,7 @@ const getWindows = async (): Promise<VimWindow[]> => {
       active: w.id === activeWindow,
       height: await w.height,
       width: await w.width,
+      filetype: await buffer.getOption(BufferOption.Filetype),
       name: (simplifyPath(await buffer.name, current.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
       modified: await buffer.getOption(BufferOption.Modified),
       terminal: (await buffer.getOption(BufferOption.Type)) === BufferType.Terminal,
@@ -318,22 +320,33 @@ const fillCanvasFromGrid = (x: number, y: number, height: number, width: number,
   }
 }
 
-const setupWindow = ({ element, canvas, canvasBox, api }: Window, window: RenderWindow) => {
+const shitbox360 = makel({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  fontWeight: 'bold',
+  fontSize: '24px',
+  height: '100%',
+})
+
+shitbox360.innerText = 'shitbox 360 pimp yo ass'
+
+const setupWindow = ({ element, canvas, canvasBox, api }: Window, win: RenderWindow) => {
   merge(element.style, {
     display: 'flex',
-    gridColumn: window.gridColumn,
-    gridRow: window.gridRow,
+    gridColumn: win.gridColumn,
+    gridRow: win.gridRow,
   })
 
+  merge(lastWindow, emptyLastWindow)
+  winPos.push([win.y, win.x, win.height, win.width, canvas])
   canvas
-    .setSpecs(window.y, window.x, window.height, window.width, 10, 6)
+    .setSpecs(win.y, win.x, win.height, win.width, 10, 6)
     .resize(canvasBox, current.bg)
 
-  merge(lastWindow, emptyLastWindow)
-  winPos.push([window.y, window.x, window.height, window.width, canvas])
-  fillCanvasFromGrid(window.x, window.y, window.height, window.width, canvas)
+  fillCanvasFromGrid(win.x, win.y, win.height, win.width, canvas)
 
-  merge(api, window)
+  merge(api, win)
 }
 
 const windowsDimensionsSame = (windows: VimWindow[], previousWindows: VimWindow[]) => windows.every((w, ix) => {
@@ -508,6 +521,17 @@ export const render = async () => {
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
       merge(win.api, vw)
+
+      if (vw.filetype === SHADOW_BUFFER_TYPE) {
+        const cvs = win.canvasBox.getElementsByTagName('canvas')
+        cvs[0].style.display = 'none'
+
+        win.canvasBox.appendChild(shitbox360)
+        win.api.name = 'SHITBOX360!!!'
+      } else {
+        const cvs = win.canvasBox.getElementsByTagName('canvas')
+        cvs[0].style.display = 'block'
+      }
 
       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
       if (prevWin) merge(prevWin, {

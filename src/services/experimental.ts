@@ -8,3 +8,7 @@ action('mordor', async () => {
   const success = await createShadowBuffer('explorer')
   console.log('created?', success)
 })
+
+setTimeout(() => {
+  createShadowBuffer('shitbox')
+}, 3e3)
