@@ -53,11 +53,11 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 ### symbol search
 ![](https://veonim.github.io/veonim/symbols.png)
 
-### hover information
-![](https://veonim.github.io/veonim/hover.png)
-
 ### signature hint
 ![](https://veonim.github.io/veonim/hint.png)
+
+### hover information
+![](https://veonim.github.io/veonim/hover.png)
 
 ### problems
 ![](https://veonim.github.io/veonim/problems.png)
