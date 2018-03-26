@@ -21,6 +21,7 @@ const view = ({ data: $ }: { data: CommandLine }) => Plugin('command-line', $.vi
     position: $.position,
     useVimInput: true,
     icon: modeSwitch.get($.kind) || 'command',
+    desc: 'command line',
   })
 
   ,h('div', $.options.map((name, ix) => h(RowNormal, {
