@@ -5,7 +5,7 @@ import Input from '../components/text-input2'
 import { Explorer } from '../state/explorer'
 import { h } from '../ui/coffee'
 
-const view = ({ data: $ }: { data: Explorer }) => Plugin('explorer', $.visible, [
+const ui = ($: Explorer) => [
 
   ,Input({
     focus: true,
@@ -23,6 +23,10 @@ const view = ({ data: $ }: { data: Explorer }) => Plugin('explorer', $.visible, 
     } }, name)
   ])))
 
-])
+]
 
-export default connect(s => ({ data: s.explorer }))(view)
+const view = ({ data: $ }: { data: Explorer }) => Plugin('explorer2', $.visible, ui($))
+// const embedView = ({ data: $ }: { data: Explorer }) => h('div', ui($))
+
+// export default connect(s => ({ data: s.explorer }))(embedView)
+export const embed = connect(s => ({ data: s.explorer }))(view)

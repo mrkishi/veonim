@@ -1,9 +1,16 @@
 import { on, initState } from '../state/trade-federation'
+import { merge } from '../support/utils'
 
-interface FileDir {
+export interface FileDir {
   name: string,
   file: boolean,
   dir: boolean,
+}
+
+export interface ExplorerParams {
+  cwd: string,
+  path: string,
+  paths: FileDir[],
 }
 
 export interface Explorer {
@@ -31,9 +38,9 @@ initState('explorer', {
 })
 
 export interface Actions {
-  showExplorer: (cwd: string) => void,
+  showExplorer: (params: ExplorerParams) => void,
 }
 
-on.showExplorer((s, cwd: string) => {
-  s.explorer.cwd = cwd
+on.showExplorer((s, params: ExplorerParams) => {
+  merge(s.explorer, params)
 })
