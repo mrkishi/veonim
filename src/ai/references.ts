@@ -30,6 +30,8 @@ const asReference = (m: VimQFItem): Reference => ({
 
 action('references', async () => {
   const refs = await references(vimState)
+  if (!refs.length) return
+
   const referencedSymbol = refs[0].keyword
   const adjustedRefs = refs.map(asReference)
   const items = groupResults(adjustedRefs)
