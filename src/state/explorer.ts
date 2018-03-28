@@ -39,8 +39,18 @@ initState('explorer', {
 
 export interface Actions {
   showExplorer: (params: ExplorerParams) => void,
+  hideExplorer: () => void,
+  updateExplorer: (value: string) => void,
 }
 
 on.showExplorer((s, params: ExplorerParams) => {
   merge(s.explorer, params)
+  s.explorer.visible = true
 })
+
+on.hideExplorer(s => {
+  s.explorer.visible = false
+  s.explorer.value = ''
+})
+
+on.updateExplorer((s, value) => s.explorer.value = value)

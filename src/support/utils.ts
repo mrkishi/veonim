@@ -1,5 +1,6 @@
 import { dirname, basename, join, extname, resolve } from 'path'
 import { exec, execFile } from 'child_process'
+const watch = require('node-watch')
 import { Transform } from 'stream'
 import { createServer } from 'net'
 import * as fs from 'fs-extra'
@@ -88,7 +89,9 @@ export const pathReducer = (p = '') => ((p, levels = 0) => ({ reduce: () =>
   levels ? basename(join(p, '../'.repeat(levels++))) : (levels++, basename(p))
 }))(p)
 
-export const watchPath = (path: string, callback: () => void) => {
+export const watchPath = (path: string, callback: () => void) => watch(path, callback)
+
+export const watchPathSymlink = (path: string, callback: () => void) => {
   const throttledCallback = throttle(callback, 15)
   return fs.watch(path, () => throttledCallback())
 }

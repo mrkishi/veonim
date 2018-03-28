@@ -105,6 +105,7 @@
     "hyperapp": "0.10.1",
     "immer": "1.0.2",
     "msgpack-lite": "0.1.26",
+    "node-watch": "0.5.8",
     "picostyle": "0.1.4",
     "react": "16.2.0",
     "react-color": "2.13.8",

@@ -13,15 +13,11 @@ const depAsString = (kind: DependencyKind) => dependencyMessages.get(kind)!
 
 // TODO: support other plugin host sites besides github.com?
 // TODO: show install progress somehow
-const installDependencies = async (
-  dependencies: Dependency[],
-  kind: DependencyKind,
-  { reinstall = false } = {},
-) => {
+const installDependencies = async (dependencies: Dependency[], kind: DependencyKind) => {
   if (!dependencies.length) return removeExtraneous(kind)
   notify(`Found ${dependencies.length} ${depAsString(kind)}. Installing...`, NotifyKind.System)
 
-  if (reinstall) await remove(dependencies)
+  await remove(dependencies)
   await install(dependencies)
   notify(`Installed ${dependencies.length} ${depAsString(kind)}!`, NotifyKind.Success)
 
@@ -33,7 +29,7 @@ const installDependencies = async (
 const refreshDependencies = async (kind: DependencyKind) => {
   const dependencies = await discoverDependencies(kind)
   const notInstalled = dependencies.filter(p => !p.installed)
-  installDependencies(notInstalled, kind, { reinstall: true })
+  installDependencies(notInstalled, kind)
 }
 
 const refreshAllDependencies = () => {
