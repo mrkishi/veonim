@@ -53,4 +53,6 @@ on.hideExplorer(s => {
   s.explorer.value = ''
 })
 
-on.updateExplorer((s, value) => s.explorer.value = value)
+on.updateExplorer((_, value) => {
+  console.log('explore value:', value)
+})

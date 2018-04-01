@@ -17,7 +17,7 @@ const installDependencies = async (dependencies: Dependency[], kind: DependencyK
   if (!dependencies.length) return removeExtraneous(kind)
   notify(`Found ${dependencies.length} ${depAsString(kind)}. Installing...`, NotifyKind.System)
 
-  await remove(dependencies)
+  // await remove(dependencies)
   await install(dependencies)
   notify(`Installed ${dependencies.length} ${depAsString(kind)}!`, NotifyKind.Success)
 

@@ -54,7 +54,7 @@ const parseDependencies = async (kind: DependencyKind) => {
 const getPath = (kind: DependencyKind, dir: string) => {
   const base = dependencyLocations.get(kind)!
   if (kind === DependencyKind.Plugin) return join(base, dir, 'start')
-  if (kind === DependencyKind.Extension) return base
+  if (kind === DependencyKind.Extension) return join(base, dir)
   else return join(base, dir)
 }
 

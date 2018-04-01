@@ -45,8 +45,6 @@ export interface TextInputProps extends Partial<Props> {
   icon: string,
 }
 
-let lastDown = ''
-
 const setPosition = (e?: HTMLInputElement, position?: number) => {
   if (!e || !position) return
   position > -1 && e.setSelectionRange(position, position)
@@ -88,97 +86,112 @@ const view = ({
   loading = false,
   pathMode = false,
   useVimInput = false,
-}: TextInputProps, $: Props) => h('div', {
-  style: {
-    background,
-    ...paddingVH(12, small ? 5 : 10),
-    display: 'flex',
-    alignItems: 'center',
-    minHeight: `${small ? 16 : 22}px`,
-  }
+}: TextInputProps, $: Props) => {
+  let elRef: HTMLInputElement
+  let lastDown = ''
 
-}, [
-
-  ,h(IconBox, [
-    ,Icon(icon, {
-      color: cvar('foreground-70'),
-      size: canvasContainer.font.size + (small ? 0 : 8),
-      weight: 2,
-    })
-  ])
-
-  ,h('div', {
+  return h('div', {
     style: {
-      flex: 1,
+      background,
+      ...paddingVH(12, small ? 5 : 10),
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      minHeight: `${small ? 16 : 22}px`,
     }
+
   }, [
 
-    ,h('input', {
+    ,h(IconBox, [
+      ,Icon(icon, {
+        color: cvar('foreground-70'),
+        size: canvasContainer.font.size + (small ? 0 : 8),
+        weight: 2,
+      })
+    ])
+
+    ,h('div', {
       style: {
-        color,
-        fontSize: small ? '1rem' : '1.286rem',
-      },
-      type: 'text',
-      value,
-      ref: (e: HTMLInputElement) => {
-        setFocus(e, focus)
-        setPosition(e, position)
-      },
-      placeholder: desc,
-      onFocus: () => !useVimInput && vimBlur(),
-      onBlur: () => !useVimInput && vimFocus(),
-      onKeyUp: (e: KeyboardEvent) => {
-        const prevKeyAndThisOne = lastDown + keToStr(e)
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }
+    }, [
 
-        if (xfrmUp.has(prevKeyAndThisOne)) {
-          const { key } = xfrmUp.get(prevKeyAndThisOne)!(e)
-          if (key.toLowerCase() === '<esc>') {
-            lastDown = ''
-            const target = e.target as HTMLInputElement
-            target.blur()
-            return $.hide()
+      ,h('input', {
+        style: {
+          color,
+          fontSize: small ? '1rem' : '1.286rem',
+        },
+        type: 'text',
+        ref: (e: HTMLInputElement) => {
+          setFocus(e, focus)
+          setPosition(e, position)
+          elRef = e
+
+          if (elRef && elRef.value !== value) elRef.value = value
+        },
+        placeholder: desc,
+        onFocus: () => !useVimInput && vimBlur(),
+        onBlur: () => !useVimInput && vimFocus(),
+        onKeyUp: (e: KeyboardEvent) => {
+          const prevKeyAndThisOne = lastDown + keToStr(e)
+
+          if (xfrmUp.has(prevKeyAndThisOne)) {
+            const { key } = xfrmUp.get(prevKeyAndThisOne)!(e)
+            if (key.toLowerCase() === '<esc>') {
+              lastDown = ''
+              const target = e.target as HTMLInputElement
+              target.blur()
+              return $.hide()
+            }
           }
-        }
-      },
-      onKeyDown: (e: KeyboardEvent) => {
-        const { ctrlKey: ctrl, metaKey: meta, key } = e
-        const cm = ctrl || meta
+        },
+        onKeyDown: (e: KeyboardEvent) => {
+          const { ctrlKey: ctrl, metaKey: meta, key } = e
+          const cm = ctrl || meta
+          const currentValue = (elRef || {} as HTMLInputElement).value || value
 
-        lastDown = keToStr(e)
+          lastDown = keToStr(e)
 
-        if (key === 'Tab') return $.tab()
-        if (key === 'Escape') return $.hide()
-        if (key === 'Enter') return $.select(value)
-        if (key === 'Backspace') return $.change(value.slice(0, -1))
+          if (key === 'Tab') return $.tab()
+          if (key === 'Escape') return $.hide()
+          if (key === 'Enter') return $.select(currentValue)
+          if (key === 'Backspace') return $.change(currentValue.slice(0, -1))
 
-        if (cm && key === 'w') return pathMode
-          ? $.change(value.split('/').slice(0, -1).join('/'))
-          : $.change(value.split(' ').slice(0, -1).join(' '))
+          if (cm && key === 'w') {
+            if (!elRef) return
 
-        if (cm && key === 'h') return $.ctrlH()
-        if (cm && key === 'g') return $.ctrlG()
-        if (cm && key === 'j') return $.next()
-        if (cm && key === 'k') return $.prev()
-        if (cm && key === 'n') return $.nextGroup()
-        if (cm && key === 'p') return $.prevGroup()
-        if (cm && key === 'd') return $.down()
-        if (cm && key === 'u') return $.up()
-        if (cm && key === 'i') return $.jumpNext()
-        if (cm && key === 'o') return $.jumpPrev()
-        if (cm && key === 'y') return $.yank()
-        if (cm && e.shiftKey && key === 'D') return $.bottom()
-        if (cm && e.shiftKey && key === 'U') return $.top()
+            const nextValue = pathMode
+              ? currentValue.split('/').slice(0, -1).join('/')
+              : currentValue.split(' ').slice(0, -1).join(' ')
 
-        $.change(value + (key.length > 1 ? '' : key))
-      },
-    })
+            elRef.value = nextValue
+            $.change(nextValue)
+          }
 
-    ,loading && Loading({ color: loadingColor, size: loadingSize })
+          if (cm && key === 'h') return $.ctrlH()
+          if (cm && key === 'g') return $.ctrlG()
+          if (cm && key === 'j') return $.next()
+          if (cm && key === 'k') return $.prev()
+          if (cm && key === 'n') return $.nextGroup()
+          if (cm && key === 'p') return $.prevGroup()
+          if (cm && key === 'd') return $.down()
+          if (cm && key === 'u') return $.up()
+          if (cm && key === 'i') return $.jumpNext()
+          if (cm && key === 'o') return $.jumpPrev()
+          if (cm && key === 'y') return $.yank()
+          if (cm && e.shiftKey && key === 'D') return $.bottom()
+          if (cm && e.shiftKey && key === 'U') return $.top()
+
+          $.change(currentValue + (key.length > 1 ? '' : key))
+        },
+      })
+
+      ,loading && Loading({ color: loadingColor, size: loadingSize })
+    ])
+
   ])
-
-])
+}
 
 export default (props: TextInputProps) => view(props, nopMaybe(props))
