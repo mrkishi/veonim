@@ -75,3 +75,7 @@ export const app = (appParts: any, switchFocus = true, root = hostElement) => {
   const emit = makeApp(merge(appParts, { root, events: eventsProxy }))
   return proxyFn((action, data) => emit(action, data))
 }
+
+export const app2 = () => {
+
+}

@@ -23,7 +23,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
   - remap caps lock to escape
   - map commands to all modifiers such as ctrl + shift + alt + key
   - swap modifiers -> switch command and control
-  - create additional modifiers with custom key transforms (e.g. create mappings like `<c-s>` `<c-m>` but with another key `;s` `;m`)
+  - create additional modifiers with custom key transforms (e.g. create layers: mappings like `<c-s>` `<c-m>` but with another key `;s` `;m`)
 - project find based on ripgrep
 - high performance optimized GPU rendering
 - fuzzy find for files and buffers

@@ -4,6 +4,7 @@
   "description": "modern lightweight modal IDE built on neovim",
   "main": "build/bootstrap/main.js",
   "scripts": {
+    "jest": "jest --watch",
     "test": "mocha test/unit",
     "test-e2e": "mocha test/e2e",
     "test-watch": "npm run test -- -w",
@@ -132,6 +133,7 @@
     "electron-builder": "19.56.0",
     "electron-devtools-installer": "2.2.3",
     "feather-icons": "4.5.0",
+    "jest": "22.4.3",
     "jscodeshift": "0.3.32",
     "mocha": "5.0.0",
     "proxyquire": "1.8.0",
