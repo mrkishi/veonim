@@ -39,9 +39,12 @@ export const app = <StateType>({ state, view, actions, element = document.body }
   }
 
   const store = createStore(deriveNextState, devToolsEnhancerMaybe)
-  const connectedView = connectToStore((s: StateType) => ({ props: s }))(view)
+  // TODO: verify state being passed correctly to view as props
+  // TODO: view needs second param as actions
+  // view(state, actions)
+  const connectedView = connectToStore((s: StateType) => ({ ...s as any }))(view)
   // TODO: verify this children syntax here
-  const rootComponent = React.createElement(Provider, { store, children: [ connectedView ] })
+  const rootComponent = React.createElement(Provider, { store, children: connectedView })
   ReactDom.render(rootComponent, element)
   return new Proxy(actions, { get: dispatchRegisteredAction }) as typeof actions
 }
