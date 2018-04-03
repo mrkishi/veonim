@@ -5,7 +5,6 @@ const path = require('path')
 const delay = time => new Promise(fin => setTimeout(fin, time))
 
 describe('grid', function () {
-  this.timeout(8000)
   let app
 
   const input = async m => {
@@ -40,7 +39,7 @@ describe('grid', function () {
     await app.client.waitUntilWindowLoaded()
   })
 
-  it('do stuff', async () => {
+  test('do stuff', async () => {
     await input(':cd ~/Documents/projects/plugin-manager')
     await enter()
     await input(':Veonim TermOpen')
@@ -58,5 +57,12 @@ describe('grid', function () {
   //await input(':Veonim uadd')
   //await input('Enter')
 
+// await input.meta('e')
+// const t = await app.client.selectorExecute('#nvim', ([ el ]) => {
+//   return {
+//     height: el.height,
+//     width: el.width,
+//   }
+// })
   //await app.webContents.openDevTools()
 //})

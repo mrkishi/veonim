@@ -1,6 +1,5 @@
 'use strict'
 const { findNext, findPrevious } = require('../../build/support/relative-finder')
-const { deepStrictEqual: eq } = require('assert')
 
 const getItems = () => [{
   path: '/main/a.ts',
@@ -38,7 +37,7 @@ describe('relative finder', () => {
   it('find next', () => {
     const next = findNext(getItems(), '/main/a.ts', 2, 1)
 
-    eq(next, {
+    expect(next).toEqual({
       path: '/main/a.ts',
       line: 4,
       column: 7,
@@ -50,7 +49,7 @@ describe('relative finder', () => {
   it('find next across files', () => {
     const next = findNext(getItems(), '/main/a.ts', 9, 2)
 
-    eq(next, {
+    expect(next).toEqual({
       path: '/main/c.ts',
       line: 1,
       column: 7,
@@ -62,7 +61,7 @@ describe('relative finder', () => {
   it('when last loopback to first', () => {
     const next = findNext(getItems(), '/main/c.ts', 3, 1)
 
-    eq(next, {
+    expect(next).toEqual({
       path: '/main/a.ts',
       line: 1,
       column: 1,
@@ -74,7 +73,7 @@ describe('relative finder', () => {
   it('find previous', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 2, 1)
 
-    eq(next, {
+    expect(next).toEqual({
       path: '/main/a.ts',
       line: 1,
       column: 1,
@@ -86,7 +85,7 @@ describe('relative finder', () => {
   it('find previous across files', () => {
     const next = findPrevious(getItems(), '/main/c.ts', 1, 7)
 
-    eq(next, {
+    expect(next).toEqual({
       path: '/main/a.ts',
       line: 9,
       column: 2,
@@ -98,7 +97,7 @@ describe('relative finder', () => {
   it('when first loopback to last', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 1, 1)
 
-    eq(next, {
+    expect(next).toEqual({
       path: '/main/c.ts',
       line: 3,
       column: 1,
@@ -110,7 +109,7 @@ describe('relative finder', () => {
   it('find previous when in middle of current item', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 4, 8)
 
-    eq(next, {
+    expect(next).toEqual({
       path: '/main/a.ts',
       line: 1,
       column: 1,
