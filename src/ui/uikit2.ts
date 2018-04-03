@@ -1,9 +1,9 @@
-import { connect as connectToStore, StatelessComponent, Provider } from 'react-redux'
 import { createStore } from 'redux'
 
 export interface App<StateType extends object> {
   state: StateType & object,
-  view: StatelessComponent<{ props: StateType & object }>,
+  // TODO: better typings here pls. e.g. returns react component
+  view: (state: StateType, actions: object) => Function,
   actions: object,
   element?: HTMLElement,
 }
@@ -39,12 +39,15 @@ export const app = <StateType>({ state, view, actions, element = document.body }
   }
 
   const store = createStore(deriveNextState, devToolsEnhancerMaybe)
-  // TODO: verify state being passed correctly to view as props
-  // TODO: view needs second param as actions
-  // view(state, actions)
-  const connectedView = connectToStore((s: StateType) => ({ ...s as any }))(view)
-  // TODO: verify this children syntax here
-  const rootComponent = React.createElement(Provider, { store, children: connectedView })
-  ReactDom.render(rootComponent, element)
-  return new Proxy(actions, { get: dispatchRegisteredAction }) as typeof actions
+  ReactDom.render(view(state, actions), element)
+
+  store.subscribe(() => {
+    const nextState = store.getState()
+    ReactDom.render(view(nextState, actions), element)
+  })
+
+  // TODO: figure out the typings to get keys of object
+  // type CallableActions = { [K in keyof actions]: (data: any) => void }
+  type CallableActions = { [key: string]: (data: any) => void }
+  return new Proxy(actions, { get: dispatchRegisteredAction }) as CallableActions
 }
