@@ -1,4 +1,4 @@
-import { Dependency, DependencyKind, discoverDependencies, install, remove, removeExtraneous } from '../support/dependency-manager'
+import { Dependency, DependencyKind, discoverDependencies, install, removeExtraneous } from '../support/dependency-manager'
 import { NotifyKind, notify } from '../ui/notifications'
 import { watchConfig } from '../config/config-reader'
 import * as extensions from '../core/extensions'
@@ -17,7 +17,6 @@ const installDependencies = async (dependencies: Dependency[], kind: DependencyK
   if (!dependencies.length) return removeExtraneous(kind)
   notify(`Found ${dependencies.length} ${depAsString(kind)}. Installing...`, NotifyKind.System)
 
-  // await remove(dependencies)
   await install(dependencies)
   notify(`Installed ${dependencies.length} ${depAsString(kind)}!`, NotifyKind.Success)
 
