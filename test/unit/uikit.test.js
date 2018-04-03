@@ -38,6 +38,7 @@ describe('ui api', () => {
     expect(calls[0]).toBeUndefined()
     ui.joinTheDarkSide('anakin skywalker')
     expect(calls[0]).toEqual({ name: 'anakin skywalker' })
+    expect(state.name).toEqual('luke skywalker')
   })
 
 })
