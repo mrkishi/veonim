@@ -4,7 +4,7 @@
   "description": "modern lightweight modal IDE built on neovim",
   "main": "build/bootstrap/main.js",
   "scripts": {
-    "jest": "jest --watch",
+    "jest": "jest --watchAll",
     "test": "mocha test/unit",
     "test-e2e": "mocha test/e2e",
     "test-watch": "npm run test -- -w",

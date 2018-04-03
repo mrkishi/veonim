@@ -1,9 +1,9 @@
-import { connect as connectToStore } from 'react-redux'
-import { createStore, Action } from 'redux'
+import { connect as connectToStore, StatelessComponent, Provider } from 'react-redux'
+import { createStore } from 'redux'
 
-export interface App {
-  state: object,
-  view: Function,
+export interface App<StateType extends object> {
+  state: StateType & object,
+  view: StatelessComponent<{ props: StateType & object }>,
   actions: object,
   element?: HTMLElement,
 }
@@ -22,15 +22,16 @@ if (process.env.VEONIM_DEV) {
 export const React = require(reactModule)
 const ReactDom = require(reactDomModule)
 
-export const app = ({ state, view, actions, element = document.body }: App) => {
+export const app = <StateType>({ state, view, actions, element = document.body }: App<StateType & object>) => {
   const deriveNextState = (currentState = state, action = {} as any) => {
     const maybeFn = Reflect.get(actions, action.type)
     if (typeof maybeFn !== 'function') return currentState
+
     const actionResult = maybeFn(currentState, action.data)
-    return { ...currentState, ...actionResult }
+    return { ...<object>currentState, ...actionResult }
   }
 
-  const dispatchRegisteredAction = (target: App['actions'], actionName: PropertyKey) => {
+  const dispatchRegisteredAction = (target: object, actionName: PropertyKey) => {
     const hasAction = Reflect.has(target, actionName)
     if (!hasAction) throw new Error(`action function ${actionName} is not defined on actions object ${target}`)
 
@@ -38,6 +39,9 @@ export const app = ({ state, view, actions, element = document.body }: App) => {
   }
 
   const store = createStore(deriveNextState, devToolsEnhancerMaybe)
-  ReactDom.render(view, element)
-  return new Proxy(actions, { get: dispatchRegisteredAction })
+  const connectedView = connectToStore((s: StateType) => ({ props: s }))(view)
+  // TODO: verify this children syntax here
+  const rootComponent = React.createElement(Provider, { store, children: [ connectedView ] })
+  ReactDom.render(rootComponent, element)
+  return new Proxy(actions, { get: dispatchRegisteredAction }) as typeof actions
 }
