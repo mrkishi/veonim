@@ -99,6 +99,28 @@ export const watchPathSymlink = (path: string, callback: () => void) => {
 export const match = (...opts: [boolean, any][]): any => new Map(opts).get(true)
 export const matchOn = (val: any) => (opts: object): any => (Reflect.get(opts, val) || (() => {}))()
 
+const pickFromObject = <T, K extends keyof T>(obj: T, keys: K[]) => keys.reduce((res, key) => {
+  res[key] = obj[key]
+  return res
+}, {} as Pick<T, K>)
+
+export const pickFrom = <T, K extends keyof T>(obj: T) => {
+  const pickKeys: K[] = []
+
+  type KeyCollector = { [K in keyof T | '$']: KeyCollector }
+
+  const proxy: KeyCollector = new Proxy({} as any, {
+    get: (_, key: K) => {
+      if (key === '$') return pickFromObject(obj, pickKeys)
+
+      pickKeys.push(key)
+      return proxy
+    }
+  })
+
+  return proxy
+}
+
 interface BackoffParams {
   factor?: number,
   maxAttempts?: number,

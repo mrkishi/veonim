@@ -3,6 +3,7 @@ extensions keep reinstalling
 extensions install check for internet connectivity
 remove react-redux dependency when removing dedox
 if open up explorer from terminal window, open up for cwd instead of bad term path
+alternate TS lang serv... does it solve the broken multi-line hover info?
 
 --ideas--
 buffer-search should only search in the current viewport. no scrolling pls

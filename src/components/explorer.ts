@@ -1,5 +1,5 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
-import { action, current, call, cmd } from '../core/neovim'
+import { action, current, cmd } from '../core/neovim'
 import { colors } from '../styles/common'
 import { RowNormal, RowImportant } from '../components/row-container'
 import { Plugin } from '../components/plugin-container'
