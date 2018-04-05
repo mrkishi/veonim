@@ -2,6 +2,7 @@ import hyperscript from '../ui/hyperscript'
 import sct from 'styled-components-ts'
 import { createStore } from 'redux'
 import sc from 'styled-components'
+import { Component } from 'react'
 
 let reactModule = 'react/umd/react.production.min'
 let reactDomModule = 'react-dom/umd/react-dom.production.min.js'
@@ -20,23 +21,20 @@ export const h = hyperscript(React.createElement)
 export const styled = sc
 export const s = sct
 
-export interface App<T> {
-  state: T,
-  // TODO: better typings here pls. e.g. returns react component
-  // need @types/react
-  // TODO: how to make it such that we get completion info for actions in the view fn?
-  view: (state: T, actions: object) => Function,
-  actions: { [key: string]: (state: T, data?: any) => void },
+export interface App<StateT, ActionT> {
+  state: StateT,
+  view: (state: StateT, actions: { [K in keyof ActionT]: (data?: any) => void }) => Component,
+  actions: { [K in keyof ActionT]: (state: StateT, data?: any) => void },
   element?: HTMLElement,
 }
 
-export const app = <T>({ state, view, actions, element = document.body }: App<T & object>) => {
+export const app = <StateT, ActionT>({ state, view, actions, element = document.body }: App<StateT, ActionT>) => {
   const deriveNextState = (currentState = state, action = {} as any) => {
     const maybeFn = Reflect.get(actions, action.type)
     if (typeof maybeFn !== 'function') return currentState
 
     const actionResult = maybeFn(currentState, action.data)
-    return { ...<object>currentState, ...actionResult }
+    return { ...<any>currentState, ...actionResult }
   }
 
   const dispatchRegisteredAction = (target: object, actionName: PropertyKey) => {
@@ -45,9 +43,8 @@ export const app = <T>({ state, view, actions, element = document.body }: App<T 
     return (data: any) => store.dispatch({ type: actionName, data })
   }
 
-  // TODO: figure out the typings to get keys of object
-  // type CallableActions = { [K in keyof actions]: (data: any) => void }
-  type CallableActions = { [key: string]: (data?: any) => void }
+  type CallableActions = { [K in keyof ActionT]: (data?: any) => void }
+
   const callAction = new Proxy(actions, { get: dispatchRegisteredAction }) as CallableActions
   const store = createStore(deriveNextState, devToolsEnhancerMaybe)
 
