@@ -3,11 +3,6 @@ export interface Point {
   y: number,
 }
 
-// TODO: does not exist on HTMLElement (in the TS api)
-export interface AnimateElement extends HTMLElement {
-  animate(keyframes: AnimationKeyFrame[], options?: object): Promise<void>,
-}
-
 const percent = (integer: number) => `${integer * 100}%`
 
 export const paddingVH = (vertical: number, horizontal: number) => ({
@@ -119,12 +114,12 @@ export const brighten = (color: string, amount: number) => shadeColor(color, (am
 export const darken = (color: string, amount: number) => shadeColor(color, -(amount / 100))
 
 // chrome does not support .finished property on animate()
-export const animate = (element: HTMLElement, keyframes: object[], options = {} as any): Promise<void> => {
+export const animate = (element: HTMLElement, keyframes: AnimationKeyFrame[], options = {} as any): Promise<void> => {
   if (options.duration) {
-    (element as AnimateElement).animate(keyframes, options)
+    element.animate(keyframes, options)
     return new Promise(fin => setTimeout(fin, options.duration - 25))
   }
 
-  (element as AnimateElement).animate(keyframes, options)
+  element.animate(keyframes, options)
   return Promise.resolve()
 }

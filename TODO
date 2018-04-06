@@ -8,3 +8,4 @@ alternate TS lang serv... does it solve the broken multi-line hover info?
 --ideas--
 buffer-search should only search in the current viewport. no scrolling pls
 create fuzzy search for entire buffer, but use popup menu
+terminal change title to current running process
