@@ -5,7 +5,7 @@ export interface Point {
 
 // TODO: does not exist on HTMLElement (in the TS api)
 export interface AnimateElement extends HTMLElement {
-  animate(keyframes: object[], options?: object): Promise<void>,
+  animate(keyframes: AnimationKeyFrame[], options?: object): Promise<void>,
 }
 
 const percent = (integer: number) => `${integer * 100}%`

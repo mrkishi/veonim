@@ -117,10 +117,18 @@ const actions = {
     ui.diveDown(name)
   },
 
-  change: (s: S, val: string) => ({ val, paths: val
-    ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
-    : s.cache
-  }),
+  change: (s: S, val: string) => {
+    console.log('value is:', val)
+
+    return ({ paths: val
+      ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
+      : s.cache
+    })
+  },
+  // change: (s: S, val: string) => ({ paths: val
+  //   ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
+  //   : s.cache
+  // }),
 
   // TODO: consider using updatePaths action/
   diveDown: (s: S, next: string) => {
@@ -145,7 +153,6 @@ const actions = {
   show: (s: S, { paths, path, cwd = s.cwd }: any) => ({
     cwd, path, paths,
     ix: 0,
-    val: '',
     vis: true,
     cache: paths,
   }),
@@ -172,27 +179,33 @@ let listElRef: HTMLElement
 let pathInputRef: HTMLInputElement
 
 const element = document.getElementById('plugins') as HTMLElement
-const ui = app({ element, state, actions, view: ($, actions) => Plugin('explorer', $.vis, [
+const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plugin('explorer', $.vis, [
 
   ,Input({
-    ...actions,
     value: $.val,
     focus: !$.pathMode,
     // TODO: yo why is this missing??
     // icon: 'hard-drive',
     icon: 'search',
     desc: 'explorer',
+    change: a.change,
+    hide: a.hide,
+    next: a.next,
+    prev: a.prev,
+    select: a.select,
+    down: a.down,
+    up: a.up,
   })
 
   ,!$.pathMode && h(RowImportant, pathRelativeToHome($.path))
 
   ,$.pathMode && Input({
-    change: actions.changePath,
-    hide: actions.normalMode,
-    select: actions.selectPath,
-    tab: actions.completePath,
-    next: actions.nextPath,
-    prev: actions.prevPath,
+    change: a.changePath,
+    hide: a.normalMode,
+    select: a.selectPath,
+    tab: a.completePath,
+    next: a.nextPath,
+    prev: a.prevPath,
     value: pathRelativeToHome($.pathValue),
     background: 'var(--background-50)',
     color: colors.important,

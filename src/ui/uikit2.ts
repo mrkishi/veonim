@@ -6,13 +6,15 @@ import { Component } from 'react'
 
 let reactModule = 'react/umd/react.production.min'
 let reactDomModule = 'react-dom/umd/react-dom.production.min.js'
-let devToolsEnhancerMaybe: any = undefined
+let reduxEnhancer = (_: string): any => {}
 
 if (process.env.VEONIM_DEV || process.env.NODE_ENV === 'test') {
   reactModule = 'react'
   reactDomModule = 'react-dom'
-  devToolsEnhancerMaybe = (window as any).__REDUX_DEVTOOLS_EXTENSION__
-    && (window as any).__REDUX_DEVTOOLS_EXTENSION__()
+  reduxEnhancer = (name: string) => {
+    return (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+      && (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({ name })
+  }
 }
 
 const ReactDom = require(reactDomModule)
@@ -26,9 +28,16 @@ export interface App<StateT, ActionT> {
   view: (state: StateT, actions: { [K in keyof ActionT]: (data?: any) => void }) => Component,
   actions: { [K in keyof ActionT]: (state: StateT, data?: any) => void },
   element?: HTMLElement,
+  name?: string,
 }
 
-export const app = <StateT, ActionT>({ state, view, actions, element = document.body }: App<StateT, ActionT>) => {
+export const app = <StateT, ActionT>({
+  state,
+  view,
+  actions,
+  name = 'veonim',
+  element = document.body,
+}: App<StateT, ActionT>) => {
   const deriveNextState = (currentState = state, action = {} as any) => {
     const maybeFn = Reflect.get(actions, action.type)
     if (typeof maybeFn !== 'function') return currentState
@@ -46,7 +55,7 @@ export const app = <StateT, ActionT>({ state, view, actions, element = document.
   type CallableActions = { [K in keyof ActionT]: (data?: any) => void }
 
   const callAction = new Proxy(actions, { get: dispatchRegisteredAction }) as CallableActions
-  const store = createStore(deriveNextState, devToolsEnhancerMaybe)
+  const store = createStore(deriveNextState, reduxEnhancer(name)())
 
   ReactDom.render(view(state, callAction), element)
 
