@@ -1,6 +1,6 @@
 ![](https://veonim.github.io/veonim/header.png)
 
-veonim is a modern lightweight modal IDE built on neovim. my goal is to create my ideal programming enviornment
+veonim is a modern lightweight modal IDE built on neovim. my goal is to create my ideal programming environment
 
 ![](https://veonim.github.io/veonim/smart.png)
 
