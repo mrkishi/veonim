@@ -6,12 +6,14 @@ import { Component } from 'react'
 
 let reactModule = 'react/umd/react.production.min'
 let reactDomModule = 'react-dom/umd/react-dom.production.min.js'
-let reduxEnhancer = (_: string): any => {}
+let reduxEnhancer = (_: string): any => () => {}
 
 if (process.env.VEONIM_DEV || process.env.NODE_ENV === 'test') {
   reactModule = 'react'
   reactDomModule = 'react-dom'
   reduxEnhancer = (name: string) => {
+    if (process.env.NODE_ENV === 'test') return () => {}
+
     return (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
       && (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({ name })
   }

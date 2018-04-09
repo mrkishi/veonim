@@ -17,13 +17,13 @@ describe('ui api', () => {
     }
   })
 
-  it('create app', () => {
+  test('create app', () => {
     const actions = { destroyDeathStar: jest.fn(), }
     const ui = app({ state, view: noop, actions, element })
     expect(ui).toHaveProperty('destroyDeathStar')
   })
 
-  it('calls action on ui actionable', () => {
+  test('calls action on ui actionable', () => {
     const actions = {
       joinTheDarkSide: jest.fn((state, name) => ({ name })),
     }
@@ -37,7 +37,7 @@ describe('ui api', () => {
     expect(state.name).toEqual('luke skywalker')
   })
 
-  it('renders view', () => {
+  test('renders view', () => {
     const actions = {
       joinTheDarkSide: (state, name) => ({ name }),
     }
@@ -55,7 +55,7 @@ describe('ui api', () => {
     expect(calls[1][0]).toEqual({ age: 22, name: 'darth maul' })
   })
 
-  it('calls action from view and renders update', () => {
+  test('calls action from view and renders update', () => {
     const actions = {
       joinTheDarkSide: jest.fn((state, name) => ({ name })),
     }
