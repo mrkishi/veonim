@@ -129,7 +129,9 @@ const view = ({
           setPosition(e, position)
           elRef = e
 
-          if (elRef && elRef.value !== value) elRef.value = value
+          setImmediate(() => {
+            if (e && e.value !== value) e.value = value
+          })
         },
         placeholder: desc,
         onFocus: () => !useVimInput && vimBlur(),
@@ -167,7 +169,7 @@ const view = ({
               : currentValue.split(' ').slice(0, -1).join(' ')
 
             elRef.value = nextValue
-            $.change(nextValue)
+            return $.change(nextValue)
           }
 
           if (cm && key === 'h') return $.ctrlH()

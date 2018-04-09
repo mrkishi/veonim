@@ -117,18 +117,10 @@ const actions = {
     ui.diveDown(name)
   },
 
-  change: (s: S, val: string) => {
-    console.log('value is:', val)
-
-    return ({ paths: val
-      ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
-      : s.cache
-    })
-  },
-  // change: (s: S, val: string) => ({ paths: val
-  //   ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
-  //   : s.cache
-  // }),
+  change: (s: S, val: string) => ({ paths: val
+    ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
+    : s.cache
+  }),
 
   // TODO: consider using updatePaths action/
   diveDown: (s: S, next: string) => {
