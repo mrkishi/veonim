@@ -117,7 +117,7 @@ const actions = {
     ui.diveDown(name)
   },
 
-  change: (s: S, val: string) => ({ paths: val
+  change: (s: S, val: string) => ({ val, paths: val
     ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
     : s.cache
   }),

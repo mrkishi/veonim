@@ -72,6 +72,16 @@ const IconBox = styled.div`
   padding-right: 8px;
 `
 
+// TODO: could be better? it's global so will be shared between different
+// inputs. however only one input will have focus at a time, so perhaps
+// it's not a big deal
+//
+// the reason this has to live outside the function is because the view
+// function will be triggered on re-render. pressing keys will potentially
+// trigger re-renders, thus reseting the value of lastDown when inside
+// the function.
+let lastDown = ''
+
 const view = ({
   desc,
   icon,
@@ -88,7 +98,6 @@ const view = ({
   useVimInput = false,
 }: TextInputProps, $: Props) => {
   let elRef: HTMLInputElement
-  let lastDown = ''
 
   return h('div', {
     style: {
