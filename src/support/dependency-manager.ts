@@ -1,4 +1,6 @@
 import { configPath, readFile, exists, getDirs } from '../support/utils'
+import installExtensions from '../support/manage-extensions'
+import { watchConfig } from '../config/config-reader'
 import { downloadRepo } from '../support/download'
 import { remove as removePath } from 'fs-extra'
 import { EXT_PATH } from '../core/extensions'
@@ -33,12 +35,18 @@ const getMatcher = (kind: DependencyKind): RegExp => dependencyMatchers.get(kind
 const addInstallStatus = async (deps: Dependency[]): Promise<Dependency[]> =>
   Promise.all(deps.map(async m => ({ ...m, installed: await exists(m.installPath) })))
 
-const splitUserRepo = (text: string) => {
+export const splitUserRepo = (text: string) => {
+  console.log('split user repo', text)
   const [ , user = '', repo = '' ] = (text.match(/^([^/]+)\/(.*)/) || [])
   return { user, repo }
 }
 
 const vimrcLocation = () => `${configPath}/nvim/init.vim`
+const vimrcPath = `${configPath}/nvim/init.vim`
+
+const getVimrcLines = async () => (await readFile(vimrcPath))
+  .toString()
+  .split('\n')
 
 const parseDependencies = async (kind: DependencyKind) => {
   const vimrcLines = await readFile(vimrcLocation())
@@ -102,3 +110,28 @@ const removePlugin = async (dep: Dependency) => removePath(dep.path)
 
 export const install = (deps: Dependency[]) => Promise.all(deps.map(downloadDependency))
 export const remove = (deps: Dependency[]) => Promise.all(deps.map(removePlugin))
+
+const installPlugins = (configLines: string[]) => {
+  const items = configLines
+    .filter(line => /^Plug(\s*)/.test(line))
+    .map(line => (line.match(/^Plug(\s*)(?:"|')(\S+)(?:"|')/) || [])[2])
+    .map(splitUserRepo)
+    .map(m => ({
+      ...m,
+      // installPath: join(m.)
+
+    }))
+
+}
+
+const refreshDependencies = async () => {
+  const vimrcExists = await exists(vimrcPath)
+  if (!vimrcExists) return
+
+  const configLines = await getVimrcLines()
+  installExtensions(configLines)
+  installPlugins(configLines)
+}
+
+refreshDependencies()
+watchConfig('nvim/init.vim', refreshDependencies)
