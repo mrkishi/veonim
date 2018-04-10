@@ -36,7 +36,6 @@ const addInstallStatus = async (deps: Dependency[]): Promise<Dependency[]> =>
   Promise.all(deps.map(async m => ({ ...m, installed: await exists(m.installPath) })))
 
 export const splitUserRepo = (text: string) => {
-  console.log('split user repo', text)
   const [ , user = '', repo = '' ] = (text.match(/^([^/]+)\/(.*)/) || [])
   return { user, repo }
 }
@@ -133,5 +132,7 @@ const refreshDependencies = async () => {
   installPlugins(configLines)
 }
 
-refreshDependencies()
-watchConfig('nvim/init.vim', refreshDependencies)
+export default () => {
+  refreshDependencies()
+  watchConfig('nvim/init.vim', refreshDependencies)
+}
