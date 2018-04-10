@@ -59,9 +59,7 @@ const main = async () => {
     loadComponents()
   }, 1)
 
-  setTimeout(() => {
-    require('../support/dependency-manager')
-  }, 100)
+  setTimeout(() => require('../support/dependency-manager').default(), 100)
 }
 
 const loadComponents = async () => {

@@ -16,6 +16,7 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   const mockRemovePath = jest.fn()
   const mockNotifyKind = NotifyKind
   const mockExtPath = EXT_PATH
+  const mockDownload = jest.fn(() => Promise.resolve(true))
 
   jest.resetModules()
 
@@ -24,7 +25,7 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   }))
 
   jest.mock('../../build/support/download', () => ({
-    downloadRepo: () => Promise.resolve(true),
+    downloadRepo: mockDownload,
   }))
 
   jest.mock('../../build/support/utils', () => ({
@@ -49,6 +50,7 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
 
   return {
     module: me.default,
+    download: mockDownload,
     removed: mockRemovePath,
     notify: mockNotifications,
     loadExtensions: mockLoadExt,
@@ -62,7 +64,7 @@ const configLines = [
 
 describe('manage extensions', () => {
   test('download & install success', async () => {
-    const { module, notify, loadExtensions, removed } = setup()
+    const { module, notify, loadExtensions, removed, download } = setup()
     await module(configLines)
 
     // to contain number of processed extensions in the message
@@ -71,21 +73,24 @@ describe('manage extensions', () => {
     expect(notify.mock.calls[1][0]).toContain(2)
     expect(notify.mock.calls[1][1]).toEqual(NotifyKind.Success)
 
+    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-json', '/ext/veonim-ext-json' ])
+    expect(download.mock.calls[1]).toEqual([ 'veonim', 'ext-html', '/ext/veonim-ext-html' ])
     expect(removed).not.toHaveBeenCalled()
     expect(loadExtensions).toHaveBeenCalled()
   })
 
   test('no extensions found', async () => {
-    const { module, notify, loadExtensions, removed } = setup()
+    const { module, notify, loadExtensions, removed, download } = setup()
     await module([])
 
+    expect(download).not.toHaveBeenCalled()
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
     expect(loadExtensions).not.toHaveBeenCalled()
   })
 
   test('existing extensions', async () => {
-    const { module, notify, loadExtensions, removed } = setup({
+    const { module, notify, loadExtensions, removed, download } = setup({
       existsPaths: [
         join(EXT_PATH, 'veonim-ext-json'),
         join(EXT_PATH, 'veonim-ext-html'),
@@ -94,13 +99,14 @@ describe('manage extensions', () => {
 
     await module(configLines)
 
+    expect(download).not.toHaveBeenCalled()
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
     expect(loadExtensions).not.toHaveBeenCalled()
   })
 
   test('1 new + 1 to be removed', async () => {
-    const { module, notify, loadExtensions, removed } = setup({
+    const { module, notify, loadExtensions, removed, download } = setup({
       getDirsPaths: [
         { name: 'veonim-ext-json', path: join(EXT_PATH, 'veonim-ext-json') },
       ]
@@ -108,16 +114,18 @@ describe('manage extensions', () => {
 
     await module(configLines.slice(1))
 
+    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-html', '/ext/veonim-ext-html' ])
     expect(removed.mock.calls[0][0]).toEqual('/ext/veonim-ext-json')
     expect(notify.mock.calls[0][0]).toContain(1)
     expect(loadExtensions).toHaveBeenCalled()
   })
 
   test('bad config lines', async () => {
-    const { module, notify, loadExtensions, removed } = setup()
+    const { module, notify, loadExtensions, removed, download } = setup()
 
     await module(['VeonimExt lolumad?'])
 
+    expect(download).not.toHaveBeenCalled()
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
     expect(loadExtensions).not.toHaveBeenCalled()

@@ -17,6 +17,7 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   const mockNotifyKind = NotifyKind
   const mockNeovimCmd = jest.fn()
   const mockConfigPath = configPath
+  const mockDownload = jest.fn(() => Promise.resolve(true))
 
   jest.resetModules()
 
@@ -29,7 +30,7 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   }))
 
   jest.mock('../../build/support/download', () => ({
-    downloadRepo: () => Promise.resolve(true),
+    downloadRepo: mockDownload,
   }))
 
   jest.mock('../../build/support/utils', () => ({
@@ -50,6 +51,7 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
 
   return {
     module: mp.default,
+    download: mockDownload,
     removed: mockRemovePath,
     neovimCmd: mockNeovimCmd,
     notify: mockNotifications,
@@ -63,7 +65,7 @@ const configLines = [
 
 describe('manage plugins', () => {
   test('download & install success', async () => {
-    const { module, notify, neovimCmd, removed } = setup()
+    const { module, notify, neovimCmd, removed, download } = setup()
     await module(configLines)
 
     // to contain number of processed plugins in the message
@@ -72,21 +74,24 @@ describe('manage plugins', () => {
     expect(notify.mock.calls[1][0]).toContain(2)
     expect(notify.mock.calls[1][1]).toEqual(NotifyKind.Success)
 
+    expect(download.mock.calls[0]).toEqual([ 'tpope', 'vim-surround', '/Users/liz/.config/nvim/pack/tpope-vim-surround' ])
+    expect(download.mock.calls[1]).toEqual([ 'wellle', 'targets.vim', '/Users/liz/.config/nvim/pack/wellle-targets.vim' ])
     expect(removed).not.toHaveBeenCalled()
     expect(neovimCmd).toHaveBeenCalledWith('packloadall!')
   })
 
   test('no plugins found', async () => {
-    const { module, notify, neovimCmd, removed } = setup()
+    const { module, notify, neovimCmd, removed, download } = setup()
     await module([])
 
+    expect(download).not.toHaveBeenCalled()
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
     expect(neovimCmd).not.toHaveBeenCalled()
   })
 
   test('existing plugins', async () => {
-    const { module, notify, neovimCmd, removed } = setup({
+    const { module, notify, neovimCmd, removed, download } = setup({
       existsPaths: [
         join(packPath, 'tpope-vim-surround'),
         join(packPath, 'wellle-targets.vim'),
@@ -95,13 +100,14 @@ describe('manage plugins', () => {
 
     await module(configLines)
 
+    expect(download).not.toHaveBeenCalled()
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
     expect(neovimCmd).not.toHaveBeenCalled()
   })
 
   test('1 new + 1 to be removed', async () => {
-    const { module, notify, neovimCmd, removed } = setup({
+    const { module, notify, neovimCmd, removed, download } = setup({
       getDirsPaths: [
         { name: 'tpope-vim-surround', path: join(packPath, 'tpope-vim-surround') },
       ]
@@ -109,16 +115,18 @@ describe('manage plugins', () => {
 
     await module(configLines.slice(1))
 
+    expect(download.mock.calls[0]).toEqual([ 'wellle', 'targets.vim', '/Users/liz/.config/nvim/pack/wellle-targets.vim' ])
     expect(removed.mock.calls[0][0]).toEqual('/Users/liz/.config/nvim/pack/tpope-vim-surround')
     expect(notify.mock.calls[0][0]).toContain(1)
     expect(neovimCmd).toHaveBeenCalled()
   })
 
   test('bad config lines', async () => {
-    const { module, notify, neovimCmd, removed } = setup()
+    const { module, notify, neovimCmd, removed, download } = setup()
 
     await module(['Plug lolumad?'])
 
+    expect(download).not.toHaveBeenCalled()
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
     expect(neovimCmd).not.toHaveBeenCalled()

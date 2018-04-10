@@ -9,6 +9,7 @@ alternate TS lang serv... does it solve the broken multi-line hover info?
 buffer-search should only search in the current viewport. no scrolling pls
 create fuzzy search for entire buffer, but use popup menu
 terminal change title to current running process
+backfill problems into quickfix list
 
 press and hold mark ' keybind to bring up menu of current global marks
 menu lists something like

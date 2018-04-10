@@ -2,8 +2,9 @@ import { configPath, readFile, exists } from '../support/utils'
 import installExtensions from '../support/manage-extensions'
 import installPlugins from '../support/manage-plugins'
 import { watchConfig } from '../config/config-reader'
+import { join } from 'path'
 
-const vimrcPath = `${configPath}/nvim/init.vim`
+const vimrcPath = join(configPath, 'nvim/init.vim')
 
 const getVimrcLines = async () => (await readFile(vimrcPath))
   .toString()
