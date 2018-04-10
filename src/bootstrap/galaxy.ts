@@ -58,6 +58,10 @@ const main = async () => {
     requireDirSync(`${__dirname}/../state`)
     loadComponents()
   }, 1)
+
+  setTimeout(() => {
+    require('../support/dependency-manager')
+  }, 100)
 }
 
 const loadComponents = async () => {

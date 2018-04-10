@@ -9,3 +9,13 @@ alternate TS lang serv... does it solve the broken multi-line hover info?
 buffer-search should only search in the current viewport. no scrolling pls
 create fuzzy search for entire buffer, but use popup menu
 terminal change title to current running process
+
+press and hold mark ' keybind to bring up menu of current global marks
+menu lists something like
+a - support.ts
+s - utils.ts
+d - main.ts
+
+pressing one of the keys takes you to that file
+releasing mark keybind closes menu without any navigation
+(think kinda like opie addon, but hold activate)

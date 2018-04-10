@@ -37,6 +37,9 @@
     "release-win": "npm run clean-all && npm run build && npm run pack-win",
     "release-linux": "npm run clean-all && npm run build && npm run pack-linux"
   },
+  "jest": {
+    "collectCoverage": true
+  },
   "build": {
     "productName": "veonim",
     "appId": "com.veonim.veonim",

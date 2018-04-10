@@ -5,22 +5,27 @@ const NotifyKind = {
   Success: 'success',
 }
 
-const EXT_PATH = '/ext'
+const configPath = '/Users/liz/.config'
+const packPath = join(configPath, 'nvim/pack')
 
 const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   const mockExistPaths = new Set(existsPaths)
   const mockDirsPaths = getDirsPaths.slice()
-  const mockLoadExt = jest.fn()
   const mockNotifications = jest.fn()
   const mockNoop = () => {}
   const mockRemovePath = jest.fn()
   const mockNotifyKind = NotifyKind
-  const mockExtPath = EXT_PATH
+  const mockNeovimCmd = jest.fn()
+  const mockConfigPath = configPath
 
   jest.resetModules()
 
   jest.mock('fs-extra', () => ({
     remove: mockRemovePath,
+  }))
+
+  jest.mock('../../build/core/neovim', () => ({
+    cmd: mockNeovimCmd,
   }))
 
   jest.mock('../../build/support/download', () => ({
@@ -29,15 +34,11 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
 
   jest.mock('../../build/support/utils', () => ({
     readFile: mockNoop,
+    configPath: mockConfigPath,
     watchPathSymlink: mockNoop,
     is: { string: val => typeof val === 'string' },
     exists: path => Promise.resolve(mockExistPaths.has(path)),
     getDirs: () => Promise.resolve(mockDirsPaths)
-  }))
-
-  jest.mock('../../build/core/extensions', () => ({
-    EXT_PATH: mockExtPath,
-    load: mockLoadExt,
   }))
 
   jest.mock('../../build/ui/notifications', () => ({
@@ -45,50 +46,50 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
     NotifyKind: mockNotifyKind,
   }))
 
-  const me = require('../../build/support/manage-extensions')
+  const mp = require('../../build/support/manage-plugins')
 
   return {
-    module: me.default,
+    module: mp.default,
     removed: mockRemovePath,
+    neovimCmd: mockNeovimCmd,
     notify: mockNotifications,
-    loadExtensions: mockLoadExt,
   }
 }
 
 const configLines = [
-  `VeonimExt 'veonim/ext-json'`,
-  `VeonimExt 'veonim/ext-html'`,
+  `Plug 'tpope/vim-surround'`,
+  `Plug 'wellle/targets.vim'`,
 ]
 
-describe('manage extensions', () => {
+describe('manage plugins', () => {
   test('download & install success', async () => {
-    const { module, notify, loadExtensions, removed } = setup()
+    const { module, notify, neovimCmd, removed } = setup()
     await module(configLines)
 
-    // to contain number of processed extensions in the message
+    // to contain number of processed plugins in the message
     expect(notify.mock.calls[0][0]).toContain(2)
     expect(notify.mock.calls[0][1]).toEqual(NotifyKind.System)
     expect(notify.mock.calls[1][0]).toContain(2)
     expect(notify.mock.calls[1][1]).toEqual(NotifyKind.Success)
 
     expect(removed).not.toHaveBeenCalled()
-    expect(loadExtensions).toHaveBeenCalled()
+    expect(neovimCmd).toHaveBeenCalledWith('packloadall!')
   })
 
-  test('no extensions found', async () => {
-    const { module, notify, loadExtensions, removed } = setup()
+  test('no plugins found', async () => {
+    const { module, notify, neovimCmd, removed } = setup()
     await module([])
 
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
-    expect(loadExtensions).not.toHaveBeenCalled()
+    expect(neovimCmd).not.toHaveBeenCalled()
   })
 
-  test('existing extensions', async () => {
-    const { module, notify, loadExtensions, removed } = setup({
+  test('existing plugins', async () => {
+    const { module, notify, neovimCmd, removed } = setup({
       existsPaths: [
-        join(EXT_PATH, 'veonim-ext-json'),
-        join(EXT_PATH, 'veonim-ext-html'),
+        join(packPath, 'tpope-vim-surround'),
+        join(packPath, 'wellle-targets.vim'),
       ]
     })
 
@@ -96,30 +97,30 @@ describe('manage extensions', () => {
 
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
-    expect(loadExtensions).not.toHaveBeenCalled()
+    expect(neovimCmd).not.toHaveBeenCalled()
   })
 
   test('1 new + 1 to be removed', async () => {
-    const { module, notify, loadExtensions, removed } = setup({
+    const { module, notify, neovimCmd, removed } = setup({
       getDirsPaths: [
-        { name: 'veonim-ext-json', path: join(EXT_PATH, 'veonim-ext-json') },
+        { name: 'tpope-vim-surround', path: join(packPath, 'tpope-vim-surround') },
       ]
     })
 
     await module(configLines.slice(1))
 
-    expect(removed.mock.calls[0][0]).toEqual('/ext/veonim-ext-json')
+    expect(removed.mock.calls[0][0]).toEqual('/Users/liz/.config/nvim/pack/tpope-vim-surround')
     expect(notify.mock.calls[0][0]).toContain(1)
-    expect(loadExtensions).toHaveBeenCalled()
+    expect(neovimCmd).toHaveBeenCalled()
   })
 
   test('bad config lines', async () => {
-    const { module, notify, loadExtensions, removed } = setup()
+    const { module, notify, neovimCmd, removed } = setup()
 
-    await module(['VeonimExt lolumad?'])
+    await module(['Plug lolumad?'])
 
     expect(notify).not.toHaveBeenCalled()
     expect(removed).not.toHaveBeenCalled()
-    expect(loadExtensions).not.toHaveBeenCalled()
+    expect(neovimCmd).not.toHaveBeenCalled()
   })
 })
