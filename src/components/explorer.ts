@@ -1,12 +1,12 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
-import { action, current, cmd } from '../core/neovim'
-import { colors } from '../styles/common'
 import { RowNormal, RowImportant } from '../components/row-container'
+import { action, current, cmd, call } from '../core/neovim'
 import { Plugin } from '../components/plugin-container'
 import { join, sep, basename, dirname } from 'path'
-// import * as setiIcon from '../styles/seti-icons'
+import * as setiIcon from '../components/seti-icon'
 import config from '../config/config-service'
 import Input from '../components/text-input2'
+import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from '../ui/uikit2'
 
@@ -234,17 +234,16 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
     key: `${name}-${dir}`,
     active: ix === $.ix,
   }, [
-    // ,dir ? setiIcon.id('folder') : setiIcon.file(name)
+    ,dir ? setiIcon.id('folder') : setiIcon.file(name)
 
     ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
   ])))
 
 ])})
 
-
 action('explorer', async () => {
-  const { cwd, file } = current
-  const path = join(cwd, file)
+  const { cwd } = current
+  const path = await call.expand(`%:p:h`)
   const paths = sortDirFiles(await getDirFiles(path))
   ui.show({ cwd, path, paths })
 })
