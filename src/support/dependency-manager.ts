@@ -11,7 +11,7 @@ const getVimrcLines = async () => (await readFile(vimrcPath))
   .split('\n')
 
 const refreshDependencies = async () => {
-  const online = await isOnline()
+  const online = await isOnline('github.com')
   if (!online) return
 
   const vimrcExists = await exists(vimrcPath)

@@ -3,6 +3,7 @@ extensions keep reinstalling
 remove react-redux dependency when removing dedox
 if open up explorer from terminal window, open up for cwd instead of bad term path
 alternate TS lang serv... does it solve the broken multi-line hover info?
+if all splits don't equal to 100%, force them to equal to 100 (open 3 vertical splits on 38 ultrawide)
 
 --ideas--
 easymotion jump to highlighted word
