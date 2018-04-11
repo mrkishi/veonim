@@ -132,10 +132,9 @@ export const Backoff = ({ factor = 1.5, maxAttempts = 5, initialDelay = 10, time
   }
 }
 
-export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
-  const theFunctionToCall: Function = Reflect.get(o, name)
-  theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
-}))
+export const isOnline = () => new Promise(fin => {
+  require('dns').lookup('google.com', e => fin(!(e && e.code = 'ENOTFOUND')))
+})
 
 export const findIndexRight = (line: string, pattern: RegExp, start: number) => {
   for (let ix = start || line.length; ix > 0; ix--) {
