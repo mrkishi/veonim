@@ -1,4 +1,4 @@
-import { configPath, readFile, exists } from '../support/utils'
+import { configPath, readFile, exists, isOnline } from '../support/utils'
 import installExtensions from '../support/manage-extensions'
 import installPlugins from '../support/manage-plugins'
 import { watchConfig } from '../config/config-reader'
@@ -11,6 +11,9 @@ const getVimrcLines = async () => (await readFile(vimrcPath))
   .split('\n')
 
 const refreshDependencies = async () => {
+  const online = await isOnline()
+  if (!online) return
+
   const vimrcExists = await exists(vimrcPath)
   if (!vimrcExists) return
 

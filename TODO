@@ -1,6 +1,5 @@
 the fuzzy files git strategy is adding in files previously ignored by .ignore
 extensions keep reinstalling
-extensions install check for internet connectivity
 remove react-redux dependency when removing dedox
 if open up explorer from terminal window, open up for cwd instead of bad term path
 alternate TS lang serv... does it solve the broken multi-line hover info?
