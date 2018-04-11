@@ -53,12 +53,15 @@ const pathExplore = async (path: string) => {
   return complete ? goodDirs : filter(goodDirs, top, { key: 'name' })
 }
 
+const resetState = { val: '', path: '', vis: false, ix: 0 }
+
 const actions = {
   // TODO: when choosing custom path and go back, make sure it updates correctly
   // like ~/proj/veonim/ -> OK
   // but  ~/proj/veonim -> DERP!
 
   ctrlG: () => {
+    // TODO: is this still needed in react land?
     // because for whatever reason the 'onupdate' lifecycle event does not
     // get triggered on render pass which includes 'pathMode' value update
     setTimeout(() => pathInputRef.focus(), 1)
@@ -70,8 +73,8 @@ const actions = {
     const dir = dirname(absolutePath(s.pathValue))
     const { name } = s.paths[s.ix]
     const next = `${join(dir, name)}/`
-    ui.changePath(next)
-    return { ix: 0 }
+    pathExplore(next).then(ui.updatePaths)
+    return { ix: 0, pathValue: next }
   },
 
   normalMode: () => ({ pathMode: false }),
@@ -107,14 +110,18 @@ const actions = {
   },
 
   select: (s: S) => {
-    if (!s.paths.length) return ui.hide()
+    if (!s.paths.length) return resetState
+
     const { name, file } = s.paths[s.ix]
     if (!name) return
+
     if (file) {
       cmd(`e ${pathRelativeToCwd(join(s.path, name), s.cwd)}`)
-      return ui.hide()
+      return resetState
     }
-    ui.diveDown(name)
+
+    const path = join(s.path, name)
+    getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
   },
 
   change: (s: S, val: string) => ({ val, paths: val
@@ -122,17 +129,11 @@ const actions = {
     : s.cache
   }),
 
-  // TODO: consider using updatePaths action/
-  diveDown: (s: S, next: string) => {
-    const path = join(s.path, next)
-    getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
-  },
-
   ctrlH: async () => {
     const { cwd } = current
     const filedirs = await getDirFiles(cwd)
     const paths = sortDirFiles(filedirs)
-    ui.show({ paths, cwd, path: cwd })
+    return { ...resetState, cwd, paths, path: cwd, cache: paths }
   },
 
   jumpPrev: (s: S) => {
@@ -143,8 +144,10 @@ const actions = {
   },
 
   show: (s: S, { paths, path, cwd = s.cwd }: any) => ({
-    cwd, path, paths,
-    ix: 0,
+    ...resetState,
+    cwd,
+    path,
+    paths,
     vis: true,
     cache: paths,
   }),
@@ -162,7 +165,7 @@ const actions = {
 
   top: () => { listElRef.scrollTop = 0 },
   bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
-  hide: () => ({ val: '', path: '', vis: false, ix: 0 }),
+  hide: () => resetState,
   next: (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
   prev: (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
 }
@@ -170,6 +173,15 @@ const actions = {
 let listElRef: HTMLElement
 let pathInputRef: HTMLInputElement
 
+// TODO: reactdom will bind and assume control over it's container element. if
+// we try to share this container element with other react components, i
+// believe we will be performing a vDOM diff on every single component in the
+// #plugins div container element. we should bind to an isolated element so
+// that component diffs will not involve any other components
+//
+// i think we can default a master container element to #plugins, and then
+// create a child element #explorer to house the reactdom container element
+// binding for the house party with chips and kalamata olive hummus
 const element = document.getElementById('plugins') as HTMLElement
 const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plugin('explorer', $.vis, [
 
@@ -185,11 +197,14 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
     next: a.next,
     prev: a.prev,
     select: a.select,
+    jumpPrev: a.jumpPrev,
     down: a.down,
     up: a.up,
   })
 
-  ,!$.pathMode && h(RowImportant, pathRelativeToHome($.path))
+  ,!$.pathMode && h(RowImportant, [
+    ,h('span', pathRelativeToHome($.path))
+  ])
 
   ,$.pathMode && Input({
     change: a.changePath,
@@ -215,10 +230,13 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
       maxHeight: '50vh',
       overflowY: 'hidden',
     }
-  }, $.paths.map(({ name, dir }, key) => h(RowNormal, { key, activeWhen: key === $.ix }, [
+  }, $.paths.map(({ name, dir }, ix) => h(RowNormal, {
+    key: `${name}-${dir}`,
+    active: ix === $.ix,
+  }, [
     // ,dir ? setiIcon.id('folder') : setiIcon.file(name)
 
-    ,h('span', { style: { color: dir && key !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
+    ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
   ])))
 
 ])})

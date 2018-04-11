@@ -65,7 +65,7 @@ export const RowHeader = s<Props>(styled.div)`
 `
 
 export const RowImportant = s<Props>(styled.div)`
-  ${p => p.active ? activeRow : row}
+  ${row}
   padding-top: 8px;
   padding-bottom: 8px;
   background: var(--background-50);
