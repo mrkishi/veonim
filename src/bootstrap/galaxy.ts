@@ -59,7 +59,8 @@ const main = async () => {
     loadComponents()
   }, 1)
 
-  setTimeout(() => require('../support/dependency-manager').default(), 100)
+  // TODO: enable when ready
+  // setTimeout(() => require('../support/dependency-manager').default(), 100)
 }
 
 const loadComponents = async () => {

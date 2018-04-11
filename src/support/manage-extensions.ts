@@ -7,10 +7,10 @@ import { join } from 'path'
 
 interface Extension {
   name: string,
-  path: string,
   user: string,
   repo: string,
   installed: boolean,
+  downloadPath: string,
 }
 
 const splitUserRepo = (text: string) => {
@@ -25,8 +25,13 @@ const getExtensions = async (configLines: string[]) => Promise.all(configLines
   .map(splitUserRepo)
   .map(async m => {
     const name = `${m.user}-${m.repo}`
-    const path = join(EXT_PATH, name)
-    return { ...m, name, path, installed: await exists(path) }
+
+    return {
+      ...m,
+      name,
+      downloadPath: EXT_PATH,
+      installed: await exists(join(EXT_PATH, name)),
+    }
   }))
 
 const removeExtraneous = async (extensions: Extension[]) => {
@@ -43,7 +48,7 @@ export default async (configLines: string[]) => {
   if (!extensionsNotInstalled.length) return removeExtraneous(extensions)
 
   notify(`Found ${extensionsNotInstalled.length} Veonim extensions. Installing...`, NotifyKind.System)
-  await Promise.all(extensions.map(ext => downloadRepo(ext.user, ext.repo, ext.path)))
+  await Promise.all(extensions.map(ext => downloadRepo(ext.user, ext.repo, ext.downloadPath)))
   notify(`Installed ${extensionsNotInstalled.length} Veonim extensions!`, NotifyKind.Success)
 
   removeExtraneous(extensions)

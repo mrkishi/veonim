@@ -7,10 +7,10 @@ import { join } from 'path'
 
 interface Plugin {
   name: string,
-  path: string,
   user: string,
   repo: string,
   installed: boolean,
+  downloadpath: string,
 }
 
 const packDir = join(configPath, 'nvim/pack')
@@ -28,7 +28,12 @@ const getPlugins = async (configLines: string[]) => Promise.all(configLines
   .map(async m => {
     const name = `${m.user}-${m.repo}`
     const path = join(packDir, name)
-    return { ...m, name, path, installed: await exists(path) }
+    return {
+      ...m,
+      name,
+      installed: await exists(path),
+      downloadpath: join(path, 'start'),
+    }
   }))
 
 const removeExtraneous = async (plugins: Plugin[]) => {
@@ -45,7 +50,7 @@ export default async (configLines: string[]) => {
   if (!pluginsNotInstalled.length) return removeExtraneous(plugins)
 
   notify(`Found ${pluginsNotInstalled.length} Veonim plugins. Installing...`, NotifyKind.System)
-  await Promise.all(plugins.map(ext => downloadRepo(ext.user, ext.repo, ext.path)))
+  await Promise.all(plugins.map(ext => downloadRepo(ext.user, ext.repo, ext.downloadpath)))
   notify(`Installed ${pluginsNotInstalled.length} Veonim plugins!`, NotifyKind.Success)
 
   removeExtraneous(plugins)

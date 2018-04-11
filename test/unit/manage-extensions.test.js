@@ -73,8 +73,8 @@ describe('manage extensions', () => {
     expect(notify.mock.calls[1][0]).toContain(2)
     expect(notify.mock.calls[1][1]).toEqual(NotifyKind.Success)
 
-    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-json', '/ext/veonim-ext-json' ])
-    expect(download.mock.calls[1]).toEqual([ 'veonim', 'ext-html', '/ext/veonim-ext-html' ])
+    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-json', '/ext' ])
+    expect(download.mock.calls[1]).toEqual([ 'veonim', 'ext-html', '/ext' ])
     expect(removed).not.toHaveBeenCalled()
     expect(loadExtensions).toHaveBeenCalled()
   })
@@ -114,7 +114,7 @@ describe('manage extensions', () => {
 
     await module(configLines.slice(1))
 
-    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-html', '/ext/veonim-ext-html' ])
+    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-html', '/ext' ])
     expect(removed.mock.calls[0][0]).toEqual('/ext/veonim-ext-json')
     expect(notify.mock.calls[0][0]).toContain(1)
     expect(loadExtensions).toHaveBeenCalled()
