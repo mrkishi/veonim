@@ -9,9 +9,9 @@ export interface IconParams {
   weight?: number,
 }
 
-export default (iconName: string, params: IconParams) => {
+export default (iconName: string, params = {} as IconParams) => {
   const name = pascalCase(iconName)
-  const { color, weight = 2, size = canvasContainer.font.size + 2 } = params || {} as IconParams
+  const { color, weight = 2, size = canvasContainer.font.size + 2 } = params
   if (!Reflect.has(featherIcons, name)) throw new Error(`rendering: icon ${name} was not found`)
   const component = Reflect.get(featherIcons, name)
   return h(component, { color, size, strokeWidth: weight })

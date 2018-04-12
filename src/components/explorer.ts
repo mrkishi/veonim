@@ -8,6 +8,7 @@ import config from '../config/config-service'
 import Input from '../components/text-input2'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
+import Icon from '../components/icon2'
 import { h, app } from '../ui/uikit2'
 
 interface FileDir {
@@ -234,7 +235,13 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
     key: `${name}-${dir}`,
     active: ix === $.ix,
   }, [
-    ,dir ? setiIcon.id('folder') : setiIcon.file(name)
+    ,h('div', {
+      style: {
+        width: '24px',
+      }
+    }, [
+      dir ? Icon('folder') : setiIcon.file(name),
+    ])
 
     ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
   ])))

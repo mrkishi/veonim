@@ -5,6 +5,9 @@ if open up explorer from terminal window, open up for cwd instead of bad term pa
 alternate TS lang serv... does it solve the broken multi-line hover info?
 if all splits don't equal to 100%, force them to equal to 100 (open 3 vertical splits on 38 ultrawide)
 
+new plugins mgmr works. extensions does not.
+do we need to ensureDir exists or does downloadRepo auto create folders?
+
 --ideas--
 easymotion jump to highlighted word
 buffer-search should only search in the current viewport. no scrolling pls
