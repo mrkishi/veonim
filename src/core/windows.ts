@@ -407,6 +407,16 @@ const getSplitCount = (wins: VimWindow[]) => {
 const within = (target: number, tolerance: number) => (candidate: number) =>
   Math.abs(target - candidate) <= tolerance
 
+const equalizeTo100 = (percentages: number[]) => {
+  const total = percentages.reduce((total, num) => total + num, 0)
+  if (total >= 100) return percentages
+
+  const remainTo100 = 100 - total
+  const items = percentages.slice()
+  items[0] += remainTo100
+  return items
+}
+
 const gogrid = (wins: VimWindow[]): GridInfo => {
   const totalRows = canvasContainer.size.rows - 1
   const totalColumns = canvasContainer.size.cols
@@ -423,7 +433,7 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 
     const next = arr[ix + 1]
     const diff = next - curr
-    const rowSize = Math.round((diff / totalRows) * 100).toFixed(1)
+    const rowSize = Math.round((diff / totalRows) * 100).toFixed(1) - 0
     return [...res, rowSize]
   }, [] as string[])
 
@@ -432,12 +442,12 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 
     const next = arr[ix + 1]
     const diff = next - curr
-    const rowSize = Math.round((diff / totalColumns) * 100).toFixed(1)
+    const rowSize = Math.round((diff / totalColumns) * 100).toFixed(1) - 0
     return [...res, rowSize]
   }, [] as string[])
 
   const gridTemplateRows = rr.length < 2 ? '100%' : rr.reduce((s, m) => s + m + '% ', '')
-  const gridTemplateColumns = cc.length < 2 ? '100%' : cc.reduce((s, m) => s + m + '% ', '')
+  const gridTemplateColumns = cc.length < 2 ? '100%' : equalizeTo100(cc).reduce((s, m) => s + m + '% ', '')
 
   const windowsWithGridInfo = wins.map(w => ({
     ...w,
