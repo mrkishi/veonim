@@ -1,8 +1,7 @@
-import { NewlineSplitter, commandExists } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
+import { NewlineSplitter } from '../support/utils'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
 import Ripgrep from '@veonim/ripgrep'
-import { spawn } from 'child_process'
 
 const INTERVAL = 250
 const AMOUNT = 10
@@ -17,25 +16,12 @@ const sendResults = ({ filter = true } = {}) => call.results(filter && query
   : [ ...results ].slice(0, AMOUNT)
 )
 
-const getFilesWithGit = (cwd: string) => {
-  if (!commandExists('git')) return () => {}
-
-  const git = spawn('git', ['ls-files'], { cwd, shell: true })
-  git.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
-    if (!path.includes('node_modules')) results.add(path)
-  })
-
-  const reset = () => results.clear()
-  const stop = () => git.kill()
-
-  setTimeout(stop, TIMEOUT)
-  return () => (stop(), reset())
-}
-
 const getFilesWithRipgrep = (cwd: string) => {
   const timer = setInterval(sendResults, INTERVAL)
-  const rg = Ripgrep(['--files', '--glob', '!node_modules'], { cwd })
+  const rg = Ripgrep(['--files', '--hidden', '--glob', '!node_modules', '--glob', '!.git'], { cwd })
   let initialSent = false
+
+  rg.stderr.pipe(new NewlineSplitter()).on('data', console.error)
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (path: string) => {
     const shouldSendInitialBatch = !initialSent && results.size >= AMOUNT 
@@ -69,10 +55,7 @@ on.load((cwd: string) => {
   query = ''
 
   const stopRipgrepSearch = getFilesWithRipgrep(cwd)
-  const stopGitSearch = getFilesWithGit(cwd)
-
   cancelTokens.add(stopRipgrepSearch)
-  cancelTokens.add(stopGitSearch)
 })
 
 on.stop(() => {
