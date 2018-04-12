@@ -250,10 +250,9 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
 
 action('explorer', async () => {
   const { cwd, bufferType } = current
-  const path = await call.expand(`%:p:h`)
+  const dirPathOfCurrentFile = await call.expand(`%:p:h`)
   const isTerminal = bufferType === BufferType.Terminal
-
-  console.log('is terminal?', isTerminal)
+  const path = isTerminal ? cwd : dirPathOfCurrentFile
 
   const paths = sortDirFiles(await getDirFiles(path))
   ui.show({ cwd, path, paths })
