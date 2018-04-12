@@ -1,6 +1,6 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
+import { action, current, cmd, call, BufferType } from '../core/neovim'
 import { RowNormal, RowImportant } from '../components/row-container'
-import { action, current, cmd, call } from '../core/neovim'
 import { Plugin } from '../components/plugin-container'
 import { join, sep, basename, dirname } from 'path'
 import * as setiIcon from '../components/seti-icon'
@@ -249,8 +249,12 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
 ])})
 
 action('explorer', async () => {
-  const { cwd } = current
+  const { cwd, bufferType } = current
   const path = await call.expand(`%:p:h`)
+  const isTerminal = bufferType === BufferType.Terminal
+
+  console.log('is terminal?', isTerminal)
+
   const paths = sortDirFiles(await getDirFiles(path))
   ui.show({ cwd, path, paths })
 })
