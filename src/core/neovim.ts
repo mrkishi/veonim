@@ -105,6 +105,7 @@ export interface Position {
 }
 
 export interface NeovimState {
+  bufferType: BufferType,
   colorscheme: string,
   filetype: string,
   revision: number,
@@ -348,6 +349,7 @@ export const list = {
 }
 
 export const current: NeovimState = new Proxy({
+  bufferType: BufferType.Normal,
   mode: 'normal',
   file: '',
   filetype: '',
@@ -468,16 +470,18 @@ const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => bu
 })
 
 const refreshState = (event = 'bufLoad') => async () => {
-  const [ filetype, cwd, file, colorscheme, revision, { line, column } ] = await cc(
+  const [ filetype, cwd, file, colorscheme, revision, { line, column }, buffer ] = await cc(
     expr(`&filetype`),
     call.getcwd(),
     call.expand(`%f`),
     g.colors_name,
     expr(`b:changedtick`),
     getCurrent.position,
+    getCurrent.buffer,
   )
 
-  merge(current, { filetype, cwd, file, colorscheme, revision, line, column })
+  const bufferType = await buffer.getOption(BufferOption.Type)
+  merge(current, { filetype, cwd, file, colorscheme, revision, line, column, bufferType })
   notifyEvent(event)
 }
 
