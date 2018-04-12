@@ -133,7 +133,7 @@ export const Backoff = ({ factor = 1.5, maxAttempts = 5, initialDelay = 10, time
 }
 
 export const isOnline = (host = 'google.com') => new Promise(fin => {
-  require('dns').lookup(host, e => fin(!(e && e.code = 'ENOTFOUND')))
+  require('dns').lookup(host, (e: any) => fin(!(e && e.code === 'ENOTFOUND')))
 })
 
 export const findIndexRight = (line: string, pattern: RegExp, start: number) => {
