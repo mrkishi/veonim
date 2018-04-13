@@ -188,9 +188,7 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
   ,Input({
     value: $.val,
     focus: !$.pathMode,
-    // TODO: yo why is this missing??
-    // icon: 'hard-drive',
-    icon: 'search',
+    icon: 'HardDrive',
     desc: 'explorer',
     change: a.change,
     hide: a.hide,
