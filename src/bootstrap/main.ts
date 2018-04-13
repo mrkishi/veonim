@@ -58,8 +58,9 @@ app.on('ready', async () => {
       .then((n: any) => console.log('loaded ext:', n))
       .catch((e: any) => console.log('failed to load ext because...', e))
 
-    load(REACT_DEVELOPER_TOOLS)
-    load(REDUX_DEVTOOLS)
+    // TODO: .id is a hack to make it work for electron 2.0+
+    load(REACT_DEVELOPER_TOOLS.id)
+    load(REDUX_DEVTOOLS.id)
 
     win.webContents.on('devtools-opened', () => setImmediate(() => win.focus()))
     win.webContents.openDevTools()
