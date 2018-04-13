@@ -11,6 +11,8 @@ extensions are not downloading...
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+export explorer.ts view component without Plugin wrapper (to be used in a positioned vim renderer div)
+
 --ideas--
 set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
 

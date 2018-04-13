@@ -237,6 +237,7 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
     key: `${name}-${dir}`,
     active: ix === $.ix,
   }, [
+    // TODO: move this to seti icon module and rename to FileTypeIcon?
     ,h('div', {
       style: {
         width: '24px',

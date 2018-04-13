@@ -2,14 +2,12 @@ import { BufferSearch, Actions as BufferSearchA } from '../state/buffer-search'
 import { ProblemInfo, Actions as ProblemInfoA } from '../state/problem-info'
 import { ColorPicker, Actions as ColorPickerA } from '../state/color-picker'
 import { CommandLine, Actions as CommandLineA } from '../state/command-line'
-import { Explorer, Actions as ExplorerA } from '../state/explorer'
 import { Hover, Actions as HoverA } from '../state/hover'
 import { Hint, Actions as HintA } from '../state/hint'
 import LOL from '../state/dedox'
 
 export type RegisteredActions = HintA
   & HoverA
-  & ExplorerA
   & ProblemInfoA
   & ColorPickerA
   & CommandLineA
@@ -18,7 +16,6 @@ export type RegisteredActions = HintA
 export interface Federation {
   hint: Hint,
   hover: Hover,
-  explorer: Explorer,
   problemInfo: ProblemInfo,
   colorPicker: ColorPicker,
   commandLine: CommandLine,
@@ -36,7 +33,6 @@ export const {
 } = LOL<Federation>({
   hint: {},
   hover: {},
-  explorer: {},
   problemInfo: {},
   colorPicker: {},
   commandLine: {},
