@@ -65,7 +65,7 @@ const actions = {
     // TODO: is this still needed in react land?
     // because for whatever reason the 'onupdate' lifecycle event does not
     // get triggered on render pass which includes 'pathMode' value update
-    setTimeout(() => pathInputRef.focus(), 1)
+    // setTimeout(() => pathInputRef.focus(), 1)
     return { pathMode: true, ix: 0, val: '', pathValue: '' }
   },
 
@@ -134,7 +134,7 @@ const actions = {
     const { cwd } = current
     const filedirs = await getDirFiles(cwd)
     const paths = sortDirFiles(filedirs)
-    return { ...resetState, cwd, paths, path: cwd, cache: paths }
+    ui.show({ paths, cwd, path: cwd })
   },
 
   jumpPrev: (s: S) => {
@@ -201,6 +201,8 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
     jumpPrev: a.jumpPrev,
     down: a.down,
     up: a.up,
+    ctrlG: a.ctrlG,
+    ctrlH: a.ctrlH,
   })
 
   ,!$.pathMode && h(RowImportant, [

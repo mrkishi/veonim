@@ -1,3 +1,4 @@
+new plugins mgmr works. extensions does not.
 extensions keep reinstalling
   - need to check code, because download function will download to ext/repo-master, but code checks for ext/user-repo
 
@@ -8,13 +9,11 @@ extensions are not downloading...
   - upgraded a bunch of packages, not fix
 
 remove react-redux dependency when removing dedox
-
-new plugins mgmr works. extensions does not.
-do we need to ensureDir exists or does downloadRepo auto create folders?
-
 react-tiny-virtual-list for virtual lists?
 
 --ideas--
+set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
+
 easymotion jump to highlighted word
 buffer-search should only search in the current viewport. no scrolling pls
 create fuzzy search for entire buffer, but use popup menu
