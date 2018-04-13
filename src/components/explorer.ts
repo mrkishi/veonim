@@ -2,13 +2,12 @@ import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } fr
 import { action, current, cmd, call, BufferType } from '../core/neovim'
 import { RowNormal, RowImportant } from '../components/row-container'
 import { Plugin } from '../components/plugin-container'
+import FiletypeIcon from '../components/filetype-icon'
 import { join, sep, basename, dirname } from 'path'
-import * as setiIcon from '../components/seti-icon'
 import config from '../config/config-service'
 import Input from '../components/text-input2'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
-import Icon from '../components/icon2'
 import { h, app } from '../ui/uikit2'
 
 interface FileDir {
@@ -237,14 +236,7 @@ const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plug
     key: `${name}-${dir}`,
     active: ix === $.ix,
   }, [
-    // TODO: move this to seti icon module and rename to FileTypeIcon?
-    ,h('div', {
-      style: {
-        width: '24px',
-      }
-    }, [
-      dir ? Icon('folder') : setiIcon.file(name),
-    ])
+    ,FiletypeIcon(name, { dir })
 
     ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
   ])))

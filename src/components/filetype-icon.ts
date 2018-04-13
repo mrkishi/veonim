@@ -1,6 +1,7 @@
 const { iconDefinitions, fileExtensions, fileNames, languageIds } = require('../assets/seti-icon-theme.json')
 import * as canvasContainer from '../core/canvas-container'
 import { basename, extname } from 'path'
+import Icon from '../components/icon2'
 import { h } from '../ui/uikit2'
 
 const DEFAULT_ICON = '_clock'
@@ -30,3 +31,16 @@ const genIcon = (id: string, fontSize?: string) => h(`.seti-icon.${id}`, {
 export const id = (id: string, size?: string) => genIcon(`_${id}`, size)
 export const file = (path: string, size?: string) => genIcon(fileIcon(path), size)
 export const language = (language: string, size?: string) => genIcon(languageIcon(language), size)
+
+const Folder = h('div', { style: {
+  width: '23px',
+  paddingLeft: '1px',
+} }, [ Icon('folder') ])
+
+export default (filetype: string, { dir = false } = {} as { dir: boolean }) => dir
+  ? Folder
+  : h('div', { style: {
+    width: '24px',
+    display: 'flex',
+    justifyContent: 'center',
+  } }, [ file(filetype) ])
