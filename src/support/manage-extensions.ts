@@ -10,7 +10,6 @@ interface Extension {
   user: string,
   repo: string,
   installed: boolean,
-  downloadPath: string,
 }
 
 const splitUserRepo = (text: string) => {
@@ -29,7 +28,6 @@ const getExtensions = async (configLines: string[]) => Promise.all(configLines
     return {
       ...m,
       name,
-      downloadPath: EXT_PATH,
       installed: await exists(join(EXT_PATH, name)),
     }
   }))
@@ -48,7 +46,13 @@ export default async (configLines: string[]) => {
   if (!extensionsNotInstalled.length) return removeExtraneous(extensions)
 
   notify(`Found ${extensionsNotInstalled.length} Veonim extensions. Installing...`, NotifyKind.System)
-  await Promise.all(extensions.map(ext => downloadRepo(ext.user, ext.repo, ext.downloadPath)))
+
+  await Promise.all(extensions.map(ext => downloadRepo({
+    user: ext.user,
+    repo: ext.repo,
+    destination: EXT_PATH,
+  })))
+
   notify(`Installed ${extensionsNotInstalled.length} Veonim extensions!`, NotifyKind.Success)
 
   removeExtraneous(extensions)

@@ -50,7 +50,13 @@ export default async (configLines: string[]) => {
   if (!pluginsNotInstalled.length) return removeExtraneous(plugins)
 
   notify(`Found ${pluginsNotInstalled.length} Veonim plugins. Installing...`, NotifyKind.System)
-  await Promise.all(plugins.map(ext => downloadRepo(ext.user, ext.repo, ext.downloadpath)))
+
+  await Promise.all(plugins.map(ext => downloadRepo({
+    user: ext.user,
+    repo: ext.repo,
+    destination: ext.downloadpath,
+  })))
+
   notify(`Installed ${pluginsNotInstalled.length} Veonim plugins!`, NotifyKind.Success)
 
   removeExtraneous(plugins)
