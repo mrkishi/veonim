@@ -1,4 +1,12 @@
 extensions keep reinstalling
+  - need to check code, because download function will download to ext/repo-master, but code checks for ext/user-repo
+
+extensions are not downloading...
+  - i checked the download code with the existing version and there are no changes (current works)
+  - does not work in release build
+  - for some reason it works if the promise is not returned/resolved (in download.ts)
+  - upgraded a bunch of packages, not fix
+
 remove react-redux dependency when removing dedox
 
 new plugins mgmr works. extensions does not.
