@@ -4,6 +4,8 @@ remove react-redux dependency when removing dedox
 new plugins mgmr works. extensions does not.
 do we need to ensureDir exists or does downloadRepo auto create folders?
 
+react-tiny-virtual-list for virtual lists?
+
 --ideas--
 easymotion jump to highlighted word
 buffer-search should only search in the current viewport. no scrolling pls

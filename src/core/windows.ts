@@ -433,18 +433,18 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
 
     const next = arr[ix + 1]
     const diff = next - curr
-    const rowSize = Math.round((diff / totalRows) * 100).toFixed(1) - 0
+    const rowSize = <any>Math.round((diff / totalRows) * 100).toFixed(1) - 0
     return [...res, rowSize]
-  }, [] as string[])
+  }, [] as number[])
 
   const cc = xcols.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
 
     const next = arr[ix + 1]
     const diff = next - curr
-    const rowSize = Math.round((diff / totalColumns) * 100).toFixed(1) - 0
+    const rowSize = <any>Math.round((diff / totalColumns) * 100).toFixed(1) - 0
     return [...res, rowSize]
-  }, [] as string[])
+  }, [] as number[])
 
   const gridTemplateRows = rr.length < 2 ? '100%' : rr.reduce((s, m) => s + m + '% ', '')
   const gridTemplateColumns = cc.length < 2 ? '100%' : equalizeTo100(cc).reduce((s, m) => s + m + '% ', '')
