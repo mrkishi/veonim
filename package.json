@@ -116,10 +116,10 @@
     "react-feather": "1.0.8",
     "react-redux": "5.0.6",
     "redux": "3.7.2",
-    "request": "2.83.0",
+    "request": "2.85.0",
     "styled-components": "3.1.6",
     "styled-components-ts": "0.0.8",
-    "unzipper": "0.8.11",
+    "unzipper": "0.8.12",
     "vscode-jsonrpc": "3.5.0",
     "vscode-languageserver-types": "3.5.0"
   },
@@ -132,13 +132,13 @@
     "@types/react-redux": "5.0.15",
     "babel-core": "6.26.0",
     "babel-plugin-transform-react-jsx": "6.24.1",
-    "electron": "1.8.2",
-    "electron-builder": "19.56.0",
+    "electron": "2.0.0-beta.7",
+    "electron-builder": "20.8.1",
     "electron-devtools-installer": "2.2.3",
     "feather-icons": "4.5.0",
     "jest": "22.4.3",
     "jscodeshift": "0.3.32",
     "spectron": "3.8.0",
-    "typescript": "2.7.2"
+    "typescript": "2.8.1"
   }
 }
