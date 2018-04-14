@@ -44,5 +44,5 @@ on.updateCommandLine((s, { cmd, kind, position }: CommandUpdate) => {
 on.showCommandLine(s => s.commandLine.visible = true)
 on.hideCommandLine(s => s.commandLine.visible = false)
 
-on.updateWildmenu((s, options) => s.commandLine.options = options)
+on.updateWildmenu((s, options) => s.commandLine.options = [...new Set(options)] as string[])
 on.selectWildmenu((s, ix) => s.commandLine.ix = ix)
