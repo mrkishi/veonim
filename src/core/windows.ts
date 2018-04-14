@@ -85,7 +85,6 @@ merge(container.style, {
   alignItems: 'stretch',
 })
 
-
 const createWindowEl = () => {
   const element = makel({
     display: 'none',

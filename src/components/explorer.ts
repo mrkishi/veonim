@@ -28,8 +28,6 @@ const state = {
   pathValue: '',
 }
 
-type S = typeof state
-
 const ignored: { dirs: string[], files: string[] } = {
   dirs: config('explorer.ignore.dirs', m => ignored.dirs = m),
   files: config('explorer.ignore.files', m => ignored.files = m),
@@ -55,18 +53,14 @@ const pathExplore = async (path: string) => {
 
 const resetState = { val: '', path: '', vis: false, ix: 0 }
 
+type S = typeof state
+
 const actions = {
   // TODO: when choosing custom path and go back, make sure it updates correctly
   // like ~/proj/veonim/ -> OK
   // but  ~/proj/veonim -> DERP!
 
-  ctrlG: () => {
-    // TODO: is this still needed in react land?
-    // because for whatever reason the 'onupdate' lifecycle event does not
-    // get triggered on render pass which includes 'pathMode' value update
-    // setTimeout(() => pathInputRef.focus(), 1)
-    return { pathMode: true, ix: 0, val: '', pathValue: '' }
-  },
+  ctrlG: () => ({ pathMode: true, ix: 0, val: '', pathValue: '' }),
 
   completePath: (s: S) => {
     if (!s.paths.length) return
@@ -173,7 +167,9 @@ const actions = {
 let listElRef: HTMLElement
 let pathInputRef: HTMLInputElement
 
-const ui = app({ name: 'explorer', state, actions, view: ($, a) => Plugin($.vis, [
+type Actions = { [K in keyof typeof actions]: (data?: any) => void }
+
+export const view = ($: S, a: Actions) => [
 
   ,Input({
     value: $.val,
@@ -229,7 +225,9 @@ const ui = app({ name: 'explorer', state, actions, view: ($, a) => Plugin($.vis,
     ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
   ])))
 
-])})
+]
+
+const ui = app({ name: 'explorer', state, actions, view: ($, a) => Plugin($.vis, view($, a))})
 
 action('explorer', async () => {
   const { cwd, bufferType } = current
