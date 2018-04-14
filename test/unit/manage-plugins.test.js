@@ -74,8 +74,18 @@ describe('manage plugins', () => {
     expect(notify.mock.calls[1][0]).toContain(2)
     expect(notify.mock.calls[1][1]).toEqual(NotifyKind.Success)
 
-    expect(download.mock.calls[0]).toEqual([ 'tpope', 'vim-surround', '/Users/liz/.config/nvim/pack/tpope-vim-surround/start' ])
-    expect(download.mock.calls[1]).toEqual([ 'wellle', 'targets.vim', '/Users/liz/.config/nvim/pack/wellle-targets.vim/start' ])
+    expect(download.mock.calls[0]).toEqual([{
+      user: 'tpope',
+      repo: 'vim-surround',
+      destination: '/Users/liz/.config/nvim/pack/tpope-vim-surround/start',
+    }])
+
+    expect(download.mock.calls[1]).toEqual([{
+      user: 'wellle',
+      repo: 'targets.vim',
+      destination: '/Users/liz/.config/nvim/pack/wellle-targets.vim/start',
+    }])
+
     expect(removed).not.toHaveBeenCalled()
     expect(neovimCmd).toHaveBeenCalledWith('packloadall!')
   })
@@ -115,7 +125,11 @@ describe('manage plugins', () => {
 
     await module(configLines.slice(1))
 
-    expect(download.mock.calls[0]).toEqual([ 'wellle', 'targets.vim', '/Users/liz/.config/nvim/pack/wellle-targets.vim/start' ])
+    expect(download.mock.calls[0]).toEqual([{
+      user: 'wellle',
+      repo: 'targets.vim',
+      destination: '/Users/liz/.config/nvim/pack/wellle-targets.vim/start',
+    }])
     expect(removed.mock.calls[0][0]).toEqual('/Users/liz/.config/nvim/pack/tpope-vim-surround')
     expect(notify.mock.calls[0][0]).toContain(1)
     expect(neovimCmd).toHaveBeenCalled()

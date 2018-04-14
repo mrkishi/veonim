@@ -73,8 +73,16 @@ describe('manage extensions', () => {
     expect(notify.mock.calls[1][0]).toContain(2)
     expect(notify.mock.calls[1][1]).toEqual(NotifyKind.Success)
 
-    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-json', '/ext' ])
-    expect(download.mock.calls[1]).toEqual([ 'veonim', 'ext-html', '/ext' ])
+    expect(download.mock.calls[0]).toEqual([{
+      user: 'veonim',
+      repo: 'ext-json',
+      destination: '/ext',
+    }])
+    expect(download.mock.calls[1]).toEqual([{
+      user: 'veonim',
+      repo: 'ext-html',
+      destination: '/ext',
+    }])
     expect(removed).not.toHaveBeenCalled()
     expect(loadExtensions).toHaveBeenCalled()
   })
@@ -92,8 +100,8 @@ describe('manage extensions', () => {
   test('existing extensions', async () => {
     const { module, notify, loadExtensions, removed, download } = setup({
       existsPaths: [
-        join(EXT_PATH, 'veonim-ext-json'),
-        join(EXT_PATH, 'veonim-ext-html'),
+        join(EXT_PATH, 'ext-json-master'),
+        join(EXT_PATH, 'ext-html-master'),
       ]
     })
 
@@ -108,14 +116,18 @@ describe('manage extensions', () => {
   test('1 new + 1 to be removed', async () => {
     const { module, notify, loadExtensions, removed, download } = setup({
       getDirsPaths: [
-        { name: 'veonim-ext-json', path: join(EXT_PATH, 'veonim-ext-json') },
+        { name: 'ext-json-master', path: join(EXT_PATH, 'ext-json-master') },
       ]
     })
 
     await module(configLines.slice(1))
 
-    expect(download.mock.calls[0]).toEqual([ 'veonim', 'ext-html', '/ext' ])
-    expect(removed.mock.calls[0][0]).toEqual('/ext/veonim-ext-json')
+    expect(download.mock.calls[0]).toEqual([{
+      user: 'veonim',
+      repo: 'ext-html',
+      destination: '/ext',
+    }])
+    expect(removed.mock.calls[0][0]).toEqual('/ext/ext-json-master')
     expect(notify.mock.calls[0][0]).toContain(1)
     expect(loadExtensions).toHaveBeenCalled()
   })

@@ -60,7 +60,7 @@ const main = async () => {
   }, 1)
 
   // TODO: clearly we are not ready for this greatness
-  // setTimeout(() => require('../support/dependency-manager').default(), 100)
+  setTimeout(() => require('../support/dependency-manager').default(), 100)
 }
 
 const loadComponents = async () => {

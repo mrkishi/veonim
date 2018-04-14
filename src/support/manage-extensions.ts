@@ -23,7 +23,7 @@ const getExtensions = async (configLines: string[]) => Promise.all(configLines
   .filter(is.string)
   .map(splitUserRepo)
   .map(async m => {
-    const name = `${m.user}-${m.repo}`
+    const name = `${m.repo}-master`
 
     return {
       ...m,
