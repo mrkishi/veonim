@@ -173,17 +173,7 @@ const actions = {
 let listElRef: HTMLElement
 let pathInputRef: HTMLInputElement
 
-// TODO: reactdom will bind and assume control over it's container element. if
-// we try to share this container element with other react components, i
-// believe we will be performing a vDOM diff on every single component in the
-// #plugins div container element. we should bind to an isolated element so
-// that component diffs will not involve any other components
-//
-// i think we can default a master container element to #plugins, and then
-// create a child element #explorer to house the reactdom container element
-// binding for the house party with chips and kalamata olive hummus
-const element = document.getElementById('plugins') as HTMLElement
-const ui = app({ name: 'explorer', element, state, actions, view: ($, a) => Plugin('explorer', $.vis, [
+const ui = app({ name: 'explorer', state, actions, view: ($, a) => Plugin($.vis, [
 
   ,Input({
     value: $.val,

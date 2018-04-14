@@ -26,20 +26,31 @@ export const styled = sc
 export const s = sct
 
 export interface App<StateT, ActionT> {
+  name: string,
   state: StateT,
   view: (state: StateT, actions: { [K in keyof ActionT]: (data?: any) => void }) => Component,
   actions: { [K in keyof ActionT]: (state: StateT, data?: any) => void },
   element?: HTMLElement,
-  name?: string,
+}
+
+const pluginsDiv = document.getElementById('plugins') as HTMLElement
+
+const prepareContainerElement = (name: string) => {
+  const el = document.createElement('div')
+  el.setAttribute('id', name)
+  pluginsDiv.appendChild(el)
+  return el
 }
 
 export const app = <StateT, ActionT>({
   state,
   view,
   actions,
-  name = 'veonim',
-  element = document.body,
+  element,
+  name,
 }: App<StateT, ActionT>) => {
+  const containerElement = element || prepareContainerElement(name)
+
   const deriveNextState = (currentState = state, action = {} as any) => {
     const maybeFn = Reflect.get(actions, action.type)
     if (typeof maybeFn !== 'function') return currentState
@@ -59,11 +70,11 @@ export const app = <StateT, ActionT>({
   const callAction = new Proxy(actions, { get: dispatchRegisteredAction }) as CallableActions
   const store = createStore(deriveNextState, reduxEnhancer(name)())
 
-  ReactDom.render(view(state, callAction), element)
+  ReactDom.render(view(state, callAction), containerElement)
 
   store.subscribe(() => {
     const nextState = store.getState()
-    ReactDom.render(view(nextState, callAction), element)
+    ReactDom.render(view(nextState, callAction), containerElement)
   })
 
   return callAction

@@ -34,9 +34,7 @@ const Dialog = styled.div`
   flex-flow: column;
 `
 
-export const Plugin = (name: string, visible: boolean, children: any[]) => h(NormalContainer, {
-  id: name,
-}, [
+export const Plugin = (visible: boolean, children: any[]) => h(NormalContainer, [
 
   ,h(Dialog, {
     style: {
@@ -47,9 +45,7 @@ export const Plugin = (name: string, visible: boolean, children: any[]) => h(Nor
 
 ])
 
-export const PluginTop = (name: string, visible: boolean, children: any[]) => h(TopContainer, {
-  id: name,
-}, [
+export const PluginTop = (visible: boolean, children: any[]) => h(TopContainer, [
 
   ,h(Dialog, {
     style: {
@@ -60,9 +56,7 @@ export const PluginTop = (name: string, visible: boolean, children: any[]) => h(
 
 ])
 
-export const PluginBottom = (name: string, visible: boolean, children: any[]) => h(BottomContainer, {
-  id: name,
-}, [
+export const PluginBottom = (visible: boolean, children: any[]) => h(BottomContainer, [
 
   ,h('div', {
     style: {
@@ -72,9 +66,7 @@ export const PluginBottom = (name: string, visible: boolean, children: any[]) =>
 
 ])
 
-export const PluginRight = (name: string, visible: boolean, children: any[]) => h(RightContainer, {
-  id: name,
-}, [
+export const PluginRight = (visible: boolean, children: any[]) => h(RightContainer, [
 
   ,h(Dialog, {
     style: {

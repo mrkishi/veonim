@@ -13,7 +13,7 @@ const modeSwitch = new Map([
   [ CommandType.SearchBackward, 'search' ],
 ])
 
-const view = ({ data: $ }: { data: CommandLine }) => Plugin('command-line', $.visible, [
+const view = ({ data: $ }: { data: CommandLine }) => Plugin($.visible, [
 
   ,Input({
     focus: true,

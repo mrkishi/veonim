@@ -73,8 +73,7 @@ const actions = {
   prev: (s: S) => ({ ix: s.ix - 1 < 0 ? Math.min(s.files.length - 1, 9) : s.ix - 1 }),
 }
 
-const element = document.getElementById('plugins') as HTMLElement
-const ui = app({ name: 'files', element, state, actions, view: ($, a) => Plugin('files', $.vis, [
+const ui = app({ name: 'files', state, actions, view: ($, a) => Plugin($.vis, [
 
   ,Input({
     hide: a.hide,
