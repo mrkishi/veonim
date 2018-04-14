@@ -90,8 +90,8 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 
 the great neovim team have allowed the community to build some kick-ass projects. some of the more interesting ones that i'm excited about are:
 
-- [oni](https://github.com/dzhou121/gonvim)
-- [gonvim](https://github.com/onivim/oni)
+- [oni](https://github.com/onivim/oni)
+- [gonvim](https://github.com/dzhou121/gonvim)
 
 ## development
 
