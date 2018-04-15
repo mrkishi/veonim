@@ -6,6 +6,10 @@ export explorer.ts view component without Plugin wrapper (to be used in a positi
 --ideas--
 set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
 
+constrain overlay menus to a particular window (current window)
+  - i.e. show symbol/file menu on top of the current buffer window, instead of the center of the program,
+    since selecting a symbol or file will make changes in the current window, not globally
+start splash screen include MRU projects
 easymotion jump to highlighted word
 buffer-search should only search in the current viewport. no scrolling pls
 create fuzzy search for entire buffer, but use popup menu

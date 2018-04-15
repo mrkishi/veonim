@@ -2,6 +2,7 @@ import { getCurrent, current, cmd, BufferType, BufferOption, SHADOW_BUFFER_TYPE 
 import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
+import ExplorerEmbed from '../components/explorer-embed'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
@@ -500,6 +501,21 @@ const betterTitles = (windows: VimWindow[]): VimWindow[] => {
 let winPos = [] as any
 let gridResizeInProgress = false
 
+const embed = {
+  explorer: {
+    el: document.createElement('div'),
+    ui: {},
+  }
+}
+
+setTimeout(async () => {
+  const el = document.createElement('div')
+  el.setAttribute('id', 'explorer-embed')
+  const ui = ExplorerEmbed(el)
+  embed.explorer = { el, ui }
+  ui.activate()
+}, 5e3)
+
 export const render = async () => {
   const ws = await getWindows()
 
@@ -535,8 +551,10 @@ export const render = async () => {
         const cvs = win.canvasBox.getElementsByTagName('canvas')
         cvs[0].style.display = 'none'
 
-        win.canvasBox.appendChild(shitbox360)
-        win.api.name = 'SHITBOX360!!!'
+        // TODO: will this add the element multiple times?
+        win.canvasBox.appendChild(embed.explorer.el)
+        // win.canvasBox.appendChild(shitbox360)
+        win.api.name = 'EXPLORER'
       } else {
         const cvs = win.canvasBox.getElementsByTagName('canvas')
         cvs[0].style.display = 'block'
