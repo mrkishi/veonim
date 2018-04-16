@@ -1,4 +1,6 @@
+import { showCursor, hideCursor } from '../core/cursor'
 import hyperscript from '../ui/hyperscript'
+import * as viminput from '../core/input'
 import sct from 'styled-components-ts'
 import { createStore } from 'redux'
 import sc from 'styled-components'
@@ -24,6 +26,16 @@ export const React = require(reactModule)
 export const h = hyperscript(React.createElement)
 export const styled = sc
 export const s = sct
+
+export const vimFocus = () => {
+  setImmediate(() => viminput.focus())
+  showCursor()
+}
+
+export const vimBlur = () => {
+  viminput.blur()
+  hideCursor()
+}
 
 export interface App<StateT, ActionT> {
   name: string,

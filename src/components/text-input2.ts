@@ -32,6 +32,7 @@ interface Props {
   tab: () => void,
   ctrlH: () => void,
   ctrlG: () => void,
+  ctrlL: () => void,
   yank: () => void,
   loading: boolean,
   loadingSize: number,
@@ -52,6 +53,7 @@ const setPosition = (e?: HTMLInputElement, position?: number) => {
 
 const setFocus = (e: HTMLInputElement, shouldFocus: boolean) => {
   if (e && e !== document.activeElement && shouldFocus) e.focus()
+  if (!shouldFocus) e && e.blur()
 }
 
 const nopMaybe = (obj: object) => new Proxy(obj, {
@@ -143,8 +145,14 @@ const view = ({
           })
         },
         placeholder: desc,
-        onFocus: () => !useVimInput && vimBlur(),
-        onBlur: () => !useVimInput && vimFocus(),
+        onFocus: () => {
+          console.log('ON FUCKUS')
+          !useVimInput && vimBlur()
+        },
+        onBlur: () => {
+          console.log('SO BLURRY')
+          !useVimInput && vimFocus()
+        },
         onKeyUp: (e: KeyboardEvent) => {
           const prevKeyAndThisOne = lastDown + keToStr(e)
 
@@ -181,8 +189,9 @@ const view = ({
             return $.change(nextValue)
           }
 
-          if (cm && key === 'h') return $.ctrlH()
           if (cm && key === 'g') return $.ctrlG()
+          if (cm && key === 'h') return $.ctrlH()
+          if (cm && key === 'l') return $.ctrlL()
           if (cm && key === 'j') return $.next()
           if (cm && key === 'k') return $.prev()
           if (cm && key === 'n') return $.nextGroup()

@@ -1,6 +1,14 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+redo home, next, prev keybinds for explorer to not use ctrl + hjkl
+figure out the focus/blur on leave/enter explorer
+figure out better name for embed custom render buffers
+generalize embed buffers to support any components
+figure out how to swap between different embed components (get buffer name?)
+can we support multiple embed components, one per each buffer instance? or shared?
+check on the background of embed explorer, not sure it's the exact same bg color as vim.bg
+
 export explorer.ts view component without Plugin wrapper (to be used in a positioned vim renderer div)
 
 --ideas--

@@ -1,8 +1,9 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
-import { current, cmd, call, BufferType } from '../core/neovim'
 import FiletypeIcon from '../components/filetype-icon'
 import { join, sep, basename, dirname } from 'path'
+import { input } from '../core/master-control'
+import { current, cmd } from '../core/neovim'
 import config from '../config/config-service'
 import Input from '../components/text-input2'
 import { colors } from '../styles/common'
@@ -40,12 +41,12 @@ const pathExplore = async (path: string) => {
 
 export default (element: HTMLElement) => {
   const state = {
+    focus: false,
     val: '',
     cwd: '',
     path: '',
     paths: [] as FileDir[],
     cache: [] as FileDir[],
-    vis: false,
     ix: 0,
     pathMode: false,
     pathValue: '',
@@ -58,11 +59,11 @@ export default (element: HTMLElement) => {
 
     ,Input({
       value: $.val,
-      focus: !$.pathMode,
+      focus: $.focus && !$.pathMode,
       icon: 'HardDrive',
       desc: 'explorer',
       change: a.change,
-      hide: a.hide,
+      // hide: a.hide,
       next: a.next,
       prev: a.prev,
       select: a.select,
@@ -71,6 +72,7 @@ export default (element: HTMLElement) => {
       up: a.up,
       ctrlG: a.ctrlG,
       ctrlH: a.ctrlH,
+      ctrlL: a.ctrlL,
     })
 
     ,!$.pathMode && h(RowImportant, [
@@ -90,7 +92,7 @@ export default (element: HTMLElement) => {
       icon: 'search',
       desc: 'open path',
       small: true,
-      focus: true,
+      focus: $.focus,
       thisIsGarbage: (e: HTMLInputElement) => pathInputRef = e,
       pathMode: true,
     })
@@ -114,7 +116,7 @@ export default (element: HTMLElement) => {
 
   let listElRef: HTMLElement
   type S = typeof state
-  const resetState = { val: '', path: '', vis: false, ix: 0 }
+  const resetState = { val: '', path: '', ix: 0 }
 
   const actions = {
     // TODO: when choosing custom path and go back, make sure it updates correctly
@@ -134,6 +136,8 @@ export default (element: HTMLElement) => {
 
     normalMode: () => ({ pathMode: false }),
     updatePaths: (_: S, paths: string[]) => ({ paths }),
+
+    updateCwdStuff: (_: S, { cwd, paths }: any) => ({ cwd, paths, path: cwd }),
 
     selectPath: (s: S) => {
       if (!s.pathValue) return { pathMode: false, ix: 0 }
@@ -184,12 +188,14 @@ export default (element: HTMLElement) => {
       : s.cache
     }),
 
-    ctrlH: async () => {
-      const { cwd } = current
-      const filedirs = await getDirFiles(cwd)
-      const paths = sortDirFiles(filedirs)
-      ui.show({ paths, cwd, path: cwd })
-    },
+    // TODO: find a different keybind for this since ctrl-h now needs to server
+    // global vim window navigation keybinds
+    // ctrlH: async () => {
+    //   const { cwd } = current
+    //   const filedirs = await getDirFiles(cwd)
+    //   const paths = sortDirFiles(filedirs)
+    //   ui.show({ paths, cwd, path: cwd })
+    // },
 
     jumpPrev: (s: S) => {
       const next = s.path.split(sep)
@@ -198,12 +204,24 @@ export default (element: HTMLElement) => {
       getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
     },
 
+    focus: (s: S) => {
+      const projectDirChanged = s.cwd !== current.cwd
+
+      if (projectDirChanged) getDirFiles(current.cwd).then(dirs => ui.updateCwdStuff({
+        cwd: current.cwd,
+        paths: sortDirFiles(dirs),
+      }))
+
+      return { focus: true }
+    },
+
+    blur: () => ({ focus: false }),
+
     show: (s: S, { paths, path, cwd = s.cwd }: any) => ({
       ...resetState,
       cwd,
       path,
       paths,
-      vis: true,
       cache: paths,
     }),
 
@@ -220,21 +238,36 @@ export default (element: HTMLElement) => {
 
     top: () => { listElRef.scrollTop = 0 },
     bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
-    hide: () => resetState,
-    next: (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
-    prev: (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
+    next: () => {
+      input('<c-j>')
+      return { focus: false }
+    },
+    prev: () => {
+      input('<c-k>')
+      return { focus: false }
+    },
+    ctrlL: () => {
+      input('<c-l>')
+      return { focus: false }
+    },
+    ctrlH: () => {
+      input('<c-h>')
+      return { focus: false }
+    },
+    // TODO: find different keybinds for next/prev since ctrl + hjkl need to be
+    // for global vim window navigation
+    // next: (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
+    // prev: (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
   }
 
   const ui = app({ name: 'explorer-embed', state, actions, element, view: ($, a) => h('div', view($, a)) })
   return {
     activate: async () => {
-      const { cwd, bufferType } = current
-      const dirPathOfCurrentFile = await call.expand(`%:p:h`)
-      const isTerminal = bufferType === BufferType.Terminal
-      const path = isTerminal ? cwd : dirPathOfCurrentFile
-
-      const paths = sortDirFiles(await getDirFiles(path))
-      ui.show({ cwd, path, paths })
-    }
+      const { cwd } = current
+      const paths = sortDirFiles(await getDirFiles(cwd))
+      ui.show({ cwd, paths, path: cwd })
+    },
+    focus: ui.focus,
+    blur: ui.blur,
   }
 }

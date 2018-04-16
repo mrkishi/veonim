@@ -320,17 +320,6 @@ const fillCanvasFromGrid = (x: number, y: number, height: number, width: number,
   }
 }
 
-const shitbox360 = makel({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  fontWeight: 'bold',
-  fontSize: '24px',
-  height: '100%',
-})
-
-shitbox360.innerText = 'shitbox 360 pimp yo ass'
-
 const setupWindow = ({ element, canvas, canvasBox, api }: Window, win: RenderWindow) => {
   merge(element.style, {
     display: 'flex',
@@ -504,7 +493,7 @@ let gridResizeInProgress = false
 const embed = {
   explorer: {
     el: document.createElement('div'),
-    ui: {},
+    ui: {} as any,
   }
 }
 
@@ -553,9 +542,10 @@ export const render = async () => {
 
         // TODO: will this add the element multiple times?
         win.canvasBox.appendChild(embed.explorer.el)
-        // win.canvasBox.appendChild(shitbox360)
+        embed.explorer.ui.focus()
         win.api.name = 'EXPLORER'
       } else {
+        embed.explorer.ui.blur()
         const cvs = win.canvasBox.getElementsByTagName('canvas')
         cvs[0].style.display = 'block'
       }
