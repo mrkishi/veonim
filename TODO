@@ -9,7 +9,7 @@ figure out how to swap between different embed components (get buffer name?)
 can we support multiple embed components, one per each buffer instance? or shared?
 check on the background of embed explorer, not sure it's the exact same bg color as vim.bg
 
-export explorer.ts view component without Plugin wrapper (to be used in a positioned vim renderer div)
+[bug] when pressing esc/ctrl in embed explorer it seems to jump to ~/
 
 --ideas--
 set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
