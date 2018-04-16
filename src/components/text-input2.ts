@@ -17,6 +17,7 @@ interface Props {
   focus: boolean,
   position: number,
   useVimInput: boolean,
+  blurOnEscape: boolean,
   change: (val: string) => void,
   select: (val: string) => void,
   hide: () => void,
@@ -34,6 +35,7 @@ interface Props {
   ctrlH: () => void,
   ctrlG: () => void,
   ctrlL: () => void,
+  ctrlC: () => void,
   yank: () => void,
   loading: boolean,
   loadingSize: number,
@@ -99,6 +101,7 @@ const view = ({
   loading = false,
   pathMode = false,
   useVimInput = false,
+  blurOnEscape = true,
 }: TextInputProps, $: Props) => {
   let elRef: HTMLInputElement
 
@@ -153,7 +156,7 @@ const view = ({
 
           if (xfrmUp.has(prevKeyAndThisOne)) {
             const { key } = xfrmUp.get(prevKeyAndThisOne)!(e)
-            if (key.toLowerCase() === '<esc>') {
+            if (blurOnEscape && key.toLowerCase() === '<esc>') {
               lastDown = ''
               const target = e.target as HTMLInputElement
               target.blur()
@@ -187,6 +190,7 @@ const view = ({
           if (cm && key === 'g') return $.ctrlG()
           if (cm && key === 'h') return $.ctrlH()
           if (cm && key === 'l') return $.ctrlL()
+          if (cm && key === 'c') return $.ctrlC()
           if (cm && key === 'j') return $.next()
           if (cm && key === 'k') return $.prev()
           if (cm && key === 'n') return $.nextGroup()

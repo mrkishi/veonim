@@ -63,7 +63,7 @@ export default (element: HTMLElement) => {
       icon: 'HardDrive',
       desc: 'explorer',
       change: a.change,
-      // hide: a.hide,
+      blurOnEscape: false,
       next: a.next,
       prev: a.prev,
       select: a.select,
@@ -73,6 +73,7 @@ export default (element: HTMLElement) => {
       ctrlG: a.ctrlG,
       ctrlH: a.ctrlH,
       ctrlL: a.ctrlL,
+      ctrlC: a.closeWindow,
     })
 
     ,!$.pathMode && h(RowImportant, [
@@ -80,6 +81,7 @@ export default (element: HTMLElement) => {
     ])
 
     ,$.pathMode && Input({
+      blurOnEscape: false,
       change: a.changePath,
       hide: a.normalMode,
       select: a.selectPath,
@@ -183,10 +185,14 @@ export default (element: HTMLElement) => {
       getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
     },
 
-    change: (s: S, val: string) => ({ val, paths: val
-      ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
-      : s.cache
-    }),
+    change: (s: S, val: string) => {
+      if (s.val === val) return
+
+      return { val, paths: val
+        ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
+        : s.cache
+      }
+    },
 
     // TODO: find a different keybind for this since ctrl-h now needs to server
     // global vim window navigation keybinds
@@ -238,6 +244,11 @@ export default (element: HTMLElement) => {
 
     top: () => { listElRef.scrollTop = 0 },
     bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
+
+    closeWindow: () => {
+      input('<c-w>q')
+      return { focus: false }
+    },
     next: () => {
       input('<c-j>')
       return { focus: false }
