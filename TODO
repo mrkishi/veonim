@@ -1,6 +1,8 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+figure out focus/blur lag delay
+
 redo home, next, prev keybinds for explorer to not use ctrl + hjkl
 figure out the focus/blur on leave/enter explorer
 figure out better name for embed custom render buffers

@@ -1,5 +1,5 @@
-import { blur as vimBlur, focus as vimFocus } from '../core/input'
 import * as canvasContainer from '../core/canvas-container'
+import { vimBlur, vimFocus } from '../ui/uikit2'
 import Loading from '../components/loading2'
 import { paddingVH, cvar } from '../ui/css'
 import { h, styled } from '../ui/coffee'
@@ -52,7 +52,6 @@ const setPosition = (e?: HTMLInputElement, position?: number) => {
 }
 
 const setFocus = (e: HTMLInputElement, shouldFocus: boolean) => {
-  console.log('setFocus:', shouldFocus)
   if (e && e !== document.activeElement && shouldFocus) e.focus()
   if (!shouldFocus) e && e.blur()
 }
