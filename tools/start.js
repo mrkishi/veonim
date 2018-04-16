@@ -8,8 +8,7 @@ const tsc = conf => spawn('tsc', [
   '-p',
   conf,
   '--watch',
-  // TODO: enable this in TS 2.8.1 because TYPESCRIPT WAT R U DOIN
-  // '--preserveWatchOutput',
+  '--preserveWatchOutput',
 ], { cwd })
 
 let electronStarted = false

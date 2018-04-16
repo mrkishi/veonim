@@ -17,6 +17,8 @@ check on the background of embed explorer, not sure it's the exact same bg color
 
 rpc errors send to notifications? (try calling some broken execute() vimscript from usermenu)
 
+new react overlay menus are not centered...
+
 --ideas--
 set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
 
@@ -29,6 +31,8 @@ buffer-search should only search in the current viewport. no scrolling pls
 create fuzzy search for entire buffer, but use popup menu
 terminal change title to current running process
 backfill problems into quickfix list
+
+:: try with new floating windows api for this? then it can all be supported in vimscript
 
 press and hold mark ' keybind to bring up menu of current global marks
 menu lists something like

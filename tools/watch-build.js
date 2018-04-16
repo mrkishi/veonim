@@ -4,7 +4,7 @@ const { spawn, exec } = require('child_process')
 const { watch } = require('fs')
 const cwd = `${__dirname}/..`
 const npmrun = task => exec(`npm run ${task}`, { cwd })
-const tsc = conf => spawn('tsc', ['-p', conf, '--watch'], { cwd })
+const tsc = conf => spawn('tsc', ['-p', conf, '--watch', '--preserveWatchOutput'], { cwd })
 
 watch(`${cwd}/src/bootstrap/index.html`, () => {
   console.log('html modified... copying...')
