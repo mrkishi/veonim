@@ -87,6 +87,8 @@ export const moveCursor = (backgroundColor: string) => {
   const win = getWindow(cursor.row, cursor.col)
   if (!win) return
 
+  if (cursorEl.style.display === 'none') return
+
   const { x, y } = win.getCursorPosition(cursor.row, cursor.col)
   cursorEl.style.transform = translate(x, y)
 

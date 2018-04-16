@@ -1,7 +1,9 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
-figure out focus/blur lag delay
+figure out focus/blur lag delay. can we call vimFocus/vimBlur directly
+from setFocus function call? (in addition to onFocus/onBlur since I tried
+having it only be called in setFocus but it broke everything)
 
 redo home, next, prev keybinds for explorer to not use ctrl + hjkl
 figure out the focus/blur on leave/enter explorer

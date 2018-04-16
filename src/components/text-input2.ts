@@ -1,4 +1,5 @@
 import * as canvasContainer from '../core/canvas-container'
+import { hideCursor, showCursor } from '../core/cursor'
 import { vimBlur, vimFocus } from '../ui/uikit2'
 import Loading from '../components/loading2'
 import { paddingVH, cvar } from '../ui/css'
@@ -145,14 +146,8 @@ const view = ({
           })
         },
         placeholder: desc,
-        onFocus: () => {
-          console.log('onFocus (blur vim)')
-          !useVimInput && vimBlur()
-        },
-        onBlur: () => {
-          console.log('onBlur (focus vim)')
-          !useVimInput && vimFocus()
-        },
+        onFocus: () => useVimInput ? hideCursor() : vimBlur(),
+        onBlur: () => useVimInput ? showCursor() : vimFocus(),
         onKeyUp: (e: KeyboardEvent) => {
           const prevKeyAndThisOne = lastDown + keToStr(e)
 
