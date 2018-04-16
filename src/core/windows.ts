@@ -542,10 +542,9 @@ export const render = async () => {
 
         // TODO: will this add the element multiple times?
         win.canvasBox.appendChild(embed.explorer.el)
-        embed.explorer.ui.focus()
+        vw.active ? embed.explorer.ui.focus() : embed.explorer.ui.blur()
         win.api.name = 'EXPLORER'
       } else {
-        embed.explorer.ui.blur()
         const cvs = win.canvasBox.getElementsByTagName('canvas')
         cvs[0].style.display = 'block'
       }

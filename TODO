@@ -11,6 +11,8 @@ check on the background of embed explorer, not sure it's the exact same bg color
 
 [bug] when pressing esc/ctrl in embed explorer it seems to jump to ~/
 
+rpc errors send to notifications? (try calling some broken execute() vimscript from usermenu)
+
 --ideas--
 set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
 

@@ -262,11 +262,16 @@ export default (element: HTMLElement) => {
 
   const ui = app({ name: 'explorer-embed', state, actions, element, view: ($, a) => h('div', view($, a)) })
   return {
+    // TODO: i'm not sure if there's any benefit to activating this?
+    // should create a method that can be used to initalize the component
+    // when the buffer becomes VISIBLE
     activate: async () => {
       const { cwd } = current
       const paths = sortDirFiles(await getDirFiles(cwd))
       ui.show({ cwd, paths, path: cwd })
     },
+    // TODO: focus and blur should be called when the current buffer
+    // does not match the defined shadow buffer
     focus: ui.focus,
     blur: ui.blur,
   }

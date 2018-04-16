@@ -52,6 +52,7 @@ const setPosition = (e?: HTMLInputElement, position?: number) => {
 }
 
 const setFocus = (e: HTMLInputElement, shouldFocus: boolean) => {
+  console.log('setFocus:', shouldFocus)
   if (e && e !== document.activeElement && shouldFocus) e.focus()
   if (!shouldFocus) e && e.blur()
 }
@@ -146,11 +147,11 @@ const view = ({
         },
         placeholder: desc,
         onFocus: () => {
-          console.log('ON FUCKUS')
+          console.log('onFocus (blur vim)')
           !useVimInput && vimBlur()
         },
         onBlur: () => {
-          console.log('SO BLURRY')
+          console.log('onBlur (focus vim)')
           !useVimInput && vimFocus()
         },
         onKeyUp: (e: KeyboardEvent) => {
