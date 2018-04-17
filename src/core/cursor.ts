@@ -1,5 +1,6 @@
 import { hexToRGBA, partialFill, translate } from '../ui/css'
 import * as canvasContainer from '../core/canvas-container'
+import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { CanvasWindow } from '../core/canvas-window'
 import { getWindow } from '../core/windows'
 import { merge } from '../support/utils'
@@ -15,6 +16,7 @@ export const cursor = { row: 0, col: 0, color: '#fff', type: CursorShape.block }
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const cursorChar = document.createElement('span')
 const cursorline = document.getElementById('cursorline') as HTMLElement
+let cursorRequestedToBeHidden = false
 
 merge(cursorline.style, {
   position: 'absolute',
@@ -63,11 +65,13 @@ export const setCursorColor = (color: string) => {
 }
 
 export const hideCursor = () => {
+  cursorRequestedToBeHidden = true
   cursorEl.style.display = 'none'
   cursorline.style.display = 'none'
 }
 
 export const showCursor = () => {
+  cursorRequestedToBeHidden = false
   cursorEl.style.display = 'flex'
   cursorline.style.display = ''
 }
@@ -84,12 +88,17 @@ const moveCursorLine = (win: CanvasWindow, backgroundColor: string) => {
 }
 
 export const moveCursor = (backgroundColor: string) => {
-  const win = getWindow(cursor.row, cursor.col)
-  if (!win) return
+  const res = getWindow(cursor.row, cursor.col, { getStuff: true })
+  if (!res || !res.canvas) return
+  const { canvas, win } = res
 
-  if (cursorEl.style.display === 'none') return
+  if (cursorRequestedToBeHidden) return
+  const isShadowBuffer = win.filetype === SHADOW_BUFFER_TYPE
 
-  const { x, y } = win.getCursorPosition(cursor.row, cursor.col)
+  if (isShadowBuffer) return cursorEl.style.display = 'none'
+  else cursorEl.style.display = 'flex'
+
+  const { x, y } = canvas.getCursorPosition(cursor.row, cursor.col)
   cursorEl.style.transform = translate(x, y)
 
   if (cursor.type === CursorShape.block) {
@@ -103,7 +112,7 @@ export const moveCursor = (backgroundColor: string) => {
     cursorChar.innerText = ''
   }
 
-  moveCursorLine(win, backgroundColor)
+  moveCursorLine(canvas, backgroundColor)
 }
 
 setCursorShape(CursorShape.block)

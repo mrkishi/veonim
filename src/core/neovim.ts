@@ -3,6 +3,7 @@ import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow,
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
   camelCase, prefixWith } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
+import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Functions } from '../core/vim-functions'
 import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
@@ -293,8 +294,6 @@ const loadBuffer = async (file: string): Promise<boolean> => {
   api.core.setCurrentBuf(targetBuffer.id)
   return true
 }
-
-export const SHADOW_BUFFER_TYPE = 'veonim-shadow-buffer'
 
 export const openBuffer = async (file: string): Promise<boolean> => {
   const loaded = await loadBuffer(file)

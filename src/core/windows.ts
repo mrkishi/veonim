@@ -1,7 +1,8 @@
-import { getCurrent, current, cmd, BufferType, BufferOption, SHADOW_BUFFER_TYPE } from '../core/neovim'
 import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
+import { getCurrent, current, cmd, BufferType, BufferOption } from '../core/neovim'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
+import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import ExplorerEmbed from '../components/explorer-embed'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
@@ -260,6 +261,7 @@ const emptyLastWindow = {
   col: -1,
   height: -1,
   width: -1,
+  win: {} as RenderWindow,
 }
 
 const lastWindow = { ...emptyLastWindow }
@@ -277,7 +279,12 @@ const isWindowRangeValid = (
   return rowMatch && colMatch
 }
 
-export const getWindow = (targetRow: number, targetCol: number): CanvasWindow | undefined => {
+type WindowStuff = { canvas: CanvasWindow, win: RenderWindow }
+type GetWindowCanvas = (targetRow: number, targetCol: number) => CanvasWindow | undefined
+type GetWindowStuff = (targetRow: number, targetCol: number, extra?: { getStuff: boolean }) => WindowStuff | undefined
+type GetWindow = GetWindowCanvas & GetWindowStuff
+
+export const getWindow: GetWindow = (targetRow: number, targetCol: number, { getStuff = false } = {}) => {
   const lastWindowValid = isWindowRangeValid(
     targetRow,
     targetCol,
@@ -287,16 +294,20 @@ export const getWindow = (targetRow: number, targetCol: number): CanvasWindow | 
     lastWindow.width,
   )
 
-  if (lastWindowValid) return lastWindow.canvas
+  if (lastWindowValid) return getStuff
+    ? { canvas: lastWindow.canvas, win: lastWindow.win }
+    : lastWindow.canvas
 
   const winCount = winPos.length
   for (let ix = 0; ix < winCount; ix++) {
-    const [ row, col, height, width, canvas ] = winPos[ix]
+    const [ row, col, height, width, canvas, win ] = winPos[ix]
     const windowValid = isWindowRangeValid(targetRow, targetCol, row, col, height, width)
 
     if (windowValid) {
       merge(lastWindow, { row, col, height, width, canvas })
-      return canvas
+      return getStuff
+        ? { canvas, win }
+        : canvas
     }
   }
 }
@@ -328,7 +339,7 @@ const setupWindow = ({ element, canvas, canvasBox, api }: Window, win: RenderWin
   })
 
   merge(lastWindow, emptyLastWindow)
-  winPos.push([win.y, win.x, win.height, win.width, canvas])
+  winPos.push([win.y, win.x, win.height, win.width, canvas, win])
   canvas
     .setSpecs(win.y, win.x, win.height, win.width, 10, 6)
     .resize(canvasBox, current.bg)
@@ -497,13 +508,15 @@ const embed = {
   }
 }
 
+// TODO: loltemp
 setTimeout(async () => {
   const el = document.createElement('div')
   el.setAttribute('id', 'explorer-embed')
   const ui = ExplorerEmbed(el)
   embed.explorer = { el, ui }
   ui.activate()
-}, 5e3)
+  console.log('activated embed explorer')
+}, 2e3)
 
 export const render = async () => {
   const ws = await getWindows()
