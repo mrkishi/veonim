@@ -10,6 +10,83 @@ figure out how to swap between different embed components (get buffer name?)
 can we support multiple embed components, one per each buffer instance? or shared?
 nameplate title changes on window change
 
+SHADOW BUFFER ARCH DESIGN --
+
+function to register a function that will create new instances of embed
+components. right now we assume only one instance, but allow the possibility
+of multiple instances in the future
+
+global method registerShadowComponent(() => {
+  name: string,
+  element: HTMLElement,
+  onFocus: Function,
+  onBlur: Function,
+  onShow: Function,
+  onHide: Function,
+  // maybe?
+  // onActivate: Function,
+})
+
+each embed component module will self-register. this works like neovim.action() - in that
+i would prefer the component to manage registration on init instead of some 3rd party
+module that has to keep track of all components and register them
+
+
+should embed components be generated once, then onShow/onHide when they appear in the
+window grid, or should they be generated every time they appear in the windows, and
+self-destruct when buffer closed?
+
+could be expensive to recreate and destroy all the time. at the same time it could be memory
+intensive to keep around a bunch of component elements.
+
+also, if we decide to list shadow buffers in the buffer list (currently: yes) then how
+could we list multiple without confusion?
+
+i think the most viable plan of attack is to requireDir(../components).then(() => {
+  const shadowBuffers = new Map()
+  registeredShadowComponents.forEach(initFn => {
+    const { name, ...stuff } = initFn()
+    shadowBuffers.set(name, stuff)
+    createShadowBuffer(name)
+  })
+})
+
+and later in windows.ts
+
+// another map here to track current active shadow buffers
+// might get messy to track active in `shadowBuffers`
+// also keep this win stuff localized to this module, instead of
+// muddying the global store (which should be immutable after initial
+// app load - unless we plan to dynamically load components at
+// runtime in the future?)
+const activeShadowBuffers = new Map()
+
+neovim.on.bufUnload(s => {
+  if (!activeShadowBuffers.has(s.name)) return
+
+  const win = activeShadowBuffers.get(s.name)
+  // use an attribute to denote shadow buffer type?
+  win.canvasBox.remove(shadowBufferElement)
+  win.canvas.style.display = 'block'
+  activeShadowBuffers.delete(s.name)
+})
+
+if (vm.filetype === 'shadow-buffer') {
+  const shabuf = shadowBuffers.get(vm.name)
+  if (!shabuf) return
+  canvas.style.display = 'none'
+  win.canvasBox.appendChild(shabuf.element)
+  activeShadowBuffers.add(vm.name, win)
+} else {
+  // somehow remove the shadow buffer element. not good enough! because we could
+  // have multiple shadow buffers
+
+  // maybe use bufUnload? how would that work...
+  win.canvasBox.remove(shabuf.element)
+}
+
+--
+
 should probably stop auto adjusting windows with (wincmd =)
   this is immediatly obvious now with non-equal width windows (embed explorer)
   can we be smarter about this? maybe figure out widths before resize grid?
