@@ -6,7 +6,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 
 ## features
 
-- cross platform (and no external dependencies needed - everything comes bundled)
+- cross platform (and no external dependencies needed - everything comes bundled (minus vim plugins and extensions))
 - rich language integration built on language servers (any language supporting LSP can work - see http://langserver.org)
     - auto completion
     - go to definition

@@ -1,4 +1,4 @@
-const { join } = require('path')
+const { join, normalize } = require('path')
 
 const NotifyKind = {
   System: 'system',
@@ -77,13 +77,13 @@ describe('manage plugins', () => {
     expect(download.mock.calls[0]).toEqual([{
       user: 'tpope',
       repo: 'vim-surround',
-      destination: '/Users/liz/.config/nvim/pack/tpope-vim-surround/start',
+      destination: normalize('/Users/liz/.config/nvim/pack/tpope-vim-surround/start'),
     }])
 
     expect(download.mock.calls[1]).toEqual([{
       user: 'wellle',
       repo: 'targets.vim',
-      destination: '/Users/liz/.config/nvim/pack/wellle-targets.vim/start',
+      destination: normalize('/Users/liz/.config/nvim/pack/wellle-targets.vim/start'),
     }])
 
     expect(removed).not.toHaveBeenCalled()
@@ -128,9 +128,9 @@ describe('manage plugins', () => {
     expect(download.mock.calls[0]).toEqual([{
       user: 'wellle',
       repo: 'targets.vim',
-      destination: '/Users/liz/.config/nvim/pack/wellle-targets.vim/start',
+      destination: normalize('/Users/liz/.config/nvim/pack/wellle-targets.vim/start'),
     }])
-    expect(removed.mock.calls[0][0]).toEqual('/Users/liz/.config/nvim/pack/tpope-vim-surround')
+    expect(removed.mock.calls[0][0]).toEqual(normalize('/Users/liz/.config/nvim/pack/tpope-vim-surround'))
     expect(notify.mock.calls[0][0]).toContain(1)
     expect(neovimCmd).toHaveBeenCalled()
   })

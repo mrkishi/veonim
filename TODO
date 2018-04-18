@@ -28,7 +28,13 @@ rpc errors send to notifications? (try calling some broken execute() vimscript f
 
 new react overlay menus are not centered...
 
+create demo script to start electron at a certain size
+open various features
+use electron/spectron screenshot feature
+save to docs
+
 --ideas--
+
 set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
 
 constrain overlay menus to a particular window (current window)

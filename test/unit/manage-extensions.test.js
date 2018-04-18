@@ -1,4 +1,4 @@
-const { join } = require('path')
+const { join, normalize } = require('path')
 
 const NotifyKind = {
   System: 'system',
@@ -76,12 +76,12 @@ describe('manage extensions', () => {
     expect(download.mock.calls[0]).toEqual([{
       user: 'veonim',
       repo: 'ext-json',
-      destination: '/ext',
+      destination: normalize('/ext'),
     }])
     expect(download.mock.calls[1]).toEqual([{
       user: 'veonim',
       repo: 'ext-html',
-      destination: '/ext',
+      destination: normalize('/ext'),
     }])
     expect(removed).not.toHaveBeenCalled()
     expect(loadExtensions).toHaveBeenCalled()
@@ -125,9 +125,9 @@ describe('manage extensions', () => {
     expect(download.mock.calls[0]).toEqual([{
       user: 'veonim',
       repo: 'ext-html',
-      destination: '/ext',
+      destination: normalize('/ext'),
     }])
-    expect(removed.mock.calls[0][0]).toEqual('/ext/ext-json-master')
+    expect(removed.mock.calls[0][0]).toEqual(normalize('/ext/ext-json-master'))
     expect(notify.mock.calls[0][0]).toContain(1)
     expect(loadExtensions).toHaveBeenCalled()
   })
