@@ -1,6 +1,7 @@
 'use strict'
 
-const { spawn, exec } = require('child_process')
+const { exec } = require('child_process')
+const { spawn } = require('cross-spawn')
 const { watch } = require('fs')
 const cwd = `${__dirname}/..`
 const npmrun = task => exec(`npm run ${task}`, { cwd })
