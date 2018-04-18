@@ -5,7 +5,7 @@ const NotifyKind = {
   Success: 'success',
 }
 
-const EXT_PATH = '/ext'
+const EXT_PATH = normalize('/ext')
 
 const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   const mockExistPaths = new Set(existsPaths)
