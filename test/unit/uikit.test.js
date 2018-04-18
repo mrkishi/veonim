@@ -1,3 +1,15 @@
+jest.mock('../../build/core/cursor', () => ({
+  showCursor: jest.fn(),
+  hideCursor: jest.fn(),
+}))
+
+jest.mock('../../build/core/input', () => ({
+  default: {
+    focus: jest.fn(),
+    blur: jest.fn(),
+  }
+}))
+
 const { app } = require('../../build/ui/uikit2.js')
 const React = require('react')
 const noop = () => {}
