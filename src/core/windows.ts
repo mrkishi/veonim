@@ -503,15 +503,22 @@ let gridResizeInProgress = false
 
 const activeShadowBuffers = new Map<string, ShadowBuffer>()
 
-// TODO: loltemp
-// setTimeout(async () => {
-//   const el = document.createElement('div')
-//   el.setAttribute('id', 'explorer-embed')
-//   const ui = ExplorerEmbed(el)
-//   embed.explorer = { el, ui }
-//   ui.activate()
-//   console.log('activated embed explorer')
-// }, 2e3)
+const loadShadowBuffer = (name: string) => {
+  console.log('please load shadow buffer:', name)
+  const shadowBuffer = getShadowBuffer(name)
+  if (!shadowBuffer) return console.warn(`unable to find shadow buffer: ${name}`)
+
+  activeShadowBuffers.set(name, shadowBuffer)
+
+  // TODO: canvasBox should contain two elements:
+  //  - <div buffer-overlay> element that will contain any buffer overlay content
+  //  - <canvas> element
+  //
+  //  create an api that will return references to these elements
+  //  so that we can toggle visibility on them and allow adding of
+  //  shadowBuffer component element to the buffer-overlay div
+  //  (and el ref will allow us to skip DOM lookups)
+}
 
 export const render = async () => {
   const ws = await getWindows()
@@ -545,8 +552,7 @@ export const render = async () => {
       merge(win.api, vw)
 
       if (vw.filetype === SHADOW_BUFFER_TYPE) {
-        console.log('please load shadow buffer:', vw.name)
-
+        loadShadowBuffer(vw.name)
         // const cvs = win.canvasBox.getElementsByTagName('canvas')
         // cvs[0].style.display = 'none'
 
