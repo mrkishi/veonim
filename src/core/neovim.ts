@@ -1,7 +1,7 @@
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow,
   Tabpage as ITabpage } from '../core/api'
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
-  camelCase, prefixWith } from '../support/utils'
+  camelCase, prefixWith, uuid } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Functions } from '../core/vim-functions'
@@ -271,20 +271,26 @@ export const action = (event: string, cb: GenericCallback): void => {
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
-const getBuffersWithNames = async () => {
+const getNamedBuffers = async () => {
   const buffers = await list.buffers
   return Promise.all(buffers.map(async b => ({
-    ...b,
+    buffer: b,
     name: await b.name,
   })))
 }
 
-const findBuffer = async (name: string, { approximate = false } = {}) => {
-  const buffers = await getBuffersWithNames()
+const findBuffer = async (name: string) => {
+  const buffers = await getNamedBuffers()
+  const found = buffers.find(b => b.name === name) || {} as any
+  return found.buffer
+}
 
-  return approximate
-    ? buffers.find(b => b.name.toLowerCase().includes(name))
-    : buffers.find(b => b.name === name)
+const findBufferContainingName = async (name: string) => {
+  // it appears that buffers name will have a fullpath, like
+  // `/Users/anna/${name}` so we will try to substring match the name
+  const buffers = await getNamedBuffers()
+  const found = buffers.find(buf => buf.name.includes(name)) || {} as any
+  return found.buffer
 }
 
 const loadBuffer = async (file: string): Promise<boolean> => {
@@ -303,12 +309,26 @@ export const openBuffer = async (file: string): Promise<boolean> => {
   return loadBuffer(file)
 }
 
-export const createShadowBuffer = async (name: string) => {
-  const id = `__veonim-shadow-${name}`
+export const addBuffer = async (name: string): Promise<Buffer> => {
+  const id = uuid()
   cmd(`badd ${id}`)
 
-  const buffer = await findBuffer(id, { approximate: true })
-  if (!buffer) return false
+  const buffer = await findBufferContainingName(id)
+  if (!buffer) throw new Error(`addBuffer: could not find buffer '${id}' added with :badd ${name}`)
+
+  // for some reason, buf.setName creates a new buffer? lolwut?
+  // so it's probably still better to do the shenanigans above
+  // since finding the buffer by uuid is more accurate instead
+  // of trying to get a buffer handle by name only alone
+  //
+  // after a future neovim PR we might consider using 'nvim_create_buf'
+  await buffer.setName(name)
+  cmd(`bwipeout! ${id}`)
+  return buffer
+}
+
+export const createShadowBuffer = async (name: string) => {
+  const buffer = await addBuffer(name)
 
   buffer.setOption(BufferOption.Type, BufferType.NonFile)
   buffer.setOption(BufferOption.Hidden, BufferHide.Hide)
@@ -316,7 +336,7 @@ export const createShadowBuffer = async (name: string) => {
   buffer.setOption(BufferOption.Modifiable, false)
   buffer.setOption(BufferOption.Filetype, SHADOW_BUFFER_TYPE)
 
-  return true
+  return buffer
 }
 
 // TODO: accept column as optional. sometimes we just wanna hang out
