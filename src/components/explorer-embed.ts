@@ -1,5 +1,6 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
+import { registerShadowComponent } from '../core/shadow-buffers'
 import FiletypeIcon from '../components/filetype-icon'
 import { join, sep, basename, dirname } from 'path'
 import { input } from '../core/master-control'
@@ -39,7 +40,7 @@ const pathExplore = async (path: string) => {
   return complete ? goodDirs : filter(goodDirs, top, { key: 'name' })
 }
 
-export default (element: HTMLElement) => {
+const createComponent = () => {
   const state = {
     focus: false,
     val: '',
@@ -114,7 +115,7 @@ export default (element: HTMLElement) => {
       ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
     ])))
 
-]
+  ]
 
   let listElRef: HTMLElement
   type S = typeof state
@@ -265,25 +266,43 @@ export default (element: HTMLElement) => {
       input('<c-h>')
       return { focus: false }
     },
+    // use tab + shift-tab
     // TODO: find different keybinds for next/prev since ctrl + hjkl need to be
     // for global vim window navigation
     // next: (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
     // prev: (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
   }
 
-  const ui = app({ name: 'explorer-embed', state, actions, element, view: ($, a) => h('div', view($, a)) })
+  const element = document.createElement('div')
+
+  const ui = app({
+    state,
+    actions,
+    element,
+    name: 'explorer-embed',
+    view: ($, a) => h('div', view($, a)),
+  })
+
+  return { element, ui }
+}
+
+registerShadowComponent(() => {
+  const { element, ui } = createComponent()
+
   return {
-    // TODO: i'm not sure if there's any benefit to activating this?
-    // should create a method that can be used to initalize the component
-    // when the buffer becomes VISIBLE
-    activate: async () => {
+    element,
+    name: 'Explorer',
+    onShow: async () => {
       const { cwd } = current
       const paths = sortDirFiles(await getDirFiles(cwd))
       ui.show({ cwd, paths, path: cwd })
     },
     // TODO: focus and blur should be called when the current buffer
     // does not match the defined shadow buffer
-    focus: ui.focus,
-    blur: ui.blur,
+    //
+    // forgot what this means?
+    // i think maybe right now the events get triggered on ANY shadow buffer...
+    onFocus: ui.focus,
+    onBlur: ui.blur,
   }
-}
+})

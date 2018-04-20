@@ -1,9 +1,9 @@
 import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
 import { getCurrent, current, cmd, BufferType, BufferOption } from '../core/neovim'
+import { ShadowBuffer, getShadowBuffer } from '../core/shadow-buffers'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
-import ExplorerEmbed from '../components/explorer-embed'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
@@ -501,22 +501,17 @@ const betterTitles = (windows: VimWindow[]): VimWindow[] => {
 let winPos = [] as any
 let gridResizeInProgress = false
 
-const embed = {
-  explorer: {
-    el: document.createElement('div'),
-    ui: {} as any,
-  }
-}
+const activeShadowBuffers = new Map<string, ShadowBuffer>()
 
 // TODO: loltemp
-setTimeout(async () => {
-  const el = document.createElement('div')
-  el.setAttribute('id', 'explorer-embed')
-  const ui = ExplorerEmbed(el)
-  embed.explorer = { el, ui }
-  ui.activate()
-  console.log('activated embed explorer')
-}, 2e3)
+// setTimeout(async () => {
+//   const el = document.createElement('div')
+//   el.setAttribute('id', 'explorer-embed')
+//   const ui = ExplorerEmbed(el)
+//   embed.explorer = { el, ui }
+//   ui.activate()
+//   console.log('activated embed explorer')
+// }, 2e3)
 
 export const render = async () => {
   const ws = await getWindows()
@@ -550,16 +545,18 @@ export const render = async () => {
       merge(win.api, vw)
 
       if (vw.filetype === SHADOW_BUFFER_TYPE) {
-        const cvs = win.canvasBox.getElementsByTagName('canvas')
-        cvs[0].style.display = 'none'
+        console.log('please load shadow buffer:', vw.name)
 
-        // TODO: will this add the element multiple times?
-        win.canvasBox.appendChild(embed.explorer.el)
-        vw.active ? embed.explorer.ui.focus() : embed.explorer.ui.blur()
-        win.api.name = 'EXPLORER'
+        // const cvs = win.canvasBox.getElementsByTagName('canvas')
+        // cvs[0].style.display = 'none'
+
+        // // TODO: will this add the element multiple times?
+        // win.canvasBox.appendChild(embed.explorer.el)
+        // vw.active ? embed.explorer.ui.focus() : embed.explorer.ui.blur()
+        // win.api.name = 'EXPLORER'
       } else {
-        const cvs = win.canvasBox.getElementsByTagName('canvas')
-        cvs[0].style.display = 'block'
+        // const cvs = win.canvasBox.getElementsByTagName('canvas')
+        // cvs[0].style.display = 'block'
       }
 
       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)

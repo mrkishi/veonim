@@ -1,5 +1,5 @@
-import { action, createShadowBuffer, cmd } from '../core/neovim'
 import { go } from '../state/trade-federation'
+import { action, cmd } from '../core/neovim'
 import { delay } from '../support/utils'
 
 action('buffer-search', go.showBufferSearch)
@@ -12,7 +12,3 @@ action('derp', async () => {
   cmd('vert resize 30')
   cmd('b __veonim-shadow-explorer')
 })
-
-setTimeout(() => {
-  createShadowBuffer('explorer')
-}, 3e3)
