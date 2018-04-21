@@ -9,6 +9,17 @@ do we need to filter out the buffers according to BufferOption.Listed prop?
 
 shadow buffers:
 cursor.ts does not recognize current window as shadow-buffer-type anymore... what changed?
+re-ordering windows fail - try creating new split when a shadow buffer already open
+
+what to do when shadow buffer component goes back to normal mode?? need to display
+some sort of visual feedback. don't move cursor around etc. maybe also disable notifications
+
+are we still resizing inappropriately?
+try to see what happens with NERDTree when open a layout like this
+left nerd, middle two horizontal splits, right open ;ve
+| | | |
+|-|-|-|
+| | | |
 
 explorer:
 <tab> key is doing something weird. check on it

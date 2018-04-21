@@ -17,7 +17,6 @@ interface Props {
   focus: boolean,
   position: number,
   useVimInput: boolean,
-  blurOnEscape: boolean,
   change: (val: string) => void,
   select: (val: string) => void,
   hide: () => void,
@@ -101,7 +100,6 @@ const view = ({
   loading = false,
   pathMode = false,
   useVimInput = false,
-  blurOnEscape = true,
 }: TextInputProps, $: Props) => {
   let elRef: HTMLInputElement
 
@@ -156,7 +154,7 @@ const view = ({
 
           if (xfrmUp.has(prevKeyAndThisOne)) {
             const { key } = xfrmUp.get(prevKeyAndThisOne)!(e)
-            if (blurOnEscape && key.toLowerCase() === '<esc>') {
+            if (key.toLowerCase() === '<esc>') {
               lastDown = ''
               const target = e.target as HTMLInputElement
               target.blur()

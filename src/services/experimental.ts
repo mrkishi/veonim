@@ -10,5 +10,5 @@ action('derp', async () => {
   cmd('topleft vnew')
   await delay(250)
   cmd('vert resize 30')
-  cmd('b __veonim-shadow-explorer')
+  cmd('b Explorer')
 })

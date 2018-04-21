@@ -64,7 +64,6 @@ const createComponent = () => {
       icon: 'HardDrive',
       desc: 'explorer',
       change: a.change,
-      blurOnEscape: false,
       next: a.next,
       prev: a.prev,
       select: a.select,

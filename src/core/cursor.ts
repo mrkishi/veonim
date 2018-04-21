@@ -95,8 +95,8 @@ export const moveCursor = (backgroundColor: string) => {
   if (cursorRequestedToBeHidden) return
   const isShadowBuffer = win.filetype === SHADOW_BUFFER_TYPE
 
-  console.log('win ft:', win.filetype)
-  setImmediate(() => console.log('win ft2:', win.filetype))
+  // console.log('win ft:', win.filetype)
+  // setImmediate(() => console.log('win ft2:', win.filetype))
 
   if (isShadowBuffer) return cursorEl.style.display = 'none'
   else cursorEl.style.display = 'flex'

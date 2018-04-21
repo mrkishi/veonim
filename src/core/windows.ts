@@ -8,10 +8,12 @@ import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
 import * as grid from '../core/grid'
+import { EventEmitter } from 'events'
 
 export interface VimWindow {
   x: number,
   y: number,
+  id: number,
   height: number,
   width: number,
   name: string,
@@ -69,6 +71,8 @@ interface GridInfo {
 
 type EL1 = (tagName: string, style: object) => HTMLElement
 type EL2 = (style: object) => HTMLElement
+
+const watchers = new EventEmitter()
 
 export const makel: EL1 & EL2 = (...args: any[]) => {
   const styleObject = args.find(is.object)
@@ -264,6 +268,7 @@ const getWindows = async (): Promise<VimWindow[]> => {
     return {
       x,
       y,
+      id: w.id,
       active: w.id === activeWindow,
       height: await w.height,
       width: await w.width,
@@ -527,28 +532,60 @@ const betterTitles = (windows: VimWindow[]): VimWindow[] => {
 let winPos = [] as any
 let gridResizeInProgress = false
 
+const activeWindowsIds = new Set<number>()
+
+const getClosedWindows = (windows: VimWindow[]) => {
+  const prevWindowsIds = [...activeWindowsIds]
+  const newWindowIds = new Set(windows.map(w => w.id))
+
+  activeWindowsIds.clear()
+  newWindowIds.forEach(id => activeWindowsIds.add(id))
+
+  return prevWindowsIds.filter(w => !newWindowIds.has(w))
+}
+
+const getRenamedWindows = (windows: VimWindow[], cached: VimWindow[]) => windows.filter((w, ix) => {
+  const lw = cached[ix]
+  if (!lw) return false
+  return w.name !== lw.name
+})
+
 const activeShadowBuffers = new Map<string, ShadowBuffer>()
 
-const controlShadowBuffer = (name: string, active: boolean, containerApi: ShadowBufferApi) => {
+const controlShadowBuffer = (id: number, name: string, active: boolean, containerApi: ShadowBufferApi) => {
   const loaded = activeShadowBuffers.has(name)
   const shadowBuffer = getShadowBuffer(name)
   if (!shadowBuffer) return console.warn(`unable to find shadow buffer: ${name}`)
 
   // TODO: the cursor focus glitch is back. check cursor again
+  // TODO: is this a problem that onFocus will get called before onShow?
   if (active && shadowBuffer.onFocus) shadowBuffer.onFocus()
   if (!active && shadowBuffer.onBlur) shadowBuffer.onBlur()
 
-  if (loaded) return console.log(`shadow buffer ${name} already loaded. skipping init`)
+  if (loaded) return
 
-  console.log('please load shadow buffer:', name)
   activeShadowBuffers.set(name, shadowBuffer)
   containerApi.show(shadowBuffer.element)
 
   if (shadowBuffer.onShow) shadowBuffer.onShow()
+
+  const cleanupShadowBuffer = () => {
+    activeShadowBuffers.delete(name)
+    containerApi.hide()
+    if (shadowBuffer.onHide) shadowBuffer.onHide()
+
+    watchers.removeAllListeners(`renamed:${id}`)
+    watchers.removeAllListeners(`closed:${id}`)
+  }
+
+  watchers.on(`renamed:${id}`, cleanupShadowBuffer)
+  watchers.on(`closed:${id}`, cleanupShadowBuffer)
 }
 
 export const render = async () => {
   const ws = await getWindows()
+  const closedWindows = getClosedWindows(ws)
+  closedWindows.forEach(id => watchers.emit(`closed:${id}`))
 
   const { vertical, horizontal } = getSplitCount(ws)
   const { cols: availCols, rows: availRows } = availableSpace(vertical, horizontal)
@@ -560,6 +597,7 @@ export const render = async () => {
   if (needsResize && !gridResizeInProgress) {
     gridResizeInProgress = true
     canvasContainer.redoResize(availRows - 1, availCols + 1)
+    // TODO: remove?
     cmd(`wincmd =`)
     return
   }
@@ -572,14 +610,18 @@ export const render = async () => {
   const wins = betterTitles(ws)
 
   if (cache.windows) {
+    const renamedWindows = getRenamedWindows(wins, cache.windows)
+    renamedWindows.forEach(w => watchers.emit(`renamed:${w.id}`))
+
     findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {
+      watchers.emit(`${vw.id}`, vw.name)
       // TODO: this could be better
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
       merge(win.api, vw)
 
       if (vw.filetype === SHADOW_BUFFER_TYPE) {
-        controlShadowBuffer(vw.name, vw.active, win.shadowBufferApi)
+        controlShadowBuffer(vw.id, vw.name, vw.active, win.shadowBufferApi)
       }
 
       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
