@@ -544,14 +544,10 @@ const getClosedWindows = (windows: VimWindow[]) => {
   return prevWindowsIds.filter(w => !newWindowIds.has(w))
 }
 
-const getRenamedWindows = (windows: VimWindow[], cached: VimWindow[]) => windows.filter((w, ix) => {
-  const lw = cached[ix]
-  if (!lw) return false
-  return w.name !== lw.name
-})
-
 const activeShadowBuffers = new Map<string, ShadowBuffer>()
 
+// TODO: in addition to close/rename, we also need to detect when a window gets reassigned
+// and unload/reload shadow buffer. window container elements do not follow vim windows
 const controlShadowBuffer = (id: number, name: string, active: boolean, containerApi: ShadowBufferApi) => {
   const loaded = activeShadowBuffers.has(name)
   const shadowBuffer = getShadowBuffer(name)
@@ -569,23 +565,17 @@ const controlShadowBuffer = (id: number, name: string, active: boolean, containe
 
   if (shadowBuffer.onShow) shadowBuffer.onShow()
 
-  const cleanupShadowBuffer = () => {
+  watchers.once(`${id}`, () => {
     activeShadowBuffers.delete(name)
     containerApi.hide()
     if (shadowBuffer.onHide) shadowBuffer.onHide()
-
-    watchers.removeAllListeners(`renamed:${id}`)
-    watchers.removeAllListeners(`closed:${id}`)
-  }
-
-  watchers.on(`renamed:${id}`, cleanupShadowBuffer)
-  watchers.on(`closed:${id}`, cleanupShadowBuffer)
+  })
 }
 
 export const render = async () => {
   const ws = await getWindows()
   const closedWindows = getClosedWindows(ws)
-  closedWindows.forEach(id => watchers.emit(`closed:${id}`))
+  closedWindows.forEach(id => watchers.emit(`${id}`))
 
   const { vertical, horizontal } = getSplitCount(ws)
   const { cols: availCols, rows: availRows } = availableSpace(vertical, horizontal)
@@ -610,19 +600,16 @@ export const render = async () => {
   const wins = betterTitles(ws)
 
   if (cache.windows) {
-    const renamedWindows = getRenamedWindows(wins, cache.windows)
-    renamedWindows.forEach(w => watchers.emit(`renamed:${w.id}`))
-
     findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {
-      watchers.emit(`${vw.id}`, vw.name)
       // TODO: this could be better
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
       merge(win.api, vw)
 
-      if (vw.filetype === SHADOW_BUFFER_TYPE) {
-        controlShadowBuffer(vw.id, vw.name, vw.active, win.shadowBufferApi)
-      }
+      const isShadowBuffer = vw.filetype === SHADOW_BUFFER_TYPE
+
+      if (isShadowBuffer) controlShadowBuffer(vw.id, vw.name, vw.active, win.shadowBufferApi)
+      else watchers.emit(`${vw.id}`)
 
       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
       if (prevWin) merge(prevWin, {
@@ -643,6 +630,21 @@ export const render = async () => {
   if (wins.length > windows.length) {
     const toCreate = wins.length - windows.length
     windows.push(...listof(toCreate, () => createWindowEl()))
+    // TODO: this is mega dirty hack...
+    // because a html div window does not necessarily associate with a vim window.
+    // they will be recycled if needed.
+    windows.forEach(win => win.shadowBufferApi.hide())
+    activeShadowBuffers.clear()
+    // TODO: reactivate shadow buffers...
+    // the code below restores it in the wrong window
+    // wins
+      // .filter(win => win.filetype === SHADOW_BUFFER_TYPE)
+      // TODO: this could be better. can we use and associate with window id?
+      // .map(win => ({
+      //   win,
+      //   shadowBufferApi: windows.find(w => w.canvas.getSpecs().row === win.y && w.canvas.getSpecs().col === win.x)!.shadowBufferApi
+      // }))
+      // .forEach(({ win, shadowBufferApi }) => controlShadowBuffer(win.id, win.name, win.active, shadowBufferApi))
   }
 
   winPos = []

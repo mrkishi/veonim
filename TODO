@@ -14,12 +14,16 @@ re-ordering windows fail - try creating new split when a shadow buffer already o
 what to do when shadow buffer component goes back to normal mode?? need to display
 some sort of visual feedback. don't move cursor around etc. maybe also disable notifications
 
+// TODO: in addition to close/rename, we also need to detect when a window gets reassigned
+// and unload/reload shadow buffer. window container elements do not follow vim windows
+
 are we still resizing inappropriately?
 try to see what happens with NERDTree when open a layout like this
 left nerd, middle two horizontal splits, right open ;ve
 | | | |
 |-|-|-|
 | | | |
+does it get resized equally?
 
 explorer:
 <tab> key is doing something weird. check on it
