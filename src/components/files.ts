@@ -1,6 +1,6 @@
-import FiletypeIcon from '../components/filetype-icon'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import FiletypeIcon from '../components/filetype-icon'
 import { action, current, cmd } from '../core/neovim'
 import { basename, dirname, join } from 'path'
 import Input from '../components/text-input2'

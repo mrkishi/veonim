@@ -1,6 +1,43 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+
+-- hyperapp -> react
+buffers
+autocomplete
+change-project
+code-actions
+grep
+messages
+nc
+problems
+references
+statusline
+symbols
+*vim-create
+vim-rename
+vim-switch
+user-menu-overlay
+
+// what is difference between user-menu and generic-menu?
+user-menu
+generic menu
+
+-- react overkill -> react
+buffer search
+color picker
+command line
+hint
+hover
+problem-info
+
+-- delete components
+icon.ts
+loading.ts
+options-list.ts
+overlay.ts
+text-input.ts
+
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix
 

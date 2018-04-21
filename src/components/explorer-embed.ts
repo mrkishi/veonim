@@ -81,7 +81,6 @@ const createComponent = () => {
     ])
 
     ,$.pathMode && Input({
-      blurOnEscape: false,
       change: a.changePath,
       hide: a.normalMode,
       select: a.selectPath,

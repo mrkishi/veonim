@@ -1,40 +1,38 @@
-import { app, Actions, ActionCaller } from '../ui/uikit'
+import { Plugin } from '../components/plugin-container'
+import Input from '../components/text-input2'
 import { createVim } from '../core/sessions'
-import Input from '../components/text-input'
-import { Plugin } from '../styles/common'
 import { action } from '../core/neovim'
+import { app } from '../ui/uikit2'
 
-interface State {
-  val: string,
-  vis: boolean,
+const state = {
+  value: '',
+  visible: false,
 }
 
-const state: State = {
-  val: '',
-  vis: false,
+type S = typeof state
+
+const actions = {
+  show: () => ({ visible: true }),
+  hide: () => ({ value: '', visible: false }),
+  change: (_s: S, value: string) => ({ value }),
+  select: (s: S) => {
+    s.value && createVim(s.value)
+    return { value: '', visible: false }
+  },
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('vim-create', $.vis, [
+const ui = app({ name: 'vim-create', state, actions, view: ($, a) => Plugin($.visible, [
 
   ,Input({
-    ...actions,
-    val: $.val,
     focus: true,
-    icon: 'folder-plus',
+    hide: a.hide,
+    value: $.value,
+    select: a.select,
+    change: a.change,
+    icon: 'FolderPlus',
     desc: 'create new vim session',
   })
 
-])
+]) })
 
-const a: Actions<State> = {}
-
-a.show = () => ({ vis: true }),
-a.hide = () => ({ val: '', vis: false })
-a.change = (_s, _a, val: string) => ({ val })
-a.select = (s, a) => {
-  s.val && createVim(s.val)
-  a.hide()
-}
-
-const ui = app({ state, view, actions: a })
-action('vim-create', () => ui.show())
+action('vim-create', ui.show)
