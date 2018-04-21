@@ -1,40 +1,38 @@
 import { renameCurrent, getCurrentName } from '../core/sessions'
-import { app, Actions, ActionCaller } from '../ui/uikit'
-import Input from '../components/text-input'
-import { Plugin } from '../styles/common'
+import { Plugin } from '../components/plugin-container'
+import Input from '../components/text-input2'
 import { action } from '../core/neovim'
+import { app } from '../ui/uikit2'
 
-interface State {
-  val: string,
-  vis: boolean,
+const state = {
+  value: '',
+  visible: false,
 }
 
-const state: State = {
-  val: '',
-  vis: false,
+type S = typeof state
+
+const actions = {
+  show: (_s: S, value: string) => ({ value, visible: true }),
+  hide: () => ({ value: '', visible: false }),
+  change: (_s: S, value: string) => ({ value }),
+  select: (s: S) => {
+    s.value && renameCurrent(s.value)
+    return { value: '', visible: false }
+  },
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('vim-rename', $.vis, [
+const ui = app({ name: 'vim-rename', state, actions, view: ($, a) => Plugin($.visible, [
 
   ,Input({
-    ...actions,
-    val: $.val,
     focus: true,
+    hide: a.hide,
+    select: a.select,
+    change: a.change,
+    value: $.value,
     icon: 'edit',
     desc: 'rename vim session',
   })
 
-])
+]) })
 
-const a: Actions<State> = {}
-
-a.show = (_s, _a, val: string) => ({ val, vis: true }),
-a.hide = () => ({ val: '', vis: false })
-a.change = (_s, _a, val: string) => ({ val })
-a.select = (s, a) => {
-  s.val && renameCurrent(s.val)
-  a.hide()
-}
-
-const ui = app({ state, view, actions: a })
 action('vim-rename', () => ui.show(getCurrentName()))

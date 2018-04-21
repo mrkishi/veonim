@@ -15,7 +15,7 @@ references
 statusline
 symbols
 *vim-create
-vim-rename
+*vim-rename
 vim-switch
 user-menu-overlay
 
