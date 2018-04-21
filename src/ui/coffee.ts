@@ -11,6 +11,7 @@ import hyperscript from '../ui/hyperscript'
 import sct from 'styled-components-ts'
 import sc from 'styled-components'
 
+// TODO: this file should be deprecated in favor of uikit2
 export const s = sct
 export const styled = sc
 export const h = hyperscript(React.createElement)

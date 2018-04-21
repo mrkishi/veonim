@@ -1,4 +1,4 @@
-import { h, styled } from '../ui/coffee'
+import { h, styled } from '../ui/uikit2'
 
 const base = `
   z-index: 99;

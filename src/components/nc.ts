@@ -1,29 +1,33 @@
-import { app, style, Actions } from '../ui/uikit'
+import { h, app, styled } from '../ui/uikit2'
 import { action, on } from '../core/neovim'
 
-interface State { vis: boolean }
-const state: State = { vis: false }
-const NC = style('div')({ background: `url('../assets/nc.gif')` })
+const state = {
+  visible: false,
+}
 
-const view = ({ vis }: State) => NC({
+type S = typeof state
+
+const NC = styled.div`
+  background: url('../assets/nc.gif');
+`
+
+const actions = {
+  show: () => ({ visible: true }),
+  hide: (s: S) => {
+    if (s.visible) return { visible: false }
+  },
+}
+
+const ui = app({ name: 'nc', state, actions, view: $ => h(NC, {
   style: {
-    position: 'absolute',
-    display: vis ? 'block' : 'none',
+    display: $.visible ? 'block' : 'none',
     backgroundRepeat: 'no-repeat',
     backgroundSize: '75vw',
+    position: 'absolute',
     height: '100%',
     width: '100%',
   },
-})
+}) })
 
-const a: Actions<State> = {}
-
-a.show = () => ({ vis: true })
-a.hide = s => {
-  if (s.vis) return { vis: false }
-}
-
-const ui = app({ state, view, actions: a }, false)
-
-action('nc', () => ui.show())
-on.cursorMove(() => ui.hide())
+action('nc', ui.show)
+on.cursorMove(ui.hide)

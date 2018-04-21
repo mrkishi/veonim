@@ -10,7 +10,7 @@ remove 'name' -> element.id support in overlay2. id is now set by uikit2
 *code-actions
 grep
 messages
-nc
+*nc
 problems
 references
 statusline
@@ -38,6 +38,9 @@ loading.ts
 options-list.ts
 overlay.ts
 text-input.ts
+
+-- also needs to go:
+ui/coffee.ts
 
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix
