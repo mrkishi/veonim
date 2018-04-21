@@ -1,12 +1,13 @@
 import { list, action, current, getCurrent, cmd } from '../core/neovim'
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { Plugin } from '../components/plugin-container'
+import { RowFiles } from '../components/row-container'
+import FiletypeIcon from '../components/filetype-icon'
 import { VimBuffer } from '../core/vim-functions'
-import * as setiIcon from '../styles/seti-icons'
 import { simplifyPath } from '../support/utils'
-import { Plugin, Row } from '../styles/common'
-import Input from '../components/text-input'
+import Input from '../components/text-input2'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
+import { h, app } from '../ui/uikit2'
 
 interface BufferInfo {
   name: string,
@@ -16,18 +17,11 @@ interface BufferInfo {
   duplicate: boolean,
 }
 
-interface State {
-  val: string,
-  buffers: BufferInfo[],
-  cache: BufferInfo[],
-  vis: boolean,
-  ix: number,
-}
-
 const getVimBuffers = async () => {
   const buffers = await list.buffers
   const currentBufferId = (await getCurrent.buffer).id
 
+  // TODO: filter out unlisted buffers?
   return await Promise.all(buffers.map(async b => ({
     name: await b.name,
     cur: b.id === currentBufferId,
@@ -51,25 +45,56 @@ const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
     .map(m => ({ ...m, name: m.duplicate ? `${m.dir}/${m.base}` : m.base }))
 }
 
-const state: State = {
-  val: '',
-  buffers: [],
-  cache: [],
-  vis: false,
-  ix: 0,
+const state = {
+  value: '',
+  buffers: [] as BufferInfo[],
+  cache: [] as BufferInfo[],
+  visible: false,
+  index: 0,
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('buffers', $.vis, [
+type S = typeof state
+
+const resetState = { value: '', visible: false, index: 0 }
+
+const actions = {
+  select: (s: S) => {
+    if (!s.buffers.length) return resetState
+    const { name } = s.buffers[s.index]
+    if (name) cmd(`b ${name}`)
+    return resetState
+  },
+
+  change: (s: S, value: string) => ({ value, buffers: value
+    ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
+    : s.cache.slice(0, 10)
+  }),
+
+  hide: () => resetState,
+  show: (_s: S, buffers: BufferInfo[]) => ({ buffers, cache: buffers, visible: true }),
+  next: (s: S) => ({ index: s.index + 1 > Math.min(s.buffers.length - 1, 9) ? 0 : s.index + 1 }),
+  prev: (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.index - 1 }),
+}
+
+const ui = app({ name: 'buffers', state, actions, view: ($, a) => Plugin($.visible, [
+
   ,Input({
-    ...actions,
-    val: $.val,
+    select: a.select,
+    change: a.change,
+    hide: a.hide,
+    next: a.next,
+    prev: a.prev,
+    value: $.value,
     focus: true,
     icon: 'list',
     desc: 'switch buffer',
   })
 
-  ,h('div', $.buffers.map((f, key) => Row.files({ key, activeWhen: key === $.ix }, [
-    ,setiIcon.file(f.name)
+  ,h('div', $.buffers.map((f, ix) => h(RowFiles, {
+    key: `${f.name}-${f.base}-${f.dir}`,
+    active: ix === $.index,
+  }, [
+    ,FiletypeIcon(f.name)
 
     ,h('span', {
       render: f.duplicate,
@@ -79,27 +104,6 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('buffers', $.vi
     ,h('span', f.duplicate ? f.base : f.name),
   ])))
 
-])
-
-const a: Actions<State> = {}
-
-a.select = (s, a) => {
-  if (!s.buffers.length) return a.hide()
-  const { name } = s.buffers[s.ix]
-  if (name) cmd(`b ${name}`)
-  a.hide()
-}
-
-a.change = (s, _a, val: string) => ({ val, buffers: val
-  ? filter(s.cache, val, { key: 'name' }).slice(0, 10)
-  : s.cache.slice(0, 10)
-})
-
-a.show = (_s, _a, buffers: BufferInfo[]) => ({ buffers, cache: buffers, vis: true })
-a.hide = () => ({ val: '', vis: false, ix: 0 })
-a.next = s => ({ ix: s.ix + 1 > Math.min(s.buffers.length - 1, 9) ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.ix - 1 })
-
-const ui = app({ state, view, actions: a })
+]) })
 
 action('buffers', async () => ui.show(await getBuffers(current.cwd)))
