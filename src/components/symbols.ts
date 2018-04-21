@@ -1,36 +1,29 @@
 import { feedkeys, cmd, current as vimState } from '../core/neovim'
 import { workspaceSymbols, Symbol } from '../langserv/adapter'
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
 import { SymbolKind } from 'vscode-languageserver-types'
-import { Plugin, Row } from '../styles/common'
-import Input from '../components/text-input'
+import { Plugin } from '../components/plugin-container'
+import { RowNormal } from '../components/row-container'
+import Input from '../components/text-input2'
 import { filter } from 'fuzzaldrin-plus'
-import Icon from '../components/icon'
+import Icon from '../components/icon2'
+import { h, app } from '../ui/uikit2'
 
 export enum SymbolMode {
   Buffer,
   Workspace,
 }
 
-interface State {
-  mode: SymbolMode,
-  val: string,
-  loading: boolean,
-  symbols: Symbol[],
-  cache: Symbol[],
-  vis: boolean,
-  ix: number,
-}
-
-const state: State = {
+const state = {
   loading: false,
   mode: SymbolMode.Buffer,
-  val: '',
-  symbols: [],
-  cache: [],
-  vis: false,
-  ix: 0,
+  value: '',
+  symbols: [] as Symbol[],
+  cache: [] as Symbol[],
+  visible: false,
+  index: 0,
 }
+
+type S = typeof state
 
 const pos: { container: ClientRect } = {
   container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
@@ -39,7 +32,7 @@ const pos: { container: ClientRect } = {
 const icons = new Map([
   [ SymbolKind.File, Icon('file', { color: '#a5c3ff' }) ],
   [ SymbolKind.Module, Icon('grid', { color: '#ff5f54' }) ],
-  [ SymbolKind.Namespace, Icon('cloud-snow', { color: '#ffadc5' }) ],
+  [ SymbolKind.Namespace, Icon('CloudSnow', { color: '#ffadc5' }) ],
   [ SymbolKind.Package, Icon('package', { color: '#ffa4d0' }) ],
   [ SymbolKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
   [ SymbolKind.Method, Icon('box', { color: '#bb5ef1' }) ],
@@ -48,7 +41,7 @@ const icons = new Map([
   [ SymbolKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
   [ SymbolKind.Enum, Icon('award', { color: '#84ff54' }) ],
   [ SymbolKind.Interface, Icon('map', { color: '#ffa354' }) ],
-  [ SymbolKind.Function, Icon('share-2', { color: '#6da7ff' }) ],
+  [ SymbolKind.Function, Icon('Share2', { color: '#6da7ff' }) ],
   [ SymbolKind.Variable, Icon('database', { color: '#ff70e4' }) ],
   [ SymbolKind.Constant, Icon('save', { color: '#54ffe5' }) ],
   [ SymbolKind.String, Icon('star', { color: '#ffdca3' }) ],
@@ -115,11 +108,56 @@ const symbolCache = (() => {
   return { update, find, clear }
 })()
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vis, [
+const resetState = { value: '', visible: false, index: 0, loading: false }
+
+const actions = {
+  select: (s: S) => {
+    if (!s.symbols.length) return (symbolCache.clear(), resetState)
+    const { location: { cwd, file, position: { line, column } } } = s.symbols[s.index]
+    cmd(`e ${cwd}/${file}`)
+    feedkeys(`${line}Gzz${column}|`)
+    return (symbolCache.clear(), resetState)
+  },
+
+  change: (s: S, value: string) => {
+    if (s.mode === SymbolMode.Buffer) return { value, symbols: value
+      // TODO: DON'T TRUNCATE!
+      ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
+      : s.cache.slice(0, 10)
+    } 
+
+    if (s.mode === SymbolMode.Workspace) {
+      workspaceSymbols(vimState, value).then(symbols => {
+        symbolCache.update(symbols)
+        const results = symbols.length ? symbols : symbolCache.find(value)
+        ui.updateOptions(results)
+      })
+
+      return { value, loading: true }
+    }
+  },
+
+  updateOptions: (_s: S, symbols: Symbol[]) => ({ symbols, loading: false }),
+
+  show: (_s: S, { symbols, mode }: any) => ({ mode, symbols, cache: symbols, visible: true }),
+  hide: () => {
+    symbolCache.clear()
+    return resetState
+  },
+  // TODO: DON'T TRUNCATE!
+  next: (s: S) => ({ index: s.index + 1 > 9 ? 0 : s.index + 1 }),
+  prev: (s: S) => ({ index: s.index - 1 < 0 ? 9 : s.index - 1 }),
+}
+
+const ui = app({ name: 'symbols', state, actions, view: ($, a) => Plugin($.visible, [
 
   ,Input({
-    ...actions,
-    val: $.val,
+    select: a.select,
+    change: a.change,
+    hide: a.hide,
+    next: a.next,
+    prev: a.prev,
+    value: $.value,
     loading: $.loading,
     focus: true,
     icon: 'moon',
@@ -128,17 +166,20 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
 
   // TODO: pls scroll this kthx
   ,h('div', {
-    onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
+    ref: (e: HTMLElement) => {
+      if (!e || !e.getBoundingClientRect) return
+      pos.container = e.getBoundingClientRect()
+    },
     style: {
       maxHeight: '50vh',
       overflowY: 'hidden',
     }
-  }, $.symbols.map(({ name, kind }, key) => Row.normal({
-    key,
+  }, $.symbols.map(({ name, kind, location }, ix) => h(RowNormal, {
+    key: `${name}-${kind}-${location.cwd}-${location.file}-${location.position.line}-${location.position.column}`,
     style: { justifyContent: 'space-between' },
-    activeWhen: key === $.ix,
-    onupdate: (e: HTMLElement) => {
-      if (key !== $.ix) return
+    active: ix === $.index,
+    ref: (e: HTMLElement) => {
+      if (ix !== $.index || !e || !e.getBoundingClientRect) return
       const { top, bottom } = e.getBoundingClientRect()
       if (top < pos.container.top) return e.scrollIntoView(true)
       if (bottom > pos.container.bottom) return e.scrollIntoView(false)
@@ -175,48 +216,6 @@ const view = ($: State, actions: ActionCaller) => Plugin.default('symbols', $.vi
 
   ])))
 
-])
-
-const a: Actions<State> = {}
-
-a.select = (s, a) => {
-  if (!s.symbols.length) return a.hide()
-  const { location: { cwd, file, position: { line, column } } } = s.symbols[s.ix]
-  cmd(`e ${cwd}/${file}`)
-  feedkeys(`${line}Gzz${column}|`)
-  a.hide()
-}
-
-a.change = (s, a, val: string) => {
-
-  if (s.mode === SymbolMode.Buffer) return { val, symbols: val
-    // TODO: DON'T TRUNCATE!
-    ? filter(s.cache, val, { key: 'name' }).slice(0, 10)
-    : s.cache.slice(0, 10)
-  } 
-
-  if (s.mode === SymbolMode.Workspace) {
-    workspaceSymbols(vimState, val).then(symbols => {
-      symbolCache.update(symbols)
-      const results = symbols.length ? symbols : symbolCache.find(val)
-      a.updateOptions(results)
-    })
-
-    return { val, loading: true }
-  }
-}
-
-a.updateOptions = (_s, _a, symbols) => ({ symbols, loading: false })
-
-a.show = (_s, _a, { symbols, mode }) => ({ mode, symbols, cache: symbols, vis: true })
-a.hide = () => {
-  symbolCache.clear()
-  return { val: '', vis: false, ix: 0, loading: false }
-}
-// TODO: DON'T TRUNCATE!
-a.next = s => ({ ix: s.ix + 1 > 9 ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? 9 : s.ix - 1 })
-
-const ui = app({ state, view, actions: a })
+]) })
 
 export const show = (symbols: Symbol[], mode: SymbolMode) => ui.show({ symbols, mode })

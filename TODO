@@ -13,7 +13,7 @@ nc
 problems
 references
 statusline
-symbols
+*symbols
 *vim-create
 *vim-rename
 *vim-switch
