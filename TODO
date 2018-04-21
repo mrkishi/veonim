@@ -7,7 +7,7 @@ remove 'name' -> element.id support in overlay2. id is now set by uikit2
 *buffers
 *autocomplete
 *change-project
-code-actions
+*code-actions
 grep
 messages
 nc

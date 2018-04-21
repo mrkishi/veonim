@@ -1,34 +1,47 @@
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { RowNormal } from '../components/row-container'
 import { Command } from 'vscode-languageserver-types'
 import { runCodeAction } from '../ai/diagnostics'
 import { activeWindow } from '../core/windows'
-import Input from '../components/text-input'
-import Overlay from '../components/overlay'
+import Input from '../components/text-input2'
+import Overlay from '../components/overlay2'
 import { filter } from 'fuzzaldrin-plus'
-import { Row } from '../styles/common'
+import { h, app } from '../ui/uikit2'
 
-interface State {
-  x: number,
-  y: number,
-  val: string,
-  visible: boolean,
-  actions: Command[],
-  cache: Command[],
-  ix: number,
-}
-
-const state: State = {
+const state = {
   x: 0,
   y: 0,
-  val: '',
+  value: '',
   visible: false,
-  actions: [],
-  cache: [],
-  ix: 0,
+  actions: [] as Command[],
+  cache: [] as Command[],
+  index: 0,
 }
 
-const view = ($: State, actions: ActionCaller) => Overlay({
-  name: 'code-actions',
+type S = typeof state
+
+const resetState = { value: '', visible: false } 
+
+const actions = {
+  show: (_s: S, { x, y, actions }: any) => ({ x, y, actions, cache: actions, visible: true }),
+  hide: () => resetState,
+
+  change: (s: S, value: string) => ({ value, actions: value
+    ? filter(s.actions, value, { key: 'title' })
+    : s.cache
+  }),
+
+  select: (s: S) => {
+    if (!s.actions.length) return resetState
+    const action = s.actions[s.index]
+    if (action) runCodeAction(action)
+    return resetState
+  },
+
+  next: (s: S) => ({ index: s.index + 1 > s.actions.length - 1 ? 0 : s.index + 1 }),
+  prev: (s: S) => ({ index: s.index - 1 < 0 ? s.actions.length - 1 : s.index - 1 }),
+}
+
+const ui = app({ name: 'code-actions', state, actions, view: ($, a) => Overlay({
   x: $.x,
   y: $.y,
   zIndex: 100,
@@ -44,41 +57,28 @@ const view = ($: State, actions: ActionCaller) => Overlay({
   }, [
 
     ,Input({
-      ...actions,
-      val: $.val,
+      hide: a.hide,
+      next: a.next,
+      prev: a.prev,
+      change: a.change,
+      select: a.select,
+      value: $.value,
       focus: true,
       small: true,
       icon: 'code',
       desc: 'run code action',
     })
 
-    ,h('div', $.actions.map((s, key: number) => Row.normal({ key, activeWhen: key === $.ix }, s.title)))
+    ,h('div', $.actions.map((s, ix) => h(RowNormal, {
+      key: `${s.title}-${s.command}`,
+      active: ix === $.index,
+    }, [
+      ,h('span', s.title)
+    ])))
 
   ])
 
-])
-
-const a: Actions<State> = {}
-
-a.show = (_s, _a, { x, y, actions }) => ({ x, y, actions, cache: actions, visible: true }),
-a.hide = () => ({ val: '', visible: false })
-
-a.change = (s, _a, val: string) => ({ val, actions: val
-  ? filter(s.actions, val, { key: 'title' })
-  : s.cache
-})
-
-a.select = (s, a) => {
-  if (!s.actions.length) return a.hide()
-  const action = s.actions[s.ix]
-  if (action) runCodeAction(action)
-  a.hide()
-}
-
-a.next = s => ({ ix: s.ix + 1 > s.actions.length - 1 ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? s.actions.length - 1 : s.ix - 1 })
-
-const ui = app({ state, view, actions: a })
+]) })
 
 export const show = (row: number, col: number, actions: Command[]) => {
   if (!actions.length) return
