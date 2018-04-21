@@ -1,7 +1,7 @@
 import { h } from '../ui/coffee'
 
 interface Props {
-  name: string,
+  name?: string,
   visible: boolean,
   x: number,
   y: number,
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default ($: Props, content: any[]) => h('div', {
-  id: `@-${$.name}`,
+  id: $.name ? `@-${$.name}` : undefined,
   style: {
     zIndex: $.zIndex,
     display: $.visible ? 'flex' : 'none',

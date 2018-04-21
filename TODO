@@ -17,7 +17,7 @@ symbols
 *vim-create
 *vim-rename
 *vim-switch
-user-menu-overlay
+*user-menu-overlay
 
 // what is difference between user-menu and generic-menu?
 user-menu
