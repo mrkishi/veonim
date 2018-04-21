@@ -16,7 +16,7 @@ statusline
 symbols
 *vim-create
 *vim-rename
-vim-switch
+*vim-switch
 user-menu-overlay
 
 // what is difference between user-menu and generic-menu?

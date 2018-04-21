@@ -1,64 +1,68 @@
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
+import { Plugin } from '../components/plugin-container'
+import { RowNormal } from '../components/row-container'
 import { list, switchVim } from '../core/sessions'
-import { Plugin, Row } from '../styles/common'
-import Input from '../components/text-input'
+import Input from '../components/text-input2'
 import { filter } from 'fuzzaldrin-plus'
 import { action } from '../core/neovim'
+import { h, app } from '../ui/uikit2'
 
 interface Session {
   id: number,
   name: string,
 }
 
-interface State {
-  val: string,
-  vis: boolean,
-  list: Session[],
-  cache: Session[],
-  ix: number,
+const state = {
+  value: '',
+  visible: false,
+  list: [] as Session[],
+  cache: [] as Session[],
+  index: 0,
 }
 
-const state: State = {
-  val: '',
-  vis: false,
-  list: [],
-  cache: [],
-  ix: 0,
+type S = typeof state
+
+const actions = {
+  show: (_s: S, d: Session[]) => ({ list: d, cache: d, visible: true }),
+  hide: () => ({ value: '', visible: false, index: 0 }),
+  change: (s: S, value: string) => ({ value, list: value
+    ? filter(s.list, value, { key: 'name' }).slice(0, 10)
+    : s.cache.slice(0, 10)
+  }),
+  
+
+  select: (s: S) => {
+    if (!s.list.length) return { value: '', visible: false, index: 0 }
+    const { id } = s.list[s.index]
+    if (id) switchVim(id)
+    return { value: '', visible: false, index: 0 }
+  },
+  
+  // TODO: don't limit list to 10 entries and scroll instead!
+  next: (s: S) => ({ index: s.index + 1 > Math.min(s.list.length - 1, 9) ? 0 : s.index + 1 }),
+  prev: (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.list.length - 1, 9) : s.index - 1 }),
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('vim-switch', $.vis, [
+const ui = app({ name: 'vim-switch', state, actions, view: ($, a) => Plugin($.visible, [
 
   ,Input({
-    ...actions,
-    val: $.val,
+    hide: a.hide,
+    change: a.change,
+    select: a.select,
+    next: a.next,
+    prev: a.prev,
+    value: $.value,
     focus: true,
     icon: 'grid',
     desc: 'switch vim session',
   })
 
-  ,h('div', $.list.map((s, key) => Row.normal({ key, activeWhen: key === $.ix }, s.name)))
+  ,h('div', $.list.map(({ id, name }, ix) => h(RowNormal, {
+    key: `${id}-${name}`,
+    active: ix === $.index,
+  }, [
+    ,h('span', name)
+  ])))
 
-])
+]) })
 
-const a: Actions<State> = {}
-
-a.show = (_s, _a, d: Session[]) => ({ list: d, cache: d, vis: true }),
-a.hide = () => ({ val: '', vis: false, ix: 0 })
-a.change = (s, _a, val: string) => ({ val, list: val
-  ? filter(s.list, val, { key: 'name' }).slice(0, 10)
-  : s.cache.slice(0, 10)
-})
-
-a.select = (s, a) => {
-  if (!s.list.length) return a.hide()
-  const { id } = s.list[s.ix]
-  if (id) switchVim(id)
-  a.hide()
-}
-
-// TODO: don't limit list to 10 entries and scroll instead!
-a.next = s => ({ ix: s.ix + 1 > Math.min(s.list.length - 1, 9) ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.list.length - 1, 9) : s.ix - 1 })
-
-const ui = app({ state, view, actions: a })
 action('vim-switch', () => ui.show(list()))

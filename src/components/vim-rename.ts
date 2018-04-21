@@ -24,11 +24,11 @@ const actions = {
 const ui = app({ name: 'vim-rename', state, actions, view: ($, a) => Plugin($.visible, [
 
   ,Input({
-    focus: true,
     hide: a.hide,
     select: a.select,
     change: a.change,
     value: $.value,
+    focus: true,
     icon: 'edit',
     desc: 'rename vim session',
   })

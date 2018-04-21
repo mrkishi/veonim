@@ -24,11 +24,11 @@ const actions = {
 const ui = app({ name: 'vim-create', state, actions, view: ($, a) => Plugin($.visible, [
 
   ,Input({
-    focus: true,
     hide: a.hide,
-    value: $.value,
     select: a.select,
     change: a.change,
+    value: $.value,
+    focus: true,
     icon: 'FolderPlus',
     desc: 'create new vim session',
   })
