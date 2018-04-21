@@ -37,6 +37,11 @@ export interface RenderWindow extends VimWindow {
   gridRow: string,
 }
 
+interface ShadowBufferApi {
+  show: (element: HTMLElement) => void,
+  hide: () => void,
+}
+
 export interface WindowApi {
   modified: boolean,
   active: boolean,
@@ -98,6 +103,10 @@ const createWindowEl = () => {
     flex: 1,
     overflow: 'hidden',
     background: 'var(--background)',
+  })
+
+  const shadowBufferContainer = makel({
+    display: 'none',
   })
 
   const titleBar = makel({
@@ -194,6 +203,7 @@ const createWindowEl = () => {
 
   const canvas = createWindow(canvasBox)
 
+  canvasBox.appendChild(shadowBufferContainer)
   nameplate.appendChild(nameplateDir)
   nameplate.appendChild(nameplateName)
   nameplateBox.appendChild(terminalIcon)
@@ -220,7 +230,23 @@ const createWindowEl = () => {
     },
   }
 
-  return { element, canvas, nameplateBox, nameplate, canvasBox, api }
+  const canvasEl = canvasBox.getElementsByTagName('canvas')[0]
+
+  const shadowBufferApi: ShadowBufferApi = {
+    show: (element: HTMLElement) => {
+      shadowBufferContainer.appendChild(element)
+      shadowBufferContainer.style.display = 'block'
+      canvasEl.style.display = 'none'
+    },
+    hide: () => {
+      canvasEl.style.display = 'block'
+      shadowBufferContainer.style.display = 'none'
+      const element = shadowBufferContainer.firstChild as HTMLElement
+      if (element) element.remove()
+    },
+  }
+
+  return { element, canvas, nameplateBox, nameplate, canvasBox, api, shadowBufferApi }
 }
 
 const windows = [ createWindowEl() ]
@@ -503,21 +529,22 @@ let gridResizeInProgress = false
 
 const activeShadowBuffers = new Map<string, ShadowBuffer>()
 
-const loadShadowBuffer = (name: string) => {
-  console.log('please load shadow buffer:', name)
+const controlShadowBuffer = (name: string, active: boolean, containerApi: ShadowBufferApi) => {
+  const loaded = activeShadowBuffers.has(name)
   const shadowBuffer = getShadowBuffer(name)
   if (!shadowBuffer) return console.warn(`unable to find shadow buffer: ${name}`)
 
-  activeShadowBuffers.set(name, shadowBuffer)
+  // TODO: the cursor focus glitch is back. check cursor again
+  if (active && shadowBuffer.onFocus) shadowBuffer.onFocus()
+  if (!active && shadowBuffer.onBlur) shadowBuffer.onBlur()
 
-  // TODO: canvasBox should contain two elements:
-  //  - <div buffer-overlay> element that will contain any buffer overlay content
-  //  - <canvas> element
-  //
-  //  create an api that will return references to these elements
-  //  so that we can toggle visibility on them and allow adding of
-  //  shadowBuffer component element to the buffer-overlay div
-  //  (and el ref will allow us to skip DOM lookups)
+  if (loaded) return console.log(`shadow buffer ${name} already loaded. skipping init`)
+
+  console.log('please load shadow buffer:', name)
+  activeShadowBuffers.set(name, shadowBuffer)
+  containerApi.show(shadowBuffer.element)
+
+  if (shadowBuffer.onShow) shadowBuffer.onShow()
 }
 
 export const render = async () => {
@@ -552,17 +579,7 @@ export const render = async () => {
       merge(win.api, vw)
 
       if (vw.filetype === SHADOW_BUFFER_TYPE) {
-        loadShadowBuffer(vw.name)
-        // const cvs = win.canvasBox.getElementsByTagName('canvas')
-        // cvs[0].style.display = 'none'
-
-        // // TODO: will this add the element multiple times?
-        // win.canvasBox.appendChild(embed.explorer.el)
-        // vw.active ? embed.explorer.ui.focus() : embed.explorer.ui.blur()
-        // win.api.name = 'EXPLORER'
-      } else {
-        // const cvs = win.canvasBox.getElementsByTagName('canvas')
-        // cvs[0].style.display = 'block'
+        controlShadowBuffer(vw.name, vw.active, win.shadowBufferApi)
       }
 
       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)

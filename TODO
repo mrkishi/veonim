@@ -7,7 +7,11 @@ showcase/demo quickfix
 is it just me or is the :Veonim buffers list also listing unlistable buffers?
 do we need to filter out the buffers according to BufferOption.Listed prop?
 
+shadow buffers:
+cursor.ts does not recognize current window as shadow-buffer-type anymore... what changed?
+
 explorer:
+<tab> key is doing something weird. check on it
 add action to open file in LAST/ALTERNATE buffer, NOT the current one!
 don't auto select (active: ix === $.ix) an item in the list unless we have focus
 redo home, next, prev keybinds for explorer to not use ctrl + hjkl
