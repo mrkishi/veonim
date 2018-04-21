@@ -1,11 +1,12 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+remove 'name' -> element.id support in overlay2. id is now set by uikit2
 
 -- hyperapp -> react
 *buffers
-autocomplete
-change-project
+*autocomplete
+*change-project
 code-actions
 grep
 messages

@@ -46,7 +46,7 @@ export const RowComplete = s<Props>(styled.div)`
   padding-top: 0;
   padding-bottom: 0;
   padding-left: 0;
-  padding-right: 0;
+  padding-right: 8px;
 `
 
 // TODO: color use css var instead!

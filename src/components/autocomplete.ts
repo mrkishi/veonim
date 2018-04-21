@@ -1,24 +1,13 @@
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
+import { RowNormal, RowComplete } from '../components/row-container'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
-import { h, app, Actions } from '../ui/uikit'
-import Overlay from '../components/overlay'
+import Overlay from '../components/overlay2'
 import { cursor } from '../core/cursor'
-import { Row } from '../styles/common'
-import Icon from '../components/icon'
+import Icon from '../components/icon2'
+import { h, app } from '../ui/uikit2'
 import { paddingVH } from '../ui/css'
-
-interface State {
-  options: CompletionOption[],
-  visible: boolean,
-  ix: number,
-  x: number,
-  y: number,
-  documentation?: string,
-  anchorAbove: boolean,
-  visibleOptions: number,
-}
 
 interface ShowParams {
   row: number,
@@ -28,25 +17,28 @@ interface ShowParams {
 
 const MAX_VISIBLE_OPTIONS = 12
 
-const state: State = {
-  anchorAbove: false,
-  options: [],
-  visible: false,
-  ix: 0,
+const state = {
   x: 0,
   y: 0,
+  ix: 0,
+  anchorAbove: false,
+  options: [] as CompletionOption[],
+  visible: false,
+  documentation: {} as any,
   visibleOptions: MAX_VISIBLE_OPTIONS,
 }
+
+type S = typeof state
 
 // const pos: { container: ClientRect } = {
 //   container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
 // }
 
 const icons = new Map([
-  [ CompletionItemKind.Text, Icon('chevrons-right') ],
+  [ CompletionItemKind.Text, Icon('ChevronsRight') ],
   [ CompletionItemKind.Method, Icon('box', { color: '#bb5ef1' }) ],
   [ CompletionItemKind.Property, Icon('disc', { color: '#54c8ff' }) ],
-  [ CompletionItemKind.Function, Icon('share-2', { color: '#6da7ff' }) ],
+  [ CompletionItemKind.Function, Icon('Share2', { color: '#6da7ff' }) ],
   [ CompletionItemKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
   [ CompletionItemKind.Field, Icon('feather', { color: '#9866ff' }) ],
   [ CompletionItemKind.Variable, Icon('database', { color: '#ff70e4' }) ],
@@ -73,7 +65,7 @@ const icons = new Map([
 
 const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || Icon('code')
 
-const docs = (data: string) => Row.normal({
+const docs = (data: string) => h(RowNormal, {
   style: {
     ...paddingVH(6, 4),
     paddingTop: '6px',
@@ -83,10 +75,36 @@ const docs = (data: string) => Row.normal({
     background: 'var(--background-45)',
     fontSize: `${canvasContainer.font.size - 2}px`,
   }
-}, data)
+}, [
+  ,h('span', data)
+])
 
-const view = ($: State) => Overlay({
-  name: 'autocomplete',
+const actions = {
+  hide: () => ({ visible: false, ix: 0 }),
+  showDocs: (_s: S, documentation: any) => ({ documentation }),
+
+  show: (_s: S, { anchorAbove, visibleOptions, options, x, y, ix = -1 }: any) => ({
+    visibleOptions,
+    anchorAbove,
+    options,
+    ix,
+    x,
+    y,
+    visible: true,
+    documentation: undefined
+  }),
+
+  select: (s: S, ix: number) => {
+    const completionItem = (s.options[ix] || {}).raw
+
+    if (completionItem) getCompletionDetail(completionItem)
+      .then(m => m.documentation && ui.showDocs(m.documentation))
+
+    return { ix, documentation: undefined }
+  },
+}
+
+const ui = app({ name: 'autocomplete', state, actions, view: $ => Overlay({
   x: $.x,
   y: $.y,
   zIndex: 200,
@@ -104,12 +122,9 @@ const view = ($: State) => Overlay({
       overflowY: 'hidden',
       maxHeight: `${canvasContainer.cell.height * $.visibleOptions}px`,
     }
-  }, $.options.map(({ text, kind }, id) => Row.complete({
-    // TODO: upgrade hyperapp
-    // THIS BREAKS EVERYTHING WHAT THE FUCK HYPERAPP IS GARBAGE
-    // (entire app freezes and hangs)
-    // key: text,
-    activeWhen: id === $.ix,
+  }, $.options.map(({ text, kind }, id) => h(RowComplete, {
+    key: `${text}-${kind}`,
+    active: id === $.ix,
     // TODO: no scrolling because slow
     // onupdate: (e: HTMLElement) => {
     //   if (id !== $.ix) return
@@ -121,7 +136,6 @@ const view = ($: State) => Overlay({
     ,h('div', {
       style: {
         display: 'flex',
-        marginLeft: '-6px',
         // TODO: this doesn't scale with font size?
         width: '24px',
         marginRight: '2px',
@@ -137,34 +151,7 @@ const view = ($: State) => Overlay({
 
   ,$.documentation && !$.anchorAbove && docs($.documentation)
 
-])
-
-const a: Actions<State> = {}
-
-a.hide = () => ({ visible: false, ix: 0 })
-a.showDocs = (_s, _a, documentation) => ({ documentation })
-
-a.show = (_s, _a, { anchorAbove, visibleOptions, options, x, y, ix = -1 }) => ({
-  visibleOptions,
-  anchorAbove,
-  options,
-  ix,
-  x,
-  y,
-  visible: true,
-  documentation: undefined
-})
-
-a.select = (s, a, ix: number) => {
-  const completionItem = (s.options[ix] || {}).raw
-
-  if (completionItem) getCompletionDetail(completionItem)
-    .then(m => m.documentation && a.showDocs(m.documentation))
-
-  return { ix, documentation: undefined }
-}
-
-const ui = app({ state, view, actions: a }, false)
+]) })
 
 export const hide = () => ui.hide()
 export const select = (index: number) => ui.select(index)
