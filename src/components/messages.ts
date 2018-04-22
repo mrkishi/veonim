@@ -29,12 +29,12 @@ const IconBox = styled.div`
 
 // TODO: maybe this can be shared with notifications.ts component
 const icons = new Map([
-  ['error', { icon: 'error', color: colors.error }],
-  ['warning', { icon: 'warning', color: colors.warning }],
+  ['error', { icon: 'xCircle', color: colors.error }],
+  ['warning', { icon: 'alertTriangle', color: colors.warning }],
   ['success', { icon: 'CheckCircle', color: colors.success }],
   ['info', { icon: 'MessageCircle', color: '#eee' }],
   ['hidden', { icon: 'MessageCircle', color: '#eee' }],
-  ['system', { icon: 'info', color: colors.system }],
+  ['system', { icon: 'alertCircle', color: colors.system }],
 ])
 
 const getIcon = (kind: NotifyKind) => {
