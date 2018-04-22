@@ -71,3 +71,8 @@ export const RowImportant = s<Props>(styled.div)`
   background: var(--background-50);
   color: var(--important);
 `
+
+export const RowGroup = styled.div`
+  paddingTop: 4px;
+  paddingBottom: 4px;
+`

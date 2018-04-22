@@ -1,10 +1,10 @@
 import { action, call, current, feedkeys, expr, jumpTo } from '../core/neovim'
-import { RowNormal, RowHeader } from '../components/row-container'
+import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import Input from '../components/text-input2'
-import { h, app, styled } from '../ui/uikit2'
 import Worker from '../messaging/worker'
 import Badge from '../components/badge'
+import { h, app } from '../ui/uikit2'
 
 type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, SearchResult[]]
@@ -19,11 +19,6 @@ interface SearchResult {
   col: number,
   text: string,
 }
-
-const RowGroup = styled.div`
-  paddingTop: 4px;
-  paddingBottom: 4px;
-`
 
 let elref: HTMLElement
 const SCROLL_AMOUNT = 0.25

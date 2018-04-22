@@ -1,25 +1,16 @@
-import { h, app, style, Actions, ActionCaller, vimBlur, vimFocus } from '../ui/uikit'
+import { RowHeader, RowDesc, RowGroup } from '../components/row-container'
+import { h, app, vimBlur, vimFocus, styled } from '../ui/uikit2'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
-import { cmd, feedkeys, current } from '../core/neovim'
+import { current, jumpTo } from '../core/neovim'
 import { simplifyPath } from '../support/utils'
-import { Row, Badge } from '../styles/common'
-import Input from '../components/text-input'
+import Input from '../components/text-input2'
 import { Problem } from '../ai/diagnostics'
 import { filter } from 'fuzzaldrin-plus'
-import Icon from '../components/icon'
+import Badge from '../components/badge'
+import Icon from '../components/icon2'
 import { clipboard } from 'electron'
 import { join } from 'path'
-
-interface State {
-  focus: boolean,
-  val: string,
-  problems: Problem[],
-  cache: Problem[],
-  vis: boolean,
-  ix: number,
-  subix: number,
-}
 
 let elref: HTMLElement
 const SCROLL_AMOUNT = 0.4
@@ -51,32 +42,33 @@ const selectResult = (results: Problem[], ix: number, subix: number) => {
   const { range: { start: { line, character } } } = items[subix]
 
   const path = join(dir, file)
-  cmd(`e ${path}`)
-  feedkeys(`${line + 1}Gzz${character + 1}|`)
+  jumpTo({ path, line, column: character })
 }
 
-const state: State = {
+const state = {
   focus: false,
   val: '',
-  problems: [],
-  cache: [],
+  problems: [] as Problem[],
+  cache: [] as Problem[],
   vis: false,
   ix: 0,
   subix: 0,
 }
 
-const IconBox = style('div')({
-  display: 'flex',
-  alignItems: 'center',
-  paddingRight: '10px',
-})
+type S = typeof state
+
+const IconBox = styled.div`
+  display: flex;
+  align-items: center;
+  padding-right: 10px;
+`
 
 const icons = {
-  [DiagnosticSeverity.Error]: Icon('error', {
+  [DiagnosticSeverity.Error]: Icon('xCircle', {
     color: '#ef2f2f',
     size: canvasContainer.font.size + 4,
   }),
-  [DiagnosticSeverity.Warning]: Icon('error', {
+  [DiagnosticSeverity.Warning]: Icon('xCircle', {
     color: '#ffb100',
     size: canvasContainer.font.size + 4,
   })
@@ -88,7 +80,62 @@ const position: { container: ClientRect } = {
   container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
 }
 
-const view = ($: State, actions: ActionCaller) => h('#problems', {
+const actions = {
+  toggle: (s: S) => ({ vis: !s.vis }),
+  hide: () => (vimFocus(), { focus: false }),
+  focus: () => (vimBlur(), { focus: true, vis: true }),
+  yank: (s: S) => clipboard.writeText(s.val),
+
+  updateProblems: (_s: S, problems: Problem[]) => ({
+    ix: 0,
+    subix: -1,
+    problems,
+    cache: problems,
+  }),
+
+  change: (s: S, val: string) => ({ val, problems: val
+    ? filter(s.problems, val, { key: 'file' })
+    : s.cache
+  }),
+
+  nextGroup: (s: S) => {
+    const next = s.ix + 1 > s.problems.length - 1 ? 0 : s.ix + 1
+    scrollIntoView(next)
+    return { subix: -1, ix: next }
+  },
+
+  prevGroup: (s: S) => {
+    const next = s.ix - 1 < 0 ? s.problems.length - 1 : s.ix - 1
+    scrollIntoView(next)
+    return { subix: -1, ix: next }
+  },
+
+  next: (s: S) => {
+    const items = (Reflect.get(s.problems, s.ix) || {}).items || []
+    const next = s.subix + 1 < items.length ? s.subix + 1 : 0
+    selectResult(s.problems, s.ix, next)
+    return { subix: next }
+  },
+
+  prev: (s: S) => {
+    const items = (Reflect.get(s.problems, s.ix) || {}).items || []
+    const prev = s.subix - 1 < 0 ? items.length - 1 : s.subix - 1
+    selectResult(s.problems, s.ix, prev)
+    return { subix: prev }
+  },
+
+  down: () => {
+    const { height } = elref.getBoundingClientRect()
+    elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
+  },
+
+  up: () => {
+    const { height } = elref.getBoundingClientRect()
+    elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
+  },
+}
+
+const ui = app({ name: 'problems', state, actions, view: ($, a) => h('div', {
   style: {
     background: 'var(--background-45)',
     color: '#eee',
@@ -102,8 +149,15 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
 }, [
 
   ,Input({
-    ...actions,
-    val: $.val,
+    up: a.up,
+    hide: a.hide,
+    next: a.next,
+    prev: a.prev,
+    down: a.down,
+    change: a.change,
+    nextGroup: a.nextGroup,
+    prevGroup: a.prevGroup,
+    value: $.val,
     focus: $.focus,
     small: true,
     icon: 'filter',
@@ -111,17 +165,23 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
   })
 
   ,h('div', {
-    onupdate: (e: HTMLElement) => elref = e,
+    ref: (e: HTMLElement) => {
+      if (e) elref = e
+    },
     style: {
       display: 'flex',
       flexFlow: 'column',
       overflow: 'hidden',
     }
   }, $.problems.map(({ file, dir, items }, pos) => h('div', {
-    oncreate: (e: HTMLElement) => els.set(pos, e),
+    ref: (e: HTMLElement) => {
+      if (e) els.set(pos, e)
+    },
   }, [
 
-    ,Row.header({ activeWhen: pos === $.ix }, [
+    ,h(RowHeader, {
+      active: pos === $.ix,
+    }, [
       ,h('span', file),
       ,h('span', {
         style: {
@@ -131,19 +191,25 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
           fontSize: `${canvasContainer.font.size} - 2px`,
         }
       }, simplifyPath(dir, current.cwd)),
-      ,Badge(items.length)
+
+      ,h(Badge, [
+        ,h('span', items.length)
+      ])
     ])
 
-    ,pos === $.ix && Row.group({}, items.map(({ severity, message, range }, itemPos) => Row.desc({
-      activeWhen: itemPos === $.subix,
-      onupdate: (e: HTMLElement) => {
-        if (itemPos !== $.subix) return
+    ,pos === $.ix && h(RowGroup, {}, items.map(({ severity, message, range }, itemPos) => h(RowDesc, {
+      key: `${message}-${range.start.line}-${range.start.character}-${range.end.line}-${range.end.character}`,
+      active: itemPos === $.subix,
+      ref: (e: HTMLElement) => {
+        if (itemPos !== $.subix || !e || !e.getBoundingClientRect) return
         const { top, bottom } = e.getBoundingClientRect()
         if (top < position.container.top) return e.scrollIntoView(true)
         if (bottom > position.container.bottom) return e.scrollIntoView(false)
       },
     }, [
-      ,IconBox({}, getSeverityIcon(severity))
+      ,h(IconBox, [
+        ,getSeverityIcon(severity)
+      ])
 
       ,h('div', {
         style: {
@@ -155,64 +221,8 @@ const view = ($: State, actions: ActionCaller) => h('#problems', {
     ])))
 
   ])))
-])
 
-const a: Actions<State> = {}
-
-a.toggle = s => ({ vis: !s.vis })
-a.hide = () => (vimFocus(), { focus: false })
-a.focus = () => (vimBlur(), { focus: true, vis: true })
-a.yank = s => clipboard.writeText(s.val)
-
-a.updateProblems = (_s, _a, problems) => ({
-  ix: 0,
-  subix: -1,
-  problems,
-  cache: problems,
-})
-
-a.change = (s, _a, val: string) => ({ val, problems: val
-  ? filter(s.problems, val, { key: 'file' })
-  : s.cache
-})
-
-a.nextGroup = s => {
-  const next = s.ix + 1 > s.problems.length - 1 ? 0 : s.ix + 1
-  scrollIntoView(next)
-  return { subix: -1, ix: next }
-}
-
-a.prevGroup = s => {
-  const next = s.ix - 1 < 0 ? s.problems.length - 1 : s.ix - 1
-  scrollIntoView(next)
-  return { subix: -1, ix: next }
-}
-
-a.next = s => {
-  const items = (Reflect.get(s.problems, s.ix) || {}).items || []
-  const next = s.subix + 1 < items.length ? s.subix + 1 : 0
-  selectResult(s.problems, s.ix, next)
-  return { subix: next }
-}
-
-a.prev = s => {
-  const items = (Reflect.get(s.problems, s.ix) || {}).items || []
-  const prev = s.subix - 1 < 0 ? items.length - 1 : s.subix - 1
-  selectResult(s.problems, s.ix, prev)
-  return { subix: prev }
-}
-
-a.down = () => {
-  const { height } = elref.getBoundingClientRect()
-  elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
-}
-
-a.up = () => {
-  const { height } = elref.getBoundingClientRect()
-  elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
-}
-
-const ui = app({ state, view, actions: a }, false)
+]) })
 
 export const hide = () => ui.hide()
 export const focus = () => ui.focus()
