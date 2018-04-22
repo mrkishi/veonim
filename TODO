@@ -1,6 +1,8 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+adjust positioning of new react plugins to be correct (center or float right, etc.)
+
 neovim.jumpTo: don't hide cursor/cursorline from background window.
   we want to jump to and see results in window
 
@@ -17,9 +19,9 @@ remove 'name' -> element.id support in overlay2. id is now set by uikit2
 *vim-rename
 *vim-switch
 *user-menu-overlay
+*grep
+*references
 
-grep
-references
 statusline
 messages
 problems

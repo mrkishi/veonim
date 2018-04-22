@@ -1,7 +1,9 @@
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
-import { Plugin, Row, Badge } from '../styles/common'
-import { cmd, feedkeys } from '../core/neovim'
-import Input from '../components/text-input'
+import { RowNormal, RowHeader } from '../components/row-container'
+import { PluginRight } from '../components/plugin-container'
+import Input from '../components/text-input2'
+import { h, app, styled } from '../ui/uikit2'
+import Badge from '../components/badge'
+import { jumpTo } from '../core/neovim'
 
 type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, SearchResult[]]
@@ -12,31 +14,27 @@ export interface SearchResult {
   text: string,
 }
 
-interface State {
-  val: string,
-  referencedSymbol: string,
-  references: Result[],
-  cache: Result[],
-  vis: boolean,
-  ix: number,
-  subix: number,
-  loading: boolean,
-}
+const RowGroup = styled.div`
+  paddingTop: 4px;
+  paddingBottom: 4px;
+`
 
 let elref: HTMLElement
 const SCROLL_AMOUNT = 0.25
 const els = new Map<number, HTMLElement>()
 
-const state: State = {
+const state = {
   val: '',
   referencedSymbol: '',
-  references: [],
-  cache: [],
+  references: [] as Result[],
+  cache: [] as Result[],
   vis: false,
   ix: 0,
   subix: -1,
   loading: false,
 }
+
+type S = typeof state
 
 // scroll after next section has been rendered as expanded (a little hacky)
 const scrollIntoView = (next: number) => setTimeout(() => {
@@ -59,13 +57,8 @@ const scrollIntoView = (next: number) => setTimeout(() => {
 const selectResult = (references: Result[], ix: number, subix: number) => {
   if (subix < 0) return
   const [ path, items ] = references[ix]
-  const { line } = items[subix]
-  openResult(path, line)
-}
-
-const openResult = (path: string, line: number) => {
-  cmd(`e ${path}`)
-  feedkeys(`${line}G`)
+  const { line, column } = items[subix]
+  jumpTo({ line, column, path })
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: {
@@ -85,11 +78,81 @@ const highlightPattern = (text: string, pattern: string, { normal, special }: {
     }, [] as string[])
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.right('references', $.vis, [
+const resetState = { vis: false, references: [] } 
+
+const actions =  {
+  hide: () => resetState,
+
+  show: (_s: S, { references, referencedSymbol }: any) => ({
+    references,
+    referencedSymbol,
+    cache: references,
+    vis: true,
+    val: '',
+    ix: 0,
+    subix: -1,
+    loading: false,
+  }),
+
+  select: (s: S) => {
+    if (!s.references.length) return resetState
+    selectResult(s.references, s.ix, s.subix)
+    return resetState
+  },
+
+  change: (s: S, val: string) => ({ val, references: val
+    ? s.cache.filter(m => m[0].toLowerCase().includes(val))
+    : s.cache
+  }),
+
+  nextGroup: (s: S) => {
+    const next = s.ix + 1 > s.references.length - 1 ? 0 : s.ix + 1
+    scrollIntoView(next)
+    return { subix: -1, ix: next }
+  },
+
+  prevGroup: (s: S) => {
+    const next = s.ix - 1 < 0 ? s.references.length - 1 : s.ix - 1
+    scrollIntoView(next)
+    return { subix: -1, ix: next }
+  },
+
+  next: (s: S) => {
+    const next = s.subix + 1 < s.references[s.ix][1].length ? s.subix + 1 : 0
+    selectResult(s.references, s.ix, next)
+    return { subix: next }
+  },
+
+  prev: (s: S) => {
+    const prev = s.subix - 1 < 0 ? s.references[s.ix][1].length - 1 : s.subix - 1
+    selectResult(s.references, s.ix, prev)
+    return { subix: prev }
+  },
+
+  down: () => {
+    const { height } = elref.getBoundingClientRect()
+    elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
+  },
+
+  up: () => {
+    const { height } = elref.getBoundingClientRect()
+    elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
+  },
+}
+
+const ui = app({ name: 'references', state, actions, view: ($, a) => PluginRight($.vis, [
 
   ,Input({
-    ...actions,
-    val: $.val,
+    up: a.up,
+    hide: a.hide,
+    next: a.next,
+    prev: a.prev,
+    down: a.down,
+    select: a.select,
+    change: a.change,
+    nextGroup: a.nextGroup,
+    prevGroup: a.prevGroup,
+    value: $.val,
     focus: true,
     icon: 'filter',
     desc: 'filter references',
@@ -97,22 +160,33 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('references', $.v
 
   // TODO: render keys? idk about keys they seem to not work like in react...
   ,h('div', {
-    onupdate: (e: HTMLElement) => elref = e,
+    ref: (e: HTMLElement) => {
+      if (e) elref = e
+    },
     style: {
       maxHeight: '100%',
       overflow: 'hidden',
     },
   }, $.references.map(([ path, items ], pos) => h('div', {
-    oncreate: (e: HTMLElement) => els.set(pos, e),
+    ref: (e: HTMLElement) => {
+      if (e) els.set(pos, e)
+    },
   }, [
 
-    ,Row.header({ activeWhen: pos === $.ix }, [
+    ,h(RowHeader, {
+      active: pos === $.ix,
+    }, [
       ,h('span', path),
-      ,Badge(items.length, { marginLeft: '12px' })
+      ,h(Badge, {
+        style: { marginLeft: '12px' },
+      }, [
+        ,h('span', items.length)
+      ])
     ])
 
-    ,pos === $.ix && Row.group({}, items.map((f, itemPos) => Row.normal({
-      activeWhen: pos === $.ix && itemPos === $.subix
+    ,pos === $.ix && h(RowGroup, {}, items.map((f, itemPos) => h(RowNormal, {
+      key: `${f.line}-${f.column}-${f.text}`,
+      active: pos === $.ix && itemPos === $.subix
     }, highlightPattern(f.text, $.referencedSymbol, {
 
       normal: (text, last) => h('div', {
@@ -134,69 +208,7 @@ const view = ($: State, actions: ActionCaller) => Plugin.right('references', $.v
 
   ])))
 
-])
-
-const a: Actions<State> = {}
-
-a.hide = () => ({ vis: false, references: [] })
-
-a.show = (_s, _a, { references, referencedSymbol }) => ({
-  references,
-  referencedSymbol,
-  cache: references,
-  vis: true,
-  val: '',
-  ix: 0,
-  subix: -1,
-  loading: false,
-})
-
-a.select = (s, a) => {
-  if (!s.references.length) return a.hide()
-  selectResult(s.references, s.ix, s.subix)
-  a.hide()
-}
-
-a.change = (s, _a, val: string) => ({ val, references: val
-  ? s.cache.filter(m => m[0].toLowerCase().includes(val))
-  : s.cache
-})
-
-a.nextGroup = s => {
-  const next = s.ix + 1 > s.references.length - 1 ? 0 : s.ix + 1
-  scrollIntoView(next)
-  return { subix: -1, ix: next }
-}
-
-a.prevGroup = s => {
-  const next = s.ix - 1 < 0 ? s.references.length - 1 : s.ix - 1
-  scrollIntoView(next)
-  return { subix: -1, ix: next }
-}
-
-a.next = s => {
-  const next = s.subix + 1 < s.references[s.ix][1].length ? s.subix + 1 : 0
-  selectResult(s.references, s.ix, next)
-  return { subix: next }
-}
-
-a.prev = s => {
-  const prev = s.subix - 1 < 0 ? s.references[s.ix][1].length - 1 : s.subix - 1
-  selectResult(s.references, s.ix, prev)
-  return { subix: prev }
-}
-
-a.down = () => {
-  const { height } = elref.getBoundingClientRect()
-  elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
-}
-
-a.up = () => {
-  const { height } = elref.getBoundingClientRect()
-  elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
-}
-
-const ui = app({ state, view, actions: a })
+]) })
 
 export const show = (references: Result[], referencedSymbol?: string) =>
   ui.show({ references, referencedSymbol })
