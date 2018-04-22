@@ -1,4 +1,4 @@
-import { h } from '../ui/coffee'
+import { h } from '../ui/uikit2'
 
 interface Props {
   name?: string,

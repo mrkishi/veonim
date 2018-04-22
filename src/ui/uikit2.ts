@@ -21,8 +21,9 @@ if (process.env.VEONIM_DEV || process.env.NODE_ENV === 'test') {
   }
 }
 
+const React = require(reactModule)
 const ReactDom = require(reactDomModule)
-export const React = require(reactModule)
+export const renderDom = (vNode: any, element: HTMLElement) => ReactDom.render(vNode, element)
 export const h = hyperscript(React.createElement)
 export const styled = sc
 export const s = sct

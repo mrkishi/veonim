@@ -2,7 +2,7 @@ import { connect } from '../state/trade-federation'
 import { Documentation } from '../styles/common'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay2'
-import { h, styled } from '../ui/coffee'
+import { h, styled } from '../ui/uikit2'
 import { Hint } from '../state/hint'
 import { cvar } from '../ui/css'
 

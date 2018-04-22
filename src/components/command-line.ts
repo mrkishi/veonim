@@ -4,7 +4,7 @@ import { connect } from '../state/trade-federation'
 import { CommandLine } from '../state/command-line'
 import Input from '../components/text-input2'
 import { CommandType } from '../core/render'
-import { h } from '../ui/coffee'
+import { h } from '../ui/uikit2'
 
 const modeSwitch = new Map([
   [ CommandType.Ex, 'command' ],

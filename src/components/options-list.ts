@@ -1,5 +1,5 @@
 import { merge } from '../support/utils'
-import { h } from '../ui/coffee'
+import { h } from '../ui/uikit2'
 
 const activeStyle = 'determine what the active style should be?'
 

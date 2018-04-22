@@ -2,7 +2,7 @@ import { ProblemInfo } from '../state/problem-info'
 import { connect } from '../state/trade-federation'
 import Overlay from '../components/overlay2'
 import Icon from '../components/icon2'
-import { h } from '../ui/coffee'
+import { h } from '../ui/uikit2'
 import { cvar } from '../ui/css'
 
 const view = ({ data: $ }: { data: ProblemInfo }) => Overlay({

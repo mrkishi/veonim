@@ -1,6 +1,6 @@
 import * as canvasContainer from '../core/canvas-container'
 import Icon from '../components/icon2'
-import { h } from '../ui/coffee'
+import { h } from '../ui/uikit2'
 
 export interface LoaderParams {
   size?: number,

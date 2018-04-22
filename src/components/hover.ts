@@ -2,7 +2,7 @@ import { connect } from '../state/trade-federation'
 import { Documentation } from '../styles/common'
 import Overlay from '../components/overlay2'
 import { Hover } from '../state/hover'
-import { h } from '../ui/coffee'
+import { h } from '../ui/uikit2'
 import { cvar } from '../ui/css'
 
 const docs = (data: string) => h(Documentation, [ h('div', data) ])

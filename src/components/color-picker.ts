@@ -5,7 +5,7 @@ const { ChromePicker } = require('react-color')
 import Overlay from '../components/overlay2'
 import { throttle } from '../support/utils'
 import onLoseFocus from '../ui/lose-focus'
-import { h, styled } from '../ui/coffee'
+import { h, styled } from '../ui/uikit2'
 
 export interface ColorPickerProps {
   color: string,

@@ -1,4 +1,4 @@
-import { s, styled } from '../ui/coffee'
+import { s, styled } from '../ui/uikit2'
 
 interface Props {
   active: boolean

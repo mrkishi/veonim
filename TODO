@@ -42,9 +42,6 @@ options-list.ts
 overlay.ts
 text-input.ts
 
--- also needs to go:
-ui/coffee.ts
-
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix
 

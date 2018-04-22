@@ -3,7 +3,7 @@ import { hideCursor, showCursor } from '../core/cursor'
 import { vimBlur, vimFocus } from '../ui/uikit2'
 import Loading from '../components/loading2'
 import { paddingVH, cvar } from '../ui/css'
-import { h, styled } from '../ui/coffee'
+import { h, styled } from '../ui/uikit2'
 import { xfrmUp } from '../core/input'
 import Icon from '../components/icon2'
 

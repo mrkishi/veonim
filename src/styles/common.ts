@@ -1,7 +1,7 @@
 import { setVar, paddingVH, paddingH, paddingV, contrast, darken, brighten } from '../ui/css'
 import $, { watch } from '../core/state'
 import { is } from '../support/utils'
-import { styled } from '../ui/coffee'
+import { styled } from '../ui/uikit2'
 import { style } from '../ui/uikit'
 
 type WhateverObject = { [index: string]: any }

@@ -1,7 +1,7 @@
 import * as canvasContainer from '../core/canvas-container'
 const featherIcons = require('react-feather')
 import { pascalCase } from '../support/utils'
-import { h } from '../ui/coffee'
+import { h } from '../ui/uikit2'
 
 export interface IconParams {
   color?: string,
