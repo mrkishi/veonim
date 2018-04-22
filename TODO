@@ -22,9 +22,8 @@ remove 'name' -> element.id support in overlay2. id is now set by uikit2
 *grep
 *references
 *messages
-
-statusline
-problems
+*problems
+*statusline
 
 // what is difference between user-menu and generic-menu?
 user-menu
