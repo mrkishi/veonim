@@ -1,63 +1,65 @@
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
-import { Plugin, Row } from '../styles/common'
+import { Plugin } from '../components/plugin-container'
+import { RowNormal } from '../components/row-container'
 import { action, call } from '../core/neovim'
-import Input from '../components/text-input'
+import Input from '../components/text-input2'
 import { filter } from 'fuzzaldrin-plus'
+import { h, app } from '../ui/uikit2'
 
-interface State {
-  id: number,
-  vis: boolean,
-  val: string,
-  desc: string,
-  items: string[],
-  cache: string[],
-  ix: number,
-}
-
-const state: State = {
+const state = {
   id: 0,
-  vis: false,
-  val: '',
-  items: [],
-  cache: [],
+  visible: false,
+  value: '',
+  items: [] as string[],
+  cache: [] as string[],
   desc: '',
-  ix: 0,
+  index: 0,
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('user-menu', $.vis, [
+type S = typeof state
+
+const resetState = { value: '', visible: false, index: 0 }
+
+const actions = {
+  select: (s: S) => {
+    if (!s.items.length) return resetState
+    const item = s.items[s.index]
+    if (item) call.VeonimCallback(s.id, item)
+    return resetState
+  },
+
+  // TODO: not hardcoded 14
+  change: (s: S, value: string) => ({ value, items: value
+    ? filter(s.cache, value).slice(0, 14)
+    : s.cache.slice(0, 14)
+  }),
+
+  hide: () => resetState,
+  show: (_s: S, { id, items, desc }: any) => ({ id, desc, items, cache: items, visible: true }),
+  next: (s: S) => ({ index: s.index + 1 > Math.min(s.items.length - 1, 13) ? 0 : s.index + 1 }),
+  prev: (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.items.length - 1, 13) : s.index - 1 }),
+}
+
+const ui = app({ name: 'user-menu', state, actions, view: ($, a) => Plugin($.visible, [
+
   ,Input({
-    ...actions,
-    val: $.val,
+    select: a.select,
+    change: a.change,
+    hide: a.hide,
+    next: a.next,
+    prev: a.prev,
+    value: $.value,
     desc: $.desc,
     focus: true,
     icon: 'user',
   })
 
-  ,h('div', $.items.map((item, key) => Row.normal({ key, activeWhen: key === $.ix }, item)))
+  ,h('div', $.items.map((item, ix) => h(RowNormal, {
+    key: item,
+    active: ix === $.index,
+  }, [
+    ,h('span', item)
+  ])))
 
-])
+]) })
 
-const a: Actions<State> = {}
-
-a.select = (s, a) => {
-  if (!s.items.length) return a.hide()
-  const item = s.items[s.ix]
-  if (item) call.VeonimCallback(s.id, item)
-  a.hide()
-}
-
-// TODO: not hardcoded 14
-a.change = (s, _a, val: string) => ({ val, items: val
-  ? filter(s.cache, val).slice(0, 14)
-  : s.cache.slice(0, 14)
-})
-
-a.show = (_s, _a, { id, items, desc }) => ({ id, desc, items, cache: items, vis: true })
-a.hide = () => ({ val: '', vis: false, ix: 0 })
-a.next = s => ({ ix: s.ix + 1 > Math.min(s.items.length - 1, 13) ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.items.length - 1, 13) : s.ix - 1 })
-
-const ui = app({ state, view, actions: a })
-
-action('user-menu', (id: number, desc: string, items = []) =>
-  items.length && ui.show({ id, items, desc }))
+action('user-menu', (id: number, desc: string, items = []) => items.length && ui.show({ id, items, desc }))
