@@ -1,6 +1,9 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+neovim.jumpTo: don't hide cursor/cursorline from background window.
+  we want to jump to and see results in window
+
 remove 'name' -> element.id support in overlay2. id is now set by uikit2
 
 -- hyperapp -> react
@@ -8,17 +11,18 @@ remove 'name' -> element.id support in overlay2. id is now set by uikit2
 *autocomplete
 *change-project
 *code-actions
-grep
-messages
 *nc
-problems
-references
-statusline
 *symbols
 *vim-create
 *vim-rename
 *vim-switch
 *user-menu-overlay
+
+grep
+references
+statusline
+messages
+problems
 
 // what is difference between user-menu and generic-menu?
 user-menu
