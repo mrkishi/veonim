@@ -1,8 +1,9 @@
-import { h, app, Actions, ActionCaller } from '../ui/uikit'
-import { Plugin, Row } from '../styles/common'
-import { Task, CreateTask } from '../support/utils'
-import Input from '../components/text-input'
+import { Plugin } from '../components/plugin-container'
+import { RowNormal } from '../components/row-container'
+import { CreateTask } from '../support/utils'
+import Input from '../components/text-input2'
 import { filter } from 'fuzzaldrin-plus'
+import { h, app } from '../ui/uikit2'
 
 export interface MenuOption {
   key: any,
@@ -15,71 +16,70 @@ interface Props {
   icon?: string,
 }
 
-interface State {
-  visible: boolean,
-  value: string,
-  description: string,
-  options: MenuOption[],
-  cache: MenuOption[],
-  ix: number,
-  icon: string,
-  task?: Task<any>,
-}
-
-const state: State = {
+const state = {
   visible: false,
   value: '',
-  options: [],
-  cache: [],
+  options: [] as MenuOption[],
+  cache: [] as MenuOption[],
   description: '',
   ix: 0,
   icon: 'user',
+  task: CreateTask(),
 }
 
-const view = ($: State, actions: ActionCaller) => Plugin.default('user-menu', $.visible, [
+type S = typeof state
+
+const resetState = { value: '', visible: false, ix: 0 }
+
+const actions = {
+  select: (s: S) => {
+    if (!s.options.length) return resetState
+    s.task.done((s.options[s.ix] || {}).key)
+    return resetState
+  },
+
+  // TODO: not hardcoded 14
+  change: (s: S, value: string) => ({ value, options: value
+    ? filter(s.cache, value, { key: 'value' }).slice(0, 14)
+    : s.cache.slice(0, 14)
+  }),
+
+  show: (_s: S, { options, description, icon, task }: any) => ({
+    description,
+    options,
+    task,
+    icon,
+    cache: options,
+    visible: true
+  }),
+
+  hide: () => resetState,
+  next: (s: S) => ({ ix: s.ix + 1 > Math.min(s.options.length - 1, 13) ? 0 : s.ix + 1 }),
+  prev: (s: S) => ({ ix: s.ix - 1 < 0 ? Math.min(s.options.length - 1, 13) : s.ix - 1 }),
+}
+
+const ui = app({ name: 'generic-menu', state, actions, view: ($, a) => Plugin($.visible, [
+
   ,Input({
-    ...actions,
-    val: $.value,
+    select: a.select,
+    change: a.change,
+    hide: a.hide,
+    next: a.next,
+    prev: a.prev,
+    value: $.value,
     desc: $.description,
     focus: true,
     icon: $.icon,
   })
 
-  ,h('div', $.options.map(({ key, value }, id) => Row.normal({
+  ,h('div', $.options.map(({ key, value }, id) => h(RowNormal, {
     key,
-    activeWhen: id === $.ix
-  }, value)))
+    active: id === $.ix
+  }, [
+    ,h('span', value)
+  ])))
 
-])
-
-const a: Actions<State> = {}
-
-a.select = (s, a) => {
-  if (!s.options.length) return a.hide()
-  s.task && s.task.done((s.options[s.ix] || {}).key)
-  a.hide()
-}
-
-// TODO: not hardcoded 14
-a.change = (s, _a, value: string) => ({ value, options: value
-  ? filter(s.cache, value, { key: 'value' }).slice(0, 14)
-  : s.cache.slice(0, 14)
-})
-
-a.show = (_s, _a, { options, description, icon, task }) => ({
-  description,
-  options,
-  task,
-  icon,
-  cache: options,
-  visible: true
-})
-
-a.hide = () => ({ value: '', visible: false, ix: 0 })
-a.next = s => ({ ix: s.ix + 1 > Math.min(s.options.length - 1, 13) ? 0 : s.ix + 1 })
-a.prev = s => ({ ix: s.ix - 1 < 0 ? Math.min(s.options.length - 1, 13) : s.ix - 1 })
-
-const ui = app({ state, view, actions: a })
+]) })
 
 export default <T>(props: Props) => {
   const task = CreateTask<T>()

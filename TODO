@@ -25,7 +25,7 @@ remove 'name' -> element.id support in overlay2. id is now set by uikit2
 *problems
 *statusline
 *user-menu
-generic menu
+*generic menu
 
 -- react overkill -> react
 buffer search
