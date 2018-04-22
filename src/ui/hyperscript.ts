@@ -40,11 +40,12 @@ export default (createElement: Function) => (...a: any[]) => {
   if (classes) props.className = classes
 
   const { str, num } = argTypes(a.slice(1) as any) as any
+
   const children = [ ...($.arr || []) ]
   if (str || num) children.push(str || num)
 
   delete props.css
   delete props.render
 
-  return createElement(...[ tag, props ], ...children)
+  return createElement(tag, props, ...children.filter(m => m))
 }

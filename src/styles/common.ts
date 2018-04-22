@@ -70,6 +70,7 @@ setVar('system', '#28b0ff')
 setVar('important', '#ffd800')
 
 export const colors = {
+  info: '#eee',
   error: '#ef2f2f',
   warning: '#ffb100',
   success: '#72a940',

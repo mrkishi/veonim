@@ -1,10 +1,16 @@
 import { showCursor, hideCursor } from '../core/cursor'
+import { Component as ReactComponent } from 'react'
 import hyperscript from '../ui/hyperscript'
 import * as viminput from '../core/input'
 import sct from 'styled-components-ts'
 import { createStore } from 'redux'
 import sc from 'styled-components'
-import { Component } from 'react'
+
+// TODO: this is hack to make redux-devtools work with redux 4.0+
+const reduxModule = require('redux')
+reduxModule.__DO_NOT_USE__ActionTypes.INIT = '@@redux/INIT'
+reduxModule.__DO_NOT_USE__ActionTypes.REPLACE = '@@redux/REPLACE'
+// end dirty hack because javascript is a meme
 
 let reactModule = 'react/umd/react.production.min'
 let reactDomModule = 'react-dom/umd/react-dom.production.min.js'
@@ -25,6 +31,7 @@ const React = require(reactModule)
 const ReactDom = require(reactDomModule)
 export const renderDom = (vNode: any, element: HTMLElement) => ReactDom.render(vNode, element)
 export const h = hyperscript(React.createElement)
+export const Component = React.Component
 export const styled = sc
 export const s = sct
 
@@ -41,7 +48,7 @@ export const vimBlur = () => {
 export interface App<StateT, ActionT> {
   name: string,
   state: StateT,
-  view: (state: StateT, actions: { [K in keyof ActionT]: (data?: any) => void }) => Component,
+  view: (state: StateT, actions: { [K in keyof ActionT]: (data?: any) => void }) => ReactComponent,
   actions: { [K in keyof ActionT]: (state: StateT, data?: any) => void },
   element?: HTMLElement,
 }

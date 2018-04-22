@@ -45,10 +45,11 @@ export const Plugin = (visible: boolean, children: any[]) => h(NormalContainer, 
 
 ])
 
-export const PluginTop = (visible: boolean, children: any[]) => h(TopContainer, [
+export const PluginTop = (visible: boolean, children: any[], styles?: object) => h(TopContainer, [
 
   ,h(Dialog, {
     style: {
+      ...styles,
       width: '400px',
       display: visible ? 'flex' : 'none',
     }
