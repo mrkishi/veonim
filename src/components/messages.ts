@@ -1,44 +1,39 @@
-import { h, app, style, Actions, ActionCaller, vimBlur, vimFocus } from '../ui/uikit'
+import { h, app, styled, vimBlur, vimFocus } from '../ui/uikit2'
 import { NotifyKind, Notification } from '../ui/notifications'
 import * as canvasContainer from '../core/canvas-container'
-import { Row, colors } from '../styles/common'
-import Input from '../components/text-input'
+import { RowNormal } from '../components/row-container'
+import Input from '../components/text-input2'
+import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
 import { action } from '../core/neovim'
-import Icon from '../components/icon'
+import Icon from '../components/icon2'
 
-interface State {
-  query: string,
-  messages: Notification[],
-  cache: Notification[],
-  vis: boolean,
-  ix: number,
-}
-
-let elref: HTMLElement
-const SCROLL_AMOUNT = 0.4
-
-const state: State = {
+const state = {
   query: '',
-  messages: [],
-  cache: [],
+  messages: [] as Notification[],
+  cache: [] as Notification[],
   vis: false,
   ix: 0,
 }
 
-const IconBox = style('div')({
-  display: 'flex',
-  alignItems: 'center',
-  paddingRight: '10px',
-})
+type S = typeof state
+
+let elref: HTMLElement
+const SCROLL_AMOUNT = 0.4
+
+const IconBox = styled.div`
+  display: flex;
+  align-items: center;
+  padding-right: 10px;
+`
 
 // TODO: maybe this can be shared with notifications.ts component
 const icons = new Map([
   ['error', { icon: 'error', color: colors.error }],
   ['warning', { icon: 'warning', color: colors.warning }],
-  ['success', { icon: 'check-circle', color: colors.success }],
-  ['info', { icon: 'message-circle', color: '#eee' }],
-  ['hidden', { icon: 'message-circle', color: '#eee' }],
+  ['success', { icon: 'CheckCircle', color: colors.success }],
+  ['info', { icon: 'MessageCircle', color: '#eee' }],
+  ['hidden', { icon: 'MessageCircle', color: '#eee' }],
   ['system', { icon: 'info', color: colors.system }],
 ])
 
@@ -47,7 +42,37 @@ const getIcon = (kind: NotifyKind) => {
   return Icon(icon, { color, size: canvasContainer.font.size + 4 })
 }
 
-const view = ($: State, actions: ActionCaller) => h('#messages', {
+const actions =  {
+  toggle: (s: S) => {
+    const next = !s.vis
+    next ? vimBlur() : vimFocus()
+    return { vis: next }
+  },
+
+  hide: () => (vimFocus(), { vis: false }),
+
+  addMessage: (s: S, message: Notification) => ({
+    messages: [message, ...s.messages].slice(0, 500),
+    cache: [message, ...s.messages].slice(0, 500),
+  }),
+
+  change: (s: S, query: string) => ({ query, messages: query
+    ? filter(s.messages, query, { key: 'message' })
+    : s.cache
+  }),
+
+  down: () => {
+    const { height } = elref.getBoundingClientRect()
+    elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
+  },
+
+  up: () => {
+    const { height } = elref.getBoundingClientRect()
+    elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
+  },
+}
+
+const ui = app({ name: 'messages', state, actions, view: ($, a) => h('div', {
   style: {
     background: 'var(--background-45)',
     color: '#eee',
@@ -61,8 +86,11 @@ const view = ($: State, actions: ActionCaller) => h('#messages', {
 }, [
 
   ,Input({
-    ...actions,
-    val: $.query,
+    up: a.up,
+    hide: a.hide,
+    down: a.down,
+    change: a.change,
+    value: $.query,
     focus: true,
     small: true,
     icon: 'filter',
@@ -70,14 +98,18 @@ const view = ($: State, actions: ActionCaller) => h('#messages', {
   })
 
   ,h('div', {
-    onupdate: (e: HTMLElement) => elref = e,
+    ref: (e: HTMLElement) => {
+      if (e) elref = e
+    },
     style: { overflowY: 'hidden' }
-  // TODO: show timestamp and dedup. only dedup nearby?
-  }, $.messages.map(({ id, kind, message }, pos) => Row.normal({
+    // TODO: show timestamp and dedup. only dedup nearby?
+  }, $.messages.map(({ id, kind, message }, pos) => h(RowNormal, {
     key: id,
-    activeWhen: pos === $.ix
+    active: pos === $.ix
   }, [
-    ,IconBox({}, getIcon(kind))
+    ,h(IconBox, [
+      ,getIcon(kind)
+    ])
 
     ,h('span', {
       style: {
@@ -86,39 +118,7 @@ const view = ($: State, actions: ActionCaller) => h('#messages', {
     }, message)
   ])))
 
-])
-
-const a: Actions<State> = {}
-
-a.toggle = s => {
-  const next = !s.vis
-  next ? vimBlur() : vimFocus()
-  return { vis: next }
-}
-
-a.hide = () => (vimFocus(), { vis: false })
-
-a.addMessage = (s, _a, message) => ({
-  messages: [message, ...s.messages].slice(0, 500),
-  cache: [message, ...s.messages].slice(0, 500),
-})
-
-a.change = (s, _a, query: string) => ({ query, messages: query
-  ? filter(s.messages, query, { key: 'message' })
-  : s.cache
-})
-
-a.down = () => {
-  const { height } = elref.getBoundingClientRect()
-  elref.scrollTop += Math.floor(height * SCROLL_AMOUNT)
-}
-
-a.up = () => {
-  const { height } = elref.getBoundingClientRect()
-  elref.scrollTop -= Math.floor(height * SCROLL_AMOUNT)
-}
-
-const ui = app({ state, view, actions: a }, false)
+]) })
 
 export const addMessage = (message: Notification) => ui.addMessage(message)
 
