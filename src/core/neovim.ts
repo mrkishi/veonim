@@ -281,15 +281,10 @@ const getNamedBuffers = async () => {
 
 const findBuffer = async (name: string) => {
   const buffers = await getNamedBuffers()
-  const found = buffers.find(b => b.name === name) || {} as any
-  return found.buffer
-}
-
-const findBufferContainingName = async (name: string) => {
   // it appears that buffers name will have a fullpath, like
-  // `/Users/anna/${name}` so we will try to substring match the name
-  const buffers = await getNamedBuffers()
-  const found = buffers.find(buf => buf.name.includes(name)) || {} as any
+  // `/Users/anna/${name}` so we will try to substring match 
+  // the end of the name
+  const found = buffers.find(b => b.name.endsWith(name)) || {} as any
   return found.buffer
 }
 
@@ -313,7 +308,7 @@ export const addBuffer = async (name: string): Promise<Buffer> => {
   const id = uuid()
   cmd(`badd ${id}`)
 
-  const buffer = await findBufferContainingName(id)
+  const buffer = await findBuffer(id)
   if (!buffer) throw new Error(`addBuffer: could not find buffer '${id}' added with :badd ${name}`)
 
   // for some reason, buf.setName creates a new buffer? lolwut?
