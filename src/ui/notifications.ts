@@ -5,11 +5,6 @@ import { h, app, styled } from '../ui/uikit2'
 import { colors } from '../styles/common'
 import Badge from '../components/badge'
 import Icon from '../components/icon2'
-import { NodeGroup } from 'react-move'
-// import { animate } from '../ui/css'
-// const { Transition } = require('react-spring')
-// TODO: await typings
-// import { Transition } from 'react-spring'
 
 export enum NotifyKind {
   Error = 'error',
@@ -63,8 +58,6 @@ const IconBox = styled.div`
   align-items: center;
 `
 
-
-
 const actions = {
   notify: (s: S, notification: Notification) => {
     if (notification.kind === NotifyKind.Hidden) return
@@ -88,37 +81,21 @@ const actions = {
 
 const ui = app({ name: 'notifications', element: container, state, actions, view: $ => PluginTop(true, [
 
-  ,h(NodeGroup, {
-    data: $.notifications,
-    keyAccessor: n => n.id,
-    start: () => ({
-      opacity: 1e-6,
-      fill: 'green',
-    }),
-    enter: () => ({
-      opacity: [0.8],
-      timing: { duration: 150 },
-    }),
-    // leave: () => ({
-    //   opacity: 1,
-    //   timing: { duration: 999 },
-    // }),
-    // keys: $.notifications.map(n => n.id),
-    // from: { opacity: 0, height: 0 },
-    // enter: { opacity: 1, height: 20 },
-    // leave: { opacity: 0 },
-  // }, $.notifications.map(({ id, kind, message, count }) => () => h('div', {
-  }, [ 
-    (notifications: Notification[]) => h('div', notifications.map(({ kind, message, count }) => h('div', {
-      // key: id,
+  ,h('div', {
+    style: {
+      position: 'absolute',
+      background: 'none',
+      marginTop: '5px',
+    }
+  }, $.notifications.map(({ id, kind, message, count }) => h('div', {
+      key: id,
       style: {
         display: 'flex',
         padding: '10px',
         marginBottom: '6px',
         justifyContent: 'space-between',
         background: 'var(--background-50)',
-        color: '#fff',
-        // color: Reflect.get(colors, kind),
+        color: Reflect.get(colors, kind),
       },
       // onCreate: (e: HTMLElement) => animate(e, [
       //   { opacity: 0, transform: 'translateY(-100%) '},
@@ -140,9 +117,9 @@ const ui = app({ name: 'notifications', element: container, state, actions, view
           wordBreak: 'break-all',
         }
       }, [
-        // ,h(IconBox, [
-        //   ,Icon(getIcon(kind))
-        // ])
+        ,h(IconBox, [
+          ,Icon(getIcon(kind))
+        ])
 
         ,h('span', message)
       ])
@@ -153,14 +130,11 @@ const ui = app({ name: 'notifications', element: container, state, actions, view
         ,h('span', count)
       ])
 
-    ])))
-  ])
+    ]))
 
-], {
-  position: 'absolute',
-  background: 'none',
-  marginTop: '5px',
-}) })
+  )
+
+])})
 
 export const notify = (message: string, kind = NotifyKind.Info) => {
   const msg = {
