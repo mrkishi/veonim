@@ -77,9 +77,11 @@ const view = ($: typeof state, a: typeof actions) => Overlay({
   name: 'color-picker',
   x: $.x,
   y: $.y,
+  // TODO: lol nope
   zIndex: 999999,
   visible: $.visible,
   anchorAbove: $.anchorBottom,
+  // TODO: make sure this works
   onElement: el => el && onLoseFocus(el, a.hide),
 }, [
 

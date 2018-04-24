@@ -1,6 +1,11 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+create a simple hyperapp virtualized list component that simply renders dom nodes
+  given a slice of the list. you want the top of the list, slice(0, 10)
+  you want the end, slice(list.length - 10), etc. no mouse support for now.
+  keep it simple and easy. make it composable
+
 adjust positioning of new react plugins to be correct (center or float right, etc.)
 
 neovim.jumpTo: don't hide cursor/cursorline from background window.
@@ -8,7 +13,19 @@ neovim.jumpTo: don't hide cursor/cursorline from background window.
 
 remove 'name' -> element.id support in overlay2. id is now set by uikit2
 
--- hyperapp -> react
+back to hyperapp:
+- remove redux
+- create a wrapper around hyperapp? problems to solve:
+  - want to bind redux devtools if we are in dev mode
+  - by default would like to bind to #plugins container. dont want to specify on every call
+  - i like the object props syntax better
+  - for some reason not getting completions from 'ui' object. can force typings...
+
+- move icons out of this package. i thought about using react-feather but that
+  seems like overkill just to render an icon. would prefer to keep it lightweight
+  after all it's just an svg
+
+-- react -> hyperapp 
 *buffers
 *autocomplete
 *change-project
@@ -27,7 +44,7 @@ remove 'name' -> element.id support in overlay2. id is now set by uikit2
 *user-menu
 *generic menu
 
--- react overkill -> react
+-- react overkill -> hyperapp
 buffer search
 color picker
 command line
@@ -35,18 +52,25 @@ hint
 hover
 problem-info
 
--- delete components
-icon.ts
-loading.ts
-options-list.ts
-overlay.ts
-text-input.ts
+-- update logic to hyperapp version and TERMINATE
+icon2.ts
+loading2.ts
+options-list2.ts (what does this do again? - think its leftover unfinished rubbish)
+overlay2.ts
+text-input2.ts
 
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix
 
 is it just me or is the :Veonim buffers list also listing unlistable buffers?
 do we need to filter out the buffers according to BufferOption.Listed prop?
+
+- SHADOW BUFFERS -
+the problem with shadow buffers is that our current neovim window render strategy
+just picks a random html div and does its thing. we need to be semantic and render
+windwos to specific divs. we need to associate a specific div with a specific vim
+window and maintain that relationship so that shadow buffers are tied to the correct
+html element.
 
 shadow buffers:
 cursor.ts does not recognize current window as shadow-buffer-type anymore... what changed?
