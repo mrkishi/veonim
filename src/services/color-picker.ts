@@ -32,14 +32,14 @@ dispatch.sub('colorpicker.complete', (color: string) => {
   possiblyUpdateColorScheme()
 })
 
-action('pick-color', async () => {
-  liveMode = false
-  const word = await call.expand('<cword>')
-  go.pickColor(word)
-})
+// action('pick-color', async () => {
+//   liveMode = false
+//   const word = await call.expand('<cword>')
+//   go.pickColor(word)
+// })
 
-action('modify-colorscheme-live', async () => {
-  liveMode = true
-  const word = await call.expand('<cword>')
-  go.pickColor(word)
-})
+// action('modify-colorscheme-live', async () => {
+//   liveMode = true
+//   const word = await call.expand('<cword>')
+//   go.pickColor(word)
+// })

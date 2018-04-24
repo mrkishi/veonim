@@ -7,6 +7,7 @@ import huu from 'huu'
 import { h as hs } from 'hyperapp'
 export { app } from 'hyperapp'
 export const h = huu(hs)
+// TODO: NO.
 export const style = require('picostyle')
 
 export interface ActionCaller { [index: string]: (data?: any) => void }

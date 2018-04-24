@@ -12,30 +12,23 @@ export interface ColorPickerProps {
   visible: boolean,
 }
 
-const ShowCursor = styled.div`
-  cursor: default;
-  & * {
-    cursor: default;
-  }
-`
+// const view = ({ data: $ }: { data: ColorPicker }) => Overlay({
+//   name: 'color-picker',
+//   x: $.x,
+//   y: $.y,
+//   visible: $.visible,
+//   anchorAbove: $.anchorBottom,
+//   onElement: el => el && onLoseFocus(el, go.hideColorPicker),
+// }, [
 
-const view = ({ data: $ }: { data: ColorPicker }) => Overlay({
-  name: 'color-picker',
-  x: $.x,
-  y: $.y,
-  visible: $.visible,
-  anchorAbove: $.anchorBottom,
-  onElement: el => el && onLoseFocus(el, go.hideColorPicker),
-}, [
+//   ,h('.show-cursor', [
+//     ,h(ChromePicker, {
+//       color: $.color,
+//       onChangeComplete: (color: any) => dispatch.pub('colorpicker.complete', color.hex),
+//       onChange: throttle((color: any) => dispatch.pub('colorpicker.change', color.hex), 150),
+//     })
+//   ])
 
-  ,h(ShowCursor, [
-    ,h(ChromePicker, {
-      color: $.color,
-      onChangeComplete: (color: any) => dispatch.pub('colorpicker.complete', color.hex),
-      onChange: throttle((color: any) => dispatch.pub('colorpicker.change', color.hex), 150),
-    })
-  ])
+// ])
 
-])
-
-export default connect(s => ({ data: s.colorPicker }))(view)
+// export default connect(s => ({ data: s.colorPicker }))(view)
