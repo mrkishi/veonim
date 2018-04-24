@@ -1,51 +1,34 @@
-const type = (m: string) => Object.prototype.toString.call(m).slice(8, 11).toLowerCase()
-const argTypes = (args = []) => new Proxy({}, {
-  get: (_, key) => args.find(a => type(a) === key)
-})
-
 const CLASS_SPLIT = /([\.#]?[a-zA-Z0-9\u007F-\uFFFF_:-]+)/
-const NOT_CLASS_OR_ID = /^\.|#/
+const ANY = /^\.|#/
+const type = (m: any): string => Object.prototype.toString.call(m).slice(8, 11).toLowerCase()
+const argt = (args: any[]) => (t: string) => args.find(a => type(a) === t)
+const ex = (symbol: string, parts: string[]) => parts.map(p => p.charAt(0) === symbol && p.substring(1, p.length)).filter(p => p).join(' ')
 
 const parse = {
-  selector: (selector: string) => {
+  selector: (selector: string): { id?: string, css?: string, tag?: string } => {
     if (!selector) return {}
-
-    const parts = selector.split(CLASS_SPLIT)
-    const tag = NOT_CLASS_OR_ID.test(parts[1]) ? 'div' : (parts[1] || 'div')
-    const parse = (delimit: string) => parts
-      .map(p => p.charAt(0) === delimit && p.substring(1, p.length))
-      .filter(p => p)
-      .join(' ')
-
-    return { tag, id: parse('#'), css: parse('.') }
+    const p = selector.split(CLASS_SPLIT)
+    return { id: ex('#', p), css: ex('.', p), tag: ANY.test(p[1]) ? 'div' : (p[1] || 'div') }
   },
 
-  css: (input: any) => type(input) === 'obj'
-    ? Object.keys(input).filter(k => input[k]).join(' ')
-    : [].concat(input).join(' ')
+  css: (obj: any) => type(obj) === 'obj' ? Object.keys(obj).filter(k => obj[k]).join(' ') : ''
 }
 
-export default (createElement: Function) => (...a: any[]) => {
-  const $ = argTypes(a as any) as any
-  const props = Object.assign({}, $.obj)
-  if (props.render === false) return null
+export default (hyper: any) => (...a: any[]) => {
+  const $ = argt(a)
+  const props = $('obj') || {}
+  if (props.render === false) return
 
-  const { tag = $.fun, id, css } = parse.selector($.str) as any
-  const classes = [ css, props.className, parse.css(props.css) ]
-    .filter(c => c)
-    .join(' ')
-    .trim()
+  const { tag = $('fun'), id, css } = parse.selector($('str'))
+  const classes = [ css, props.class, parse.css(props.css) ].filter(c => c).join(' ').trim()
 
   if (id) props.id = id
-  if (classes) props.className = classes
+  if (classes) props.class = classes
+  if (props.hide != null) props.style = props.style || {}
+  if (props.hide != null) props.style.display = props.hide ? 'none' : undefined
 
-  const { str, num } = argTypes(a.slice(1) as any) as any
+  Object.assign(props, { css: undefined, render: undefined, hide: undefined })
 
-  const children = [ ...($.arr || []) ]
-  if (str || num) children.push(str || num)
-
-  delete props.css
-  delete props.render
-
-  return createElement(tag, props, ...children.filter(m => m))
+  const notTag = argt(a.slice(1))
+  return hyper(tag, props, $('arr') || notTag('str') || notTag('num'))
 }

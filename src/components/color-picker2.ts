@@ -2,7 +2,7 @@ import { action, call, cmd, current as vim } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
 const { ChromePicker } = require('react-color')
 import { activeWindow } from '../core/windows'
-import { React, ReactDom } from '../ui/uikit2'
+import { toReactComponent } from '../ui/react'
 import Overlay from '../components/overlay'
 import { throttle } from '../support/utils'
 import { debounce } from '../support/utils'
@@ -64,15 +64,6 @@ const actions = {
   hide: () => ({ color: '', visible: false }),
 }
 
-// TODO: move to a common place
-const toReactComponent = (component: any, options: object) => ({
-  oncreate: (e: HTMLElement) => ReactDom.render(React.createElement(component, options), e),
-  onupdate: (e: HTMLElement) => ReactDom.render(React.createElement(component, options), e),
-})
-
-// TODO: make api for this thinggggg
-const containerEl = document.getElementById('plugins') as HTMLElement
-
 const view = ($: typeof state, a: typeof actions) => Overlay({
   name: 'color-picker',
   x: $.x,
@@ -95,7 +86,7 @@ const view = ($: typeof state, a: typeof actions) => Overlay({
 
 ])
 
-const ui = app(state, actions, view, containerEl)
+const ui = app({ name: 'color-pickER2222', state, actions, view })
 
 action('pick-color', async () => {
   liveMode = false

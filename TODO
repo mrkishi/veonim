@@ -203,6 +203,9 @@ save to docs
 
 --ideas--
 
+create find overlay at the top or bottom of current window (like xcode/vscode/atom/sublime/etc). used for builtin vim / or ? and can be used by custom components (viewport fuzzy search)
+  - maybe the design can integrate somehow with the buffer fuzzy search list
+
 set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
 
 constrain overlay menus to a particular window (current window)
