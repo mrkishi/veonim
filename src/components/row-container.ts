@@ -27,12 +27,12 @@ interface Options {
   [key: string]: any,
 }
 
-export const RowNormal = (o: Options, children = []) => h('div', {
+export const RowNormal = (o: Options, children: any[]) => h('div', {
   ...o,
   style: o.active ? activeRow : row,
 }, children)
 
-export const RowDesc = (o: Options, children = []) => h('div', {
+export const RowDesc = (o: Options, children: any[]) => h('div', {
   ...o,
   style: {
     ...(o.active ? activeRow : row),
@@ -41,7 +41,7 @@ export const RowDesc = (o: Options, children = []) => h('div', {
   },
 }, children)
 
-export const RowComplete = (o: Options, children = []) => h('div', {
+export const RowComplete = (o: Options, children: any[]) => h('div', {
   ...o,
   style: {
     ...(o.active ? activeRow : row),
@@ -51,7 +51,7 @@ export const RowComplete = (o: Options, children = []) => h('div', {
   }
 }, children)
 
-export const RowHeader = (o: Options, children = []) => h('div', {
+export const RowHeader = (o: Options, children: any[]) => h('div', {
   ...o,
   style: {
     ...(o.active ? activeRow : row),
@@ -67,7 +67,7 @@ export const RowHeader = (o: Options, children = []) => h('div', {
   }
 }, children)
 
-export const RowImportant = (opts = {} as any, children = []) => h('div', {
+export const RowImportant = (opts = {} as any, children: any[]) => h('div', {
   ...opts,
   style: {
     ...opts.style,

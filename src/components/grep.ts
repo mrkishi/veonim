@@ -1,9 +1,9 @@
 import { action, call, current, feedkeys, expr, jumpTo } from '../core/neovim'
 import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
+import { badgeStyle } from '../styles/common'
 import Input from '../components/text-input2'
 import Worker from '../messaging/worker'
-import Badge from '../components/badge'
 import { h, app } from '../ui/uikit2'
 
 type TextTransformer = (text: string, last?: boolean) => string
@@ -222,8 +222,11 @@ const ui = app({ name: 'grep', state, actions, view: ($, a) => PluginRight($.vis
       active: pos === $.ix,
     }, [
       ,h('span', path),
-      ,h(Badge, {
-        style: { marginLeft: '12px' },
+      ,h('div', {
+        style: {
+          ...badgeStyle,
+          marginLeft: '12px',
+        },
       }, [
         ,h('span', items.length)
       ])

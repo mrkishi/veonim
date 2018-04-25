@@ -1,6 +1,6 @@
 import { list, action, current, getCurrent, cmd } from '../core/neovim'
 import { Plugin } from '../components/plugin-container'
-import { RowFiles } from '../components/row-container'
+import { RowNormal } from '../components/row-container'
 import FiletypeIcon from '../components/filetype-icon'
 import { VimBuffer } from '../core/vim-functions'
 import { simplifyPath } from '../support/utils'
@@ -90,7 +90,7 @@ const ui = app({ name: 'buffers', state, actions, view: ($, a) => Plugin($.visib
     desc: 'switch buffer',
   })
 
-  ,h('div', $.buffers.map((f, ix) => h(RowFiles, {
+  ,h('div', $.buffers.map((f, ix) => h(RowNormal, {
     key: `${f.name}-${f.base}-${f.dir}`,
     active: ix === $.index,
   }, [

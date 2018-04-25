@@ -5,9 +5,9 @@ import * as canvasContainer from '../core/canvas-container'
 import { current, jumpTo } from '../core/neovim'
 import { simplifyPath } from '../support/utils'
 import Input from '../components/text-input2'
+import { badgeStyle } from '../styles/common'
 import { Problem } from '../ai/diagnostics'
 import { filter } from 'fuzzaldrin-plus'
-import Badge from '../components/badge'
 import Icon from '../components/icon2'
 import { clipboard } from 'electron'
 import { join } from 'path'
@@ -192,7 +192,9 @@ const ui = app({ name: 'problems', state, actions, view: ($, a) => h('div', {
         }
       }, simplifyPath(dir, current.cwd)),
 
-      ,h(Badge, [
+      ,h('div', {
+        style: badgeStyle,
+      }, [
         ,h('span', items.length)
       ])
     ])

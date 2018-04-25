@@ -1,5 +1,5 @@
 import { connect } from '../state/trade-federation'
-import { Documentation } from '../styles/common'
+import { docStyle } from '../styles/common'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay2'
 import { h, styled } from '../ui/uikit2'
@@ -16,7 +16,9 @@ const Strong = styled.span`
   font-weight: bold;
 `
 
-const docs = (data: string) => h(Documentation, [ h('div', data) ])
+const docs = (data: string) => h('div', {
+  style: docStyle,
+}, [ h('div', data) ])
 
 const view = ({ data: $ }: { data: Hint }) => Overlay({
   name: 'hint',

@@ -1,9 +1,8 @@
 import { PluginTop } from '../components/plugin-container'
 import { merge, uuid, debounce } from '../support/utils'
+import { colors, badgeStyle } from '../styles/common'
 import { addMessage } from '../components/messages'
 import { h, app, styled } from '../ui/uikit2'
-import { colors } from '../styles/common'
-import Badge from '../components/badge'
 import Icon from '../components/icon2'
 
 export enum NotifyKind {
@@ -124,8 +123,11 @@ const ui = app({ name: 'notifications', element: container, state, actions, view
         ,h('span', message)
       ])
 
-      ,count > 1 && h(Badge, {
-        style: { alignSelf: 'flex-end' },
+      ,count > 1 && h('div', {
+        style: {
+          ...badgeStyle,
+          alignSelf: 'flex-end',
+        },
       }, [
         ,h('span', count)
       ])

@@ -1,7 +1,7 @@
 import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import Input from '../components/text-input2'
-import Badge from '../components/badge'
+import { badgeStyle } from '../styles/common'
 import { jumpTo } from '../core/neovim'
 import { h, app } from '../ui/uikit2'
 
@@ -172,8 +172,11 @@ const ui = app({ name: 'references', state, actions, view: ($, a) => PluginRight
       active: pos === $.ix,
     }, [
       ,h('span', path),
-      ,h(Badge, {
-        style: { marginLeft: '12px' },
+      ,h('div', {
+        style: {
+          ...badgeStyle,
+          marginLeft: '12px',
+        },
       }, [
         ,h('span', items.length)
       ])
