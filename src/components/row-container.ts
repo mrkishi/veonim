@@ -1,78 +1,87 @@
-import { s, styled } from '../ui/uikit2'
+import { cvar, paddingVH, paddingH } from '../ui/css'
+import { colors } from '../styles/common'
+import { h } from '../ui/uikit'
 
-interface Props {
-  active: boolean
+const row = {
+  paddingTop: '4px',
+  paddingBottom: '4px',
+  paddingLeft: '12px',
+  paddingRight: '12px',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  display: 'flex',
+  color: cvar('foreground-30'),
 }
 
-const row = `
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 12px;
-  padding-right: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  color: var(--foreground-30);
-`
+const activeRow = {
+  ...row,
+  fontWeight: 'bold',
+  color: cvar('foreground-b20'),
+  background: cvar('background-10'),
+}
 
-const activeRow = `
-  ${row}
-  font-weight: bold;
-  color: var(--foreground-b20);
-  background: var(--background-10);
-`
+interface Options {
+  key: any,
+  active: boolean,
+  [key: string]: any,
+}
 
-export const RowNormal = s<Props>(styled.div)`
-  ${p => p.active ? activeRow : row}
-`
+export const RowNormal = (o: Options, children = []) => h('div', {
+  ...o,
+  style: o.active ? activeRow : row,
+}, children)
 
-export const RowDesc = s<Props>(styled.div)`
-  ${p => p.active ? activeRow : row}
-  white-space: normal;
-  overflow: normal;
-`
+export const RowDesc = (o: Options, children = []) => h('div', {
+  ...o,
+  style: {
+    ...(o.active ? activeRow : row),
+    whiteSpace: 'normal',
+    overflow: 'normal',
+  },
+}, children)
 
-export const RowFiles = s<Props>(styled.div)`
-  ${p => p.active ? activeRow : row}
-  &:last-child {
-    padding-bottom: 4px;
+export const RowComplete = (o: Options, children = []) => h('div', {
+  ...o,
+  style: {
+    ...(o.active ? activeRow : row),
+    ...paddingVH(0, 0),
+    paddingRight: '8px',
+    lineHeight: cvar('line-height'),
   }
-`
+}, children)
 
-export const RowComplete = s<Props>(styled.div)`
-  ${p => p.active ? activeRow : row}
-  line-height: var(--line-height);
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 0;
-  padding-right: 8px;
-`
+export const RowHeader = (o: Options, children = []) => h('div', {
+  ...o,
+  style: {
+    ...(o.active ? activeRow : row),
+    ...paddingH(6),
+    alignItems: 'center',
+    color: colors.hint,
+    background: cvar('background-20'),
+    ...(o.active ? {
+      color: '#fff',
+      fontWeight: 'normal',
+      background: cvar('background-b10'),
+    }: 0)
+  }
+}, children)
 
-// TODO: color use css var instead!
-export const RowHeader = s<Props>(styled.div)`
-  ${p => p.active ? activeRow : row}
-  padding-top: 6px;
-  padding-bottom: 6px;
-  align-items: center;
-  color: #c7c7c7;
-  background: var(--background-20);
-  ${p => p.active ? `
-    color: #fff;
-    background: var(--background-b10);
-    font-weight: normal;
-  ` : ''}
-`
+export const RowImportant = (opts = {} as any, children = []) => h('div', {
+  ...opts,
+  style: {
+    ...opts.style,
+    ...row,
+    ...paddingH(8),
+    color: cvar('important'),
+    background: cvar('background-50'),
+  }
+}, children)
 
-export const RowImportant = s<Props>(styled.div)`
-  ${row}
-  padding-top: 8px;
-  padding-bottom: 8px;
-  background: var(--background-50);
-  color: var(--important);
-`
-
-export const RowGroup = styled.div`
-  paddingTop: 4px;
-  paddingBottom: 4px;
-`
+export const RowGroup = (opts = {} as any, children: any[]) => h('div', {
+  ...opts,
+  style: {
+    ...opts.style,
+    ...paddingH(4),
+  }
+}, children)

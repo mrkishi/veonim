@@ -1,43 +1,31 @@
-import { h, styled } from '../ui/uikit2'
+import { cvar } from '../ui/css'
+import { h } from '../ui/uikit'
 
-const base = `
-  z-index: 99;
-  display: flex;
-  width: 100%;
-  justify-content: center;
-`
+const base = {
+  zIndex: 99,
+  display: 'flex',
+  width: '100%',
+  justifyContent: 'center',
+}
 
-const NormalContainer = styled.div`
-  ${base}
-  align-items: flex-start;
-`
+const normal = { ...base, alignItems: 'flex-start' }
+const top = { ...base, alignItems: 'flex-start' }
+const bottom = { ...base, alignItems: 'flex-end' }
+const right = { ...base, alignItems: 'stretch', justifyContent: 'flex-end' }
 
-const TopContainer = styled.div`
-  ${base}
-  align-items: flex-start;
-`
+const dialog = {
+  background: cvar('background-40'),
+  marginTop: '15%',
+  flexFlow: 'column',
+}
 
-const BottomContainer = styled.div`
-  ${base}
-  align-items: flex-end;
-`
+export const Plugin = (visible: boolean, children: any[]) => h('div', {
+  styles: normal,
+}, [
 
-const RightContainer = styled.div`
-  ${base}
-  justify-content: flex-end;
-  align-items: stretch;
-`
-
-const Dialog = styled.div`
-  background: var(--background-40);
-  margin-top: 15%;
-  flex-flow: column;
-`
-
-export const Plugin = (visible: boolean, children: any[]) => h(NormalContainer, [
-
-  ,h(Dialog, {
+  ,h('div', {
     style: {
+      ...dialog,
       width: '600px',
       display: visible ? 'flex' : 'none',
     }
@@ -45,10 +33,13 @@ export const Plugin = (visible: boolean, children: any[]) => h(NormalContainer, 
 
 ])
 
-export const PluginTop = (visible: boolean, children: any[], styles?: object) => h(TopContainer, [
+export const PluginTop = (visible: boolean, children: any[], styles?: object) => h('div', {
+  styles: top,
+}, [
 
-  ,h(Dialog, {
+  ,h('div', {
     style: {
+      ...dialog,
       ...styles,
       width: '400px',
       display: visible ? 'flex' : 'none',
@@ -57,7 +48,9 @@ export const PluginTop = (visible: boolean, children: any[], styles?: object) =>
 
 ])
 
-export const PluginBottom = (visible: boolean, children: any[]) => h(BottomContainer, [
+export const PluginBottom = (visible: boolean, children: any[]) => h('div', {
+  styles: bottom,
+}, [
 
   ,h('div', {
     style: {
@@ -67,10 +60,13 @@ export const PluginBottom = (visible: boolean, children: any[]) => h(BottomConta
 
 ])
 
-export const PluginRight = (visible: boolean, children: any[]) => h(RightContainer, [
+export const PluginRight = (visible: boolean, children: any[]) => h('div', {
+  styles: right,
+}, [
 
-  ,h(Dialog, {
+  ,h('div', {
     style: {
+      ...dialog,
       width: '500px',
       height: '100%',
       flexFlow: 'column',
