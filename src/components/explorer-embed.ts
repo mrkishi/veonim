@@ -6,10 +6,10 @@ import { join, sep, basename, dirname } from 'path'
 import { input } from '../core/master-control'
 import { current, cmd } from '../core/neovim'
 import config from '../config/config-service'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 interface FileDir {
   name: string,
@@ -126,7 +126,7 @@ const createComponent = () => {
 
     ctrlG: () => ({ pathMode: true, ix: 0, val: '', pathValue: '' }),
 
-    completePath: (s: S) => {
+    completePath: () => (s: S) => {
       if (!s.paths.length) return
       const dir = dirname(absolutePath(s.pathValue))
       const { name } = s.paths[s.ix]
@@ -136,22 +136,22 @@ const createComponent = () => {
     },
 
     normalMode: () => ({ pathMode: false }),
-    updatePaths: (_: S, paths: string[]) => ({ paths }),
+    updatePaths: (paths: string[]) => ({ paths }),
 
-    updateCwdStuff: (_: S, { cwd, paths }: any) => ({ cwd, paths, path: cwd }),
+    updateCwdStuff: ({ cwd, paths }: any) => ({ cwd, paths, path: cwd }),
 
-    selectPath: (s: S) => {
+    selectPath: () => (s: S) => {
       if (!s.pathValue) return { pathMode: false, ix: 0 }
       getDirFiles(s.pathValue).then(paths => ui.updatePaths(sortDirFiles(paths)))
       return { pathMode: false, path: s.pathValue, ix: 0 }
     },
 
-    changePath: (_: S, pathValue: string) => {
+    changePath: (pathValue: string) => {
       pathExplore(pathValue).then(ui.updatePaths)
       return { pathValue }
     },
 
-    nextPath: (s: S) => {
+    nextPath: () => (s: S) => {
       const ix = s.ix + 1 >= s.paths.length ? 0 : s.ix + 1
       const fullpath = absolutePath(s.pathValue)
       const goodPath = fullpath.endsWith('/') ? fullpath : dirname(fullpath)
@@ -160,7 +160,7 @@ const createComponent = () => {
       return { ix, pathValue }
     },
 
-    prevPath: (s: S) => {
+    prevPath: () => (s: S) => {
       const ix = s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1
       const fullpath = absolutePath(s.pathValue)
       const goodPath = fullpath.endsWith('/') ? fullpath : dirname(fullpath)
@@ -169,7 +169,7 @@ const createComponent = () => {
       return { ix, pathValue }
     },
 
-    select: (s: S) => {
+    select: () => (s: S) => {
       if (!s.paths.length) return resetState
 
       const { name, file } = s.paths[s.ix]
@@ -184,7 +184,7 @@ const createComponent = () => {
       getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
     },
 
-    change: (s: S, val: string) => {
+    change: (val: string) => (s: S) => {
       if (s.val === val) return
 
       return { val, paths: val
@@ -202,14 +202,14 @@ const createComponent = () => {
     //   ui.show({ paths, cwd, path: cwd })
     // },
 
-    jumpPrev: (s: S) => {
+    jumpPrev: () => (s: S) => {
       const next = s.path.split(sep)
       next.pop()
       const path = join(sep, ...next)
       getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
     },
 
-    focus: (s: S) => {
+    focus: () => (s: S) => {
       const projectDirChanged = s.cwd !== current.cwd
 
       if (projectDirChanged) getDirFiles(current.cwd).then(dirs => ui.updateCwdStuff({
@@ -222,21 +222,21 @@ const createComponent = () => {
 
     blur: () => ({ focus: false }),
 
-    show: (s: S, { paths, path, cwd = s.cwd }: any) => ({
+    show: ({ paths, path, cwd }: any) => (s: S) => ({
       ...resetState,
-      cwd,
       path,
       paths,
       cache: paths,
+      cwd: cwd || s.cwd,
     }),
 
     // TODO: be more precise than this? also depends on scaled devices
-    down: (s: S) => {
+    down: () => (s: S) => {
       listElRef.scrollTop += 300
       return { ix: Math.min(s.ix + 17, s.paths.length - 1) }
     },
 
-    up: (s: S) => {
+    up: () => (s: S) => {
       listElRef.scrollTop -= 300
       return { ix: Math.max(s.ix - 17, 0) }
     },
