@@ -1,14 +1,14 @@
 import { RowHeader, RowDesc, RowGroup } from '../components/row-container'
-import { h, app, vimBlur, vimFocus, styled } from '../ui/uikit2'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
+import { h, app, vimBlur, vimFocus, styled } from '../ui/uikit'
 import * as canvasContainer from '../core/canvas-container'
 import { current, jumpTo } from '../core/neovim'
 import { simplifyPath } from '../support/utils'
-import Input from '../components/text-input2'
 import { badgeStyle } from '../styles/common'
+import Input from '../components/text-input'
 import { Problem } from '../ai/diagnostics'
 import { filter } from 'fuzzaldrin-plus'
-import Icon from '../components/icon2'
+import Icon from '../components/icon'
 import { clipboard } from 'electron'
 import { join } from 'path'
 
@@ -81,43 +81,43 @@ const position: { container: ClientRect } = {
 }
 
 const actions = {
-  toggle: (s: S) => ({ vis: !s.vis }),
+  toggle: () => (s: S) => ({ vis: !s.vis }),
   hide: () => (vimFocus(), { focus: false }),
   focus: () => (vimBlur(), { focus: true, vis: true }),
   yank: (s: S) => clipboard.writeText(s.val),
 
-  updateProblems: (_s: S, problems: Problem[]) => ({
+  updateProblems: (problems: Problem[]) => ({
     ix: 0,
     subix: -1,
     problems,
     cache: problems,
   }),
 
-  change: (s: S, val: string) => ({ val, problems: val
+  change: (val: string) => (s: S) => ({ val, problems: val
     ? filter(s.problems, val, { key: 'file' })
     : s.cache
   }),
 
-  nextGroup: (s: S) => {
+  nextGroup: () => (s: S) => {
     const next = s.ix + 1 > s.problems.length - 1 ? 0 : s.ix + 1
     scrollIntoView(next)
     return { subix: -1, ix: next }
   },
 
-  prevGroup: (s: S) => {
+  prevGroup: () => (s: S) => {
     const next = s.ix - 1 < 0 ? s.problems.length - 1 : s.ix - 1
     scrollIntoView(next)
     return { subix: -1, ix: next }
   },
 
-  next: (s: S) => {
+  next: () => (s: S) => {
     const items = (Reflect.get(s.problems, s.ix) || {}).items || []
     const next = s.subix + 1 < items.length ? s.subix + 1 : 0
     selectResult(s.problems, s.ix, next)
     return { subix: next }
   },
 
-  prev: (s: S) => {
+  prev: () => (s: S) => {
     const items = (Reflect.get(s.problems, s.ix) || {}).items || []
     const prev = s.subix - 1 < 0 ? items.length - 1 : s.subix - 1
     selectResult(s.problems, s.ix, prev)
@@ -135,7 +135,7 @@ const actions = {
   },
 }
 
-const ui = app({ name: 'problems', state, actions, view: ($, a) => h('div', {
+const view = ($: S, a: typeof actions) => h('div', {
   style: {
     background: 'var(--background-45)',
     color: '#eee',
@@ -224,7 +224,9 @@ const ui = app({ name: 'problems', state, actions, view: ($, a) => h('div', {
 
   ])))
 
-]) })
+])
+
+const ui = app({ name: 'problems', state, actions, view })
 
 export const hide = () => ui.hide()
 export const focus = () => ui.focus()

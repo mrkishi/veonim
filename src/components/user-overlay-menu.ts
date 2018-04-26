@@ -22,7 +22,7 @@ const state = {
 type S = typeof state
 
 const actions = {
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.items.length) return { value: '', visible: false, index: 0 }
     const item = s.items[s.index]
     if (item) call.VeonimCallback(s.id, item)
@@ -30,19 +30,19 @@ const actions = {
   },
 
   // TODO: not harcoded to 14
-  change: (s: S, value: string) => ({ value, items: value
+  change: (value: string) => (s: S) => ({ value, items: value
     ? filter(s.cache, value).slice(0, 14)
     : s.cache.slice(0, 14)
   }),
 
-  show: (_s: S, { x, y, id, items, desc }: any) => ({ x, y, id, desc, items, cache: items, visible: true }),
+  show: ({ x, y, id, items, desc }: any) => ({ x, y, id, desc, items, cache: items, visible: true }),
   hide: () => ({ value: '', visible: false, index: 0 }),
   // TODO: not hardcoded to 14
-  next: (s: S) => ({ index: s.index + 1 > Math.min(s.items.length - 1, 13) ? 0 : s.index + 1 }),
-  prev: (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.items.length - 1, 13) : s.index - 1 }),
+  next: () => (s: S) => ({ index: s.index + 1 > Math.min(s.items.length - 1, 13) ? 0 : s.index + 1 }),
+  prev: () => (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.items.length - 1, 13) : s.index - 1 }),
 }
 
-const ui = app({ name: 'user-overlay-menu', state, actions, view: ($, a) => Overlay({
+const view = ($: S, a: typeof actions) => Overlay({
   x: $.x,
   y: $.y,
   zIndex: 100,
@@ -79,7 +79,9 @@ const ui = app({ name: 'user-overlay-menu', state, actions, view: ($, a) => Over
 
   ])
 
-]) })
+])
+
+const ui = app({ name: 'user-overlay-menu', state, actions, view })
 
 action('user-overlay-menu', (id: number, desc: string, items = []) => {
   if (!items.length) return

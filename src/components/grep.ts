@@ -2,9 +2,9 @@ import { action, call, current, feedkeys, expr, jumpTo } from '../core/neovim'
 import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { badgeStyle } from '../styles/common'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import Worker from '../messaging/worker'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, SearchResult[]]
@@ -88,17 +88,17 @@ const actions = {
   focusFilter: () => ({ focused: FocusedElement.Filter }),
 
   hide: () => resetState,
-  show: (_s: S, { cwd, value, reset = true }: any) => reset
+  show: ({ cwd, value, reset = true }: any) => reset
   ? ({ visible: true, cwd, value, ix: 0, subix: -1, results: [], loading: !!value })
   : ({ visible: true }),
 
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.results.length) return resetState
     selectResult(s.results, s.ix, s.subix)
     return resetState
   },
 
-  change: (s: S, value: string) => {
+  change: (value: string) => (s: S) => {
     value && worker.call.query({ query: value, cwd: s.cwd })
     return value ? {
       value,
@@ -112,38 +112,38 @@ const actions = {
     }
   },
 
-  changeFilter: (_s: S, filterVal: string) => {
+  changeFilter: (filterVal: string) => {
     worker.call.filter(filterVal)
     return { filterVal }
   },
 
-  results: (_s: S, results: Result[]) => ({ results }),
+  results: (results: Result[]) => ({ results }),
 
-  moreResults: (s: S, results: Result[]) => {
+  moreResults: (results: Result[]) => (s: S) => {
     const merged = [ ...s.results, ...results ]
     const deduped = merged.filter((m, ix, arr) => arr.findIndex(e => e[0] === m[0]) === ix)
     return { results: deduped }
   },
 
-  nextGroup: (s: S) => {
+  nextGroup: () => (s: S) => {
     const next = s.ix + 1 > s.results.length - 1 ? 0 : s.ix + 1
     scrollIntoView(next)
     return { subix: -1, ix: next }
   },
 
-  prevGroup: (s: S) => {
+  prevGroup: () => (s: S) => {
     const next = s.ix - 1 < 0 ? s.results.length - 1 : s.ix - 1
     scrollIntoView(next)
     return { subix: -1, ix: next }
   },
 
-  next: (s: S) => {
+  next: () => (s: S) => {
     const next = s.subix + 1 < s.results[s.ix][1].length ? s.subix + 1 : 0
     selectResult(s.results, s.ix, next)
     return { subix: next }
   },
 
-  prev: (s: S) => {
+  prev: () => (s: S) => {
     const prev = s.subix - 1 < 0 ? s.results[s.ix][1].length - 1 : s.subix - 1
     selectResult(s.results, s.ix, prev)
     return { subix: prev }
@@ -165,7 +165,7 @@ const actions = {
   loadingDone: () => ({ loading: false }),
 }
 
-const ui = app({ name: 'grep', state, actions, view: ($, a) => PluginRight($.visible, [
+const view = ($: S, a: typeof actions) => PluginRight($.visible, [
 
   ,Input({
     value: $.value,
@@ -258,7 +258,9 @@ const ui = app({ name: 'grep', state, actions, view: ($, a) => PluginRight($.vis
 
   ])))
 
-]) })
+])
+
+const ui = app({ name: 'grep', state, actions, view })
 
 worker.on.results((results: Result[]) => ui.results(results))
 worker.on.moreResults((results: Result[]) => ui.moreResults(results))

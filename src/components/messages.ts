@@ -2,11 +2,11 @@ import { h, app, styled, vimBlur, vimFocus } from '../ui/uikit2'
 import { NotifyKind, Notification } from '../ui/notifications'
 import * as canvasContainer from '../core/canvas-container'
 import { RowNormal } from '../components/row-container'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
 import { action } from '../core/neovim'
-import Icon from '../components/icon2'
+import Icon from '../components/icon'
 
 const state = {
   query: '',
@@ -43,7 +43,7 @@ const getIcon = (kind: NotifyKind) => {
 }
 
 const actions =  {
-  toggle: (s: S) => {
+  toggle: () => (s: S) => {
     const next = !s.vis
     next ? vimBlur() : vimFocus()
     return { vis: next }
@@ -51,12 +51,12 @@ const actions =  {
 
   hide: () => (vimFocus(), { vis: false }),
 
-  addMessage: (s: S, message: Notification) => ({
+  addMessage: (message: Notification) => (s: S) => ({
     messages: [message, ...s.messages].slice(0, 500),
     cache: [message, ...s.messages].slice(0, 500),
   }),
 
-  change: (s: S, query: string) => ({ query, messages: query
+  change: (query: string) => (s: S) => ({ query, messages: query
     ? filter(s.messages, query, { key: 'message' })
     : s.cache
   }),
@@ -72,7 +72,7 @@ const actions =  {
   },
 }
 
-const ui = app({ name: 'messages', state, actions, view: ($, a) => h('div', {
+const view = ($: S, a: typeof actions) => h('div', {
   style: {
     background: 'var(--background-45)',
     color: '#eee',
@@ -118,7 +118,9 @@ const ui = app({ name: 'messages', state, actions, view: ($, a) => h('div', {
     }, message)
   ])))
 
-]) })
+])
+
+const ui = app({ name: 'messages', state, actions, view })
 
 export const addMessage = (message: Notification) => ui.addMessage(message)
 

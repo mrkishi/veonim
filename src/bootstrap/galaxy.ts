@@ -1,23 +1,14 @@
-import { merge, CreateTask, requireDir, requireDirSync, log, delay as timeout } from '../support/utils'
+import { CreateTask, requireDir, log, delay as timeout } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
-import { store } from '../state/trade-federation'
 import setDefaultSession from '../core/sessions'
 import { sub } from '../messaging/dispatch'
-import { h, renderDom } from '../ui/uikit2'
 import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
-import { Provider } from 'react-redux'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
-
-const lazyLoadCSS = (href: string) => {
-  const css = document.createElement('link')
-  merge(css, { href, rel: 'stylesheet', type: 'text/css' })
-  document.head.appendChild(css)
-}
 
 const loadingConfig = CreateTask()
 
@@ -49,34 +40,15 @@ const main = async () => {
   setDefaultSession(id, path)
 
   setTimeout(() => {
-    lazyLoadCSS('../assets/seti-icons.css')
-    requireDir(`${__dirname}/../services`)
-    // TODO: deprecate this in the near future
+    // TODO: can we load copmonents on demand?
+    // aka, either load when user requests, or after 10 sec of app startup shit
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))
-
-    requireDirSync(`${__dirname}/../state`)
-    loadComponents()
   }, 1)
 
+  // TODO: THIS SHOULD BE LOADED IN A WEB WORKER. WTF IS THIS SHIT DOING IN THE MAIN THREAD LOL
   // TODO: clearly we are not ready for this greatness
   setTimeout(() => require('../support/dependency-manager').default(), 100)
-}
-
-const loadComponents = async () => {
-  const targetEl = document.getElementById('plugins2') as HTMLElement
-  const importedComponents = await requireDir(`${__dirname}/../components`)
-
-  // TODO: temporary because react components mixed with hyperapp
-  const names = importedComponents
-    .filter(m => m.default)
-    .filter(m => m.default.name === 'Connect')
-
-  const children = h('div', { style: { width: '100%' } }, names.map(m => h(m.default)))
-  // const children = h('div', importedComponents.map(m => h(m.default)))
-
-  const rootComponent = h(Provider, { store, children })
-  renderDom(rootComponent, targetEl)
 }
 
 main().catch(log)

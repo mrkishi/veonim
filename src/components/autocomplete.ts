@@ -153,7 +153,7 @@ const view = ($: S) => Overlay({
 
 ])
 
-const ui = app({ name: 'autocomplete', state, actions, view })
+const ui = app<S, typeof actions>({ name: 'autocomplete', state, actions, view })
 
 export const hide = () => ui.hide()
 export const select = (index: number) => ui.select(index)

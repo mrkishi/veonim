@@ -65,7 +65,6 @@ const actions = {
 }
 
 const view = ($: typeof state, a: typeof actions) => Overlay({
-  name: 'color-picker',
   x: $.x,
   y: $.y,
   // TODO: lol nope

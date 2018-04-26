@@ -83,8 +83,9 @@ const actions = {
     getDirFiles(path).then(paths => ui.show({ path, paths: filterDirs(paths) }))
   },
 
-  show: ({ paths, path, cwd = s.cwd, create }: any) => (s: S) => ({
-    cwd, path, paths, create,
+  show: ({ paths, path, cwd, create }: any) => (s: S) => ({
+    path, paths, create,
+    cwd: cwd || s.cwd,
     index: 0,
     value: '',
     visible: true,

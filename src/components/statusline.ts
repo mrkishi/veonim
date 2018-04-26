@@ -2,11 +2,11 @@ import { merge, simplifyPath, absolutePath } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { onStateChange, getColor } from '../core/neovim'
 import configReader from '../config/config-service'
-import { h, app, styled } from '../ui/uikit2'
-import { darken, brighten } from '../ui/css'
+import { darken, brighten, cvar } from '../ui/css'
 import { ExtContainer } from '../core/api'
 import { colors } from '../styles/common'
-import Icon from '../components/icon2'
+import Icon from '../components/icon'
+import { h, app } from '../ui/uikit'
 import '../support/git'
 
 interface Tab {
@@ -45,37 +45,22 @@ const refreshBaseColor = async () => {
   if (background) ui.setColor(background)
 }
 
-const Statusline = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  background: var(--background-30);
-  z-index: 999;
-`
+const statusGroupStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+}
 
-const StatusGroup = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-`
-
-const Item = styled.div`
-  color: var(--foreground-40);
-  display: flex;
-  height: 100%;
-  align-items: center;
-  padding-left: 20px;
-  padding-right: 20px;
-`
+const itemStyle = {
+  color: cvar('foreground-40'),
+  display: 'flex',
+  height: '100%',
+  alignItems: 'center',
+  paddingLeft: '20px',
+  paddingRight: '20px',
+}
 
 const Tab = styled.div`
-  display: flex;
-  align-items: center;
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  color: var(--foreground-40);
 `
 
 const IconBox = styled.div`
@@ -92,39 +77,45 @@ merge(container.style, {
 })
 
 const actions = {
-  updateTabs: (_s: S, { active, tabs }: any) => ({ active, tabs }),
-  setFiletype: (_s: S, filetype: any) => ({ filetype }),
-  setLine: (_s: S, line: any) => ({ line }),
-  setColumn: (_s: S, column: any) => ({ column }),
-  setCwd: (_s: S, { cwd, projectRoot }: any) => ({ cwd, projectRoot }),
-  setDiagnostics: (_s: S, { errors = 0, warnings = 0 }: any) => ({ errors, warnings }),
-  setGitBranch: (_s: S, branch: any) => ({ branch }),
-  setGitStatus: (_s: S, { additions, deletions }: any) => ({ additions, deletions }),
-  setMacro: (_s: S, macro = '') => ({ macro }),
-  setColor: (_s: S, baseColor: any) => ({ baseColor }),
+  updateTabs: ({ active, tabs }: any) => ({ active, tabs }),
+  setFiletype: (filetype: any) => ({ filetype }),
+  setLine: (line: any) => ({ line }),
+  setColumn: (column: any) => ({ column }),
+  setCwd: ({ cwd, projectRoot }: any) => ({ cwd, projectRoot }),
+  setDiagnostics: ({ errors = 0, warnings = 0 }: any) => ({ errors, warnings }),
+  setGitBranch: (branch: any) => ({ branch }),
+  setGitStatus: ({ additions, deletions }: any) => ({ additions, deletions }),
+  setMacro: (macro = '') => ({ macro }),
+  setColor: (baseColor: any) => ({ baseColor }),
 
-  serverRunning: (s: S, server: any) => ({
+  serverRunning: (server: any) => (s: S) => ({
     runningServers: new Set([...s.runningServers, server]),
     erroredServers: new Set([...s.erroredServers].filter(m => m !== server)),
   }),
 
-  serverErrored: (s: S, server: any) => ({
+  serverErrored: (server: any) => (s: S) => ({
     runningServers: new Set([...s.runningServers].filter(m => m !== server)),
     erroredServers: new Set([...s.erroredServers, server]),
   }),
 
-  serverOffline: (s: S, server: any) => ({
+  serverOffline: (server: any) => (s: S) => ({
     runningServers: new Set([...s.runningServers].filter(m => m !== server)),
     erroredServers: new Set([...s.erroredServers].filter(m => m !== server)),
   }),
 }
 
-const ui = app({ name: 'statusline', state, actions, element: container, view: $ => h(Statusline, [
+const view = ($: S) => h('div', {
+  flex: '1',
+  display: 'flex',
+  justifyContent: 'space-between',
+  background: cvar('background-30'),
+  zIndex: '999',
+}, [
 
   // LEFT
-  ,h(StatusGroup, [
+  ,h('div', { style: statusGroupStyle }, [
 
-    ,h(Item, {
+    ,h('div', { style: itemStyle }, {
       style: {
         color: brighten($.baseColor, 90),
         background: darken($.baseColor, 20),
@@ -141,7 +132,7 @@ const ui = app({ name: 'statusline', state, actions, element: container, view: $
     ])
 
     // TODO: only show on git projects
-    ,h(Item, {
+    ,h('div', { style: itemStyle }, {
       style: {
         paddingLeft: '30px',
         paddingRight: '30px',
@@ -161,7 +152,7 @@ const ui = app({ name: 'statusline', state, actions, element: container, view: $
     ])
 
     // TODO: only show on git projects
-    ,h(Item, {
+    ,h('div', { style: itemStyle }, {
       style: {
         paddingLeft: '30px',
         paddingRight: '30px',
@@ -199,7 +190,7 @@ const ui = app({ name: 'statusline', state, actions, element: container, view: $
       }, `${$.deletions}`)
     ])
 
-    ,$.runningServers.has($.filetype) && h(Item, [
+    ,$.runningServers.has($.filetype) && h('div', { style: itemStyle }, [
       ,h('div', [
         ,Icon('zap', { color: '#555' })
       ])
@@ -208,9 +199,9 @@ const ui = app({ name: 'statusline', state, actions, element: container, view: $
   ])
 
   // CENTER
-  ,h(StatusGroup, [
+  ,h('div', { statusGroupStyle }, [
 
-    ,$.macro && h(Item, [
+    ,$.macro && h('div', { style: itemStyle }, [
       ,h(IconBox, {
         style: { color: colors.error }
       }, [
@@ -225,9 +216,9 @@ const ui = app({ name: 'statusline', state, actions, element: container, view: $
   ])
 
   // RIGHT
-  ,h(StatusGroup, [
+  ,h('div', { statusGroupStyle }, [
 
-    ,h(Item, {
+    ,h('div', { style: itemStyle }, {
       style: {
         paddingLeft: '30px',
         paddingRight: '30px',
@@ -265,7 +256,7 @@ const ui = app({ name: 'statusline', state, actions, element: container, view: $
       }, `${$.warnings}`)
     ])
 
-    ,h(Item, {
+    ,h('div', { style: itemStyle }, {
       style: {
         paddingLeft: '30px',
         paddingRight: '20px',
@@ -278,25 +269,36 @@ const ui = app({ name: 'statusline', state, actions, element: container, view: $
       ,h('div', `${$.line}:${$.column}`)
     ])
 
-    ,h(Item, {
+    ,h('div', { style: itemStyle }, {
       style: {
         paddingRight: '0',
         //clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
       }
     }, [
-      ,$.tabs.map(({ id }, ix) => h(Tab, {
+      ,$.tabs.map(({ id }, ix) => h('div', {
         // TODO: also display name if config declares it to
         key: id,
-        style: $.active === id ? { 
-          background: 'var(--background-10)',
-          color: 'var(--foreground)',
-        } : undefined
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: '8px',
+          paddingRight: '8px',
+          paddingTop: '4px',
+          paddingBottom: '4px',
+          color: cvar('foreground-40'),
+          ...($.active === id ? {
+            background: cvar('background-10'),
+            color: cvar('foreground'),
+          }: undefined)
+        }
       }, ix + 1))
     ])
 
   ])
 
-]) })
+])
+
+const ui = app<S, typeof actions>({ name: 'statusline', state, actions, view, element: container })
 
 sub('colorscheme.modified', refreshBaseColor)
 onStateChange.colorscheme(refreshBaseColor)

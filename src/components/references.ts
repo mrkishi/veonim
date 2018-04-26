@@ -1,9 +1,9 @@
 import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { badgeStyle } from '../styles/common'
 import { jumpTo } from '../core/neovim'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, SearchResult[]]
@@ -78,7 +78,7 @@ const resetState = { vis: false, references: [] }
 const actions =  {
   hide: () => resetState,
 
-  show: (_s: S, { references, referencedSymbol }: any) => ({
+  show: ({ references, referencedSymbol }: any) => ({
     references,
     referencedSymbol,
     cache: references,
@@ -89,36 +89,36 @@ const actions =  {
     loading: false,
   }),
 
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.references.length) return resetState
     selectResult(s.references, s.ix, s.subix)
     return resetState
   },
 
-  change: (s: S, val: string) => ({ val, references: val
+  change: (val: string) => (s: S) => ({ val, references: val
     ? s.cache.filter(m => m[0].toLowerCase().includes(val))
     : s.cache
   }),
 
-  nextGroup: (s: S) => {
+  nextGroup: () => (s: S) => {
     const next = s.ix + 1 > s.references.length - 1 ? 0 : s.ix + 1
     scrollIntoView(next)
     return { subix: -1, ix: next }
   },
 
-  prevGroup: (s: S) => {
+  prevGroup: () => (s: S) => {
     const next = s.ix - 1 < 0 ? s.references.length - 1 : s.ix - 1
     scrollIntoView(next)
     return { subix: -1, ix: next }
   },
 
-  next: (s: S) => {
+  next: () => (s: S) => {
     const next = s.subix + 1 < s.references[s.ix][1].length ? s.subix + 1 : 0
     selectResult(s.references, s.ix, next)
     return { subix: next }
   },
 
-  prev: (s: S) => {
+  prev: () => (s: S) => {
     const prev = s.subix - 1 < 0 ? s.references[s.ix][1].length - 1 : s.subix - 1
     selectResult(s.references, s.ix, prev)
     return { subix: prev }
@@ -135,7 +135,7 @@ const actions =  {
   },
 }
 
-const ui = app({ name: 'references', state, actions, view: ($, a) => PluginRight($.vis, [
+const view = ($: S, a: typeof actions) => PluginRight($.vis, [
 
   ,Input({
     up: a.up,
@@ -206,7 +206,9 @@ const ui = app({ name: 'references', state, actions, view: ($, a) => PluginRight
 
   ])))
 
-]) })
+])
+
+const ui = app({ name: 'references', state, actions, view })
 
 export const show = (references: Result[], referencedSymbol?: string) =>
   ui.show({ references, referencedSymbol })

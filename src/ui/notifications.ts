@@ -2,8 +2,9 @@ import { PluginTop } from '../components/plugin-container'
 import { merge, uuid, debounce } from '../support/utils'
 import { colors, badgeStyle } from '../styles/common'
 import { addMessage } from '../components/messages'
-import { h, app, styled } from '../ui/uikit2'
-import Icon from '../components/icon2'
+import Icon from '../components/icon'
+import { h, app } from '../ui/uikit'
+import { animate } from '../ui/css'
 
 export enum NotifyKind {
   Error = 'error',
@@ -51,14 +52,8 @@ const renderIcons = new Map([
 
 const getIcon = (kind: NotifyKind) => renderIcons.get(kind)!
 
-const IconBox = styled.div`
-  display: flex;
-  padding-right: 8px;
-  align-items: center;
-`
-
 const actions = {
-  notify: (s: S, notification: Notification) => {
+  notify: (notification: Notification) => (s: S) => {
     if (notification.kind === NotifyKind.Hidden) return
 
     const existingIndex = s.notifications.findIndex(n => n.message === notification.message)
@@ -75,10 +70,10 @@ const actions = {
     return { notifications: [...s.notifications, notification] }
   },
 
-  expire: (s: S, id: string) => ({ notifications: s.notifications.filter(m => m.id !== id) }),
+  expire: (id: string) => (s: S) => ({ notifications: s.notifications.filter(m => m.id !== id) }),
 }
 
-const ui = app({ name: 'notifications', element: container, state, actions, view: $ => PluginTop(true, [
+const view = ($: S) => PluginTop(true, [
 
   ,h('div', {
     style: {
@@ -96,18 +91,18 @@ const ui = app({ name: 'notifications', element: container, state, actions, view
         background: 'var(--background-50)',
         color: Reflect.get(colors, kind),
       },
-      // onCreate: (e: HTMLElement) => animate(e, [
-      //   { opacity: 0, transform: 'translateY(-100%) '},
-      //   { opacity: 1, transform: 'translateY(0)' },
-      // ], { duration: 150 }),
-      // onRemove: async (e: HTMLElement) => {
-      //   await animate(e, [
-      //     { opacity: 1 },
-      //     { opacity: 0 },
-      //   ], { duration: 2e3 })
+      onCreate: (e: HTMLElement) => animate(e, [
+        { opacity: 0, transform: 'translateY(-100%) '},
+        { opacity: 1, transform: 'translateY(0)' },
+      ], { duration: 150 }),
+      onRemove: async (e: HTMLElement) => {
+        await animate(e, [
+          { opacity: 1 },
+          { opacity: 0 },
+        ], { duration: 2e3 })
 
-      //   e.remove()
-      // },
+        e.remove()
+      },
     }, [
 
       ,h('div', {
@@ -116,7 +111,13 @@ const ui = app({ name: 'notifications', element: container, state, actions, view
           wordBreak: 'break-all',
         }
       }, [
-        ,h(IconBox, [
+        ,h('div', {
+          style: {
+            display: 'flex',
+            paddingRight: '8px',
+            alignItems: 'center',
+          }
+        }, [
           ,Icon(getIcon(kind))
         ])
 
@@ -136,7 +137,9 @@ const ui = app({ name: 'notifications', element: container, state, actions, view
 
   )
 
-])})
+])
+
+const ui = app<S, typeof actions>({ name: 'notifications', element: container, state, actions, view })
 
 export const notify = (message: string, kind = NotifyKind.Info) => {
   const msg = {

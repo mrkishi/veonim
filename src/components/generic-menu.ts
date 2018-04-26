@@ -1,9 +1,9 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { CreateTask } from '../support/utils'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 export interface MenuOption {
   key: any,
@@ -32,19 +32,19 @@ type S = typeof state
 const resetState = { value: '', visible: false, ix: 0 }
 
 const actions = {
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.options.length) return resetState
     s.task.done((s.options[s.ix] || {}).key)
     return resetState
   },
 
   // TODO: not hardcoded 14
-  change: (s: S, value: string) => ({ value, options: value
+  change: (value: string) => (s: S) => ({ value, options: value
     ? filter(s.cache, value, { key: 'value' }).slice(0, 14)
     : s.cache.slice(0, 14)
   }),
 
-  show: (_s: S, { options, description, icon, task }: any) => ({
+  show: ({ options, description, icon, task }: any) => ({
     description,
     options,
     task,
@@ -54,11 +54,11 @@ const actions = {
   }),
 
   hide: () => resetState,
-  next: (s: S) => ({ ix: s.ix + 1 > Math.min(s.options.length - 1, 13) ? 0 : s.ix + 1 }),
-  prev: (s: S) => ({ ix: s.ix - 1 < 0 ? Math.min(s.options.length - 1, 13) : s.ix - 1 }),
+  next: () => (s: S) => ({ ix: s.ix + 1 > Math.min(s.options.length - 1, 13) ? 0 : s.ix + 1 }),
+  prev: () => (s: S) => ({ ix: s.ix - 1 < 0 ? Math.min(s.options.length - 1, 13) : s.ix - 1 }),
 }
 
-const ui = app({ name: 'generic-menu', state, actions, view: ($, a) => Plugin($.visible, [
+const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
   ,Input({
     select: a.select,
@@ -79,7 +79,9 @@ const ui = app({ name: 'generic-menu', state, actions, view: ($, a) => Plugin($.
     ,h('span', value)
   ])))
 
-]) })
+])
+
+const ui = app({ name: 'generic-menu', state, actions, view })
 
 export default <T>(props: Props) => {
   const task = CreateTask<T>()

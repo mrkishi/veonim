@@ -1,10 +1,6 @@
 import { h } from '../ui/uikit'
 
 interface Props {
-  // TODO: can we deprecate this? would like to prefer setting the name
-  // in the hyperapp constructor. then that can set the id on the first
-  // child element it finds? (because name also used to set redux store name)
-  name: string,
   visible: boolean,
   x: number,
   y: number,
@@ -15,7 +11,6 @@ interface Props {
 }
 
 export default ($: Props, content: any[]) => h('div', {
-  id: $.name,
   style: {
     zIndex: $.zIndex,
     display: $.visible ? 'flex' : 'none',
