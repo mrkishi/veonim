@@ -1,5 +1,5 @@
-import { h, app, styled } from '../ui/uikit2'
 import { action, on } from '../core/neovim'
+import { h, app } from '../ui/uikit'
 
 const state = {
   visible: false,
@@ -7,19 +7,16 @@ const state = {
 
 type S = typeof state
 
-const NC = styled.div`
-  background: url('../assets/nc.gif');
-`
-
 const actions = {
   show: () => ({ visible: true }),
-  hide: (s: S) => {
+  hide: () => (s: S) => {
     if (s.visible) return { visible: false }
   },
 }
 
-const ui = app({ name: 'nc', state, actions, view: $ => h(NC, {
+const view = ($: S) => h('div', {
   style: {
+    background: `url('../assets/nc.gif')`,
     display: $.visible ? 'block' : 'none',
     backgroundRepeat: 'no-repeat',
     backgroundSize: '75vw',
@@ -27,7 +24,9 @@ const ui = app({ name: 'nc', state, actions, view: $ => h(NC, {
     height: '100%',
     width: '100%',
   },
-}) })
+})
+
+const ui = app({ name: 'nc', state, actions, view })
 
 action('nc', ui.show)
 on.cursorMove(ui.hide)

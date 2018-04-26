@@ -28,24 +28,17 @@ back to hyperapp:
   seems like overkill just to render an icon. would prefer to keep it lightweight
   after all it's just an svg
 
+files not refresh after delete file
+
 -- react -> hyperapp 
-*buffers
-*autocomplete
-*change-project
-*code-actions
-*nc
-*symbols
-*vim-create
-*vim-rename
-*vim-switch
-*user-menu-overlay
-*grep
-*references
-*messages
-*problems
-*statusline
-*user-menu
-*generic menu
+#user-menu-overlay
+#grep
+#references
+#messages
+#problems
+#statusline
+#user-menu
+#generic menu
 
 -- react overkill -> hyperapp
 buffer search
@@ -54,13 +47,6 @@ command line
 hint
 hover
 problem-info
-
--- update logic to hyperapp version and TERMINATE
-icon2.ts
-loading2.ts
-options-list2.ts (what does this do again? - think its leftover unfinished rubbish)
-overlay2.ts
-text-input2.ts
 
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix

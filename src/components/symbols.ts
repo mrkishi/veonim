@@ -3,10 +3,10 @@ import { workspaceSymbols, Symbol } from '../langserv/adapter'
 import { SymbolKind } from 'vscode-languageserver-types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
-import Icon from '../components/icon2'
-import { h, app } from '../ui/uikit2'
+import Icon from '../components/icon'
+import { h, app } from '../ui/uikit'
 
 export enum SymbolMode {
   Buffer,
@@ -111,7 +111,7 @@ const symbolCache = (() => {
 const resetState = { value: '', visible: false, index: 0, loading: false }
 
 const actions = {
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.symbols.length) return (symbolCache.clear(), resetState)
     const { location: { cwd, file, position: { line, column } } } = s.symbols[s.index]
     cmd(`e ${cwd}/${file}`)
@@ -119,7 +119,7 @@ const actions = {
     return (symbolCache.clear(), resetState)
   },
 
-  change: (s: S, value: string) => {
+  change: (value: string) => (s: S) => {
     if (s.mode === SymbolMode.Buffer) return { value, symbols: value
       // TODO: DON'T TRUNCATE!
       ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
@@ -137,19 +137,19 @@ const actions = {
     }
   },
 
-  updateOptions: (_s: S, symbols: Symbol[]) => ({ symbols, loading: false }),
+  updateOptions: (symbols: Symbol[]) => ({ symbols, loading: false }),
 
-  show: (_s: S, { symbols, mode }: any) => ({ mode, symbols, cache: symbols, visible: true }),
+  show: ({ symbols, mode }: any) => ({ mode, symbols, cache: symbols, visible: true }),
   hide: () => {
     symbolCache.clear()
     return resetState
   },
   // TODO: DON'T TRUNCATE!
-  next: (s: S) => ({ index: s.index + 1 > 9 ? 0 : s.index + 1 }),
-  prev: (s: S) => ({ index: s.index - 1 < 0 ? 9 : s.index - 1 }),
+  next: () => (s: S) => ({ index: s.index + 1 > 9 ? 0 : s.index + 1 }),
+  prev: () => (s: S) => ({ index: s.index - 1 < 0 ? 9 : s.index - 1 }),
 }
 
-const ui = app({ name: 'symbols', state, actions, view: ($, a) => Plugin($.visible, [
+const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
   ,Input({
     select: a.select,
@@ -216,6 +216,7 @@ const ui = app({ name: 'symbols', state, actions, view: ($, a) => Plugin($.visib
 
   ])))
 
-]) })
+])
 
+const ui = app({ name: 'symbols', state, actions, view })
 export const show = (symbols: Symbol[], mode: SymbolMode) => ui.show({ symbols, mode })

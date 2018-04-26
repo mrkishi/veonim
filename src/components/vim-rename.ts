@@ -1,8 +1,8 @@
 import { renameCurrent, getCurrentName } from '../core/sessions'
 import { Plugin } from '../components/plugin-container'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { action } from '../core/neovim'
-import { app } from '../ui/uikit2'
+import { app } from '../ui/uikit'
 
 const state = {
   value: '',
@@ -12,16 +12,16 @@ const state = {
 type S = typeof state
 
 const actions = {
-  show: (_s: S, value: string) => ({ value, visible: true }),
+  show: (value: string) => ({ value, visible: true }),
   hide: () => ({ value: '', visible: false }),
-  change: (_s: S, value: string) => ({ value }),
-  select: (s: S) => {
+  change: (value: string) => ({ value }),
+  select: () => (s: S) => {
     s.value && renameCurrent(s.value)
     return { value: '', visible: false }
   },
 }
 
-const ui = app({ name: 'vim-rename', state, actions, view: ($, a) => Plugin($.visible, [
+const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
   ,Input({
     hide: a.hide,
@@ -33,6 +33,7 @@ const ui = app({ name: 'vim-rename', state, actions, view: ($, a) => Plugin($.vi
     desc: 'rename vim session',
   })
 
-]) })
+])
 
+const ui = app({ name: 'vim-rename', state, actions, view })
 action('vim-rename', () => ui.show(getCurrentName()))

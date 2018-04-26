@@ -5,9 +5,9 @@ import { createVim, renameCurrentToCwd } from '../core/sessions'
 import { Plugin } from '../components/plugin-container'
 import configReader from '../config/config-service'
 import config from '../config/config-service'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 import { join, sep } from 'path'
 import { homedir } from 'os'
 
@@ -47,7 +47,7 @@ let listElRef: HTMLElement
 const resetState = { value: '', path: '', visible: false, index: 0 }
 
 const actions = {
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.paths.length) return resetState
     const { name } = s.paths[s.index]
     if (!name) return
@@ -56,12 +56,12 @@ const actions = {
     return resetState
   },
 
-  change: (s: S, value: string) => ({ value, paths: value
+  change: (value: string) => (s: S) => ({ value, paths: value
     ? filterDirs(filter(s.paths, value, { key: 'name' }))
     : s.cache
   }),
 
-  tab: (s: S) => {
+  tab: () => (s: S) => {
     if (!s.paths.length) return resetState
     const { name } = s.paths[s.index]
     if (!name) return
@@ -69,21 +69,21 @@ const actions = {
     getDirFiles(path).then(paths => ui.show({ path, paths: filterDirs(paths) }))
   },
 
-  jumpNext: (s: S) => {
+  jumpNext: () => (s: S) => {
     const { name, dir } = s.paths[s.index]
     if (!dir) return
     const path = join(s.path, name)
     getDirFiles(path).then(paths => ui.show({ path, paths: filterDirs(paths) }))
   },
 
-  jumpPrev: (s: S) => {
+  jumpPrev: () => (s: S) => {
     const next = s.path.split(sep)
     next.pop()
     const path = join(sep, ...next)
     getDirFiles(path).then(paths => ui.show({ path, paths: filterDirs(paths) }))
   },
 
-  show: (s: S, { paths, path, cwd = s.cwd, create }: any) => ({
+  show: ({ paths, path, cwd = s.cwd, create }: any) => (s: S) => ({
     cwd, path, paths, create,
     index: 0,
     value: '',
@@ -92,12 +92,12 @@ const actions = {
   }),
 
   // TODO: be more precise than this? also depends on scaled devices
-  down: (s: S) => {
+  down: () => (s: S) => {
     listElRef.scrollTop += 300
     return { index: Math.min(s.index + 17, s.paths.length - 1) }
   },
 
-  up: (s: S) => {
+  up: () => (s: S) => {
     listElRef.scrollTop -= 300
     return { index: Math.max(s.index - 17, 0) }
   },
@@ -105,11 +105,11 @@ const actions = {
   top: () => { listElRef.scrollTop = 0 },
   bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
   hide: () => resetState,
-  next: (s: S) => ({ index: s.index + 1 >= s.paths.length ? 0 : s.index + 1 }),
-  prev: (s: S) => ({ index: s.index - 1 < 0 ? s.paths.length - 1 : s.index - 1 }),
+  next: () => (s: S) => ({ index: s.index + 1 >= s.paths.length ? 0 : s.index + 1 }),
+  prev: () => (s: S) => ({ index: s.index - 1 < 0 ? s.paths.length - 1 : s.index - 1 }),
 }
 
-const ui = app({ name: 'change-project', state, actions, view: ($, a) => Plugin($.visible, [
+const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
   ,Input({
     up: a.up,
@@ -149,7 +149,9 @@ const ui = app({ name: 'change-project', state, actions, view: ($, a) => Plugin(
     ,h('span', name)
   ])))
 
-]) })
+])
+
+const ui = app({ name: 'change-project', state, actions, view })
 
 const go = async (userPath: string, create = false) => {
   const cwd = await validPath(userPath) || current.cwd

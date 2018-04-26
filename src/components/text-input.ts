@@ -1,44 +1,66 @@
 import * as canvasContainer from '../core/canvas-container'
+import { hideCursor, showCursor } from '../core/cursor'
+import { h, vimBlur, vimFocus } from '../ui/uikit'
 import Loading from '../components/loading'
+import { paddingVH, cvar } from '../ui/css'
 import { xfrmUp } from '../core/input'
-import { h, style } from '../ui/uikit'
 import Icon from '../components/icon'
-import { paddingVH } from '../ui/css'
 
 interface Props {
-  val: string,
+  value: string,
   icon: string,
-  background?: string,
-  color?: string,
-  small?: boolean,
-  desc?: string,
-  focus?: boolean,
-  change?: (val: string) => void,
-  select?: (val: string) => void,
-  hide?: () => void,
-  next?: () => void,
-  prev?: () => void,
-  nextGroup?: () => void,
-  prevGroup?: () => void,
-  down?: () => void,
-  up?: () => void,
-  top?: () => void,
-  bottom?: () => void,
-  jumpPrev?: () => void,
-  jumpNext?: () => void,
-  tab?: () => void,
-  ctrlH?: () => void,
-  ctrlG?: () => void,
-  yank?: () => void,
-  loading?: boolean,
-  loadingSize?: number,
-  loadingColor?: string,
-  pathMode?: boolean,
-  thisIsGarbage?: (element: HTMLInputElement) => void,
+  background: string,
+  color: string,
+  small: boolean,
+  desc: string,
+  focus: boolean,
+  position: number,
+  useVimInput: boolean,
+  change: (val: string) => void,
+  select: (val: string) => void,
+  hide: () => void,
+  next: () => void,
+  prev: () => void,
+  nextGroup: () => void,
+  prevGroup: () => void,
+  down: () => void,
+  up: () => void,
+  top: () => void,
+  bottom: () => void,
+  jumpPrev: () => void,
+  jumpNext: () => void,
+  tab: () => void,
+  ctrlH: () => void,
+  ctrlG: () => void,
+  ctrlL: () => void,
+  ctrlC: () => void,
+  yank: () => void,
+  loading: boolean,
+  loadingSize: number,
+  loadingColor: string,
+  pathMode: boolean,
+  thisIsGarbage: (element: HTMLInputElement) => void,
 }
 
-let lastDown = ''
-const nop = () => {}
+export interface TextInputProps extends Partial<Props> {
+  value: string,
+  icon: string,
+}
+
+const setPosition = (e?: HTMLInputElement, position?: number) => {
+  if (!e || !position) return
+  position > -1 && e.setSelectionRange(position, position)
+}
+
+const setFocus = (e: HTMLInputElement, shouldFocus: boolean) => {
+  if (e && e !== document.activeElement && shouldFocus) e.focus()
+  if (!shouldFocus) e && e.blur()
+}
+
+const nopMaybe = (obj: object) => new Proxy(obj, {
+  get: (_, key) => Reflect.get(obj, key) || (() => {})
+}) as Props
+
 const keToStr = (e: KeyboardEvent) => [
   e.key,
   <any>e.ctrlKey|0,
@@ -47,56 +69,31 @@ const keToStr = (e: KeyboardEvent) => [
   <any>e.shiftKey|0
 ].join('')
 
-const Input = style('input')({
-  // '::placeholder': {
-  //   color: 'var(--foreground-70)',
-  // },
-  // color: 'var(--foreground-b60)',
-})
+// TODO: could be better? it's global so will be shared between different
+// inputs. however only one input will have focus at a time, so perhaps
+// it's not a big deal
+//
+// the reason this has to live outside the function is because the view
+// function will be triggered on re-render. pressing keys will potentially
+// trigger re-renders, thus reseting the value of lastDown when inside
+// the function.
+let lastDown = ''
 
-const IconBox = style('div')({
-  display: 'flex',
-  alignItems: 'center',
-  paddingRight: '8px',
-})
-
-const focusMaybe = (e: HTMLInputElement, shouldFocus: boolean, thisIsGarbage: Function) => {
-  e !== document.activeElement && shouldFocus && e.focus()
-  thisIsGarbage(e)
-}
-
-export default ({
+const view = ({
   desc,
   icon,
-  val = '',
-  small = false,
-  focus: shouldFocus = false,
-  pathMode = false,
-  background,
   color,
-  // TODO: what about a proxy here for noops?
-  change = nop,
-  hide = nop,
-  select = nop,
-  next = nop,
-  prev = nop,
-  nextGroup = nop,
-  prevGroup = nop,
-  down = nop,
-  up = nop,
-  top = nop,
-  bottom = nop,
-  jumpPrev = nop,
-  jumpNext = nop,
-  tab = nop,
-  ctrlH = nop,
-  ctrlG = nop,
-  yank = nop,
-  thisIsGarbage = nop,
-  loading = false,
+  background,
   loadingSize,
   loadingColor,
-}: Props) => h('div', {
+  value = '',
+  position = -1,
+  small = false,
+  focus = false,
+  loading = false,
+  pathMode = false,
+  useVimInput = false,
+}: TextInputProps, $: Props) => h('div', {
   style: {
     background,
     ...paddingVH(12, small ? 5 : 10),
@@ -104,11 +101,18 @@ export default ({
     alignItems: 'center',
     minHeight: `${small ? 16 : 22}px`,
   }
+
 }, [
 
-  ,IconBox({}, [
-    Icon(icon, {
-      color: 'var(--foreground-70)',
+  ,h('div', {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      paddingRight: '8px',
+    }
+  }, [
+    ,Icon(icon, {
+      color: cvar('foreground-70'),
       size: canvasContainer.font.size + (small ? 0 : 8),
       weight: 2,
     })
@@ -123,16 +127,25 @@ export default ({
     }
   }, [
 
-    ,Input({
+    ,h('input', {
+      value,
       style: {
         color,
-        fontSize: `${canvasContainer.font.size + (small ? 0 : 4)}px`
+        fontSize: small ? '1rem' : '1.286rem',
       },
-      value: val,
+      type: 'text',
+      oncreate: (e: HTMLInputElement) => {
+        setFocus(e, focus)
+        setPosition(e, position)
+      },
+      onupdate: (e: HTMLInputElement) => {
+        setFocus(e, focus)
+        setPosition(e, position)
+      },
       placeholder: desc,
-      onupdate: (e: HTMLInputElement) => focusMaybe(e, shouldFocus, thisIsGarbage),
-      oncreate: (e: HTMLInputElement) => focusMaybe(e, shouldFocus, thisIsGarbage),
-      onkeyup: (e: KeyboardEvent) => {
+      onfocus: () => useVimInput ? hideCursor() : vimBlur(),
+      onblur: () => useVimInput ? showCursor() : vimFocus(),
+      onKeyUp: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
 
         if (xfrmUp.has(prevKeyAndThisOne)) {
@@ -141,46 +154,50 @@ export default ({
             lastDown = ''
             const target = e.target as HTMLInputElement
             target.blur()
-            return hide()
+            return $.hide()
           }
         }
       },
-      onkeydown: (e: KeyboardEvent) => {
+      onKeyDown: (e: KeyboardEvent) => {
         const { ctrlKey: ctrl, metaKey: meta, key } = e
         const cm = ctrl || meta
 
-        e.preventDefault()
+        // TODO: needed?
+        // e.preventDefault()
         lastDown = keToStr(e)
 
-        if (key === 'Tab') return tab()
-        if (key === 'Escape') return hide()
-        if (key === 'Enter') return select(val)
-        if (key === 'Backspace') return change(val.slice(0, -1))
+        if (key === 'Tab') return $.tab()
+        if (key === 'Escape') return $.hide()
+        if (key === 'Enter') return $.select(value)
+        if (key === 'Backspace') return $.change(value.slice(0, -1))
 
         if (cm && key === 'w') return pathMode
-          ? change(val.split('/').slice(0, -1).join('/'))
-          : change(val.split(' ').slice(0, -1).join(' '))
+          ? $.change(value.split('/').slice(0, -1).join('/'))
+          : $.change(value.split(' ').slice(0, -1).join(' '))
 
-        if (cm && key === 'h') return ctrlH()
-        if (cm && key === 'g') return ctrlG()
-        if (cm && key === 'j') return next()
-        if (cm && key === 'k') return prev()
-        if (cm && key === 'n') return nextGroup()
-        if (cm && key === 'p') return prevGroup()
-        if (cm && key === 'd') return down()
-        if (cm && key === 'u') return up()
-        if (cm && key === 'i') return jumpNext()
-        if (cm && key === 'o') return jumpPrev()
-        if (cm && key === 'y') return yank()
-        if (cm && e.shiftKey && key === 'D') return bottom()
-        if (cm && e.shiftKey && key === 'U') return top()
+        if (cm && key === 'g') return $.ctrlG()
+        if (cm && key === 'h') return $.ctrlH()
+        if (cm && key === 'l') return $.ctrlL()
+        if (cm && key === 'c') return $.ctrlC()
+        if (cm && key === 'j') return $.next()
+        if (cm && key === 'k') return $.prev()
+        if (cm && key === 'n') return $.nextGroup()
+        if (cm && key === 'p') return $.prevGroup()
+        if (cm && key === 'd') return $.down()
+        if (cm && key === 'u') return $.up()
+        if (cm && key === 'i') return $.jumpNext()
+        if (cm && key === 'o') return $.jumpPrev()
+        if (cm && key === 'y') return $.yank()
+        if (cm && e.shiftKey && key === 'D') return $.bottom()
+        if (cm && e.shiftKey && key === 'U') return $.top()
 
-        change(val + (key.length > 1 ? '' : key))
-      }
+        $.change(value + (key.length > 1 ? '' : key))
+      },
     })
 
     ,loading && Loading({ color: loadingColor, size: loadingSize })
-
   ])
 
 ])
+
+export default (props: TextInputProps) => view(props, nopMaybe(props))

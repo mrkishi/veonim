@@ -3,11 +3,11 @@ import { RowNormal, RowComplete } from '../components/row-container'
 import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
-import Overlay from '../components/overlay2'
+import Overlay from '../components/overlay'
 import { cursor } from '../core/cursor'
-import Icon from '../components/icon2'
-import { h, app } from '../ui/uikit2'
+import Icon from '../components/icon'
 import { paddingVH } from '../ui/css'
+import { h, app } from '../ui/uikit'
 
 interface ShowParams {
   row: number,
@@ -81,9 +81,9 @@ const docs = (data: string) => h(RowNormal, {
 
 const actions = {
   hide: () => ({ visible: false, ix: 0 }),
-  showDocs: (_s: S, documentation: any) => ({ documentation }),
+  showDocs: (documentation: any) => ({ documentation }),
 
-  show: (_s: S, { anchorAbove, visibleOptions, options, x, y, ix = -1 }: any) => ({
+  show: ({ anchorAbove, visibleOptions, options, x, y, ix = -1 }: any) => ({
     visibleOptions,
     anchorAbove,
     options,
@@ -94,17 +94,17 @@ const actions = {
     documentation: undefined
   }),
 
-  select: (s: S, ix: number) => {
+  select: (ix: number) => (s: S, a: typeof actions) => {
     const completionItem = (s.options[ix] || {}).raw
 
     if (completionItem) getCompletionDetail(completionItem)
-      .then(m => m.documentation && ui.showDocs(m.documentation))
+      .then(m => m.documentation && a.showDocs(m.documentation))
 
     return { ix, documentation: undefined }
   },
 }
 
-const ui = app({ name: 'autocomplete', state, actions, view: $ => Overlay({
+const view = ($: S) => Overlay({
   x: $.x,
   y: $.y,
   zIndex: 200,
@@ -151,7 +151,9 @@ const ui = app({ name: 'autocomplete', state, actions, view: $ => Overlay({
 
   ,$.documentation && !$.anchorAbove && docs($.documentation)
 
-]) })
+])
+
+const ui = app({ name: 'autocomplete', state, actions, view })
 
 export const hide = () => ui.hide()
 export const select = (index: number) => ui.select(index)

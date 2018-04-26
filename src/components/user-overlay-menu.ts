@@ -1,11 +1,11 @@
 import { RowNormal } from '../components/row-container'
 import { activeWindow } from '../core/windows'
 import { action, call } from '../core/neovim'
-import Input from '../components/text-input2'
-import Overlay from '../components/overlay2'
+import Input from '../components/text-input'
+import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 const state = {
   id: 0,

@@ -1,10 +1,10 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { list, switchVim } from '../core/sessions'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import { action } from '../core/neovim'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 interface Session {
   id: number,
@@ -22,15 +22,15 @@ const state = {
 type S = typeof state
 
 const actions = {
-  show: (_s: S, d: Session[]) => ({ list: d, cache: d, visible: true }),
+  show: (d: Session[]) => ({ list: d, cache: d, visible: true }),
   hide: () => ({ value: '', visible: false, index: 0 }),
-  change: (s: S, value: string) => ({ value, list: value
+  change: (value: string) => (s: S) => ({ value, list: value
     ? filter(s.list, value, { key: 'name' }).slice(0, 10)
     : s.cache.slice(0, 10)
   }),
   
 
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.list.length) return { value: '', visible: false, index: 0 }
     const { id } = s.list[s.index]
     if (id) switchVim(id)
@@ -38,11 +38,11 @@ const actions = {
   },
   
   // TODO: don't limit list to 10 entries and scroll instead!
-  next: (s: S) => ({ index: s.index + 1 > Math.min(s.list.length - 1, 9) ? 0 : s.index + 1 }),
-  prev: (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.list.length - 1, 9) : s.index - 1 }),
+  next: () => (s: S) => ({ index: s.index + 1 > Math.min(s.list.length - 1, 9) ? 0 : s.index + 1 }),
+  prev: () => (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.list.length - 1, 9) : s.index - 1 }),
 }
 
-const ui = app({ name: 'vim-switch', state, actions, view: ($, a) => Plugin($.visible, [
+const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
   ,Input({
     hide: a.hide,
@@ -63,6 +63,7 @@ const ui = app({ name: 'vim-switch', state, actions, view: ($, a) => Plugin($.vi
     ,h('span', name)
   ])))
 
-]) })
+])
 
+const ui = app({ name: 'vim-switch', state, actions, view })
 action('vim-switch', () => ui.show(list()))

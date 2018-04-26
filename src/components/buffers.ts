@@ -4,10 +4,10 @@ import { RowNormal } from '../components/row-container'
 import FiletypeIcon from '../components/filetype-icon'
 import { VimBuffer } from '../core/vim-functions'
 import { simplifyPath } from '../support/utils'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 interface BufferInfo {
   name: string,
@@ -58,25 +58,25 @@ type S = typeof state
 const resetState = { value: '', visible: false, index: 0 }
 
 const actions = {
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.buffers.length) return resetState
     const { name } = s.buffers[s.index]
     if (name) cmd(`b ${name}`)
     return resetState
   },
 
-  change: (s: S, value: string) => ({ value, buffers: value
+  change: (value: string) => (s: S) => ({ value, buffers: value
     ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
     : s.cache.slice(0, 10)
   }),
 
   hide: () => resetState,
-  show: (_s: S, buffers: BufferInfo[]) => ({ buffers, cache: buffers, visible: true }),
-  next: (s: S) => ({ index: s.index + 1 > Math.min(s.buffers.length - 1, 9) ? 0 : s.index + 1 }),
-  prev: (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.index - 1 }),
+  show: (buffers: BufferInfo[]) => ({ buffers, cache: buffers, visible: true }),
+  next: () => (s: S) => ({ index: s.index + 1 > Math.min(s.buffers.length - 1, 9) ? 0 : s.index + 1 }),
+  prev: () => (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.index - 1 }),
 }
 
-const ui = app({ name: 'buffers', state, actions, view: ($, a) => Plugin($.visible, [
+const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
   ,Input({
     select: a.select,
@@ -104,6 +104,7 @@ const ui = app({ name: 'buffers', state, actions, view: ($, a) => Plugin($.visib
     ,h('span', f.duplicate ? f.base : f.name),
   ])))
 
-]) })
+])
 
+const ui = app({ name: 'buffers', state, actions, view })
 action('buffers', async () => ui.show(await getBuffers(current.cwd)))

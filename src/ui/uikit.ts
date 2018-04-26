@@ -9,24 +9,6 @@ import { merge } from '../support/utils'
 
 export const h = hyperscript(makeHyperscript)
 
-// TODO: this is rubbish.
-export const style = require('picostyle')
-export interface ActionCaller { [index: string]: (data?: any) => void }
-export interface Actions<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
-export interface Events<T> { [index: string]: (state: T, actions: ActionCaller, data: any) => any }
-const hostElement2 = document.getElementById('plugins2') as HTMLElement
-// TODO: this needs to go
-merge(hostElement2.style, {
-  position: 'absolute',
-  display: 'flex',
-  width: '100vw',
-  zIndex: 420, // vape naysh yall
-  // TODO: 24px for statusline. do it better
-  // TODO: and title. bruv do i even know css?
-  height: `calc(100vh - 24px - ${titleSpecs.height}px)`,
-})
-
-
 const hostElement = document.getElementById('plugins') as HTMLElement
 merge(hostElement.style, {
   position: 'absolute',
@@ -70,7 +52,7 @@ export interface App<StateT, ActionsT> {
 }
 
 /** create app for cultural learnings of hyperapp for make benefit of glorious application veonim */
-export const app = <StateT, ActionT>({ state, actions, view, element, name }: App<StateT, ActionT>): ActionT => {
+export const app = <StateT, ActionsT>({ state, actions, view, element, name }: App<StateT, ActionsT>): ActionsT => {
   const containerElement = element || prepareContainerElement(name)
   const theApp = makeApp(state, actions, view, containerElement)
 
