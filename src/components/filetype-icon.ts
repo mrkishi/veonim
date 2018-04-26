@@ -1,8 +1,8 @@
 const { iconDefinitions, fileExtensions, fileNames, languageIds } = require('../assets/seti-icon-theme.json')
 import * as canvasContainer from '../core/canvas-container'
 import { basename, extname } from 'path'
-import Icon from '../components/icon2'
-import { h } from '../ui/uikit2'
+import Icon from '../components/icon'
+import { h } from '../ui/uikit'
 
 const DEFAULT_ICON = '_clock'
 

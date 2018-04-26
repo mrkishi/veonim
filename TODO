@@ -1,6 +1,9 @@
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
+readme update: demo:
+  - add note about how veonim auto reloads files on changes
+
 create a simple hyperapp virtualized list component that simply renders dom nodes
   given a slice of the list. you want the top of the list, slice(0, 10)
   you want the end, slice(list.length - 10), etc. no mouse support for now.
@@ -200,6 +203,8 @@ create demo script to start electron at a certain size
 open various features
 use electron/spectron screenshot feature
 save to docs
+
+upgrade ripgrep
 
 --ideas--
 

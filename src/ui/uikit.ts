@@ -75,6 +75,7 @@ export const app = <StateT, ActionT>({ state, actions, view, element, name }: Ap
   const theApp = makeApp(state, actions, view, containerElement)
 
   return process.env.VEONIM_DEV
+    // TODO: the name kind sir. we needs it to go here. use MAH FORK
     ? devtools(theApp)
     : theApp
 }

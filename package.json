@@ -106,6 +106,8 @@
     "fuzzaldrin-plus": "0.4.1",
     "huu": "2.0.1",
     "hyperapp": "1.2.5",
+    "hyperapp-feather": "0.1.1",
+    "hyperapp-seti": "0.1.1",
     "immer": "1.0.2",
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.8",

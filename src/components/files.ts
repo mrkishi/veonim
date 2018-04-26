@@ -1,7 +1,6 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
-// TODO: we neeeeeeeeeeed the thing pls
-// import FiletypeIcon from '../components/filetype-icon'
+import FiletypeIcon from '../components/filetype-icon'
 import { action, current, cmd } from '../core/neovim'
 import { basename, dirname, join } from 'path'
 import Input from '../components/text-input'
@@ -97,7 +96,7 @@ const view = ($: S, a: typeof actions) => Plugin($.vis, [
     key: `${dir}-${file}`,
     active: ix === $.ix,
   }, [
-    // ,FiletypeIcon(file)
+    ,FiletypeIcon(file)
 
     ,h('span', { style: { color: 'var(--foreground-50)' } }, dir)
 
