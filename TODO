@@ -34,10 +34,6 @@ back to hyperapp:
 files not refresh after delete file
 
 -- react overkill -> hyperapp
-buffer search
-command line
-hint
-hover
 problem-info
 
 showcase/demo fuzzy buffer find in docs

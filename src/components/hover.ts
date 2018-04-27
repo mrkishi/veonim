@@ -1,14 +1,54 @@
-import { connect } from '../state/trade-federation'
+import { activeWindow } from '../core/windows'
+import { sub } from '../messaging/dispatch'
+import { debounce } from '../support/utils'
+import Overlay from '../components/overlay'
 import { docStyle } from '../styles/common'
-import Overlay from '../components/overlay2'
-import { Hover } from '../state/hover'
-import { h } from '../ui/uikit2'
+import { cursor } from '../core/cursor'
+import { ColorData } from '../ai/hover'
+import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
+
+export interface ShowParams {
+  data: ColorData[][],
+  doc?: string,
+}
 
 const docs = (data: string) => h('div', { style: docStyle }, [ h('div', data) ])
 
-const view = ({ data: $ }: { data: Hover }) => Overlay({
-  name: 'hover',
+const getPosition = (row: number, col: number) => ({
+  x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
+  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
+  anchorBottom: cursor.row > 2,
+})
+
+const state = {
+  value: [[]] as ColorData[][],
+  visible: false,
+  anchorBottom: true,
+  doc: '',
+  x: 0,
+  y: 0,
+}
+
+type S = typeof state
+
+const actions = {
+  hide: () => ({ visible: false }),
+  show: ({ data, doc }: ShowParams) => ({
+    ...getPosition(cursor.row, cursor.col),
+    doc,
+    value: data,
+    visible: true,
+  }),
+  update: () => (s: S) => {
+    if (!s.visible) return
+    return getPosition(cursor.row, cursor.col)
+  }
+}
+
+type A = typeof actions
+
+const view = ($: S) => Overlay({
   x: $.x,
   y: $.y,
   maxWidth: 600,
@@ -39,4 +79,6 @@ const view = ({ data: $ }: { data: Hover }) => Overlay({
 
 ])
 
-export default connect(s => ({ data: s.hover }))(view)
+const ui = app<S, A>({ name: 'hover', state, actions, view })
+
+sub('redraw', debounce(ui.update, 50))
