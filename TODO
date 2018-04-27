@@ -5,6 +5,41 @@ hide overlays (problem info, hover) on bufleave
 
 generic-menu use Icon string get module to allow dynamic icons from users
 
+TEST COMPONENTS
+─ autocomplete.ts
+─ buffer-search.ts
+─ buffers.ts
+# change-project.ts
+─ code-actions.ts
+─ color-picker.ts
+─ command-line.ts
+─ explorer-embed.ts
+─ explorer.ts
+─ files.ts
+─ filetype-icon.ts
+─ generic-menu.ts
+─ grep.ts
+─ hint.ts
+─ hover.ts
+─ icon.ts
+─ loading.ts
+─ messages.ts
+─ nc.ts
+─ overlay.ts
+─ plugin-container.ts
+─ problem-info.ts
+─ problems.ts
+─ references.ts
+─ row-container.ts
+─ statusline.ts
+# symbols.ts
+─ text-input.ts
+─ user-menu.ts
+─ user-overlay-menu.ts
+# vim-create.ts
+# vim-rename.ts
+# vim-switch.ts
+
 TODO:
 filetype-icon
 color-picker
@@ -22,7 +57,6 @@ neovim.jumpTo: don't hide cursor/cursorline from background window.
   we want to jump to and see the current line highlighted (with cursorline)
 
 - hook up new icons:
-  - feather
   - seti
 
 files not refresh after delete file

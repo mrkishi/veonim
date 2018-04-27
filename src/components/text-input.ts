@@ -144,7 +144,7 @@ const view = ({
       placeholder: desc,
       onfocus: () => useVimInput ? hideCursor() : vimBlur(),
       onblur: () => useVimInput ? showCursor() : vimFocus(),
-      onKeyUp: (e: KeyboardEvent) => {
+      onkeyup: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
 
         if (xfrmUp.has(prevKeyAndThisOne)) {
@@ -157,7 +157,7 @@ const view = ({
           }
         }
       },
-      onKeyDown: (e: KeyboardEvent) => {
+      onkeydown: (e: KeyboardEvent) => {
         const { ctrlKey: ctrl, metaKey: meta, key } = e
         const cm = ctrl || meta
 

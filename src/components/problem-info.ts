@@ -65,6 +65,7 @@ const view = ($: S) => Overlay({
       ,h(Icon.XCircle, {
         style: { fontSize: '1.2rem' },
         color: cvar('error'),
+        'stroke-width': 2,
       })
     ])
 

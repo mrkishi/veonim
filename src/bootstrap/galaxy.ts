@@ -1,4 +1,4 @@
-import { CreateTask, log, delay as timeout } from '../support/utils'
+import { CreateTask, log, delay as timeout, requireDir } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
@@ -40,11 +40,10 @@ const main = async () => {
   setDefaultSession(id, path)
 
   setTimeout(() => {
-    require('../components/command-line')
     // TODO: can we load copmonents on demand?
     // aka, either load when user requests, or after 10 sec of app startup shit
-    // requireDir(`${__dirname}/../components`)
-    // setTimeout(() => require('../core/ai'))
+    requireDir(`${__dirname}/../components`)
+    setTimeout(() => require('../core/ai'))
   }, 1)
 
   // TODO: THIS SHOULD BE LOADED IN A WEB WORKER. WTF IS THIS SHIT DOING IN THE MAIN THREAD LOL

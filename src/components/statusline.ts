@@ -5,7 +5,7 @@ import configReader from '../config/config-service'
 import { darken, brighten, cvar } from '../ui/css'
 import { ExtContainer } from '../core/api'
 import { colors } from '../styles/common'
-import Icon from '../components/icon'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 import '../support/git'
 
@@ -122,7 +122,7 @@ const view = ($: S) => h('div', {
       }
     }, [
       ,h('div', { style: iconBoxStyle }, [
-        ,Icon('hardDrive')
+        ,h(Icon.HardDrive)
       ])
 
       ,h('span', $.cwd || 'no project')
@@ -142,7 +142,7 @@ const view = ($: S) => h('div', {
       ,h('div', { style: iconBoxStyle }, {
         style: { display: $.branch ? '' : 'none' }
       }, [
-        Icon('gitBranch'),
+        h(Icon.GitBranch),
       ])
 
       ,h('span', $.branch || 'git n/a')
@@ -165,7 +165,7 @@ const view = ($: S) => h('div', {
           color: $.additions > 0 && colors.success,
         }
       }, [
-        ,Icon('plusSquare')
+        ,h(Icon.PlusSquare)
       ])
 
       ,h('div', {
@@ -179,7 +179,7 @@ const view = ($: S) => h('div', {
           color: $.deletions > 0 && colors.error,
         }
       }, [
-        ,Icon('minusSquare')
+        ,h(Icon.MinusSquare)
       ])
 
       ,h('div', {
@@ -189,7 +189,7 @@ const view = ($: S) => h('div', {
 
     ,$.runningServers.has($.filetype) && h('div', { style: itemStyle }, [
       ,h('div', [
-        ,Icon('zap', { color: '#555' })
+        ,h(Icon.Zap, { color: '#555' })
       ])
     ])
 
@@ -202,7 +202,7 @@ const view = ($: S) => h('div', {
       ,h('div', { iconBoxStyle }, {
         style: { color: colors.error }
       }, [
-        ,Icon('target')
+        ,h(Icon.Target)
       ])
 
       ,h('div', {
@@ -231,7 +231,7 @@ const view = ($: S) => h('div', {
           color: $.errors > 0 && colors.error,
         }
       }, [
-        ,Icon('xCircle')
+        ,h(Icon.XCircle)
       ])
 
       ,h('div', {
@@ -245,7 +245,7 @@ const view = ($: S) => h('div', {
           color: $.warnings > 0 && colors.warning,
         }
       }, [
-        ,Icon('alertTriangle')
+        ,h(Icon.AlertTriangle)
       ])
 
       ,h('div', {

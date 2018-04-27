@@ -29,34 +29,36 @@ const pos: { container: ClientRect } = {
   container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
 }
 
+const heavy = { 'stroke-width': 2 }
+
 const icons = new Map([
-  [ SymbolKind.File, h(Icon.File, { color: '#a5c3ff' }) ],
-  [ SymbolKind.Module, h(Icon.Grid, { color: '#ff5f54' }) ],
-  [ SymbolKind.Namespace, h(Icon.CloudSnow, { color: '#ffadc5' }) ],
-  [ SymbolKind.Package, h(Icon.Package, { color: '#ffa4d0' }) ],
-  [ SymbolKind.Class, h(Icon.Compass, { color: '#ffeb5b' }) ],
-  [ SymbolKind.Method, h(Icon.Box, { color: '#bb5ef1' }) ],
-  [ SymbolKind.Property, h(Icon.Disc, { color: '#54c8ff' }) ],
-  [ SymbolKind.Field, h(Icon.Feather, { color: '#9866ff' }) ],
-  [ SymbolKind.Constructor, h(Icon.Aperture, { color: '#c9ff56' }) ],
-  [ SymbolKind.Enum, h(Icon.Award, { color: '#84ff54' }) ],
-  [ SymbolKind.Interface, h(Icon.Map, { color: '#ffa354' }) ],
-  [ SymbolKind.Function, h(Icon.Share2, { color: '#6da7ff' }) ],
-  [ SymbolKind.Variable, h(Icon.Database, { color: '#ff70e4' }) ],
-  [ SymbolKind.Constant, h(Icon.Save, { color: '#54ffe5' }) ],
-  [ SymbolKind.String, h(Icon.Star, { color: '#ffdca3' }) ],
-  [ SymbolKind.Number, h(Icon.Hash, { color: '#ff0c53' }) ],
-  [ SymbolKind.Boolean, h(Icon.Flag, { color: '#0c2dff' }) ],
-  [ SymbolKind.Array, h(Icon.Film, { color: '#0cffff' }) ],
+  [ SymbolKind.File, h(Icon.File, { color: '#a5c3ff', ...heavy }) ],
+  [ SymbolKind.Module, h(Icon.Grid, { color: '#ff5f54', ...heavy }) ],
+  [ SymbolKind.Namespace, h(Icon.CloudSnow, { color: '#ffadc5', ...heavy }) ],
+  [ SymbolKind.Package, h(Icon.Package, { color: '#ffa4d0', ...heavy }) ],
+  [ SymbolKind.Class, h(Icon.Compass, { color: '#ffeb5b', ...heavy }) ],
+  [ SymbolKind.Method, h(Icon.Box, { color: '#bb5ef1', ...heavy }) ],
+  [ SymbolKind.Property, h(Icon.Disc, { color: '#54c8ff', ...heavy }) ],
+  [ SymbolKind.Field, h(Icon.Feather, { color: '#9866ff', ...heavy }) ],
+  [ SymbolKind.Constructor, h(Icon.Aperture, { color: '#c9ff56', ...heavy }) ],
+  [ SymbolKind.Enum, h(Icon.Award, { color: '#84ff54', ...heavy }) ],
+  [ SymbolKind.Interface, h(Icon.Map, { color: '#ffa354', ...heavy }) ],
+  [ SymbolKind.Function, h(Icon.Share2, { color: '#6da7ff', ...heavy }) ],
+  [ SymbolKind.Variable, h(Icon.Database, { color: '#ff70e4', ...heavy }) ],
+  [ SymbolKind.Constant, h(Icon.Save, { color: '#54ffe5', ...heavy }) ],
+  [ SymbolKind.String, h(Icon.Star, { color: '#ffdca3', ...heavy }) ],
+  [ SymbolKind.Number, h(Icon.Hash, { color: '#ff0c53', ...heavy }) ],
+  [ SymbolKind.Boolean, h(Icon.Flag, { color: '#0c2dff', ...heavy }) ],
+  [ SymbolKind.Array, h(Icon.Film, { color: '#0cffff', ...heavy }) ],
   // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ SymbolKind.Object, h('copy', { color: '#' }) ],
-  //[ SymbolKind.Key, h('tag', { color: '#' }) ],
-  //[ SymbolKind.Null, h('x-square', { color: '#' }) ],
-  //[ SymbolKind.EnumMember, h('menu', { color: '#' }) ],
-  //[ SymbolKind.Struct, h('layers', { color: '#' }) ],
-  //[ SymbolKind.Event, h('video', { color: '#' }) ],
-  //[ SymbolKind.Operator, h('anchor', { color: '#' }) ],
-  //[ SymbolKind.TypeParameter, h('type', { color: '#' }) ],
+  //[ SymbolKind.Object, h('copy', { color: '#', ...heavy }) ],
+  //[ SymbolKind.Key, h('tag', { color: '#', ...heavy }) ],
+  //[ SymbolKind.Null, h('x-square', { color: '#', ...heavy }) ],
+  //[ SymbolKind.EnumMember, h('menu', { color: '#', ...heavy }) ],
+  //[ SymbolKind.Struct, h('layers', { color: '#', ...heavy }) ],
+  //[ SymbolKind.Event, h('video', { color: '#', ...heavy }) ],
+  //[ SymbolKind.Operator, h('anchor', { color: '#', ...heavy }) ],
+  //[ SymbolKind.TypeParameter, h('type', { color: '#', ...heavy }) ],
 ])
 
 const symbolDescription = new Map([
@@ -166,8 +168,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
   // TODO: pls scroll this kthx
   ,h('div', {
-    ref: (e: HTMLElement) => {
-      if (!e || !e.getBoundingClientRect) return
+    oncreate: (e: HTMLElement) => {
       pos.container = e.getBoundingClientRect()
     },
     style: {
@@ -178,8 +179,8 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     key: `${name}-${kind}-${location.cwd}-${location.file}-${location.position.line}-${location.position.column}`,
     style: { justifyContent: 'space-between' },
     active: ix === $.index,
-    ref: (e: HTMLElement) => {
-      if (ix !== $.index || !e || !e.getBoundingClientRect) return
+    oncreate: (e: HTMLElement) => {
+      if (ix !== $.index) return
       const { top, bottom } = e.getBoundingClientRect()
       if (top < pos.container.top) return e.scrollIntoView(true)
       if (bottom > pos.container.bottom) return e.scrollIntoView(false)

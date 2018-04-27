@@ -29,7 +29,11 @@ interface Options {
 
 export const RowNormal = (o: Options, children: any[]) => h('div', {
   ...o,
-  style: o.active ? activeRow : row,
+  style: {
+    ...row,
+    ...(o.active && activeRow),
+    ...o.style,
+  }
 }, children)
 
 export const RowDesc = (o: Options, children: any[]) => h('div', {
@@ -38,6 +42,7 @@ export const RowDesc = (o: Options, children: any[]) => h('div', {
     ...(o.active ? activeRow : row),
     whiteSpace: 'normal',
     overflow: 'normal',
+    ...o.style,
   },
 }, children)
 
@@ -48,6 +53,7 @@ export const RowComplete = (o: Options, children: any[]) => h('div', {
     ...paddingVH(0, 0),
     paddingRight: '8px',
     lineHeight: cvar('line-height'),
+    ...o.style,
   }
 }, children)
 
@@ -64,6 +70,7 @@ export const RowHeader = (o: Options, children: any[]) => h('div', {
       fontWeight: 'normal',
       background: cvar('background-b10'),
     }: 0)
+    ...o.style,
   }
 }, children)
 
@@ -81,7 +88,7 @@ export const RowImportant = (opts = {} as any, children: any[]) => h('div', {
 export const RowGroup = (opts = {} as any, children: any[]) => h('div', {
   ...opts,
   style: {
-    ...opts.style,
     ...paddingH(4),
+    ...opts.style,
   }
 }, children)
