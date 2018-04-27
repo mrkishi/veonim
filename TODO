@@ -1,3 +1,6 @@
+remove unused files. go thru everything
+remove unusued deps. go thru everything
+
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
@@ -182,6 +185,11 @@ save to docs
 upgrade ripgrep
 
 --ideas--
+
+i want the ability to be able to record multiple macros and name them. i want some sort of visual
+selector gui so i can retrieve and rerun macros without having to remember what macro register
+i saved, and what the usage for a particular macro is supposed to be. this can work similar
+to the marks popup idea below
 
 create find overlay at the top or bottom of current window (like xcode/vscode/atom/sublime/etc). used for builtin vim / or ? and can be used by custom components (viewport fuzzy search)
   - maybe the design can integrate somehow with the buffer fuzzy search list

@@ -1,7 +1,7 @@
 import { RowHeader, RowDesc, RowGroup } from '../components/row-container'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
-import { h, app, vimBlur, vimFocus, styled } from '../ui/uikit'
 import * as canvasContainer from '../core/canvas-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { current, jumpTo } from '../core/neovim'
 import { simplifyPath } from '../support/utils'
 import { badgeStyle } from '../styles/common'
@@ -56,12 +56,6 @@ const state = {
 }
 
 type S = typeof state
-
-const IconBox = styled.div`
-  display: flex;
-  align-items: center;
-  padding-right: 10px;
-`
 
 const icons = {
   [DiagnosticSeverity.Error]: Icon('xCircle', {
@@ -209,7 +203,11 @@ const view = ($: S, a: typeof actions) => h('div', {
         if (bottom > position.container.bottom) return e.scrollIntoView(false)
       },
     }, [
-      ,h(IconBox, [
+      ,h('div', {
+        display: 'flex',
+        alignItems: 'center',
+        paddingRight: '10px',
+      }, [
         ,getSeverityIcon(severity)
       ])
 

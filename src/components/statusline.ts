@@ -60,14 +60,11 @@ const itemStyle = {
   paddingRight: '20px',
 }
 
-const Tab = styled.div`
-`
-
-const IconBox = styled.div`
-  display: flex;
-  padding-right: 4px;
-  align-items: center;
-`
+const iconBoxStyle = {
+  display: 'flex',
+  paddingRight: '4px',
+  alignItems: 'center',
+}
 
 const container = document.getElementById('statusline') as HTMLElement
 merge(container.style, {
@@ -124,7 +121,7 @@ const view = ($: S) => h('div', {
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 0 100%)',
       }
     }, [
-      ,h(IconBox, [
+      ,h('div', { style: iconBoxStyle }, [
         ,Icon('hardDrive')
       ])
 
@@ -142,7 +139,7 @@ const view = ($: S) => h('div', {
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 15px 100%)',
       }
     }, [
-      ,h(IconBox, {
+      ,h('div', { style: iconBoxStyle }, {
         style: { display: $.branch ? '' : 'none' }
       }, [
         Icon('gitBranch'),
@@ -163,7 +160,7 @@ const view = ($: S) => h('div', {
       }
     }, [
       // ADDITIONS
-      ,h(IconBox, {
+      ,h('div', { style: iconBoxStyle }, {
         style: {
           color: $.additions > 0 && colors.success,
         }
@@ -176,7 +173,7 @@ const view = ($: S) => h('div', {
       }, `${$.additions}`)
 
       // DELETIONS
-      ,h(IconBox, {
+      ,h('div', { style: iconBoxStyle }, {
         style: {
           marginLeft: '12px',
           color: $.deletions > 0 && colors.error,
@@ -202,7 +199,7 @@ const view = ($: S) => h('div', {
   ,h('div', { statusGroupStyle }, [
 
     ,$.macro && h('div', { style: itemStyle }, [
-      ,h(IconBox, {
+      ,h('div', { iconBoxStyle }, {
         style: { color: colors.error }
       }, [
         ,Icon('target')
@@ -229,7 +226,7 @@ const view = ($: S) => h('div', {
       }
     }, [
       // ERRORS
-      ,h(IconBox, {
+      ,h('div', { style: iconBoxStyle }, {
         style: {
           color: $.errors > 0 && colors.error,
         }
@@ -242,7 +239,7 @@ const view = ($: S) => h('div', {
       }, `${$.errors}`)
 
       // WARNINGS
-      ,h(IconBox, {
+      ,h('div', { style: iconBoxStyle }, {
         style: {
           marginLeft: '12px',
           color: $.warnings > 0 && colors.warning,
