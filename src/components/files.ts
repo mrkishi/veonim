@@ -5,7 +5,9 @@ import { action, current, cmd } from '../core/neovim'
 import { basename, dirname, join } from 'path'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
+import { cvar } from '../ui/css'
 
 interface FileDir {
   dir: string,
@@ -83,8 +85,7 @@ const view = ($: S, a: typeof actions) => Plugin($.vis, [
     prev: a.prev,
     value: $.val,
     focus: true,
-    // icon: 'FileText',
-    icon: 'file-text',
+    icon: Icon.FileText,
     desc: 'open file',
     // TODO: loading is so fast that this flickers and looks janky
     // use debounce or throttle to only show this if a loading operation
@@ -98,10 +99,10 @@ const view = ($: S, a: typeof actions) => Plugin($.vis, [
   }, [
     ,FiletypeIcon(file)
 
-    ,h('span', { style: { color: 'var(--foreground-50)' } }, dir)
+    ,h('span', { style: { color: cvar('foreground-50') } }, dir)
 
     ,h('span', { style: {
-      color: ix === $.ix ? 'var(--foreground-b20)' : 'var(--foreground-30)'
+      color: ix === $.ix ? cvar('foreground-b20') : cvar('foreground-30')
     } }, file)
   ])))
 

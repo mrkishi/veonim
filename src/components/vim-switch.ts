@@ -3,8 +3,8 @@ import { RowNormal } from '../components/row-container'
 import { list, switchVim } from '../core/sessions'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { action } from '../core/neovim'
-import { Grid } from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 interface Session {
@@ -53,7 +53,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     prev: a.prev,
     value: $.value,
     focus: true,
-    icon: Grid,
+    icon: Icon.Grid,
     desc: 'switch vim session',
   })
 

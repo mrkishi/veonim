@@ -5,9 +5,8 @@ import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { paddingVH, cvar } from '../ui/css'
-import { cursor } from '../core/cursor'
-// import Icon from '../components/icon'
 import * as Icon from 'hyperapp-feather'
+import { cursor } from '../core/cursor'
 import { h, app } from '../ui/uikit'
 
 interface ShowParams {

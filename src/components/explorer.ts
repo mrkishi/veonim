@@ -8,6 +8,7 @@ import config from '../config/config-service'
 import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
@@ -175,7 +176,7 @@ const view = ($: S, a: A) => Plugin($.vis, [
   ,Input({
     value: $.val,
     focus: !$.pathMode,
-    icon: 'HardDrive',
+    icon: Icon.HardDrive,
     desc: 'explorer',
     change: a.change,
     hide: a.hide,
@@ -203,7 +204,7 @@ const view = ($: S, a: A) => Plugin($.vis, [
     value: pathRelativeToHome($.pathValue),
     background: cvar('background-50'),
     color: colors.important,
-    icon: 'search',
+    icon: Icon.Search,
     desc: 'open path',
     small: true,
     focus: true,

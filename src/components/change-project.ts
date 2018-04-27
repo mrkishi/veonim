@@ -7,6 +7,7 @@ import configReader from '../config/config-service'
 import config from '../config/config-service'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 import { join, sep } from 'path'
 import { homedir } from 'os'
@@ -127,7 +128,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     jumpPrev: a.jumpPrev,
     value: $.value,
     focus: true,
-    icon: 'home',
+    icon: Icon.Home,
     desc: $.create ? 'create new vim session with project' : 'change project',
   })
 

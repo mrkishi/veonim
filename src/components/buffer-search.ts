@@ -4,6 +4,7 @@ import { activeWindow } from '../core/windows'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import { merge } from '../support/utils'
+import * as Icon from 'hyperapp-feather'
 import { app } from '../ui/uikit'
 
 interface FilterResult {
@@ -99,7 +100,7 @@ const view = ($: S, a: A) => PluginBottom($.visible, [
     small: true,
     focus: true,
     value: $.value,
-    icon: 'search',
+    icon: Icon.Search,
     hide: a.hide,
     change: a.change,
     select: a.select,

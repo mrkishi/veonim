@@ -5,7 +5,7 @@ import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
-import Icon from '../components/icon'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 export enum SymbolMode {
@@ -30,33 +30,33 @@ const pos: { container: ClientRect } = {
 }
 
 const icons = new Map([
-  [ SymbolKind.File, Icon('file', { color: '#a5c3ff' }) ],
-  [ SymbolKind.Module, Icon('grid', { color: '#ff5f54' }) ],
-  [ SymbolKind.Namespace, Icon('CloudSnow', { color: '#ffadc5' }) ],
-  [ SymbolKind.Package, Icon('package', { color: '#ffa4d0' }) ],
-  [ SymbolKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
-  [ SymbolKind.Method, Icon('box', { color: '#bb5ef1' }) ],
-  [ SymbolKind.Property, Icon('disc', { color: '#54c8ff' }) ],
-  [ SymbolKind.Field, Icon('feather', { color: '#9866ff' }) ],
-  [ SymbolKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
-  [ SymbolKind.Enum, Icon('award', { color: '#84ff54' }) ],
-  [ SymbolKind.Interface, Icon('map', { color: '#ffa354' }) ],
-  [ SymbolKind.Function, Icon('Share2', { color: '#6da7ff' }) ],
-  [ SymbolKind.Variable, Icon('database', { color: '#ff70e4' }) ],
-  [ SymbolKind.Constant, Icon('save', { color: '#54ffe5' }) ],
-  [ SymbolKind.String, Icon('star', { color: '#ffdca3' }) ],
-  [ SymbolKind.Number, Icon('hash', { color: '#ff0c53' }) ],
-  [ SymbolKind.Boolean, Icon('flag', { color: '#0c2dff' }) ],
-  [ SymbolKind.Array, Icon('film', { color: '#0cffff' }) ],
+  [ SymbolKind.File, h(Icon.File, { color: '#a5c3ff' }) ],
+  [ SymbolKind.Module, h(Icon.Grid, { color: '#ff5f54' }) ],
+  [ SymbolKind.Namespace, h(Icon.CloudSnow, { color: '#ffadc5' }) ],
+  [ SymbolKind.Package, h(Icon.Package, { color: '#ffa4d0' }) ],
+  [ SymbolKind.Class, h(Icon.Compass, { color: '#ffeb5b' }) ],
+  [ SymbolKind.Method, h(Icon.Box, { color: '#bb5ef1' }) ],
+  [ SymbolKind.Property, h(Icon.Disc, { color: '#54c8ff' }) ],
+  [ SymbolKind.Field, h(Icon.Feather, { color: '#9866ff' }) ],
+  [ SymbolKind.Constructor, h(Icon.Aperture, { color: '#c9ff56' }) ],
+  [ SymbolKind.Enum, h(Icon.Award, { color: '#84ff54' }) ],
+  [ SymbolKind.Interface, h(Icon.Map, { color: '#ffa354' }) ],
+  [ SymbolKind.Function, h(Icon.Share2, { color: '#6da7ff' }) ],
+  [ SymbolKind.Variable, h(Icon.Database, { color: '#ff70e4' }) ],
+  [ SymbolKind.Constant, h(Icon.Save, { color: '#54ffe5' }) ],
+  [ SymbolKind.String, h(Icon.Star, { color: '#ffdca3' }) ],
+  [ SymbolKind.Number, h(Icon.Hash, { color: '#ff0c53' }) ],
+  [ SymbolKind.Boolean, h(Icon.Flag, { color: '#0c2dff' }) ],
+  [ SymbolKind.Array, h(Icon.Film, { color: '#0cffff' }) ],
   // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ SymbolKind.Object, Icon('copy', { color: '#' }) ],
-  //[ SymbolKind.Key, Icon('tag', { color: '#' }) ],
-  //[ SymbolKind.Null, Icon('x-square', { color: '#' }) ],
-  //[ SymbolKind.EnumMember, Icon('menu', { color: '#' }) ],
-  //[ SymbolKind.Struct, Icon('layers', { color: '#' }) ],
-  //[ SymbolKind.Event, Icon('video', { color: '#' }) ],
-  //[ SymbolKind.Operator, Icon('anchor', { color: '#' }) ],
-  //[ SymbolKind.TypeParameter, Icon('type', { color: '#' }) ],
+  //[ SymbolKind.Object, h('copy', { color: '#' }) ],
+  //[ SymbolKind.Key, h('tag', { color: '#' }) ],
+  //[ SymbolKind.Null, h('x-square', { color: '#' }) ],
+  //[ SymbolKind.EnumMember, h('menu', { color: '#' }) ],
+  //[ SymbolKind.Struct, h('layers', { color: '#' }) ],
+  //[ SymbolKind.Event, h('video', { color: '#' }) ],
+  //[ SymbolKind.Operator, h('anchor', { color: '#' }) ],
+  //[ SymbolKind.TypeParameter, h('type', { color: '#' }) ],
 ])
 
 const symbolDescription = new Map([
@@ -89,7 +89,7 @@ const symbolDescription = new Map([
   //[ SymbolKind.TypeParameter, 'TypeParameter' ],
 ])
 
-const getSymbolIcon = (kind: SymbolKind) => icons.get(kind) || Icon('code')
+const getSymbolIcon = (kind: SymbolKind) => icons.get(kind) || h(Icon.Code)
 const getSymbolDescription = (kind: SymbolKind) => symbolDescription.get(kind) || ''
 
 const symbolCache = (() => {
@@ -160,7 +160,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     value: $.value,
     loading: $.loading,
     focus: true,
-    icon: 'moon',
+    icon: Icon.Moon,
     desc: 'go to symbol',
   })
 

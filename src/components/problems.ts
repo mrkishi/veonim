@@ -7,8 +7,8 @@ import { simplifyPath } from '../support/utils'
 import { badgeStyle } from '../styles/common'
 import Input from '../components/text-input'
 import { Problem } from '../ai/diagnostics'
+import * as Icon from 'hyperapp-feather'
 import { filter } from 'fuzzaldrin-plus'
-import Icon from '../components/icon'
 import { clipboard } from 'electron'
 import { join } from 'path'
 
@@ -58,13 +58,17 @@ const state = {
 type S = typeof state
 
 const icons = {
-  [DiagnosticSeverity.Error]: Icon('xCircle', {
+  [DiagnosticSeverity.Error]: h(Icon.XCircle, {
     color: '#ef2f2f',
-    size: canvasContainer.font.size + 4,
+    style: {
+      fontSize: '1.2rem'
+    },
   }),
-  [DiagnosticSeverity.Warning]: Icon('xCircle', {
+  [DiagnosticSeverity.Warning]: h(Icon.XCircle, {
     color: '#ffb100',
-    size: canvasContainer.font.size + 4,
+    style: {
+      fontSize: '1.2rem'
+    },
   })
 }
 
@@ -154,7 +158,7 @@ const view = ($: S, a: typeof actions) => h('div', {
     value: $.val,
     focus: $.focus,
     small: true,
-    icon: 'filter',
+    icon: Icon.Filter,
     desc: 'filter by files',
   })
 

@@ -3,6 +3,7 @@ import { RowNormal } from '../components/row-container'
 import { CreateTask } from '../support/utils'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 export interface MenuOption {
@@ -23,7 +24,7 @@ const state = {
   cache: [] as MenuOption[],
   description: '',
   ix: 0,
-  icon: 'user',
+  icon: Icon.User,
   task: CreateTask(),
 }
 

@@ -1,9 +1,9 @@
-import { XCircle, AlertTriangle, CheckCircle, MessageCircle, AlertCircle } from 'hyperapp-feather'
 import { PluginTop } from '../components/plugin-container'
 import { merge, uuid, debounce } from '../support/utils'
 import { colors, badgeStyle } from '../styles/common'
 import { addMessage } from '../components/messages'
 import { animate, cvar } from '../ui/css'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 export enum NotifyKind {
@@ -43,11 +43,11 @@ const container = document.getElementById('notifications') as HTMLElement
 merge(container.style, { zIndex: 80 })
 
 const renderIcons = new Map([
-  [ NotifyKind.Error, XCircle ],
-  [ NotifyKind.Warning, AlertTriangle ],
-  [ NotifyKind.Success, CheckCircle ],
-  [ NotifyKind.Info, MessageCircle ],
-  [ NotifyKind.System, AlertCircle ],
+  [ NotifyKind.Error, Icon.XCircle ],
+  [ NotifyKind.Warning, Icon.AlertTriangle ],
+  [ NotifyKind.Success, Icon.CheckCircle ],
+  [ NotifyKind.Info, Icon.MessageCircle ],
+  [ NotifyKind.System, Icon.AlertCircle ],
 ])
 
 const getIcon = (kind: NotifyKind) => renderIcons.get(kind)!

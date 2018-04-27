@@ -1,7 +1,7 @@
 import { Plugin } from '../components/plugin-container'
-import { FolderPlus } from 'hyperapp-feather'
 import Input from '../components/text-input'
 import { createVim } from '../core/sessions'
+import * as Icon from 'hyperapp-feather'
 import { action } from '../core/neovim'
 import { app } from '../ui/uikit'
 
@@ -30,7 +30,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     change: a.change,
     value: $.value,
     focus: true,
-    icon: FolderPlus,
+    icon: Icon.FolderPlus,
     desc: 'create new vim session',
   })
 

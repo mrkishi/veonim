@@ -1,9 +1,14 @@
 remove unused files. go thru everything
 remove unusued deps. go thru everything
 
+hide overlays (problem info, hover) on bufleave
+
+generic-menu use Icon string get module to allow dynamic icons from users
+
 TODO:
 filetype-icon
 problem-info
+color-picker
 
 build.js not being used for anything. gonna finish it or discard?
 
@@ -168,6 +173,10 @@ save to docs
 upgrade ripgrep
 
 --ideas--
+
+change object key or value vim function/macro binding
+
+image preview buffers
 
 i want the ability to be able to record multiple macros and name them. i want some sort of visual
 selector gui so i can retrieve and rerun macros without having to remember what macro register

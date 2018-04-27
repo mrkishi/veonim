@@ -2,6 +2,7 @@ import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import Input from '../components/text-input'
 import { badgeStyle } from '../styles/common'
+import * as Icon from 'hyperapp-feather'
 import { jumpTo } from '../core/neovim'
 import { h, app } from '../ui/uikit'
 
@@ -149,7 +150,7 @@ const view = ($: S, a: typeof actions) => PluginRight($.vis, [
     prevGroup: a.prevGroup,
     value: $.val,
     focus: true,
-    icon: 'filter',
+    icon: Icon.Filter,
     desc: 'filter references',
   }),
 

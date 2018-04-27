@@ -1,12 +1,11 @@
 import { NotifyKind, Notification } from '../ui/notifications'
-import * as canvasContainer from '../core/canvas-container'
 import { RowNormal } from '../components/row-container'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { action } from '../core/neovim'
-import Icon from '../components/icon'
 
 const state = {
   query: '',
@@ -21,20 +20,19 @@ type S = typeof state
 let elref: HTMLElement
 const SCROLL_AMOUNT = 0.4
 
+const iconStyle = { fontSize: '1.2rem' }
+
 // TODO: maybe this can be shared with notifications.ts component
 const icons = new Map([
-  ['error', { icon: 'xCircle', color: colors.error }],
-  ['warning', { icon: 'alertTriangle', color: colors.warning }],
-  ['success', { icon: 'CheckCircle', color: colors.success }],
-  ['info', { icon: 'MessageCircle', color: '#eee' }],
-  ['hidden', { icon: 'MessageCircle', color: '#eee' }],
-  ['system', { icon: 'alertCircle', color: colors.system }],
+  ['error', h(Icon.XCircle, { color: colors.error, style: iconStyle })],
+  ['warning', h(Icon.AlertTriangle, { color: colors.warning, style: iconStyle })],
+  ['success', h(Icon.CheckCircle, { color: colors.success, style: iconStyle })],
+  ['info', h(Icon.MessageCircle, { color: colors.info, style: iconStyle })],
+  ['hidden', h(Icon.MessageCircle, { color: colors.info, style: iconStyle })],
+  ['system', h(Icon.AlertCircle, { color: colors.system, style: iconStyle })],
 ])
 
-const getIcon = (kind: NotifyKind) => {
-  const { icon, color } = icons.get(kind) || icons.get('info')!
-  return Icon(icon, { color, size: canvasContainer.font.size + 4 })
-}
+const getIcon = (kind: NotifyKind) => icons.get(kind) || icons.get('info')
 
 const actions = {
   toggle: () => (s: S) => {
@@ -87,7 +85,7 @@ const view = ($: S, a: typeof actions) => h('div', {
     value: $.query,
     focus: true,
     small: true,
-    icon: 'filter',
+    icon: Icon.Filter,
     desc: 'filter messages',
   })
 

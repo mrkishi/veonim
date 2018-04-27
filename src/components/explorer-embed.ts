@@ -9,6 +9,7 @@ import config from '../config/config-service'
 import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
@@ -218,7 +219,7 @@ const createComponent = () => {
     ,Input({
       value: $.val,
       focus: $.focus && !$.pathMode,
-      icon: 'HardDrive',
+      icon: Icon.HardDrive,
       desc: 'explorer',
       change: a.change,
       next: a.next,
@@ -247,7 +248,7 @@ const createComponent = () => {
       value: pathRelativeToHome($.pathValue),
       background: cvar('background-50'),
       color: colors.important,
-      icon: 'search',
+      icon: Icon.Search,
       desc: 'open path',
       small: true,
       focus: $.focus,

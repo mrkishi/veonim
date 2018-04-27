@@ -1,4 +1,4 @@
-import { CreateTask, requireDir, log, delay as timeout } from '../support/utils'
+import { CreateTask, log, delay as timeout } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'

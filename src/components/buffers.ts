@@ -7,6 +7,7 @@ import { simplifyPath } from '../support/utils'
 import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 interface BufferInfo {
@@ -86,7 +87,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     prev: a.prev,
     value: $.value,
     focus: true,
-    icon: 'list',
+    icon: Icon.List,
     desc: 'switch buffer',
   })
 

@@ -4,6 +4,7 @@ import { PluginRight } from '../components/plugin-container'
 import { badgeStyle } from '../styles/common'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
+import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 type TextTransformer = (text: string, last?: boolean) => string
@@ -180,7 +181,7 @@ const view = ($: S, a: typeof actions) => PluginRight($.visible, [
     down: a.down,
     up: a.up,
     focus: $.focused === FocusedElement.Search,
-    icon: 'search',
+    icon: Icon.Search,
     desc: 'find in project',
     loading: $.loading,
   }),
@@ -198,7 +199,7 @@ const view = ($: S, a: typeof actions) => PluginRight($.visible, [
     down: a.down,
     up: a.up,
     focus: $.focused === FocusedElement.Filter,
-    icon: 'filter',
+    icon: Icon.Filter,
     small: true,
     desc: 'filter files',
   }),

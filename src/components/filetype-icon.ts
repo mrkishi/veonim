@@ -1,5 +1,5 @@
-import { Folder as FolderIcon } from 'hyperapp-feather'
 import { pascalCase } from '../support/utils'
+import * as Icon from 'hyperapp-feather'
 import { basename, extname } from 'path'
 import * as Icons from 'hyperapp-seti'
 import { h } from '../ui/uikit'
@@ -27,7 +27,7 @@ export const Folder = h('div', {
     paddingLeft: '1px',
   },
 }, [
-  ,h(FolderIcon)
+  ,h(Icon.Folder)
 ])
 
 export default (fileTypeOrPath: string) => h('div', {

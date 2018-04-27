@@ -4,8 +4,8 @@ import { action, call } from '../core/neovim'
 import Input from '../components/text-input'
 import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
+import * as Icon from 'hyperapp-feather'
 import { cursor } from '../core/cursor'
-import { User } from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 const state = {
@@ -67,7 +67,7 @@ const view = ($: S, a: typeof actions) => Overlay({
       value: $.value,
       focus: true,
       small: true,
-      icon: User,
+      icon: Icon.User,
       desc: $.desc,
     })
 
