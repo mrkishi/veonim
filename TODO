@@ -7,7 +7,6 @@ generic-menu use Icon string get module to allow dynamic icons from users
 
 TODO:
 filetype-icon
-problem-info
 color-picker
 
 build.js not being used for anything. gonna finish it or discard?

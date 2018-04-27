@@ -2,6 +2,7 @@ import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { sub } from '../messaging/dispatch'
 import { debounce } from '../support/utils'
+import * as Icon from 'hyperapp-feather'
 import { cursor } from '../core/cursor'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
@@ -61,11 +62,10 @@ const view = ($: S) => Overlay({
         paddingRight: '8px',
       }
     }, [
-      // TODO: use the real icons
-      // Icon('XCircle', {
-      //   color: cvar('error'),
-      //   size: '1.2rem',
-      // })
+      ,h(Icon.XCircle, {
+        style: { fontSize: '1.2rem' },
+        color: cvar('error'),
+      })
     ])
 
     ,h('div', $.value)
