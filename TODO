@@ -1,6 +1,10 @@
 remove unused files. go thru everything
 remove unusued deps. go thru everything
 
+build.js not being used for anything. gonna finish it or discard?
+
+should font-sizer be part of build process?
+
 remove react-redux dependency when removing dedox
 react-tiny-virtual-list for virtual lists?
 
@@ -20,6 +24,8 @@ neovim.jumpTo: don't hide cursor/cursorline from background window.
 remove 'name' -> element.id support in overlay2. id is now set by uikit2
 
 back to hyperapp:
+- references.ts has elRef
+- make sure all components lists are using 'keys'
 - remove redux
 - create a wrapper around hyperapp? problems to solve:
   - want to bind redux devtools if we are in dev mode
