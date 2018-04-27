@@ -2,9 +2,9 @@ import { PluginTop } from '../components/plugin-container'
 import { merge, uuid, debounce } from '../support/utils'
 import { colors, badgeStyle } from '../styles/common'
 import { addMessage } from '../components/messages'
+import { animate, cvar } from '../ui/css'
 import Icon from '../components/icon'
 import { h, app } from '../ui/uikit'
-import { animate } from '../ui/css'
 
 export enum NotifyKind {
   Error = 'error',
@@ -75,20 +75,14 @@ const actions = {
 
 const view = ($: S) => PluginTop(true, [
 
-  ,h('div', {
-    style: {
-      position: 'absolute',
-      background: 'none',
-      marginTop: '5px',
-    }
-  }, $.notifications.map(({ id, kind, message, count }) => h('div', {
+  ,h('div', $.notifications.map(({ id, kind, message, count }) => h('div', {
       key: id,
       style: {
         display: 'flex',
         padding: '10px',
         marginBottom: '6px',
         justifyContent: 'space-between',
-        background: 'var(--background-50)',
+        background: cvar('background-50'),
         color: Reflect.get(colors, kind),
       },
       onCreate: (e: HTMLElement) => animate(e, [
@@ -137,7 +131,11 @@ const view = ($: S) => PluginTop(true, [
 
   )
 
-])
+], {
+  position: 'absolute',
+  background: 'none',
+  marginTop: '5px',
+})
 
 const ui = app<S, typeof actions>({ name: 'notifications', element: container, state, actions, view })
 

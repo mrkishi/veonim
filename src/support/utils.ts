@@ -201,6 +201,7 @@ export const requireDir = async (path: string) => (await getDirFiles(path))
   .map(m => require(m.path))
 
 export function debounce (fn: Function, wait = 1) {
+  if (!fn) throw new Error('bruh, ya need a function here!')
   let timeout: NodeJS.Timer
   return function(this: any, ...args: any[]) {
     const ctx = this

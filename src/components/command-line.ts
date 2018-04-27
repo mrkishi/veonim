@@ -1,3 +1,4 @@
+import { Command, ChevronsRight, Search } from 'hyperapp-feather'
 import { CommandType, CommandUpdate } from '../core/render'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
@@ -7,10 +8,10 @@ import { is } from '../support/utils'
 import { h, app } from '../ui/uikit'
 
 const modeSwitch = new Map([
-  [ CommandType.Ex, 'command' ],
-  [ CommandType.Prompt, 'chevrons-right' ],
-  [ CommandType.SearchForward, 'search' ],
-  [ CommandType.SearchBackward, 'search' ],
+  [ CommandType.Ex, Command],
+  [ CommandType.Prompt, ChevronsRight ],
+  [ CommandType.SearchForward, Search ],
+  [ CommandType.SearchBackward, Search ],
 ])
 
 const state = {
@@ -52,7 +53,7 @@ const view = ($: S) => Plugin($.visible, [
     value: $.value,
     position: $.position,
     useVimInput: true,
-    icon: modeSwitch.get($.kind) || 'command',
+    icon: modeSwitch.get($.kind) || Command,
     desc: 'command line',
   })
 

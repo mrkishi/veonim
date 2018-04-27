@@ -39,6 +39,8 @@ const pluginsDiv = document.getElementById('plugins') as HTMLElement
 const prepareContainerElement = (name: string) => {
   const el = document.createElement('div')
   el.setAttribute('id', name)
+  el.style.width = '100%'
+  el.style.position = 'absolute'
   pluginsDiv.appendChild(el)
   return el
 }
@@ -54,11 +56,8 @@ export interface App<StateT, ActionsT> {
 /** create app for cultural learnings of hyperapp for make benefit of glorious application veonim */
 export const app = <StateT, ActionsT>({ state, actions, view, element, name }: App<StateT, ActionsT>): ActionsT => {
   const containerElement = element || prepareContainerElement(name)
-  const theApp = makeApp(state, actions, view, containerElement)
-
-  // TODO: on render, find the first child item and add the id to it? or class, whatever
 
   return process.env.VEONIM_DEV
-    ? devtools(theApp, { name })
-    : theApp
+    ? devtools(makeApp, { name })(state, actions, view, containerElement)
+    : makeApp(state, actions, view, containerElement)
 }

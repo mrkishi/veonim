@@ -20,7 +20,7 @@ const dialog = {
 }
 
 export const Plugin = (visible: boolean, children: any[]) => h('div', {
-  styles: normal,
+  style: normal,
 }, [
 
   ,h('div', {
@@ -34,7 +34,7 @@ export const Plugin = (visible: boolean, children: any[]) => h('div', {
 ])
 
 export const PluginTop = (visible: boolean, children: any[], styles?: object) => h('div', {
-  styles: top,
+  style: top,
 }, [
 
   ,h('div', {
@@ -49,7 +49,7 @@ export const PluginTop = (visible: boolean, children: any[], styles?: object) =>
 ])
 
 export const PluginBottom = (visible: boolean, children: any[]) => h('div', {
-  styles: bottom,
+  style: bottom,
 }, [
 
   ,h('div', {
@@ -61,7 +61,7 @@ export const PluginBottom = (visible: boolean, children: any[]) => h('div', {
 ])
 
 export const PluginRight = (visible: boolean, children: any[]) => h('div', {
-  styles: right,
+  style: right,
 }, [
 
   ,h('div', {

@@ -4,11 +4,11 @@ import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
+import { paddingVH, cvar } from '../ui/css'
 import { cursor } from '../core/cursor'
 // import Icon from '../components/icon'
-import { paddingVH } from '../ui/css'
-import { h, app } from '../ui/uikit'
 import * as Icon from 'hyperapp-feather'
+import { h, app } from '../ui/uikit'
 
 interface ShowParams {
   row: number,
@@ -72,8 +72,8 @@ const docs = (data: string) => h(RowNormal, {
     paddingTop: '6px',
     overflow: 'visible',
     whiteSpace: 'normal',
-    color: 'var(--foreground-20)',
-    background: 'var(--background-45)',
+    color: cvar('foreground-20'),
+    background: cvar('background-45'),
     fontSize: `${canvasContainer.font.size - 2}px`,
   }
 }, [
@@ -119,8 +119,8 @@ const view = ($: S) => Overlay({
   ,h('div', {
     // onupdate: (e: HTMLElement) => pos.container = e.getBoundingClientRect(),
     style: {
-      background: 'var(--background-30)',
       overflowY: 'hidden',
+      background: cvar('background-30'),
       maxHeight: `${canvasContainer.cell.height * $.visibleOptions}px`,
     }
   }, $.options.map(({ text, kind }, id) => h(RowComplete, {

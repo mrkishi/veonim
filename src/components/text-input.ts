@@ -4,11 +4,11 @@ import { h, vimBlur, vimFocus } from '../ui/uikit'
 import Loading from '../components/loading'
 import { paddingVH, cvar } from '../ui/css'
 import { xfrmUp } from '../core/input'
-import Icon from '../components/icon'
+import { Component } from 'hyperapp'
 
 interface Props {
   value: string,
-  icon: string,
+  icon: Component,
   background: string,
   color: string,
   small: boolean,
@@ -44,7 +44,7 @@ interface Props {
 
 export interface TextInputProps extends Partial<Props> {
   value: string,
-  icon: string,
+  icon: Component,
 }
 
 const setPosition = (e?: HTMLInputElement, position?: number) => {
@@ -111,10 +111,10 @@ const view = ({
       paddingRight: '8px',
     }
   }, [
-    ,Icon(icon, {
+    ,h(icon, {
+      style: !small ? { fontSize: '1.7rem' } : undefined,
       color: cvar('foreground-70'),
-      size: canvasContainer.font.size + (small ? 0 : 8),
-      weight: 2,
+      'stroke-width': 2,
     })
   ])
 
