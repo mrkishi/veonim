@@ -5,10 +5,10 @@ import { Plugin } from '../components/plugin-container'
 import FiletypeIcon from '../components/filetype-icon'
 import { join, sep, basename, dirname } from 'path'
 import config from '../config/config-service'
-import Input from '../components/text-input2'
+import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
-import { h, app } from '../ui/uikit2'
+import { h, app } from '../ui/uikit'
 
 interface FileDir {
   name: string,
@@ -62,7 +62,7 @@ const actions = {
 
   ctrlG: () => ({ pathMode: true, ix: 0, val: '', pathValue: '' }),
 
-  completePath: (s: S) => {
+  completePath: () => (s: S) => {
     if (!s.paths.length) return
     const dir = dirname(absolutePath(s.pathValue))
     const { name } = s.paths[s.ix]
@@ -72,20 +72,20 @@ const actions = {
   },
 
   normalMode: () => ({ pathMode: false }),
-  updatePaths: (_: S, paths: string[]) => ({ paths }),
+  updatePaths: (paths: FileDir[]) => ({ paths }),
 
-  selectPath: (s: S) => {
+  selectPath: () => (s: S) => {
     if (!s.pathValue) return { pathMode: false, ix: 0 }
     getDirFiles(s.pathValue).then(paths => ui.updatePaths(sortDirFiles(paths)))
     return { pathMode: false, path: s.pathValue, ix: 0 }
   },
 
-  changePath: (_: S, pathValue: string) => {
+  changePath: (pathValue: string) => {
     pathExplore(pathValue).then(ui.updatePaths)
     return { pathValue }
   },
 
-  nextPath: (s: S) => {
+  nextPath: () => (s: S) => {
     const ix = s.ix + 1 >= s.paths.length ? 0 : s.ix + 1
     const fullpath = absolutePath(s.pathValue)
     const goodPath = fullpath.endsWith('/') ? fullpath : dirname(fullpath)
@@ -94,7 +94,7 @@ const actions = {
     return { ix, pathValue }
   },
 
-  prevPath: (s: S) => {
+  prevPath: () => (s: S) => {
     const ix = s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1
     const fullpath = absolutePath(s.pathValue)
     const goodPath = fullpath.endsWith('/') ? fullpath : dirname(fullpath)
@@ -103,7 +103,7 @@ const actions = {
     return { ix, pathValue }
   },
 
-  select: (s: S) => {
+  select: () => (s: S) => {
     if (!s.paths.length) return resetState
 
     const { name, file } = s.paths[s.ix]
@@ -118,7 +118,7 @@ const actions = {
     getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
   },
 
-  change: (s: S, val: string) => ({ val, paths: val
+  change: (val: string) => (s: S) => ({ val, paths: val
     ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
     : s.cache
   }),
@@ -130,29 +130,29 @@ const actions = {
     ui.show({ paths, cwd, path: cwd })
   },
 
-  jumpPrev: (s: S) => {
+  jumpPrev: () => (s: S) => {
     const next = s.path.split(sep)
     next.pop()
     const path = join(sep, ...next)
     getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
   },
 
-  show: (s: S, { paths, path, cwd = s.cwd }: any) => ({
+  show: ({ paths, path, cwd }: any) => (s: S) => ({
     ...resetState,
-    cwd,
     path,
     paths,
     vis: true,
     cache: paths,
+    cwd: cwd || s.cwd,
   }),
 
   // TODO: be more precise than this? also depends on scaled devices
-  down: (s: S) => {
+  down: () => (s: S) => {
     listElRef.scrollTop += 300
     return { ix: Math.min(s.ix + 17, s.paths.length - 1) }
   },
 
-  up: (s: S) => {
+  up: () => (s: S) => {
     listElRef.scrollTop -= 300
     return { ix: Math.max(s.ix - 17, 0) }
   },
@@ -160,16 +160,16 @@ const actions = {
   top: () => { listElRef.scrollTop = 0 },
   bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
   hide: () => resetState,
-  next: (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
-  prev: (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
+  next: () => (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
+  prev: () => (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
 }
 
 let listElRef: HTMLElement
 let pathInputRef: HTMLInputElement
 
-type Actions = { [K in keyof typeof actions]: (data?: any) => void }
+type A = typeof actions
 
-export const view = ($: S, a: Actions) => [
+const view = ($: S, a: A) => Plugin($.vis, [
 
   ,Input({
     value: $.val,
@@ -225,9 +225,9 @@ export const view = ($: S, a: Actions) => [
     ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
   ])))
 
-]
+])
 
-const ui = app({ name: 'explorer', state, actions, view: ($, a) => Plugin($.vis, view($, a))})
+const ui = app({ name: 'explorer', state, actions, view })
 
 action('explorer', async () => {
   const { cwd, bufferType } = current

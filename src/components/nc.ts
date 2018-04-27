@@ -26,7 +26,7 @@ const view = ($: S) => h('div', {
   },
 })
 
-const ui = app({ name: 'nc', state, actions, view })
+const ui = app<S, typeof actions>({ name: 'nc', state, actions, view })
 
 action('nc', ui.show)
 on.cursorMove(ui.hide)
