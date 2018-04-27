@@ -1,7 +1,7 @@
 import { action, current as vimState, on } from '../core/neovim'
 import * as markdown from '../support/markdown'
-import { go } from '../state/trade-federation'
 import { hover } from '../langserv/adapter'
+import { ui } from '../components/hover'
 import Worker from '../messaging/worker'
 
 export interface ColorData {
@@ -26,9 +26,9 @@ action('hover', async () => {
     .map(m => textByWord(m))
     .map(m => m.filter(m => m.text.length))
 
-  go.showHover({ data, doc })
+  ui.show({ data, doc })
 })
 
-on.cursorMove(go.hideHover)
-on.insertEnter(go.hideHover)
-on.insertLeave(go.hideHover)
+on.cursorMove(ui.hide)
+on.insertEnter(ui.hide)
+on.insertLeave(ui.hide)

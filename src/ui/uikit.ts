@@ -59,7 +59,6 @@ export const app = <StateT, ActionsT>({ state, actions, view, element, name }: A
   // TODO: on render, find the first child item and add the id to it? or class, whatever
 
   return process.env.VEONIM_DEV
-    // TODO: the name kind sir. we needs it to go here. use MAH FORK
-    ? devtools(theApp)
+    ? devtools(theApp, { name })
     : theApp
 }

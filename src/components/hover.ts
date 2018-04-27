@@ -78,6 +78,6 @@ const view = ($: S) => Overlay({
 
 ])
 
-const ui = app<S, A>({ name: 'hover', state, actions, view })
+export const ui = app<S, A>({ name: 'hover', state, actions, view })
 
 sub('redraw', debounce(ui.updatePosition, 50))

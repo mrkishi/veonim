@@ -92,6 +92,8 @@ const actions = {
   },
 }
 
+type A = typeof actions
+
 const view = ($: S) => Overlay({
   x: activeWindow() ? activeWindow()!.colToX($.col - 1) : 0,
   y: activeWindow() ? activeWindow()!.rowToTransformY($.row > 2 ? $.row : $.row + 1) : 0,
@@ -136,4 +138,4 @@ const view = ($: S) => Overlay({
 
 ])
 
-app({ name: 'hint', state, actions, view })
+export const ui = app<S, A>({ name: 'hint', state, actions, view })

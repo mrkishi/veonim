@@ -3,7 +3,6 @@ import Overlay from '../components/overlay'
 import { sub } from '../messaging/dispatch'
 import { debounce } from '../support/utils'
 import { cursor } from '../core/cursor'
-import Icon from '../components/icon'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
@@ -62,10 +61,11 @@ const view = ($: S) => Overlay({
         paddingRight: '8px',
       }
     }, [
-      Icon('XCircle', {
-        color: cvar('error'),
-        size: '1.2rem',
-      })
+      // TODO: use the real icons
+      // Icon('XCircle', {
+      //   color: cvar('error'),
+      //   size: '1.2rem',
+      // })
     ])
 
     ,h('div', $.value)
@@ -74,6 +74,6 @@ const view = ($: S) => Overlay({
 
 ])
 
-const ui = app<S, A>({ name: 'problem-info', state, actions, view })
+export const ui = app<S, A>({ name: 'problem-info', state, actions, view })
 
 sub('redraw', debounce(ui.updatePosition, 50))

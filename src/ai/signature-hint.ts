@@ -1,9 +1,9 @@
 import { SignatureInformation } from 'vscode-languageserver-types'
 import { action, current as vimState, on } from '../core/neovim'
 import { signatureHelp, triggers } from '../langserv/adapter'
-import { go } from '../state/trade-federation'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
+import { ui } from '../components/hint'
 
 const cache = {
   signatures: [] as SignatureInformation[],
@@ -35,7 +35,7 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
     const { label: currentParam = '', documentation: paramDoc } = parameters[activeParameter]
     cache.totalParams = parameters.length
 
-    go.showHint({
+    ui.show({
       ...baseOpts,
       label,
       paramDoc,
@@ -52,13 +52,13 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
       .sort((a, b) => a.parameters!.length - b.parameters!.length)
       .findIndex(s => s.parameters!.length > activeParameter)
 
-    if (!~nextSignatureIndex) return go.hideHint()
+    if (!~nextSignatureIndex) return ui.hide()
 
     const { label = '', documentation = '', parameters = [] } = signatures[nextSignatureIndex]
     const { label: currentParam = '' } = parameters[activeParameter]
     merge(cache, { selectedSignature: nextSignatureIndex, totalParams: parameters.length })
 
-    go.showHint({
+    ui.show({
       ...baseOpts,
       label,
       currentParam,
@@ -76,7 +76,7 @@ const getSignatureHint = async (lineContent: string) => {
   // how do we determine the difference between multiline signatures and exit signature?
   // would need to check if cursor is outside of func brackets doShit(    )   | <- cursor
   const closeSignatureHint = shouldCloseSignatureHint(cache.totalParams, cache.currentParam, triggerChars, leftChar)
-  if (closeSignatureHint) return go.hideHint()
+  if (closeSignatureHint) return ui.hide()
 
   if (!triggerChars.includes(leftChar)) return
 
@@ -90,9 +90,9 @@ const getSignatureHint = async (lineContent: string) => {
   showSignature(signatures, activeSignature, activeParameter)
 }
 
-on.cursorMove(go.hideHint)
-on.insertEnter(go.hideHint)
-on.insertLeave(go.hideHint)
+on.cursorMove(ui.hide)
+on.insertEnter(ui.hide)
+on.insertLeave(ui.hide)
 
 action('signature-help-next', () => {
   const next = cache.selectedSignature + 1

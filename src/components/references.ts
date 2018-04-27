@@ -153,19 +153,15 @@ const view = ($: S, a: typeof actions) => PluginRight($.vis, [
     desc: 'filter references',
   }),
 
-  // TODO: render keys? idk about keys they seem to not work like in react...
   ,h('div', {
-    ref: (e: HTMLElement) => {
-      if (e) elref = e
-    },
+    oncreate: (e: HTMLElement) => elref = e,
     style: {
       maxHeight: '100%',
       overflow: 'hidden',
     },
   }, $.references.map(([ path, items ], pos) => h('div', {
-    ref: (e: HTMLElement) => {
-      if (e) els.set(pos, e)
-    },
+    key: path,
+    oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
     ,h(RowHeader, {

@@ -5,35 +5,13 @@ build.js not being used for anything. gonna finish it or discard?
 
 should font-sizer be part of build process?
 
-remove react-redux dependency when removing dedox
-react-tiny-virtual-list for virtual lists?
-
-readme update: demo:
-  - add note about how veonim auto reloads files on changes
-
 create a simple hyperapp virtualized list component that simply renders dom nodes
   given a slice of the list. you want the top of the list, slice(0, 10)
   you want the end, slice(list.length - 10), etc. no mouse support for now.
   keep it simple and easy. make it composable
 
-adjust positioning of new react plugins to be correct (center or float right, etc.)
-
 neovim.jumpTo: don't hide cursor/cursorline from background window.
   we want to jump to and see results in window
-
-remove 'name' -> element.id support in overlay2. id is now set by uikit2
-
-back to hyperapp:
-- references.ts has elRef
-- make sure all components lists are using 'keys'
-- remove redux
-- create a wrapper around hyperapp? problems to solve:
-  - want to bind redux devtools if we are in dev mode
-  - by default would like to bind to #plugins container. dont want to specify on every call
-  - i like the object props syntax better
-  - for some reason not getting completions from 'ui' object. can force typings...
-
-- uikit: use my devtools fork for name
 
 - hook up new icons:
   - feather

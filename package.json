@@ -1,8 +1,7 @@
 {
   "name": "veonim",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "modern lightweight modal IDE built on neovim",
-  "main": "build/bootstrap/main.js",
   "scripts": {
     "test:watch": "npm run test -- --watchAll",
     "test": "jest test/unit",
@@ -119,12 +118,11 @@
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "9.4.0",
-    "@types/react": "16.3.12",
     "cross-spawn": "6.0.5",
     "electron": "2.0.0-beta.7",
     "electron-builder": "20.8.1",
     "electron-devtools-installer": "2.2.3",
-    "hyperapp-redux-devtools": "1.1.6",
+    "hyperapp-redux-devtools": "git://github.com/breja/hyperapp-redux-devtools.git",
     "jest": "22.4.3",
     "jscodeshift": "0.3.32",
     "mkdirp": "0.5.1",
