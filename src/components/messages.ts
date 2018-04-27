@@ -1,7 +1,7 @@
-import { h, app, styled, vimBlur, vimFocus } from '../ui/uikit2'
 import { NotifyKind, Notification } from '../ui/notifications'
 import * as canvasContainer from '../core/canvas-container'
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
@@ -21,12 +21,6 @@ type S = typeof state
 let elref: HTMLElement
 const SCROLL_AMOUNT = 0.4
 
-const IconBox = styled.div`
-  display: flex;
-  align-items: center;
-  padding-right: 10px;
-`
-
 // TODO: maybe this can be shared with notifications.ts component
 const icons = new Map([
   ['error', { icon: 'xCircle', color: colors.error }],
@@ -42,7 +36,7 @@ const getIcon = (kind: NotifyKind) => {
   return Icon(icon, { color, size: canvasContainer.font.size + 4 })
 }
 
-const actions =  {
+const actions = {
   toggle: () => (s: S) => {
     const next = !s.vis
     next ? vimBlur() : vimFocus()
@@ -107,7 +101,11 @@ const view = ($: S, a: typeof actions) => h('div', {
     key: id,
     active: pos === $.ix
   }, [
-    ,h(IconBox, [
+    ,h('div', {
+      display: 'flex',
+      alignItems: 'center',
+      paddingRight: '10px',
+    }, [
       ,getIcon(kind)
     ])
 
@@ -124,4 +122,4 @@ const ui = app({ name: 'messages', state, actions, view })
 
 export const addMessage = (message: Notification) => ui.addMessage(message)
 
-action('messages', () => ui.toggle())
+action('messages', ui.toggle)
