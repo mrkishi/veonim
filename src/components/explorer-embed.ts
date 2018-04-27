@@ -56,7 +56,7 @@ const createComponent = () => {
   type Actions = { [K in keyof typeof actions]: (data?: any) => void }
   let pathInputRef: HTMLInputElement
 
-  const view = ($: S, a: Actions) => [
+  const view = ($: S, a: Actions) => h('div', [
 
     ,Input({
       value: $.val,
@@ -113,7 +113,7 @@ const createComponent = () => {
       ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
     ])))
 
-  ]
+  ])
 
   let listElRef: HTMLElement
   type S = typeof state
@@ -136,7 +136,7 @@ const createComponent = () => {
     },
 
     normalMode: () => ({ pathMode: false }),
-    updatePaths: (paths: string[]) => ({ paths }),
+    updatePaths: (paths: FileDir[]) => ({ paths }),
 
     updateCwdStuff: ({ cwd, paths }: any) => ({ cwd, paths, path: cwd }),
 
@@ -146,7 +146,7 @@ const createComponent = () => {
       return { pathMode: false, path: s.pathValue, ix: 0 }
     },
 
-    changePath: (pathValue: string) => {
+    changePath: (pathValue: string) => () => {
       pathExplore(pathValue).then(ui.updatePaths)
       return { pathValue }
     },
@@ -272,15 +272,7 @@ const createComponent = () => {
   }
 
   const element = document.createElement('div')
-
-  const ui = app({
-    state,
-    actions,
-    element,
-    name: 'explorer-embed',
-    view: ($, a) => h('div', view($, a)),
-  })
-
+  const ui = app<S, typeof actions>({ name: 'explorer-embed', state, actions, element, view })
   return { element, ui }
 }
 
