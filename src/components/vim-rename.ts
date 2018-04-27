@@ -2,6 +2,7 @@ import { renameCurrent, getCurrentName } from '../core/sessions'
 import { Plugin } from '../components/plugin-container'
 import Input from '../components/text-input'
 import { action } from '../core/neovim'
+import { Edit } from 'hyperapp-feather'
 import { app } from '../ui/uikit'
 
 const state = {
@@ -29,7 +30,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     change: a.change,
     value: $.value,
     focus: true,
-    icon: 'edit',
+    icon: Edit,
     desc: 'rename vim session',
   })
 

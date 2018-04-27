@@ -4,6 +4,7 @@ import { list, switchVim } from '../core/sessions'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import { action } from '../core/neovim'
+import { Grid } from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 interface Session {
@@ -52,7 +53,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     prev: a.prev,
     value: $.value,
     focus: true,
-    icon: 'grid',
+    icon: Grid,
     desc: 'switch vim session',
   })
 

@@ -3,6 +3,7 @@ import { RowNormal } from '../components/row-container'
 import { action, call } from '../core/neovim'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
+import { User } from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 const state = {
@@ -50,7 +51,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
     value: $.value,
     desc: $.desc,
     focus: true,
-    icon: 'user',
+    icon: User,
   })
 
   ,h('div', $.items.map((item, ix) => h(RowNormal, {

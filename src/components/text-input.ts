@@ -1,4 +1,3 @@
-import * as canvasContainer from '../core/canvas-container'
 import { hideCursor, showCursor } from '../core/cursor'
 import { h, vimBlur, vimFocus } from '../ui/uikit'
 import Loading from '../components/loading'

@@ -5,6 +5,7 @@ import Input from '../components/text-input'
 import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
+import { User } from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 const state = {
@@ -66,7 +67,7 @@ const view = ($: S, a: typeof actions) => Overlay({
       value: $.value,
       focus: true,
       small: true,
-      icon: 'user',
+      icon: User,
       desc: $.desc,
     })
 
