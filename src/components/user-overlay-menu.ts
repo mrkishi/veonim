@@ -7,6 +7,7 @@ import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { cursor } from '../core/cursor'
 import { h, app } from '../ui/uikit'
+import { cvar } from '../ui/css'
 
 const state = {
   id: 0,
@@ -54,7 +55,7 @@ const view = ($: S, a: typeof actions) => Overlay({
 
   ,h('div', {
     style: {
-      background: 'var(--background-40)',
+      background: cvar('background-40'),
     }
   }, [
 
