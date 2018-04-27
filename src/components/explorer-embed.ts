@@ -53,71 +53,12 @@ const createComponent = () => {
     pathValue: '',
   }
 
-  type Actions = { [K in keyof typeof actions]: (data?: any) => void }
-  let pathInputRef: HTMLInputElement
-
-  const view = ($: S, a: Actions) => h('div', [
-
-    ,Input({
-      value: $.val,
-      focus: $.focus && !$.pathMode,
-      icon: 'HardDrive',
-      desc: 'explorer',
-      change: a.change,
-      next: a.next,
-      prev: a.prev,
-      select: a.select,
-      jumpPrev: a.jumpPrev,
-      down: a.down,
-      up: a.up,
-      ctrlG: a.ctrlG,
-      ctrlH: a.ctrlH,
-      ctrlL: a.ctrlL,
-      ctrlC: a.closeWindow,
-    })
-
-    ,!$.pathMode && h(RowImportant, [
-      ,h('span', pathRelativeToHome($.path))
-    ])
-
-    ,$.pathMode && Input({
-      change: a.changePath,
-      hide: a.normalMode,
-      select: a.selectPath,
-      tab: a.completePath,
-      next: a.nextPath,
-      prev: a.prevPath,
-      value: pathRelativeToHome($.pathValue),
-      background: 'var(--background-50)',
-      color: colors.important,
-      icon: 'search',
-      desc: 'open path',
-      small: true,
-      focus: $.focus,
-      thisIsGarbage: (e: HTMLInputElement) => pathInputRef = e,
-      pathMode: true,
-    })
-
-    ,h('div', {
-      ref: (e: HTMLElement) => listElRef = e,
-      style: {
-        maxHeight: '50vh',
-        overflowY: 'hidden',
-      }
-    }, $.paths.map(({ name, dir }, ix) => h(RowNormal, {
-      key: `${name}-${dir}`,
-      active: ix === $.ix,
-    }, [
-      ,FiletypeIcon(name, { dir })
-
-      ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
-    ])))
-
-  ])
-
-  let listElRef: HTMLElement
-  type S = typeof state
   const resetState = { val: '', path: '', ix: 0 }
+  let pathInputRef: HTMLInputElement
+  let listElRef: HTMLElement
+
+  type S = typeof state
+  type A = typeof actions
 
   const actions = {
     // TODO: when choosing custom path and go back, make sure it updates correctly
@@ -271,8 +212,67 @@ const createComponent = () => {
     // prev: (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
   }
 
+  const view = ($: S, a: A) => h('div', [
+
+    ,Input({
+      value: $.val,
+      focus: $.focus && !$.pathMode,
+      icon: 'HardDrive',
+      desc: 'explorer',
+      change: a.change,
+      next: a.next,
+      prev: a.prev,
+      select: a.select,
+      jumpPrev: a.jumpPrev,
+      down: a.down,
+      up: a.up,
+      ctrlG: a.ctrlG,
+      ctrlH: a.ctrlH,
+      ctrlL: a.ctrlL,
+      ctrlC: a.closeWindow,
+    })
+
+    ,!$.pathMode && h(RowImportant, [
+      ,h('span', pathRelativeToHome($.path))
+    ])
+
+    ,$.pathMode && Input({
+      change: a.changePath,
+      hide: a.normalMode,
+      select: a.selectPath,
+      tab: a.completePath,
+      next: a.nextPath,
+      prev: a.prevPath,
+      value: pathRelativeToHome($.pathValue),
+      background: 'var(--background-50)',
+      color: colors.important,
+      icon: 'search',
+      desc: 'open path',
+      small: true,
+      focus: $.focus,
+      thisIsGarbage: (e: HTMLInputElement) => pathInputRef = e,
+      pathMode: true,
+    })
+
+    ,h('div', {
+      ref: (e: HTMLElement) => listElRef = e,
+      style: {
+        maxHeight: '50vh',
+        overflowY: 'hidden',
+      }
+    }, $.paths.map(({ name, dir }, ix) => h(RowNormal, {
+      key: `${name}-${dir}`,
+      active: ix === $.ix,
+    }, [
+      ,FiletypeIcon(name, { dir })
+
+      ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
+    ])))
+
+  ])
+
   const element = document.createElement('div')
-  const ui = app<S, typeof actions>({ name: 'explorer-embed', state, actions, element, view })
+  const ui = app<S, A>({ name: 'explorer-embed', state, actions, element, view })
   return { element, ui }
 }
 
