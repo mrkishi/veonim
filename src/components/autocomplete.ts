@@ -30,37 +30,39 @@ const state = {
 
 type S = typeof state
 
+const heavy = { 'stroke-width': 2 }
+
 // const pos: { container: ClientRect } = {
 //   container: { left: 0, right: 0, bottom: 0, top: 0, height: 0, width: 0 }
 // }
 
 const icons = new Map([
-  [ CompletionItemKind.Text, h(Icon.ChevronsRight) ],
-  [ CompletionItemKind.Method, h(Icon.Box, { color: '#bb5ef1' }) ],
-  [ CompletionItemKind.Property, h(Icon.Disc, { color: '#54c8ff' }) ],
-  [ CompletionItemKind.Function, h(Icon.Share2, { color: '#6da7ff' }) ],
-  [ CompletionItemKind.Constructor, h(Icon.Aperture, { color: '#c9ff56' }) ],
-  [ CompletionItemKind.Field, h(Icon.Feather, { color: '#9866ff' }) ],
-  [ CompletionItemKind.Variable, h(Icon.Database, { color: '#ff70e4' }) ],
-  [ CompletionItemKind.Class, h(Icon.Compass, { color: '#ffeb5b' }) ],
-  [ CompletionItemKind.Interface, h(Icon.Map, { color: '#ffa354' }) ],
-  [ CompletionItemKind.Module, h(Icon.Grid, { color: '#ff5f54' }) ],
-  [ CompletionItemKind.Unit, h(Icon.Cpu, { color: '#ffadc5' }) ],
-  [ CompletionItemKind.Value, h(Icon.Bell, { color: '#ffa4d0' }) ],
-  [ CompletionItemKind.Enum, h(Icon.Award, { color: '#84ff54' }) ],
-  [ CompletionItemKind.Keyword, h(Icon.Navigation, { color: '#ff0c53' }) ],
-  [ CompletionItemKind.Snippet, h(Icon.Paperclip, { color: '#0c2dff' }) ],
-  [ CompletionItemKind.Color, h(Icon.Eye, { color: '#54ffe5' }) ],
-  [ CompletionItemKind.File, h(Icon.File, { color: '#a5c3ff' }) ],
-  [ CompletionItemKind.Reference, h(Icon.Link, { color: '#ffdca3' }) ],
+  [ CompletionItemKind.Text, h(Icon.ChevronsRight, heavy) ],
+  [ CompletionItemKind.Method, h(Icon.Box, { color: '#bb5ef1', ...heavy }) ],
+  [ CompletionItemKind.Property, h(Icon.Disc, { color: '#54c8ff', ...heavy }) ],
+  [ CompletionItemKind.Function, h(Icon.Share2, { color: '#6da7ff', ...heavy }) ],
+  [ CompletionItemKind.Constructor, h(Icon.Aperture, { color: '#c9ff56', ...heavy }) ],
+  [ CompletionItemKind.Field, h(Icon.Feather, { color: '#9866ff', ...heavy }) ],
+  [ CompletionItemKind.Variable, h(Icon.Database, { color: '#ff70e4', ...heavy }) ],
+  [ CompletionItemKind.Class, h(Icon.Compass, { color: '#ffeb5b', ...heavy }) ],
+  [ CompletionItemKind.Interface, h(Icon.Map, { color: '#ffa354', ...heavy }) ],
+  [ CompletionItemKind.Module, h(Icon.Grid, { color: '#ff5f54', ...heavy }) ],
+  [ CompletionItemKind.Unit, h(Icon.Cpu, { color: '#ffadc5', ...heavy }) ],
+  [ CompletionItemKind.Value, h(Icon.Bell, { color: '#ffa4d0', ...heavy }) ],
+  [ CompletionItemKind.Enum, h(Icon.Award, { color: '#84ff54', ...heavy }) ],
+  [ CompletionItemKind.Keyword, h(Icon.Navigation, { color: '#ff0c53', ...heavy }) ],
+  [ CompletionItemKind.Snippet, h(Icon.Paperclip, { color: '#0c2dff', ...heavy }) ],
+  [ CompletionItemKind.Color, h(Icon.Eye, { color: '#54ffe5', ...heavy }) ],
+  [ CompletionItemKind.File, h(Icon.File, { color: '#a5c3ff', ...heavy }) ],
+  [ CompletionItemKind.Reference, h(Icon.Link, { color: '#ffdca3', ...heavy }) ],
   // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ CompletionItemKind.Folder, h('folder', { color: '#' }) ],
-  //[ CompletionItemKind.EnumMember, h('menu', { color: '#' }) ],
-  //[ CompletionItemKind.Constant, h('save', { color: '#' }) ],
-  //[ CompletionItemKind.Struct, h('layers', { color: '#' }) ],
-  //[ CompletionItemKind.Event, h('video', { color: '#' }) ],
-  //[ CompletionItemKind.Operator, h('anchor', { color: '#' }) ],
-  //[ CompletionItemKind.TypeParameter, h('type', { color: '#' }) ],
+  //[ CompletionItemKind.Folder, h('folder', { color: '#', ...heavy }) ],
+  //[ CompletionItemKind.EnumMember, h('menu', { color: '#', ...heavy }) ],
+  //[ CompletionItemKind.Constant, h('save', { color: '#', ...heavy }) ],
+  //[ CompletionItemKind.Struct, h('layers', { color: '#', ...heavy }) ],
+  //[ CompletionItemKind.Event, h('video', { color: '#', ...heavy }) ],
+  //[ CompletionItemKind.Operator, h('anchor', { color: '#', ...heavy }) ],
+  //[ CompletionItemKind.TypeParameter, h('type', { color: '#', ...heavy }) ],
 ])
 
 const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || h(Icon.Code)

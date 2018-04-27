@@ -39,8 +39,12 @@ const pluginsDiv = document.getElementById('plugins') as HTMLElement
 const prepareContainerElement = (name: string) => {
   const el = document.createElement('div')
   el.setAttribute('id', name)
-  el.style.width = '100%'
-  el.style.position = 'absolute'
+  merge(el.style, {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  })
+
   pluginsDiv.appendChild(el)
   return el
 }

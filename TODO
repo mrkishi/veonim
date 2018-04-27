@@ -6,28 +6,32 @@ hide overlays (problem info, hover) on bufleave
 generic-menu use Icon string get module to allow dynamic icons from users
 
 TEST COMPONENTS
-─ autocomplete.ts
-─ buffer-search.ts
+# autocomplete.ts
+# buffer-search.ts
 ─ buffers.ts
 # change-project.ts
-─ code-actions.ts
+# code-actions.ts
 ─ color-picker.ts
 ─ command-line.ts
-─ explorer-embed.ts
+  - wildmenu selecting another option causes cursor to flash in vim window
+# explorer-embed.ts (broken anyways)
 ─ explorer.ts
 ─ files.ts
 ─ filetype-icon.ts
 ─ generic-menu.ts
 ─ grep.ts
-─ hint.ts
-─ hover.ts
+  - not stretch to bottom
+  - cannot read getBoundingClientRect of undefined
+  - does the stuff overflow? (in current there are elipses for outta bounds text)
+─ hint.ts (multiline)
+─ hover.ts (multiline)
 ─ icon.ts
 ─ loading.ts
 ─ messages.ts
 ─ nc.ts
 ─ overlay.ts
 ─ plugin-container.ts
-─ problem-info.ts
+─ problem-info.ts (multiline)
 ─ problems.ts
 ─ references.ts
 ─ row-container.ts
