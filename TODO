@@ -27,14 +27,13 @@ back to hyperapp:
   - i like the object props syntax better
   - for some reason not getting completions from 'ui' object. can force typings...
 
-- move icons out of this package. i thought about using react-feather but that
-  seems like overkill just to render an icon. would prefer to keep it lightweight
-  after all it's just an svg
+- uikit: use my devtools fork for name
+
+- hook up new icons:
+  - feather
+  - seti
 
 files not refresh after delete file
-
--- react overkill -> hyperapp
-problem-info
 
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix

@@ -35,15 +35,14 @@ type S = typeof state
 const actions = {
   hide: () => ({ visible: false }),
   show: ({ data, doc }: ShowParams) => ({
-    ...getPosition(cursor.row, cursor.col),
     doc,
     value: data,
     visible: true,
+    ...getPosition(cursor.row, cursor.col),
   }),
-  update: () => (s: S) => {
-    if (!s.visible) return
-    return getPosition(cursor.row, cursor.col)
-  }
+  updatePosition: () => (s: S) => s.visible
+    ? getPosition(cursor.row, cursor.col)
+    : undefined,
 }
 
 type A = typeof actions
@@ -81,4 +80,4 @@ const view = ($: S) => Overlay({
 
 const ui = app<S, A>({ name: 'hover', state, actions, view })
 
-sub('redraw', debounce(ui.update, 50))
+sub('redraw', debounce(ui.updatePosition, 50))

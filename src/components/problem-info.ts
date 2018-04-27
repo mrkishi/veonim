@@ -1,12 +1,43 @@
-import { ProblemInfo } from '../state/problem-info'
-import { connect } from '../state/trade-federation'
-import Overlay from '../components/overlay2'
-import Icon from '../components/icon2'
-import { h } from '../ui/uikit2'
+import { activeWindow } from '../core/windows'
+import Overlay from '../components/overlay'
+import { sub } from '../messaging/dispatch'
+import { debounce } from '../support/utils'
+import { cursor } from '../core/cursor'
+import Icon from '../components/icon'
+import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
-const view = ({ data: $ }: { data: ProblemInfo }) => Overlay({
-  name: 'problem-info',
+const getPosition = (row: number, col: number) => ({
+  x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
+  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
+  anchorBottom: cursor.row > 2,
+})
+
+const state = {
+  x: 0,
+  y: 0,
+  value: '',
+  visible: false,
+  anchorBottom: true,
+}
+
+type S = typeof state
+
+const actions = {
+  hide: () => ({ visible: false }),
+  show: (value: string) => ({
+    value,
+    visible: true,
+    ...getPosition(cursor.row, cursor.col),
+  }),
+  updatePosition: () => (s: S) => s.visible
+    ? getPosition(cursor.row, cursor.col)
+    : undefined,
+}
+
+type A = typeof actions
+
+const view = ($: S) => Overlay({
   x: $.x,
   y: $.y,
   maxWidth: 600,
@@ -43,4 +74,6 @@ const view = ({ data: $ }: { data: ProblemInfo }) => Overlay({
 
 ])
 
-export default connect(s => ({ data: s.problemInfo }))(view)
+const ui = app<S, A>({ name: 'problem-info', state, actions, view })
+
+sub('redraw', debounce(ui.updatePosition, 50))
