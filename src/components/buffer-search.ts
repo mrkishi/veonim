@@ -1,5 +1,5 @@
+import { current as vim, cmd, jumpTo, action } from '../core/neovim'
 import { PluginBottom } from '../components/plugin-container'
-import { current as vim, cmd, jumpTo } from '../core/neovim'
 import { activeWindow } from '../core/windows'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
@@ -107,4 +107,6 @@ const view = ($: S, a: A) => PluginBottom($.visible, [
 
 ])
 
-app({ name: 'buffer-search', state, actions, view })
+const ui = app({ name: 'buffer-search', state, actions, view })
+
+action('buffer-search', ui.show)

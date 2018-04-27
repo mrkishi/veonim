@@ -81,7 +81,7 @@ const view = ($: S, a: typeof actions) => Plugin($.vis, [
     change: a.change,
     next: a.next,
     prev: a.prev,
-    val: $.val,
+    value: $.val,
     focus: true,
     // icon: 'FileText',
     icon: 'file-text',
