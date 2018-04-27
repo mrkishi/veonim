@@ -1,6 +1,9 @@
 remove unused files. go thru everything
 remove unusued deps. go thru everything
 
+TODO:
+filetype-icon
+
 build.js not being used for anything. gonna finish it or discard?
 
 should font-sizer be part of build process?
@@ -11,7 +14,7 @@ create a simple hyperapp virtualized list component that simply renders dom node
   keep it simple and easy. make it composable
 
 neovim.jumpTo: don't hide cursor/cursorline from background window.
-  we want to jump to and see results in window
+  we want to jump to and see the current line highlighted (with cursorline)
 
 - hook up new icons:
   - feather

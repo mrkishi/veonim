@@ -1,7 +1,7 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
+import FiletypeIcon, { Folder } from '../components/filetype-icon'
 import { registerShadowComponent } from '../core/shadow-buffers'
-import FiletypeIcon from '../components/filetype-icon'
 import { join, sep, basename, dirname } from 'path'
 import { input } from '../core/master-control'
 import { current, cmd } from '../core/neovim'
@@ -10,6 +10,7 @@ import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from '../ui/uikit'
+import { cvar } from '../ui/css'
 
 interface FileDir {
   name: string,
@@ -244,7 +245,7 @@ const createComponent = () => {
       next: a.nextPath,
       prev: a.prevPath,
       value: pathRelativeToHome($.pathValue),
-      background: 'var(--background-50)',
+      background: cvar('background-50'),
       color: colors.important,
       icon: 'search',
       desc: 'open path',
@@ -264,9 +265,9 @@ const createComponent = () => {
       key: `${name}-${dir}`,
       active: ix === $.ix,
     }, [
-      ,FiletypeIcon(name, { dir })
+      ,dir ? Folder : FiletypeIcon(name)
 
-      ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
+      ,h('span', { style: { color: dir && ix !== $.ix ? cvar('foreground-50') : undefined } }, name)
     ])))
 
   ])

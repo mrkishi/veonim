@@ -5,9 +5,10 @@ import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { cursor } from '../core/cursor'
-import Icon from '../components/icon'
+// import Icon from '../components/icon'
 import { paddingVH } from '../ui/css'
 import { h, app } from '../ui/uikit'
+import * as Icon from 'hyperapp-feather'
 
 interface ShowParams {
   row: number,
@@ -35,35 +36,35 @@ type S = typeof state
 // }
 
 const icons = new Map([
-  [ CompletionItemKind.Text, Icon('ChevronsRight') ],
-  [ CompletionItemKind.Method, Icon('box', { color: '#bb5ef1' }) ],
-  [ CompletionItemKind.Property, Icon('disc', { color: '#54c8ff' }) ],
-  [ CompletionItemKind.Function, Icon('Share2', { color: '#6da7ff' }) ],
-  [ CompletionItemKind.Constructor, Icon('aperture', { color: '#c9ff56' }) ],
-  [ CompletionItemKind.Field, Icon('feather', { color: '#9866ff' }) ],
-  [ CompletionItemKind.Variable, Icon('database', { color: '#ff70e4' }) ],
-  [ CompletionItemKind.Class, Icon('compass', { color: '#ffeb5b' }) ],
-  [ CompletionItemKind.Interface, Icon('map', { color: '#ffa354' }) ],
-  [ CompletionItemKind.Module, Icon('grid', { color: '#ff5f54' }) ],
-  [ CompletionItemKind.Unit, Icon('cpu', { color: '#ffadc5' }) ],
-  [ CompletionItemKind.Value, Icon('bell', { color: '#ffa4d0' }) ],
-  [ CompletionItemKind.Enum, Icon('award', { color: '#84ff54' }) ],
-  [ CompletionItemKind.Keyword, Icon('navigation', { color: '#ff0c53' }) ],
-  [ CompletionItemKind.Snippet, Icon('paperclip', { color: '#0c2dff' }) ],
-  [ CompletionItemKind.Color, Icon('eye', { color: '#54ffe5' }) ],
-  [ CompletionItemKind.File, Icon('file', { color: '#a5c3ff' }) ],
-  [ CompletionItemKind.Reference, Icon('link', { color: '#ffdca3' }) ],
+  [ CompletionItemKind.Text, h(Icon.ChevronsRight) ],
+  [ CompletionItemKind.Method, h(Icon.Box, { color: '#bb5ef1' }) ],
+  [ CompletionItemKind.Property, h(Icon.Disc, { color: '#54c8ff' }) ],
+  [ CompletionItemKind.Function, h(Icon.Share2, { color: '#6da7ff' }) ],
+  [ CompletionItemKind.Constructor, h(Icon.Aperture, { color: '#c9ff56' }) ],
+  [ CompletionItemKind.Field, h(Icon.Feather, { color: '#9866ff' }) ],
+  [ CompletionItemKind.Variable, h(Icon.Database, { color: '#ff70e4' }) ],
+  [ CompletionItemKind.Class, h(Icon.Compass, { color: '#ffeb5b' }) ],
+  [ CompletionItemKind.Interface, h(Icon.Map, { color: '#ffa354' }) ],
+  [ CompletionItemKind.Module, h(Icon.Grid, { color: '#ff5f54' }) ],
+  [ CompletionItemKind.Unit, h(Icon.Cpu, { color: '#ffadc5' }) ],
+  [ CompletionItemKind.Value, h(Icon.Bell, { color: '#ffa4d0' }) ],
+  [ CompletionItemKind.Enum, h(Icon.Award, { color: '#84ff54' }) ],
+  [ CompletionItemKind.Keyword, h(Icon.Navigation, { color: '#ff0c53' }) ],
+  [ CompletionItemKind.Snippet, h(Icon.Paperclip, { color: '#0c2dff' }) ],
+  [ CompletionItemKind.Color, h(Icon.Eye, { color: '#54ffe5' }) ],
+  [ CompletionItemKind.File, h(Icon.File, { color: '#a5c3ff' }) ],
+  [ CompletionItemKind.Reference, h(Icon.Link, { color: '#ffdca3' }) ],
   // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ CompletionItemKind.Folder, Icon('folder', { color: '#' }) ],
-  //[ CompletionItemKind.EnumMember, Icon('menu', { color: '#' }) ],
-  //[ CompletionItemKind.Constant, Icon('save', { color: '#' }) ],
-  //[ CompletionItemKind.Struct, Icon('layers', { color: '#' }) ],
-  //[ CompletionItemKind.Event, Icon('video', { color: '#' }) ],
-  //[ CompletionItemKind.Operator, Icon('anchor', { color: '#' }) ],
-  //[ CompletionItemKind.TypeParameter, Icon('type', { color: '#' }) ],
+  //[ CompletionItemKind.Folder, h('folder', { color: '#' }) ],
+  //[ CompletionItemKind.EnumMember, h('menu', { color: '#' }) ],
+  //[ CompletionItemKind.Constant, h('save', { color: '#' }) ],
+  //[ CompletionItemKind.Struct, h('layers', { color: '#' }) ],
+  //[ CompletionItemKind.Event, h('video', { color: '#' }) ],
+  //[ CompletionItemKind.Operator, h('anchor', { color: '#' }) ],
+  //[ CompletionItemKind.TypeParameter, h('type', { color: '#' }) ],
 ])
 
-const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || Icon('code')
+const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || h(Icon.Code)
 
 const docs = (data: string) => h(RowNormal, {
   style: {

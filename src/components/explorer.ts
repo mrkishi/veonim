@@ -1,14 +1,15 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { action, current, cmd, call, BufferType } from '../core/neovim'
 import { RowNormal, RowImportant } from '../components/row-container'
+import FiletypeIcon, { Folder } from '../components/filetype-icon'
 import { Plugin } from '../components/plugin-container'
-import FiletypeIcon from '../components/filetype-icon'
 import { join, sep, basename, dirname } from 'path'
 import config from '../config/config-service'
 import Input from '../components/text-input'
 import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
 import { h, app } from '../ui/uikit'
+import { cvar } from '../ui/css'
 
 interface FileDir {
   name: string,
@@ -200,7 +201,7 @@ const view = ($: S, a: A) => Plugin($.vis, [
     next: a.nextPath,
     prev: a.prevPath,
     value: pathRelativeToHome($.pathValue),
-    background: 'var(--background-50)',
+    background: cvar('background-50'),
     color: colors.important,
     icon: 'search',
     desc: 'open path',
@@ -220,9 +221,9 @@ const view = ($: S, a: A) => Plugin($.vis, [
     key: `${name}-${dir}`,
     active: ix === $.ix,
   }, [
-    ,FiletypeIcon(name, { dir })
+    ,dir ? Folder : FiletypeIcon(name)
 
-    ,h('span', { style: { color: dir && ix !== $.ix ? 'var(--foreground-50)' : undefined } }, name)
+    ,h('span', { style: { color: dir && ix !== $.ix ? cvar('foreground-50') : undefined } }, name)
   ])))
 
 ])
