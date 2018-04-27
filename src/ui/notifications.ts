@@ -85,17 +85,17 @@ const view = ($: S) => PluginTop(true, [
         background: cvar('background-50'),
         color: Reflect.get(colors, kind),
       },
-      onCreate: (e: HTMLElement) => animate(e, [
+      oncreate: (e: HTMLElement) => animate(e, [
         { opacity: 0, transform: 'translateY(-100%) '},
         { opacity: 1, transform: 'translateY(0)' },
       ], { duration: 150 }),
-      onRemove: async (e: HTMLElement) => {
+      onremove: async (e: HTMLElement, done: Function) => {
         await animate(e, [
           { opacity: 1 },
           { opacity: 0 },
-        ], { duration: 2e3 })
+        ], { duration: 150 })
 
-        e.remove()
+        done()
       },
     }, [
 
