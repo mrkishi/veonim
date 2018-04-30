@@ -727,6 +727,8 @@ if (process.env.VEONIM_DEV) {
   }
 
   const collectWindowInformation = () => {
+    performance.mark('win-info-start')
+
     const winInfoData = grid
       .filterLinesOnChar(char => char.codePointAt(0) === WIN_INFO_INDICATOR)
       .reduce((result, [ row, line ]) => {
@@ -766,6 +768,10 @@ if (process.env.VEONIM_DEV) {
     // of clearing and set() multiple times?
     wininfo.clear()
     winInfoData.forEach(w => wininfo.set(w.id, w))
+
+    performance.mark('win-info-end')
+    performance.measure('win-info', 'win-info-start', 'win-info-end')
+
     renderDerpatron()
   }
 
