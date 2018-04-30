@@ -1,9 +1,9 @@
+import { SHADOW_BUFFER_TYPE, WIN_INFO_INDICATOR, WIN_INFO_OFFSET } from '../support/constants'
 import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
 import { getCurrent, current, cmd, BufferType, BufferOption } from '../core/neovim'
 import { ShadowBuffer, getShadowBuffer } from '../core/shadow-buffers'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
-import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
@@ -574,6 +574,24 @@ const controlShadowBuffer = (id: number, name: string, active: boolean, containe
 
 export const render = async () => {
   const ws = await getWindows()
+
+  // TODO: WIP
+  if (process.env.VEONIM_DEV) {
+    const children = ws
+      .map(w => ({
+        id: w.id,
+        x: w.x,
+        y: w.y,
+        height: w.height,
+        width: w.width,
+      }))
+      .map(m => `<li>${JSON.stringify(m)}</li>`)
+      .join('\n')
+
+    old.innerHTML = children
+  }
+  // TODO: WIP
+
   const closedWindows = getClosedWindows(ws)
   closedWindows.forEach(id => watchers.emit(`${id}`))
 
@@ -605,6 +623,10 @@ export const render = async () => {
       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
       if (!win) return
       merge(win.api, vw)
+
+      if (process.env.VEONIM_DEV) {
+        win.api.name = `${vw.id} - ${vw.name}`
+      }
 
       const isShadowBuffer = vw.filetype === SHADOW_BUFFER_TYPE
 
@@ -664,3 +686,88 @@ export const render = async () => {
 }
 
 dispatch.sub('redraw', throttle(render, 5))
+
+
+// TODO: WIP
+const derpatron = document.createElement('ul')
+const old = document.createElement('ul')
+// TODO: WIP
+if (process.env.VEONIM_DEV) {
+  Object.assign(derpatron.style, {
+    position: 'absolute',
+    zIndex: 999999,
+    right: 0,
+    top: '100px',
+  })
+
+  Object.assign(old.style, {
+    position: 'absolute',
+    zIndex: 999999,
+    right: 0,
+    top: '300px',
+  })
+
+  document.body.appendChild(derpatron)
+  document.body.appendChild(old)
+
+  const wininfo = new Map<number, WindowInfo>()
+
+  const renderDerpatron = () => {
+    const info = [...wininfo.values()].sort((a, b) => a.id - b.id)
+    const children = info.map(m => `<li>${JSON.stringify(m)}</li>`).join('\n')
+    derpatron.innerHTML = children
+  }
+
+  interface WindowInfo {
+    id: number,
+      x: number,
+      y: number,
+      height: number,
+      width: number,
+  }
+
+  const collectWindowInformation = () => {
+    const winInfoData = grid
+      .filterLinesOnChar(char => char.codePointAt(0) === WIN_INFO_INDICATOR)
+      .reduce((result, [ row, line ]) => {
+        const columns = line.length
+
+        for (let ix = 0; ix < columns; ix++) {
+          if (line[ix][0].codePointAt(0) === WIN_INFO_INDICATOR) {
+            const id = line[ix + 1][0].codePointAt(0) || 0
+            // in my testing i noticed that the encoded 'nr2char' values were
+            // not being decoded to the correct values. when adding an offest
+            // it seems to work. i think this is because we push the characters
+            // into the unicode range. in the ascii range it was probably being
+            // encoded to some inivisible chars.
+            //
+            // if the invisible chars thing is true, then it's possible that we
+            // will run in to the same issue again (since there are invis chars
+            // in unicode too)
+            //
+            // we will need to test and observe futher.
+            // eventually nvim will provide detailed semantic window information
+            // so we don't need to do these kind of hacks
+            const height = (line[ix + 2][0].codePointAt(0) || 0) - WIN_INFO_OFFSET
+            const width = (line[ix + 3][0].codePointAt(0) || 0) - WIN_INFO_OFFSET
+            const x = ix
+            const y = row - height
+
+            result.push({ id, x, y, height, width })
+          }
+        }
+
+        return result
+      }, [] as WindowInfo[])
+
+    if (!winInfoData.length) return
+
+    // TODO: i wonder if it will be faster to create a new map every time instead
+    // of clearing and set() multiple times?
+    wininfo.clear()
+    winInfoData.forEach(w => wininfo.set(w.id, w))
+    renderDerpatron()
+  }
+
+  dispatch.sub('redraw', collectWindowInformation)
+}

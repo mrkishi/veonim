@@ -2,7 +2,7 @@ import { delay, pascalCase, onProp } from '../support/utils'
 import { Range } from 'vscode-languageserver-types'
 import { Api } from '../core/api'
 
-export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
+export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray, ...vars: any[]) => void }
 
 export interface FontOption {
   font?: string,

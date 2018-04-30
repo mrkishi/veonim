@@ -17,6 +17,32 @@ export const setSpecial = (sp: string) => defaults.sp = sp
 export const get = (row: number, col: number): Cell => (grid[row] || [])[col] || []
 export const getLine = (row: number, start: number, end: number): Cell[] => grid[row].slice(start, end) || []
 
+type RowNumber = number
+type LineData = Cell[]
+type FilterResult = [ RowNumber, LineData ]
+
+export const filterLinesOnChar = (fn: (char: string) => boolean) => {
+  const maxRows = grid.length
+  const maxCols = grid[0].length
+
+  const results: FilterResult[] = []
+
+  for (let yix = 0; yix < maxRows; yix++) {
+    const line = grid[yix]
+
+    for (let xix = 0; xix < maxCols; xix++) {
+      const thisLineIsAMatch = fn(line[xix][0])
+
+      if (thisLineIsAMatch) {
+        results.push([ yix, line ])
+        continue
+      }
+    }
+  }
+
+  return results
+}
+
 export const resize = (rows: number, columns: number) => {
   grid = listof(rows, () => listof(columns, () => [' ', defaults.fg, defaults.bg, false, defaults.sp] as Cell))
 }

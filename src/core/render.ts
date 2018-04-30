@@ -281,6 +281,7 @@ r.scroll = amount => {
 
 r.resize = () => merge(cursor, { row: 0, col: 0 })
 
+
 r.put = chars => {
   const total = chars.length
   if (!total) return
