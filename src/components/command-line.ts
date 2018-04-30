@@ -28,7 +28,7 @@ type S = typeof state
 const actions = {
   show: () => ({ visible: true }),
   hide: () => ({ visible: false }),
-  update: ({ cmd, kind, position }: CommandUpdate) => (s: S) => ({
+  updateCommand: ({ cmd, kind, position }: CommandUpdate) => (s: S) => ({
     kind,
     position,
     visible: true,
@@ -76,4 +76,4 @@ sub('wildmenu.hide', () => ui.updateWildmenu([]))
 
 sub('cmd.hide', ui.hide)
 sub('cmd.show', ui.show)
-sub('cmd.update', ui.update)
+sub('cmd.update', ui.updateCommand)

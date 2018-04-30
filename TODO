@@ -37,6 +37,8 @@ TEST COMPONENTS
 ─ row-container.ts
 ─ statusline.ts
 # symbols.ts
+  - probably not related to symbols, but sometimes it appears
+  there are two active rows selected... lolwut
 ─ text-input.ts
 ─ user-menu.ts
 ─ user-overlay-menu.ts
