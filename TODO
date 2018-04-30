@@ -275,3 +275,5 @@ bash, then if i navigate to a non-term buffer, auto-close the terminal session?
 having to remember exactly which terminal might be available for use? right now
 terminals are difficult to discern as they just have random numbers, but in the
 future if we can name running process in term, thennnnnnnn
+
+multi-monitor support? with shada and edge detection (when c-w l on right most window, go to next monitor)
