@@ -69,7 +69,7 @@ export const RowHeader = (o: Options, children: any[]) => h('div', {
       color: '#fff',
       fontWeight: 'normal',
       background: cvar('background-b10'),
-    }: 0)
+    }: 0),
     ...o.style,
   }
 }, children)
