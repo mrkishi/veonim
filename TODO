@@ -69,7 +69,16 @@ create a simple hyperapp virtualized list component that simply renders dom node
 neovim.jumpTo: don't hide cursor/cursorline from background window.
   we want to jump to and see the current line highlighted (with cursorline)
 
+  - path !== currentPath WRONG WRONG!
+  - path !== currentPath WRONG WRONG!
+  - path !== currentPath WRONG WRONG!
+  path is relative to cwd, currentPath is absolute.
+
 files not refresh after delete file
+
+STOP REQUIRING SO MUCH SHIT ON APP START LOL
+  - lazy load more shit
+  - web worker more shit (ai)
 
 depmgr as separate process (not even worker thread) - because of security and isolation?
 

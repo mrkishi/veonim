@@ -5,9 +5,10 @@ import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Functions } from '../core/vim-functions'
+import { showCursorline } from '../core/cursor'
 import { Patch } from '../langserv/patch'
-import setupRPC from '../messaging/rpc'
 import { join as pathJoin } from 'path'
+import setupRPC from '../messaging/rpc'
 
 type GenericCallback = (...args: any[]) => void
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
@@ -344,6 +345,7 @@ export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
   }
 
   (await getCurrent.window).setCursor(line, column)
+  showCursorline()
 }
 
 export const getColor = async (name: string) => {
