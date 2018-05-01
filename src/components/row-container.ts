@@ -3,6 +3,7 @@ import { colors } from '../styles/common'
 import { h } from '../ui/uikit'
 
 const row = {
+  alignItems: 'center',
   paddingTop: '4px',
   paddingBottom: '4px',
   paddingLeft: '12px',

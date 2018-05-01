@@ -94,16 +94,14 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
   ,h('div', $.buffers.map((f, ix) => h(RowNormal, {
     active: ix === $.index,
   }, [
-    ,h('div', [
-      ,FiletypeIcon(f.name)
+    ,FiletypeIcon(f.name)
 
-      ,h('span', {
-        render: f.duplicate,
-        style: { color: '#666' },
-      }, `${f.dir}/`)
+    ,h('span', {
+      render: f.duplicate,
+      style: { color: '#666' },
+    }, `${f.dir}/`)
 
-      ,h('span', f.duplicate ? f.base : f.name),
-    ])
+    ,h('span', f.duplicate ? f.base : f.name),
   ])))
 
 ])

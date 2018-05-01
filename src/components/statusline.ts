@@ -102,26 +102,33 @@ const actions = {
 }
 
 const view = ($: S) => h('div', {
-  flex: '1',
-  display: 'flex',
-  justifyContent: 'space-between',
-  background: cvar('background-30'),
-  zIndex: '999',
+  style: {
+    flex: '1',
+    display: 'flex',
+    justifyContent: 'space-between',
+    background: cvar('background-30'),
+    zIndex: '999',
+  },
 }, [
 
   // LEFT
-  ,h('div', { style: statusGroupStyle }, [
+  ,h('div', {
+    style: statusGroupStyle,
+  }, [
 
-    ,h('div', { style: itemStyle }, {
+    ,h('div', {
       style: {
+        ...itemStyle,
         color: brighten($.baseColor, 90),
         background: darken($.baseColor, 20),
         paddingRight: '30px',
         marginRight: '-15px',
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 0 100%)',
-      }
+      },
     }, [
-      ,h('div', { style: iconBoxStyle }, [
+      ,h('div', {
+        style: iconBoxStyle,
+      }, [
         ,h(Icon.HardDrive)
       ])
 
@@ -129,8 +136,9 @@ const view = ($: S) => h('div', {
     ])
 
     // TODO: only show on git projects
-    ,h('div', { style: itemStyle }, {
+    ,h('div', {
       style: {
+        ...itemStyle,
         paddingLeft: '30px',
         paddingRight: '30px',
         marginRight: '-15px',
@@ -139,8 +147,11 @@ const view = ($: S) => h('div', {
         clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 100%, 15px 100%)',
       }
     }, [
-      ,h('div', { style: iconBoxStyle }, {
-        style: { display: $.branch ? '' : 'none' }
+      ,h('div', {
+        style: {
+          ...iconBoxStyle,
+          display: $.branch ? '' : 'none',
+        },
       }, [
         h(Icon.GitBranch),
       ])
@@ -149,8 +160,9 @@ const view = ($: S) => h('div', {
     ])
 
     // TODO: only show on git projects
-    ,h('div', { style: itemStyle }, {
+    ,h('div', {
       style: {
+        ...itemStyle,
         paddingLeft: '30px',
         paddingRight: '30px',
         marginRight: '-15px',
@@ -160,34 +172,42 @@ const view = ($: S) => h('div', {
       }
     }, [
       // ADDITIONS
-      ,h('div', { style: iconBoxStyle }, {
+      ,h('div', {
         style: {
+          ...iconBoxStyle,
           color: $.additions > 0 && colors.success,
-        }
+        },
       }, [
         ,h(Icon.PlusSquare)
       ])
 
       ,h('div', {
-        style: { color: $.additions > 0 && colors.success }
+        style: {
+          color: $.additions > 0 && colors.success,
+        }
       }, `${$.additions}`)
 
       // DELETIONS
-      ,h('div', { style: iconBoxStyle }, {
+      ,h('div', {
         style: {
+          ...iconBoxStyle,
           marginLeft: '12px',
           color: $.deletions > 0 && colors.error,
-        }
+        },
       }, [
         ,h(Icon.MinusSquare)
       ])
 
       ,h('div', {
-        style: { color: $.deletions > 0 && colors.error }
+        style: {
+          color: $.deletions > 0 && colors.error,
+        },
       }, `${$.deletions}`)
     ])
 
-    ,$.runningServers.has($.filetype) && h('div', { style: itemStyle }, [
+    ,$.runningServers.has($.filetype) && h('div', {
+      style: itemStyle,
+    }, [
       ,h('div', [
         ,h(Icon.Zap, { color: '#555' })
       ])
@@ -198,25 +218,35 @@ const view = ($: S) => h('div', {
   // CENTER
   ,h('div', { statusGroupStyle }, [
 
-    ,$.macro && h('div', { style: itemStyle }, [
-      ,h('div', { iconBoxStyle }, {
-        style: { color: colors.error }
+    ,$.macro && h('div', {
+      style: itemStyle,
+    }, [
+      ,h('div', {
+        style: {
+          ...iconBoxStyle,
+          color: colors.error,
+        }
       }, [
         ,h(Icon.Target)
       ])
 
       ,h('div', {
-        style: { color: colors.error }
+        style: {
+          color: colors.error,
+        }
       }, $.macro)
     ])
 
   ])
 
   // RIGHT
-  ,h('div', { statusGroupStyle }, [
+  ,h('div', {
+    style: statusGroupStyle,
+  }, [
 
-    ,h('div', { style: itemStyle }, {
+    ,h('div', {
       style: {
+        ...itemStyle,
         paddingLeft: '30px',
         paddingRight: '30px',
         color: brighten($.baseColor, 10),
@@ -226,35 +256,42 @@ const view = ($: S) => h('div', {
       }
     }, [
       // ERRORS
-      ,h('div', { style: iconBoxStyle }, {
+      ,h('div', {
         style: {
+          ...iconBoxStyle,
           color: $.errors > 0 && colors.error,
-        }
+        },
       }, [
         ,h(Icon.XCircle)
       ])
 
       ,h('div', {
-        style: { color: $.errors > 0 && colors.error }
+        style: {
+          color: $.errors > 0 && colors.error,
+        },
       }, `${$.errors}`)
 
       // WARNINGS
-      ,h('div', { style: iconBoxStyle }, {
+      ,h('div', {
         style: {
+          ...iconBoxStyle,
           marginLeft: '12px',
           color: $.warnings > 0 && colors.warning,
-        }
+        },
       }, [
         ,h(Icon.AlertTriangle)
       ])
 
       ,h('div', {
-        style: { color: $.warnings > 0 && colors.warning }
+        style: {
+          color: $.warnings > 0 && colors.warning,
+        },
       }, `${$.warnings}`)
     ])
 
-    ,h('div', { style: itemStyle }, {
+    ,h('div', {
       style: {
+        ...itemStyle,
         paddingLeft: '30px',
         paddingRight: '20px',
         color: brighten($.baseColor, 60),
@@ -266,8 +303,9 @@ const view = ($: S) => h('div', {
       ,h('div', `${$.line}:${$.column}`)
     ])
 
-    ,h('div', { style: itemStyle }, {
+    ,h('div', {
       style: {
+        ...itemStyle,
         paddingRight: '0',
         //clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
       }

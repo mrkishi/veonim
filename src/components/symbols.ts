@@ -132,7 +132,6 @@ const actions = {
       workspaceSymbols(vimState, value).then(symbols => {
         symbolCache.update(symbols)
         const results = symbols.length ? symbols : symbolCache.find(value)
-        console.log('update symbols:', results)
         a.updateOptions(results)
       })
 

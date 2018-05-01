@@ -12,7 +12,7 @@ const getIcon = (path = '') => {
   const extension = extname(filename).replace(/^\./, '')
   const langId = getLanguageForExtension(extension)
 
-  return findIcon(langId)
+  return langId && findIcon(langId)
     || findIcon(extension)
     || findIcon(filename)
     || findIcon(path.toLowerCase())

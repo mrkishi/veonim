@@ -1,9 +1,15 @@
-update seti icons package. release new version.
-  see filtype icons for mods
-  add readme/docs
-
 remove unused files. go thru everything
 remove unusued deps. go thru everything
+
+hfeater
+  - add default stroke-width: 2 as prop
+
+hseti
+  - add docs/readme
+  - use icon: true setting
+  - add fill: 'currentColor' style
+
+remove stroke-width: 2 from any icons once hfeater is updated
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
@@ -24,20 +30,19 @@ list abstraction to only render parts of the list in the dom
 i wonder what filetype icons VSCODE uses. it seems to be seti icons + a few extras.
 would like to use text svg icon for default. it's pretty calm
 
+align filetype icons (and feather - folder) in files, buffers, explorer, etc.
+
 TEST COMPONENTS
-# autocomplete.ts
-# buffer-search.ts
-─ buffers.ts
-# change-project.ts
-# code-actions.ts
 ─ color-picker.ts
+  - cursor drag does not work
+  - selecting outside the element does not lose focus
 ─ command-line.ts
   - wildmenu selecting another option causes cursor to flash in vim window
-# explorer-embed.ts (broken anyways)
 ─ explorer.ts
   - align icons and text. make sure sizes are good and paddings are good. MAKE IT PERFECT
 # files.ts
 ─ filetype-icon.ts
+  - get rid of the various margins/paddings and let consuming containers flex FLEX FLEX
 ─ generic-menu.ts
 ─ grep.ts
   - not stretch to bottom
@@ -45,41 +50,20 @@ TEST COMPONENTS
   - does the stuff overflow? (in current there are elipses for outta bounds text)
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
-─ icon.ts
-─ loading.ts
-─ messages.ts
-─ nc.ts
-─ overlay.ts
-─ plugin-container.ts
+- icon.ts
+  - do we still need this component in full effect? or at all?
+  - also should specify font size relatively instad of canvasContainer.font.size
+  - don't need weight param
 ─ problem-info.ts (multiline)
+  - check multiline not displaying correctly
 ─ problems.ts
 ─ references.ts
-─ row-container.ts
-─ statusline.ts
-# symbols.ts
-  - probably not related to symbols, but sometimes it appears
-  there are two active rows selected... lolwut
-  
-  it appears that the list is not getting properly cleared??
-
-  veonim/bootstrap/main.ts
-  so - for project symbols
-  pas
-  c-w
-  psc
-  c-w
-  psc
-
-─ text-input.ts
+  - not stretch to bottom
+  - select item does not show cursorline in window
 ─ user-menu.ts
-─ user-overlay-menu.ts
-# vim-create.ts
-# vim-rename.ts
-# vim-switch.ts
+  - nothing happens on select
 
-TODO:
-filetype-icon
-color-picker
+virtuali list
 
 build.js not being used for anything. gonna finish it or discard?
 
@@ -97,6 +81,8 @@ neovim.jumpTo: don't hide cursor/cursorline from background window.
   - seti
 
 files not refresh after delete file
+
+depmgr as separate process (not even worker thread) - because of security and isolation?
 
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix
@@ -243,6 +229,8 @@ save to docs
 upgrade ripgrep
 
 --ideas--
+
+move messages to bottom | top right corners. pimp them out to loook dope & lit AF
 
 change object key or value vim function/macro binding
 

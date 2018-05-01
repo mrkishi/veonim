@@ -1,5 +1,5 @@
 import * as canvasContainer from '../core/canvas-container'
-import Icon from '../components/icon'
+import { Loader } from 'hyperapp-feather'
 import { h } from '../ui/uikit'
 
 export interface LoaderParams {
@@ -15,5 +15,5 @@ export default ({ color, size = canvasContainer.font.size + 2 } = {} as LoaderPa
     width: `${size}px`,
   }
 }, [
-  Icon('loader', { size })
+  ,h(Loader, { size })
 ])

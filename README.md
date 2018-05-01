@@ -33,7 +33,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 - reload vim buffers when modified (e.g. when edited in another program)
 - everything configured via vim config file (init.vim) and scriptable with vimscript
 - create fuzzy overlay menus and floating overlay menus with user defined options (e.g. build custom task menus)
-- built-in statusline
+- built-in statusline (displays current project, git branch, git changes, warning/problem count, cursor position, and tabpages)
 - color picker + live vim colorscheme editing
 - (experimental) parse :term output and display problems in editor
 - veonim extension support
