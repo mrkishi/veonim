@@ -1,41 +1,50 @@
+import { getLanguageForExtension } from '../support/language-ids'
+import * as FeatherIcon from 'hyperapp-feather'
 import { pascalCase } from '../support/utils'
-import * as Icon from 'hyperapp-feather'
 import { basename, extname } from 'path'
 import * as Icons from 'hyperapp-seti'
 import { h } from '../ui/uikit'
 
+const findIcon = (id: string) => id && Reflect.get(Icons, pascalCase(id))
+
 const getIcon = (path = '') => {
   const filename = basename(path)
   const extension = extname(filename).replace(/^\./, '')
-  const lookupId = pascalCase(extension || filename)
+  const langId = getLanguageForExtension(extension)
 
-  return Reflect.get(Icons, lookupId) || Icons.Clock
+  return findIcon(langId)
+    || findIcon(extension)
+    || findIcon(filename)
+    || findIcon(path.toLowerCase())
+    || Icons.Shell
 }
-
-// TODO: need this?
-  // style: {
-  //   display: 'flex',
-  //   alignItems: 'center',
-  //   marginLeft: '-2px',
-  //   paddingRight: '4px',
-  //   fontSize: fontSize || `${canvasContainer.font.size + 4}px`,
-  // }
 
 export const Folder = h('div', {
   style: {
-    width: '23px',
+    paddingRight: '6px',
     paddingLeft: '1px',
+    fontSize: '1.1rem',
   },
 }, [
-  ,h(Icon.Folder)
+  ,h(FeatherIcon.Folder, {
+    'stroke-width': 2,
+  })
 ])
 
 export default (fileTypeOrPath: string) => h('div', {
   style: {
-    width: '24px',
+    paddingRight: '6px',
     display: 'flex',
     justifyContent: 'center',
+    marginTop: '-2px',
+    fontSize: '1.5rem',
+    color: '#ccc',
   },
 }, [
-  ,h(getIcon(fileTypeOrPath))
+  ,h(getIcon(fileTypeOrPath), {
+    // TODO: these should go in the package
+    width: '1em',
+    height: '1em',
+    fill: 'currentColor',
+  })
 ])

@@ -92,17 +92,18 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
   })
 
   ,h('div', $.buffers.map((f, ix) => h(RowNormal, {
-    key: `${f.name}-${f.base}-${f.dir}`,
     active: ix === $.index,
   }, [
-    ,FiletypeIcon(f.name)
+    ,h('div', [
+      ,FiletypeIcon(f.name)
 
-    ,h('span', {
-      render: f.duplicate,
-      style: { color: '#666' },
-    }, `${f.dir}/`)
+      ,h('span', {
+        render: f.duplicate,
+        style: { color: '#666' },
+      }, `${f.dir}/`)
 
-    ,h('span', f.duplicate ? f.base : f.name),
+      ,h('span', f.duplicate ? f.base : f.name),
+    ])
   ])))
 
 ])

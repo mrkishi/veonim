@@ -94,7 +94,6 @@ const view = ($: S, a: typeof actions) => Plugin($.vis, [
   })
 
   ,h('div', $.files.map(({ dir, file }, ix) => RowNormal({
-    key: `${dir}-${file}`,
     active: ix === $.ix,
   }, [
     ,FiletypeIcon(file)

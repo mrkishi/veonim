@@ -1,9 +1,28 @@
+update seti icons package. release new version.
+  see filtype icons for mods
+  add readme/docs
+
 remove unused files. go thru everything
 remove unusued deps. go thru everything
+
+canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
+edges. use ── ──── to test
+  - should use clip/rect to draw thingies? perf impact?
 
 hide overlays (problem info, hover) on bufleave
 
 generic-menu use Icon string get module to allow dynamic icons from users
+
+ok i guess i misunderstood how keys work... or there is a bug?
+when using keys in hyperapp lists, and clearing parts of the list,
+not all removed items are actually removed from the dom. so we end
+up with a mix of new and old items in the DOM. lolwut?
+
+i guess for now we will not use keys, especially since we will use a virtual
+list abstraction to only render parts of the list in the dom
+
+i wonder what filetype icons VSCODE uses. it seems to be seti icons + a few extras.
+would like to use text svg icon for default. it's pretty calm
 
 TEST COMPONENTS
 # autocomplete.ts
@@ -16,7 +35,8 @@ TEST COMPONENTS
   - wildmenu selecting another option causes cursor to flash in vim window
 # explorer-embed.ts (broken anyways)
 ─ explorer.ts
-─ files.ts
+  - align icons and text. make sure sizes are good and paddings are good. MAKE IT PERFECT
+# files.ts
 ─ filetype-icon.ts
 ─ generic-menu.ts
 ─ grep.ts
@@ -39,6 +59,17 @@ TEST COMPONENTS
 # symbols.ts
   - probably not related to symbols, but sometimes it appears
   there are two active rows selected... lolwut
+  
+  it appears that the list is not getting properly cleared??
+
+  veonim/bootstrap/main.ts
+  so - for project symbols
+  pas
+  c-w
+  psc
+  c-w
+  psc
+
 ─ text-input.ts
 ─ user-menu.ts
 ─ user-overlay-menu.ts

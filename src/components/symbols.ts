@@ -121,7 +121,7 @@ const actions = {
     return (symbolCache.clear(), resetState)
   },
 
-  change: (value: string) => (s: S) => {
+  change: (value: string) => (s: S, a: A) => {
     if (s.mode === SymbolMode.Buffer) return { value, symbols: value
       // TODO: DON'T TRUNCATE!
       ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
@@ -132,16 +132,17 @@ const actions = {
       workspaceSymbols(vimState, value).then(symbols => {
         symbolCache.update(symbols)
         const results = symbols.length ? symbols : symbolCache.find(value)
-        ui.updateOptions(results)
+        console.log('update symbols:', results)
+        a.updateOptions(results)
       })
 
       return { value, loading: true }
     }
   },
 
-  updateOptions: (symbols: Symbol[]) => ({ symbols, loading: false }),
+  updateOptions: (symbols: Symbol[]) => ({ symbols, loading: false, index: 0 }),
 
-  show: ({ symbols, mode }: any) => ({ mode, symbols, cache: symbols, visible: true }),
+  show: ({ symbols, mode }: any) => ({ mode, symbols, cache: symbols, visible: true, index: 0 }),
   hide: () => {
     symbolCache.clear()
     return resetState
@@ -151,7 +152,9 @@ const actions = {
   prev: () => (s: S) => ({ index: s.index - 1 < 0 ? 9 : s.index - 1 }),
 }
 
-const view = ($: S, a: typeof actions) => Plugin($.visible, [
+type A = typeof actions
+
+const view = ($: S, a: A) => Plugin($.visible, [
 
   ,Input({
     select: a.select,
@@ -175,8 +178,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
       maxHeight: '50vh',
       overflowY: 'hidden',
     }
-  }, $.symbols.map(({ name, kind, location }, ix) => h(RowNormal, {
-    key: `${name}-${kind}-${location.cwd}-${location.file}-${location.position.line}-${location.position.column}`,
+  }, $.symbols.map(({ name, kind }, ix) => h(RowNormal, {
     style: { justifyContent: 'space-between' },
     active: ix === $.index,
     oncreate: (e: HTMLElement) => {

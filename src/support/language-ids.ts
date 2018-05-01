@@ -360,8 +360,6 @@ const languages = new Map<string, string>([
   ['tmPreferences', 'xml'],
   ['tmSnippet', 'xml'],
   ['tmTheme', 'xml'],
-  ['ts', 'xml'],
-  ['tsx', 'xml'],
   ['ui', 'xml'],
   ['urdf', 'xml'],
   ['ux', 'xml'],
@@ -420,4 +418,5 @@ const languages = new Map<string, string>([
   ['bashrc', 'shellscript'],
 ])
 
+export const getLanguageForExtension = (ext: string) => languages.get(ext)
 export default (path: string): string => (languages.get(extname(path)) || '').replace(/^\./, '')

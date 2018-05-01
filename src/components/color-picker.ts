@@ -85,7 +85,7 @@ const view = ($: typeof state, a: typeof actions) => Overlay({
 
 ])
 
-const ui = app({ name: 'color-pickER2222', state, actions, view })
+const ui = app({ name: 'color-picker', state, actions, view })
 
 action('pick-color', async () => {
   liveMode = false

@@ -22,22 +22,27 @@ const activeRow = {
 }
 
 interface Options {
-  key: any,
+  key?: any,
   active: boolean,
   [key: string]: any,
 }
 
+const removePropsIntendedForThisComponent = (stuff: Options) => {
+  const { active, ...rest } = stuff
+  return rest
+}
+
 export const RowNormal = (o: Options, children: any[]) => h('div', {
-  ...o,
+  ...removePropsIntendedForThisComponent(o),
   style: {
     ...row,
-    ...(o.active && activeRow),
+    ...(o.active ? activeRow: undefined),
     ...o.style,
   }
 }, children)
 
 export const RowDesc = (o: Options, children: any[]) => h('div', {
-  ...o,
+  ...removePropsIntendedForThisComponent(o),
   style: {
     ...(o.active ? activeRow : row),
     whiteSpace: 'normal',
@@ -47,7 +52,7 @@ export const RowDesc = (o: Options, children: any[]) => h('div', {
 }, children)
 
 export const RowComplete = (o: Options, children: any[]) => h('div', {
-  ...o,
+  ...removePropsIntendedForThisComponent(o),
   style: {
     ...(o.active ? activeRow : row),
     ...paddingVH(0, 0),
@@ -58,7 +63,7 @@ export const RowComplete = (o: Options, children: any[]) => h('div', {
 }, children)
 
 export const RowHeader = (o: Options, children: any[]) => h('div', {
-  ...o,
+  ...removePropsIntendedForThisComponent(o),
   style: {
     ...(o.active ? activeRow : row),
     ...paddingH(6),
@@ -75,7 +80,7 @@ export const RowHeader = (o: Options, children: any[]) => h('div', {
 }, children)
 
 export const RowImportant = (opts = {} as any, children: any[]) => h('div', {
-  ...opts,
+  ...removePropsIntendedForThisComponent(opts),
   style: {
     ...opts.style,
     ...row,
@@ -86,7 +91,7 @@ export const RowImportant = (opts = {} as any, children: any[]) => h('div', {
 }, children)
 
 export const RowGroup = (opts = {} as any, children: any[]) => h('div', {
-  ...opts,
+  ...removePropsIntendedForThisComponent(opts),
   style: {
     ...paddingH(4),
     ...opts.style,
