@@ -57,8 +57,6 @@ TEST COMPONENTS
 ─ user-menu.ts
   - nothing happens on select
 
-virtuali list
-
 build.js not being used for anything. gonna finish it or discard?
 
 should font-sizer be part of build process?
@@ -70,9 +68,6 @@ create a simple hyperapp virtualized list component that simply renders dom node
 
 neovim.jumpTo: don't hide cursor/cursorline from background window.
   we want to jump to and see the current line highlighted (with cursorline)
-
-- hook up new icons:
-  - seti
 
 files not refresh after delete file
 
