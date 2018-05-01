@@ -4,6 +4,7 @@ import { is, writeFile, debounce } from '../support/utils'
 import { BufferVar } from '../core/vim-functions'
 import { sessions } from '../core/sessions'
 import { addQF } from '../ai/diagnostics'
+import * as Icon from 'hyperapp-feather'
 import Worker from '../messaging/worker'
 import { join } from 'path'
 
@@ -101,7 +102,7 @@ action('TermAttach', async (providedFormat?: ParserFormat) => {
   if (!is.number(jobId)) return
 
   const format = providedFormat || await userPicksAnOption<ParserFormat>({
-    icon: 'mail',
+    icon: Icon.Mail,
     description: 'choose parser error format',
     options: parserFormatOptions,
   })
