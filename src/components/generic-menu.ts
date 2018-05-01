@@ -5,6 +5,7 @@ import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
+import { Component } from 'hyperapp'
 
 export interface MenuOption {
   key: any,
@@ -14,7 +15,7 @@ export interface MenuOption {
 interface Props {
   description: string,
   options: MenuOption[],
-  icon?: string,
+  icon?: Component,
 }
 
 const state = {

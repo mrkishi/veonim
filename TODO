@@ -17,8 +17,6 @@ edges. use ── ──── to test
 
 hide overlays (problem info, hover) on bufleave
 
-generic-menu use Icon string get module to allow dynamic icons from users
-
 ok i guess i misunderstood how keys work... or there is a bug?
 when using keys in hyperapp lists, and clearing parts of the list,
 not all removed items are actually removed from the dom. so we end
@@ -50,10 +48,6 @@ TEST COMPONENTS
   - does the stuff overflow? (in current there are elipses for outta bounds text)
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
-- icon.ts
-  - do we still need this component in full effect? or at all?
-  - also should specify font size relatively instad of canvasContainer.font.size
-  - don't need weight param
 ─ problem-info.ts (multiline)
   - check multiline not displaying correctly
 ─ problems.ts
