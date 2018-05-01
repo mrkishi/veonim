@@ -6,10 +6,6 @@ import { getWindow } from '../core/windows'
 import { merge } from '../support/utils'
 import { get } from '../core/grid'
 
-interface CursorVisibilityOptions {
-  maintainCursorline: boolean,
-}
-
 export enum CursorShape {
   block,
   line,
@@ -82,7 +78,7 @@ export const showCursor = () => {
   cursorline.style.display = ''
 }
 
-export const showCursorline () => {
+export const showCursorline = () => {
   console.log('show cursorline')
   cursorline.style.display = ''
 }

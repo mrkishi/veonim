@@ -71,7 +71,7 @@ export interface Color {
 
 export interface HyperspaceCoordinates {
   line: number,
-  column: number,
+  column?: number,
   path?: string,
 }
 
@@ -107,6 +107,7 @@ export interface Position {
 }
 
 export interface NeovimState {
+  absoluteFilepath: string,
   bufferType: BufferType,
   colorscheme: string,
   filetype: string,
@@ -335,17 +336,27 @@ export const createShadowBuffer = async (name: string) => {
   return buffer
 }
 
-// TODO: accept column as optional. sometimes we just wanna hang out
-export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
-  const currentPath = pathJoin(current.cwd, current.file)
+type JumpOpts = HyperspaceCoordinates & { openBufferFirst: boolean }
 
-  if (path && path !== currentPath) {
-    openBuffer(path)
-    await until.bufLoad
-  }
-
-  (await getCurrent.window).setCursor(line, column)
+export const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: JumpOpts) => {
+  if (openBufferFirst && path) await openBuffer(path)
+  // TODO: need this?
+  // await until.bufLoad
+  ;(await getCurrent.window).setCursor(line, column || 0)
   showCursorline()
+}
+
+export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
+  const bufferNotLoaded = path ? path !== current.absoluteFilepath : false
+  jumpToPositionInFile({ line, column, path, openBufferFirst: bufferNotLoaded })
+}
+
+// the reason this method exists is because opening buffers with an absolute path
+// will have the abs path in names and buffer lists. idk, it just behaves wierdly
+// so it's much easier to open a file realtive to the current project (:cd/:pwd)
+export const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordinates) => {
+  const bufferNotLoaded = path ? path !== current.file : false
+  jumpToPositionInFile({ line, column, path, openBufferFirst: bufferNotLoaded })
 }
 
 export const getColor = async (name: string) => {
@@ -366,6 +377,7 @@ export const list = {
 
 export const current: NeovimState = new Proxy({
   bufferType: BufferType.Normal,
+  absoluteFilepath: '',
   mode: 'normal',
   file: '',
   filetype: '',
@@ -497,7 +509,19 @@ const refreshState = (event = 'bufLoad') => async () => {
   )
 
   const bufferType = await buffer.getOption(BufferOption.Type)
-  merge(current, { filetype, cwd, file, colorscheme, revision, line, column, bufferType })
+
+  merge(current, {
+    cwd,
+    file,
+    line,
+    column,
+    filetype,
+    revision,
+    bufferType,
+    colorscheme,
+    absoluteFilepath: pathJoin(cwd, file),
+  })
+
   notifyEvent(event)
 }
 
