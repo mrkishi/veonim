@@ -61,6 +61,8 @@ build.js not being used for anything. gonna finish it or discard?
 
 should font-sizer be part of build process?
 
+references display text does not match actual buffer line contents
+
 create a simple hyperapp virtualized list component that simply renders dom nodes
   given a slice of the list. you want the top of the list, slice(0, 10)
   you want the end, slice(list.length - 10), etc. no mouse support for now.

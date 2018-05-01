@@ -65,21 +65,18 @@ export const setCursorColor = (color: string) => {
 }
 
 export const hideCursor = () => {
-  console.log('hide cursor')
   cursorRequestedToBeHidden = true
   cursorEl.style.display = 'none'
   cursorline.style.display = 'none'
 }
 
 export const showCursor = () => {
-  console.log('show cursor')
   cursorRequestedToBeHidden = false
   cursorEl.style.display = 'flex'
   cursorline.style.display = ''
 }
 
 export const showCursorline = () => {
-  console.log('show cursorline')
   cursorline.style.display = ''
 }
 

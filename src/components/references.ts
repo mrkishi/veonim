@@ -1,9 +1,9 @@
 import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
-import Input from '../components/text-input'
+import { jumpToProjectFile } from '../core/neovim'
 import { badgeStyle } from '../styles/common'
+import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
-import { jumpTo } from '../core/neovim'
 import { h, app } from '../ui/uikit'
 
 type TextTransformer = (text: string, last?: boolean) => string
@@ -54,7 +54,7 @@ const selectResult = (references: Result[], ix: number, subix: number) => {
   if (subix < 0) return
   const [ path, items ] = references[ix]
   const { line, column } = items[subix]
-  jumpTo({ line, column, path })
+  jumpToProjectFile({ line, column, path })
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: {

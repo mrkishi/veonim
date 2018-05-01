@@ -338,7 +338,7 @@ export const createShadowBuffer = async (name: string) => {
 
 type JumpOpts = HyperspaceCoordinates & { openBufferFirst: boolean }
 
-export const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: JumpOpts) => {
+const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: JumpOpts) => {
   if (openBufferFirst && path) await openBuffer(path)
   // TODO: need this?
   // await until.bufLoad
