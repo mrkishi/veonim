@@ -1,8 +1,8 @@
 import { hexToRGBA, partialFill, translate } from '../ui/css'
 import * as canvasContainer from '../core/canvas-container'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
+import { getWindow, RenderWindow } from '../core/windows'
 import { CanvasWindow } from '../core/canvas-window'
-import { getWindow } from '../core/windows'
 import { merge } from '../support/utils'
 import { get } from '../core/grid'
 
@@ -17,6 +17,7 @@ const cursorEl = document.getElementById('cursor') as HTMLElement
 const cursorChar = document.createElement('span')
 const cursorline = document.getElementById('cursorline') as HTMLElement
 let cursorRequestedToBeHidden = false
+let cursorEnabled = true
 
 merge(cursorline.style, {
   position: 'absolute',
@@ -64,13 +65,20 @@ export const setCursorColor = (color: string) => {
   cursorEl.style.background = color
 }
 
+export const enableCursor = () => cursorEnabled = true
+export const disableCursor = () => cursorEnabled = false
+
 export const hideCursor = () => {
+  if (!cursorEnabled) return
+
   cursorRequestedToBeHidden = true
   cursorEl.style.display = 'none'
   cursorline.style.display = 'none'
 }
 
 export const showCursor = () => {
+  if (!cursorEnabled) return
+
   cursorRequestedToBeHidden = false
   cursorEl.style.display = 'flex'
   cursorline.style.display = ''
@@ -78,8 +86,8 @@ export const showCursor = () => {
 
 export const showCursorline = () => cursorline.style.display = ''
 
-const moveCursorLine = (win: CanvasWindow, backgroundColor: string) => {
-  const { x, y, width } = win.whereLine(cursor.row)
+const updateCursorlinePosition = (canvas: CanvasWindow, backgroundColor: string) => {
+  const { x, y, width } = canvas.whereLine(cursor.row)
 
   merge(cursorline.style, {
     background: hexToRGBA(backgroundColor, 0.2),
@@ -88,41 +96,47 @@ const moveCursorLine = (win: CanvasWindow, backgroundColor: string) => {
   })
 }
 
+const updateCursorChar = (shape: CursorShape) => {
+  if (shape === CursorShape.block) {
+    const [ char ] = get(cursor.row, cursor.col)
+    cursorChar.innerText = char
+    cursorChar.style.display = ''
+  }
+  else {
+    cursorChar.style.display = 'none'
+    cursorChar.innerText = ''
+  }
+}
+
+const controlCursorIfShadowBuffer = (win: RenderWindow) => {
+  const isShadowBuffer = win.filetype === SHADOW_BUFFER_TYPE
+
+  if (isShadowBuffer) return cursorEl.style.display = 'none'
+  else cursorEl.style.display = 'flex'
+}
+
+const updateCursorPosition = (canvas: CanvasWindow) => {
+  const { x, y } = canvas.getCursorPosition(cursor.row, cursor.col)
+  cursorEl.style.transform = translate(x, y)
+}
+
 export const moveCursor = (backgroundColor: string) => {
   const res = getWindow(cursor.row, cursor.col, { getStuff: true })
   if (!res || !res.canvas) return
   const { canvas, win } = res
 
-  // move cursor line even if hidden. sometimes we will have external requests
-  // to show the cursor line (i.e. from grep/references/problems/etc) and we
-  // need to have the current/updated cursor position at all times
+  // even if cursor(line) is hidden, we still need to update the positions.
+  // once the cursor elements are re-activated, the position updated while
+  // hidden must be accurate. (e.g. using jumpTo() in grep/references/etc)
 
-  // TODO: actually we need to move the actual cursor as well... since once we
-  // go back to showing cursor, the cursor position is stale according to where
-  // we left off. any movements in the background by vimscript/nvim api are not
-  // reflected in the ui until we move the cursor again........... ffffffff
-  moveCursorLine(canvas, backgroundColor)
+  updateCursorPosition(canvas)
+  updateCursorlinePosition(canvas, backgroundColor)
 
+  if (!cursorEnabled) return
   if (cursorRequestedToBeHidden) return
-  const isShadowBuffer = win.filetype === SHADOW_BUFFER_TYPE
 
-  if (isShadowBuffer) return cursorEl.style.display = 'none'
-  else cursorEl.style.display = 'flex'
-
-  const { x, y } = canvas.getCursorPosition(cursor.row, cursor.col)
-  cursorEl.style.transform = translate(x, y)
-
-  if (cursor.type === CursorShape.block) {
-    const [ char ] = get(cursor.row, cursor.col)
-    cursorChar.innerText = char
-    cursorChar.style.display = ''
-  }
-
-  else {
-    cursorChar.style.display = 'none'
-    cursorChar.innerText = ''
-  }
-
+  controlCursorIfShadowBuffer(win)
+  updateCursorChar(cursor.type)
   showCursorline()
 }
 
