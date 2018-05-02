@@ -42,6 +42,7 @@ const main = async () => {
   setTimeout(() => {
     // TODO: can we load copmonents on demand?
     // aka, either load when user requests, or after 10 sec of app startup shit
+    requireDir(`${__dirname}/../services`)
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))
   }, 1)

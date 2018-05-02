@@ -30,10 +30,8 @@ TEST COMPONENTS
   - selecting outside the element does not lose focus
 ─ explorer.ts
   - align icons and text. make sure sizes are good and paddings are good. MAKE IT PERFECT
-# files.ts
 ─ filetype-icon.ts
   - get rid of the various margins/paddings and let consuming containers flex FLEX FLEX
-─ generic-menu.ts
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
 ─ problem-info.ts (multiline)
@@ -42,8 +40,6 @@ TEST COMPONENTS
   - padding missing between icon and content
   - space between header and top item (when active highlight on ix = 0)
     - specific to problems or an issue in the row containers?
-─ user-menu.ts
-  - nothing happens on select
 - references
   - sometimes incorrect lines displayed. not sure as it doesn't always happen
   - sometimes empty lines rendered... lolwut?
@@ -134,6 +130,8 @@ readme screen showcase automation
 upgrade ripgrep
 
 --ideas--
+
+make a different cursor for shadow buffers to signify normal mode?
 
 super cool start page with mru projects and shit
 
