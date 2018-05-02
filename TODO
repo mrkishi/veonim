@@ -1,6 +1,8 @@
 remove unused files. go thru everything
 remove unusued deps. go thru everything
 
+spammy cmd-update lolwut?
+
 text-input keys: add tab/s-tab to go next/prev
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
@@ -23,16 +25,10 @@ would like to use text svg icon for default. it's pretty calm
 
 align filetype icons (and feather - folder) in files, buffers, explorer, etc.
 
-CURSOR.TS
-  - always update cursor location EVEN if requested to be hidden. when unhide,
-    need to have up-to-date location of any movements while hidden
-
 TEST COMPONENTS
 ─ color-picker.ts
   - cursor drag does not work
   - selecting outside the element does not lose focus
-─ command-line.ts
-  - wildmenu selecting another option causes cursor to flash in vim window
 ─ explorer.ts
   - align icons and text. make sure sizes are good and paddings are good. MAKE IT PERFECT
 # files.ts
@@ -41,7 +37,7 @@ TEST COMPONENTS
 ─ generic-menu.ts
 ─ grep.ts
   - not stretch to bottom
-  - does the stuff overflow? (in current neovim there are elipses for outta bounds text)
+  - does the stuff overflow-x? (in current neovim there are elipses for outta bounds text)
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
 ─ problem-info.ts (multiline)

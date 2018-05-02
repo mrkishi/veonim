@@ -1,3 +1,4 @@
+import { enableCursor, disableCursor, hideCursor, showCursor } from '../core/cursor'
 import { CommandType, CommandUpdate } from '../core/render'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
@@ -26,17 +27,37 @@ const state = {
 type S = typeof state
 
 const actions = {
-  show: () => ({ visible: true }),
-  hide: () => ({ visible: false }),
-  updateCommand: ({ cmd, kind, position }: CommandUpdate) => (s: S) => ({
-    kind,
-    position,
-    visible: true,
-    options: cmd ? s.options : [],
-    value: is.string(cmd) && s.value !== cmd
-      ? cmd
-      : s.value
-  }),
+  // there is logic in text-input to show/hide cursor based on text input
+  // foucs/blur events. however i noticed that when selecting a wildmenu option
+  // somehow causes the text input to lose focus (we need to update the
+  // selected menu item in the text input field). i'm not sure why this is
+  // different than the normal command update, since we do not use the text
+  // input natively. we send input events directly to vim, vim sends cmd
+  // updates back to us, and we update the text input field.
+  show: () => {
+    hideCursor()
+    disableCursor()
+    return { visible: true }
+  },
+  hide: () => {
+    enableCursor()
+    showCursor()
+    return { visible: false }
+  },
+  updateCommand: ({ cmd, kind, position }: CommandUpdate) => (s: S) => {
+    hideCursor()
+    disableCursor()
+
+    return {
+      kind,
+      position,
+      visible: true,
+      options: cmd ? s.options : [],
+      value: is.string(cmd) && s.value !== cmd
+        ? cmd
+        : s.value
+    }
+  },
 
   selectWildmenu: (ix: number) => ({ ix }),
   updateWildmenu: (options: string[]) => ({
@@ -51,14 +72,13 @@ const view = ($: S) => Plugin($.visible, [
   ,Input({
     focus: true,
     value: $.value,
-    position: $.position,
     useVimInput: true,
-    icon: modeSwitch.get($.kind) || Icon.Command,
     desc: 'command line',
+    position: $.position,
+    icon: modeSwitch.get($.kind) || Icon.Command,
   })
 
   ,h('div', $.options.map((name, ix) => h(RowNormal, {
-    key: name,
     active: ix === $.ix,
   }, [
     ,h('div', name)
