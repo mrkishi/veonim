@@ -184,7 +184,7 @@ const view = ($: S, a: typeof actions) => PluginRight($.vis, [
       active: pos === $.ix && itemPos === $.subix
     }, highlightPattern(f.text, $.referencedSymbol, {
 
-      normal: (text, last) => h('div', {
+      normal: (text, last) => h('span', {
         style: {
           whiteSpace: 'pre',
           textOverflow: last ? 'ellipsis' : undefined,
@@ -192,7 +192,7 @@ const view = ($: S, a: typeof actions) => PluginRight($.vis, [
         },
       }, text),
 
-      special: text => h('.highlight', {
+      special: text => h('span', {
         style: {
           color: '#aaa',
           background: 'rgba(255, 255, 255, 0.1)',
