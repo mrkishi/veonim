@@ -35,8 +35,6 @@ TEST COMPONENTS
 ─ filetype-icon.ts
   - get rid of the various margins/paddings and let consuming containers flex FLEX FLEX
 ─ generic-menu.ts
-─ grep.ts
-  - does the stuff overflow-x? (in current neovim there are elipses for outta bounds text)
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
 ─ problem-info.ts (multiline)
@@ -208,6 +206,8 @@ multi-monitor support? with shada and edge detection (when c-w l on right most w
 
 
 -- more stuffffffff
+delete till highlighted text
+
 create marks from visual selection
 
 display marks visually in editor

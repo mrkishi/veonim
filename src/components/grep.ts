@@ -232,26 +232,24 @@ const view = ($: S, a: typeof actions) => PluginRight($.visible, [
 
     ,pos === $.ix && h(RowGroup, {}, items.map((f, itemPos) => h(RowNormal, {
       active: pos === $.ix && itemPos === $.subix,
-    }, [
-      ,h('span', highlightPattern(f.text, $.value, {
+    }, highlightPattern(f.text, $.value, {
 
-        normal: (text, last) => h('span', {
-          style: {
-            whiteSpace: 'pre',
-            textOverflow: last ? 'ellipsis' : undefined,
-            overflow: last ? 'inherit' : undefined,
-          },
-        }, text),
+      normal: (text, last) => h('span', {
+        style: {
+          whiteSpace: 'pre',
+          textOverflow: last ? 'ellipsis' : undefined,
+          overflow: last ? 'inherit' : undefined,
+        },
+      }, text),
 
-        special: text => h('span.highlight', {
-          style: {
-            color: '#aaa',
-            background: 'rgba(255, 255, 255, 0.1)',
-          }
-        }, text)
+      special: text => h('span', {
+        style: {
+          color: '#aaa',
+          background: 'rgba(255, 255, 255, 0.1)',
+        }
+      }, text)
 
-      }))
-    ])))
+    }))))
 
   ])))
 
