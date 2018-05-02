@@ -20,7 +20,6 @@ export default ($: Props, content: any[]) => h('div', {
     position: 'absolute',
   },
   oncreate: $.onElement,
-  onupdate: $.onElement,
 }, [
 
   ,h('.spacer', {

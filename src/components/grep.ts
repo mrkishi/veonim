@@ -206,14 +206,12 @@ const view = ($: S, a: typeof actions) => PluginRight($.visible, [
 
   ,h('div', {
     oncreate: (e: HTMLElement) => elref = e,
-    onupdate: (e: HTMLElement) => elref = e,
     style: {
       maxHeight: '100%',
       overflowY: 'hidden',
     },
   }, $.results.map(([ path, items ], pos) => h('div', {
     oncreate: (e: HTMLElement) => els.set(pos, e),
-    onupdate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
     ,h(RowHeader, {
