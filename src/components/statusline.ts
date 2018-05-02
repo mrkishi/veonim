@@ -101,6 +101,8 @@ const actions = {
   }),
 }
 
+const iconStyle = { style: { fontSize: '1.15rem' } }
+
 const view = ($: S) => h('div', {
   style: {
     flex: '1',
@@ -129,7 +131,7 @@ const view = ($: S) => h('div', {
       ,h('div', {
         style: iconBoxStyle,
       }, [
-        ,h(Icon.HardDrive)
+        ,h(Icon.HardDrive, iconStyle)
       ])
 
       ,h('span', $.cwd || 'no project')
@@ -153,7 +155,7 @@ const view = ($: S) => h('div', {
           display: $.branch ? '' : 'none',
         },
       }, [
-        h(Icon.GitBranch),
+        h(Icon.GitBranch, iconStyle),
       ])
 
       ,h('span', $.branch || 'git n/a')
@@ -178,7 +180,7 @@ const view = ($: S) => h('div', {
           color: $.additions > 0 && colors.success,
         },
       }, [
-        ,h(Icon.PlusSquare)
+        ,h(Icon.PlusSquare, iconStyle)
       ])
 
       ,h('div', {
@@ -195,7 +197,7 @@ const view = ($: S) => h('div', {
           color: $.deletions > 0 && colors.error,
         },
       }, [
-        ,h(Icon.MinusSquare)
+        ,h(Icon.MinusSquare, iconStyle)
       ])
 
       ,h('div', {
@@ -209,7 +211,7 @@ const view = ($: S) => h('div', {
       style: itemStyle,
     }, [
       ,h('div', [
-        ,h(Icon.Zap, { color: '#555' })
+        ,h(Icon.Zap, { color: '#555', ...iconStyle })
       ])
     ])
 
@@ -227,7 +229,7 @@ const view = ($: S) => h('div', {
           color: colors.error,
         }
       }, [
-        ,h(Icon.Target)
+        ,h(Icon.Target, iconStyle)
       ])
 
       ,h('div', {
@@ -262,7 +264,7 @@ const view = ($: S) => h('div', {
           color: $.errors > 0 && colors.error,
         },
       }, [
-        ,h(Icon.XCircle)
+        ,h(Icon.XCircle, iconStyle)
       ])
 
       ,h('div', {
@@ -279,7 +281,7 @@ const view = ($: S) => h('div', {
           color: $.warnings > 0 && colors.warning,
         },
       }, [
-        ,h(Icon.AlertTriangle)
+        ,h(Icon.AlertTriangle, iconStyle)
       ])
 
       ,h('div', {
