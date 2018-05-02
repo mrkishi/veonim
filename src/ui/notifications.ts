@@ -112,7 +112,7 @@ const view = ($: S) => PluginTop(true, [
             alignItems: 'center',
           }
         }, [
-          ,h(getIcon(kind), { 'stroke-width': 2 })
+          ,h(getIcon(kind))
         ])
 
         ,h('span', message)

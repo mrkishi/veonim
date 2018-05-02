@@ -113,7 +113,6 @@ const view = ({
     ,h(icon, {
       style: !small ? { fontSize: '1.7rem' } : undefined,
       color: cvar('foreground-70'),
-      'stroke-width': 2,
     })
   ])
 

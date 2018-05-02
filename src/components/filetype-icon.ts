@@ -26,9 +26,7 @@ export const Folder = h('div', {
     fontSize: '1.1rem',
   },
 }, [
-  ,h(FeatherIcon.Folder, {
-    'stroke-width': 2,
-  })
+  ,h(FeatherIcon.Folder)
 ])
 
 export default (fileTypeOrPath: string) => h('div', {
@@ -41,10 +39,5 @@ export default (fileTypeOrPath: string) => h('div', {
     color: '#ccc',
   },
 }, [
-  ,h(getIcon(fileTypeOrPath), {
-    // TODO: these should go in the package
-    width: '1em',
-    height: '1em',
-    fill: 'currentColor',
-  })
+  ,h(getIcon(fileTypeOrPath))
 ])

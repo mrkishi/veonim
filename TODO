@@ -1,15 +1,7 @@
 remove unused files. go thru everything
 remove unusued deps. go thru everything
 
-hfeater
-  - add default stroke-width: 2 as prop
-
-hseti
-  - add docs/readme
-  - use icon: true setting
-  - add fill: 'currentColor' style
-
-remove stroke-width: 2 from any icons once hfeater is updated
+text-input keys: add tab/s-tab to go next/prev
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
@@ -315,8 +307,6 @@ can replace cw and ciw to always allow repeat again (do cm behind the scenes)
 macros/fns/operators for:
 replace obj key and val
 replace func body
-
-stroke-width:2 in package 
 
 depmgr as separate process: security - no access to electron
 
