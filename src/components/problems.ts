@@ -4,8 +4,8 @@ import { PluginBottom } from '../components/plugin-container'
 import * as canvasContainer from '../core/canvas-container'
 import { current, jumpToProjectFile } from '../core/neovim'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
+import { badgeStyle, colors } from '../styles/common'
 import { simplifyPath } from '../support/utils'
-import { badgeStyle } from '../styles/common'
 import Input from '../components/text-input'
 import { Problem } from '../ai/diagnostics'
 import * as Icon from 'hyperapp-feather'
@@ -61,14 +61,16 @@ type S = typeof state
 
 const icons = {
   [DiagnosticSeverity.Error]: h(Icon.XCircle, {
-    color: '#ef2f2f',
+    color: colors.error,
     style: {
+      paddingRight: '10px',
       fontSize: '1.2rem'
     },
   }),
   [DiagnosticSeverity.Warning]: h(Icon.XCircle, {
-    color: '#ffb100',
+    color: colors.warning,
     style: {
+      paddingRight: '10px',
       fontSize: '1.2rem'
     },
   })

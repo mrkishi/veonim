@@ -40,6 +40,7 @@ TEST COMPONENTS
   - padding missing between icon and content
   - space between header and top item (when active highlight on ix = 0)
     - specific to problems or an issue in the row containers?
+      - this is how it is in prod version of veonim
 - references
   - sometimes incorrect lines displayed. not sure as it doesn't always happen
   - sometimes empty lines rendered... lolwut?
