@@ -73,7 +73,11 @@ const actions = {
   expire: (id: string) => (s: S) => ({ notifications: s.notifications.filter(m => m.id !== id) }),
 }
 
-const view = ($: S) => PluginTop(true, [
+const view = ($: S) => PluginTop(true, {
+  position: 'absolute',
+  background: 'none',
+  marginTop: '5px',
+}, [
 
   ,h('div', $.notifications.map(({ id, kind, message, count }) => h('div', {
       key: id,
@@ -131,11 +135,7 @@ const view = ($: S) => PluginTop(true, [
 
   )
 
-], {
-  position: 'absolute',
-  background: 'none',
-  marginTop: '5px',
-})
+])
 
 const ui = app<S, typeof actions>({ name: 'notifications', element: container, state, actions, view })
 

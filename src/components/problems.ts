@@ -1,8 +1,9 @@
 import { RowHeader, RowDesc, RowGroup } from '../components/row-container'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
+import { PluginBottom } from '../components/plugin-container'
 import * as canvasContainer from '../core/canvas-container'
+import { current, jumpToProjectFile } from '../core/neovim'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
-import { current, jumpTo } from '../core/neovim'
 import { simplifyPath } from '../support/utils'
 import { badgeStyle } from '../styles/common'
 import Input from '../components/text-input'
@@ -42,7 +43,8 @@ const selectResult = (results: Problem[], ix: number, subix: number) => {
   const { range: { start: { line, character } } } = items[subix]
 
   const path = join(dir, file)
-  jumpTo({ path, line, column: character })
+  // TODO: these positions do not make me feel warm and fuzzy at all
+  jumpToProjectFile({ path, line: line + 1, column: character })
 }
 
 const state = {
@@ -133,17 +135,10 @@ const actions = {
   },
 }
 
-const view = ($: S, a: typeof actions) => h('div', {
-  style: {
-    background: 'var(--background-45)',
-    color: '#eee',
-    display: $.vis ? 'flex' : 'none',
-    flexFlow: 'column',
-    position: 'absolute',
-    alignSelf: 'flex-end',
-    maxHeight: '30vh',
-    width: '100%',
-  }
+type A = typeof actions
+
+const view = ($: S, a: A) => PluginBottom($.vis, {
+  maxHeight: '30vh',
 }, [
 
   ,Input({
@@ -163,18 +158,14 @@ const view = ($: S, a: typeof actions) => h('div', {
   })
 
   ,h('div', {
-    ref: (e: HTMLElement) => {
-      if (e) elref = e
-    },
+    oncreate: (e: HTMLElement) => elref = e,
     style: {
       display: 'flex',
       flexFlow: 'column',
       overflow: 'hidden',
     }
   }, $.problems.map(({ file, dir, items }, pos) => h('div', {
-    ref: (e: HTMLElement) => {
-      if (e) els.set(pos, e)
-    },
+    oncreate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
     ,h(RowHeader, {
@@ -198,10 +189,9 @@ const view = ($: S, a: typeof actions) => h('div', {
     ])
 
     ,pos === $.ix && h(RowGroup, {}, items.map(({ severity, message, range }, itemPos) => h(RowDesc, {
-      key: `${message}-${range.start.line}-${range.start.character}-${range.end.line}-${range.end.character}`,
       active: itemPos === $.subix,
-      ref: (e: HTMLElement) => {
-        if (itemPos !== $.subix || !e || !e.getBoundingClientRect) return
+      oncreate: (e: HTMLElement) => {
+        if (itemPos !== $.subix) return
         const { top, bottom } = e.getBoundingClientRect()
         if (top < position.container.top) return e.scrollIntoView(true)
         if (bottom > position.container.bottom) return e.scrollIntoView(false)
@@ -221,6 +211,9 @@ const view = ($: S, a: typeof actions) => h('div', {
           wordBreak: 'break-word',
           whiteSpace: 'normal',
         }
+        // this toVimPosition offsets funny business is really starting to
+        // ruin the fun of all living beings. pls fix so all positions
+        // are always 0-based for the good of all
       }, `${message}  (${range.start.line + 1}, ${range.start.character + 1})`)
     ])))
 

@@ -1,5 +1,10 @@
+import { is } from '../support/utils'
 import { cvar } from '../ui/css'
 import { h } from '../ui/uikit'
+
+type PluginFnNormal = (visible: boolean, children: any[]) => any
+type PluginFnWithStyles = (visible: boolean, styles: object, children: any[]) => any
+type PluginFn = PluginFnNormal & PluginFnWithStyles
 
 const base = {
   zIndex: 99,
@@ -34,30 +39,34 @@ export const Plugin = (visible: boolean, children: any[]) => h('div', {
 
 ])
 
-export const PluginTop = (visible: boolean, children: any[], styles?: object) => h('div', {
+export const PluginTop: PluginFn = (visible: boolean, ...args: any[]) => h('div', {
   style: top,
 }, [
 
   ,h('div', {
     style: {
       ...dialog,
-      ...styles,
       width: '400px',
       display: visible ? 'flex' : 'none',
+      ...args.find(is.object)
     }
-  }, children)
+  }, args.find(is.array))
 
 ])
 
-export const PluginBottom = (visible: boolean, children: any[]) => h('div', {
+export const PluginBottom: PluginFn = (visible: boolean, ...args: any[]) => h('div', {
   style: bottom,
 }, [
 
   ,h('div', {
     style: {
+      width: '100%',
+      flexFlow: 'column',
+      background: cvar('background-45'),
       display: visible ? 'flex' : 'none',
+      ...args.find(is.object),
     }
-  }, children)
+  }, args.find(is.array))
 
 ])
 

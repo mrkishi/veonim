@@ -27,7 +27,6 @@ align filetype icons (and feather - folder) in files, buffers, explorer, etc.
 
 TEST COMPONENTS
 ─ color-picker.ts
-  - cursor drag does not work
   - selecting outside the element does not lose focus
 ─ explorer.ts
   - align icons and text. make sure sizes are good and paddings are good. MAKE IT PERFECT
@@ -40,8 +39,14 @@ TEST COMPONENTS
 ─ problem-info.ts (multiline)
   - check multiline not displaying correctly
 ─ problems.ts
+  - padding missing between icon and content
+  - space between header and top item (when active highlight on ix = 0)
+    - specific to problems or an issue in the row containers?
 ─ user-menu.ts
   - nothing happens on select
+- references
+  - sometimes incorrect lines displayed. not sure as it doesn't always happen
+  - sometimes empty lines rendered... lolwut?
 
 build.js not being used for anything. gonna finish it or discard?
 
