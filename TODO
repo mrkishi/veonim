@@ -36,15 +36,12 @@ TEST COMPONENTS
   - get rid of the various margins/paddings and let consuming containers flex FLEX FLEX
 ─ generic-menu.ts
 ─ grep.ts
-  - not stretch to bottom
   - does the stuff overflow-x? (in current neovim there are elipses for outta bounds text)
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
 ─ problem-info.ts (multiline)
   - check multiline not displaying correctly
 ─ problems.ts
-─ references.ts
-  - not stretch to bottom
 ─ user-menu.ts
   - nothing happens on select
 
@@ -134,6 +131,8 @@ readme screen showcase automation
 upgrade ripgrep
 
 --ideas--
+
+super cool start page with mru projects and shit
 
 move messages to bottom | top right corners. pimp them out to loook dope & lit AF
 
