@@ -1,4 +1,4 @@
-import { action, call, current, feedkeys, expr, jumpTo } from '../core/neovim'
+import { action, call, current, feedkeys, expr, jumpToProjectFile } from '../core/neovim'
 import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { badgeStyle } from '../styles/common'
@@ -62,7 +62,7 @@ const selectResult = (results: Result[], ix: number, subix: number) => {
   if (subix < 0) return
   const [ path, items ] = results[ix]
   const { line, col: column } = items[subix]
-  jumpTo({ path, line, column })
+  jumpToProjectFile({ path, line, column })
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: {

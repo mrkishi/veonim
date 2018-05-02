@@ -347,16 +347,16 @@ const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: Jum
 }
 
 export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
-  const bufferNotLoaded = path ? path !== current.absoluteFilepath : false
-  jumpToPositionInFile({ line, column, path, openBufferFirst: bufferNotLoaded })
+  const bufferLoaded = path ? path === current.absoluteFilepath : true
+  jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
 }
 
 // the reason this method exists is because opening buffers with an absolute path
 // will have the abs path in names and buffer lists. idk, it just behaves wierdly
 // so it's much easier to open a file realtive to the current project (:cd/:pwd)
 export const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordinates) => {
-  const bufferNotLoaded = path ? path !== current.file : false
-  jumpToPositionInFile({ line, column, path, openBufferFirst: bufferNotLoaded })
+  const bufferLoaded = path ? path === current.file : true
+  jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
 }
 
 export const getColor = async (name: string) => {

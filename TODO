@@ -53,7 +53,7 @@ TEST COMPONENTS
 ─ problems.ts
 ─ references.ts
   - not stretch to bottom
-  - select item does not show cursorline in window
+  - double check jump position... does not seem correct?
 ─ user-menu.ts
   - nothing happens on select
 
@@ -67,14 +67,6 @@ create a simple hyperapp virtualized list component that simply renders dom node
   given a slice of the list. you want the top of the list, slice(0, 10)
   you want the end, slice(list.length - 10), etc. no mouse support for now.
   keep it simple and easy. make it composable
-
-neovim.jumpTo: don't hide cursor/cursorline from background window.
-  we want to jump to and see the current line highlighted (with cursorline)
-
-  - path !== currentPath WRONG WRONG!
-  - path !== currentPath WRONG WRONG!
-  - path !== currentPath WRONG WRONG!
-  path is relative to cwd, currentPath is absolute.
 
 files not refresh after delete file
 
@@ -298,3 +290,37 @@ terminals are difficult to discern as they just have random numbers, but in the
 future if we can name running process in term, thennnnnnnn
 
 multi-monitor support? with shada and edge detection (when c-w l on right most window, go to next monitor)
+
+
+
+
+
+-- more stuffffffff
+create marks from visual selection
+
+display marks visually in editor
+
+when using search substitution with regex, define a working area before hand with visual to marks
+create marks from operator
+
+i.e. mio for mark inner object then :%s a word and replace only in the defined area
+
+similarly can do for dot operator with replace cgn 
+
+change a word then repeat that change within the range of an operator:
+cm on word then dot on an operator: in object - like pressing .io maybe (repeat in object)
+
+can replace cw and ciw to always allow repeat again (do cm behind the scenes)
+
+macros/fns/operators for:
+replace obj key and val
+replace func body
+
+stroke-width:2 in package 
+
+depmgr as separate process: security - no access to electron
+
+auto add to quick fix list:
+references
+problems
+grep 
