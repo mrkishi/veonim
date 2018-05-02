@@ -76,15 +76,12 @@ export const showCursor = () => {
   cursorline.style.display = ''
 }
 
-export const showCursorline = () => {
-  cursorline.style.display = ''
-}
+export const showCursorline = () => cursorline.style.display = ''
 
 const moveCursorLine = (win: CanvasWindow, backgroundColor: string) => {
   const { x, y, width } = win.whereLine(cursor.row)
 
   merge(cursorline.style, {
-    display: '',
     background: hexToRGBA(backgroundColor, 0.2),
     transform: translate(x, y),
     width: `${width}px`,
@@ -96,11 +93,18 @@ export const moveCursor = (backgroundColor: string) => {
   if (!res || !res.canvas) return
   const { canvas, win } = res
 
+  // move cursor line even if hidden. sometimes we will have external requests
+  // to show the cursor line (i.e. from grep/references/problems/etc) and we
+  // need to have the current/updated cursor position at all times
+
+  // TODO: actually we need to move the actual cursor as well... since once we
+  // go back to showing cursor, the cursor position is stale according to where
+  // we left off. any movements in the background by vimscript/nvim api are not
+  // reflected in the ui until we move the cursor again........... ffffffff
+  moveCursorLine(canvas, backgroundColor)
+
   if (cursorRequestedToBeHidden) return
   const isShadowBuffer = win.filetype === SHADOW_BUFFER_TYPE
-
-  // console.log('win ft:', win.filetype)
-  // setImmediate(() => console.log('win ft2:', win.filetype))
 
   if (isShadowBuffer) return cursorEl.style.display = 'none'
   else cursorEl.style.display = 'flex'
@@ -119,7 +123,7 @@ export const moveCursor = (backgroundColor: string) => {
     cursorChar.innerText = ''
   }
 
-  moveCursorLine(canvas, backgroundColor)
+  showCursorline()
 }
 
 setCursorShape(CursorShape.block)

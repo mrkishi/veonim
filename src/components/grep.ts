@@ -204,19 +204,16 @@ const view = ($: S, a: typeof actions) => PluginRight($.visible, [
     desc: 'filter files',
   }),
 
-  // TODO: render keys? idk about keys they seem to not work like in react...
   ,h('div', {
-    ref: (e: HTMLElement) => {
-      if (e) elref = e
-    },
+    oncreate: (e: HTMLElement) => elref = e,
+    onupdate: (e: HTMLElement) => elref = e,
     style: {
       maxHeight: '100%',
       overflowY: 'hidden',
     },
   }, $.results.map(([ path, items ], pos) => h('div', {
-    ref: (e: HTMLElement) => {
-      if (e) els.set(pos, e)
-    },
+    oncreate: (e: HTMLElement) => els.set(pos, e),
+    onupdate: (e: HTMLElement) => els.set(pos, e),
   }, [
 
     ,h(RowHeader, {
@@ -234,7 +231,6 @@ const view = ($: S, a: typeof actions) => PluginRight($.visible, [
     ])
 
     ,pos === $.ix && h(RowGroup, {}, items.map((f, itemPos) => h(RowNormal, {
-      key: `${f.line}-${f.col}-${f.text}`,
       active: pos === $.ix && itemPos === $.subix,
     }, [
       ,h('span', highlightPattern(f.text, $.value, {

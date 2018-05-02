@@ -8,6 +8,7 @@ edges. use ── ──── to test
   - should use clip/rect to draw thingies? perf impact?
 
 hide overlays (problem info, hover) on bufleave
+  - happens when switch tabs
 
 ok i guess i misunderstood how keys work... or there is a bug?
 when using keys in hyperapp lists, and clearing parts of the list,
@@ -21,6 +22,10 @@ i wonder what filetype icons VSCODE uses. it seems to be seti icons + a few extr
 would like to use text svg icon for default. it's pretty calm
 
 align filetype icons (and feather - folder) in files, buffers, explorer, etc.
+
+CURSOR.TS
+  - always update cursor location EVEN if requested to be hidden. when unhide,
+    need to have up-to-date location of any movements while hidden
 
 TEST COMPONENTS
 ─ color-picker.ts
@@ -36,8 +41,7 @@ TEST COMPONENTS
 ─ generic-menu.ts
 ─ grep.ts
   - not stretch to bottom
-  - cannot read getBoundingClientRect of undefined
-  - does the stuff overflow? (in current there are elipses for outta bounds text)
+  - does the stuff overflow? (in current neovim there are elipses for outta bounds text)
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
 ─ problem-info.ts (multiline)
@@ -45,15 +49,12 @@ TEST COMPONENTS
 ─ problems.ts
 ─ references.ts
   - not stretch to bottom
-  - double check jump position... does not seem correct?
 ─ user-menu.ts
   - nothing happens on select
 
 build.js not being used for anything. gonna finish it or discard?
 
 should font-sizer be part of build process?
-
-references display text does not match actual buffer line contents
 
 create a simple hyperapp virtualized list component that simply renders dom nodes
   given a slice of the list. you want the top of the list, slice(0, 10)
@@ -110,81 +111,6 @@ figure out how to swap between different embed components (get buffer name?)
 can we support multiple embed components, one per each buffer instance? or shared?
 nameplate title changes on window change
 
-SHADOW BUFFER ARCH DESIGN --
-
-function to register a function that will create new instances of embed
-components. right now we assume only one instance, but allow the possibility
-of multiple instances in the future
-
-global method registerShadowComponent(() => {
-  name: string,
-  element: HTMLElement,
-  onFocus: Function,
-  onBlur: Function,
-  onShow: Function,
-  onHide: Function,
-  // maybe?
-  // onActivate: Function,
-})
-
-each embed component module will self-register. this works like neovim.action() - in that
-i would prefer the component to manage registration on init instead of some 3rd party
-module that has to keep track of all components and register them
-
-
-should embed components be generated once, then onShow/onHide when they appear in the
-window grid, or should they be generated every time they appear in the windows, and
-self-destruct when buffer closed?
-
-could be expensive to recreate and destroy all the time. at the same time it could be memory
-intensive to keep around a bunch of component elements.
-
-also, if we decide to list shadow buffers in the buffer list (currently: yes) then how
-could we list multiple without confusion?
-
-i think the most viable plan of attack is to requireDir(../components).then(() => {
-  const shadowBuffers = new Map()
-  registeredShadowComponents.forEach(initFn => {
-    const { name, ...stuff } = initFn()
-    shadowBuffers.set(name, stuff)
-    createShadowBuffer(name)
-  })
-})
-
-and later in windows.ts
-
-// another map here to track current active shadow buffers
-// might get messy to track active in `shadowBuffers`
-// also keep this win stuff localized to this module, instead of
-// muddying the global store (which should be immutable after initial
-// app load - unless we plan to dynamically load components at
-// runtime in the future?)
-const activeShadowBuffers = new Map()
-
-neovim.on.bufUnload(s => {
-  if (!activeShadowBuffers.has(s.name)) return
-
-  const win = activeShadowBuffers.get(s.name)
-  // use an attribute to denote shadow buffer type?
-  win.canvasBox.remove(shadowBufferElement)
-  win.canvas.style.display = 'block'
-  activeShadowBuffers.delete(s.name)
-})
-
-if (vm.filetype === 'shadow-buffer') {
-  const shabuf = shadowBuffers.get(vm.name)
-  if (!shabuf) return
-  canvas.style.display = 'none'
-  win.canvasBox.appendChild(shabuf.element)
-  activeShadowBuffers.add(vm.name, win)
-} else {
-  // somehow remove the shadow buffer element. not good enough! because we could
-  // have multiple shadow buffers
-
-  // maybe use bufUnload? how would that work...
-  win.canvasBox.remove(shabuf.element)
-}
-
 --
 
 should probably stop auto adjusting windows with (wincmd =)
@@ -203,12 +129,11 @@ check on the background of embed explorer, not sure it's the exact same bg color
 
 rpc errors send to notifications? (try calling some broken execute() vimscript from usermenu)
 
-new react overlay menus are not centered...
-
-create demo script to start electron at a certain size
-open various features
-use electron/spectron screenshot feature
-save to docs
+readme screen showcase automation
+  create demo script to start electron at a certain size
+  open various features
+  use electron/spectron screenshot feature
+  save to docs
 
 upgrade ripgrep
 
