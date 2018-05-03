@@ -90,11 +90,3 @@ export const RowImportant = (opts = {} as any, children: any[]) => h('div', {
     background: cvar('background-50'),
   }
 }, children)
-
-export const RowGroup = (opts = {} as any, children: any[]) => h('div', {
-  ...removePropsIntendedForThisComponent(opts),
-  style: {
-    ...paddingH(4),
-    ...opts.style,
-  }
-}, children)

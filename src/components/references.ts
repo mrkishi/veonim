@@ -1,4 +1,4 @@
-import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
+import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { jumpToProjectFile } from '../core/neovim'
 import { badgeStyle } from '../styles/common'
@@ -179,7 +179,7 @@ const view = ($: S, a: typeof actions) => PluginRight($.vis, [
       ])
     ])
 
-    ,pos === $.ix && h(RowGroup, {}, items.map((f, itemPos) => h(RowNormal, {
+    ,pos === $.ix && h('div', items.map((f, itemPos) => h(RowNormal, {
       key: `${f.line}-${f.column}-${f.text}`,
       active: pos === $.ix && itemPos === $.subix
     }, highlightPattern(f.text, $.referencedSymbol, {

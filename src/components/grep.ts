@@ -1,5 +1,5 @@
 import { action, call, current, feedkeys, expr, jumpToProjectFile } from '../core/neovim'
-import { RowNormal, RowHeader, RowGroup } from '../components/row-container'
+import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { badgeStyle } from '../styles/common'
 import Input from '../components/text-input'
@@ -228,7 +228,7 @@ const view = ($: S, a: typeof actions) => PluginRight($.visible, [
       ])
     ])
 
-    ,pos === $.ix && h(RowGroup, {}, items.map((f, itemPos) => h(RowNormal, {
+    ,pos === $.ix && h('div', items.map((f, itemPos) => h(RowNormal, {
       active: pos === $.ix && itemPos === $.subix,
     }, highlightPattern(f.text, $.value, {
 

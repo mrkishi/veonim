@@ -1,4 +1,4 @@
-import { RowHeader, RowDesc, RowGroup } from '../components/row-container'
+import { RowHeader, RowDesc } from '../components/row-container'
 import { DiagnosticSeverity } from 'vscode-languageserver-types'
 import { PluginBottom } from '../components/plugin-container'
 import * as canvasContainer from '../core/canvas-container'
@@ -59,20 +59,19 @@ const state = {
 
 type S = typeof state
 
+const iconStyle = {
+  paddingRight: '10px',
+  fontSize: '1.2rem',
+}
+
 const icons = {
   [DiagnosticSeverity.Error]: h(Icon.XCircle, {
     color: colors.error,
-    style: {
-      paddingRight: '10px',
-      fontSize: '1.2rem'
-    },
+    style: iconStyle,
   }),
   [DiagnosticSeverity.Warning]: h(Icon.XCircle, {
     color: colors.warning,
-    style: {
-      paddingRight: '10px',
-      fontSize: '1.2rem'
-    },
+    style: iconStyle,
   })
 }
 
@@ -190,7 +189,7 @@ const view = ($: S, a: A) => PluginBottom($.vis, {
       ])
     ])
 
-    ,pos === $.ix && h(RowGroup, {}, items.map(({ severity, message, range }, itemPos) => h(RowDesc, {
+    ,pos === $.ix && h('div', items.map(({ severity, message, range }, itemPos) => h(RowDesc, {
       active: itemPos === $.subix,
       oncreate: (e: HTMLElement) => {
         if (itemPos !== $.subix) return
