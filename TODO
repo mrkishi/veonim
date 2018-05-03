@@ -3,12 +3,7 @@ remove unusued deps. go thru everything
 
 spammy cmd-update lolwut?
 
-hyperapp-feather not 1:1 with old icons. what is different? 
-  check alertTriangle for one example
-  or hard-drive
-  - yeah big difference. svgr seems to only render the first element? path item?
-    there are a number of other elements missing after path (a few 'line elements')
-    in the original conversions... hmmmmmmmm... wat
+fix tests
 
 text-input keys: add tab/s-tab to go next/prev
 
