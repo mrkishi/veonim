@@ -67,21 +67,24 @@ const actions = {
 const view = ($: typeof state, a: typeof actions) => Overlay({
   x: $.x,
   y: $.y,
-  // TODO: lol nope
-  zIndex: 999999,
+  zIndex: 900,
   visible: $.visible,
   anchorAbove: $.anchorBottom,
-  // TODO: make sure this works
-  onElement: el => el && onLoseFocus(el, a.hide),
 }, [
 
-  ,h('.show-cursor', {
-    ...toReactComponent(ChromePicker, {
-      color: $.color,
-      onChangeComplete: (color: any) => a.change(color.hex),
-      onChange: throttle((color: any) => a.change(color.hex), 150),
+  ,h('div', {
+    onupdate: (e: HTMLElement) => onLoseFocus(e, a.hide),
+  }, [
+
+    ,h('.show-cursor', {
+      ...toReactComponent(ChromePicker, {
+        color: $.color,
+        onChangeComplete: (color: any) => a.change(color.hex),
+        onChange: throttle((color: any) => a.change(color.hex), 150),
+      })
     })
-  })
+
+  ])
 
 ])
 

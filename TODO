@@ -23,9 +23,6 @@ i guess for now we will not use keys, especially since we will use a virtual
 list abstraction to only render parts of the list in the dom
 
 TEST COMPONENTS
-─ color-picker.ts
-  - selecting outside the element does not lose focus
-
 - references
   - sometimes incorrect lines displayed. not sure as it doesn't always happen
   - sometimes empty lines rendered... lolwut?
@@ -52,9 +49,6 @@ depmgr as separate process (not even worker thread) - because of security and is
 
 showcase/demo fuzzy buffer find in docs
 showcase/demo quickfix
-
-is it just me or is the :Veonim buffers list also listing unlistable buffers?
-do we need to filter out the buffers according to BufferOption.Listed prop?
 
 - SHADOW BUFFERS -
 the problem with shadow buffers is that our current neovim window render strategy
