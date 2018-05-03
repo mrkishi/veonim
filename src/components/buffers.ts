@@ -1,8 +1,7 @@
-import { list, action, current, getCurrent, cmd } from '../core/neovim'
+import { list, action, current, getCurrent, cmd, BufferOption, BufferType } from '../core/neovim'
+import FiletypeIcon, { Terminal } from '../components/filetype-icon'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
-import FiletypeIcon from '../components/filetype-icon'
-import { VimBuffer } from '../core/vim-functions'
 import { simplifyPath } from '../support/utils'
 import Input from '../components/text-input'
 import { basename, dirname } from 'path'
@@ -11,10 +10,11 @@ import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 interface BufferInfo {
+  dir: string,
   name: string,
   base: string,
-  modified?: boolean,
-  dir: string,
+  terminal: boolean,
+  modified: boolean,
   duplicate: boolean,
 }
 
@@ -22,11 +22,12 @@ const getVimBuffers = async () => {
   const buffers = await list.buffers
   const currentBufferId = (await getCurrent.buffer).id
 
-  // TODO: filter out unlisted buffers?
   return await Promise.all(buffers.map(async b => ({
     name: await b.name,
-    cur: b.id === currentBufferId,
-    mod: await b.getOption('modified'),
+    current: b.id === currentBufferId,
+    modified: await b.getOption(BufferOption.Modified),
+    listed: await b.getOption(BufferOption.Listed),
+    terminal: (await b.getOption(BufferOption.Type)) === BufferType.Terminal,
   })))
 }
 
@@ -35,11 +36,12 @@ const getBuffers = async (cwd: string): Promise<BufferInfo[]> => {
   if (!buffers) return []
   
   return buffers
-    .filter((m: VimBuffer) => !m.cur)
-    .map(({ name, mod }) => ({
+    .filter(m => m.listed && !m.current)
+    .map(({ name, modified, terminal }) => ({
       name,
+      modified,
+      terminal,
       base: basename(name),
-      modified: mod,
       dir: simplifyPath(dirname(name), cwd)
     }))
     .map((m, ix, arr) => ({ ...m, duplicate: arr.some((n, ixf) => ixf !== ix && n.base === m.base) }))
@@ -94,7 +96,7 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
   ,h('div', $.buffers.map((f, ix) => h(RowNormal, {
     active: ix === $.index,
   }, [
-    ,FiletypeIcon(f.name)
+    ,f.terminal ? Terminal : FiletypeIcon(f.name)
 
     ,h('span', {
       render: f.duplicate,

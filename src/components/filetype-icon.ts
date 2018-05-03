@@ -19,22 +19,34 @@ const getIcon = (path = '') => {
     || Icons.Shell
 }
 
+const featherStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: '8px',
+  marginLeft: '3px',
+  fontSize: '1.1rem',
+}
+
 export const Folder = h('div', {
-  style: {
-    paddingRight: '6px',
-    paddingLeft: '1px',
-    fontSize: '1.1rem',
-  },
+  style: featherStyle,
 }, [
   ,h(FeatherIcon.Folder)
 ])
 
+export const Terminal = h('div', {
+  style: featherStyle,
+}, [
+  ,h(FeatherIcon.Terminal)
+])
+
 export default (fileTypeOrPath: string) => h('div', {
   style: {
-    paddingRight: '6px',
     display: 'flex',
     justifyContent: 'center',
-    marginTop: '-2px',
+    alignItems: 'center',
+    marginRight: '6px',
+    marginTop: '2px',
     fontSize: '1.5rem',
     color: '#ccc',
   },

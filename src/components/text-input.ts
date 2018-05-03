@@ -160,8 +160,6 @@ const view = ({
         const { ctrlKey: ctrl, metaKey: meta, key } = e
         const cm = ctrl || meta
 
-        // TODO: needed?
-        // e.preventDefault()
         lastDown = keToStr(e)
 
         if (key === 'Tab') return $.tab()

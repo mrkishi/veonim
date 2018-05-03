@@ -5,7 +5,7 @@ spammy cmd-update lolwut?
 
 fix tests
 
-text-input keys: add tab/s-tab to go next/prev
+on list change, reset index to 0
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
@@ -30,15 +30,16 @@ align filetype icons (and feather - folder) in files, buffers, explorer, etc.
 TEST COMPONENTS
 ─ color-picker.ts
   - selecting outside the element does not lose focus
-─ explorer.ts
-  - align icons and text. make sure sizes are good and paddings are good. MAKE IT PERFECT
-─ filetype-icon.ts
-  - get rid of the various margins/paddings and let consuming containers flex FLEX FLEX
+
 ─ hint.ts (multiline)
 ─ hover.ts (multiline)
 ─ problem-info.ts (multiline)
   - check multiline not displaying correctly
+
 - references
+  - sometimes incorrect lines displayed. not sure as it doesn't always happen
+  - sometimes empty lines rendered... lolwut?
+- grep
   - sometimes incorrect lines displayed. not sure as it doesn't always happen
   - sometimes empty lines rendered... lolwut?
 
@@ -128,6 +129,10 @@ readme screen showcase automation
 upgrade ripgrep
 
 --ideas--
+
+should there be a 'deactivated/unfocused' style of cursor? i.e. when jumping between Problems
+or references, instead of (right now) only showing cursorline, also show the actual cursor block
+but perhaps faded out, in such a way to indicate that there is no focus in the vim window...?
 
 make a different cursor for shadow buffers to signify normal mode?
 
