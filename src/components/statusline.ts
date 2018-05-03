@@ -218,7 +218,9 @@ const view = ($: S) => h('div', {
   ])
 
   // CENTER
-  ,h('div', { statusGroupStyle }, [
+  ,h('div', {
+    style: statusGroupStyle,
+  }, [
 
     ,$.macro && h('div', {
       style: itemStyle,
