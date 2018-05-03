@@ -5,8 +5,6 @@ spammy cmd-update lolwut?
 
 fix tests
 
-on list change, reset index to 0
-
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
   - should use clip/rect to draw thingies? perf impact?
@@ -209,6 +207,7 @@ multi-monitor support? with shada and edge detection (when c-w l on right most w
 
 
 
+jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
 
 
 -- more stuffffffff

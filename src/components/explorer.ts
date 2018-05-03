@@ -120,7 +120,7 @@ const actions = {
     getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
   },
 
-  change: (val: string) => (s: S) => ({ val, paths: val
+  change: (val: string) => (s: S) => ({ val, ix: 0, paths: val
     ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
     : s.cache
   }),

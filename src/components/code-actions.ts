@@ -26,7 +26,7 @@ const actions = {
   show: ({ x, y, actions }: any) => ({ x, y, actions, cache: actions, visible: true }),
   hide: () => resetState,
 
-  change: (value: string) => (s: S) => ({ value, actions: value
+  change: (value: string) => (s: S) => ({ value, index: 0, actions: value
     ? filter(s.actions, value, { key: 'title' })
     : s.cache
   }),

@@ -120,7 +120,7 @@ const actions = {
   },
 
   change: (value: string) => (s: S, a: A) => {
-    if (s.mode === SymbolMode.Buffer) return { value, symbols: value
+    if (s.mode === SymbolMode.Buffer) return { value, index: 0, symbols: value
       // TODO: DON'T TRUNCATE!
       ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
       : s.cache.slice(0, 10)

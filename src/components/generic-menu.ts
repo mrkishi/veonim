@@ -41,7 +41,7 @@ const actions = {
   },
 
   // TODO: not hardcoded 14
-  change: (value: string) => (s: S) => ({ value, options: value
+  change: (value: string) => (s: S) => ({ value, ix: 0, options: value
     ? filter(s.cache, value, { key: 'value' }).slice(0, 14)
     : s.cache.slice(0, 14)
   }),

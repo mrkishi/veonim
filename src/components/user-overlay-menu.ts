@@ -32,7 +32,7 @@ const actions = {
   },
 
   // TODO: not harcoded to 14
-  change: (value: string) => (s: S) => ({ value, items: value
+  change: (value: string) => (s: S) => ({ value, index: 0, items: value
     ? filter(s.cache, value).slice(0, 14)
     : s.cache.slice(0, 14)
   }),

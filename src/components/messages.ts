@@ -48,7 +48,7 @@ const actions = {
     cache: [message, ...s.messages].slice(0, 500),
   }),
 
-  change: (query: string) => (s: S) => ({ query, messages: query
+  change: (query: string) => (s: S) => ({ query, ix: 0, messages: query
     ? filter(s.messages, query, { key: 'message' })
     : s.cache
   }),

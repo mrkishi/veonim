@@ -130,7 +130,7 @@ const createComponent = () => {
     change: (val: string) => (s: S) => {
       if (s.val === val) return
 
-      return { val, paths: val
+      return { val, ix: 0, paths: val
         ? sortDirFiles(filter(s.paths, val, { key: 'name' }))
         : s.cache
       }

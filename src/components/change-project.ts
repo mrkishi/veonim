@@ -57,7 +57,7 @@ const actions = {
     return resetState
   },
 
-  change: (value: string) => (s: S) => ({ value, paths: value
+  change: (value: string) => (s: S) => ({ value, index: 0, paths: value
     ? filterDirs(filter(s.paths, value, { key: 'name' }))
     : s.cache
   }),

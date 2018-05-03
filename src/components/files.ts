@@ -60,7 +60,7 @@ const actions = {
 
   change: (val: string) => {
     worker.call.query(val)
-    return { val }
+    return { val, ix: 0 }
   },
 
   results: (files: string[]) => (s: S) => ({

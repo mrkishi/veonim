@@ -94,7 +94,7 @@ const actions = {
     cache: problems,
   }),
 
-  change: (val: string) => (s: S) => ({ val, problems: val
+  change: (val: string) => (s: S) => ({ val, ix: 0, problems: val
     ? filter(s.problems, val, { key: 'file' })
     : s.cache
   }),

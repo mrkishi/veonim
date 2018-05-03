@@ -68,7 +68,7 @@ const actions = {
     return resetState
   },
 
-  change: (value: string) => (s: S) => ({ value, buffers: value
+  change: (value: string) => (s: S) => ({ value, index: 0, buffers: value
     ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
     : s.cache.slice(0, 10)
   }),

@@ -25,7 +25,7 @@ type S = typeof state
 const actions = {
   show: (d: Session[]) => ({ list: d, cache: d, visible: true }),
   hide: () => ({ value: '', visible: false, index: 0 }),
-  change: (value: string) => (s: S) => ({ value, list: value
+  change: (value: string) => (s: S) => ({ value, index: 0, list: value
     ? filter(s.list, value, { key: 'name' }).slice(0, 10)
     : s.cache.slice(0, 10)
   }),
