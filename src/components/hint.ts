@@ -1,6 +1,6 @@
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
-import { docStyle } from '../styles/common'
+import { docStyle } from '../ui/styles'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 

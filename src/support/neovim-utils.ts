@@ -2,12 +2,7 @@ import { delay, pascalCase, onProp } from '../support/utils'
 import { Range } from 'vscode-languageserver-types'
 import { Api } from '../core/api'
 
-export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray, ...vars: any[]) => void }
-
-export interface FontOption {
-  font?: string,
-  size?: string,
-}
+type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray, ...vars: any[]) => void }
 
 interface VimMode {
   blocking: boolean,
@@ -78,16 +73,6 @@ export const CmdGroup = (strParts: TemplateStringsArray, ...vars: any[]) => strP
   .map(m => m.replace(/\|/g, '\\|'))
   .join(' | ')
   .replace(/"/g, '\\"')
-
-const fontFormattings = ['b', 'i', 'u', 's']
-
-export const parseFont = (shittyvimshit: string): FontOption => {
-  if (!shittyvimshit) return {}
-  const parts = shittyvimshit.split(':')
-  const size = parts.find(m => /(h\d+)/.test(m))
-  const font = parts.find(m => !/([h|w|c]\d+)/.test(m) && !fontFormattings.includes(m))
-  return { font, size }
-}
 
 export const positionWithinRange = (line: number, column: number, { start, end }: Range): boolean => {
   const startInRange = line >= start.line

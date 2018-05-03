@@ -2,7 +2,7 @@ import * as canvasContainer from '../core/canvas-container'
 import { Loader } from 'hyperapp-feather'
 import { h } from '../ui/uikit'
 
-export interface LoaderParams {
+interface LoaderParams {
   size?: number,
   color?: string,
 }

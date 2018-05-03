@@ -1,7 +1,7 @@
 import { PluginTop } from '../components/plugin-container'
 import { merge, uuid, debounce } from '../support/utils'
-import { colors, badgeStyle } from '../styles/common'
 import { addMessage } from '../components/messages'
+import { colors, badgeStyle } from '../ui/styles'
 import { animate, cvar } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'

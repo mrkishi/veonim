@@ -1,5 +1,5 @@
 import { cvar, paddingVH, paddingH } from '../ui/css'
-import { colors } from '../styles/common'
+import { colors } from '../ui/styles'
 import { h } from '../ui/uikit'
 
 const row = {

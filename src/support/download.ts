@@ -12,7 +12,7 @@ interface ZipRequest {
   destination: string,
 }
 
-export type DownloadZipRequest = ZipRequest | ZipRequestFromGithub
+type DownloadZipRequest = ZipRequest | ZipRequestFromGithub
 
 const downloadZip = (url: string, path: string) => new Promise(done => {
   request(url)

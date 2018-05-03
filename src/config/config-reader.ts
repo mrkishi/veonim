@@ -1,7 +1,7 @@
 import { log, exists, readFile, configPath as base, watchPathSymlink } from '../support/utils'
 
-export type Config = Map<string, any>
-export type ConfigCallback = (config: Config) => void
+type Config = Map<string, any>
+type ConfigCallback = (config: Config) => void
 
 const loadConfig = async (path: string, notify: ConfigCallback) => {
   const pathExists = await exists(path)
@@ -21,9 +21,6 @@ const loadConfig = async (path: string, notify: ConfigCallback) => {
 
   notify(config)
 }
-
-export const getDefaultConfig = (path = 'nvim/init.vim'): Promise<Map<string, any>> =>
-  new Promise(fin => loadConfig(`${base}/${path}`, c => fin(c)))
 
 export default async (location: string, cb: ConfigCallback) => {
   const path = `${base}/${location}`

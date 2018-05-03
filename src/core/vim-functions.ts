@@ -3,7 +3,7 @@ export enum BufferVar {
   TermFormat = 'veonim_term_format',
 }
 
-export interface VimBuffer {
+interface VimBuffer {
   name: string,
   cur: boolean,
   mod: boolean,

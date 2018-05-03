@@ -3,13 +3,7 @@ import { is, merge } from '../support/utils'
 import fontAtlas from '../core/font-atlas'
 import * as title from '../core/title'
 
-export enum CursorShape {
-  block,
-  line,
-  underline,
-}
-
-export interface TransferRegion {
+interface TransferRegion {
   width: number,
   height: number,
   source: {
@@ -22,7 +16,7 @@ export interface TransferRegion {
   },
 }
 
-export interface Specs {
+interface Specs {
   row: number,
   col: number,
   height: number,

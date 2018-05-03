@@ -32,7 +32,7 @@ export interface CompletionOption {
 }
 
 const MAX_SEARCH_RESULTS = 50
-export const cache: Cache = {
+const cache: Cache = {
   semanticCompletions: new Map(),
   activeCompletion: '',
 }

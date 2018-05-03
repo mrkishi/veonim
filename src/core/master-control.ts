@@ -22,7 +22,7 @@ interface VimInstance {
   path?: string,
 }
 
-export interface NewVimResponse {
+interface NewVimResponse {
   id: number,
   path: string,
 }

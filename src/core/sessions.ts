@@ -40,14 +40,12 @@ export const switchVim = async (id: number) => {
   vims.get(id)!.active = true
 }
 
-export const renameVim = (id: number, newName: string) => {
+const renameVim = (id: number, newName: string) => {
   if (!vims.has(id)) return
   const vim = vims.get(id)!
   vim.name = newName
   vim.nameFollowsCwd = false
 }
-
-export const getNameForSession = (id: number) => vims.has(id) && vims.get(id)!.name
 
 export const getCurrentName = () => {
   const active = [...vims.values()].find(v => v.active)

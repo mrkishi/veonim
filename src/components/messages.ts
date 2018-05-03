@@ -2,10 +2,10 @@ import { NotifyKind, Notification } from '../ui/notifications'
 import { RowNormal } from '../components/row-container'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import Input from '../components/text-input'
-import { colors } from '../styles/common'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { action } from '../core/neovim'
+import { colors } from '../ui/styles'
 
 const state = {
   query: '',

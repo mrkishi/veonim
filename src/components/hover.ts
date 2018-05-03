@@ -2,13 +2,13 @@ import { activeWindow } from '../core/windows'
 import { sub } from '../messaging/dispatch'
 import { debounce } from '../support/utils'
 import Overlay from '../components/overlay'
-import { docStyle } from '../styles/common'
+import { docStyle } from '../ui/styles'
 import { cursor } from '../core/cursor'
 import { ColorData } from '../ai/hover'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
-export interface ShowParams {
+interface ShowParams {
   data: ColorData[][],
   doc?: string,
 }

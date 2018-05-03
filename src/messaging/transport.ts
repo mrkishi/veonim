@@ -3,7 +3,7 @@ import { ExtType } from '../core/api'
 
 const ExtContainer = (kind: number, id: any) => ({ kind, id, extContainer: true })
 
-export interface Encoder {
+interface Encoder {
   unpipe(): NodeJS.WritableStream,
   pipe(stdin: NodeJS.WritableStream): NodeJS.WritableStream,
   write(data: any): boolean,

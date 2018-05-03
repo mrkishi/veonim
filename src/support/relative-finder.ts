@@ -1,4 +1,4 @@
-export interface Distance<T> {
+interface Distance<T> {
   reference: T,
   lines: number,
   characters: number,

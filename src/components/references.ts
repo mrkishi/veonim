@@ -1,8 +1,8 @@
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { jumpToProjectFile } from '../core/neovim'
-import { badgeStyle } from '../styles/common'
 import Input from '../components/text-input'
+import { badgeStyle } from '../ui/styles'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 

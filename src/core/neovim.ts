@@ -69,7 +69,7 @@ export interface Color {
   foreground: number,
 }
 
-export interface HyperspaceCoordinates {
+interface HyperspaceCoordinates {
   line: number,
   column?: number,
   path?: string,
@@ -101,7 +101,7 @@ interface EventWait {
   completion: Promise<any>,
 }
 
-export interface Position {
+interface Position {
   column: number,
   line: number,
 }
@@ -239,13 +239,8 @@ const api = {
   tab: onFnCall((name: string, args: any[]) => notify(prefix.tabpage(name), args)) as ITabpage,
 }
 
-export const raw = {
-  notify: api.core,
-  request: req.core,
-}
-
 // trying to do dynamic introspection (obj vs arr) messy with typings. (also a bit slower)
-export const as = {
+const as = {
   buf: (p: Promise<ExtContainer>): Promise<Buffer> => p.then(e => Buffer(e.id)),
   bufl: (p: Promise<ExtContainer[]>): Promise<Buffer[]> => p.then(m => m.map(e => Buffer(e.id))),
   win: (p: Promise<ExtContainer>): Promise<Window> => p.then(e => Window(e.id)),
@@ -259,7 +254,6 @@ const subscribe = (event: string, fn: (data: any) => void) => {
   api.core.subscribe(event)
 }
 
-export const input = (keys: string) => api.core.input(keys)
 export const cmd = (command: string) => api.core.command(command)
 export const ex = (command: string) => req.core.commandOutput(command)
 export const expr = (expression: string) => req.core.eval(expression)

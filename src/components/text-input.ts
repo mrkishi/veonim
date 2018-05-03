@@ -41,7 +41,7 @@ interface Props {
   thisIsGarbage: (element: HTMLInputElement) => void,
 }
 
-export interface TextInputProps extends Partial<Props> {
+interface TextInputProps extends Partial<Props> {
   value: string,
   icon: Component,
 }

@@ -48,8 +48,3 @@ onStateChange.cwd(async (cwd: string) => {
   if (await exists(headPath)) watchers.branch = watchPath(headPath, () => (getBranch(cwd), getStatus(cwd)))
   if (await exists(indexPath)) watchers.status = watchPath(indexPath, () => getStatus(cwd))
 })
-
-export default {
-  get branch() { return getBranch(current.cwd) },
-  get status() { return getStatus(current.cwd) },
-}

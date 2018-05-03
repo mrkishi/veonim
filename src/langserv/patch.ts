@@ -4,13 +4,13 @@ import { join } from 'path'
 
 const samePos = (s: Position, e: Position) => s.line === e.line && s.character === e.character
 
-export enum Operation {
+enum Operation {
   Delete = 'delete',
   Append = 'append',
   Replace = 'replace',
 }
 
-export interface PatchOperation {
+interface PatchOperation {
   op: Operation,
   val: string,
   start: Position,
@@ -22,12 +22,6 @@ export interface Patch {
   file: string,
   path: string,
   operations: PatchOperation[],
-}
-
-export interface VimPatch {
-  op: Operation,
-  line: number,
-  val?: string,
 }
 
 const asOperation = (edit: TextEdit): PatchOperation => {

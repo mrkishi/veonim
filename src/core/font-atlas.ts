@@ -1,11 +1,11 @@
 import * as canvasContainer from '../core/canvas-container'
 
-export interface CharPosition {
+interface CharPosition {
   x: number,
   y: number,
 }
 
-export interface FontAtlas {
+interface FontAtlas {
   getCharPosition(char: string, color: string): CharPosition | undefined,
   bitmap: ImageBitmap,
 }

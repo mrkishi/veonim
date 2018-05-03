@@ -1,11 +1,7 @@
-remove unused files. go thru everything
-remove unusued deps. go thru everything
-
 NEW HARDER FASTER STRONGER ICON
+consider adding brunswick theme as default. when rebrand with new logo?
 
 spammy cmd-update lolwut?
-
-fix tests
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
@@ -47,8 +43,6 @@ STOP REQUIRING SO MUCH SHIT ON APP START LOL
 
 depmgr as separate process (not even worker thread) - because of security and isolation?
 
-showcase/demo fuzzy buffer find in docs
-showcase/demo quickfix
 
 - SHADOW BUFFERS -
 the problem with shadow buffers is that our current neovim window render strategy
@@ -75,8 +69,9 @@ left nerd, middle two horizontal splits, right open ;ve
 | | | |
 does it get resized equally?
 
-explorer:
+embed-explorer:
 <tab> key is doing something weird. check on it
+  - e.preventDefault?
 add action to open file in LAST/ALTERNATE buffer, NOT the current one!
 don't auto select (active: ix === $.ix) an item in the list unless we have focus
 redo home, next, prev keybinds for explorer to not use ctrl + hjkl
@@ -109,6 +104,9 @@ readme screen showcase automation
   open various features
   use electron/spectron screenshot feature
   save to docs
+
+  - showcase/demo fuzzy buffer find in docs
+  - showcase/demo quickfix
 
 upgrade ripgrep
 

@@ -18,7 +18,7 @@ export interface Symbol {
   containerName?: string,
 }
 
-export interface HoverResult {
+interface HoverResult {
   value?: string,
   doc?: string,
 }

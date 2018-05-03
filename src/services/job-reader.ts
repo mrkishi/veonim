@@ -1,11 +1,12 @@
 import { action, systemAction, call, cmd, getCurrent } from '../core/neovim'
 import userPicksAnOption, { MenuOption } from '../components/generic-menu'
-import { is, writeFile, debounce } from '../support/utils'
 import { BufferVar } from '../core/vim-functions'
+import { is, debounce } from '../support/utils'
 import { sessions } from '../core/sessions'
 import { addQF } from '../ai/diagnostics'
 import * as Icon from 'hyperapp-feather'
 import Worker from '../messaging/worker'
+import { writeFile } from 'fs-extra'
 import { join } from 'path'
 
 enum ParserFormat {

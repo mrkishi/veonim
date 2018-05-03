@@ -11,7 +11,7 @@ export interface Server {
   onExit(cb: (e: void) => void): void,
 }
 
-export interface Transports {
+interface Transports {
   ipc(process: ChildProcess): Server,
     // TODO: figure out how to do buffered TCP with reconnect in vscode-jsonrpc
   tcp(port: number): Server,

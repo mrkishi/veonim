@@ -49,7 +49,7 @@ const prepareContainerElement = (name: string) => {
   return el
 }
 
-export interface App<StateT, ActionsT> {
+interface App<StateT, ActionsT> {
   name: string,
   state: StateT,
   actions: ActionsType<StateT, ActionsT>,
