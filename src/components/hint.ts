@@ -121,9 +121,9 @@ const view = ($: S) => Overlay({
       padding: '8px',
     } }, [
       ,h('div', [
-        ,h('div', { style: fadedStyle }, [ h('span', $.labelStart) ])
-        ,h('div', { style: strongStyle }, [ h('span', $.currentParam) ])
-        ,h('div', { style: fadedStyle }, [ h('span', $.labelEnd) ])
+        ,h('span', { style: fadedStyle }, [ h('span', $.labelStart) ])
+        ,h('span', { style: strongStyle }, [ h('span', $.currentParam) ])
+        ,h('span', { style: fadedStyle }, [ h('span', $.labelEnd) ])
       ])
 
       ,h('div', {

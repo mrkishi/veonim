@@ -26,11 +26,6 @@ TEST COMPONENTS
 ─ color-picker.ts
   - selecting outside the element does not lose focus
 
-─ hint.ts (multiline)
-─ hover.ts (multiline)
-─ problem-info.ts (multiline)
-  - check multiline not displaying correctly
-
 - references
   - sometimes incorrect lines displayed. not sure as it doesn't always happen
   - sometimes empty lines rendered... lolwut?
