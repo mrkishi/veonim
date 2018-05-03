@@ -1,6 +1,8 @@
 remove unused files. go thru everything
 remove unusued deps. go thru everything
 
+NEW HARDER FASTER STRONGER ICON
+
 spammy cmd-update lolwut?
 
 fix tests
@@ -19,11 +21,6 @@ up with a mix of new and old items in the DOM. lolwut?
 
 i guess for now we will not use keys, especially since we will use a virtual
 list abstraction to only render parts of the list in the dom
-
-i wonder what filetype icons VSCODE uses. it seems to be seti icons + a few extras.
-would like to use text svg icon for default. it's pretty calm
-
-align filetype icons (and feather - folder) in files, buffers, explorer, etc.
 
 TEST COMPONENTS
 ─ color-picker.ts

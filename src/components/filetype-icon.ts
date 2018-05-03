@@ -7,12 +7,27 @@ import { h } from '../ui/uikit'
 
 const findIcon = (id: string) => id && Reflect.get(Icons, pascalCase(id))
 
+const customMappings = new Map<string, string>([
+  [ 'readme.md', 'info' ],
+  [ 'gif', 'image' ],
+  [ 'jpg', 'image' ],
+  [ 'jpeg', 'image' ],
+  [ 'png', 'image' ],
+  [ 'svg', 'image' ],
+])
+
+const findIconCustom = (filename: string, extension: string) => {
+  const mapping = (customMappings.get(extension) || customMappings.get(filename))
+  return mapping && findIcon(mapping)
+}
+
 const getIcon = (path = '') => {
-  const filename = basename(path)
-  const extension = extname(filename).replace(/^\./, '')
+  const filename = basename(path).toLowerCase()
+  const extension = extname(filename).replace(/^\./, '').toLowerCase()
   const langId = getLanguageForExtension(extension)
 
-  return langId && findIcon(langId)
+  return findIconCustom(filename, extension)
+    || langId && findIcon(langId)
     || findIcon(extension)
     || findIcon(filename)
     || findIcon(path.toLowerCase())
