@@ -49,5 +49,7 @@ on.getLines(async (path: string, lines: number[]) => {
     return []
   }
 
-  return fileReader(path, lines)
+  const res =  fileReader(path, lines)
+  console.log('res:', res)
+  return res
 })

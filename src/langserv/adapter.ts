@@ -12,6 +12,15 @@ import * as path from 'path'
 
 export { onDiagnostics } from '../langserv/director'
 
+export interface Reference {
+  path: string,
+  line: number,
+  column: number,
+  endLine: number,
+  endColumn: number,
+  lineContents: string,
+}
+
 export interface Symbol {
   name: string,
   kind: SymbolKind,
@@ -176,7 +185,33 @@ export const definition = async (data: NeovimState) => {
   }
 }
 
-export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
+const getLocationContentsMap = async (locations: Location[]) => {
+  const locationsGroupedByPath = locations.reduce((group, ref) => {
+    const path = uriToPath(ref.uri)
+    const lineNumber = ref.range.start.line
+
+    group.has(path)
+      ? group.get(path)!.push(lineNumber)
+      : group.set(path, [ lineNumber ])
+
+    return group
+  }, new Map<string, number[]>())
+
+  const locationsWithContentRequests = [...locationsGroupedByPath.entries()]
+    .map(async ([ path, lineNumbers ]) => ({
+      path,
+      lineContents: await getLines(path, lineNumbers),
+    }))
+
+  const locationsWithContents = await Promise.all(locationsWithContentRequests)
+
+  return locationsWithContents.reduce((map, { path, lineContents }) => {
+    lineContents.forEach(({ ix, line }) => map.set(`${path}:${ix}`, line))
+    return map
+  }, new Map<string, string>())
+}
+
+export const references = async (data: NeovimState) => {
   const req = toProtocol(data, {
     context: {
       includeDeclaration: true
@@ -184,7 +219,30 @@ export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
   })
 
   const references: Location[] = await textDocument.references(req) || []
-  return references.map(asQfList)
+  if (!references.length) return { keyword: '', references: [] }
+
+  const locationContentMap = await getLocationContentsMap(references)
+
+  const mappedReferences: Reference[] = references.map(ref => {
+    const path = uriToPath(ref.uri)
+    const line = ref.range.start.line
+
+    return {
+      path,
+      line,
+      column: ref.range.start.character,
+      endLine: ref.range.end.line,
+      endColumn: ref.range.end.character,
+      lineContents: locationContentMap.get(`${path}:${line}`) || ''
+    }
+  })
+
+  const [ ref1 ] = mappedReferences
+
+  return {
+    references: mappedReferences,
+    keyword: ref1.lineContents.slice(ref1.column, ref1.endColumn),
+  }
 }
 
 export const highlights = async (data: NeovimState): Promise<VimQFItem[]> => {

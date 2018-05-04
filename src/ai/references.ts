@@ -1,66 +1,38 @@
+import { references as getReferences, Reference } from '../langserv/adapter'
 import { action, current as vimState, jumpTo } from '../core/neovim'
 import { findNext, findPrevious } from '../support/relative-finder'
-import { SearchResult, show } from '../components/references'
-import { VimQFItem, references } from '../langserv/adapter'
-import { pathRelativeToCwd } from '../support/utils'
-import { join } from 'path'
+import { show } from '../components/references'
 
-interface Reference {
-  path: string,
-  text: string,
-  line: number,
-  column: number,
-  endLine: number,
-  endColumn: number,
-}
+const groupResults = (m: Reference[]) => [...m.reduce((map, ref: Reference) => {
+  map.has(ref.path)
+    ? map.get(ref.path)!.push(ref)
+    : map.set(ref.path, [ ref ])
 
-const groupResults = (m: Reference[]) => [...m.reduce((map, { path, text, line, column }: Reference) => {
-  if (!map.has(path)) return (map.set(path, [{ text, line, column }]), map)
-  return (map.get(path)!.push({ text, line, column }), map)
-}, new Map<string, SearchResult[]>())]
-
-// TODO: lol no negatives pls. always keep 0 index based
-const asReference = (m: VimQFItem): Reference => ({
-  text: m.desc,
-  line: m.line,
-  column: m.column - 1,
-  endLine: m.endLine,
-  endColumn: m.endColumn - 1,
-  path: pathRelativeToCwd(join(m.cwd, m.file), vimState.cwd),
-})
+  return map
+}, new Map<string, Reference[]>())]
 
 action('references', async () => {
-  const refs = await references(vimState)
-  if (!refs.length) return
+  const { keyword, references } = await getReferences(vimState)
+  if (!references.length) return
 
-  const referencedSymbol = refs[0].keyword
-  const adjustedRefs = refs.map(asReference)
-  const items = groupResults(adjustedRefs)
-  show(items, referencedSymbol)
+  const referencesForUI = groupResults(references)
+  show(referencesForUI, keyword)
 })
 
 action('next-usage', async () => {
-  const refs = await references(vimState)
-  if (!refs) return
+  const { references } = await getReferences(vimState)
+  if (!references.length) return
 
-  const { line, column, cwd, file } = vimState
-  const currentPath = join(cwd, file)
-  const adjustedRefs = refs.map(asReference)
-  const reference = findNext<Reference>(adjustedRefs, currentPath, line, column - 1)
-  if (!reference) return
-
-  jumpTo(reference)
+  const { line, column, absoluteFilepath } = vimState
+  const reference = findNext<Reference>(references, absoluteFilepath, line, column)
+  if (reference) jumpTo(reference)
 })
 
 action('prev-usage', async () => {
-  const refs = await references(vimState)
-  if (!refs) return
+  const { references } = await getReferences(vimState)
+  if (!references.length) return
 
-  const { line, column, cwd, file } = vimState
-  const currentPath = join(cwd, file)
-  const adjustedRefs = refs.map(asReference)
-  const reference = findPrevious<Reference>(adjustedRefs, currentPath, line, column - 1)
-  if (!reference) return
-
-  jumpTo(reference)
+  const { line, column, absoluteFilepath } = vimState
+  const reference = findPrevious<Reference>(references, absoluteFilepath, line, column)
+  if (reference) jumpTo(reference)
 })

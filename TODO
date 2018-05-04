@@ -217,6 +217,7 @@ multi-monitor support? with shada and edge detection (when c-w l on right most w
 add some sort of error checking/timeout for using lang serv actions, but if the
 lang is not loaded yet or requests are taking too long? i.e. calling typescript
 find-symbols in a large project (like veonim) after starting up veonim
+- or even if the langserv doesn't exist. show some info?
 
 
 jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx

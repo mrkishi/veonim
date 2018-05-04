@@ -1,19 +1,14 @@
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { jumpToProjectFile } from '../core/neovim'
+import { Reference } from '../langserv/adapter'
 import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 
 type TextTransformer = (text: string, last?: boolean) => string
-type Result = [string, SearchResult[]]
-
-export interface SearchResult {
-  line: number,
-  column: number,
-  text: string,
-}
+type Result = [string, Reference[]]
 
 let elref: HTMLElement
 const SCROLL_AMOUNT = 0.25
@@ -180,9 +175,9 @@ const view = ($: S, a: typeof actions) => PluginRight($.vis, [
     ])
 
     ,pos === $.ix && h('div', items.map((f, itemPos) => h(RowNormal, {
-      key: `${f.line}-${f.column}-${f.text}`,
+      key: `${f.line}-${f.column}-${f.lineContents}`,
       active: pos === $.ix && itemPos === $.subix
-    }, highlightPattern(f.text, $.referencedSymbol, {
+    }, highlightPattern(f.lineContents, $.referencedSymbol, {
 
       normal: (text, last) => h('span', {
         style: {
