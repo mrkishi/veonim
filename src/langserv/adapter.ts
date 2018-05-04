@@ -4,8 +4,9 @@ import { CodeLens, Diagnostic, Command, Location, Position, Range,
 import { notify, workspace, textDocument, completionItem, getSyncKind,
   SyncKind, triggers } from '../langserv/director'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
-import { is, merge, uriAsCwd, uriAsFile } from '../support/utils'
+import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
+import { getLines } from '../support/get-file-contents'
 import config from '../config/config-service'
 import * as path from 'path'
 
@@ -104,6 +105,7 @@ const toProtocol = (data: NeovimState, more?: any) => {
 
 const toVimPosition = ({ line, character }: Position): VimPosition => ({ line: line + 1, column: character + 1 })
 
+// TODO: repurpose this function. we need one for definition, and another one for references
 const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
   const { line, column } = toVimPosition(range.start)
   const { line: endLine, column: endColumn } = toVimPosition(range.end)
@@ -161,11 +163,17 @@ export const partialBufferUpdate = async (change: BufferChange) => {
     : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
 }
 
-export const definition = async (data: NeovimState): Promise<VimQFItem> => {
+export const definition = async (data: NeovimState) => {
   const req = toProtocol(data)
   const result = await textDocument.definition(req)
-  if (!result) return {} as VimQFItem
-  return asQfList(is.array(result) ? result[0] : result)
+  if (!result) return {}
+  const { uri, range } = is.array(result) ? result[0] : result
+
+  return {
+    path: uriToPath(uri),
+    line: range.start.line,
+    column: range.start.character,
+  }
 }
 
 export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
@@ -175,7 +183,7 @@ export const references = async (data: NeovimState): Promise<VimQFItem[]> => {
     }
   })
 
-  const references = await textDocument.references(req) || []
+  const references: Location[] = await textDocument.references(req) || []
   return references.map(asQfList)
 }
 

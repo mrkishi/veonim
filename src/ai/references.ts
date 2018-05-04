@@ -19,6 +19,7 @@ const groupResults = (m: Reference[]) => [...m.reduce((map, { path, text, line, 
   return (map.get(path)!.push({ text, line, column }), map)
 }, new Map<string, SearchResult[]>())]
 
+// TODO: lol no negatives pls. always keep 0 index based
 const asReference = (m: VimQFItem): Reference => ({
   text: m.desc,
   line: m.line,

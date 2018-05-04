@@ -1,6 +1,8 @@
 NEW HARDER FASTER STRONGER ICON
 consider adding brunswick theme as default. when rebrand with new logo?
 
+unicode fix pls kthx
+
 spammy cmd-update lolwut?
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
@@ -19,14 +21,13 @@ grep: i don't like the large/small icon unaligned padding/margins in query/filte
 
 new extension process - use pipes? bridge and create client with proxy, etc.
 
-new module + method:
-- getFileContents()
-  - tries to read from buffer if possible (currentBuffer, etc)
-    - use nvim buffer api, not local currentBuffer.contents cache
-  - if not found in buffer, read from FS
-  - should this be in a separate module maybe?
-  - any other code anywhere else which already does this?
-  - remind me again what we do with the file cache. is that for currentBuffer only?
+-- UPDATE
+ai/definition.ts
+  - line/col is now 0-index based
+
+ai/references.ts
+  - make sure it's 0-index based pls kthx
+  - may need to update ui component too
 
 grep:
   - i'm not sure that we load all the results (in some cases - try searching
@@ -213,6 +214,10 @@ future if we can name running process in term, thennnnnnnn
 multi-monitor support? with shada and edge detection (when c-w l on right most window, go to next monitor)
 
 
+add some sort of error checking/timeout for using lang serv actions, but if the
+lang is not loaded yet or requests are taking too long? i.e. calling typescript
+find-symbols in a large project (like veonim) after starting up veonim
+
 
 jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
 
@@ -246,3 +251,12 @@ auto add to quick fix list:
 references
 problems
 grep 
+
+
+-
+look into how we can use v8 snapshots for startup speed
+https://github.com/atom/electron-link
+https://www.npmjs.com/package/electron-mksnapshot
+https://github.com/atom/atom/blob/f48069c5f848b5ae624b110a1df7800e919eb142/src/native-compile-cache.js
+https://flight-manual.atom.io/behind-atom/sections/how-atom-uses-chromium-snapshots/
+https://github.com/atom/atom/blob/d9ebd7e125d5f07def1a057a0a8278d4d9d7d23a/script/lib/generate-startup-snapshot.js#L19-L65

@@ -334,7 +334,6 @@ type JumpOpts = HyperspaceCoordinates & { openBufferFirst: boolean }
 
 const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: JumpOpts) => {
   if (openBufferFirst && path) await openBuffer(path)
-  // TODO: is this 0 or 1 index based? i assume 0...?
   ;(await getCurrent.window).setCursor(line, column || 0)
   showCursorline()
 }
