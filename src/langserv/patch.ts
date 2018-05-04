@@ -47,4 +47,3 @@ const asPatch = (uri: string, edits: TextEdit[]): Patch => {
 export const workspaceEditToPatch = ({ changes = {}, documentChanges }: WorkspaceEdit): Patch[] => documentChanges
   ? documentChanges.map(({ textDocument, edits }) => asPatch(textDocument.uri, edits))
   : Object.entries(changes).map(([ file, edits ]) => asPatch(file, edits))
-

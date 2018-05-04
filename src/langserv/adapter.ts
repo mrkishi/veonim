@@ -61,6 +61,8 @@ interface CurrentBuffer {
 }
 
 const openFiles = new Set<string>()
+// TODO: i wonder if we can rid of currentBuffer.contents once we get
+// the fancy neovim PR for partial buffer update notifications...
 const currentBuffer: CurrentBuffer = {
   cwd: '',
   file: '',

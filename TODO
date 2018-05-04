@@ -15,16 +15,34 @@ when using keys in hyperapp lists, and clearing parts of the list,
 not all removed items are actually removed from the dom. so we end
 up with a mix of new and old items in the DOM. lolwut?
 
-i guess for now we will not use keys, especially since we will use a virtual
-list abstraction to only render parts of the list in the dom
+grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
+
+new extension process - use pipes? bridge and create client with proxy, etc.
+
+new module + method:
+- getFileContents()
+  - tries to read from buffer if possible (currentBuffer, etc)
+    - use nvim buffer api, not local currentBuffer.contents cache
+  - if not found in buffer, read from FS
+  - should this be in a separate module maybe?
+  - any other code anywhere else which already does this?
+  - remind me again what we do with the file cache. is that for currentBuffer only?
+
+grep:
+  - i'm not sure that we load all the results (in some cases - try searching
+    for a popular keyword like 'await'). i think there is some logic to load
+    more results from cache once we scroll down... maybe that is not activated
+    if the div container height is too high?
 
 TEST COMPONENTS
 - references
-  - sometimes incorrect lines displayed. not sure as it doesn't always happen
-  - sometimes empty lines rendered... lolwut?
-- grep
-  - sometimes incorrect lines displayed. not sure as it doesn't always happen
-  - sometimes empty lines rendered... lolwut?
+  - incorrect or missing lines displayed because in adapter.ts - asQfList
+    gets the text/desc from the currentBuffer only. lol
+
+adapter.ts:
+  - get rid of openFiles set checking logic and check against vims buffer list pls
+      - lol how does this even work.... it never removes openFiles lolfail
+  - make sure to filter out unlinsted/hidden buffers
 
 build.js not being used for anything. gonna finish it or discard?
 
@@ -33,7 +51,7 @@ should font-sizer be part of build process?
 create a simple hyperapp virtualized list component that simply renders dom nodes
   given a slice of the list. you want the top of the list, slice(0, 10)
   you want the end, slice(list.length - 10), etc. no mouse support for now.
-  keep it simple and easy. make it composable
+  keep it simple and easy. make it composable (vs higher order?/wrapping?)
 
 files not refresh after delete file
 
@@ -50,6 +68,11 @@ just picks a random html div and does its thing. we need to be semantic and rend
 windwos to specific divs. we need to associate a specific div with a specific vim
 window and maintain that relationship so that shadow buffers are tied to the correct
 html element.
+
+if we assign a div to each window, how will this work with tabpage switch? right now it's
+super clean and performant as the div elements are reused/not modified
+  - what if tab switch to the exact same windows, but just swapped around in layout order
+    - file1 + file2 -> file2 + file1
 
 shadow buffers:
 cursor.ts does not recognize current window as shadow-buffer-type anymore... what changed?
