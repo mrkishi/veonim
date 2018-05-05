@@ -1,5 +1,5 @@
 import { action, current as vim, getCurrent, cmd, onStateChange, HighlightGroupId, Highlight } from '../core/neovim'
-import { highlights, references, VimQFItem } from '../langserv/adapter'
+import { highlights, references as getReferences } from '../langserv/adapter'
 import { canCall } from '../langserv/director'
 import { brighten } from '../ui/css'
 
@@ -11,35 +11,26 @@ const setHighlightColor = () => {
 onStateChange.colorscheme(setHighlightColor)
 setHighlightColor()
 
-// should really normalize positions...
-const asHighlight = (m: VimQFItem) => ({
-  line: m.line - 1,
-  start: m.column - 1,
-  end: m.endColumn - 1,
-})
-
 action('highlight', async () => {
   const highlightFeatureEnabled = canCall(vim.cwd, vim.filetype, 'documentHighlight')
-  const positions = highlightFeatureEnabled
+  const { references } = highlightFeatureEnabled
     ? await highlights(vim)
-    : await references(vim)
+    : await getReferences(vim)
 
   const buffer = await getCurrent.buffer
-  buffer.clearHighlight(HighlightGroupId.DocumentHighlight, 1, -1)
+  buffer.clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
 
-  if (!positions.length) return
+  if (!references.length) return
 
-  positions
-    .map(asHighlight)
-    .forEach(hi => buffer.addHighlight(
-      HighlightGroupId.DocumentHighlight,
-      Highlight.DocumentHighlight,
-      hi.line,
-      hi.start,
-      hi.end,
-    ))
+  references.forEach(hi => buffer.addHighlight(
+    HighlightGroupId.DocumentHighlight,
+    Highlight.DocumentHighlight,
+    hi.line,
+    hi.column,
+    hi.endColumn,
+  ))
 })
 
 action('highlight-clear', async () => {
-  (await getCurrent.buffer).clearHighlight(HighlightGroupId.DocumentHighlight, 1, -1)
+  (await getCurrent.buffer).clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
 })

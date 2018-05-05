@@ -21,24 +21,11 @@ grep: i don't like the large/small icon unaligned padding/margins in query/filte
 
 new extension process - use pipes? bridge and create client with proxy, etc.
 
--- UPDATE
-ai/definition.ts
-  - line/col is now 0-index based
-
-ai/references.ts
-  - make sure it's 0-index based pls kthx
-  - may need to update ui component too
-
 grep:
   - i'm not sure that we load all the results (in some cases - try searching
     for a popular keyword like 'await'). i think there is some logic to load
     more results from cache once we scroll down... maybe that is not activated
     if the div container height is too high?
-
-TEST COMPONENTS
-- references
-  - incorrect or missing lines displayed because in adapter.ts - asQfList
-    gets the text/desc from the currentBuffer only. lol
 
 adapter.ts:
   - get rid of openFiles set checking logic and check against vims buffer list pls

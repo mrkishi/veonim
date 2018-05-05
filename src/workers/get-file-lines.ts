@@ -1,5 +1,5 @@
-import { NewlineSplitter, exists } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
+import { exists } from '../support/utils'
 import { createReadStream } from 'fs'
 
 interface LineContents {
@@ -12,19 +12,26 @@ const fileReader = (path: string, targetLines: number[]) => new Promise(done => 
   const linesOfInterest = new Set(targetLines)
   const maxLineIndex = Math.max(...targetLines)
   let currentLineIndex = 0
+  let buffer = ''
 
-  const readStream = createReadStream(path)
-    .pipe(new NewlineSplitter())
-    .on('data', (line: string) => {
+  // not using NewlineSplitter here because it filters out empty lines
+  // we need the empty lines, since we track the line index
+  const readStream = createReadStream(path).on('data', raw => {
+    const lines = (buffer + raw).split(/\r?\n/)
+    buffer = lines.pop() || ''
+
+    lines.forEach(line => {
       const needThisLine = linesOfInterest.has(currentLineIndex)
       if (needThisLine) collectedLines.push({ ix: currentLineIndex, line })
 
       const reachedMaximumLine = currentLineIndex === maxLineIndex
-      if (reachedMaximumLine) readStream.end()
+      if (reachedMaximumLine) readStream.close()
 
       currentLineIndex++
     })
-    .on('end', () => done(collectedLines))
+  })
+
+  readStream.on('close', () => done(collectedLines))
 })
 
 const { on } = WorkerClient()
@@ -49,7 +56,5 @@ on.getLines(async (path: string, lines: number[]) => {
     return []
   }
 
-  const res =  fileReader(path, lines)
-  console.log('res:', res)
-  return res
+  return fileReader(path, lines)
 })

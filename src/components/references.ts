@@ -175,7 +175,6 @@ const view = ($: S, a: typeof actions) => PluginRight($.vis, [
     ])
 
     ,pos === $.ix && h('div', items.map((f, itemPos) => h(RowNormal, {
-      key: `${f.line}-${f.column}-${f.lineContents}`,
       active: pos === $.ix && itemPos === $.subix
     }, highlightPattern(f.lineContents, $.referencedSymbol, {
 

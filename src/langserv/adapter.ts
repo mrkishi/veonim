@@ -39,17 +39,6 @@ interface VimLocation {
   position: VimPosition,
 }
 
-export interface VimQFItem {
-  desc: string,
-  column: number,
-  file: string,
-  line: number,
-  cwd: string,
-  endLine: number,
-  endColumn: number,
-  keyword?: string,
-}
-
 interface BufferChange extends NeovimState {
   buffer: string[],
 }
@@ -219,7 +208,7 @@ export const references = async (data: NeovimState) => {
   })
 
   const references: Location[] = await textDocument.references(req) || []
-  if (!references.length) return { keyword: '', references: [] }
+  if (!references.length) return { keyword: '', references: [] as Reference[] }
 
   const locationContentMap = await getLocationContentsMap(references)
 
@@ -245,25 +234,24 @@ export const references = async (data: NeovimState) => {
   }
 }
 
-export const highlights = async (data: NeovimState): Promise<VimQFItem[]> => {
+export const highlights = async (data: NeovimState) => {
   const req = toProtocol(data)
   const result = await textDocument.documentHighlight(req) as DocumentHighlight[]
-  if (!result) return [] as VimQFItem[]
+  if (!result) return { references: [] as Reference[] }
 
-  return result.map(m => {
-    const { line, column } = toVimPosition(m.range.start)
-    const { line: endLine, column: endColumn } = toVimPosition(m.range.end)
+  const references = result.map(m => ({
+    lineContents: '',
+    line: m.range.start.line,
+    column: m.range.start.character,
+    endLine: m.range.end.line,
+    endColumn: m.range.end.character,
+    path: data.absoluteFilepath,
+  }))
 
-    return {
-      line,
-      column,
-      endLine,
-      endColumn,
-      cwd: data.cwd,
-      file: data.file,
-      desc: ''
-    }
-  })
+  return {
+    references,
+    keyword: '',
+  }
 }
 
 export const rename = async (data: NeovimState & { newName: string }): Promise<Patch[]> => {
