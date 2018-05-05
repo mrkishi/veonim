@@ -1,6 +1,6 @@
-import { CodeLens, Diagnostic, Command, Location, Position, Range,
-  WorkspaceEdit, Hover, SignatureHelp, SymbolInformation, SymbolKind,
-  CompletionItem, DocumentHighlight } from 'vscode-languageserver-types'
+import { CodeLens, Diagnostic, Command, Location, Position, WorkspaceEdit,
+  Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
+  DocumentHighlight } from 'vscode-languageserver-types'
 import { notify, workspace, textDocument, completionItem, getSyncKind,
   SyncKind, triggers } from '../langserv/director'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
@@ -102,18 +102,6 @@ const toProtocol = (data: NeovimState, more?: any) => {
 }
 
 const toVimPosition = ({ line, character }: Position): VimPosition => ({ line: line + 1, column: character + 1 })
-
-// TODO: repurpose this function. we need one for definition, and another one for references
-const asQfList = ({ uri, range }: { uri: string, range: Range }): VimQFItem => {
-  const { line, column } = toVimPosition(range.start)
-  const { line: endLine, column: endColumn } = toVimPosition(range.end)
-  const cwd = uriAsCwd(uri)
-  const file = uriAsFile(uri)
-  const desc = currentBuffer.contents[line - 1] || ''
-  const keyword = desc.slice(range.start.character, range.end.character)
-
-  return { cwd, file, line, column, desc, keyword, endLine, endColumn }
-}
 
 const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
   if (currentBuffer.cwd !== cwd && currentBuffer.file !== file)
