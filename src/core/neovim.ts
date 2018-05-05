@@ -643,7 +643,7 @@ const Buffer = (id: any) => ({
   getMark: name => req.buf.getMark(id, name),
   addHighlight: (sourceId, hlGroup, line, colStart, colEnd) => req.buf.addHighlight(id, sourceId, hlGroup, line, colStart, colEnd),
   clearHighlight: (sourceId, lineStart, lineEnd) => api.buf.clearHighlight(id, sourceId, lineStart, lineEnd),
-  clearAllHighlights: () => api.buf.clearHighlight(id, -1, 1, -1),
+  clearAllHighlights: () => api.buf.clearHighlight(id, -1, 0, -1),
   highlightProblems: async problems => callAtomic([
     [HL_CLR, [id, problems[0].id, 0, -1]],
     ...problems.map(p => [HL_ADD, [id, p.id, p.group, p.line, p.columnStart, p.columnEnd]]),
