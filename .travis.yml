@@ -10,7 +10,7 @@ install:
 - npm install
 script:
 - npm run build
-- npm test
+- npm test:ci
 before_deploy:
 - npm run release
 deploy:

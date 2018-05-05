@@ -9,7 +9,6 @@ const EXT_PATH = normalize('/ext')
 
 const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   jest.resetModules()
-  jest.clearAllMocks()
 
   const mockExistPaths = new Set(existsPaths)
   const mockDirsPaths = getDirsPaths.slice()
@@ -22,17 +21,15 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   const mockDownload = jest.fn(() => Promise.resolve(true))
 
 
-  jest.doMock('fs-extra', () => ({
+  jest.mock('fs-extra', () => ({
     remove: mockRemovePath,
-  }), {
-    virtual: true,
-  })
+  }))
 
-  jest.doMock('../../build/support/download', () => ({
+  jest.mock('../../build/support/download', () => ({
     downloadRepo: mockDownload,
   }))
 
-  jest.doMock('../../build/support/utils', () => ({
+  jest.mock('../../build/support/utils', () => ({
     readFile: mockNoop,
     watchPathSymlink: mockNoop,
     is: { string: val => typeof val === 'string' },
@@ -40,12 +37,12 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
     getDirs: () => Promise.resolve(mockDirsPaths)
   }))
 
-  jest.doMock('../../build/core/extensions', () => ({
+  jest.mock('../../build/core/extensions', () => ({
     EXT_PATH: mockExtPath,
     load: mockLoadExt,
   }))
 
-  jest.doMock('../../build/ui/notifications', () => ({
+  jest.mock('../../build/ui/notifications', () => ({
     notify: mockNotifications,
     NotifyKind: mockNotifyKind,
   }))

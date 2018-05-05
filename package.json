@@ -3,8 +3,9 @@
   "version": "0.9.0",
   "description": "modern lightweight modal IDE built on neovim",
   "scripts": {
-    "test:watch": "npm run test -- --watchAll",
     "test": "jest test/unit",
+    "test:watch": "npm run test -- --watchAll",
+    "test:ci": "npm run test -- --ci --runInBand",
     "test:e2e": "jest test/e2e",
     "assets": "mkdirp build/assets && ncp src/assets build/assets",
     "html": "ncp src/bootstrap/index.html build/bootstrap/index.html",

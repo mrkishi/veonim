@@ -14,7 +14,7 @@ test_script:
   - node --version
   - npm --version
   - npm run build
-  - npm test
+  - npm test:ci
 
 artifacts:
   - path: dist/*.exe
