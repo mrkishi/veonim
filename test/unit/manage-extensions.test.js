@@ -8,8 +8,6 @@ const NotifyKind = {
 const EXT_PATH = normalize('/ext')
 
 const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
-  jest.resetModules()
-
   const mockExistPaths = new Set(existsPaths)
   const mockDirsPaths = getDirsPaths.slice()
   const mockLoadExt = jest.fn()
@@ -19,7 +17,6 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
   const mockNotifyKind = NotifyKind
   const mockExtPath = EXT_PATH
   const mockDownload = jest.fn(() => Promise.resolve(true))
-
 
   jest.mock('fs-extra', () => ({
     remove: mockRemovePath,
