@@ -1,8 +1,6 @@
 NEW HARDER FASTER STRONGER ICON
 consider adding brunswick theme as default. when rebrand with new logo?
 
-unicode fix pls kthx
-
 spammy cmd-update lolwut?
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
@@ -21,16 +19,14 @@ grep: i don't like the large/small icon unaligned padding/margins in query/filte
 
 new extension process - use pipes? bridge and create client with proxy, etc.
 
+adapter:
+ -symbols, get rid of  toVimLocation
+
 grep:
   - i'm not sure that we load all the results (in some cases - try searching
     for a popular keyword like 'await'). i think there is some logic to load
     more results from cache once we scroll down... maybe that is not activated
     if the div container height is too high?
-
-adapter.ts:
-  - get rid of openFiles set checking logic and check against vims buffer list pls
-      - lol how does this even work.... it never removes openFiles lolfail
-  - make sure to filter out unlinsted/hidden buffers
 
 build.js not being used for anything. gonna finish it or discard?
 

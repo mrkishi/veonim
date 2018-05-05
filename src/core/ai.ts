@@ -12,6 +12,7 @@ import '../ai/rename'
 
 onStateChange.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
+on.bufAdd(() => updateService.update({ bufferOpened: true }))
 on.bufLoad(() => updateService.update())
 on.bufChange(() => updateService.update())
 

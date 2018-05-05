@@ -76,6 +76,7 @@ interface HyperspaceCoordinates {
 }
 
 interface Event {
+  bufAdd(cb: EventCallback): void,
   bufLoad(cb: EventCallback): void,
   bufUnload(cb: EventCallback): void,
   bufChange(cb: EventCallback): void,
@@ -89,6 +90,7 @@ interface Event {
 }
 
 interface EventWait {
+  bufAdd: Promise<any>,
   bufLoad: Promise<any>,
   bufUnload: Promise<any>,
   bufChange: Promise<any>,
@@ -553,7 +555,7 @@ onCreate(() => {
   refreshState()()
 })
 
-autocmd.bufAdd(refreshState())
+autocmd.bufAdd(refreshState('bufAdd'))
 autocmd.bufEnter(refreshState())
 autocmd.bufDelete(refreshState('bufUnload'))
 autocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)

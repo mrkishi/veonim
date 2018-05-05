@@ -7,19 +7,19 @@ export const finder = Worker('buffer-search')
 
 let pauseUpdate = false
 
-export const update = async ({ lineChange = false } = {}) => {
+export const update = async ({ lineChange = false, bufferOpened = false } = {}) => {
   if (pauseUpdate) return
 
   if (lineChange) partialBufferUpdate({
     ...vimState,
     buffer: [ await getCurrent.lineContent ]
-  })
+  }, bufferOpened)
 
   else {
     const buffer = await getCurrent.bufferContents
     harvester.call.set(vimState.cwd, vimState.file, buffer)
     finder.call.set(vimState.cwd, vimState.file, buffer)
-    fullBufferUpdate({ ...vimState, buffer })
+    fullBufferUpdate({ ...vimState, buffer }, bufferOpened)
   }
 }
 

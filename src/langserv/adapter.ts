@@ -1,16 +1,15 @@
 import { CodeLens, Diagnostic, Command, Location, Position, WorkspaceEdit,
   Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
   DocumentHighlight } from 'vscode-languageserver-types'
-import { notify, workspace, textDocument, completionItem, getSyncKind,
-  SyncKind, triggers } from '../langserv/director'
-import { NeovimState, applyPatches, current as vim } from '../core/neovim'
+import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind } from '../langserv/director'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
+import { NeovimState, applyPatches, current as vim } from '../core/neovim'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
 import { getLines } from '../support/get-file-contents'
 import config from '../config/config-service'
 import * as path from 'path'
 
-export { onDiagnostics } from '../langserv/director'
+export { triggers, onDiagnostics } from '../langserv/director'
 
 export interface Reference {
   path: string,
@@ -59,7 +58,6 @@ interface CurrentBuffer {
   contents: string[],
 }
 
-const openFiles = new Set<string>()
 // TODO: i wonder if we can rid of currentBuffer.contents once we get
 // the fancy neovim PR for partial buffer update notifications...
 const currentBuffer: CurrentBuffer = {
@@ -109,7 +107,7 @@ const patchBufferCacheWithPartial = async (cwd: string, file: string, change: st
   Reflect.set(currentBuffer.contents, line - 1, change)
 }
 
-export const fullBufferUpdate = (bufferState: BufferChange) => {
+export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false) => {
   const { cwd, file, buffer: contents, filetype } = bufferState
 
   merge(currentBuffer, { cwd, file, contents })
@@ -117,14 +115,12 @@ export const fullBufferUpdate = (bufferState: BufferChange) => {
   const content = { text: contents.join('\n') }
   const req = toProtocol(bufferState, { contentChanges: [ content ], filetype })
 
-  // TODO: keeping open buffers state here seems like a bad idea...
-  // shouldn't we check against vim buffer list?
-  openFiles.has(cwd + file)
-    ? notify.textDocument.didChange(req)
-    : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
+  bufferOpened
+    ? notify.textDocument.didOpen(req)
+    : notify.textDocument.didChange(req)
 }
 
-export const partialBufferUpdate = async (change: BufferChange) => {
+export const partialBufferUpdate = async (change: BufferChange, bufferOpened = false) => {
   const { cwd, file, buffer, line, filetype } = change
   const syncKind = getSyncKind(cwd, filetype)
 
@@ -142,11 +138,9 @@ export const partialBufferUpdate = async (change: BufferChange) => {
 
   const req = toProtocol(change, { contentChanges: [ content ], filetype })
 
-  // TODO: keeping open buffers state here seems like a bad idea...
-  // shouldn't we check against vim buffer list?
-  openFiles.has(cwd + file)
-    ? notify.textDocument.didChange(req)
-    : (openFiles.add(cwd + file), notify.textDocument.didOpen(req))
+  bufferOpened
+    ? notify.textDocument.didOpen(req)
+    : notify.textDocument.didChange(req)
 }
 
 export const definition = async (data: NeovimState) => {
@@ -338,5 +332,3 @@ export const executeCommand = async (data: NeovimState, command: Command) => {
 }
 
 export const applyEdit = async (edit: WorkspaceEdit) => applyPatches(workspaceEditToPatch(edit))
-
-export { triggers }
