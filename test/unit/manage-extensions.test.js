@@ -22,7 +22,9 @@ const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
 
   jest.mock('fs-extra', () => ({
     remove: mockRemovePath,
-  }))
+  }), {
+    virtual: true,
+  })
 
   jest.mock('../../build/support/download', () => ({
     downloadRepo: mockDownload,
@@ -63,10 +65,6 @@ const configLines = [
 ]
 
 describe('manage extensions', () => {
-  beforeEach(() => {
-    jest.resetAllMocks()
-  })
-
   test('download & install success', async () => {
     const { module, notify, loadExtensions, removed, download } = setup()
     await module(configLines)
