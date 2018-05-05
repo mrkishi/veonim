@@ -133,12 +133,7 @@ export const createWindow = (container: HTMLElement) => {
 
   api.fillText = (char, col, row) => {
     if (!is.string(char)) return api
-
     if (!fontAtlas.exists) return drawText(char, col, row)
-    if (char.length > 1) throw new Error(`fill text faster does not implement
-    the ability to wrender strings of chars, but only a single char. should
-    refactor if needed. at the time of this writing the vim render strategy wrenders
-      only one charater at a time`)
 
     const pos = fontAtlas.getCharPosition(char, ui.fillStyle as string)
     if (!pos) return drawText(char, col, row)
