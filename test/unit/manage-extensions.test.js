@@ -63,6 +63,10 @@ const configLines = [
 ]
 
 describe('manage extensions', () => {
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+
   test('download & install success', async () => {
     const { module, notify, loadExtensions, removed, download } = setup()
     await module(configLines)
