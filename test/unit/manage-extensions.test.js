@@ -8,6 +8,8 @@ const NotifyKind = {
 const EXT_PATH = normalize('/ext')
 
 const setup = ({ getDirsPaths = [], existsPaths = [] } = {}) => {
+  jest.resetModules()
+
   const mockExistPaths = new Set(existsPaths)
   const mockDirsPaths = getDirsPaths.slice()
   const mockLoadExt = jest.fn()
