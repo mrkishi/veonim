@@ -1,6 +1,12 @@
-import { merge, getDirFiles, configPath, readFile, fromJSON } from '../support/utils'
+import { merge, getDirFiles, configPath, readFile, fromJSON, startProletariatRevolution } from '../support/utils'
 import { connect, Server } from '../messaging/jsonrpc'
 import * as path from 'path'
+
+const { getPipeName } = startProletariatRevolution('extension-host')
+
+getPipeName.then(name => {
+  console.log('extension host pipe name:', name)
+})
 
 enum ActivationEventType {
   WorkspaceContains = 'workspaceContains',
