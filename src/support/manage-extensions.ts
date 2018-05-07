@@ -1,6 +1,7 @@
-import { EXT_PATH, load as loadExtensions } from '../core/extensions'
+import { load as loadExtensions } from '../core/extensions'
 import { NotifyKind, notify } from '../ui/notifications'
 import { exists, getDirs, is } from '../support/utils'
+import { EXT_PATH } from '../config/default-configs'
 import { downloadRepo } from '../support/download'
 import { remove as removePath } from 'fs-extra'
 import { join } from 'path'

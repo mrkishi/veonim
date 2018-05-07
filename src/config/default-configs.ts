@@ -1,4 +1,8 @@
+import { configPath } from '../support/utils'
 import { homedir } from 'os'
+import { join } from 'path'
+
+export const EXT_PATH = join(configPath, 'veonim', 'extensions')
 
 export const explorer = {
   ignore: {
