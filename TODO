@@ -206,6 +206,10 @@ find-symbols in a large project (like veonim) after starting up veonim
 jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
 
 
+use floating window for terminal scratch buffer. say i want to type a super fancy and long
+git commit msg, open scratch buffer, do the edits and whatnot, then "save" buffer to terminal
+prompt
+
 -- more stuffffffff
 delete till highlighted text
 
