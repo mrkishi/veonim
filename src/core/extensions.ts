@@ -1,11 +1,12 @@
-import { merge, getDirFiles, configPath, readFile, fromJSON, startProletariatRevolution } from '../support/utils'
+import { merge, getDirFiles, configPath, readFile, fromJSON } from '../support/utils'
+import { startProletariatRevolution } from '../support/proletariat-client'
 import { connect, Server } from '../messaging/jsonrpc'
 import * as path from 'path'
 
-const { getPipeName } = startProletariatRevolution('extension-host')
-
-getPipeName.then(name => {
-  console.log('extension host pipe name:', name)
+startProletariatRevolution('extension-host').then(({ on }) => {
+  on.getBread((breads: string) => {
+    console.log('get bread:', breads)
+  })
 })
 
 enum ActivationEventType {

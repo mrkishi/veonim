@@ -1,5 +1,5 @@
 import { dirname, basename, join, extname, resolve } from 'path'
-import { exec, spawn } from 'child_process'
+import { exec } from 'child_process'
 import { homedir, tmpdir } from 'os'
 const watch = require('node-watch')
 import { Transform } from 'stream'
@@ -53,36 +53,6 @@ export const shell = (cmd: string, opts?: object): Promise<string> => new Promis
 export const getPipeName = (name: string) => process.platform === 'win32'
   ? `\\\\.\\pipe\\${name}${uuid()}-sock`
   : join(tmpdir(), `${name}${uuid()}.sock`)
-
-export const startProletariatRevolution = (name: string) => {
-  const getPipeNameTask = CreateTask()
-  const theBourgeoisieHateHim = join(__dirname, '..', 'proletariat', `${name}.js`)
-  const proc = spawn(process.execPath, [theBourgeoisieHateHim], {
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: true },
-  })
-
-  proc.stdout.pipe(process.stdout)
-  proc.stderr.pipe(process.stderr)
-
-  proc.stdout.on('data', data => {
-    const lines = data.toString().split(/\r?\n/)
-
-    lines.forEach(line => {
-      const { pipeName } = fromJSON(line).or({})
-      if (pipeName) getPipeNameTask.done(pipeName)
-    })
-  })
-
-  proc.on('exit', code => console.log(`proletariat ${name} has left the revolution: ${code}`))
-  proc.on('error', console.error)
-
-  if (process.env.VEONIM_DEV) {
-    const ipc = require('electron').ipcRenderer
-    ipc.on('dev:reload', () => proc.kill())
-  }
-
-  return { proc, getPipeName: getPipeNameTask.promise }
-}
 
 export const pathRelativeToHome = (path: string) => path.includes($HOME)
   ? path.replace($HOME, '~')
