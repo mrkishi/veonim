@@ -236,6 +236,15 @@ references
 problems
 grep 
 
+macro to delete surrounding block {}
+like:
+if (blarg) {
+  stuff
+  moreStuff()
+}
+
+delete lines 0 and 3
+
 
 -
 look into how we can use v8 snapshots for startup speed
