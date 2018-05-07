@@ -5,11 +5,7 @@ app.setName('veonim')
 Menu.setApplicationMenu(new Menu())
 
 app.on('ready', async () => {
-  let position = {}
-  if (process.env.VEONIM_DEV) position = { x: 0, y: 0 }
-
   win = new BrowserWindow({
-    ...position,
     width: 800,
     height: 600,
     minWidth: 600,

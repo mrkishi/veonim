@@ -1,6 +1,12 @@
 import { merge, getDirFiles, configPath, readFile, fromJSON } from '../support/utils'
 import { connect, Server } from '../messaging/jsonrpc'
+import Worker from '../messaging/worker'
 import * as path from 'path'
+
+const worker = Worker('extension-host')
+setInterval(() => {
+  worker.call.lol('derp')
+}, 2e3)
 
 enum ActivationEventType {
   WorkspaceContains = 'workspaceContains',
