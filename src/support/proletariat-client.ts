@@ -6,16 +6,20 @@ import { join } from 'path'
 type EventFn = { [index: string]: (...args: any[]) => void }
 type RequestEventFn = { [index: string]: (...args: any[]) => Promise<any> }
 
-const joinRevolution = (pipeName: string) => {
+export const joinRevolution = (pipeName: string) => {
   const watchers = new Watchers()
   const pendingRequests = new Map()
   const requestId = ID()
   const conn = createConnection(pipeName)
 
   const send = (stuff: any) => conn.write(JSON.stringify(stuff) + '\r\n')
-
   const call: EventFn = onFnCall((event: string, args: any[]) => send({ event, args }))
-  const on = proxyFn((event: string, cb: (data: any) => void) => watchers.add(event, cb))
+
+  const on = proxyFn((event: string, cb: (data: any) => void) => {
+    watchers.add(event, cb)
+    send({ event: `subscribe:${event}` })
+  })
+
   const request: RequestEventFn = onFnCall((event: string, args: any[]) => {
     const task = CreateTask()
     const id = requestId.next()
@@ -24,7 +28,7 @@ const joinRevolution = (pipeName: string) => {
     return task.promise
   })
 
-  conn.pipe(new NewlineSplitter()).on('line', jsonLineHopefully => {
+  conn.pipe(new NewlineSplitter()).on('data', (jsonLineHopefully: string) => {
     const { event, args, id } = fromJSON(jsonLineHopefully).or({})
     if (!event) return
 
@@ -39,23 +43,19 @@ const joinRevolution = (pipeName: string) => {
   return { on, call, request }
 }
 
-const startRevolution = (name: string) => {
-  const getPipeNameTask = CreateTask()
+export const startRevolution = (name: string) => {
+  const getPipeNameTask = CreateTask<string>()
   const theBourgeoisieHateHim = join(__dirname, '..', 'proletariat', `${name}.js`)
   const proc = spawn(process.execPath, [theBourgeoisieHateHim], {
     env: { ...process.env, ELECTRON_RUN_AS_NODE: true },
   })
 
-  proc.stdout.pipe(process.stdout)
-  proc.stderr.pipe(process.stderr)
+  proc.stderr.on('data', data => console.error(`@${name}@`, data.toString()))
 
-  proc.stdout.on('data', data => {
-    const lines = data.toString().split(/\r?\n/)
-
-    lines.forEach(line => {
-      const { pipeName } = fromJSON(line).or({})
-      if (pipeName) getPipeNameTask.done(pipeName)
-    })
+  proc.stdout.pipe(new NewlineSplitter()).on('data', (line: string) => {
+    const { pipeName } = fromJSON(line).or({})
+    if (pipeName) getPipeNameTask.done(pipeName)
+    console.log(`@${name}@`, line)
   })
 
   proc.on('exit', code => console.log(`proletariat ${name} has left the revolution: ${code}`))
@@ -67,11 +67,4 @@ const startRevolution = (name: string) => {
   }
 
   return { proc, getName: getPipeNameTask.promise }
-}
-
-export const startProletariatRevolution = async (name: string) => {
-  const { proc, getName } = startRevolution(name)
-  const februaryRevolution = await getName as string
-  const weNeedBreadWeAreHungry = joinRevolution(februaryRevolution)
-  return { proc, ...weNeedBreadWeAreHungry }
 }

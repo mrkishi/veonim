@@ -1,13 +1,29 @@
 import { merge, getDirFiles, configPath, readFile, fromJSON } from '../support/utils'
-import { startProletariatRevolution } from '../support/proletariat-client'
+import { startRevolution, joinRevolution } from '../support/proletariat-client'
 import { connect, Server } from '../messaging/jsonrpc'
 import * as path from 'path'
 
-startProletariatRevolution('extension-host').then(({ on }) => {
-  on.getBread((breads: string) => {
-    console.log('get bread:', breads)
+// TODO: move this somewhere more sensible
+const main = async () => {
+  const { getName } = startRevolution('extension-host')
+  const name = await getName
+
+  console.log('joining revolution:', name)
+  const { on, call, request } = joinRevolution(name)
+
+  on.eatBread((breads: string) => {
+    console.log('eating bread:', breads)
   })
-})
+
+  setInterval(() => {
+    call.getBread('falafel bread')
+  }, 3e3)
+
+  const bakedBreadAmount = await request.bakeBread(4)
+  console.log('baked so much bread:', bakedBreadAmount)
+}
+
+main().catch(console.error)
 
 enum ActivationEventType {
   WorkspaceContains = 'workspaceContains',
