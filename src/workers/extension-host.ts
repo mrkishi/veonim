@@ -2,13 +2,19 @@ import { ActivationEvent, ActivationEventType, LanguageActivationResult, Activat
 import { merge, getDirFiles, readFile, fromJSON, is } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 // import { EXT_PATH } from '../config/default-configs'
-import fakeModule from '../support/fake-module'
-import { connect } from '../messaging/jsonrpc'
+import { connect, Server } from '../messaging/jsonrpc'
 import { basename, join } from 'path'
+import '../support/vscode-shim'
 
 // TODO: TEMP ONLY
 import { configPath } from '../support/utils'
 const EXT_PATH = join(configPath, 'veonim', 'ext2')
+
+// need this flag to spawn node child processes. this will use the same node
+// runtime included with electron. usually we would set this as an option in
+// the spawn call, but we do not have access to the spawn calls in the
+// extensions that are spawning node executables (language servers, etc.)
+process.env.ELECTRON_RUN_AS_NODE = '1'
 
 interface Extension {
   requirePath: string,
@@ -20,37 +26,6 @@ interface ExtensionLocation {
   packageJson: string,
 }
 
-type LogMissingModuleApi = (moduleName: string, apiPath: string) => void
-let logMissingModuleApiDuringDevelopment: LogMissingModuleApi = () => {}
-
-if (process.env.VEONIM_DEV) {
-  logMissingModuleApiDuringDevelopment = (moduleName, apiPath) => console.warn(`fake module ${moduleName} is missing an implementation for: ${apiPath}`)
-}
-
-const LanguageClient = class LanguageClient {
-  protected name: string
-  protected serverActivator: Function
-
-  constructor (name: string, serverActivator: Function) {
-    this.name = name
-    this.serverActivator = serverActivator
-  }
-
-  start () {
-    console.log('starting extension:', this.name)
-    return this.serverActivator()
-  }
-
-  error (data: string) {
-    console.error(this.name, data)
-  }
-}
-
-fakeModule('vscode', {}, logMissingModuleApiDuringDevelopment)
-fakeModule('vscode-languageclient', {
-  LanguageClient,
-}, logMissingModuleApiDuringDevelopment)
-
 const { on } = WorkerClient()
 
 interface ActivateOpts {
@@ -59,7 +34,7 @@ interface ActivateOpts {
 }
 
 on.activate(({ kind, data }: ActivateOpts) => {
-  if (kind === 'language') activate.language(data)
+  if (kind === 'language') return activate.language(data)
 })
 
 on.load(() => load())
@@ -136,11 +111,8 @@ const activate = {
 
     const [ serverActivator ] = context.subscriptions
 
-    // TODO: we need to pass 'ELECTRON_RUN_AS_NODE' in the spawn call
-    // set it globally somehow or hack spawn?
-
     if (!is.promise(serverActivator)) return {
-      reason: `server activator function not valid or not a promise: ${language} - ${modulePath}`,
+      reason: `server activator function not valid or did not return a promise: ${language} - ${modulePath}`,
       status: ActivationResultKind.Fail,
     }
 
