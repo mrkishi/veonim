@@ -39,7 +39,7 @@ interface ServerBridgeParams {
   params: any[],
 }
 
-const { on, call } = WorkerClient()
+const { on, call, request } = WorkerClient()
 const runningLanguageServers = new Map<string, rpc.MessageConnection>()
 
 on.activate(({ kind, data }: ActivateOpts) => {
@@ -48,27 +48,41 @@ on.activate(({ kind, data }: ActivateOpts) => {
 
 on.load(() => load())
 
-on.serverNotify(({ serverId, method, params }: ServerBridgeParams) => {
+on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
   const server = runningLanguageServers.get(serverId)
   if (!server) return
   server.sendNotification(method, ...params)
 })
 
-on.serverRequest(({ serverId, method, params }: ServerBridgeParams) => {
+on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
   const server = runningLanguageServers.get(serverId)
   if (!server) return
   return server.sendRequest(method, ...params)
 })
 
-on.serverSubscribeNotification(({ serverId, method }: ServerBridgeParams) => {
+on.server_onNotification(({ serverId, method }: ServerBridgeParams) => {
   const server = runningLanguageServers.get(serverId)
   if (!server) return
   server.onNotification(method, (...args) => call[`${serverId}:${method}`](args))
 })
 
-// TODO: onRequest
-// TODO: onError
-// TODO: onExit
+on.server_onRequest(({ serverId, method }: ServerBridgeParams) => {
+  const server = runningLanguageServers.get(serverId)
+  if (!server) return
+  server.onRequest(method, async (...args) => request[`${serverId}:${method}`](args))
+})
+
+on.server_onError(({ serverId }: ServerBridgeParams) => {
+  const server = runningLanguageServers.get(serverId)
+  if (!server) return
+  server.onError(err => call[`${serverId}:onError`](err))
+})
+
+on.server_onClose(({ serverId }: ServerBridgeParams) => {
+  const server = runningLanguageServers.get(serverId)
+  if (!server) return
+  server.onClose(() => call[`${serverId}:onClose`]())
+})
 
 const extensions = new Map<string, Extension>()
 const languageExtensions = new Map<string, string>()

@@ -19,13 +19,21 @@ export default (name: string) => {
     return task.promise
   })
 
-  worker.onmessage = ({ data: [e, data, id] }: MessageEvent) => {
-    if (id && pendingRequests.has(id)) {
+  worker.onmessage = ({ data: [e, data = [], id] }: MessageEvent) => {
+    if (!id) return watchers.notify(e, ...data)
+
+    if (pendingRequests.has(id)) {
       pendingRequests.get(id)(data)
       pendingRequests.delete(id)
+      return
     }
 
-    else watchers.notify(e, ...(data || []))
+    watchers.notifyFn(e, cb => {
+      const resultOrPromise = cb(...data)
+      if (!resultOrPromise) return
+      if (resultOrPromise.then) resultOrPromise.then((res: any) => worker.postMessage([e, res, id]))
+      else worker.postMessage([e, resultOrPromise, id])
+    })
   }
 
   return { on, call, request }
