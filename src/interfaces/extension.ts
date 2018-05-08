@@ -24,11 +24,6 @@ export interface ActivationEvent {
   value: string,
 }
 
-export interface Extension {
-  modulePath: string,
-  activationEvents: ActivationEvent[],
-}
-
 export interface LanguageActivationResult {
   status: ActivationResultKind,
   reason?: string,
