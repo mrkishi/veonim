@@ -1,5 +1,5 @@
 import { ActivationEvent, ActivationEventType, LanguageActivationResult, ActivationResultKind } from '../interfaces/extension'
-import { merge, getDirFiles, readFile, fromJSON } from '../support/utils'
+import { merge, getDirFiles, readFile, fromJSON, is } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 // import { EXT_PATH } from '../config/default-configs'
 import fakeModule from '../support/fake-module'
@@ -28,14 +28,21 @@ if (process.env.VEONIM_DEV) {
 }
 
 const LanguageClient = class LanguageClient {
-  constructor (name: string, serverOpts: any, clientOpts: any) {
-    console.log('start extension', name)
-    console.log('with server options:', serverOpts)
-    console.log('and client options:', clientOpts)
+  protected name: string
+  protected serverActivator: Function
+
+  constructor (name: string, serverActivator: Function) {
+    this.name = name
+    this.serverActivator = serverActivator
   }
 
   start () {
-    console.log('TODO: start extension lang client RIGHT NOW LOL')
+    console.log('starting extension:', this.name)
+    return this.serverActivator()
+  }
+
+  error (data: string) {
+    console.error(this.name, data)
   }
 }
 
@@ -52,8 +59,6 @@ interface ActivateOpts {
 }
 
 on.activate(({ kind, data }: ActivateOpts) => {
-  console.log('activatationEvent:', kind, 'for', data)
-
   if (kind === 'language') activate.language(data)
 })
 
@@ -99,8 +104,6 @@ const load = async () => {
   extensions.clear()
   languageExtensions.clear()
 
-  console.log('extensions found:', extensionData)
-
   extensionData.forEach(m => {
     extensions.set(m.requirePath, m)
     m.activationEvents
@@ -109,15 +112,9 @@ const load = async () => {
   })
 }
 
-const context = {
-  subscriptions: []
-}
-
 const activate = {
   language: async (language: string): Promise<LanguageActivationResult> => {
-    console.log('pls activate:', language)
     const modulePath = languageExtensions.get(language)
-    console.log(modulePath, languageExtensions)
     if (!modulePath) return { status: ActivationResultKind.NotExist }
 
     const extension = require(modulePath)
@@ -128,21 +125,30 @@ const activate = {
     }
 
     const result: LanguageActivationResult = { status: ActivationResultKind.Success }
+    const context = { subscriptions: [] }
 
     await extension.activate(context).catch((reason: any) => merge(result, {
       reason,
       status: ActivationResultKind.Fail,
     }))
 
-    console.log('activated extension:', modulePath)
+    if (result.status === ActivationResultKind.Fail) return result
 
-    // TODO: do we need to pass 'ELECTRON_RUN_AS_NODE' in the spawn call?
-    // i think vsc sets it globally for the entire electron process somehow?
-    // result.server = ...?
-    // result.server = await extension
-    //   .activate({ connectLanguageServer: connect })
-    //   .catch((reason: any) => merge(result, { reason, status: ActivationResultKind.Fail }))
+    const [ serverActivator ] = context.subscriptions
 
-    return result
+    // TODO: we need to pass 'ELECTRON_RUN_AS_NODE' in the spawn call
+    // set it globally somehow or hack spawn?
+
+    if (!is.promise(serverActivator)) return {
+      reason: `server activator function not valid or not a promise: ${language} - ${modulePath}`,
+      status: ActivationResultKind.Fail,
+    }
+
+    const childProcess = await serverActivator
+
+    return {
+      server: connect.ipc(childProcess),
+      status: ActivationResultKind.Success,
+    }
   }
 }
