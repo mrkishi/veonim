@@ -1,10 +1,12 @@
 import { ActivationEvent, ActivationEventType, LanguageActivationResult, ActivationResultKind } from '../interfaces/extension'
-import { merge, getDirFiles, readFile, fromJSON, is } from '../support/utils'
+import { merge, getDirFiles, readFile, fromJSON, is, uuid } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 // import { EXT_PATH } from '../config/default-configs'
-import { connect, Server } from '../messaging/jsonrpc'
+import { ChildProcess } from 'child_process'
 import { basename, join } from 'path'
+import * as rpc from 'vscode-jsonrpc'
 import '../support/vscode-shim'
+// TODO: remove/deprecate jsonrpc module in messaging
 
 // TODO: TEMP ONLY
 import { configPath } from '../support/utils'
@@ -26,18 +28,47 @@ interface ExtensionLocation {
   packageJson: string,
 }
 
-const { on } = WorkerClient()
-
 interface ActivateOpts {
   kind: string,
   data: string,
 }
+
+interface ServerBridgeParams {
+  serverId: string,
+  method: string,
+  params: any[],
+}
+
+const { on, call } = WorkerClient()
+const runningLanguageServers = new Map<string, rpc.MessageConnection>()
 
 on.activate(({ kind, data }: ActivateOpts) => {
   if (kind === 'language') return activate.language(data)
 })
 
 on.load(() => load())
+
+on.serverNotify(({ serverId, method, params }: ServerBridgeParams) => {
+  const server = runningLanguageServers.get(serverId)
+  if (!server) return
+  server.sendNotification(method, ...params)
+})
+
+on.serverRequest(({ serverId, method, params }: ServerBridgeParams) => {
+  const server = runningLanguageServers.get(serverId)
+  if (!server) return
+  return server.sendRequest(method, ...params)
+})
+
+on.serverSubscribeNotification(({ serverId, method }: ServerBridgeParams) => {
+  const server = runningLanguageServers.get(serverId)
+  if (!server) return
+  server.onNotification(method, (...args) => call[`${serverId}:${method}`](args))
+})
+
+// TODO: onRequest
+// TODO: onError
+// TODO: onExit
 
 const extensions = new Map<string, Extension>()
 const languageExtensions = new Map<string, string>()
@@ -87,6 +118,19 @@ const load = async () => {
   })
 }
 
+const connectLanguageServer = (proc: ChildProcess): string => {
+  const serverId = uuid()
+
+  const reader = new rpc.StreamMessageReader(proc.stdout)
+  const writer = new rpc.StreamMessageWriter(proc.stdin)
+  const conn = rpc.createMessageConnection(reader, writer)
+
+  conn.listen()
+
+  runningLanguageServers.set(serverId, conn)
+  return serverId
+}
+
 const activate = {
   language: async (language: string): Promise<LanguageActivationResult> => {
     const modulePath = languageExtensions.get(language)
@@ -117,10 +161,8 @@ const activate = {
     }
 
     const childProcess = await serverActivator
+    const serverId = connectLanguageServer(childProcess)
 
-    return {
-      server: connect.ipc(childProcess),
-      status: ActivationResultKind.Success,
-    }
+    return { serverId, status: ActivationResultKind.Success }
   }
 }

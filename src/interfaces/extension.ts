@@ -27,5 +27,5 @@ export interface ActivationEvent {
 export interface LanguageActivationResult {
   status: ActivationResultKind,
   reason?: string,
-  server?: Server,
+  serverId?: string,
 }
