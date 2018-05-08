@@ -102,7 +102,17 @@ npm i
 npm start
 ```
 
-some of the npm scripts may only work on macOS and linux. windows should get its act together.
+### neovim configuration
+
+when starting the development build of veonim (via `npm start`) the app is configured to load configurations from a local folder instead of the default `XDG_CONFIG_HOME` location. in other words, pretend this is your `~/.config` folder when running veonim in dev mode.
+
+for example, place/copy your neovim configurations **relative to the veonim source folder**
+- `./xdg_config/nvim/init.vim` - init.vim
+- `./xdg_config/nvim/colors/gruvbox.vim` - colors
+
+veonim will also download and install neovim plugins and veonim extensions to this local dev config folder.
+
+if the folder does not exist, an empty one will be created. the default veonim configurations will be used (same configurations that would apply if no `~/.config`/`XDG_CONFIG_HOME` folder existed)
 
 ### building for your target platform
 

@@ -1,9 +1,21 @@
 'use strict'
 
+const { watch, ensureDir } = require('fs-extra')
 const { exec } = require('child_process')
 const { spawn } = require('cross-spawn')
-const { watch } = require('fs')
-const cwd = `${__dirname}/..`
+const path = require('path')
+
+const cwd = path.join(__dirname, '..')
+const devConfig = path.join(cwd, 'xdg_config')
+
+ensureDir(devConfig).then(async () => {
+  console.log('========================================')
+  console.log('local dev XDG_CONFIG_HOME dir:', devConfig)
+  console.log('----------------------------------------')
+  console.log('for the purposes of development/testing pretend this is your ~/.config or XDG_CONFIG_HOME equivalent folder. in dev mode, veonim will use this folder to source configs and install extensions/plugins to')
+  console.log('========================================')
+})
+
 const npmrun = task => exec(`npm run ${task}`, { cwd })
 const tsc = conf => spawn('tsc', [
   '-p',
@@ -22,7 +34,11 @@ const startElectron = () => {
     'build/bootstrap/main.js'
   ], {
     shell: true,
-    env: Object.assign({}, process.env, { VEONIM_DEV: 42 })
+    env: {
+      ...process.env,
+      VEONIM_DEV: 42,
+      XDG_CONFIG_HOME: devConfig,
+    },
   })
 
   proc.stdout.pipe(process.stdout)

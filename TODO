@@ -23,6 +23,8 @@ adapter:
  -symbols, get rid of  toVimLocation
 
 grep:
+  - if we start a query that results are found, but then expand the query to
+    something that does not return results, we are not clearing the ui
   - i'm not sure that we load all the results (in some cases - try searching
     for a popular keyword like 'await'). i think there is some logic to load
     more results from cache once we scroll down... maybe that is not activated

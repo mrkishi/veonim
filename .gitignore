@@ -1,4 +1,5 @@
 bindeps
+xdg_config
 coverage
 node_modules
 build
