@@ -1,3 +1,4 @@
+import { MessageConnection } from 'vscode-jsonrpc'
 import { Server } from '../messaging/jsonrpc'
 
 // can't import types from main thread or worker thread from each other. can't
@@ -13,19 +14,16 @@ export enum ActivationEventType {
   Always  = '*',
 }
 
-export enum ActivationResultKind {
-  Success,
-  Fail,
-  NotExist,
-}
-
 export interface ActivationEvent {
   type: ActivationEventType,
   value: string,
 }
 
-export interface LanguageActivationResult {
-  status: ActivationResultKind,
-  reason?: string,
-  server: object,
+export interface LanguageServer {
+  sendNotification: MessageConnection['sendNotification'],
+  sendRequest: MessageConnection['sendRequest'],
+  onNotification: MessageConnection['onNotification'],
+  onRequest: MessageConnection['onRequest'],
+  onError: MessageConnection['onError'],
+  onClose: MessageConnection['onClose'],
 }

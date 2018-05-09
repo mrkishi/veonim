@@ -48,40 +48,34 @@ on.activate(({ kind, data }: ActivateOpts) => {
 
 on.load(() => load())
 
+const getServer = (id: string) => {
+  const server = runningLanguageServers.get(id)
+  if (!server) throw new Error(`fail to get lang serv ${id}. this should not happen... ever.`)
+  return server
+}
+
 on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
-  const server = runningLanguageServers.get(serverId)
-  if (!server) return
-  server.sendNotification(method, ...params)
+  getServer(serverId).sendNotification(method, ...params)
 })
 
 on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
-  const server = runningLanguageServers.get(serverId)
-  if (!server) return
-  return server.sendRequest(method, ...params)
+  return getServer(serverId).sendRequest(method, ...params)
 })
 
 on.server_onNotification(({ serverId, method }: ServerBridgeParams) => {
-  const server = runningLanguageServers.get(serverId)
-  if (!server) return
-  server.onNotification(method, (...args) => call[`${serverId}:${method}`](args))
+  getServer(serverId).onNotification(method, (...args) => call[`${serverId}:${method}`](args))
 })
 
 on.server_onRequest(({ serverId, method }: ServerBridgeParams) => {
-  const server = runningLanguageServers.get(serverId)
-  if (!server) return
-  server.onRequest(method, async (...args) => request[`${serverId}:${method}`](args))
+  getServer(serverId).onRequest(method, async (...args) => request[`${serverId}:${method}`](args))
 })
 
 on.server_onError(({ serverId }: ServerBridgeParams) => {
-  const server = runningLanguageServers.get(serverId)
-  if (!server) return
-  server.onError(err => call[`${serverId}:onError`](err))
+  getServer(serverId).onError(err => call[`${serverId}:onError`](err))
 })
 
 on.server_onClose(({ serverId }: ServerBridgeParams) => {
-  const server = runningLanguageServers.get(serverId)
-  if (!server) return
-  server.onClose(() => call[`${serverId}:onClose`]())
+  getServer(serverId).onClose(() => call[`${serverId}:onClose`]())
 })
 
 const extensions = new Map<string, Extension>()
@@ -145,38 +139,40 @@ const connectLanguageServer = (proc: ChildProcess): string => {
   return serverId
 }
 
+const activateExtensionForLanguage = async (language: string): any[] => {
+  const modulePath = languageExtensions.get(language)
+  if (!modulePath) {
+    console.warn(`extension for ${language} not found`)
+    return []
+  }
+
+  const extName = basename(modulePath)
+
+  const extension = require(modulePath)
+  if (!extension.activate) {
+    console.error(`extension ${extName} does not have a .activate() method`)
+    return []
+  }
+
+  const context = { subscriptions: [] }
+  await extension.activate(context).catch((err: any) => console.error(extName, err))
+
+  return context.subscriptions
+}
+
 const activate = {
-  language: async (language: string): Promise<LanguageActivationResult> => {
-    const modulePath = languageExtensions.get(language)
-    if (!modulePath) return { status: ActivationResultKind.NotExist }
+  language: async (language: string) => {
+    const subscriptions = await activateExtensionForLanguage(language)
+    if (!subscriptions.length) return
 
-    const extension = require(modulePath)
+    const [ serverActivator ] = subscriptions
 
-    if (!extension.activate) return {
-      status: ActivationResultKind.Fail,
-      reason: `extension ${basename(modulePath)} does not have a .activate() method`
-    }
-
-    const result: LanguageActivationResult = { status: ActivationResultKind.Success }
-    const context = { subscriptions: [] }
-
-    await extension.activate(context).catch((reason: any) => merge(result, {
-      reason,
-      status: ActivationResultKind.Fail,
-    }))
-
-    if (result.status === ActivationResultKind.Fail) return result
-
-    const [ serverActivator ] = context.subscriptions
-
-    if (!is.promise(serverActivator)) return {
-      reason: `server activator function not valid or did not return a promise: ${language} - ${modulePath}`,
-      status: ActivationResultKind.Fail,
+    if (!is.promise(serverActivator)) {
+      console.error(`server activator function not valid or did not return a promise for ${language}`)
+      return
     }
 
     const childProcess = await serverActivator
-    const serverId = connectLanguageServer(childProcess)
-
-    return { serverId, status: ActivationResultKind.Success }
+    return connectLanguageServer(childProcess)
   }
 }

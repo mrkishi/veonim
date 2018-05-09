@@ -35,7 +35,7 @@ const initServer = async (server: Server, cwd: string, filetype: string) => {
   const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
   if (error) {
     dispatch.pub('langserv:start.fail', filetype, error)
-    throw `failed to initalize server ${filetype} -> ${JSON.stringify(error)}`
+    throw `failed to initialize server ${filetype} -> ${JSON.stringify(error)}`
   }
   server.notify.initialized()
 
@@ -69,7 +69,12 @@ const registerDynamicCaller = (namespace: string, { notify = false } = {}): Prox
   }
 
   const starting = startingServer(cwd, filetype)
-  const { status, reason, server } = await extensions.activate.language(filetype)
+  const server = await extensions.activate.language(filetype)
+
+  if (!server) {
+    starting.done()
+    return
+  }
 
   // TODO: report status in GUI
   if (status === extensions.ActivationResultKind.NotExist) {
