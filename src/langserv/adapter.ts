@@ -1,7 +1,7 @@
 import { CodeLens, Diagnostic, Command, Location, Position, WorkspaceEdit,
   Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
   DocumentHighlight } from 'vscode-languageserver-types'
-import { notify, workspace, textDocument, completionItem, getSyncKind, SyncKind } from '../langserv/director'
+import { notify, request, getSyncKind, SyncKind } from '../langserv/director'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
@@ -116,8 +116,8 @@ export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false
   const req = toProtocol(bufferState, { contentChanges: [ content ], filetype })
 
   bufferOpened
-    ? notify.textDocument.didOpen(req)
-    : notify.textDocument.didChange(req)
+    ? notify('textDocument/didOpen', req)
+    : notify('textDocument/didChange', req)
 }
 
 export const partialBufferUpdate = async (change: BufferChange, bufferOpened = false) => {
@@ -139,13 +139,13 @@ export const partialBufferUpdate = async (change: BufferChange, bufferOpened = f
   const req = toProtocol(change, { contentChanges: [ content ], filetype })
 
   bufferOpened
-    ? notify.textDocument.didOpen(req)
-    : notify.textDocument.didChange(req)
+    ? notify('textDocument/didOpen', req)
+    : notify('textDocument/didChange', req)
 }
 
 export const definition = async (data: NeovimState) => {
   const req = toProtocol(data)
-  const result = await textDocument.definition(req)
+  const result = await request('textDocument/definition', req)
   if (!result) return {}
   const { uri, range } = is.array(result) ? result[0] : result
 
@@ -189,7 +189,7 @@ export const references = async (data: NeovimState) => {
     }
   })
 
-  const references: Location[] = await textDocument.references(req) || []
+  const references: Location[] = await request('textDocument/references', req) || []
   if (!references.length) return { keyword: '', references: [] as Reference[] }
 
   const locationContentMap = await getLocationContentsMap(references)
@@ -218,7 +218,7 @@ export const references = async (data: NeovimState) => {
 
 export const highlights = async (data: NeovimState) => {
   const req = toProtocol(data)
-  const result = await textDocument.documentHighlight(req) as DocumentHighlight[]
+  const result = await request('textDocument/documentHighlight', req) as DocumentHighlight[]
   if (!result) return { references: [] as Reference[] }
 
   const references = result.map(m => ({
@@ -238,13 +238,13 @@ export const highlights = async (data: NeovimState) => {
 
 export const rename = async (data: NeovimState & { newName: string }): Promise<Patch[]> => {
   const req = toProtocol(data, { newName: data.newName })
-  const workspaceEdit = await textDocument.rename(req) as WorkspaceEdit
+  const workspaceEdit = await request('textDocument/rename', req) as WorkspaceEdit
   return workspaceEditToPatch(workspaceEdit)
 }
 
 export const hover = async (data: NeovimState): Promise<HoverResult> => {
   const req = toProtocol(data)
-  const res = await textDocument.hover(req) as Hover
+  const res = await request('textDocument/hover', req) as Hover
   if (!res) return {}
   const { contents } = res
 
@@ -268,14 +268,14 @@ const toVimLocation = ({ uri, range }: Location): VimLocation => ({
 
 export const symbols = async (data: NeovimState): Promise<Symbol[]> => {
   const req = toProtocol(data)
-  const symbols = await textDocument.documentSymbol(req) as SymbolInformation[]
+  const symbols = await request('textDocument/documentSymbol', req) as SymbolInformation[]
   if (!symbols || !symbols.length) return []
   return symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
 }
 
 export const workspaceSymbols = async (data: NeovimState, query: string): Promise<Symbol[]> => {
   const req = { query, ...toProtocol(data) }
-  const symbols = await workspace.symbol(req) as SymbolInformation[]
+  const symbols = await request('workspace/symbol', req) as SymbolInformation[]
   if (!symbols || !symbols.length) return []
   const mappedSymbols = symbols.map(s => ({ ...s, location: toVimLocation(s.location) }))
   return filterWorkspaceSymbols(mappedSymbols)
@@ -283,7 +283,7 @@ export const workspaceSymbols = async (data: NeovimState, query: string): Promis
 
 export const completions = async (data: NeovimState): Promise<CompletionItem[]> => {
   const req = toProtocol(data)
-  const res = await textDocument.completion(req)
+  const res = await request('textDocument/completion', req)
   // TODO: handle isIncomplete flag in completions result
   // docs: * This list it not complete. Further typing should result in recomputing this list
   return is.object(res) && res.items ? res.items : res
@@ -291,17 +291,17 @@ export const completions = async (data: NeovimState): Promise<CompletionItem[]> 
 
 export const completionDetail = async (data: NeovimState, item: CompletionItem): Promise<CompletionItem> => {
   const req = toProtocol(data)
-  return (await completionItem.resolve({ ...req, ...item })) || {}
+  return (await request('completionItem/resolve', { ...req, ...item })) || {}
 }
 
 export const signatureHelp = async (data: NeovimState) => {
   const req = toProtocol(data)
-  return await textDocument.signatureHelp(req) as SignatureHelp
+  return await request('textDocument/signatureHelp', req) as SignatureHelp
 }
 
 export const codeLens = async (data: NeovimState): Promise<CodeLens[]> => {
   const req = toProtocol(data)
-  return (await textDocument.codeLens(req)) || []
+  return (await request('textDocument/codeLens', req)) || []
 }
 
 export const codeAction = async (data: NeovimState, diagnostics: Diagnostic[]): Promise<Command[]> => {
@@ -314,7 +314,7 @@ export const codeAction = async (data: NeovimState, diagnostics: Diagnostic[]): 
     ? { start: diagnostics[0].range.start, end: diagnostics[0].range.end }
     : { start: req.position, end: req.position }
 
-  const request = {
+  const langRequest = {
     range,
     cwd: req.cwd,
     filetype: req.filetype,
@@ -323,12 +323,12 @@ export const codeAction = async (data: NeovimState, diagnostics: Diagnostic[]): 
   }
 
   // TODO: what is causing 'cannot read description of undefined error in lsp server?'
-  return (await textDocument.codeAction(request)) || []
+  return (await request('textDocument/codeAction', langRequest)) || []
 }
 
 export const executeCommand = async (data: NeovimState, command: Command) => {
   const req = toProtocol(data)
-  workspace.executeCommand({ ...req, ...command })
+  notify('workspace/executeCommand', { ...req, ...command })
 }
 
 export const applyEdit = async (edit: WorkspaceEdit) => applyPatches(workspaceEditToPatch(edit))

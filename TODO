@@ -3,6 +3,8 @@ consider adding brunswick theme as default. when rebrand with new logo?
 
 spammy cmd-update lolwut?
 
+goto-(next|prev)-reference not jumping to correct item (probably duplicate)
+
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
   - should use clip/rect to draw thingies? perf impact?
