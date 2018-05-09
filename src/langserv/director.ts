@@ -4,7 +4,6 @@ import { proxyFn, Watchers } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
 import { applyEdit } from '../langserv/adapter'
-import { Server } from '../messaging/jsonrpc'
 
 type ProxyFn = { [index: string]: Function }
 type QueryableObject = { [index: string]: any }
@@ -13,33 +12,31 @@ interface Result {
   capabilities: QueryableObject
 }
 
-interface ActiveServer extends Server {
+interface ActiveServer extends extensions.LanguageServer {
   canDo: Result & QueryableObject
 }
 
 export enum SyncKind { None, Full, Incremental }
 
-const derp = (e: any) => console.error(e)
+// const derp = (e: any) => console.error(e)
 const servers = new Map<string, ActiveServer>()
 const startingServers = new Set<string>()
 const serverStartCallbacks = new Set<Function>()
 const watchers = new Watchers()
 
-const runningServers = {
-  has: (cwd: string, type: string) => servers.has(`${cwd}::${type}`),
-  get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
-  add: (cwd: string, type: string, server: ActiveServer) => servers.set(`${cwd}::${type}`, server),
-}
+// const runningServers = {
+//   has: (cwd: string, type: string) => servers.has(`${cwd}::${type}`),
+//   get: (cwd: string, type: string) => servers.get(`${cwd}::${type}`),
+//   add: (cwd: string, type: string, server: ActiveServer) => servers.set(`${cwd}::${type}`, server),
+// }
 
 const initServer = async (server: Server, cwd: string, filetype: string) => {
-  const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(derp)
-  if (error) {
-    dispatch.pub('langserv:start.fail', filetype, error)
-    throw `failed to initialize server ${filetype} -> ${JSON.stringify(error)}`
-  }
+  const { error, capabilities: canDo } = await server.request.initialize(defaultCapabs(cwd)).catch(console.error)
+
+  if (error) throw new Error(`failed to initialize server ${filetype} -> ${JSON.stringify(error)}`)
   server.notify.initialized()
 
-  runningServers.add(cwd, filetype, { ...server, canDo })
+  servers.set(cwd + filetype, { ...server, canDo })
   serverStartCallbacks.forEach(fn => fn(server))
 
   dispatch.pub('langserv:start.success', filetype)
@@ -54,9 +51,45 @@ const startingServer = (cwd: string, filetype: string) => {
   return { done: () => startingServers.delete(cwd + filetype)}
 }
 
+const getServerForProjectAndLanguage = async (cwd: string, filetype: string) => {
+  const id = cwd + filetype
+  if (servers.has(id)) return servers.get(id)
+
+  const serverAvailable = await extensions.existsForLanguage(filetype)
+  if (!serverAvailable) return
+
+  startingServers.add(id)
+  const server = await extensions.activate.language(filetype)
+  await initServer(server, cwd, filetype)
+  startingServers.delete(id)
+  // TODO: update statusline
+  dispatch.pub('ai:start', filetype)
+
+  return server
+}
+
+// TODO: can we make this composable? curried? just need to figure out typings
+export const request = async (method: string, params: any) => {
+  const { cwd, filetype } = params
+  // TODO: should we buffer calls or just drop?
+  if (startingServers.has(cwd + filetype)) return
+  const server = await getServerForProjectAndLanguage(cwd, filetype)
+  if (server) return server.sendRequest(method, params)
+}
+
+export const notify = async (method: string, params: any) => {
+  const { cwd, filetype } = params
+  // TODO: should we buffer calls or just drop?
+  if (startingServers.has(cwd + filetype)) return
+  const server = await getServerForProjectAndLanguage(cwd, filetype)
+  if (server) server.sendNotification(method, params)
+}
+
 const registerDynamicCaller = (namespace: string, { notify = false } = {}): ProxyFn => proxyFn(async (method, params) => {
   const { cwd, filetype } = params
   if (startingServers.has(cwd + filetype)) return
+
+  return runningServers.get(cwd, filetype)
 
   if (runningServers.has(cwd, filetype)) {
     const server = runningServers.get(cwd, filetype)

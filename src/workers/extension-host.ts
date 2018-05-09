@@ -42,6 +42,7 @@ interface ServerBridgeParams {
 const { on, call, request } = WorkerClient()
 const runningLanguageServers = new Map<string, rpc.MessageConnection>()
 
+on.existsForLanguage((language: string) => Promise.resolve(languageExtensions.has(language)))
 on.activate(({ kind, data }: ActivateOpts) => {
   if (kind === 'language') return activate.language(data)
 })
@@ -142,7 +143,7 @@ const connectLanguageServer = (proc: ChildProcess): string => {
 const activateExtensionForLanguage = async (language: string): any[] => {
   const modulePath = languageExtensions.get(language)
   if (!modulePath) {
-    console.warn(`extension for ${language} not found`)
+    console.error(`extension for ${language} not found`)
     return []
   }
 
