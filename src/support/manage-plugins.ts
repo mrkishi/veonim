@@ -1,6 +1,6 @@
 import { exists, getDirs, is, configPath } from '../support/utils'
 import { NotifyKind, notify } from '../ui/notifications'
-import { downloadRepo } from '../support/download'
+import { downloadGithubRepo } from '../support/download'
 import { remove as removePath } from 'fs-extra'
 import { cmd } from '../core/neovim'
 import { join } from 'path'
@@ -46,15 +46,16 @@ const removeExtraneous = async (plugins: Plugin[]) => {
 
 export default async (configLines: string[]) => {
   const plugins = await getPlugins(configLines).catch()
-  const pluginsNotInstalled = plugins.filter(ext => !ext.installed)
+  const pluginsNotInstalled = plugins.filter(plug => !plug.installed)
   if (!pluginsNotInstalled.length) return removeExtraneous(plugins)
 
   notify(`Found ${pluginsNotInstalled.length} Veonim plugins. Installing...`, NotifyKind.System)
 
-  await Promise.all(plugins.map(ext => downloadRepo({
-    user: ext.user,
-    repo: ext.repo,
-    destination: ext.downloadpath,
+  await Promise.all(plugins.map(plug => downloadGithubRepo({
+    user: plug.user,
+    repo: plug.repo,
+    destination: plug.downloadpath,
+    dirname: `${plug.user}--${plug.repo}`,
   })))
 
   notify(`Installed ${pluginsNotInstalled.length} Veonim plugins!`, NotifyKind.Success)

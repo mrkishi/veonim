@@ -1,15 +1,10 @@
 import { getDirFiles, readFile, fromJSON, is, uuid } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
-// import { EXT_PATH } from '../config/default-configs'
+import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess } from 'child_process'
 import { basename, join } from 'path'
 import * as rpc from 'vscode-jsonrpc'
 import '../support/vscode-shim'
-
-// TODO: TEMP ONLY (because normally extensions are downloaded but it will
-// download old veonim ext instead of vscode ext)
-import { configPath } from '../support/utils'
-const EXT_PATH = join(configPath, 'veonim', 'ext2')
 
 // need this flag to spawn node child processes. this will use the same node
 // runtime included with electron. usually we would set this as an option in
