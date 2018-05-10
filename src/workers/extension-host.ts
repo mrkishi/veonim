@@ -5,9 +5,9 @@ import { ChildProcess } from 'child_process'
 import { basename, join } from 'path'
 import * as rpc from 'vscode-jsonrpc'
 import '../support/vscode-shim'
-// TODO: remove/deprecate jsonrpc module in messaging
 
-// TODO: TEMP ONLY
+// TODO: TEMP ONLY (because normally extensions are downloaded but it will
+// download old veonim ext instead of vscode ext)
 import { configPath } from '../support/utils'
 const EXT_PATH = join(configPath, 'veonim', 'ext2')
 
