@@ -30,12 +30,12 @@ export const activate = {
 
     const onNotification = (method: string, cb: (...args: any[]) => void) => {
       call.server_onNotification({ serverId, method })
-      on[`${serverId}:${method}`]((...args: any[]) => cb(...args))
+      on[`${serverId}:${method}`]((args: any[]) => cb(...args))
     }
 
     const onRequest = (method: string, cb: (...args: any[]) => Promise<any>) => {
       call.server_onRequest({ serverId, method })
-      on[`${serverId}:${method}`]((...args: any[]) => cb(...args))
+      on[`${serverId}:${method}`]((args: any[]) => cb(...args))
     }
 
     const onError = (cb: (err: any) => void) => {
