@@ -7,8 +7,8 @@ const request = require('request')
 interface DownloadRequest {
   user: string,
   repo: string,
-  destination: string,
   dirname: string,
+  destination: string,
 }
 
 const url = {

@@ -1,9 +1,9 @@
 import { downloadGithubExt, downloadVscodeExt } from '../support/download'
 import { load as loadExtensions } from '../core/extensions'
-import { remove as removePath, ensureDir } from 'fs-extra'
 import { NotifyKind, notify } from '../ui/notifications'
 import { exists, getDirs, is } from '../support/utils'
 import { EXT_PATH } from '../config/default-configs'
+import { remove as removePath } from 'fs-extra'
 import { join } from 'path'
 
 interface Extension {
@@ -18,26 +18,13 @@ enum ExtensionKind {
   VSCode,
 }
 
-const parseGithubExt = (text: string) => {
-  const [ , user = '', repo = '' ] = (text.match(/^([^/]+)\/(.*)/) || [])
-  return { user, repo }
-}
-
-const parseVscodeExt = (text: string) => {
-  const [ , user = '', repo = '' ] = (text.match(/^([^\.]+)\.(.*)/) || [])
-  return { user, repo }
-}
-
 const parseExtensionDefinition = (text: string) => {
-  if (text.toLowerCase().startsWith('vscode:extension/')) return {
-    kind: ExtensionKind.VSCode,
-    ...parseVscodeExt(text.toLowerCase().replace('vscode:extension/', '')),
-  }
+  const isVscodeExt = text.toLowerCase().startsWith('vscode:extension')
+  const [ , user = '', repo = '' ] = isVscodeExt
+    ? (text.match(/^(?:vscode:extension\/)([^\.]+)\.(.*)/) || [])
+    : (text.match(/^([^/]+)\/(.*)/) || [])
 
-  else return {
-    kind: ExtensionKind.Github,
-    ...parseGithubExt(text),
-  }
+  return { user, repo, kind: isVscodeExt ? ExtensionKind.VSCode : ExtensionKind.Github }
 }
 
 const getExtensions = async (configLines: string[]) => Promise.all(configLines
@@ -69,7 +56,6 @@ export default async (configLines: string[]) => {
   if (!extensionsNotInstalled.length) return removeExtraneous(extensions)
 
   notify(`Found ${extensionsNotInstalled.length} Veonim extensions. Installing...`, NotifyKind.System)
-  await ensureDir(EXT_PATH)
 
   await Promise.all(extensions.map(ext => {
     const isVscodeExt = ext.kind === ExtensionKind.VSCode
