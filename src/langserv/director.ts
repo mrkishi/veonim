@@ -1,9 +1,10 @@
 import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
-import { Watchers, getInObjectByPath } from '../support/utils'
 import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
 import { applyEdit } from '../langserv/adapter'
+import pleaseGet from '../support/please-get'
+import { Watchers } from '../support/utils'
 
 export enum SyncKind { None, Full, Incremental }
 
@@ -34,12 +35,7 @@ const startServer = async (cwd: string, filetype: string) => {
   await initServer(server, cwd, filetype)
 
   startingServers.delete(cwd + filetype)
-  // TODO: update statusline. we should send cwd as well right now the
-  // statusline checks if the current buffer filetype has a server running for
-  // the given filetype. this is may not be enough. if we change
-  // :cwd/:pwd/project in the current vim session, then this will be a lie,
-  // since we need to start a new language server for the new project/workspace
-  dispatch.pub('ai:start', filetype)
+  dispatch.pub('ai:start', { cwd, filetype })
 
   return server
 }
@@ -87,19 +83,19 @@ export const onDiagnostics = (cb: (diagnostics: { uri: string, diagnostics: Diag
 export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
   const capabilities = serverCapabilities.get(cwd + filetype)
   if (!capabilities) return SyncKind.Full
-  return getInObjectByPath(capabilities, 'textDocumentSync.change') || SyncKind.Full
+  return pleaseGet(capabilities).textDocumentSync.change(SyncKind.Full)
 }
 
 const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
   const capabilities = serverCapabilities.get(cwd + filetype)
   if (!capabilities) return []
-  return getInObjectByPath(capabilities, `${kind}.triggerCharacters`)
+  return pleaseGet(capabilities)[kind].triggerCharacters()
 }
 
 export const canCall = (cwd: string, filetype: string, capability: string): boolean => {
   const capabilities = serverCapabilities.get(cwd + filetype)
   if (!capabilities) return false
-  return !!getInObjectByPath(capabilities, `${capability}Provider`)
+  return pleaseGet(capabilities)[`${capability}Provider`](false)
 }
 
 export const triggers = {

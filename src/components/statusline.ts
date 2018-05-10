@@ -85,19 +85,12 @@ const actions = {
   setMacro: (macro = '') => ({ macro }),
   setColor: (baseColor: any) => ({ baseColor }),
 
-  serverRunning: (server: any) => (s: S) => ({
-    runningServers: new Set([...s.runningServers, server]),
-    erroredServers: new Set([...s.erroredServers].filter(m => m !== server)),
-  }),
-
-  serverErrored: (server: any) => (s: S) => ({
-    runningServers: new Set([...s.runningServers].filter(m => m !== server)),
-    erroredServers: new Set([...s.erroredServers, server]),
-  }),
-
-  serverOffline: (server: any) => (s: S) => ({
-    runningServers: new Set([...s.runningServers].filter(m => m !== server)),
-    erroredServers: new Set([...s.erroredServers].filter(m => m !== server)),
+  // TODO: need to consider the cwd for running servers, not just filetype
+  // this may be because we change projects in the current vim session, which
+  // means we need to start new language servers. kthx
+  aiStart: (_cwd: string, filetype: string) => (s: S) => ({
+    runningServers: new Set([...s.runningServers, filetype]),
+    erroredServers: new Set([...s.erroredServers].filter(m => m !== filetype)),
   }),
 }
 
@@ -359,11 +352,7 @@ sub('git:branch', branch => ui.setGitBranch(branch))
 sub('git:status', status => ui.setGitStatus(status))
 sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
 sub('ai:diagnostics.count', count => ui.setDiagnostics(count))
-sub('langserv:start.success', ft => ui.serverRunning(ft))
-sub('langserv:start.fail', ft => ui.serverErrored(ft))
-sub('langserv:error.load', ft => ui.serverErrored(ft))
-sub('langserv:error', ft => ui.serverErrored(ft))
-sub('langserv:exit', ft => ui.serverOffline(ft))
+sub('ai:start', ({ cwd, filetype }) => ui.aiStart(cwd, filetype))
 sub('vim:macro.start', reg => ui.setMacro(reg))
 sub('vim:macro.end', () => ui.setMacro())
 

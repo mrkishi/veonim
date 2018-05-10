@@ -1,5 +1,5 @@
-import { ActivationEvent, ActivationEventType, LanguageActivationResult, ActivationResultKind } from '../interfaces/extension'
-import { merge, getDirFiles, readFile, fromJSON, is, uuid } from '../support/utils'
+import { ActivationEvent, ActivationEventType } from '../interfaces/extension'
+import { getDirFiles, readFile, fromJSON, is, uuid } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 // import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess } from 'child_process'
@@ -140,7 +140,7 @@ const connectLanguageServer = (proc: ChildProcess): string => {
   return serverId
 }
 
-const activateExtensionForLanguage = async (language: string): any[] => {
+const activateExtensionForLanguage = async (language: string) => {
   const modulePath = languageExtensions.get(language)
   if (!modulePath) {
     console.error(`extension for ${language} not found`)
