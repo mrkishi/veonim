@@ -6,6 +6,11 @@ import { applyEdit } from '../langserv/adapter'
 import pleaseGet from '../support/please-get'
 import { Watchers } from '../support/utils'
 
+interface ServKey {
+  cwd: string,
+  filetype: string,
+}
+
 export enum SyncKind { None, Full, Incremental }
 
 const servers = new Map<string, extensions.LanguageServer>()
@@ -24,11 +29,14 @@ const initServer = async (server: extensions.LanguageServer, cwd: string, filety
 
   servers.set(cwd + filetype, server)
   serverCapabilities.set(cwd + filetype, capabilities)
-
   serverStartCallbacks.forEach(fn => fn(server))
 }
 
 const startServer = async (cwd: string, filetype: string) => {
+  // yes, we check this status before calling this method, but it's async
+  // so by the time we get here it will be wrong. there was an issue with
+  // timing that was resolved by adding this check here.
+  if (isServerStarting(cwd, filetype)) return
   startingServers.add(cwd + filetype)
 
   const server = await extensions.activate.language(filetype)
@@ -40,21 +48,23 @@ const startServer = async (cwd: string, filetype: string) => {
   return server
 }
 
-const getServerForProjectAndLanguage = async ({ cwd, filetype }: { cwd: string, filetype: string }) => {
-  // this line of checking starting servers means that any server calls made
-  // during the gap between server start and server ready are dropped. it seems
-  // weird/wrong, but after some thought i came to the conclusion that this
-  // behavior is acceptable.
-  //
-  // the reasoning is that from a users perspective, the outcome should be the
-  // same whether the server is not available or if it is starting. in each of
-  // these states the server is unavailable to respond to requests.
-  //
-  // so either the server will start quickly enough that very few or no requests
-  // will be "dropped" or the server will take such a long time to start, that
-  // buffering any requests will result in the UI being spammed with lots of
-  // outdated information likely at the wrong item (and a very poor UX)
-  if (startingServers.has(cwd + filetype)) return
+// this line of checking starting servers means that any server calls made
+// during the gap between server start and server ready are dropped. it seems
+// weird/wrong, but after some thought i came to the conclusion that this
+// behavior is acceptable.
+//
+// the reasoning is that from a users perspective, the outcome should be the
+// same whether the server is not available or if it is starting. in each of
+// these states the server is unavailable to respond to requests.
+//
+// so either the server will start quickly enough that very few or no requests
+// will be "dropped" or the server will take such a long time to start, that
+// buffering any requests will result in the UI being spammed with lots of
+// outdated information likely at the wrong item (and a very poor UX)
+const isServerStarting = (cwd: string, filetype: string) => startingServers.has(cwd + filetype)
+
+const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
+  if (isServerStarting(cwd, filetype)) return
   if (servers.has(cwd + filetype)) return servers.get(cwd + filetype)
 
   const serverAvailable = await extensions.existsForLanguage(filetype)

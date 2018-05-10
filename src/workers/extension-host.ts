@@ -1,4 +1,3 @@
-import { ActivationEvent, ActivationEventType } from '../interfaces/extension'
 import { getDirFiles, readFile, fromJSON, is, uuid } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 // import { EXT_PATH } from '../config/default-configs'
@@ -17,6 +16,20 @@ const EXT_PATH = join(configPath, 'veonim', 'ext2')
 // the spawn call, but we do not have access to the spawn calls in the
 // extensions that are spawning node executables (language servers, etc.)
 process.env.ELECTRON_RUN_AS_NODE = '1'
+
+enum ActivationEventType {
+  WorkspaceContains = 'workspaceContains',
+  Language = 'onLanguage',
+  Command = 'onCommand',
+  Debug = 'onDebug',
+  View = 'onView',
+  Always  = '*',
+}
+
+interface ActivationEvent {
+  type: ActivationEventType,
+  value: string,
+}
 
 interface Extension {
   requirePath: string,

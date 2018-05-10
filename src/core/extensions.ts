@@ -1,6 +1,5 @@
 import Worker from '../messaging/worker'
 
-// TODO: do we still need the global extension interfaces?
 export interface LanguageServer {
   sendNotification: (method: string, ...params: any[]) => void,
   sendRequest: (method: string, ...params: any[]) => Promise<any>,
