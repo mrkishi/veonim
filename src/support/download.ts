@@ -1,5 +1,4 @@
 import { createWriteStream, ensureFile } from 'fs-extra'
-import { vscodeExtUrl } from '../config/default-configs'
 import { join, sep, dirname as getDirname } from 'path'
 import { Transform } from 'stream'
 const unzipper = require('unzipper')
@@ -12,8 +11,13 @@ interface DownloadRequest {
   dirname: string,
 }
 
+const url = {
+  github: (user: string, repo: string) => `https://github.com/${user}/${repo}/archive/master.zip`,
+  vscode: (author: string, name: string, version = 'latest') => `https://${author}.gallery.vsassets.io/_apis/public/gallery/publisher/${author}/extension/${name}/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`,
+}
+
 export const downloadGithubRepo = ({ user, repo, destination: path }: DownloadRequest) => new Promise(done => {
-  request(`https://github.com/${user}/${repo}/archive/master.zip`)
+  request(url.github(user, repo))
     .pipe(unzipper.Extract({ path }))
     .on('close', () => done({ path, success: true }))
     .on('error', (error: any) => done({ path, success: false, error }))
@@ -25,7 +29,7 @@ const renameFirstDir = (destination: string, path: string, dirname: string) => {
 }
 
 export const downloadGithubExt = ({ user, repo, destination, dirname }: DownloadRequest) => new Promise(done => {
-  request(`https://github.com/${user}/${repo}/archive/master.zip`)
+  request(url.github(user, repo))
     .pipe(unzipper.Parse())
     .pipe(new Transform({
       objectMode: true,
@@ -40,7 +44,7 @@ export const downloadGithubExt = ({ user, repo, destination, dirname }: Download
 })
 
 export const downloadVscodeExt = ({ user, repo, destination, dirname }: DownloadRequest) => new Promise(done => {
-  request(vscodeExtUrl(user, repo))
+  request(url.vscode(user, repo))
     .pipe(unzipper.Parse())
     .pipe(new Transform({
       objectMode: true,

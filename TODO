@@ -128,6 +128,11 @@ upgrade ripgrep
 
 --ideas--
 
+i want a go to previous buffer in the current window command. PLS
+- i thought vim could do this... but the alt buffer or :b# does not
+  work as expected. maybe need to write a plugin to track bufEnter and
+  add buffer entries to a stack (per window ofc)
+
 should there be a 'deactivated/unfocused' style of cursor? i.e. when jumping between Problems
 or references, instead of (right now) only showing cursorline, also show the actual cursor block
 but perhaps faded out, in such a way to indicate that there is no focus in the vim window...?
