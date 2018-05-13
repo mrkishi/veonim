@@ -4,6 +4,7 @@ import { NotifyKind, notify } from '../ui/notifications'
 import { exists, getDirs, is } from '../support/utils'
 import { EXT_PATH } from '../config/default-configs'
 import { remove as removePath } from 'fs-extra'
+import Worker from '../messaging/worker'
 import { join } from 'path'
 
 interface Extension {
@@ -17,6 +18,13 @@ enum ExtensionKind {
   Github,
   VSCode,
 }
+
+const url = {
+  github: (user: string, repo: string) => `https://github.com/${user}/${repo}/archive/master.zip`,
+  vscode: (author: string, name: string, version = 'latest') => `https://${author}.gallery.vsassets.io/_apis/public/gallery/publisher/${author}/extension/${name}/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`,
+}
+
+const { request } = Worker('download')
 
 const parseExtensionDefinition = (text: string) => {
   const isVscodeExt = text.toLowerCase().startsWith('vscode:extension')
@@ -57,20 +65,19 @@ export default async (configLines: string[]) => {
 
   notify(`Found ${extensionsNotInstalled.length} Veonim extensions. Installing...`, NotifyKind.System)
 
-  await Promise.all(extensions.map(ext => {
+  const installed = await Promise.all(extensions.map(ext => {
     const isVscodeExt = ext.kind === ExtensionKind.VSCode
+    const destination = join(EXT_PATH, `${ext.user}--${ext.repo}`)
+    const downloadUrl = isVscodeExt ? url.vscode(ext.user, ext.repo) : url.github(ext.user, ext.repo)
 
-    const config = {
-      user: ext.user,
-      repo: ext.repo,
-      destination: EXT_PATH,
-      dirname: `${ext.user}--${ext.repo}`,
-    }
-
-    isVscodeExt ? downloadVscodeExt(config) : downloadGithubExt(config)
+    return request.download(downloadUrl, destination)
   }))
 
-  notify(`Installed ${extensionsNotInstalled.length} Veonim extensions!`, NotifyKind.Success)
+  const installedOk = installed.filter(m => m).length
+  const installedFail = installed.filter(m => !m).length
+
+  if (installedOk) notify(`Installed ${installedOk} Veonim extensions!`, NotifyKind.Success)
+  if (installedFail) notify(`Failed to install ${installedFail} Veonim extensions. See devtools console for more info.`, NotifyKind.Error)
 
   removeExtraneous(extensions)
   loadExtensions()

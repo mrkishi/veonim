@@ -1,6 +1,8 @@
 NEW HARDER FASTER STRONGER ICON
 consider adding brunswick theme as default. when rebrand with new logo?
 
+shutdown+cleanup langservs on project switch/close
+
 update my vimrc to change ft of javascript.jsx -> javascript lolwtf is javascript.jsx whattabunchanonsense
 
 statusline: running lang server showing when started?

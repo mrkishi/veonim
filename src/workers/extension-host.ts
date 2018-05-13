@@ -1,8 +1,8 @@
-import { getDirFiles, readFile, fromJSON, is, uuid } from '../support/utils'
+import { readFile, fromJSON, is, uuid, getDirs, getFiles } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
+import { basename, dirname, join } from 'path'
 import { ChildProcess } from 'child_process'
-import { basename, join } from 'path'
 import * as rpc from 'vscode-jsonrpc'
 import '../support/vscode-shim'
 
@@ -29,11 +29,6 @@ interface ActivationEvent {
 interface Extension {
   requirePath: string,
   activationEvents: ActivationEvent[],
-}
-
-interface ExtensionLocation {
-  packagePath: string,
-  packageJson: string,
 }
 
 interface ActivateOpts {
@@ -90,24 +85,28 @@ on.server_onClose(({ serverId }: ServerBridgeParams) => {
 const extensions = new Map<string, Extension>()
 const languageExtensions = new Map<string, string>()
 
-const findExtensions = async (): Promise<ExtensionLocation[]> => {
-  const extensionDirs = (await getDirFiles(EXT_PATH)).filter(m => m.dir)
-  const dirFiles = await Promise.all(extensionDirs.map(async m => ({
-    dir: m.path,
-    files: await getDirFiles(m.path),
-  })))
+// so we download the zip file into user--repo dir. this dir will then contain
+// a folder with the extension contents. it will look something like the following:
+// ~/.config/veonim/extensions/veonim--ext-json/ext-json-master/package.json
+// ~/.config/veonim/extensions/vspublisher--vscode-extension/extension/package.json
+const findPackageJson = async (packageDir: string) => {
+  const [ firstDir ] = await getDirs(packageDir)
+  if (!firstDir) throw new Error(`empty package dir: ${packageDir}`)
 
-  return dirFiles
-    .filter(m => m.files.some(f => f.name.toLowerCase() === 'package.json'))
-    .map(m => ({
-      packagePath: m.dir,
-      packageJson: (m.files.find(f => f.name.toLowerCase() === 'package.json') || { path: '' }).path
-    }))
+  const filesInDir = await getFiles(firstDir.path)
+  const packagePath = filesInDir.find(m => m.path.endsWith('package.json'))
+  return (packagePath || {} as any).path
 }
 
-const getPackageJsonConfig = async ({ packagePath, packageJson }: ExtensionLocation): Promise<Extension> => {
+const findExtensions = async () => {
+  const extensionDirs = await getDirs(EXT_PATH)
+  return Promise.all(extensionDirs.map(m => findPackageJson(m.path)))
+}
+
+const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
   const rawFileData = await readFile(packageJson)
   const { main, activationEvents = [] } = fromJSON(rawFileData).or({})
+  const packageJsonDir = dirname(packageJson)
 
   const parsedActivationEvents = activationEvents.map((m: string) => ({
     type: m.split(':')[0] as ActivationEventType,
@@ -115,7 +114,7 @@ const getPackageJsonConfig = async ({ packagePath, packageJson }: ExtensionLocat
   }))
 
   return {
-    requirePath: join(packagePath, main),
+    requirePath: join(packageJsonDir, main),
     activationEvents: parsedActivationEvents,
   }
 }

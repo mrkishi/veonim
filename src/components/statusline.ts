@@ -1,6 +1,6 @@
 import { merge, simplifyPath, absolutePath } from '../support/utils'
+import { onStateChange, getColor, current } from '../core/neovim'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
-import { onStateChange, getColor } from '../core/neovim'
 import configReader from '../config/config-service'
 import { darken, brighten, cvar } from '../ui/css'
 import { ExtContainer } from '../core/api'
@@ -24,7 +24,6 @@ const state = {
   active: -1,
   filetype: '',
   runningServers: new Set<string>(),
-  erroredServers: new Set<string>(),
   mode: 'NORMAL',
   line: 0,
   column: 0,
@@ -84,15 +83,9 @@ const actions = {
   setGitStatus: ({ additions, deletions }: any) => ({ additions, deletions }),
   setMacro: (macro = '') => ({ macro }),
   setColor: (baseColor: any) => ({ baseColor }),
-
-  // TODO: need to consider the cwd for running servers, not just filetype
-  // this may be because we change projects in the current vim session, which
-  // means we need to start new language servers. kthx
-  aiStart: (_cwd: string, filetype: string) => (s: S) => ({
-    runningServers: new Set([...s.runningServers, filetype]),
-    erroredServers: new Set([...s.erroredServers].filter(m => m !== filetype)),
-  }),
+  aiStart: ({ cwd, filetype }: any) => (s: S) => ({ runningServers: new Set([...s.runningServers, cwd + filetype]) }),
 }
+
 
 const iconStyle = { style: { fontSize: '1.15rem' } }
 
@@ -200,7 +193,7 @@ const view = ($: S) => h('div', {
       }, `${$.deletions}`)
     ])
 
-    ,$.runningServers.has($.filetype) && h('div', {
+    ,$.runningServers.has(current.cwd + $.filetype) && h('div', {
       style: itemStyle,
     }, [
       ,h('div', [
@@ -352,7 +345,7 @@ sub('git:branch', branch => ui.setGitBranch(branch))
 sub('git:status', status => ui.setGitStatus(status))
 sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
 sub('ai:diagnostics.count', count => ui.setDiagnostics(count))
-sub('ai:start', ({ cwd, filetype }) => ui.aiStart(cwd, filetype))
+sub('ai:start', opts => ui.aiStart(opts))
 sub('vim:macro.start', reg => ui.setMacro(reg))
 sub('vim:macro.end', () => ui.setMacro())
 

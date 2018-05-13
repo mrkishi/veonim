@@ -120,6 +120,7 @@ export const getDirFiles = async (path: string) => {
 }
 
 export const getDirs = async (path: string) => (await getDirFiles(path)).filter(m => m.dir)
+export const getFiles = async (path: string) => (await getDirFiles(path)).filter(m => m.file)
 
 export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
   let delayExpired = false
