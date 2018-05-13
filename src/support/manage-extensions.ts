@@ -1,10 +1,9 @@
-import { downloadGithubExt, downloadVscodeExt } from '../support/download'
 import { load as loadExtensions } from '../core/extensions'
 import { NotifyKind, notify } from '../ui/notifications'
 import { exists, getDirs, is } from '../support/utils'
 import { EXT_PATH } from '../config/default-configs'
+import { url, download } from '../support/download'
 import { remove as removePath } from 'fs-extra'
-import Worker from '../messaging/worker'
 import { join } from 'path'
 
 interface Extension {
@@ -18,13 +17,6 @@ enum ExtensionKind {
   Github,
   VSCode,
 }
-
-const url = {
-  github: (user: string, repo: string) => `https://github.com/${user}/${repo}/archive/master.zip`,
-  vscode: (author: string, name: string, version = 'latest') => `https://${author}.gallery.vsassets.io/_apis/public/gallery/publisher/${author}/extension/${name}/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`,
-}
-
-const { request } = Worker('download')
 
 const parseExtensionDefinition = (text: string) => {
   const isVscodeExt = text.toLowerCase().startsWith('vscode:extension')
@@ -65,12 +57,12 @@ export default async (configLines: string[]) => {
 
   notify(`Found ${extensionsNotInstalled.length} Veonim extensions. Installing...`, NotifyKind.System)
 
-  const installed = await Promise.all(extensions.map(ext => {
-    const isVscodeExt = ext.kind === ExtensionKind.VSCode
-    const destination = join(EXT_PATH, `${ext.user}--${ext.repo}`)
-    const downloadUrl = isVscodeExt ? url.vscode(ext.user, ext.repo) : url.github(ext.user, ext.repo)
+  const installed = await Promise.all(extensions.map(e => {
+    const isVscodeExt = e.kind === ExtensionKind.VSCode
+    const destination = join(EXT_PATH, `${e.user}--${e.repo}`)
+    const downloadUrl = isVscodeExt ? url.vscode(e.user, e.repo) : url.github(e.user, e.repo)
 
-    return request.download(downloadUrl, destination)
+    return download(downloadUrl, destination)
   }))
 
   const installedOk = installed.filter(m => m).length

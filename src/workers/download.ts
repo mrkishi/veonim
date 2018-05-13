@@ -1,12 +1,14 @@
 import { createWriteStream, ensureDir, remove } from 'fs-extra'
 import WorkerClient from '../messaging/worker-client'
 import Archiver from 'all-other-unzip-libs-suck'
-const request = require('request')
-// TODO: why can't we use built-in request http module for download?
+import { get } from 'request'
+// not using node built-in http lib because we need error handling and
+// redirects (in the case of github). tried using built-in fetch api, but
+// the stream interface does not seem to be compatible with node's stream api
 
 const { on } = WorkerClient()
 
-const downloadZip = (url: string, path: string) => new Promise(done => request(url)
+const downloadZip = (url: string, path: string) => new Promise(done => get(url)
   .pipe(createWriteStream(`${path}.zip`))
   .on('close', done)
   .on('error', done))

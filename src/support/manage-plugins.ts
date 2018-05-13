@@ -1,6 +1,6 @@
 import { exists, getDirs, is, configPath } from '../support/utils'
 import { NotifyKind, notify } from '../ui/notifications'
-import { downloadGithubRepo } from '../support/download'
+import { url, download } from '../support/download'
 import { remove as removePath } from 'fs-extra'
 import { cmd } from '../core/neovim'
 import { join } from 'path'
@@ -9,8 +9,8 @@ interface Plugin {
   name: string,
   user: string,
   repo: string,
+  path: string,
   installed: boolean,
-  downloadpath: string,
 }
 
 const packDir = join(configPath, 'nvim/pack')
@@ -31,8 +31,8 @@ const getPlugins = async (configLines: string[]) => Promise.all(configLines
     return {
       ...m,
       name,
+      path: join(path, 'start'),
       installed: await exists(path),
-      downloadpath: join(path, 'start'),
     }
   }))
 
@@ -51,14 +51,12 @@ export default async (configLines: string[]) => {
 
   notify(`Found ${pluginsNotInstalled.length} Veonim plugins. Installing...`, NotifyKind.System)
 
-  await Promise.all(plugins.map(plug => downloadGithubRepo({
-    user: plug.user,
-    repo: plug.repo,
-    destination: plug.downloadpath,
-    dirname: `${plug.user}--${plug.repo}`,
-  })))
+  const installed = await Promise.all(plugins.map(p => download(url.github(p.user, p.repo), p.path)))
+  const installedOk = installed.filter(m => m).length
+  const installedFail = installed.filter(m => !m).length
 
-  notify(`Installed ${pluginsNotInstalled.length} Veonim plugins!`, NotifyKind.Success)
+  if (installedOk) notify(`Installed ${installedOk} plugins!`, NotifyKind.Success)
+  if (installedFail) notify(`Failed to install ${installedFail} plugins. See devtools console for more info.`, NotifyKind.Error)
 
   removeExtraneous(plugins)
   cmd(`packloadall!`)
