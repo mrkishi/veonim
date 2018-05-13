@@ -1,37 +1,29 @@
-// TODO: todo not being used... lame
-
 'use strict'
 
-const { spawn } = require('child_process')
-const path = require('path')
+const { $, go, run, tsc, fromRoot } = require('./runner')
+const { copy, remove } = require('fs-extra')
 
-const main = async () => {
+go(async () => {
+  $`cleaning build folder`
+  await remove(fromRoot('build'))
+
   const tscMain = tsc('tsconfig.json')
   const tscWorkers = tsc('src/workers/tsconfig.json')
 
   await Promise.all([ tscMain, tscWorkers ])
 
-  await run('jscodeshift', ['-t', 'tools/dummy-exports.js', 'build/workers'])
-  await run('jscodeshift', ['-t', 'tools/remove-debug.js', 'build'])
-}
+  $`adding exports objects to web workers to work in electron context`
+  await run('jscodeshift -t tools/dummy-exports.js build/workers')
 
-const run = (cmd, args) => new Promise(done => {
-  const proc = spawn(cmd, args, {
-    shell: true,
-    stdio: 'inherit',
-    cwd: path.join(-_dirname, '..')
-  })
+  $`removing debug code from release build`
+  await run('jscodeshift -t tools/remove-debug.js build')
 
-  process.on('SIGTERM', () => proc.kill('SIGTERM'))
-  process.on('SIGINT', () => proc.kill('SIGINT'))
-  process.on('SIGBREAK', () => proc.kill('SIGBREAK'))
-  process.on('SIGHUP', () => proc.kill('SIGHUP'))
-  proc.on('exit', done)
-})
+  $`copying index.html`
+  await copy(fromRoot('src/bootstrap/index.html'), fromRoot('build/bootstrap/index.html'))
 
-const tsc = confPath => run('tsc', ['-p', conf])
+  $`copying assets`
+  await copy(fromRoot('src/assets'), fromRoot('build/assets'))
 
-main().catch(err => {
-  console.error(err)
-  process.exit(1)
+  $`copying runtime files`
+  await copy(fromRoot('runtime'), fromRoot('build/runtime'))
 })

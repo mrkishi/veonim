@@ -114,12 +114,30 @@ veonim will also download and install neovim plugins and veonim extensions to th
 
 if the folder does not exist, an empty one will be created. the default veonim configurations will be used (same configurations that would apply if no `~/.config`/`XDG_CONFIG_HOME` folder existed)
 
-### building for your target platform
+### release build
 
-after `npm install` pick and run one of the release targets listed below. it is unlikely that cross-compiling will work.
+build with release configuration
 
 ```
-npm run release-mac
-npm run release-win
-npm run release-linux
+npm run build
 ```
+
+test it out
+```
+npm run start:release
+```
+
+### creating releases
+
+travis/appveyor will publish new github releases on tags
+
+you can use npm to upversion package.json and create a tag:
+- `npm version patch`
+- `npm version minor`
+- `npm version major`
+
+then push the last git tag version created by `npm version`
+`git push v0.0.0`
+
+to create a local release package for your current operating system:
+`npm run release`
