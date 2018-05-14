@@ -1,6 +1,6 @@
 {
   "name": "veonim",
-  "version": "0.8.0-alpha.1",
+  "version": "0.8.0-alpha.2",
   "description": "modern lightweight modal IDE built on neovim",
   "main": "build/bootstrap/galaxy.js",
   "scripts": {
