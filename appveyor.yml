@@ -19,15 +19,11 @@ test_script:
 after_build:
   - npm run release
 
-artifacts:
-  - path: dist\*
-    name: HolidaySpecial
-
 deploy:
   provider: GitHub
   auth_token:
     secure: v/U4AfMwTB+O0COfYK45SVK6Nu3/JlRe/jRIES0x4sCc+CAwBuZ8k9i6suDq8B+w
-  artifact: HolidaySpecial
+  artifact: dist\*.*
   draft: false
   prerelease: false
   force_update: true
