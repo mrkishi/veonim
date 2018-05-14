@@ -15,8 +15,6 @@ test_script:
   - npm --version
   - npm run build
   - npm run test:ci
-
-after_build:
   - npm run release
 
 artifacts:
