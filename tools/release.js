@@ -21,7 +21,7 @@ const config = {
     target: ['appimage', 'zip'],
   },
   win: {
-    target: ['exe', 'zip'],
+    target: ['portable', 'zip'],
   },
   asar: false,
   publish: false,
