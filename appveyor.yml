@@ -16,7 +16,7 @@ test_script:
   - npm run build
   - npm run test:ci
 
-before_deploy:
+after_build:
   - npm run release
 
 artifacts:
