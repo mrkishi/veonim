@@ -6,7 +6,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 
 ## features
 
-- cross platform (and no external dependencies needed - everything comes bundled (minus vim plugins and extensions))
+- cross platform (and no external dependencies needed)
 - rich language integration built on language servers (any language supporting LSP can work - see http://langserver.org)
     - auto completion
     - go to definition
@@ -19,6 +19,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
     - highlight symbols
 - multiple concurrent multiplexed vim instances
 - built-in vim plugin manager
+- (limited) vscode extension support - should support language server extensions - more api support can be added as needed
 - rich key mapping support with support for keyup + keydown events (think karabiner) - for example:
   - remap caps lock to escape
   - map commands to all modifiers such as ctrl + shift + alt + key
@@ -36,7 +37,6 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 - built-in statusline (displays current project, git branch, git changes, warning/problem count, cursor position, and tabpages)
 - color picker + live vim colorscheme editing
 - (experimental) parse :term output and display problems in editor
-- veonim extension support
 - and more!
 
 ## screenshots
