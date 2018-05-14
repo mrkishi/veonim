@@ -136,8 +136,11 @@ you can use npm to upversion package.json and create a tag:
 - `npm version minor`
 - `npm version major`
 
-then push the last git tag version created by `npm version`
-`git push origin v0.0.0`
+or manually create tag (note that the package release version is lifted from package.json)
+`git tag v0.8.0-alpha.1`
+
+then push the git tag
+`git push origin v0.8.0-alpha.1`
 
 to create a local release package for your current operating system:
 `npm run release`
