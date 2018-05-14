@@ -16,6 +16,9 @@ test_script:
   - npm run build
   - npm run test:ci
 
+before_deploy:
+  - npm run release
+
 artifacts:
   - path: dist/*.exe
     name: SetupExe
@@ -23,13 +26,11 @@ artifacts:
   - path: dist/*win.zip
     name: ProductZip
 
-before_deploy:
-  - npm run release
-
 deploy:
   provider: GitHub
   auth_token:
     secure: v/U4AfMwTB+O0COfYK45SVK6Nu3/JlRe/jRIES0x4sCc+CAwBuZ8k9i6suDq8B+w
+  artifact: dist/*
   draft: false
   prerelease: false
   force_update: true

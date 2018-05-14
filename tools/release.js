@@ -14,6 +14,15 @@ const config = {
     'build/**',
     '!**/*.map'
   ],
+  mac: {
+    target: ['dmg', 'zip'],
+  },
+  linux: {
+    target: ['appimage', 'zip'],
+  },
+  win: {
+    target: ['exe', 'zip'],
+  },
   asar: false,
   publish: false,
 }
