@@ -1,6 +1,6 @@
 {
   "name": "veonim",
-  "version": "0.8.0-alpha.5",
+  "version": "0.8.0-alpha.10",
   "description": "modern lightweight modal IDE built on neovim",
   "main": "build/bootstrap/galaxy.js",
   "scripts": {
@@ -14,7 +14,8 @@
     "start:release": "electron build/bootstrap/main.js",
     "gen:font-sizes": "electron tools/font-sizer/index.js",
     "gen:api": "node tools/gen-api.js",
-    "unused": "ts-unused-exports tsconfig.json $(find src -name *.ts)"
+    "unused": "ts-unused-exports tsconfig.json $(find src -name *.ts)",
+    "run-test-dist": "electron dist/mac/veonim.app/Contents/Resources/app/build/bootstrap/main.js"
   },
   "jest": {
     "collectCoverage": true
@@ -54,7 +55,7 @@
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "9.4.0",
     "@types/request": "2.47.0",
-    "electron": "2.0.0-beta.7",
+    "electron": "2.0.0",
     "electron-builder": "20.13.3",
     "electron-devtools-installer": "2.2.3",
     "hyperapp-redux-devtools": "git://github.com/breja/hyperapp-redux-devtools.git",

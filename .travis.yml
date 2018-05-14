@@ -3,8 +3,8 @@ language: node_js
 node_js:
 - stable
 os:
-- linux
 - osx
+- linux
 install:
 - npm install
 script:
