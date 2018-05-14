@@ -1,7 +1,6 @@
 import { app as makeApp, h as makeHyperscript, ActionsType, View } from 'hyperapp'
 import { showCursor, hideCursor } from '../core/cursor'
 import { specs as titleSpecs } from '../core/title'
-import * as devtools from 'hyperapp-redux-devtools'
 import * as dispatch from '../messaging/dispatch'
 import hyperscript from '../ui/hyperscript'
 import * as viminput from '../core/input'
@@ -61,7 +60,10 @@ interface App<StateT, ActionsT> {
 export const app = <StateT, ActionsT>({ state, actions, view, element, name }: App<StateT, ActionsT>): ActionsT => {
   const containerElement = element || prepareContainerElement(name)
 
-  return process.env.VEONIM_DEV
-    ? devtools(makeApp, { name })(state, actions, view, containerElement)
-    : makeApp(state, actions, view, containerElement)
+  if (process.env.VEONIM_DEV) {
+    const devtools = require('hyperapp-redux-devtools')
+    return devtools(makeApp, { name })(state, actions, view, containerElement)
+  }
+
+  return makeApp(state, actions, view, containerElement)
 }
