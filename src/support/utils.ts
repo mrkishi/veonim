@@ -163,14 +163,19 @@ export const throttle = (fn: (...args: any[]) => void, delay: number) => {
   return executor
 }
 
-const pathGet = (obj: any, paths: string[]): any => {
-  if (!paths.length) return obj
-  const next = Reflect.get(obj, paths[0])
-  if (next == null) return obj
-  return pathGet(next, paths.slice(1))
-}
+export const objDeepGet = (obj: object) => (givenPath: string | string[]) => {
+  const path = typeof givenPath === 'string' ? givenPath.split('.') : givenPath.slice()
 
-export const getInObjectByPath = (obj: any, path: string) => pathGet(obj, path.split('.'))
+  const dive = (obj = {} as any): any => {
+    const pathPoint = path.shift()
+    if (pathPoint == null) return
+    const val = Reflect.get(obj, pathPoint)
+    if (val === undefined) return
+    return path.length ? dive(val) : val
+  }
+
+  return dive(obj)
+}
 
 export class Watchers extends Map<string, Set<Function>> {
   constructor() {

@@ -1,19 +1,5 @@
-import { hasUpperCase, is } from '../support/utils'
+import { hasUpperCase, is, objDeepGet } from '../support/utils'
 import * as mock from 'mock-require'
-
-const objDeepGet = (obj: object) => (givenPath: string | string[]) => {
-  const path = typeof givenPath === 'string' ? givenPath.split('.') : givenPath.slice()
-
-  const dive = (obj = {} as any): any => {
-    const pathPoint = path.shift()
-    if (pathPoint == null) return
-    const val = Reflect.get(obj, pathPoint)
-    if (val === undefined) return
-    return path.length ? dive(val) : val
-  }
-
-  return dive(obj)
-}
 
 export default (moduleName: string, fakeImplementation: any, onMissing?: (name: string, path: string) => void) => {
   const getFake = objDeepGet(fakeImplementation)
