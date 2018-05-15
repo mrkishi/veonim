@@ -407,7 +407,7 @@ export const onStateChange: StateChangeEvent = onFnCall((stateKey: string, [cb])
 export const g = new Proxy({} as KeyVal, {
   get: async (_t, name: string) => {
     const val = await req.core.getVar(name as string).catch(e => e)
-    return Array.isArray(val) && val[1] === 'Key not found' ? undefined : val
+    return Array.isArray(val) && /Key (.*?)not found/.test(val[1]) ? undefined : val
   },
   set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
 })
