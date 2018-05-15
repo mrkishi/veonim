@@ -165,6 +165,10 @@ const go = async (userPath: string, create = false) => {
 action('change-dir', (path = '') => go(path, false))
 action('vim-create-dir', (path = '') => go(path, true))
 
-onStateChange.cwd((cwd: string) => configReader('project.root', (root: string) => {
-  renameCurrentToCwd(simplifyPath(cwd, absolutePath(root)))
-}))
+onStateChange.cwd((cwd: string) => {
+  const defaultRoot = configReader('project.root', (root: string) => {
+    renameCurrentToCwd(simplifyPath(cwd, absolutePath(root)))
+  })
+
+  renameCurrentToCwd(simplifyPath(cwd, absolutePath(defaultRoot)))
+})

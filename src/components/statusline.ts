@@ -330,9 +330,13 @@ onStateChange.colorscheme(refreshBaseColor)
 onStateChange.filetype(ui.setFiletype)
 onStateChange.line(ui.setLine)
 onStateChange.column(ui.setColumn)
-onStateChange.cwd((cwd: string) => configReader('project.root', (root: string) => {
-  ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(root)) })
-}))
+onStateChange.cwd((cwd: string) => {
+  const defaultRoot = configReader('project.root', (root: string) => {
+    ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(root)) })
+  })
+
+  ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(defaultRoot)) })
+})
 
 sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
   const mtabs: TabInfo[] = tabs.map(t => ({ id: t.tab.id, name: t.name }))
