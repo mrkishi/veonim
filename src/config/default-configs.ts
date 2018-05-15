@@ -4,14 +4,15 @@ import { join } from 'path'
 
 export const EXT_PATH = join(configPath, 'veonim', 'extensions')
 
+export const project = {
+  root: homedir(),
+}
+
 export const explorer = {
   ignore: {
     dirs: ['.git'],
     files: ['.DS_Store'],
   },
-  project: {
-    root: homedir(),
-  }
 }
 
 export const workspace = {

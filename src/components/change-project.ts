@@ -170,5 +170,5 @@ onStateChange.cwd((cwd: string) => {
     renameCurrentToCwd(simplifyPath(cwd, absolutePath(root)))
   })
 
-  renameCurrentToCwd(simplifyPath(cwd, absolutePath(defaultRoot)))
+  defaultRoot && renameCurrentToCwd(simplifyPath(cwd, absolutePath(defaultRoot)))
 })

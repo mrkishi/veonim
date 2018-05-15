@@ -335,7 +335,7 @@ onStateChange.cwd((cwd: string) => {
     ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(root)) })
   })
 
-  ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(defaultRoot)) })
+  defaultRoot && ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(defaultRoot)) })
 })
 
 sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
