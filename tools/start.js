@@ -7,6 +7,7 @@ const fs = require('fs-extra')
 const devConfig = fromRoot('xdg_config')
 
 go(async () => {
+  $`local dev XDG_CONFIG_HOME dir: ${devConfig}`
   await fs.ensureDir(devConfig)
 
   await Promise.all([
@@ -14,12 +15,6 @@ go(async () => {
     copy.assets(),
     copy.runtime(),
   ])
-
-  $`========================================`
-  $`local dev XDG_CONFIG_HOME dir: ${devConfig}`
-  $`----------------------------------------`
-  $`for the purposes of development/testing pretend this is your ~/.config or XDG_CONFIG_HOME equivalent folder. in dev mode, veonim will use this folder to source configs and install extensions/plugins to`
-  $`========================================`
 
   const tsc = { main: createTask(), workers: createTask() }
 
