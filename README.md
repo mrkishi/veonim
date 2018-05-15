@@ -146,6 +146,6 @@ then push the git tag
 
 to create a local release package for your current operating system:
 
-`npm run release`
+`npm run package`
 
 you will find various binaries available for testing under `dist` folder

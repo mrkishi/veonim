@@ -1,82 +1,50 @@
 'use strict'
 
-const { watch, ensureDir } = require('fs-extra')
-const { exec } = require('child_process')
-const { spawn } = require('cross-spawn')
-const path = require('path')
+const { $, go, run, fromRoot, createTask } = require('./runner')
+const { copy, codemod, paths } = require('./build')
+const fs = require('fs-extra')
 
-const cwd = path.join(__dirname, '..')
-const devConfig = path.join(cwd, 'xdg_config')
+const devConfig = fromRoot('xdg_config')
+const tscOpts = { resolveWhenOutputHas: 'compilation complete' }
 
-ensureDir(devConfig).then(async () => {
-  console.log('========================================')
-  console.log('local dev XDG_CONFIG_HOME dir:', devConfig)
-  console.log('----------------------------------------')
-  console.log('for the purposes of development/testing pretend this is your ~/.config or XDG_CONFIG_HOME equivalent folder. in dev mode, veonim will use this folder to source configs and install extensions/plugins to')
-  console.log('========================================')
-})
+go(async () => {
+  await fs.ensureDir(devConfig)
 
-const npmrun = task => exec(`npm run ${task}`, { cwd })
-const tsc = conf => spawn('tsc', [
-  '-p',
-  conf,
-  '--watch',
-  '--preserveWatchOutput',
-], { cwd })
+  await Promise.all([
+    copy.index(),
+    copy.assets(),
+    copy.runtime(),
+  ])
 
-let electronStarted = false
+  $`========================================`
+  $`local dev XDG_CONFIG_HOME dir: ${devConfig}`
+  $`----------------------------------------`
+  $`for the purposes of development/testing pretend this is your ~/.config or XDG_CONFIG_HOME equivalent folder. in dev mode, veonim will use this folder to source configs and install extensions/plugins to`
+  $`========================================`
 
-const startElectron = () => {
-  electronStarted = true
+  const tsc = { main: createTask(), workers: createTask() }
 
-  const proc = spawn('npx', [
-    'electron',
-    'build/bootstrap/main.js'
-  ], {
-    shell: true,
+  run('tsc -p tsconfig.json --watch --preserveWatchOutput', {
+    outputMatch: 'compilation complete',
+    onOutputMatch: tsc.main.done,
+  })
+
+  run('tsc -p src/workers/tsconfig.json --watch --preserveWatchOutput', {
+    outputMatch: 'compilation complete',
+    onOutputMatch: () => codemod.workerExports().then(tsc.workers.done),
+  })
+
+  await Promise.all([ tsc.main.promise, tsc.workers.promise ])
+
+  $`starting electron`
+  run('electron build/bootstrap/main.js', {
     env: {
       ...process.env,
       VEONIM_DEV: 42,
       XDG_CONFIG_HOME: devConfig,
-    },
+    }
   })
 
-  proc.stdout.pipe(process.stdout)
-  proc.stderr.pipe(process.stderr)
-}
-
-watch(`${cwd}/src/bootstrap/index.html`, () => {
-  console.log('html modified... copying...')
-  npmrun('html')
+  $`watching index.html for changes...`
+  fs.watch(fromRoot(paths.index), copy.index)
 })
-
-let initialCompile = 0
-
-tsc('tsconfig.json').stdout.on('data', m => {
-  const line = m.toString()
-  process.stdout.write(line)
-  if (line.includes('Compilation complete')) {
-    initialCompile++
-    if (initialCompile > 1 && !electronStarted) startElectron()
-  }
-})
-
-tsc('src/workers/tsconfig.json').stdout.on('data', m => {
-  const line = m.toString()
-  process.stdout.write(`WW: ${line}`)
-  if (line.includes('Compilation complete')) {
-    initialCompile++
-    if (initialCompile > 1 && !electronStarted) startElectron()
-    console.log('cleaning up exports in web workers...')
-    npmrun('fixexp')
-  }
-})
-
-setTimeout(() => {
-  console.log('copying runtime files')
-  npmrun('runtime')
-  console.log('copying html')
-  npmrun('html')
-  console.log('copying assets')
-  npmrun('assets')
-}, 2e3)

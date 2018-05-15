@@ -1,29 +1,55 @@
 'use strict'
 
-const { $, go, run, tsc, fromRoot } = require('./runner')
-const { copy, remove } = require('fs-extra')
+const { $, go, run, fromRoot } = require('./runner')
+const fs = require('fs-extra')
 
-go(async () => {
+const paths = {
+  index: 'src/bootstrap/index.html',
+}
+
+const copy = {
+  index: () => {
+    $`copying index.html`
+    return fs.copy(fromRoot(paths.index), fromRoot('build/bootstrap/index.html'))
+  },
+  assets: () => {
+    $`copying assets`
+    return fs.copy(fromRoot('src/assets'), fromRoot('build/assets'))
+  },
+  runtime: () => {
+    $`copying runtime files`
+    return fs.copy(fromRoot('runtime'), fromRoot('build/runtime'))
+  },
+}
+
+const codemod = {
+  workerExports: () => {
+    $`adding exports objects to web workers to work in electron context`
+    return run('jscodeshift -t tools/dummy-exports.js build/workers')
+  },
+  removeDebug: () => {
+    $`removing debug code from release build`
+    return run('jscodeshift -t tools/remove-debug.js build')
+  },
+}
+
+require.main === module && go(async () => {
   $`cleaning build folder`
-  await remove(fromRoot('build'))
+  await fs.remove(fromRoot('build'))
 
-  const tscMain = tsc('tsconfig.json')
-  const tscWorkers = tsc('src/workers/tsconfig.json')
+  const tscMain = run('tsc -p tsconfig.json')
+  const tscWorkers = run('tsc -p src/workers/tsconfig.json')
 
   await Promise.all([ tscMain, tscWorkers ])
 
-  $`adding exports objects to web workers to work in electron context`
-  await run('jscodeshift -t tools/dummy-exports.js build/workers')
+  await codemod.workerExports()
+  await codemod.removeDebug()
 
-  $`removing debug code from release build`
-  await run('jscodeshift -t tools/remove-debug.js build')
-
-  $`copying index.html`
-  await copy(fromRoot('src/bootstrap/index.html'), fromRoot('build/bootstrap/index.html'))
-
-  $`copying assets`
-  await copy(fromRoot('src/assets'), fromRoot('build/assets'))
-
-  $`copying runtime files`
-  await copy(fromRoot('runtime'), fromRoot('build/runtime'))
+  await Promise.all([
+    copy.index(),
+    copy.assets(),
+    copy.runtime(),
+  ])
 })
+
+module.exports = { paths, copy, codemod }
