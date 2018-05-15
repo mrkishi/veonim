@@ -5,7 +5,6 @@ const { copy, codemod, paths } = require('./build')
 const fs = require('fs-extra')
 
 const devConfig = fromRoot('xdg_config')
-const tscOpts = { resolveWhenOutputHas: 'compilation complete' }
 
 go(async () => {
   await fs.ensureDir(devConfig)
