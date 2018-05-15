@@ -30,7 +30,6 @@ go(async () => {
 
   await Promise.all([ tsc.main.promise, tsc.workers.promise ])
 
-  $`starting electron`
   run('electron build/bootstrap/main.js', {
     env: {
       ...process.env,
