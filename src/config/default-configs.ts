@@ -20,4 +20,4 @@ export const workspace = {
   }
 }
 
-export const colorscheme = 'veonord'
+export const colorscheme = 'brunswick'
