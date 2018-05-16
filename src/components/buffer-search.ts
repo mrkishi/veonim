@@ -22,7 +22,7 @@ const state = {
   results: [] as FilterResult[],
   visible: false,
   query: '',
-  index: 0,
+  index: -1,
 }
 
 type S = typeof state
@@ -44,9 +44,6 @@ const actions = {
     finder.request.fuzzy(vim.cwd, vim.file, query).then(a.updateResults)
     return { query }
   },
-  // TODO: can't select the first item unless we go to second then back to first
-  // this is because the first item is already preselected. can't jump to location
-  // in buffer if it's preselected
   next: () => (s: S) => {
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
     jumpTo(s.results[index].start)
@@ -62,6 +59,8 @@ const actions = {
 
 type A = typeof actions
 
+// TODO: this view should be part of the current vim window, not span the
+// entire app window. need to get element from windows.ts (like getWindows())
 const view = ($: S, a: A) => PluginBottom($.visible, {
   height: '40vh',
 }, [
