@@ -65,3 +65,6 @@ on.query(async (cwd: string, file: string, query: string, max?: number): Promise
   }
 })
 
+on.fuzzy(async (cwd: string, file: string, query: string, max?: number): Promise<FilterResult[]> => {
+  return filter(cwd, file, query, max)
+})

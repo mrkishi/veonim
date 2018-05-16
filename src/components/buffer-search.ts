@@ -1,11 +1,10 @@
-import { current as vim, cmd, jumpTo, action } from '../core/neovim'
 import { PluginBottom } from '../components/plugin-container'
-import { activeWindow } from '../core/windows'
+import { action, current as vim } from '../core/neovim'
+import { RowNormal } from '../components/row-container'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
-import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
-import { app } from '../ui/uikit'
+import { app, h } from '../ui/uikit'
 
 interface FilterResult {
   line: string,
@@ -19,95 +18,67 @@ interface FilterResult {
   }
 }
 
-interface QueryResult {
-  results: FilterResult[],
-  performVimSearch: boolean,
-}
-
-const getVisibleResults = (results: FilterResult[], start: number, end: number): FilterResult[] => {
-  const visibleOnly = results.filter(m => m.start.line >= start && m.end.line <= end)
-  return visibleOnly.length ? visibleOnly : results
-}
-
-const getVisibleRows = () => {
-  const win = activeWindow()
-  if (!win) return 20
-  return win.getSpecs().height
-}
-
-const topMatchPosition = { line: -1, column: -1 }
-
 const state = {
+  results: [] as FilterResult[],
+  cache: [] as FilterResult[],
   visible: false,
-  value: '',
+  query: '',
+  index: 0,
 }
 
 type S = typeof state
 
-const searchInBuffer = (query: string, results: FilterResult[], performVimSearch: boolean) => {
-  if (!results.length || performVimSearch) {
-    return query ? cmd(`/${query}`) : cmd(`noh`)
-  }
-
-  const { line, column } = results[0].start
-
-  merge(topMatchPosition, {
-    line: line + 1,
-    column: column,
-  })
-
-  const range = {
-    start: line,
-    end: line + getVisibleRows(),
-  }
-
-  const visibleResults = getVisibleResults(results, range.start, range.end)
-
-  const parts = visibleResults
-    .map(m => m.line.slice(m.start.column, m.end.column + 1))
-    .filter((m, ix, arr) => arr.indexOf(m) === ix)
-    .filter(m => m)
-    .map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
-
-  const pattern = parts.length ? parts.join('\\|') : query
-  if (!pattern) return cmd(`noh`)
-
-  cmd(`/\\%>${range.start}l\\%<${range.end}l${pattern}`)
-}
-
 const actions = {
   show: () => ({ visible: true }),
-  hide: () => ({ visible: false, value: '' }),
-  change: (value: string) => {
-    finder.request.query(vim.cwd, vim.file, value).then((res: QueryResult) => {
-      const { performVimSearch = true, results = [] } = res || {}
-      searchInBuffer(value, results, performVimSearch)
+  hide: () => ({ visible: false, query: '' }),
+  change: (query: string) => (s: S, a: A) => {
+    finder.request.fuzzy(vim.cwd, vim.file, query).then((res: FilterResult[]) => {
+      if (!s.cache.length) a.updateCache(res)
+      a.updateResults(res)
     })
 
-    return { value }
+    return { query }
   },
-  select: () => {
-    jumpTo(topMatchPosition)
-    return { visible: false, value: '' }
-  },
+  updateResults: (results: FilterResult[]) => ({ results }),
+  updateCache: (cache: FilterResult[]) => ({ cache }),
+  next: () => (s: S) => ({ index: s.index + 1 > s.results.length - 1 ? 0 : s.index + 1 }),
+  prev: () => (s: S) => ({ index: s.index - 1 < 0 ? s.results.length - 1 : s.index - 1 }),
 }
 
 type A = typeof actions
 
-const view = ($: S, a: A) => PluginBottom($.visible, [
+const view = ($: S, a: A) => PluginBottom($.visible, {
+  height: '40vh',
+}, [
 
   ,Input({
-    small: true,
-    focus: true,
-    value: $.value,
-    icon: Icon.Search,
     hide: a.hide,
+    next: a.next,
+    prev: a.prev,
     change: a.change,
-    select: a.select,
+    value: $.query,
+    focus: true,
+    small: true,
+    icon: Icon.Search,
+    desc: 'find in buffer',
   })
+
+  ,h('div', {
+    style: {
+      overflow: 'hidden',
+    }
+  }, $.results.map((res, pos) => h(RowNormal, {
+    active: pos === $.index,
+  }, [
+
+    // TODO: highlight search match?
+    ,h('span', res.line)
+
+  ])))
 
 ])
 
 const ui = app({ name: 'buffer-search', state, actions, view })
 
+// TODO: fill cache with current buffer lines
 action('buffer-search', ui.show)
