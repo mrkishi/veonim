@@ -68,12 +68,3 @@ on.query(async (cwd: string, file: string, query: string, max?: number): Promise
 on.fuzzy(async (cwd: string, file: string, query: string, max?: number): Promise<FilterResult[]> => {
   return filter(cwd, file, query, max)
 })
-
-on.initial(async (cwd: string, file: string, max = 100): Promise<FilterResult[]> => {
-  const bufferData = buffers.get(join(cwd, file)) || []
-  return bufferData.slice(0, max).map(line => ({
-    line,
-    start: { line: 0, column: 0 },
-    end: { line: 0, column: 0 },
-  }))
-})

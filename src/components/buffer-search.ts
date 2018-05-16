@@ -20,7 +20,6 @@ interface FilterResult {
 
 const state = {
   results: [] as FilterResult[],
-  cache: [] as FilterResult[],
   visible: false,
   query: '',
   index: 0,
@@ -31,16 +30,11 @@ type S = typeof state
 const actions = {
   show: () => ({ visible: true }),
   hide: () => ({ visible: false, query: '' }),
-  change: (query: string) => (s: S, a: A) => {
-    finder.request.fuzzy(vim.cwd, vim.file, query).then((res: FilterResult[]) => {
-      if (!s.cache.length) a.updateCache(res)
-      a.updateResults(res)
-    })
-
+  change: (query: string) => (_: S, a: A) => {
+    finder.request.fuzzy(vim.cwd, vim.file, query).then(a.updateResults)
     return { query }
   },
   updateResults: (results: FilterResult[]) => ({ results }),
-  updateCache: (cache: FilterResult[]) => ({ cache }),
   next: () => (s: S) => ({ index: s.index + 1 > s.results.length - 1 ? 0 : s.index + 1 }),
   prev: () => (s: S) => ({ index: s.index - 1 < 0 ? s.results.length - 1 : s.index - 1 }),
 }
@@ -73,7 +67,11 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
   }, [
 
     // TODO: highlight search match?
+    // TODO: lets try some syntax highlighting that might be nice
     ,h('span', res.line)
+
+    // TODO: should we display an empty (no results) image/placeholder/whatever
+    // the cool kids call it these days?
 
   ])))
 
@@ -81,7 +79,4 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
 
 const ui = app({ name: 'buffer-search', state, actions, view })
 
-action('buffer-search', () => {
-  finder.request.initial(vim.cwd, vim.file).then(res => ui.updateCache(res))
-  ui.show()
-})
+action('buffer-search', ui.show)
