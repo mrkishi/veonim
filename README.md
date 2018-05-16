@@ -17,7 +17,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
     - diagnostics (errors/warnings)
     - refactoring (rename, quick fix, code actions, etc.)
     - highlight symbols
-- multiple concurrent multiplexed vim instances
+- multiple concurrent multiplexed vim instances (kinda like tmux sessions/windows. in fact this feature originated from the desire to use a neovim gui with the same workflow as tmux)
 - built-in vim plugin manager
 - (limited) vscode extension support - should support language server extensions - more api support can be added as needed
 - rich key mapping support with support for keyup + keydown events (think karabiner) - for example:
@@ -32,11 +32,12 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 - graphical neovim ui including windows, tabs, command line, status line, messages, cursor, cursorline, colorscheme adaptable interface etc.
 - project/workspace/cd management
 - reload vim buffers when modified (e.g. when edited in another program)
-- everything configured via vim config file (init.vim) and scriptable with vimscript
-- create fuzzy overlay menus and floating overlay menus with user defined options (e.g. build custom task menus)
+- everything configured via vim config file (init.vim) and scriptable from vimscript or remote plugins (any language)
+- create fuzzy overlay menus and floating overlay menus with user defined options (built-in FZF.vim alternative)
 - built-in statusline (displays current project, git branch, git changes, warning/problem count, cursor position, and tabpages)
 - color picker + live vim colorscheme editing
-- (experimental) parse :term output and display problems in editor
+- (experimental) parse :term compiler output and display problems in editor
+    - the idea is that you may have an incremental compiler build script (i.e. npm scripts + typescript watch mode) that is running in the background, and you want to parse the compiler output and add it to IDE problems. compiler output may be different than language server diagnostics (and the compiler is the source of truth). also there may be other tasks that are happening in the incremental build script that would not occur with langserv diagnostics.
 - and more!
 
 ## screenshots
