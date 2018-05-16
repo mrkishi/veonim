@@ -1,5 +1,5 @@
+import { action, current as vim, jumpTo } from '../core/neovim'
 import { PluginBottom } from '../components/plugin-container'
-import { action, current as vim } from '../core/neovim'
 import { RowNormal } from '../components/row-container'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
@@ -27,16 +27,37 @@ const state = {
 
 type S = typeof state
 
+const resetState = { visible: false, query: '', results: [], index: 0 }
+
 const actions = {
+  // TODO: keep track of original position in buffer. if we find some results
+  // and we jump through them, but we cancel (not select/hit enter on a result)
+  // then the buffer should restore previous cursor and scroll positions as
+  // when we opened buffer search
+  hide: () => resetState,
   show: () => ({ visible: true }),
-  hide: () => ({ visible: false, query: '' }),
+  select: () => (s: S) => {
+    jumpTo(s.results[s.index].start)
+    return resetState
+  },
   change: (query: string) => (_: S, a: A) => {
     finder.request.fuzzy(vim.cwd, vim.file, query).then(a.updateResults)
     return { query }
   },
+  // TODO: can't select the first item unless we go to second then back to first
+  // this is because the first item is already preselected. can't jump to location
+  // in buffer if it's preselected
+  next: () => (s: S) => {
+    const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
+    jumpTo(s.results[index].start)
+    return { index }
+  },
+  prev: () => (s: S) => {
+    const index = s.index - 1 < 0 ? s.results.length - 1 : s.index - 1
+    jumpTo(s.results[index].start)
+    return { index }
+  },
   updateResults: (results: FilterResult[]) => ({ results }),
-  next: () => (s: S) => ({ index: s.index + 1 > s.results.length - 1 ? 0 : s.index + 1 }),
-  prev: () => (s: S) => ({ index: s.index - 1 < 0 ? s.results.length - 1 : s.index - 1 }),
 }
 
 type A = typeof actions
@@ -45,12 +66,12 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
   height: '40vh',
 }, [
 
-  // TODO: input changes height size when typing out query. lolwat
   ,Input({
     hide: a.hide,
     next: a.next,
     prev: a.prev,
     change: a.change,
+    select: a.select,
     value: $.query,
     focus: true,
     small: true,
