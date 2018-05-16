@@ -1,10 +1,16 @@
-import { action, current as vim, jumpTo } from '../core/neovim'
+import { action, current as vim, jumpTo, getCurrent } from '../core/neovim'
 import { PluginBottom } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
+import Worker from '../messaging/worker'
 import { app, h } from '../ui/uikit'
+
+// TODO: also used by hover. can/should we share this worker?
+// and used by AI to set colorscheme on changes... yeah might
+// be easier to share after all...
+const colorizer = Worker('neovim-colorizer')
 
 interface FilterResult {
   line: string,
@@ -18,6 +24,22 @@ interface FilterResult {
   }
 }
 
+const cursor = (() => {
+  let position = [0, 0]
+
+  const save = async () => {
+    const win = await getCurrent.window
+    position = await win.cursor
+  }
+
+  const restore = async () => {
+    const win = await getCurrent.window
+    win.setCursor(position[0], position[1])
+  }
+
+  return { save, restore }
+})()
+
 const state = {
   results: [] as FilterResult[],
   visible: false,
@@ -30,12 +52,14 @@ type S = typeof state
 const resetState = { visible: false, query: '', results: [], index: 0 }
 
 const actions = {
-  // TODO: keep track of original position in buffer. if we find some results
-  // and we jump through them, but we cancel (not select/hit enter on a result)
-  // then the buffer should restore previous cursor and scroll positions as
-  // when we opened buffer search
-  hide: () => resetState,
-  show: () => ({ visible: true }),
+  hide: () => {
+    cursor.restore()
+    return resetState
+  },
+  show: () => {
+    cursor.save()
+    return { visible: true }
+  },
   select: () => (s: S) => {
     jumpTo(s.results[s.index].start)
     return resetState
@@ -44,6 +68,11 @@ const actions = {
     finder.request.fuzzy(vim.cwd, vim.file, query).then(a.updateResults)
     return { query }
   },
+  // TODO: we will have an issue where we jump to a place in the buffer, but
+  // the jumpTo location is behind the buffer-search overlay window.  maybe zz
+  // or zt and adjust a few lines down? can we readjust only conditionally if
+  // the jumpTo location is being covered by the overlay? how to determine if
+  // it's being covered?
   next: () => (s: S) => {
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
     jumpTo(s.results[index].start)
@@ -82,12 +111,14 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
     style: {
       overflow: 'hidden',
     }
+    // TODO: does this list scroll? what happens when we select entries that
+    // are overflowed?
   }, $.results.map((res, pos) => h(RowNormal, {
     active: pos === $.index,
   }, [
 
     // TODO: highlight search match?
-    // TODO: lets try some syntax highlighting that might be nice
+    // TODO: lets try some syntax highlighting. that might be nice
     ,h('span', res.line)
 
     // TODO: should we display an empty (no results) image/placeholder/whatever

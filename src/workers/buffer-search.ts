@@ -1,5 +1,5 @@
-import WorkerClient from '../messaging/worker-client'
 import { filter as fuzzy, match } from 'fuzzaldrin-plus'
+import WorkerClient from '../messaging/worker-client'
 import { join } from 'path'
 
 interface FilterResult {
