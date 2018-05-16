@@ -51,6 +51,7 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
   height: '40vh',
 }, [
 
+  // TODO: input changes height size when typing out query. lolwat
   ,Input({
     hide: a.hide,
     next: a.next,
@@ -80,5 +81,7 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
 
 const ui = app({ name: 'buffer-search', state, actions, view })
 
-// TODO: fill cache with current buffer lines
-action('buffer-search', ui.show)
+action('buffer-search', () => {
+  finder.request.initial(vim.cwd, vim.file).then(res => ui.updateCache(res))
+  ui.show()
+})
