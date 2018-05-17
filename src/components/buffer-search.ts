@@ -1,16 +1,12 @@
 import { action, current as vim, jumpTo, getCurrent } from '../core/neovim'
 import { PluginBottom } from '../components/plugin-container'
+import colorizer, { ColorData } from '../services/colorizer'
 import { RowNormal } from '../components/row-container'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
-import Worker from '../messaging/worker'
 import { app, h } from '../ui/uikit'
-
-// TODO: also used by hover. can/should we share this worker?
-// and used by AI to set colorscheme on changes... yeah might
-// be easier to share after all...
-const colorizer = Worker('neovim-colorizer')
+import { cvar } from '../ui/css'
 
 interface FilterResult {
   line: string,
@@ -22,6 +18,10 @@ interface FilterResult {
     line: number,
     column: number,
   }
+}
+
+interface ColorizedFilterResult extends FilterResult {
+  colorizedLine: ColorData[]
 }
 
 const cursor = (() => {
@@ -41,7 +41,7 @@ const cursor = (() => {
 })()
 
 const state = {
-  results: [] as FilterResult[],
+  results: [] as ColorizedFilterResult[],
   visible: false,
   query: '',
   index: -1,
@@ -65,7 +65,16 @@ const actions = {
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
-    finder.request.fuzzy(vim.cwd, vim.file, query).then(a.updateResults)
+    finder.request.fuzzy(vim.cwd, vim.file, query).then(async (res: FilterResult[]) => {
+      // TODO: can we change colorizer to accept an array of strings?
+      const text = res.map(m => m.line).join('\n')
+      const coloredLines: ColorData[][] = await colorizer.request.colorize(text, vim.filetype)
+      const lines = coloredLines.map((m, ix) => ({
+        colorizedLine: m,
+        ...res[ix],
+      }))
+      a.updateResults(lines)
+    })
     return { query }
   },
   // TODO: we will have an issue where we jump to a place in the buffer, but
@@ -83,7 +92,7 @@ const actions = {
     jumpTo(s.results[index].start)
     return { index }
   },
-  updateResults: (results: FilterResult[]) => ({ results }),
+  updateResults: (results: ColorizedFilterResult[]) => ({ results }),
 }
 
 type A = typeof actions
@@ -115,16 +124,15 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
     // are overflowed?
   }, $.results.map((res, pos) => h(RowNormal, {
     active: pos === $.index,
-  }, [
-
-    // TODO: highlight search match?
-    // TODO: lets try some syntax highlighting. that might be nice
-    ,h('span', res.line)
-
-    // TODO: should we display an empty (no results) image/placeholder/whatever
-    // the cool kids call it these days?
-
-  ])))
+  }, res.colorizedLine.map(({ color, text }) => h('span', {
+    style: {
+      color: color || cvar('foreground'),
+      whiteSpace: 'pre',
+    }
+  }, text)))))
+  // TODO: highlight search match?
+  // TODO: should we display an empty (no results) image/placeholder/whatever
+  // the cool kids call it these days?
 
 ])
 

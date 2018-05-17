@@ -1,15 +1,8 @@
 import { action, current as vimState, on } from '../core/neovim'
+import colorizer, { ColorData } from '../services/colorizer'
 import * as markdown from '../support/markdown'
 import { hover } from '../langserv/adapter'
 import { ui } from '../components/hover'
-import Worker from '../messaging/worker'
-
-export interface ColorData {
-  color: string,
-  text: string,
-}
-
-export const colorizer = Worker('neovim-colorizer')
 
 const textByWord = (data: ColorData[]): ColorData[] => data.reduce((res, item) => {
   const words = item.text.split(/(\s+)/)

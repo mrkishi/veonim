@@ -1,6 +1,8 @@
 NEW HARDER FASTER STRONGER ICON
 change default background/statusline/windows colors to match brunswick default bg
 
+backup repo to other places pls
+
 shutdown+cleanup langservs on project switch/close
 
 statusline: running lang server showing when started?
