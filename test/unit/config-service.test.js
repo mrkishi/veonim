@@ -1,5 +1,3 @@
-'use strict'
-
 const { src, same } = require('./util')
 
 const defaultConfig = {
