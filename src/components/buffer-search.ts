@@ -1,4 +1,5 @@
 import { action, current as vim, jumpTo, getCurrent } from '../core/neovim'
+import colorizeWithHighlight from '../support/colorize-with-highlight'
 import { PluginBottom } from '../components/plugin-container'
 import colorizer, { ColorData } from '../services/colorizer'
 import { RowNormal } from '../components/row-container'
@@ -66,17 +67,39 @@ const actions = {
   },
   change: (query: string) => (_: S, a: A) => {
     finder.request.fuzzy(vim.cwd, vim.file, query).then(async (res: FilterResult[]) => {
-      // TODO: can we change colorizer to accept an array of strings?
-      const text = res.map(m => m.line).join('\n')
-      const coloredLines: ColorData[][] = await colorizer.request.colorize(text, vim.filetype)
-      const lines = coloredLines.map((m, ix) => ({
+      if (!res.length) return
+
+      console.log('found lines:', res)
+
+      const textLines = res.map(m => m.line)
+      const coloredLines: ColorData[][] = await colorizer.request.colorizePerChar(textLines, vim.filetype)
+
+      console.log('colored lines:', coloredLines)
+      // TODO: what guarantee do we have that colored lines will be in the same order returned by colorizer?
+
+      // const lines = coloredLines.map((m, ix) => {
+      //   const match = res[ix]
+      //   console.log(ix, match, m)
+      //   return {
+      //     coloredLines: m,
+      //     ...match,
+      //   }
+      // })
+      const lines = coloredLines.filter(m => m.length).map((m, ix) => ({
         colorizedLine: m,
         ...res[ix],
       }))
-      a.updateResults(lines)
+
+      const colorGroups = lines.map(line => colorizeWithHighlight(line, 'yellow')).map((m, ix) => ({
+        colorizedLine: m,
+        ...res[ix],
+      }))
+
+      a.updateResults(colorGroups)
     })
     return { query }
   },
+  updateResults: (results: ColorizedFilterResult[]) => ({ results }),
   // TODO: we will have an issue where we jump to a place in the buffer, but
   // the jumpTo location is behind the buffer-search overlay window.  maybe zz
   // or zt and adjust a few lines down? can we readjust only conditionally if
@@ -92,7 +115,7 @@ const actions = {
     jumpTo(s.results[index].start)
     return { index }
   },
-  updateResults: (results: ColorizedFilterResult[]) => ({ results }),
+  // TODO: virtual list? scroll list? what if select out of bounds/overflowd item?
 }
 
 type A = typeof actions

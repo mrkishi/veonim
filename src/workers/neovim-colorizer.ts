@@ -141,5 +141,15 @@ const colorizeText = async (text: string, filetype = ''): Promise<ColorData[][]>
   return colorData(lines, colorsAsRanges(colors))
 }
 
+const colorizeTextPerChar = async (lines: string[], filetype = ''): Promise<ColorData[][]> => {
+  insertIntoBuffer(lines)
+  const coloredLines = await getTextColors(filetype) || []
+  return coloredLines.map((line, lineIx) => line.map(([ charIx, color ]) => ({
+    color,
+    text: lines[lineIx].slice(charIx, charIx + 1)
+  })))
+}
+
 on.setColorScheme((scheme: string) => api.command(`colorscheme ${scheme}`))
 on.colorize(async (text: string, filetype: string) => await colorizeText(text, filetype))
+on.colorizePerChar(async (lines: string[], filetype: string) => await colorizeTextPerChar(lines, filetype))
