@@ -11,7 +11,7 @@ script:
 - npm run build
 - npm run test:ci
 before_deploy:
-- npm run release
+- npm run package
 deploy:
   provider: releases
   skip_cleanup: true
