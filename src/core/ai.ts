@@ -9,6 +9,7 @@ import '../ai/definition'
 import '../ai/highlights'
 import '../ai/symbols'
 import '../ai/rename'
+import '../ai/hover'
 
 onStateChange.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
