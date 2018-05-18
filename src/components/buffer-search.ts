@@ -8,6 +8,7 @@ import { cursor as visualCursor } from '../core/cursor'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
+import { merge } from '../support/utils'
 import { app, h } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
@@ -43,10 +44,17 @@ const cursor = (() => {
   return { save, restore }
 })()
 
-const openInCurrentVimWindow = () => {
-  const windowContainerEl = getWindowContainerElement(visualCursor.row, visualCursor.col)
-  console.log('target window element:', windowContainerEl)
-}
+const elementManager = (() => {
+  let container: HTMLElement
+
+  const show = (el: HTMLElement) => {
+    container = getWindowContainerElement(visualCursor.row, visualCursor.col)
+    container.appendChild(el)
+  }
+  const hide = (el: HTMLElement) => container && container.removeChild(el)
+
+  return { show, hide }
+})()
 
 const state = {
   results: [] as ColorizedFilterResult[],
@@ -63,10 +71,11 @@ const resetState = { visible: false, query: '', results: [], index: 0 }
 const actions = {
   hide: () => {
     cursor.restore()
+    elementManager.hide(componentElement)
     return resetState
   },
   show: () => {
-    openInCurrentVimWindow()
+    elementManager.show(componentElement)
     cursor.save()
     return { visible: true }
   },
@@ -119,6 +128,7 @@ type A = typeof actions
 // TODO: this view should be part of the current vim window, not span the
 // entire app window. need to get element from windows.ts (like getWindows())
 const view = ($: S, a: A) => PluginBottom($.visible, {
+  // TODO: nope, should be calculated based on window container element
   height: '40vh',
 }, [
 
@@ -155,6 +165,18 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
 
 ])
 
-const ui = app({ name: 'buffer-search', state, actions, view })
+// TODO: use makel helper fn?
+const componentElement = document.createElement('div')
+merge(componentElement.style, {
+  // TODO: nope, needs to be positioned within the container, not the entire window
+  position: 'absolute',
+  // TODO: nope
+  // TODO: also, height: vh is wrong, it should be based on the size of the container element
+  bottom: 0,
+  width: '100%',
+  zIndex: 90, // above cursor + cursorline
+})
+
+const ui = app({ name: 'buffer-search', state, actions, view, element: componentElement })
 
 action('buffer-search', ui.show)
