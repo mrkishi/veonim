@@ -43,6 +43,7 @@ const cursor = (() => {
 
 const state = {
   results: [] as ColorizedFilterResult[],
+  highlightColor: 'pink',
   visible: false,
   query: '',
   index: -1,
@@ -67,30 +68,17 @@ const actions = {
   },
   change: (query: string) => (_: S, a: A) => {
     finder.request.fuzzy(vim.cwd, vim.file, query).then(async (res: FilterResult[]) => {
-      if (!res.length) return
-
-      console.log('found lines:', res)
+      if (!res.length) return a.updateResults([])
 
       const textLines = res.map(m => m.line)
       const coloredLines: ColorData[][] = await colorizer.request.colorizePerChar(textLines, vim.filetype)
 
-      console.log('colored lines:', coloredLines)
-      // TODO: what guarantee do we have that colored lines will be in the same order returned by colorizer?
-
-      // const lines = coloredLines.map((m, ix) => {
-      //   const match = res[ix]
-      //   console.log(ix, match, m)
-      //   return {
-      //     coloredLines: m,
-      //     ...match,
-      //   }
-      // })
       const lines = coloredLines.filter(m => m.length).map((m, ix) => ({
         colorizedLine: m,
         ...res[ix],
       }))
 
-      const colorGroups = lines.map(line => colorizeWithHighlight(line, 'yellow')).map((m, ix) => ({
+      const colorGroups = lines.map(line => colorizeWithHighlight(line)).map((m, ix) => ({
         colorizedLine: m,
         ...res[ix],
       }))
@@ -147,13 +135,13 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
     // are overflowed?
   }, $.results.map((res, pos) => h(RowNormal, {
     active: pos === $.index,
-  }, res.colorizedLine.map(({ color, text }) => h('span', {
+  }, res.colorizedLine.map(({ color, text, highlight }) => h('span', {
     style: {
-      color: color || cvar('foreground'),
       whiteSpace: 'pre',
+      color: color || cvar('foreground'),
+      background: highlight && 'rgba(255, 255, 255, 0.1)',
     }
   }, text)))))
-  // TODO: highlight search match?
   // TODO: should we display an empty (no results) image/placeholder/whatever
   // the cool kids call it these days?
 

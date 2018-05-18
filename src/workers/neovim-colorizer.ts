@@ -146,7 +146,7 @@ const colorizeTextPerChar = async (lines: string[], filetype = ''): Promise<Colo
   const coloredLines = await getTextColors(filetype) || []
   return coloredLines.map((line, lineIx) => line.map(([ charIx, color ]) => ({
     color,
-    text: lines[lineIx].slice(charIx, charIx + 1)
+    text: lines[lineIx].slice(charIx - 1, charIx)
   })))
 }
 

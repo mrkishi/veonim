@@ -32,6 +32,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 - graphical neovim ui including windows, tabs, command line, status line, messages, cursor, cursorline, colorscheme adaptable interface etc.
 - project/workspace/cd management
 - reload vim buffers when modified (e.g. when edited in another program)
+- open file from :terminal in current vim window
 - everything configured via vim config file (init.vim) and scriptable from vimscript or remote plugins (any language)
 - create fuzzy overlay menus and floating overlay menus with user defined options (built-in FZF.vim alternative)
 - built-in statusline (displays current project, git branch, git changes, warning/problem count, cursor position, and tabpages)
