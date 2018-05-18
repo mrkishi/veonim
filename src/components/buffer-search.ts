@@ -2,7 +2,9 @@ import { action, current as vim, jumpTo, getCurrent } from '../core/neovim'
 import colorizeWithHighlight from '../support/colorize-with-highlight'
 import { PluginBottom } from '../components/plugin-container'
 import colorizer, { ColorData } from '../services/colorizer'
+import { getWindowContainerElement } from '../core/windows'
 import { RowNormal } from '../components/row-container'
+import { cursor as visualCursor } from '../core/cursor'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
@@ -41,6 +43,11 @@ const cursor = (() => {
   return { save, restore }
 })()
 
+const openInCurrentVimWindow = () => {
+  const windowContainerEl = getWindowContainerElement(visualCursor.row, visualCursor.col)
+  console.log('target window element:', windowContainerEl)
+}
+
 const state = {
   results: [] as ColorizedFilterResult[],
   highlightColor: 'pink',
@@ -59,6 +66,7 @@ const actions = {
     return resetState
   },
   show: () => {
+    openInCurrentVimWindow()
     cursor.save()
     return { visible: true }
   },

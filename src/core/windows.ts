@@ -296,6 +296,7 @@ const emptyLastWindow = {
 }
 
 const lastWindow = { ...emptyLastWindow }
+const lastWindow2 = { ...emptyLastWindow, canvasBox: HTMLElement }
 
 const isWindowRangeValid = (
   targetRow: number,
@@ -343,6 +344,30 @@ export const getWindow: GetWindow = (targetRow: number, targetCol: number, { get
   }
 }
 
+export const getWindowContainerElement = (targetRow: number, targetCol: number) => {
+  const lastWindowValid = isWindowRangeValid(
+    targetRow,
+    targetCol,
+    lastWindow2.row,
+    lastWindow2.col,
+    lastWindow2.height,
+    lastWindow2.width,
+  )
+
+  if (lastWindowValid) return lastWindow2.canvasBox
+
+  const winCount = winPos.length
+  for (let ix = 0; ix < winCount; ix++) {
+    const [ row, col, height, width, canvas, /*win*/, canvasBox ] = winPos[ix]
+    const windowValid = isWindowRangeValid(targetRow, targetCol, row, col, height, width)
+
+    if (windowValid) {
+      merge(lastWindow2, { row, col, height, width, canvas, canvasBox })
+      return canvasBox
+    }
+  }
+}
+
 export const activeWindow = () => getWindow(cursor.row, cursor.col)
 
 const fillCanvasFromGrid = (x: number, y: number, height: number, width: number, canvas: CanvasWindow) => {
@@ -370,7 +395,7 @@ const setupWindow = ({ element, canvas, canvasBox, api }: Window, win: RenderWin
   })
 
   merge(lastWindow, emptyLastWindow)
-  winPos.push([win.y, win.x, win.height, win.width, canvas, win])
+  winPos.push([win.y, win.x, win.height, win.width, canvas, win, canvasBox])
   canvas
     .setSpecs(win.y, win.x, win.height, win.width, 10, 6)
     .resize(canvasBox, current.bg)
