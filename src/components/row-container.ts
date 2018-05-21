@@ -13,7 +13,7 @@ const row = {
   textOverflow: 'ellipsis',
   display: 'flex',
   color: cvar('foreground-30'),
-  height: '1.4rem',
+  minHeight: '1.4rem',
 }
 
 const activeRow = {
