@@ -61,6 +61,7 @@ export const PluginBottom: PluginFn = (visible: boolean, ...args: any[]) => h('d
   ,h('div', {
     style: {
       width: '100%',
+      height: '100%',
       flexFlow: 'column',
       background: cvar('background-45'),
       display: visible ? 'flex' : 'none',

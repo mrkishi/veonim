@@ -3,6 +3,10 @@ change default background/statusline/windows colors to match brunswick default b
 
 backup repo to other places pls
 
+height: 1.4rem on row container is BAD because some rows need to expand to multiple lines
+i.e. problems ui displaying multi-line error messages. need to make it min-height: 1.4rem?
+is this in any way related to the hover/docs box being too small?
+
 should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
 esc/cmd it happens that sometimes i press cmd thinking i want to use it as cmd
 (e.g. gonna press cmd+h) but then change my mind and never press the second key

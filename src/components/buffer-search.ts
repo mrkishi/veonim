@@ -8,7 +8,7 @@ import { cursor as visualCursor } from '../core/cursor'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
-import { merge } from '../support/utils'
+import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
@@ -71,11 +71,11 @@ const resetState = { visible: false, query: '', results: [], index: 0 }
 const actions = {
   hide: () => {
     cursor.restore()
-    elementManager.hide(positioningContainer)
+    elementManager.hide(componentElement)
     return resetState
   },
   show: () => {
-    elementManager.show(positioningContainer)
+    elementManager.show(componentElement)
     cursor.save()
     return { visible: true }
   },
@@ -125,12 +125,7 @@ const actions = {
 
 type A = typeof actions
 
-// TODO: this view should be part of the current vim window, not span the
-// entire app window. need to get element from windows.ts (like getWindows())
-const view = ($: S, a: A) => PluginBottom($.visible, {
-  // TODO: nope, should be calculated based on window container element
-  height: '40vh',
-}, [
+const view = ($: S, a: A) => PluginBottom($.visible, [
 
   ,Input({
     hide: a.hide,
@@ -165,22 +160,26 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
 
 ])
 
-// TODO: use makel helper fn?
-const positioningContainer = document.createElement('div')
-positioningContainer.style.position = 'relative'
 
-const componentElement = document.createElement('div')
-merge(componentElement.style, {
+const componentElement = makel({
   position: 'absolute',
-  // TODO: nope
-  // TODO: also, height: vh is wrong, it should be based on the size of the container element
-  bottom: 0,
+  display: 'flex',
+  height: '100%',
   width: '100%',
   zIndex: 90, // above cursor + cursorline
 })
 
-positioningContainer.appendChild(componentElement)
+const element = makel({
+  maxHeight: '40%',
+  height: '40%',
+  width: '100%',
+  display: 'flex',
+  overflow: 'hidden',
+  alignSelf: 'flex-end',
+})
 
-const ui = app({ name: 'buffer-search', state, actions, view, element: positioningContainer })
+componentElement.appendChild(element)
+
+const ui = app({ name: 'buffer-search', state, actions, view, element })
 
 action('buffer-search', ui.show)

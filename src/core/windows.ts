@@ -1,4 +1,4 @@
-import { is, throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
+import { throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
 import { getCurrent, current, cmd, BufferType, BufferOption } from '../core/neovim'
 import { ShadowBuffer, getShadowBuffer } from '../core/shadow-buffers'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
@@ -7,8 +7,9 @@ import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
-import * as grid from '../core/grid'
 import { EventEmitter } from 'events'
+import { makel } from '../ui/vanilla'
+import * as grid from '../core/grid'
 
 export interface VimWindow {
   x: number,
@@ -69,20 +70,7 @@ interface GridInfo {
   windows: RenderWindow[],
 }
 
-type EL1 = (tagName: string, style: object) => HTMLElement
-type EL2 = (style: object) => HTMLElement
-
 const watchers = new EventEmitter()
-
-export const makel: EL1 & EL2 = (...args: any[]) => {
-  const styleObject = args.find(is.object)
-
-  const el = document.createElement(args.find(is.string) || 'div')
-  styleObject && merge(el.style, styleObject)
-
-  return el
-}
-
 const cache = { windows: [] as VimWindow[] }
 const container = document.getElementById('windows') as HTMLElement
 const specs = { gridGap: 2 }
@@ -105,7 +93,9 @@ const createWindowEl = () => {
 
   const canvasBox = makel({
     flex: 1,
+    display: 'flex',
     overflow: 'hidden',
+    position: 'relative',
     background: 'var(--background)',
   })
 
