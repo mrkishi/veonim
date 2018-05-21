@@ -37,6 +37,8 @@ merge(cursorEl.style, {
 cursorChar.style.filter = 'invert(1) grayscale(1)'
 cursorEl.appendChild(cursorChar)
 
+export const getCursorBoundingClientRect = () => cursorline.getBoundingClientRect()
+
 export const setCursorShape = (type: CursorShape, size = 20) => {
   cursor.type = type
 

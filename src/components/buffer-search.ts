@@ -1,10 +1,10 @@
-import { action, current as vim, jumpTo, getCurrent } from '../core/neovim'
+import { action, current as vim, jumpTo, getCurrent, feedkeys } from '../core/neovim'
+import { cursor as visualCursor, getCursorBoundingClientRect } from '../core/cursor'
 import colorizeWithHighlight from '../support/colorize-with-highlight'
 import { PluginBottom } from '../components/plugin-container'
 import colorizer, { ColorData } from '../services/colorizer'
 import { getWindowContainerElement } from '../core/windows'
 import { RowNormal } from '../components/row-container'
-import { cursor as visualCursor } from '../core/cursor'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
@@ -56,6 +56,19 @@ const elementManager = (() => {
   return { show, hide }
 })()
 
+let elPosTop = 0
+
+const captureOverlayPosition = () => setImmediate(() => {
+  const { top } = element.getBoundingClientRect()
+  elPosTop = top
+})
+
+const checkReadjustViewport = () => setTimeout(() => {
+  const { top } = getCursorBoundingClientRect()
+  const hidden = top > elPosTop
+  if (hidden) feedkeys('zz')
+}, 10)
+
 const state = {
   results: [] as ColorizedFilterResult[],
   highlightColor: 'pink',
@@ -66,7 +79,7 @@ const state = {
 
 type S = typeof state
 
-const resetState = { visible: false, query: '', results: [], index: 0 }
+const resetState = { visible: false, query: '', results: [], index: -1 }
 
 const actions = {
   hide: () => {
@@ -77,6 +90,7 @@ const actions = {
   show: () => {
     elementManager.show(componentElement)
     cursor.save()
+    captureOverlayPosition()
     return { visible: true }
   },
   select: () => (s: S) => {
@@ -105,22 +119,26 @@ const actions = {
     return { query }
   },
   updateResults: (results: ColorizedFilterResult[]) => ({ results }),
-  // TODO: we will have an issue where we jump to a place in the buffer, but
-  // the jumpTo location is behind the buffer-search overlay window.  maybe zz
-  // or zt and adjust a few lines down? can we readjust only conditionally if
-  // the jumpTo location is being covered by the overlay? how to determine if
-  // it's being covered?
   next: () => (s: S) => {
+    if (!s.results.length) return
+
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
+
     jumpTo(s.results[index].start)
+    checkReadjustViewport()
+
     return { index }
   },
   prev: () => (s: S) => {
+    if (!s.results.length) return
+
     const index = s.index - 1 < 0 ? s.results.length - 1 : s.index - 1
+
     jumpTo(s.results[index].start)
+    checkReadjustViewport()
+
     return { index }
   },
-  // TODO: virtual list? scroll list? what if select out of bounds/overflowd item?
 }
 
 type A = typeof actions
@@ -144,8 +162,6 @@ const view = ($: S, a: A) => PluginBottom($.visible, [
     style: {
       overflow: 'hidden',
     }
-    // TODO: does this list scroll? what happens when we select entries that
-    // are overflowed?
   }, $.results.map((res, pos) => h(RowNormal, {
     active: pos === $.index,
   }, res.colorizedLine.map(({ color, text, highlight }) => h('span', {
@@ -155,9 +171,6 @@ const view = ($: S, a: A) => PluginBottom($.visible, [
       background: highlight && 'rgba(255, 255, 255, 0.1)',
     }
   }, text)))))
-  // TODO: should we display an empty (no results) image/placeholder/whatever
-  // the cool kids call it these days?
-
 ])
 
 

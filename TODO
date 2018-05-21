@@ -3,6 +3,10 @@ change default background/statusline/windows colors to match brunswick default b
 
 backup repo to other places pls
 
+buffer-search: virtual-list
+
+placeholder/empty images/icons for empty lists (results)?
+
 should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
 esc/cmd it happens that sometimes i press cmd thinking i want to use it as cmd
 (e.g. gonna press cmd+h) but then change my mind and never press the second key
