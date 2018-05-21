@@ -71,11 +71,11 @@ const resetState = { visible: false, query: '', results: [], index: 0 }
 const actions = {
   hide: () => {
     cursor.restore()
-    elementManager.hide(componentElement)
+    elementManager.hide(positioningContainer)
     return resetState
   },
   show: () => {
-    elementManager.show(componentElement)
+    elementManager.show(positioningContainer)
     cursor.save()
     return { visible: true }
   },
@@ -166,9 +166,11 @@ const view = ($: S, a: A) => PluginBottom($.visible, {
 ])
 
 // TODO: use makel helper fn?
+const positioningContainer = document.createElement('div')
+positioningContainer.style.position = 'relative'
+
 const componentElement = document.createElement('div')
 merge(componentElement.style, {
-  // TODO: nope, needs to be positioned within the container, not the entire window
   position: 'absolute',
   // TODO: nope
   // TODO: also, height: vh is wrong, it should be based on the size of the container element
@@ -177,6 +179,8 @@ merge(componentElement.style, {
   zIndex: 90, // above cursor + cursorline
 })
 
-const ui = app({ name: 'buffer-search', state, actions, view, element: componentElement })
+positioningContainer.appendChild(componentElement)
+
+const ui = app({ name: 'buffer-search', state, actions, view, element: positioningContainer })
 
 action('buffer-search', ui.show)

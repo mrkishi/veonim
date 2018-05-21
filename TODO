@@ -140,6 +140,14 @@ upgrade ripgrep
 
 --ideas--
 
+neovim PRs:
+
+buffer notifications:
+- https://github.com/neovim/neovim/pull/7917
+
+extended marks:
+- https://github.com/neovim/neovim/pull/5031
+
 i want a go to previous buffer in the current window command. PLS
 - i thought vim could do this... but the alt buffer or :b# does not
   work as expected. maybe need to write a plugin to track bufEnter and
