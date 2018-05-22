@@ -1,6 +1,5 @@
 import { action, current as vim, jumpTo, getCurrent, feedkeys } from '../core/neovim'
 import { cursor as visualCursor, getCursorBoundingClientRect } from '../core/cursor'
-import colorizeWithHighlight from '../support/colorize-with-highlight'
 import { PluginBottom } from '../components/plugin-container'
 import colorizer, { ColorData } from '../services/colorizer'
 import { getWindowContainerElement } from '../core/windows'
@@ -64,6 +63,10 @@ const captureOverlayPosition = () => setImmediate(() => {
 })
 
 const checkReadjustViewport = () => setTimeout(() => {
+  // not the most performant
+  // i tried using IntersectionObserver but it did not work i think because
+  // both observed elements are absolutely positioned. all examples i've seen
+  // are about detecting elements scrolling in/out of the viewport
   const { top } = getCursorBoundingClientRect()
   const hidden = top > elPosTop
   if (hidden) feedkeys('zz')
@@ -109,12 +112,7 @@ const actions = {
         ...res[ix],
       }))
 
-      const colorGroups = lines.map(line => colorizeWithHighlight(line)).map((m, ix) => ({
-        colorizedLine: m,
-        ...res[ix],
-      }))
-
-      a.updateResults(colorGroups)
+      a.updateResults(lines)
     })
     return { query }
   },
