@@ -6,8 +6,11 @@ backup repo to other places pls
 NORMALIZE HYPERSPACE COORDINATES
 - autocomplete off by one (both visual and suggestion)
 - code action, no range values specified. lang serv throws error
-- statusline shows 0:0 for line/column
 - symbol search jumps to line above and character to the left (off by one)
+
+-- good
+- problems jump to right place (still need to sort diagnostics by line/column
+  to fix bad relative jumpto location)
 
 separate out internal object data from langserv params data?
 - right now in adapter we send both vim state object and params in the same

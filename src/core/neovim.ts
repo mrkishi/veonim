@@ -331,6 +331,9 @@ type JumpOpts = HyperspaceCoordinates & { openBufferFirst: boolean }
 
 const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: JumpOpts) => {
   if (openBufferFirst && path) await openBuffer(path)
+  // nvim_win_set_cursor params
+  // line: 1-index based
+  // column: 0-index based
   ;(await getCurrent.window).setCursor(line + 1, column || 0)
   showCursorline()
 }

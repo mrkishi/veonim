@@ -290,7 +290,7 @@ const view = ($: S) => h('div', {
         clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%)',
       }
     }, [
-      ,h('div', `${$.line}:${$.column}`)
+      ,h('div', `${$.line + 1}:${$.column + 1}`)
     ])
 
     ,h('div', {
