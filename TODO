@@ -3,9 +3,16 @@ change default background/statusline/windows colors to match brunswick default b
 
 backup repo to other places pls
 
+code-action/quickfix: does it work correctly?
+test case:
+  - create multiline js obj `const one = { a\n b\n c\n }`
+  - do not use anywhere in file
+  - should recv quickfix to remove declaration
+  - removes only `const one = {\n` (first line of obj)
+  - expected to remove entire object?
+    - what does langserv return for workspaceedit?
+
 NORMALIZE HYPERSPACE COORDINATES
-- find references
-- goto def
 
 -- good
 - problems jump to right place (still need to sort diagnostics by line/column
