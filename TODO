@@ -4,7 +4,9 @@ change default background/statusline/windows colors to match brunswick default b
 backup repo to other places pls
 
 NORMALIZE HYPERSPACE COORDINATES
-- autocomplete off by one (both visual and suggestion)
+- grep jumpto off by one + 1 (line + column)
+- find references
+- goto def
 
 -- good
 - problems jump to right place (still need to sort diagnostics by line/column
