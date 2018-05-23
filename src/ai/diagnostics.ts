@@ -74,9 +74,9 @@ const getDiagnosticLocations = (diags: Map<string, Diagnostic[]>): LocationItem[
   .reduce((res, [ path, diagnostics ]) => {
     const pathDiags = diagnostics.map(d => ({
       path,
-      line: d.range.start.line + 1,
+      line: d.range.start.line,
       column: d.range.start.character,
-      endLine: d.range.end.line + 1,
+      endLine: d.range.end.line,
       endColumn: d.range.end.character,
     }))
 
@@ -146,7 +146,7 @@ action('next-problem', async () => {
   const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
   if (!diagnosticLocations) return
 
-  const problem = findNext(diagnosticLocations, currentPath, line, column - 1)
+  const problem = findNext(diagnosticLocations, currentPath, line, column)
   if (!problem) return
 
   jumpTo(problem)
@@ -158,7 +158,7 @@ action('prev-problem', async () => {
   const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
   if (!diagnosticLocations) return
 
-  const problem = findPrevious(diagnosticLocations, currentPath, line, column - 1)
+  const problem = findPrevious(diagnosticLocations, currentPath, line, column)
   if (!problem) return
 
   jumpTo(problem)
@@ -179,7 +179,7 @@ on.cursorMove(async state => {
   if (!diagnostics) return
 
   const relevantDiagnostics = diagnostics
-    .filter(d => positionWithinRange(line - 1, column - 1, d.range))
+    .filter(d => positionWithinRange(line, column, d.range))
 
   const actions = await codeAction(state, relevantDiagnostics)
 

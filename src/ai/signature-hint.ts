@@ -70,7 +70,7 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
 
 const getSignatureHint = async (lineContent: string) => {
   const triggerChars = triggers.signatureHelp(vimState.cwd, vimState.filetype)
-  const leftChar = lineContent[Math.max(vimState.column - 2, 0)]
+  const leftChar = lineContent[Math.max(vimState.column - 1, 0)]
 
   // TODO: should probably also hide if we jumped to another line
   // how do we determine the difference between multiline signatures and exit signature?

@@ -1,5 +1,5 @@
-import { CodeLens, Diagnostic, Command, Location, Position, WorkspaceEdit,
-  Hover, SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
+import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
+  SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
   DocumentHighlight } from 'vscode-languageserver-types'
 import { notify, request, getSyncKind, SyncKind } from '../langserv/director'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
@@ -77,7 +77,7 @@ const filterWorkspaceSymbols = (symbols: Symbol[]): Symbol[] => {
 
 // TODO: get typings for valid requests?
 const toProtocol = (data: NeovimState, more?: any) => {
-  const { cwd, filetype, file, line: vimLine, column, revision } = data
+  const { cwd, filetype, file, line, column: character, revision } = data
   const uri = `file://${path.resolve(cwd, file)}`
 
   const base = {
@@ -89,22 +89,14 @@ const toProtocol = (data: NeovimState, more?: any) => {
     }
   }
 
-  if (vimLine && column) merge(base, {
-    position: {
-      line: vimLine - 1,
-      character: column - 1
-    }
-  })
-
+  if (line && character) merge(base, { position: { line, character } })
   return more ? merge(base, more) : base
 }
-
-const toVimPosition = ({ line, character }: Position): VimPosition => ({ line: line + 1, column: character + 1 })
 
 const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
   if (currentBuffer.cwd !== cwd && currentBuffer.file !== file)
     return console.error('trying to do a partial update before a full update has been done. normally before doing a partial update a bufEnter event happens which triggers a full update.', currentBuffer, cwd, file)
-  Reflect.set(currentBuffer.contents, line - 1, change)
+  Reflect.set(currentBuffer.contents, line, change)
 }
 
 export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false) => {
@@ -131,8 +123,8 @@ export const partialBufferUpdate = async (change: BufferChange, bufferOpened = f
   const content = {
     text: buffer[0],
     range: {
-      start: { line: line - 1, character: 0 },
-      end: { line: line - 1, character: buffer.length - 1 }
+      start: { line, character: 0 },
+      end: { line, character: buffer.length - 1 }
     }
   }
 
@@ -263,7 +255,10 @@ export const hover = async (data: NeovimState): Promise<HoverResult> => {
 const toVimLocation = ({ uri, range }: Location): VimLocation => ({
   cwd: uriAsCwd(uri),
   file: uriAsFile(uri),
-  position: toVimPosition(range.start),
+  position: {
+    line: range.start.line,
+    column: range.start.character,
+  },
 })
 
 export const symbols = async (data: NeovimState): Promise<Symbol[]> => {

@@ -103,11 +103,6 @@ interface EventWait {
   completion: Promise<any>,
 }
 
-interface Position {
-  column: number,
-  line: number,
-}
-
 export interface NeovimState {
   absoluteFilepath: string,
   bufferType: BufferType,
@@ -385,8 +380,8 @@ export const current: NeovimState = new Proxy({
   sp: '#ef5188',
 }, {
   set: (target, key, value) => {
-    key === 'line' && console.log('line', value)
-    key === 'column' && console.log('column', value)
+    key === 'line' && console.log('line:', value)
+    key === 'column' && console.log('column:', value)
 
     const prevValue = Reflect.get(target, key)
     Reflect.set(target, key, value)
@@ -397,16 +392,20 @@ export const current: NeovimState = new Proxy({
 
 const getCurrentPosition = async () => {
   const win = await getCurrent.window
-  const [ line, column ] = await win.position
-  return { line, column }
+  // nvim_win_get_cursor returns
+  // line: 1-index based
+  // column: 0-index based
+  const [ line, column ] = await win.cursor
+  return { line: line - 1, column }
 }
 
 export const getCurrent = {
+  // TODO: merge these in 'current' api?
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
   get window() { return as.win(req.core.getCurrentWin()) },
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
-  // TODO: why not use nvim_win_get_position which returns 0 based location?
-  get position(): Promise<Position> { return new Promise(fin => call.getpos('.').then(m => fin({ line: m[1], column: m[2] }))) },
+  // TODO: deprecate these apis? use buffer notification PR?
+  // TODO: bufferContents: use nvim api?
   get lineContent(): Promise<string> { return req.core.getCurrentLine() },
   get bufferContents(): Promise<string[]> { return call.getline(1, '$') as Promise<string[]> },
 }
