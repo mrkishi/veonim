@@ -17,7 +17,7 @@ enum FocusedElement {
 
 interface SearchResult {
   line: number,
-  col: number,
+  column: number,
   text: string,
 }
 
@@ -61,7 +61,7 @@ const scrollIntoView = (next: number) => setTimeout(() => {
 const selectResult = (results: Result[], ix: number, subix: number) => {
   if (subix < 0) return
   const [ path, items ] = results[ix]
-  const { line, col: column } = items[subix]
+  const { line, column } = items[subix]
   jumpToProjectFile({ path, line, column })
 }
 

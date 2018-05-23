@@ -10,13 +10,13 @@ interface Request {
 interface Result {
   path: string,
   line: number,
-  col: number,
+  column: number,
   text: string,
 }
 
 interface ResultPart {
   line: number,
-  col: number,
+  column: number,
   text: string,
 }
 
@@ -29,9 +29,9 @@ let results: Result[] = []
 let stopSearch = () => {}
 let filterQuery = ''
 
-const groupResults = (m: Result[]) => [...m.reduce((map, { path, text, line, col }: Result) => {
-  if (!map.has(path)) return (map.set(path, [{ text, line, col }]), map)
-  return (map.get(path)!.push({ text, line, col }), map)
+const groupResults = (m: Result[]) => [...m.reduce((map, { path, text, line, column }: Result) => {
+  if (!map.has(path)) return (map.set(path, [{ text, line, column }]), map)
+  return (map.get(path)!.push({ text, line, column }), map)
 }, new Map<string, ResultPart[]>())]
 
 const sendResults = () => {
@@ -66,8 +66,15 @@ const searchFiles = ({ query, cwd }: Request) => {
   const rg = Ripgrep([query, '--vimgrep'], { cwd })
 
   rg.stdout.pipe(new NewlineSplitter()).on('data', (m: string) => {
-    const [ , path = '', line = 0, col = 0, text = '' ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/) || []
-    path && results.push({ path, text: (text as string).trim(), line: <any>line-0, col: <any>col-0 })
+    const [ , path = '', line = 0, column = 0, text = '' ] = m.match(/^(.*?):(\d+):(\d+):(.*?)$/) || []
+
+    // ripgrep results (line/column) are 1-index based. veonim uses 0-index based
+    path && results.push({
+      path,
+      text: (text as string).trim(),
+      line: <any>line - 1,
+      column: <any>column - 1,
+    })
   })
 
   rg.on('exit', () => {
