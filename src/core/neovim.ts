@@ -385,12 +385,21 @@ export const current: NeovimState = new Proxy({
   sp: '#ef5188',
 }, {
   set: (target, key, value) => {
+    key === 'line' && console.log('line', value)
+    key === 'column' && console.log('column', value)
+
     const prevValue = Reflect.get(target, key)
     Reflect.set(target, key, value)
     if (prevValue !== value) stateChangeWatchers.notify(key as string, value)
     return true
   }
 })
+
+const getCurrentPosition = async () => {
+  const win = await getCurrent.window
+  const [ line, column ] = await win.position
+  return { line, column }
+}
 
 export const getCurrent = {
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
@@ -498,7 +507,8 @@ const refreshState = (event = 'bufLoad') => async () => {
     call.expand(`%f`),
     g.colors_name,
     expr(`b:changedtick`),
-    getCurrent.position,
+    // getCurrent.position,
+    getCurrentPosition(),
     getCurrent.buffer,
   )
 
@@ -565,7 +575,8 @@ autocmd.insertEnter(() => notifyEvent('insertEnter'))
 autocmd.insertLeave(() => notifyEvent('insertLeave'))
 
 autocmd.cursorMoved(async () => {
-  const { line, column } = await getCurrent.position
+  // const { line, column } = await getCurrent.position
+  const { line, column } = await getCurrentPosition()
   merge(current, { line, column })
   notifyEvent('cursorMove')
 })
@@ -584,7 +595,8 @@ autocmd.bufWritePost(() => notifyEvent('bufWrite'))
 
 autocmd.cursorMovedI(async () => {
   const prevRevision = current.revision
-  const [ revision, { line, column } ] = await cc(expr(`b:changedtick`), getCurrent.position)
+  // const [ revision, { line, column } ] = await cc(expr(`b:changedtick`), getCurrent.position)
+  const [ revision, { line, column } ] = await cc(expr(`b:changedtick`), getCurrentPosition())
   merge(current, { revision, line, column })
 
   if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')

@@ -11,13 +11,37 @@ interface ServKey {
   filetype: string,
 }
 
+enum CallKind {
+  Request,
+  Notification,
+}
+
+interface BufferedCall {
+  kind: CallKind,
+  method: string,
+  params: any,
+}
+
 export enum SyncKind { None, Full, Incremental }
 
 const servers = new Map<string, extensions.LanguageServer>()
 const serverCapabilities = new Map<string, any>()
 const serverStartCallbacks = new Set<Function>()
 const startingServers = new Set<string>()
+const bufferedServerCalls = new Map<string, BufferedCall[]>()
 const watchers = new Watchers()
+
+const processBufferedServerCalls = (key: string, server: extensions.LanguageServer) => {
+  const calls = bufferedServerCalls.get(key)
+  if (!calls) return
+
+  calls.forEach(({ kind, method, params }) => {
+    if (kind === CallKind.Request) server.sendRequest(method, params)
+    if (kind === CallKind.Notification) server.sendNotification(method, params)
+  })
+
+  bufferedServerCalls.delete(key)
+}
 
 const initServer = async (server: extensions.LanguageServer, cwd: string, filetype: string) => {
   const { error, capabilities } = await server
@@ -29,6 +53,7 @@ const initServer = async (server: extensions.LanguageServer, cwd: string, filety
 
   servers.set(cwd + filetype, server)
   serverCapabilities.set(cwd + filetype, capabilities)
+  processBufferedServerCalls(cwd + filetype, server)
   serverStartCallbacks.forEach(fn => fn(server))
 }
 
@@ -61,7 +86,30 @@ const startServer = async (cwd: string, filetype: string) => {
 // will be "dropped" or the server will take such a long time to start, that
 // buffering any requests will result in the UI being spammed with lots of
 // outdated information likely at the wrong item (and a very poor UX)
+//
+// UPDATE: i realized the conclusion above only partially applies. in the case
+// of user triggered actions, i think the reasoning still stands. however for
+// system triggered actions, the above conclusion [about dropping calls] is
+// wrong.  for example, we will have a few system actions such as synchronizing
+// buffers didOpen, didChange which need to happen before any actions can be
+// called on that buffer, and they must happen in a certain order. i observed
+// that calling didChange without a didOpen breaks on some langservers.
+//
+// so i have made it conditional. all langserv calls can now opt-in to buffering
+// until the server has started. this has been implemented for buffer sync events
 const isServerStarting = (cwd: string, filetype: string) => startingServers.has(cwd + filetype)
+
+const bufferCallUntilServerStart = async (call: BufferedCall) => {
+  const { cwd, filetype } = call.params
+  const serverAvailable = await extensions.existsForLanguage(filetype)
+  if (!serverAvailable) return
+
+  const key = cwd + filetype
+
+  bufferedServerCalls.has(key)
+    ? bufferedServerCalls.get(key)!.push(call)
+    : bufferedServerCalls.set(key, [ call ])
+}
 
 const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
   if (isServerStarting(cwd, filetype)) return
@@ -73,14 +121,16 @@ const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
   return startServer(cwd, filetype)
 }
 
-export const request = async (method: string, params: any) => {
+export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
   const server = await getServerForProjectAndLanguage(params)
   if (server) return server.sendRequest(method, params)
+  else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Request, method, params })
 }
 
-export const notify = async (method: string, params: any) => {
+export const notify = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
   const server = await getServerForProjectAndLanguage(params)
   if (server) server.sendNotification(method, params)
+  else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Notification, method, params })
 }
 
 export const onServerStart = (fn: (server: extensions.LanguageServer) => void) => {

@@ -3,6 +3,12 @@ change default background/statusline/windows colors to match brunswick default b
 
 backup repo to other places pls
 
+separate out internal object data from langserv params data?
+- right now in adapter we send both vim state object and params in the same
+  parameter, same object. i think it might be cleaner to send them separately,
+  so that we do not send internal data to the lang serv. this may have a
+  neglible benefit on network (de)serializing
+
 buffer-search: virtual-list
 
 placeholder/empty images/icons for empty lists (results)?
