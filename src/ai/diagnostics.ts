@@ -174,7 +174,7 @@ export const setProblems = (problems: Problem[]) => {
 }
 
 on.cursorMove(async state => {
-  const { line, column, cwd, file } = vim
+  const { line, column, cwd, file } = state
   const diagnostics = current.diagnostics.get(path.join(cwd, file))
   if (!diagnostics) return
 

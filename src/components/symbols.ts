@@ -1,5 +1,5 @@
-import { feedkeys, cmd, current as vimState } from '../core/neovim'
 import { workspaceSymbols, Symbol } from '../langserv/adapter'
+import { current as vimState, jumpTo } from '../core/neovim'
 import { SymbolKind } from 'vscode-languageserver-types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
@@ -7,6 +7,7 @@ import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
+import { join } from 'path'
 
 export enum SymbolMode {
   Buffer,
@@ -113,9 +114,9 @@ const resetState = { value: '', visible: false, index: 0, loading: false }
 const actions = {
   select: () => (s: S) => {
     if (!s.symbols.length) return (symbolCache.clear(), resetState)
-    const { location: { cwd, file, position: { line, column } } } = s.symbols[s.index]
-    cmd(`e ${cwd}/${file}`)
-    feedkeys(`${line}Gzz${column}|`)
+    const { location: { cwd, file, position } } = s.symbols[s.index]
+    const path = join(cwd, file)
+    jumpTo({ ...position, path })
     return (symbolCache.clear(), resetState)
   },
 

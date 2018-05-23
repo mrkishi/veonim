@@ -89,7 +89,8 @@ const toProtocol = (data: NeovimState, more?: any) => {
     }
   }
 
-  if (line && character) merge(base, { position: { line, character } })
+  const positionExists = is.number(line) && is.number(character)
+  if (positionExists) merge(base, { position: { line, character } })
   return more ? merge(base, more) : base
 }
 

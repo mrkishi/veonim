@@ -383,9 +383,6 @@ export const current: NeovimState = new Proxy({
   sp: '#ef5188',
 }, {
   set: (target, key, value) => {
-    key === 'line' && console.log('line:', value)
-    key === 'column' && console.log('column:', value)
-
     const prevValue = Reflect.get(target, key)
     Reflect.set(target, key, value)
     if (prevValue !== value) stateChangeWatchers.notify(key as string, value)
