@@ -13,9 +13,7 @@ test case:
     - what does langserv return for workspaceedit?
 
 NORMALIZE HYPERSPACE COORDINATES
-
--- good
-- problems jump to right place (still need to sort diagnostics by line/column
+- problems jump to next/prev - need to sort diagnostics by line/column
   to fix bad relative jumpto location)
 
 separate out internal object data from langserv params data?

@@ -132,7 +132,7 @@ action('show-problem', async () => {
   const diagnostics = current.diagnostics.get(path.join(cwd, file))
   if (!diagnostics) return
 
-  const targetProblem = diagnostics.find(d => positionWithinRange(line - 1, column - 1, d.range))
+  const targetProblem = diagnostics.find(d => positionWithinRange(line, column, d.range))
   if (targetProblem) problemInfoUI.show(targetProblem.message)
 })
 

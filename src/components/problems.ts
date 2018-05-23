@@ -43,8 +43,7 @@ const selectResult = (results: Problem[], ix: number, subix: number) => {
   const { range: { start: { line, character } } } = items[subix]
 
   const path = join(dir, file)
-  // TODO: these positions do not make me feel warm and fuzzy at all
-  jumpToProjectFile({ path, line: line + 1, column: character })
+  jumpToProjectFile({ path, line, column: character })
 }
 
 const state = {
