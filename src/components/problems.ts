@@ -211,9 +211,6 @@ const view = ($: S, a: A) => PluginBottom($.vis, {
           wordBreak: 'break-word',
           whiteSpace: 'normal',
         }
-        // this toVimPosition offsets funny business is really starting to
-        // ruin the fun of all living beings. pls fix so all positions
-        // are always 0-based for the good of all
       }, `${message}  (${range.start.line + 1}, ${range.start.character + 1})`)
     ])))
 

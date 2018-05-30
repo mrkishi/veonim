@@ -3,6 +3,12 @@ change default background/statusline/windows colors to match brunswick default b
 
 backup repo to other places pls
 
+investigate usage of 'requestIdleCallback'
+https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+
+investigate usage of css filter `backdrop-filter` (blur)
+https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter
+
 code-action/quickfix: does it work correctly?
 test case:
   - create multiline js obj `const one = { a\n b\n c\n }`
@@ -15,6 +21,8 @@ test case:
 NORMALIZE HYPERSPACE COORDINATES
 - problems jump to next/prev - need to sort diagnostics by line/column
   to fix bad relative jumpto location)
+  - do the issue thing. only jump to another file if there are no problems in the 
+    current buffer. otherwise cycle around in the same buffer
 
 separate out internal object data from langserv params data?
 - right now in adapter we send both vim state object and params in the same
@@ -28,6 +36,7 @@ separate out internal object data from langserv params data?
 buffer-search: virtual-list
 
 placeholder/empty images/icons for empty lists (results)?
+EMPTY STATE. it's called empyt state
 
 should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
 esc/cmd it happens that sometimes i press cmd thinking i want to use it as cmd
@@ -40,9 +49,6 @@ vimscript: switch to alternate test file. if file does not exist, have prompt th
 will ask to create test file according to the naming convention
 
 shutdown+cleanup langservs on project switch/close
-
-statusline: running lang server showing when started?
-statusline: runningServers add cwd as part of the equation status check
 
 spammy cmd-update lolwut?
 
@@ -62,11 +68,6 @@ up with a mix of new and old items in the DOM. lolwut?
 
 grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
-new extension process - use pipes? bridge and create client with proxy, etc.
-
-adapter:
- -symbols, get rid of  toVimLocation
-
 grep:
   - if we start a query that results are found, but then expand the query to
     something that does not return results, we are not clearing the ui
@@ -74,8 +75,6 @@ grep:
     for a popular keyword like 'await'). i think there is some logic to load
     more results from cache once we scroll down... maybe that is not activated
     if the div container height is too high?
-
-build.js not being used for anything. gonna finish it or discard?
 
 should font-sizer be part of build process?
 
@@ -91,7 +90,6 @@ STOP REQUIRING SO MUCH SHIT ON APP START LOL
   - web worker more shit (ai)
 
 depmgr as separate process (not even worker thread) - because of security and isolation?
-
 
 - SHADOW BUFFERS -
 the problem with shadow buffers is that our current neovim window render strategy
@@ -173,6 +171,8 @@ buffer notifications:
 
 extended marks:
 - https://github.com/neovim/neovim/pull/5031
+
+fuzzy refine searches with spaces between queries
 
 i want a go to previous buffer in the current window command. PLS
 - i thought vim could do this... but the alt buffer or :b# does not
@@ -270,45 +270,14 @@ use floating window for terminal scratch buffer. say i want to type a super fanc
 git commit msg, open scratch buffer, do the edits and whatnot, then "save" buffer to terminal
 prompt
 
--- more stuffffffff
-delete till highlighted text
-
-create marks from visual selection
-
-display marks visually in editor
-
-when using search substitution with regex, define a working area before hand with visual to marks
-create marks from operator
-
-i.e. mio for mark inner object then :%s a word and replace only in the defined area
-
-similarly can do for dot operator with replace cgn 
-
-change a word then repeat that change within the range of an operator:
-cm on word then dot on an operator: in object - like pressing .io maybe (repeat in object)
-
-can replace cw and ciw to always allow repeat again (do cm behind the scenes)
-
 macros/fns/operators for:
 replace obj key and val
 replace func body
-
-depmgr as separate process: security - no access to electron
 
 auto add to quick fix list:
 references
 problems
 grep 
-
-macro to delete surrounding block {}
-like:
-if (blarg) {
-  stuff
-  moreStuff()
-}
-
-delete lines 0 and 3
-
 
 -
 look into how we can use v8 snapshots for startup speed
