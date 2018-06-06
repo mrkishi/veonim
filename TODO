@@ -4,6 +4,11 @@ change default background/statusline/windows colors to match brunswick default b
 when switch focus to veonim app, first key is swalllllowed
 backup repo to other places pls
 
+blurry text on horizontal split. test with only native canvas text fillText().
+xterm.js had same issue with font atlas, but they had to change the align of
+text to bottom. if blur issue disappears with fillText() then problem is with
+font atlas
+
 investigate usage of 'requestIdleCallback'
 https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
 

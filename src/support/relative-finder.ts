@@ -67,10 +67,15 @@ const findClosest = <T extends LocationItem>(
   column: number,
   findNext: boolean,
 ) => {
-  const sortedItems = items.sort((a, b) => findNext
+  const sortedByPath = items.sort((a, b) => findNext
     ? orderDesc(a.path, b.path)
     : orderAsc(a.path, b.path)
   )
+
+  const sortedItems = sortedByPath.sort((a, b) => {
+    if (a.line === b.line) return a.column - b.column
+    return a.line - b.line
+  })
 
   const getItemsForPath = setupItemPathFinder(sortedItems)
   const currentItems = getItemsForPath(currentPath)

@@ -1,18 +1,18 @@
-'use strict'
-const { findNext, findPrevious } = require('../../build/support/relative-finder')
+const { src, same } = require('./util')
+const { findNext, findPrevious } = src('support/relative-finder')
 
 const getItems = () => [{
-  path: '/main/a.ts',
-  line: 1,
-  column: 1,
-  endLine: 1,
-  endColumn: 5,
-}, {
   path: '/main/a.ts',
   line: 4,
   column: 7,
   endLine: 4,
   endColumn: 9,
+}, {
+  path: '/main/a.ts',
+  line: 1,
+  column: 1,
+  endLine: 1,
+  endColumn: 5,
 }, {
   path: '/main/a.ts',
   line: 9,
@@ -21,15 +21,15 @@ const getItems = () => [{
   endColumn: 4,
 }, {
   path: '/main/c.ts',
-  line: 1,
-  column: 7,
-  endLine: 1,
-  endColumn: 9,
-}, {
-  path: '/main/c.ts',
   line: 3,
   column: 1,
   endLine: 3,
+  endColumn: 9,
+}, {
+  path: '/main/c.ts',
+  line: 1,
+  column: 7,
+  endLine: 1,
   endColumn: 9,
 }]
 
@@ -37,7 +37,7 @@ describe('relative finder', () => {
   it('find next', () => {
     const next = findNext(getItems(), '/main/a.ts', 2, 1)
 
-    expect(next).toEqual({
+    same(next, {
       path: '/main/a.ts',
       line: 4,
       column: 7,
@@ -49,7 +49,7 @@ describe('relative finder', () => {
   it('find next across files', () => {
     const next = findNext(getItems(), '/main/a.ts', 9, 2)
 
-    expect(next).toEqual({
+    same(next, {
       path: '/main/c.ts',
       line: 1,
       column: 7,
@@ -61,7 +61,7 @@ describe('relative finder', () => {
   it('when last loopback to first', () => {
     const next = findNext(getItems(), '/main/c.ts', 3, 1)
 
-    expect(next).toEqual({
+    same(next, {
       path: '/main/a.ts',
       line: 1,
       column: 1,
@@ -73,7 +73,7 @@ describe('relative finder', () => {
   it('find previous', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 2, 1)
 
-    expect(next).toEqual({
+    same(next, {
       path: '/main/a.ts',
       line: 1,
       column: 1,
@@ -85,7 +85,7 @@ describe('relative finder', () => {
   it('find previous across files', () => {
     const next = findPrevious(getItems(), '/main/c.ts', 1, 7)
 
-    expect(next).toEqual({
+    same(next, {
       path: '/main/a.ts',
       line: 9,
       column: 2,
@@ -97,7 +97,7 @@ describe('relative finder', () => {
   it('when first loopback to last', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 1, 1)
 
-    expect(next).toEqual({
+    same(next, {
       path: '/main/c.ts',
       line: 3,
       column: 1,
@@ -109,7 +109,7 @@ describe('relative finder', () => {
   it('find previous when in middle of current item', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 4, 8)
 
-    expect(next).toEqual({
+    same(next, {
       path: '/main/a.ts',
       line: 1,
       column: 1,
