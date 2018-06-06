@@ -70,22 +70,13 @@ const startupCmds = CmdGroup`
   colorscheme ${colorscheme}
   set guicursor=n:block-CursorNormal,i:hor10-CursorInsert,v:block-CursorVisual
   set background=dark
-  set laststatus=2
-  set statusline=%{VeonimStatusline()}
+  set laststatus=0
   set shortmess+=Ic
   set noshowcmd
   set noshowmode
   set noruler
   set nocursorline
   call serverstart()
-`
-
-startup.defineFunc.VeonimStatusline`
-  let ctrl = nr2char(${WIN_INFO_INDICATOR})
-  let id = nr2char(win_getid())
-  let h = nr2char(winheight(id) + ${WIN_INFO_OFFSET})
-  let w = nr2char(winwidth(id) + ${WIN_INFO_OFFSET})
-  return ctrl.id.h.w
 `
 
 // TODO: internalize (private) these functions to plugin file?
@@ -201,8 +192,7 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
   if (errors.length) notifyUI(errors.join('\n'), NotifyKind.Error)
 
   api.command(`let g:vn_loaded = 1`)
-  api.command(`set laststatus=2`)
-  api.command(`set statusline=%{VeonimStatusline()}`)
+  api.command(`set laststatus=0`)
   api.command(`set nocursorline`)
   api.command(`set shortmess+=Ic`)
   api.command(`set noshowmode`)
