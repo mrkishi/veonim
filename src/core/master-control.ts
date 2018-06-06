@@ -1,6 +1,5 @@
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import NeovimUtils, { CmdGroup, FunctionGroup } from '../support/neovim-utils'
-import { WIN_INFO_INDICATOR, WIN_INFO_OFFSET } from '../support/constants'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
 import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
 import { colorscheme } from '../config/default-configs'
