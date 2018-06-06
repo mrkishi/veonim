@@ -4,6 +4,13 @@ let win: Electron.BrowserWindow
 app.setName('veonim')
 Menu.setApplicationMenu(new Menu())
 
+const comscan = (() => {
+  const windows = new Set()
+  const register = (fn: (ch: string, msg: any) => void) => windows.add(fn)
+  const dispatch = (ch: string, message: any) => windows.forEach(cb => cb(ch, message))
+  return { register, dispatch }
+})()
+
 app.on('ready', async () => {
   win = new BrowserWindow({
     width: 800,
@@ -20,6 +27,7 @@ app.on('ready', async () => {
   })
 
   win.loadURL(`file:///${__dirname}/index.html`)
+  comscan.register((ch, msg) => win.webContents.send(ch, msg))
 
   if (process.env.VEONIM_DEV) {
     function debounce (fn: Function, wait = 1) {

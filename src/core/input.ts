@@ -3,6 +3,7 @@ import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import { $ } from '../support/utils'
+import { remote } from 'electron'
 import { Script } from 'vm'
 
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
@@ -12,6 +13,7 @@ let holding = ''
 let xformed = false
 let lastDown = ''
 let initialKeyPress = true
+let windowHasFocus = true
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -58,21 +60,24 @@ const shortcuts = new Map<string, Function>()
 export const registerShortcut = (keys: string, mode: string, cb: Function) =>
   shortcuts.set(`${mode}:<${keys.toUpperCase()}>`, cb)
 
-// TODO: can we use transform to do the same thing as remapModifier? seems similar
-export const remapModifier = (from: string, to: string) => remaps.set(from, to)
-export const focus = () => {
-  isCapturing = true
+const resetInputState = () => {
   xformed = false
   lastDown = ''
   holding = ''
 }
 
+export const focus = () => {
+  isCapturing = true
+  resetInputState()
+}
+
 export const blur = () => {
   isCapturing = false
-  xformed = false
-  lastDown = ''
-  holding = ''
+  resetInputState()
 }
+
+// TODO: can we use transform to do the same thing as remapModifier? seems similar
+export const remapModifier = (from: string, to: string) => remaps.set(from, to)
 
 type Transformer = (input: KeyboardEvent) => KeyboardEvent
 export const xfrmHold = new Map<string, Transformer>()
@@ -112,9 +117,9 @@ const sendKeys = async (e: KeyboardEvent) => {
 }
 
 window.addEventListener('keydown', e => {
-  if (!isCapturing) return
-  const es = keToStr(e)
+  if (!windowHasFocus || !isCapturing) return
 
+  const es = keToStr(e)
   lastDown = es
 
   if (xfrmDown.has(es)) {
@@ -139,7 +144,16 @@ window.addEventListener('keydown', e => {
 })
 
 window.addEventListener('keyup', e => {
-  if (!isCapturing) return
+  if (!windowHasFocus || !isCapturing) return
+
+  // one of the observed ways in which we can have a 'keyup' event without a
+  // 'keydown' event is when the window receives focus while a key is already
+  // pressed. this will happen with key combos like cmd+tab or alt+tab to
+  // switch applications in mac/windows. there is probably no good reason to
+  // send the keyup event key to neovim. in fact, this causes issues if we have
+  // a xform mapping of cmd -> escape, as it sends an 'esc' key to neovim
+  // terminal, thus swallowing the first key after app focus
+  if (!lastDown) return
   const es = keToStr(e)
 
   const prevKeyAndThisOne = lastDown + es
@@ -163,4 +177,14 @@ action('key-transform', (type, matcher, transformer) => {
   const matchObj = is.string(matcher) ? fromJSON(matcher).or({}) : matcher
 
   if (is.function(fn) && is.function(transformFn)) fn(matchObj, transformFn)
+})
+
+remote.getCurrentWindow().on('focus', () => {
+  windowHasFocus = true
+  resetInputState()
+})
+
+remote.getCurrentWindow().on('blur', () => {
+  windowHasFocus = false
+  resetInputState()
 })
