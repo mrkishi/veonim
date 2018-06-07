@@ -39,6 +39,7 @@
     "hyperapp": "1.2.5",
     "hyperapp-feather": "0.4.0",
     "hyperapp-seti": "0.2.0",
+    "iohook": "0.2.0",
     "mock-require": "3.0.2",
     "msgpack-lite": "0.1.26",
     "node-watch": "0.5.8",
@@ -67,5 +68,20 @@
     "spectron": "3.8.0",
     "ts-unused-exports": "2.0.5",
     "typescript": "2.8.1"
+  },
+  "iohook": {
+    "targets": [
+      "node-59",
+      "electron-57"
+    ],
+    "platforms": [
+      "win32",
+      "darwin",
+      "linux"
+    ],
+    "arches": [
+      "x64",
+      "ia32"
+    ]
   }
 }

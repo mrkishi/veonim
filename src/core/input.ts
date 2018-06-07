@@ -2,9 +2,12 @@ import { action, call, current } from '../core/neovim'
 import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
+import Worker from '../messaging/worker'
 import { $ } from '../support/utils'
 import { remote } from 'electron'
 import { Script } from 'vm'
+
+const nativeKeyboard = Worker('keyboard')
 
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
@@ -187,4 +190,14 @@ remote.getCurrentWindow().on('focus', () => {
 remote.getCurrentWindow().on('blur', () => {
   windowHasFocus = false
   resetInputState()
+})
+
+nativeKeyboard.call.listenFor('j0000')
+
+nativeKeyboard.on.keyDown((keys: string) => {
+  console.log('native keydown:', keys)
+})
+
+nativeKeyboard.on.keyUp((keys: string) => {
+  console.log('native keyup:', keys)
 })
