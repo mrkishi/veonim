@@ -1,6 +1,6 @@
 import { start } from '../support/proletariat-server'
+import { basename, extname } from 'path'
 import * as iohook from 'iohook'
-import { basename } from 'path'
 
 // the reason this exists as a webworker if because iohook blocks the entire
 // thread on startup. this has been observed at least on macos. also, i'm not
@@ -20,7 +20,8 @@ interface IOHookKeyEvent {
 }
 
 let paused = false
-const { on, publish } = start(basename(__filename))
+const moduleName = basename(__filename, extname(__filename))
+const { on, publish } = start(moduleName)
 const listeningKeys = new Set<string>()
 
 const keToStr = (e: IOHookKeyEvent) => [e.keycode, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')

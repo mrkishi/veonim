@@ -15,6 +15,8 @@ export const joinRevolution = (name: string) => {
   // the idea is that we can buffer calls until the revolution has started. normally
   // we would await() the startRevolution. but we want to make this compatible across
   // different threads/processes, so we can't pass around the startRevolution context
+
+  // TODO: autoreconnect find it in jsonrpc module package repo
   const conn = createConnection(pipeName)
 
   const send = (stuff: any) => conn.write(JSON.stringify(stuff) + '\r\n')

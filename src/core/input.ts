@@ -7,6 +7,8 @@ import { $ } from '../support/utils'
 import { remote } from 'electron'
 import { Script } from 'vm'
 
+console.log('EL:', process.version)
+
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
 let isCapturing = false
@@ -186,28 +188,31 @@ let nativeKeyboardAux = {
 }
 
 startRevolution('native-keyboard').then(() => {
-  const nativeKeyboard = joinRevolution('native-keyboard')
+  // const nativeKeyboard = joinRevolution('native-keyboard')
 
-  nativeKeyboard.on.keyDown((keys: string) => {
-    console.log('native keydown:', keys)
-  })
+  // nativeKeyboard.on.keyDown((keys: string) => {
+  //   console.log('native keydown:', keys)
+  // })
 
-  nativeKeyboard.on.keyUp((keys: string) => {
-    console.log('native keyup:', keys)
-  })
+  // nativeKeyboard.on.keyUp((keys: string) => {
+  //   console.log('native keyup:', keys)
+  // })
 
-  nativeKeyboard.call.listenFor('j0000')
+  // nativeKeyboard.call.listenFor('j0000')
+
+  // nativeKeyboardAux.pause = () => nativeKeyboard.call.pauseEventListener()
+  // nativeKeyboardAux.resume = () => nativeKeyboard.call.resumeEventListener()
 })
 
 remote.getCurrentWindow().on('focus', () => {
   windowHasFocus = true
-  nativeKeyboard.call.resumeEventListeners()
+  nativeKeyboardAux.resume()
   resetInputState()
 })
 
 remote.getCurrentWindow().on('blur', () => {
   windowHasFocus = false
-  nativeKeyboard.call.pauseEventListeners()
+  nativeKeyboardAux.pause()
   resetInputState()
 })
 
