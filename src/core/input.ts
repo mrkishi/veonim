@@ -1,13 +1,11 @@
+import { startRevolution, joinRevolution } from '../support/proletariat-client'
 import { action, call, current } from '../core/neovim'
 import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
-import Worker from '../messaging/worker'
 import { $ } from '../support/utils'
 import { remote } from 'electron'
 import { Script } from 'vm'
-
-const nativeKeyboard = Worker('keyboard')
 
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
@@ -182,22 +180,34 @@ action('key-transform', (type, matcher, transformer) => {
   if (is.function(fn) && is.function(transformFn)) fn(matchObj, transformFn)
 })
 
+let nativeKeyboardAux = {
+  pause: () => {},
+  resume: () => {},
+}
+
+startRevolution('native-keyboard').then(() => {
+  const nativeKeyboard = joinRevolution('native-keyboard')
+
+  nativeKeyboard.on.keyDown((keys: string) => {
+    console.log('native keydown:', keys)
+  })
+
+  nativeKeyboard.on.keyUp((keys: string) => {
+    console.log('native keyup:', keys)
+  })
+
+  nativeKeyboard.call.listenFor('j0000')
+})
+
 remote.getCurrentWindow().on('focus', () => {
   windowHasFocus = true
+  nativeKeyboard.call.resumeEventListeners()
   resetInputState()
 })
 
 remote.getCurrentWindow().on('blur', () => {
   windowHasFocus = false
+  nativeKeyboard.call.pauseEventListeners()
   resetInputState()
 })
 
-nativeKeyboard.call.listenFor('j0000')
-
-nativeKeyboard.on.keyDown((keys: string) => {
-  console.log('native keydown:', keys)
-})
-
-nativeKeyboard.on.keyUp((keys: string) => {
-  console.log('native keyup:', keys)
-})

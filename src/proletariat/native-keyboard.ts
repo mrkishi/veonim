@@ -1,6 +1,6 @@
-import WorkerClient from '../messaging/worker-client'
-import { remote } from 'electron'
+import { start } from '../support/proletariat-server'
 import * as iohook from 'iohook'
+import { basename } from 'path'
 
 // the reason this exists as a webworker if because iohook blocks the entire
 // thread on startup. this has been observed at least on macos. also, i'm not
@@ -19,27 +19,29 @@ interface IOHookKeyEvent {
   shiftKey: boolean
 }
 
-let windowHasFocus = true
-const { on, call } = WorkerClient()
+let paused = false
+const { on, publish } = start(basename(__filename))
 const listeningKeys = new Set<string>()
 
 const keToStr = (e: IOHookKeyEvent) => [e.keycode, <any>e.ctrlKey|0, <any>e.metaKey|0, <any>e.altKey|0, <any>e.shiftKey|0].join('')
 
-remote.getCurrentWindow().on('focus', () => windowHasFocus = true)
-remote.getCurrentWindow().on('blur', () => windowHasFocus = false)
-
 iohook.on('keydown', e => {
-  if (!windowHasFocus) return
+  if (paused) return
   const es = keToStr(e)
-  if (listeningKeys.has(es)) call.keyDown(es)
+  if (listeningKeys.has(es)) publish.keyDown(es)
   console.log('KD:', es)
 })
 
 iohook.on('keyup', e => {
-  if (!windowHasFocus) return
+  if (paused) return
   const es = keToStr(e)
-  if (listeningKeys.has(es)) call.keyUp(es)
+  if (listeningKeys.has(es)) publish.keyUp(es)
   console.log('KU:', es)
 })
 
+iohook.start(false)
+
 on.listenFor((keys: string) => listeningKeys.add(keys))
+
+on.pauseEventListeners(() => paused = true)
+on.resumeEventListeners(() => paused = false)

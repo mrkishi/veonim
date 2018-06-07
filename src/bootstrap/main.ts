@@ -45,6 +45,7 @@ app.on('ready', async () => {
 
     const reloader = () => {
       console.log('reloading changes...')
+      win.webContents.send('dev:reload')
       win.webContents.reload()
     }
 
