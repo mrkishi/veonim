@@ -1,6 +1,8 @@
 NEW HARDER FASTER STRONGER ICON
 change default background/statusline/windows colors to match brunswick default bg
 
+FIX INTERFACES TO NOT HAVE COMMAS LOL IM STUPID
+
 when switch focus to veonim app, first key is swalllllowed
 backup repo to other places pls
 
@@ -14,6 +16,8 @@ https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
 
 investigate usage of css filter `backdrop-filter` (blur)
 https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter
+
+visual-selection high nvim cpu usage... umm... what's going on here
 
 code-action/quickfix: does it work correctly?
 test case:

@@ -1,8 +1,8 @@
 import { action, call, current } from '../core/neovim'
-import { isTerminal } from '../core/master-control'
 import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
+import $$, { VimMode } from '../core/state'
 import { $ } from '../support/utils'
 import { remote } from 'electron'
 import { Script } from 'vm'
@@ -186,13 +186,6 @@ action('key-transform', (type, matcher, transformer) => {
   if (is.function(fn) && is.function(transformFn)) fn(matchObj, transformFn)
 })
 
-// TODO: defer loading until later. neovim api not ready to load on app startup
-// and don't want to defer loading this input.ts module. this is for a hack anyways
-let neovim: any
-setTimeout(() => {
-  neovim = require('../core/neovim')
-}, 2e3)
-
 remote.getCurrentWindow().on('focus', () => {
   windowHasFocus = true
   resetInputState()
@@ -207,10 +200,8 @@ remote.getCurrentWindow().on('blur', async () => {
   windowHasFocus = false
   resetInputState()
 
-  if (!neovim && !neovim.current) return
   const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
-  const isTerm = await isTerminal()
-  const isInsertMode = neovim.current.terminalIsInInsertMode_DIRTY_HACK
-  const fixTermEscape = isTerm && isInsertMode && lastEscapeFromNow < 25
+  const isTerminalMode = $$.mode === VimMode.Terminal
+  const fixTermEscape = isTerminalMode && lastEscapeFromNow < 25
   if (fixTermEscape) shouldClearEscapeOnNextAppFocus = true
 })

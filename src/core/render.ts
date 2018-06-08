@@ -1,14 +1,14 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { asColor, merge, matchOn, CreateTask, debounce } from '../support/utils'
+import { onRedraw, getColor, getMode } from '../core/master-control'
 import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'
-import { onRedraw, getColor } from '../core/master-control'
 import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
+import $, { VimMode } from '../core/state'
 import fontAtlas from '../core/font-atlas'
 import * as grid from '../core/grid'
-import $ from '../core/state'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
@@ -101,6 +101,20 @@ const getTopColors = (amount = 16) => Array
 const attrDefaults: Attrs = {
   underline: false,
   undercurl: false
+}
+
+const normalizeVimMode = (mode: string): VimMode => {
+  if (mode === 't') return VimMode.Terminal
+  if (mode === 'n' || mode === 'normal') return VimMode.Normal
+  if (mode === 'i' || mode === 'insert') return VimMode.Insert
+  if (mode === 'V' || mode === 'visual') return VimMode.Visual
+  if (mode === 'R' || mode === 'replace') return VimMode.Replace
+  if (mode === 'no' || mode === 'operator') return VimMode.Operator
+  if (mode === 'c' || mode === 'cmdline_normal') return VimMode.CommandNormal
+  if (mode === 'cmdline_insert') return VimMode.CommandInsert
+  if (mode === 'cmdline_replace') return VimMode.CommandReplace
+  // there are quite a few more modes available. see `mode_info_set`
+  else return VimMode.SomeModeThatIProbablyDontCareAbout
 }
 
 const api = new Map<string, Function>()
@@ -251,7 +265,7 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 
 r.mode_change = async mode => {
   dispatch.pub('vim:mode', mode)
-  $.mode = mode
+  $.mode = normalizeVimMode(mode)
   currentMode = mode
   const info = modes.get(mode)
   if (!info) return
@@ -476,6 +490,7 @@ onRedraw((m: any[]) => {
     dispatch.pub('redraw')
     if (!initialAtlasGenerated) initalFontAtlas.done(true)
     regenerateFontAtlastIfNecessary()
+    getMode().then(m => $.mode = normalizeVimMode(m.mode))
   })
 })
 

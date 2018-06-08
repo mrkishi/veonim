@@ -6,7 +6,7 @@ import { showCursorline, hideCursor, showCursor } from '../core/cursor'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Functions } from '../core/vim-functions'
-import { getMode } from '../core/master-control'
+import { watch, VimMode } from '../core/state'
 import { Patch } from '../langserv/patch'
 import { join as pathJoin } from 'path'
 import setupRPC from '../messaging/rpc'
@@ -66,130 +66,133 @@ export enum HighlightGroupId {
 }
 
 export interface Color {
-  background: number,
-  foreground: number,
+  background: number
+  foreground: number
 }
 
 interface HyperspaceCoordinates {
-  line: number,
-  column?: number,
-  path?: string,
+  line: number
+  column?: number
+  path?: string
 }
 
 interface Event {
-  bufAdd(cb: EventCallback): void,
-  bufLoad(cb: EventCallback): void,
-  bufUnload(cb: EventCallback): void,
-  bufChange(cb: EventCallback): void,
-  bufChangeInsert(cb: EventCallback): void,
-  bufWrite(cb: EventCallback): void,
-  cursorMove(cb: EventCallback): void,
-  cursorMoveInsert(cb: (modified: boolean, state: NeovimState) => void): void,
-  insertEnter(cb: EventCallback): void,
-  insertLeave(cb: EventCallback): void,
-  completion(cb: (completedWord: string, state: NeovimState) => void): void,
+  bufAdd(cb: EventCallback): void
+  bufLoad(cb: EventCallback): void
+  bufUnload(cb: EventCallback): void
+  bufChange(cb: EventCallback): void
+  bufChangeInsert(cb: EventCallback): void
+  bufWrite(cb: EventCallback): void
+  cursorMove(cb: EventCallback): void
+  cursorMoveInsert(cb: (modified: boolean, state: NeovimState) => void): void
+  insertEnter(cb: EventCallback): void
+  insertLeave(cb: EventCallback): void
+  completion(cb: (completedWord: string, state: NeovimState) => void): void
+  termEnter(cb: EventCallback): void
+  termLeave(cb: EventCallback): void
 }
 
 interface EventWait {
-  bufAdd: Promise<any>,
-  bufLoad: Promise<any>,
-  bufUnload: Promise<any>,
-  bufChange: Promise<any>,
-  bufChangeInsert: Promise<any>,
+  bufAdd: Promise<any>
+  bufLoad: Promise<any>
+  bufUnload: Promise<any>
+  bufChange: Promise<any>
+  bufChangeInsert: Promise<any>
   bufWrite: Promise<any>
-  cursorMove: Promise<any>,
-  cursorMoveInsert: Promise<any>,
-  insertEnter: Promise<any>,
-  insertLeave: Promise<any>,
-  completion: Promise<any>,
+  cursorMove: Promise<any>
+  cursorMoveInsert: Promise<any>
+  insertEnter: Promise<any>
+  insertLeave: Promise<any>
+  completion: Promise<any>
+  termEnter: Promise<any>
+  termLeave: Promise<any>
 }
 
 export interface NeovimState {
-  terminalIsInInsertMode_DIRTY_HACK: boolean,
-  absoluteFilepath: string,
-  bufferType: BufferType,
-  colorscheme: string,
-  filetype: string,
-  revision: number,
-  column: number,
-  file: string,
-  mode: string,
-  line: number,
-  cwd: string,
-  fg: string,
-  bg: string,
-  sp: string,
+  absoluteFilepath: string
+  bufferType: BufferType
+  colorscheme: string
+  filetype: string
+  revision: number
+  column: number
+  file: string
+  mode: string
+  line: number
+  cwd: string
+  fg: string
+  bg: string
+  sp: string
 }
 
 export interface ProblemHighlight {
-  group: Highlight,
-  id: HighlightGroupId,
-  line: number,
-  columnStart: number,
-  columnEnd: number,
+  group: Highlight
+  id: HighlightGroupId
+  line: number
+  columnStart: number
+  columnEnd: number
 }
 
 export interface Buffer {
-  id: any,
-  number: Promise<number>,
-  valid: Promise<boolean>,
-  name: Promise<string>,
-  length: Promise<number>,
-  changedtick: Promise<number>,
-  append(start: number, lines: string | string[]): void,
-  getLines(start: number, end: number): Promise<string[]>,
-  getLine(start: number): Promise<string>,
-  setLines(start: number, end: number, replacement: string[]): void,
-  delete(start: number): void,
-  replace(start: number, line: string): void,
-  getKeymap(mode: string): Promise<any>,
-  getVar(name: string): Promise<any>,
-  setVar(name: string, value: any): void,
-  delVar(name: string): void,
-  getOption(name: string): Promise<any>,
-  setOption(name: string, value: any): void,
-  setName(name: string): void,
-  getMark(name: string): Promise<number[]>,
-  addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>,
-  clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void,
-  clearAllHighlights(): void,
-  highlightProblems(problems: ProblemHighlight[]): Promise<any[]>,
+  id: any
+  number: Promise<number>
+  valid: Promise<boolean>
+  name: Promise<string>
+  length: Promise<number>
+  changedtick: Promise<number>
+  append(start: number, lines: string | string[]): void
+  getLines(start: number, end: number): Promise<string[]>
+  getLine(start: number): Promise<string>
+  setLines(start: number, end: number, replacement: string[]): void
+  delete(start: number): void
+  replace(start: number, line: string): void
+  getKeymap(mode: string): Promise<any>
+  getVar(name: string): Promise<any>
+  setVar(name: string, value: any): void
+  delVar(name: string): void
+  getOption(name: string): Promise<any>
+  setOption(name: string, value: any): void
+  setName(name: string): void
+  getMark(name: string): Promise<number[]>
+  addHighlight(sourceId: number, highlightGroup: string, line: number, columnStart: number, columnEnd: number): Promise<number>
+  clearHighlight(sourceId: number, lineStart: number, lineEnd: number): void
+  clearAllHighlights(): void
+  highlightProblems(problems: ProblemHighlight[]): Promise<any[]>
 }
 
 export interface Window {
-  id: any,
-  number: Promise<number>,
-  valid: Promise<boolean>,
-  tab: Promise<Tabpage>,
-  buffer: Promise<Buffer>,
-  cursor: Promise<number[]>,
-  position: Promise<number[]>,
-  height: Promise<number>,
-  width: Promise<number>,
-  setCursor(row: number, col: number): void,
-  setHeight(height: number): void,
-  setWidth(width: number): void,
-  getVar(name: string): Promise<any>,
-  setVar(name: string, value: any): void,
-  delVar(name: string): void,
-  getOption(name: string): Promise<any>,
-  setOption(name: string, value: any): void,
+  id: any
+  number: Promise<number>
+  valid: Promise<boolean>
+  tab: Promise<Tabpage>
+  buffer: Promise<Buffer>
+  cursor: Promise<number[]>
+  position: Promise<number[]>
+  height: Promise<number>
+  width: Promise<number>
+  setCursor(row: number, col: number): void
+  setHeight(height: number): void
+  setWidth(width: number): void
+  getVar(name: string): Promise<any>
+  setVar(name: string, value: any): void
+  delVar(name: string): void
+  getOption(name: string): Promise<any>
+  setOption(name: string, value: any): void
 }
 
 export interface Tabpage {
-  id: any,
-  number: Promise<number>,
-  valid: Promise<boolean>,
-  window: Promise<Window>,
-  windows: Promise<Window[]>,
-  getVar(name: string): Promise<any>,
-  setVar(name: string, value: any): void,
-  delVar(name: string): void,
+  id: any
+  number: Promise<number>
+  valid: Promise<boolean>
+  window: Promise<Window>
+  windows: Promise<Window[]>
+  getVar(name: string): Promise<any>
+  setVar(name: string, value: any): void
+  delVar(name: string): void
 }
 
 interface PathBuf {
-  buffer: Buffer,
-  path: string,
+  buffer: Buffer
+  path: string
 }
 
 const prefix = {
@@ -211,7 +214,7 @@ const autocmdWatchers = new Watchers()
 const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
-const notifyEvent = (event: string) => events.notify(event, current)
+const notifyEvent = (event: keyof Event) => events.notify(event, current)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
@@ -370,7 +373,6 @@ export const list = {
 }
 
 export const current: NeovimState = new Proxy({
-  terminalIsInInsertMode_DIRTY_HACK: false,
   bufferType: BufferType.Normal,
   absoluteFilepath: '',
   mode: 'normal',
@@ -502,14 +504,13 @@ const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => bu
   })
 })
 
-const refreshState = (event = 'bufLoad') => async () => {
+const refreshState = (event?: keyof Event) => async () => {
   const [ filetype, cwd, file, colorscheme, revision, { line, column }, buffer ] = await cc(
     expr(`&filetype`),
     call.getcwd(),
     call.expand(`%f`),
     g.colors_name,
     expr(`b:changedtick`),
-    // getCurrent.position,
     getCurrentPosition(),
     getCurrent.buffer,
   )
@@ -528,7 +529,7 @@ const refreshState = (event = 'bufLoad') => async () => {
     absoluteFilepath: pathJoin(cwd, file),
   })
 
-  notifyEvent(event)
+  notifyEvent(event || 'bufLoad')
 }
 
 const processBufferedActions = async () => {
@@ -538,29 +539,18 @@ const processBufferedActions = async () => {
   g.vn_rpc_buf = []
 }
 
-// TODO: this is a very dirty hack that relies on user config to Do The Right Thing™
-// need to check if neovim supports detection of terminal mode. it might be possible
-// in future versions. the reason this hack was created is for the following reasons:
-// - neovim "draws" two cursors in terminal insert mode - but they are in different
-//   positions on the screen. this is most definitely a bug that i have observed in
-//   other neovim gui clients
-// - when we remap cmd -> esc and we use cmd+tab to switch apps, we happen to send
-//   esc key event. to fix this we try to undo the esc by sending enter to the term
-//   buffer on app focus, but only if terminal is in insert mode.
-action('notify:term-i', () => {
-  current.terminalIsInInsertMode_DIRTY_HACK = true
-  hideCursor()
+// nvim does not currently have TermEnter/TermLeave autocmds - it might in the future
+watch.mode(mode => {
+  if (mode === VimMode.Terminal) return notifyEvent('termEnter')
+  if (current.bufferType === BufferType.Terminal && mode === VimMode.Normal) return notifyEvent('termLeave')
 })
 
-action('notify:term-n', () => {
-  current.terminalIsInInsertMode_DIRTY_HACK = false
-  showCursor()
-})
-
-setInterval(async () => {
-  const mode = await getMode()
-  console.log('current mode:', mode)
-}, 1e3)
+// neovim terminal mode draws its own cursor, and the gui cursor location is
+// not in the same place as the terminal mode cursor - in fact nvim presents
+// the cursor location as the last normal mode cursor position. nvim bug: this
+// is a temp workaround to hide the second cursor
+on.termEnter(() => hideCursor())
+on.termLeave(() => showCursor())
 
 sub('session:switch', refreshState())
 
@@ -601,7 +591,6 @@ autocmd.insertEnter(() => notifyEvent('insertEnter'))
 autocmd.insertLeave(() => notifyEvent('insertLeave'))
 
 autocmd.cursorMoved(async () => {
-  // const { line, column } = await getCurrent.position
   const { line, column } = await getCurrentPosition()
   merge(current, { line, column })
   notifyEvent('cursorMove')
@@ -621,7 +610,6 @@ autocmd.bufWritePost(() => notifyEvent('bufWrite'))
 
 autocmd.cursorMovedI(async () => {
   const prevRevision = current.revision
-  // const [ revision, { line, column } ] = await cc(expr(`b:changedtick`), getCurrent.position)
   const [ revision, { line, column } ] = await cc(expr(`b:changedtick`), getCurrentPosition())
   merge(current, { revision, line, column })
 
