@@ -1,4 +1,3 @@
-import { startRevolution, joinRevolution } from '../support/proletariat-client'
 import { action, call, current } from '../core/neovim'
 import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
@@ -6,6 +5,7 @@ import { touched } from '../bootstrap/galaxy'
 import { $ } from '../support/utils'
 import { remote } from 'electron'
 import { Script } from 'vm'
+import { isTerminal } from '../core/master-control'
 
 console.log('EL:', process.version)
 
@@ -17,6 +17,8 @@ let xformed = false
 let lastDown = ''
 let initialKeyPress = true
 let windowHasFocus = true
+let lastEscapeTimestamp = 0
+let shouldClearEscapeOnNextAppFocus = false
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -116,7 +118,11 @@ const sendKeys = async (e: KeyboardEvent) => {
   if (inputKeys === '<S-Space>') return input('<space>')
   if (shortcuts.has(`${current.mode}:${inputKeys}`)) return shortcuts.get(`${current.mode}:${inputKeys}`)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
-  else input(inputKeys)
+  else {
+    // TODO: document this
+    if (inputKeys.toLowerCase() === '<esc>') lastEscapeTimestamp = Date.now()
+    input(inputKeys)
+  }
 }
 
 window.addEventListener('keydown', e => {
@@ -182,37 +188,25 @@ action('key-transform', (type, matcher, transformer) => {
   if (is.function(fn) && is.function(transformFn)) fn(matchObj, transformFn)
 })
 
-let nativeKeyboardAux = {
-  pause: () => {},
-  resume: () => {},
-}
-
-startRevolution('native-keyboard').then(() => {
-  // const nativeKeyboard = joinRevolution('native-keyboard')
-
-  // nativeKeyboard.on.keyDown((keys: string) => {
-  //   console.log('native keydown:', keys)
-  // })
-
-  // nativeKeyboard.on.keyUp((keys: string) => {
-  //   console.log('native keyup:', keys)
-  // })
-
-  // nativeKeyboard.call.listenFor('j0000')
-
-  // nativeKeyboardAux.pause = () => nativeKeyboard.call.pauseEventListener()
-  // nativeKeyboardAux.resume = () => nativeKeyboard.call.resumeEventListener()
-})
-
 remote.getCurrentWindow().on('focus', () => {
   windowHasFocus = true
-  nativeKeyboardAux.resume()
   resetInputState()
+  if (shouldClearEscapeOnNextAppFocus) {
+    // TODO: do we need to check if we are in terminal? AND CHECK IF INSERT MODE LOL
+    // yes it does cause problems in vim mode
+    isTerminal()
+    // TODO: this casues problem if terminal is not in insert mode...
+    input('<enter>')
+    console.log('fixed your terminal escape for you')
+    shouldClearEscapeOnNextAppFocus = false
+  }
 })
 
-remote.getCurrentWindow().on('blur', () => {
+remote.getCurrentWindow().on('blur', async () => {
   windowHasFocus = false
-  nativeKeyboardAux.pause()
   resetInputState()
+
+  const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
+  if (lastEscapeFromNow < 25 && await isTerminal()) shouldClearEscapeOnNextAppFocus = true
 })
 

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from 'electron'
+import { app, BrowserWindow, Menu, globalShortcut } from 'electron'
 
 let win: Electron.BrowserWindow
 app.setName('veonim')
@@ -24,6 +24,10 @@ app.on('ready', async () => {
     webPreferences: {
       nodeIntegrationInWorker: true
     }
+  })
+
+  globalShortcut.register('CommandOrControl+Tab', () => {
+    console.log('SWITCH SON')
   })
 
   win.loadURL(`file:///${__dirname}/index.html`)
