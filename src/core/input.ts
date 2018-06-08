@@ -186,14 +186,18 @@ action('key-transform', (type, matcher, transformer) => {
   if (is.function(fn) && is.function(transformFn)) fn(matchObj, transformFn)
 })
 
+// TODO: defer loading until later. neovim api not ready to load on app startup
+// and don't want to defer loading this input.ts module. this is for a hack anyways
+let neovim: any
+setTimeout(() => {
+  neovim = require('../core/neovim')
+}, 2e3)
+
 remote.getCurrentWindow().on('focus', () => {
   windowHasFocus = true
   resetInputState()
   if (shouldClearEscapeOnNextAppFocus) {
-    // TODO: do we need to check if we are in terminal? AND CHECK IF INSERT MODE LOL
-    // yes it does cause problems in vim mode
-    isTerminal()
-    // TODO: this casues problem if terminal is not in insert mode...
+    // TODO: document
     input('<enter>')
     shouldClearEscapeOnNextAppFocus = false
   }
@@ -203,6 +207,10 @@ remote.getCurrentWindow().on('blur', async () => {
   windowHasFocus = false
   resetInputState()
 
+  if (!neovim && !neovim.current) return
   const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
-  if (lastEscapeFromNow < 25 && await isTerminal()) shouldClearEscapeOnNextAppFocus = true
+  const isTerm = await isTerminal()
+  const isInsertMode = neovim.current.terminalIsInInsertMode_DIRTY_HACK
+  const fixTermEscape = isTerm && isInsertMode && lastEscapeFromNow < 25
+  if (fixTermEscape) shouldClearEscapeOnNextAppFocus = true
 })

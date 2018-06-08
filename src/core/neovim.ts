@@ -104,6 +104,7 @@ interface EventWait {
 }
 
 export interface NeovimState {
+  terminalIsInInsertMode_DIRTY_HACK: boolean,
   absoluteFilepath: string,
   bufferType: BufferType,
   colorscheme: string,
@@ -368,6 +369,7 @@ export const list = {
 }
 
 export const current: NeovimState = new Proxy({
+  terminalIsInInsertMode_DIRTY_HACK: false,
   bufferType: BufferType.Normal,
   absoluteFilepath: '',
   mode: 'normal',
@@ -534,6 +536,25 @@ const processBufferedActions = async () => {
   bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
   g.vn_rpc_buf = []
 }
+
+// TODO: this is a very dirty hack that relies on user config to Do The Right Thing™
+// need to check if neovim supports detection of terminal mode. it might be possible
+// in future versions. the reason this hack was created is for the following reasons:
+// - neovim "draws" two cursors in terminal insert mode - but they are in different
+//   positions on the screen. this is most definitely a bug that i have observed in
+//   other neovim gui clients
+// - when we remap cmd -> esc and we use cmd+tab to switch apps, we happen to send
+//   esc key event. to fix this we try to undo the esc by sending enter to the term
+//   buffer on app focus, but only if terminal is in insert mode.
+action('notify:term-i', () => {
+  current.terminalIsInInsertMode_DIRTY_HACK = true
+  // TODO: hide gui cursor as term draws its own cursor
+})
+
+action('notify:term-n', () => {
+  current.terminalIsInInsertMode_DIRTY_HACK = false
+  // TODO: show gui cursor
+})
 
 sub('session:switch', refreshState())
 
