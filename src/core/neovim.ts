@@ -2,10 +2,11 @@ import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow,
   Tabpage as ITabpage } from '../core/api'
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
   camelCase, prefixWith, uuid } from '../support/utils'
+import { showCursorline, hideCursor, showCursor } from '../core/cursor'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Functions } from '../core/vim-functions'
-import { showCursorline } from '../core/cursor'
+import { getMode } from '../core/master-control'
 import { Patch } from '../langserv/patch'
 import { join as pathJoin } from 'path'
 import setupRPC from '../messaging/rpc'
@@ -548,13 +549,18 @@ const processBufferedActions = async () => {
 //   buffer on app focus, but only if terminal is in insert mode.
 action('notify:term-i', () => {
   current.terminalIsInInsertMode_DIRTY_HACK = true
-  // TODO: hide gui cursor as term draws its own cursor
+  hideCursor()
 })
 
 action('notify:term-n', () => {
   current.terminalIsInInsertMode_DIRTY_HACK = false
-  // TODO: show gui cursor
+  showCursor()
 })
+
+setInterval(async () => {
+  const mode = await getMode()
+  console.log('current mode:', mode)
+}, 1e3)
 
 sub('session:switch', refreshState())
 
