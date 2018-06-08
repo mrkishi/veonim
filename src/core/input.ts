@@ -1,13 +1,11 @@
 import { action, call, current } from '../core/neovim'
+import { isTerminal } from '../core/master-control'
 import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import { $ } from '../support/utils'
 import { remote } from 'electron'
 import { Script } from 'vm'
-import { isTerminal } from '../core/master-control'
-
-console.log('EL:', process.version)
 
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
@@ -197,7 +195,6 @@ remote.getCurrentWindow().on('focus', () => {
     isTerminal()
     // TODO: this casues problem if terminal is not in insert mode...
     input('<enter>')
-    console.log('fixed your terminal escape for you')
     shouldClearEscapeOnNextAppFocus = false
   }
 })
@@ -209,4 +206,3 @@ remote.getCurrentWindow().on('blur', async () => {
   const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
   if (lastEscapeFromNow < 25 && await isTerminal()) shouldClearEscapeOnNextAppFocus = true
 })
-

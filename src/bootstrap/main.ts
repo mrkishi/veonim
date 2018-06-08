@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, globalShortcut } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 
 let win: Electron.BrowserWindow
 app.setName('veonim')
@@ -26,10 +26,6 @@ app.on('ready', async () => {
     }
   })
 
-  globalShortcut.register('CommandOrControl+Tab', () => {
-    console.log('SWITCH SON')
-  })
-
   win.loadURL(`file:///${__dirname}/index.html`)
   comscan.register((ch, msg) => win.webContents.send(ch, msg))
 
@@ -49,7 +45,6 @@ app.on('ready', async () => {
 
     const reloader = () => {
       console.log('reloading changes...')
-      win.webContents.send('dev:reload')
       win.webContents.reload()
     }
 
