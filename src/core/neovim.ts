@@ -542,7 +542,7 @@ const processBufferedActions = async () => {
 // nvim does not currently have TermEnter/TermLeave autocmds - it might in the future
 watch.mode(mode => {
   if (mode === VimMode.Terminal) return notifyEvent('termEnter')
-  if (current.bufferType === BufferType.Terminal && mode === VimMode.Normal) return notifyEvent('termLeave')
+  if (current.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
 })
 
 // neovim terminal mode draws its own cursor, and the gui cursor location is
