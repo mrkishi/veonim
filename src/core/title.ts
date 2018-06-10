@@ -4,20 +4,21 @@ import { merge, simplifyPath } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
 import { remote } from 'electron'
 
+const macos = process.platform === 'darwin'
 let titleBarVisible = false
+const titleBar = macos && document.createElement('div')
+const title = macos && document.createElement('div')
 
-const setTitleVisibility = (el: HTMLElement, visible: boolean) => {
+export const setTitleVisibility = (visible: boolean) => {
+  if (!titleBar) return
   titleBarVisible = visible
-  el.style.display = visible ? 'flex' : 'none'
+  titleBar.style.display = visible ? 'flex' : 'none'
   canvasContainer.resize()
 }
 
 const typescriptSucks = (el: any, bar: any) => el.prepend(bar)
 
 if (process.platform === 'darwin') {
-  const titleBar = document.createElement('div')
-  const title = document.createElement('div')
-
   merge(titleBar.style, {
     height: '22px',
     color: 'var(--foreground-60)',
@@ -36,12 +37,12 @@ if (process.platform === 'darwin') {
   titleBarVisible = true
 
   remote.getCurrentWindow().on('enter-full-screen', () => {
-    setTitleVisibility(titleBar, false)
+    setTitleVisibility(false)
     dispatch.pub('window.change')
   })
 
   remote.getCurrentWindow().on('leave-full-screen', () => {
-    setTitleVisibility(titleBar, true)
+    setTitleVisibility(true)
     dispatch.pub('window.change')
   })
 
