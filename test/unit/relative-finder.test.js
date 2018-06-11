@@ -1,7 +1,7 @@
 const { src, same } = require('./util')
 const { findNext, findPrevious } = src('support/relative-finder')
 
-const getItems = () => [{
+const getA = () => [{
   path: '/main/a.ts',
   line: 4,
   column: 7,
@@ -19,7 +19,9 @@ const getItems = () => [{
   column: 2,
   endLine: 9,
   endColumn: 4,
-}, {
+}]
+
+const getC = () => [{
   path: '/main/c.ts',
   line: 3,
   column: 1,
@@ -32,6 +34,8 @@ const getItems = () => [{
   endLine: 1,
   endColumn: 9,
 }]
+
+const getItems = () => [ ...getA(), ...getC() ]
 
 describe('relative finder', () => {
   it('find next', () => {
@@ -46,8 +50,8 @@ describe('relative finder', () => {
     })
   })
 
-  it('find next across files', () => {
-    const next = findNext(getItems(), '/main/a.ts', 9, 2)
+  it('find next file (and first item) when none in current', () => {
+    const next = findNext(getC(), '/main/a.ts', 9, 2)
 
     same(next, {
       path: '/main/c.ts',
@@ -59,7 +63,7 @@ describe('relative finder', () => {
   })
 
   it('when last loopback to first', () => {
-    const next = findNext(getItems(), '/main/c.ts', 3, 1)
+    const next = findNext(getItems(), '/main/a.ts', 9, 2)
 
     same(next, {
       path: '/main/a.ts',
@@ -82,8 +86,8 @@ describe('relative finder', () => {
     })
   })
 
-  it('find previous across files', () => {
-    const next = findPrevious(getItems(), '/main/c.ts', 1, 7)
+  it('find prev file (and last item) when none is current', () => {
+    const next = findPrevious(getA(), '/main/c.ts', 1, 7)
 
     same(next, {
       path: '/main/a.ts',
@@ -98,11 +102,11 @@ describe('relative finder', () => {
     const next = findPrevious(getItems(), '/main/a.ts', 1, 1)
 
     same(next, {
-      path: '/main/c.ts',
-      line: 3,
-      column: 1,
-      endLine: 3,
-      endColumn: 9,
+      path: '/main/a.ts',
+      line: 9,
+      column: 2,
+      endLine: 9,
+      endColumn: 4,
     })
   })
 
