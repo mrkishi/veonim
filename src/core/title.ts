@@ -18,8 +18,8 @@ export const setTitleVisibility = (visible: boolean) => {
 
 const typescriptSucks = (el: any, bar: any) => el.prepend(bar)
 
-if (process.platform === 'darwin') {
-  merge(titleBar.style, {
+if (macos) {
+  merge((titleBar as HTMLElement).style, {
     height: '22px',
     color: 'var(--foreground-60)',
     background: 'var(--background-15)',
@@ -31,8 +31,8 @@ if (process.platform === 'darwin') {
     alignItems: 'center',
   })
 
-  title.innerText = 'veonim'
-  titleBar.appendChild(title)
+  ;(title as HTMLElement).innerText = 'veonim'
+  ;(titleBar as HTMLElement).appendChild((title as HTMLElement))
   typescriptSucks(document.body, titleBar)
   titleBarVisible = true
 
@@ -48,7 +48,7 @@ if (process.platform === 'darwin') {
 
   onStateChange.file((file: string) => {
     const path = simplifyPath(file, current.cwd)
-    title.innerText = `${path} - veonim`
+    ;(title as HTMLElement).innerText = `${path} - veonim`
   })
 }
 
