@@ -103,10 +103,10 @@ export const createWindow = (container: HTMLElement) => {
     const { height, width } = container.getBoundingClientRect()
 
     const vimHeight = px.row.height(specs.height) + (specs.paddingY * 2)
-    const heightToUse = Math.max(height, vimHeight)
+    const heightToUse = Math.round(Math.max(height, vimHeight))
 
-    canvas.height = heightToUse * window.devicePixelRatio
-    canvas.width = width * window.devicePixelRatio
+    canvas.height = Math.round(heightToUse * window.devicePixelRatio)
+    canvas.width = Math.round(width * window.devicePixelRatio)
     canvas.style.height = `${heightToUse}px`
     canvas.style.width = `${width}px`
 

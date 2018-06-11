@@ -28,25 +28,18 @@ test case:
   - expected to remove entire object?
     - what does langserv return for workspaceedit?
 
-NORMALIZE HYPERSPACE COORDINATES
-- problems jump to next/prev - need to sort diagnostics by line/column
-  to fix bad relative jumpto location)
-  - do the issue thing. only jump to another file if there are no problems in the 
-    current buffer. otherwise cycle around in the same buffer
-
 separate out internal object data from langserv params data?
 - right now in adapter we send both vim state object and params in the same
   parameter, same object. i think it might be cleaner to send them separately,
   so that we do not send internal data to the lang serv. this may have a
-  neglible benefit on network (de)serializing
+  neglible benefit on network (de)serializing (and xmit time?)
 - i almost feel that there is not much of a good reason to pass in the entire
   neovim state to every single langserv request ever. why can't adapter simply
   access the neovim state and pick out the nvim state fields it needs to know?
 
 buffer-search: virtual-list
 
-placeholder/empty images/icons for empty lists (results)?
-EMPTY STATE. it's called empyt state
+empty state icon for empty lists [results] - buffer search, etc.
 
 should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
 esc/cmd it happens that sometimes i press cmd thinking i want to use it as cmd
@@ -61,8 +54,6 @@ will ask to create test file according to the naming convention
 shutdown+cleanup langservs on project switch/close
 
 spammy cmd-update lolwut?
-
-goto-(next|prev)-reference not jumping to correct item (probably duplicate)
 
 canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
@@ -100,6 +91,7 @@ STOP REQUIRING SO MUCH SHIT ON APP START LOL
   - web worker more shit (ai)
 
 depmgr as separate process (not even worker thread) - because of security and isolation?
+  - needs access to configReader on file watch
 
 - SHADOW BUFFERS -
 the problem with shadow buffers is that our current neovim window render strategy
