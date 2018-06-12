@@ -11,10 +11,15 @@ const results = new Set<string>()
 const cancelTokens = new Set<Function>()
 let query = ''
 
-const sendResults = ({ filter = true } = {}) => call.results(filter && query
-  ? fuzzy([ ...results ], query).slice(0, AMOUNT)
-  : [ ...results ].slice(0, AMOUNT)
-)
+const sendResults = ({ filter = true } = {}) => {
+  if (!filter || !query) return call.results([...results].slice(0, AMOUNT))
+
+  const queries = query.split(' ').filter(m => m)
+  // TODO: might be more performant to cache previous fuzzy results
+  const items = queries.reduce((res, qry) => fuzzy(res, qry), [...results])
+
+  call.results(items.slice(0, AMOUNT))
+}
 
 const getFilesWithRipgrep = (cwd: string) => {
   const timer = setInterval(sendResults, INTERVAL)
