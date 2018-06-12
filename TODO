@@ -1,19 +1,83 @@
-NEW HARDER FASTER STRONGER ICON
-change default background/statusline/windows colors to match brunswick default bg
+backup repo to other places pls
+  - git remote set-url origin --push --add REMOTELOL
+  - this config does not persist in the repo...shoudl include a script/git hook to setup all remotes? 
+
+grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
+
+constrain overlay menus to a particular window (current window)
+- (if it makes sense to be local - some might be global - like user menus or project switcher)
+  - i.e. show symbol/file menu on top of the current buffer window, instead of
+  the center of the program, since selecting a symbol or file will make
+  changes in the current window, not globally
+
+- HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
+
+easymotion show bigger letters + show WHILE searching ooooooo
+
+terminal change title to current running process
+
+jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
+
+easymotion jump to highlighted word
+  - i don't remember what i meant when i wrote this... maybe when i have a
+    visual selection, have an easymotion keybinding to jump between them real
+    fast instead of n n n n n n n n n. could be useful i suppose. maybe extend
+    for problems, symbol highlights, references, etc.
+
+create find overlay at the top or bottom of current window (like xcode/vscode/atom/sublime/etc). used for builtin vim / or ? and can be used by custom components (viewport fuzzy search)
+  - maybe the design can integrate somehow with the buffer fuzzy search list
+  - background blur/transparent
+  - i think this has some usefulness as right now the search is in the middle
+    of the screen covering up a lot of code viewport
+
+files not refresh after delete file (the fuzzy file find)
+
+buffer-search: virtual-list
+create a simple hyperapp virtualized list component that simply renders dom nodes
+given a slice of the list. you want the top of the list, slice(0, 10)
+you want the end, slice(list.length - 10), etc. no mouse support for now.
+keep it simple and easy. make it composable (vs higher order?/wrapping?)
+
+neovim buffer notification. now available in 0.3
+
+canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
+edges. use ── ──── to test
+  - should use clip/rect to draw thingies? perf impact?
+
+hide overlays (problem info, hover) on bufleave
+  - happens when switch tabs
+
+grep:
+  - if we start a query that results are found, but then expand the query to
+  something that does not return results, we are not clearing the ui
+  - i'm not sure that we load all the results (in some cases - try searching
+      for a popular keyword like 'await'). i think there is some logic to load
+  more results from cache once we scroll down... maybe that is not activated
+  if the div container height is too high?
+
 
 FIX INTERFACES TO NOT HAVE COMMAS LOL IM STUPID
-
-backup repo to other places pls
-
-blurry text on horizontal splits. ONLY happens when using font atlas. native
-fillText() is fine. xterm.js had same issue with font atlas, but they had to
-change the align of text to bottom
-
-investigate usage of 'requestIdleCallback'
-https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+  - don't do it manually
 
 investigate usage of css filter `backdrop-filter` (blur)
 https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter
+  - requires "Experimental Web Platform Features" flag enabled
+  - investigate how to do this in electron
+
+empty state icon for empty lists [results] - buffer search, etc.
+
+depmgr as separate process (not even worker thread) - because of security and isolation?
+- needs access to configReader on file watch
+- can use proletariat for maximum communism
+
+shutdown+cleanup langservs on project switch/close
+
+change default background/statusline/windows colors to match brunswick default bg
+
+NEW HARDER FASTER STRONGER ICON
+
+investigate usage of 'requestIdleCallback'
+https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
 
 see if we can collapse/merge/condense state.ts with neovim.ts:current + getCurrent
 
@@ -37,61 +101,30 @@ separate out internal object data from langserv params data?
   neovim state to every single langserv request ever. why can't adapter simply
   access the neovim state and pick out the nvim state fields it needs to know?
 
-buffer-search: virtual-list
-
-empty state icon for empty lists [results] - buffer search, etc.
-
 should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
 esc/cmd it happens that sometimes i press cmd thinking i want to use it as cmd
 (e.g. gonna press cmd+h) but then change my mind and never press the second key
 while holding caps-lock (cmd).  in this case, the event will fire as esc, but
 probably did not intend since it was such a long hold.  anyways this can be
 opt-in behavior
+  - should normalize this behavior to also apply to html input key event handlers
 
-vimscript: switch to alternate test file. if file does not exist, have prompt that
-will ask to create test file according to the naming convention
-
-shutdown+cleanup langservs on project switch/close
+simliar to the key timeouts, maybe we can make key triggers after a certain amount
+of key-down holding. e.g. press/release m immediatly and it takes you to a mark.
+press and hold m and a mark menu shows up
 
 spammy cmd-update lolwut?
-
-canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
-edges. use ── ──── to test
-  - should use clip/rect to draw thingies? perf impact?
-
-hide overlays (problem info, hover) on bufleave
-  - happens when switch tabs
 
 ok i guess i misunderstood how keys work... or there is a bug?
 when using keys in hyperapp lists, and clearing parts of the list,
 not all removed items are actually removed from the dom. so we end
 up with a mix of new and old items in the DOM. lolwut?
 
-grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
-
-grep:
-  - if we start a query that results are found, but then expand the query to
-    something that does not return results, we are not clearing the ui
-  - i'm not sure that we load all the results (in some cases - try searching
-    for a popular keyword like 'await'). i think there is some logic to load
-    more results from cache once we scroll down... maybe that is not activated
-    if the div container height is too high?
-
 should font-sizer be part of build process?
-
-create a simple hyperapp virtualized list component that simply renders dom nodes
-  given a slice of the list. you want the top of the list, slice(0, 10)
-  you want the end, slice(list.length - 10), etc. no mouse support for now.
-  keep it simple and easy. make it composable (vs higher order?/wrapping?)
-
-files not refresh after delete file
 
 STOP REQUIRING SO MUCH SHIT ON APP START LOL
   - lazy load more shit
   - web worker more shit (ai)
-
-depmgr as separate process (not even worker thread) - because of security and isolation?
-  - needs access to configReader on file watch
 
 - SHADOW BUFFERS -
 the problem with shadow buffers is that our current neovim window render strategy
@@ -153,28 +186,20 @@ check on the background of embed explorer, not sure it's the exact same bg color
 
 rpc errors send to notifications? (try calling some broken execute() vimscript from usermenu)
 
+upgrade ripgrep
+
+--ideas--
+
 readme screen showcase automation
   create demo script to start electron at a certain size
   open various features
   use electron/spectron screenshot feature
   save to docs
 
-  - showcase/demo fuzzy buffer find in docs
-  - showcase/demo quickfix
+- showcase/demo fuzzy buffer find in docs
+- showcase/demo quickfix
 
-upgrade ripgrep
-
---ideas--
-
-neovim PRs:
-
-buffer notifications:
-- https://github.com/neovim/neovim/pull/7917
-
-extended marks:
-- https://github.com/neovim/neovim/pull/5031
-
-fuzzy refine searches with spaces between queries
+mouse support + locked insert mode = pairing support for normie pleb filthy casual philistine swine
 
 i want a go to previous buffer in the current window command. PLS
 - i thought vim could do this... but the alt buffer or :b# does not
@@ -184,41 +209,27 @@ i want a go to previous buffer in the current window command. PLS
 should there be a 'deactivated/unfocused' style of cursor? i.e. when jumping between Problems
 or references, instead of (right now) only showing cursorline, also show the actual cursor block
 but perhaps faded out, in such a way to indicate that there is no focus in the vim window...?
+  - or like Terminal.app (prob other terms too) show a outline around the block cursor
+    - only works for block cursor. we need to support everything
 
 make a different cursor for shadow buffers to signify normal mode?
 
 super cool start page with mru projects and shit
 
 move messages to bottom | top right corners. pimp them out to loook dope & lit AF
-
-change object key or value vim function/macro binding
+  - need better support for macro recording
 
 image preview buffers
 
+-- FLOATING WINDOW --
 i want the ability to be able to record multiple macros and name them. i want some sort of visual
 selector gui so i can retrieve and rerun macros without having to remember what macro register
 i saved, and what the usage for a particular macro is supposed to be. this can work similar
 to the marks popup idea below
 
-create find overlay at the top or bottom of current window (like xcode/vscode/atom/sublime/etc). used for builtin vim / or ? and can be used by custom components (viewport fuzzy search)
-  - maybe the design can integrate somehow with the buffer fuzzy search list
-
-set process.env.XDG_CONFIG_HOME in dev to use alt vim/extensions folders when testing dev that do not conflict with release builds
-
-easymotion show bigger letters + show WHILE searching ooooooo
-
-constrain overlay menus to a particular window (current window)
-  - (if it makes sense to be local - some might be global - like user menus or project switcher)
-  - i.e. show symbol/file menu on top of the current buffer window, instead of the center of the program,
-    since selecting a symbol or file will make changes in the current window, not globally
-start splash screen include MRU projects
-easymotion jump to highlighted word
-buffer-search should only search in the current viewport. no scrolling pls
-create fuzzy search for entire buffer, but use popup menu
-terminal change title to current running process
-backfill problems into quickfix list
-
-:: try with new floating windows api for this? then it can all be supported in vimscript
+use floating window for terminal scratch buffer. say i want to type a super fancy and long
+git commit msg, open scratch buffer, do the edits and whatnot, then "save" buffer to terminal
+prompt
 
 press and hold mark ' keybind to bring up menu of current global marks
 menu lists something like
@@ -256,7 +267,10 @@ having to remember exactly which terminal might be available for use? right now
 terminals are difficult to discern as they just have random numbers, but in the
 future if we can name running process in term, thennnnnnnn
 
-multi-monitor support? with shada and edge detection (when c-w l on right most window, go to next monitor)
+multi-monitor support? with shada and edge detection (when c-w l on right most
+window, go to next monitor)
+  - problem is how do we share veonim state between windows.
+  - REAL PROBLEM is how to share low-latency functions between windows (render/input/etc)
 
 
 add some sort of error checking/timeout for using lang serv actions, but if the
@@ -265,21 +279,17 @@ find-symbols in a large project (like veonim) after starting up veonim
 - or even if the langserv doesn't exist. show some info?
 
 
-jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
+-----------------------
 
+auto add to quick fix list (to allow :cdo commands):
+  references
+  problems
+  grep 
 
-use floating window for terminal scratch buffer. say i want to type a super fancy and long
-git commit msg, open scratch buffer, do the edits and whatnot, then "save" buffer to terminal
-prompt
+--neovim PRs--
 
-macros/fns/operators for:
-replace obj key and val
-replace func body
-
-auto add to quick fix list:
-references
-problems
-grep 
+extended marks:
+- https://github.com/neovim/neovim/pull/5031
 
 -
 look into how we can use v8 snapshots for startup speed
@@ -288,3 +298,44 @@ https://www.npmjs.com/package/electron-mksnapshot
 https://github.com/atom/atom/blob/f48069c5f848b5ae624b110a1df7800e919eb142/src/native-compile-cache.js
 https://flight-manual.atom.io/behind-atom/sections/how-atom-uses-chromium-snapshots/
 https://github.com/atom/atom/blob/d9ebd7e125d5f07def1a057a0a8278d4d9d7d23a/script/lib/generate-startup-snapshot.js#L19-L65
+
+
+## near future
+- add language server protocol 3.6.0 support: 
+  - goto implementation/type def/etc
+    - add more SymbolKind(s) and more CompletionItemKind(s). already enabled in capabilities, just need to enable the usage
+
+    ## potential ideas
+    - self-updating? how to handle corporate firewalls?
+    - full++ veonim build that comes with all langserv extensions, vim-polygot, and other essential vim plugins + barebones vim config
+    - image preview
+    - markdown preview
+    - better start screen (as shadow buffer) so it looks like you just walked into the sistine chapel and someone handed you a delicious ice cream sandwich with frosted sprinkles on top of the mona lisa
+    - browser??????? safety????????????????? (maybe localhost only)
+    - add code to neovim to automagically send wildmenu options without having to hit wildchar (tab)
+      - then can fuzzy find vim menus hell yeaaaa
+    - symbol/tag-tree hierarchical viewer (how does atom-ide do it? or other lang serv clients?)
+      - vscode has started implementing this. i think there are corresponding LSP proposals
+    - custom renderer (like custom ui for quickfix, etc.)
+    - user configurable statusline
+    - delay cmdline show if hide really quick to prevent flash - see #203 (https://github.com/veonim/veonim/issues/230)
+    - helm discoverability menu or c-s-p fuzzy menu (i think i prefer the fuzzy, better for finding seldom used functions)
+    - snippets (with the next extended marks feature coming soonª to neovim)
+
+## grid dynamic resize (prolly not needed with fancy nvim window mgmt)
+
+TODO: what if we could calculate availableColumns BEFORE hand?  it
+should be deterministic based on the current grid size and
+canvas-window paddings (how does this help?)
+
+TODO: what if we apply a grid resize operation BEFORE the split
+window event gets sent and processed. how could we intercept and
+freeze split cmds?  api.getUserKeymap? listen for split key
+events? WinNew autocmd?  if resize before, then there won't be a
+need to wincmd = there will still be some shift, but maybe not
+so much...
+
+TODO: what if resize grid so it will always fit
+n-windows + 1 that is, if there is only 1 window, the
+grid will be resized to accomodate 2.  when 2 happen,
+they will be resized for 3.
