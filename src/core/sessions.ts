@@ -70,10 +70,19 @@ export const sessions = {
   get current() { return cache.id }
 }
 
+const exitApp = () => {
+  // some sort of bug with electron? app does not quit if in simple fullscreen
+  // i prefer simple fullscreen, so i'm okay with this hack. revisit maybe
+  const win = remote.getCurrentWindow()
+  if (win.isSimpleFullScreen()) win.setSimpleFullScreen(false)
+  remote.app.quit()
+}
+
 onExit((id: number) => {
   if (!vims.has(id)) return
   vims.delete(id)
-  if (!vims.size) return remote.app.quit()
+
+  if (!vims.size) return exitApp()
 
   const next = Math.max(...vims.keys())
   switchVim(next)

@@ -1,5 +1,4 @@
 0.9.0 observations
-- on app quit, it freezes. the exit handler is not triggering app quit...
 - brunswick needs term colors (before it was inheriting from nord?)
 
 backup repo to other places pls
