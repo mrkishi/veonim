@@ -249,7 +249,7 @@ const view = ($: S) => h('div', {
       ,h('div', {
         style: {
           ...iconBoxStyle,
-          color: $.errors > 0 && colors.error,
+          color: $.errors > 0 ? colors.error : undefined,
         },
       }, [
         ,h(Icon.XCircle, iconStyle)
@@ -257,7 +257,7 @@ const view = ($: S) => h('div', {
 
       ,h('div', {
         style: {
-          color: $.errors > 0 && colors.error,
+          color: $.errors > 0 ? colors.error : undefined,
         },
       }, `${$.errors}`)
 
@@ -266,7 +266,7 @@ const view = ($: S) => h('div', {
         style: {
           ...iconBoxStyle,
           marginLeft: '12px',
-          color: $.warnings > 0 && colors.warning,
+          color: $.warnings > 0 ? colors.warning : undefined,
         },
       }, [
         ,h(Icon.AlertTriangle, iconStyle)
@@ -274,7 +274,7 @@ const view = ($: S) => h('div', {
 
       ,h('div', {
         style: {
-          color: $.warnings > 0 && colors.warning,
+          color: $.warnings > 0 ? colors.warning : undefined,
         },
       }, `${$.warnings}`)
     ])

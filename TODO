@@ -1,3 +1,7 @@
+0.9.0 observations
+- on app quit, it freezes. the exit handler is not triggering app quit...
+- brunswick needs term colors (before it was inheriting from nord?)
+
 backup repo to other places pls
   - git remote set-url origin --push --add REMOTELOL
   - this config does not persist in the repo...shoudl include a script/git hook to setup all remotes? 
@@ -15,6 +19,9 @@ constrain overlay menus to a particular window (current window)
   changes in the current window, not globally
 
 - HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
+  - maybe we just use fillText maxWidth property?
+  - otherwise we need to cliprect mask. it's the only way with fixed width
+    rendering. OS gets around this because it don't do fixed width
 
 easymotion show bigger letters + show WHILE searching ooooooo
 
