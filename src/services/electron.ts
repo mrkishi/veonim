@@ -6,12 +6,7 @@ action('hide', () => remote.app.hide())
 action('quit', () => remote.app.quit())
 action('maximize', () => remote.getCurrentWindow().maximize())
 action('devtools', () => remote.getCurrentWebContents().toggleDevTools())
-action('fullscreen', simple => {
-  const simpleFullscreen = process.platform === 'darwin' && simple
+action('fullscreen', () => {
   const win = remote.getCurrentWindow()
-
-  if (!simpleFullscreen) return win.setFullScreen(!win.isFullScreen())
-
-  win.setSimpleFullScreen(!win.isSimpleFullScreen())
-  setTitleVisibility(!win.isSimpleFullScreen())
+  win.setFullScreen(!win.isFullScreen())
 })
