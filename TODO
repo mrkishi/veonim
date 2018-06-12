@@ -1,6 +1,10 @@
 backup repo to other places pls
   - git remote set-url origin --push --add REMOTELOL
   - this config does not persist in the repo...shoudl include a script/git hook to setup all remotes? 
+  - maybe create a CI job to copy the repo?
+  - list multiple repos in package.json?
+
+figure out why jest is the worst thing ever since sliced bread
 
 grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
