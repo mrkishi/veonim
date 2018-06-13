@@ -1,4 +1,3 @@
-import { setTitleVisibility } from '../core/title'
 import { action } from '../core/neovim'
 import { remote } from 'electron'
 

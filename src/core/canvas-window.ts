@@ -127,7 +127,16 @@ export const createWindow = (container: HTMLElement) => {
   api.setTextBaseline = mode => (ui.textBaseline = mode, api)
 
   const drawText = (char: string, col: number, row: number) => {
-    ui.fillText(char, px.col.x(col), px.row.y(row) + canvasContainer.cell.padding)
+    const maxCharWidth = canvasContainer.cell.width
+    // TODO: i didn't see any changes to rendering artifacts, but then again i didn't
+    // have any good test cases. right now if we do a pretty diff-so-fancy git diff output
+    // the filename header sections uses a unicode char dash that is wider than the normal
+    // ascii one. the wider one causes left over out of bounds artifacts on the left and
+    // the right of the canvas grid. it's possible it does in the middle too, but haven't
+    // tested yet. we should create an official test suite using the offending unicode char
+    // and draw it in different places on the grid. then we can see if this maxWidth param
+    // works as described or we need to come up with an alternative strategy
+    ui.fillText(char, px.col.x(col), px.row.y(row) + canvasContainer.cell.padding, maxCharWidth)
     return api
   }
 
