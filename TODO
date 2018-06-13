@@ -1,6 +1,10 @@
 0.9.0 observations
 - brunswick needs term colors (before it was inheriting from nord?)
 
+fork hyperapp-redux-devtools and host on npm.
+- the git strategy is always being removed when i do an npm i <package>
+- my PR on the main repo is being ignored, so whatever.
+
 backup repo to other places pls
   - git remote set-url origin --push --add REMOTELOL
   - this config does not persist in the repo...shoudl include a script/git hook to setup all remotes? 
