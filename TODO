@@ -2,6 +2,7 @@
 - brunswick needs term colors (before it was inheriting from nord?)
 - autocomplete not triggering sometimes? end of lines or end of function arguments?
   - tc: canvas-window -> drawText -> ui.fillText() -> try to add last arg to the func
+  - it was working in previous version i'm pretty sure
 
 fork hyperapp-redux-devtools and host on npm.
 - the git strategy is always being removed when i do an npm i <package>
