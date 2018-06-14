@@ -53,10 +53,8 @@ const startup = FunctionGroup()
 const runtimeDir = resolve(__dirname, '..', 'runtime')
 
 const startupCmds = CmdGroup`
-  let $VIM = '${vimpath}'
-  let $VIMRUNTIME = '${vimruntime}'
-  let &runtimepath .= ',${runtimeDir}'
   let $PATH .= ':${runtimeDir}/${process.platform}'
+  let &runtimepath .= ',${runtimeDir}'
   let g:veonim = 1
   let g:vn_loaded = 0
   let g:vn_cmd_completions = ''
@@ -148,7 +146,14 @@ const spawnVimInstance = () => Neovim([
   '--cmd', `com! -nargs=* VeonimExt 1`,
   '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
   '--embed'
-], { cwd: homedir() })
+], {
+  cwd: homedir(),
+  env: {
+    ...process.env,
+    VIM: vimpath,
+    VIMRUNTIME: vimruntime,
+  },
+})
 
 const createNewVimInstance = (): number => {
   const proc = spawnVimInstance()
