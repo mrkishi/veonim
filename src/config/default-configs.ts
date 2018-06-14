@@ -21,4 +21,4 @@ export const workspace = {
   }
 }
 
-export const colorscheme = 'brunswick'
+export const colorscheme = 'veonim'
