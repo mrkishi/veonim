@@ -22,6 +22,11 @@ constrain overlay menus to a particular window (current window)
   - i.e. show symbol/file menu on top of the current buffer window, instead of
   the center of the program, since selecting a symbol or file will make
   changes in the current window, not globally
+- right now the overlay menu is hosted in the #plugins div.
+  we can get a reference to the current window element and add it in/next to
+  the "shadowbuffer" div container. this means that the container will keep
+  changing parent div containers. but that is okay, because these window local
+  overlay menus will always live inside a specific window, and not be global
 
 - HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
   - maybe we just use fillText maxWidth property?
