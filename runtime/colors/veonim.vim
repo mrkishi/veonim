@@ -5,7 +5,7 @@ if exists("syntax_on")
   syntax reset
 endif
 
-let g:colors_name="brunswick"
+let g:colors_name="veonim"
 
 hi! Normal                   guifg=#dcd2c9  guibg=#29272d  gui=NONE
 hi! NormalInverted           guifg=#29272d  guibg=NONE     gui=NONE
