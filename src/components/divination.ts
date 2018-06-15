@@ -1,6 +1,6 @@
 import { getWindowContainerElement, activeWindow } from '../core/windows'
+import { action, feedkeys } from '../core/neovim'
 import { cell } from '../core/canvas-container'
-import { action, jumpTo } from '../core/neovim'
 import { genList } from '../support/utils'
 import { cursor } from '../core/cursor'
 import * as input from '../core/input'
@@ -19,8 +19,9 @@ action('divination', () => {
   const win = activeWindow()
   if (!win || !winContainer) throw new Error('no window found for divination purposes lol wtf')
 
-  const rowCount = win.getSpecs().height
+  const { height: rowCount, row } = win.getSpecs()
   const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix) + cell.padding)
+  const relativeCursorRow = cursor.row - row
 
   const labelContainer = makel('div', {
     position: 'absolute'
@@ -50,9 +51,11 @@ action('divination', () => {
 
   const joinTheDarkSide = () => {
     const jumpLabel = grabbedKeys.join('')
-    console.log('jump label:', jumpLabel)
 
-    jumpTo({ line: jumpLabels.indexOf(jumpLabel) })
+    const targetRow = jumpLabels.indexOf(jumpLabel)
+    const jumpDistance = targetRow - relativeCursorRow
+    const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
+    feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}`, 'n')
 
     window.removeEventListener('keydown', keyHandler)
     winContainer.removeChild(labelContainer)
@@ -65,4 +68,4 @@ action('divination', () => {
   }
 
   window.addEventListener('keydown', keyHandler)
-}
+})
