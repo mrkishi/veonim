@@ -36,6 +36,17 @@ constrain overlay menus to a particular window (current window)
 
 easymotion show bigger letters + show WHILE searching ooooooo
 
+visual test results. at least somehow to show total number of fail/pass, last run,
+and jumplist for error files. would be nice to have desc and errors as well. maybe
+json output? maybe a common format( tap? is it machine readable, containsa ll info? )
+
+in the watch-terminal job reader thingy, i wonder if we can detect when a new output
+starts by reading for term codes for "clear screen". tsc --watch, mocha --watch,
+jest --watch all seem to clear the screen on new runs. any custom scripts i write
+could be made to also send the clear screen code. if that's the case, then this
+might make it fairly easy to pickup tests/incremental compiler output and know
+where a previous run ends and a new one begins.
+
 terminal change title to current running process
 
 jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
