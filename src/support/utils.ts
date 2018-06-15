@@ -50,6 +50,14 @@ export const uriAsFile = (m = '') => basename(uriToPath(m))
 export const CreateTask = <T>(): Task<T> => ( (done = (_: T) => {}, promise = new Promise<T>(m => done = m)) => ({ done, promise }) )()
 export const uuid = (): string => (<any>[1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,(a: any)=>(a^Math.random()*16>>a/4).toString(16))
 export const shell = (cmd: string, opts?: object): Promise<string> => new Promise(fin => exec(cmd, opts, (_, out) => fin(out + '')))
+// TODO: remove listof because it's not as performant
+export const genList = <T>(count: number, fn: (index: number) => T) => {
+  const resultList: T[] = []
+  for (let ix = 0; ix < count; ix++) {
+    resultList.push(fn(ix))
+  }
+  return resultList
+}
 
 export const pathRelativeToHome = (path: string) => path.includes($HOME)
   ? path.replace($HOME, '~')

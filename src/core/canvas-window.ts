@@ -4,46 +4,47 @@ import fontAtlas from '../core/font-atlas'
 import * as title from '../core/title'
 
 interface TransferRegion {
-  width: number,
-  height: number,
+  width: number
+  height: number
   source: {
-    row: number,
-    col: number,
-  },
+    row: number
+    col: number
+  }
   destination: {
-    row: number,
-    col: number,
-  },
+    row: number
+    col: number
+  }
 }
 
 interface Specs {
-  row: number,
-  col: number,
-  height: number,
-  width: number,
-  paddingX: number,
-  paddingY: number,
+  row: number
+  col: number
+  height: number
+  width: number
+  paddingX: number
+  paddingY: number
 }
 
 export interface CanvasWindow {
-  getSpecs(): Specs,
-  setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): CanvasWindow,
-  rowToY(row: number): number,
-  rowToTransformY(row: number): number,
-  cellsToPixelWidth(cells: number): number,
-  colToX(col: number): number,
-  resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow,
-  moveRegion(region: TransferRegion): CanvasWindow,
-  fillText(text: string, col: number, row: number): CanvasWindow,
-  fillRect(col: number, row: number, width: number, height: number): CanvasWindow,
-  underline(col: number, row: number, width: number, color: string): CanvasWindow,
-  setTextBaseline(mode: string): CanvasWindow,
-  clear(): CanvasWindow,
-  whereLine(row: number): { x: number, y: number, width: number },
-  getCursorPosition(row: number, col: number): { x: number, y: number },
-  setColor(color: string): CanvasWindow,
-  readonly width: string,
-  readonly height: string,
+  getSpecs(): Specs
+  setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): CanvasWindow
+  rowToY(row: number): number
+  rowToTransformY(row: number): number
+  relativeRowToY(row: number): number
+  cellsToPixelWidth(cells: number): number
+  colToX(col: number): number
+  resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow
+  moveRegion(region: TransferRegion): CanvasWindow
+  fillText(text: string, col: number, row: number): CanvasWindow
+  fillRect(col: number, row: number, width: number, height: number): CanvasWindow
+  underline(col: number, row: number, width: number, color: string): CanvasWindow
+  setTextBaseline(mode: string): CanvasWindow
+  clear(): CanvasWindow
+  whereLine(row: number): { x: number, y: number, width: number }
+  getCursorPosition(row: number, col: number): { x: number, y: number }
+  setColor(color: string): CanvasWindow
+  readonly width: string
+  readonly height: string
 }
 
 export const createWindow = (container: HTMLElement) => {
@@ -87,6 +88,7 @@ export const createWindow = (container: HTMLElement) => {
 
   // because i suck at css
   api.rowToTransformY = row => canvasBoxDimensions.y + px.row.y(row) - title.specs.height
+  api.relativeRowToY = row => ((canvasContainer.cell.height * 1) * row) + specs.paddingY
 
   const grabCanvasBoxDimensions = (canvasBox: HTMLElement) => setImmediate(() => {
     const { top: y, left: x, height, width } = canvasBox.getBoundingClientRect()
