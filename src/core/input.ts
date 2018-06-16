@@ -3,20 +3,32 @@ import { is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import $$, { VimMode } from '../core/state'
-import { $ } from '../support/utils'
+import { $, Watchers } from '../support/utils'
 import { remote } from 'electron'
 import { Script } from 'vm'
 
+export enum InputMode {
+  Vim = 'vim',
+  Motion = 'motion',
+}
+
+export enum InputType {
+  Down = 'down',
+  Up = 'up',
+}
+
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
+const inputWatchers = new Watchers()
 let isCapturing = false
 let holding = ''
 let xformed = false
 let lastDown = ''
-let initialKeyPress = true
+let initalVimStartupKeypress = true
 let windowHasFocus = true
 let lastEscapeTimestamp = 0
 let shouldClearEscapeOnNextAppFocus = false
+let activeInputMode = InputMode.Vim
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -105,17 +117,28 @@ export const transform = {
   }
 }
 
-const sendKeys = async (e: KeyboardEvent) => {
-  if (initialKeyPress) {
-    initialKeyPress = false
-    touched()
+export const switchInputMode = (mode: InputMode) => activeInputMode = mode
+export const defaultInputMode = () => activeInputMode = InputMode.Vim
+
+export const watchInputMode = (mode: InputMode, fn: (inputKeys: string, inputType: InputType) => void) => {
+  const onDown = (inputKeys: string) => fn(inputKeys, InputType.Down)
+  const onUp = (inputKeys: string) => fn(inputKeys, InputType.Up)
+  const eventDown = `${InputType.Down}:${mode}`
+  const eventUp = `${InputType.Up}:${mode}`
+
+  inputWatchers.add(eventDown, onDown)
+  inputWatchers.add(eventUp, onUp)
+
+  return () => {
+    inputWatchers.remove(eventDown, onDown)
+    inputWatchers.remove(eventUp, onUp)
   }
+}
 
-  const key = bypassEmptyMod(e.key)
-  if (!key) return
-  const inputKeys = formatInput(mapMods(e), mapKey(e.key))
-
-  // TODO: this might need more attention
+const sendToVim = (inputKeys: string) => {
+  // TODO: this might need more attention. i think s-space can be a valid
+  // vim keybind. s-space was causing issues in terminal mode, sending weird
+  // term esc char.
   if (inputKeys === '<S-Space>') return input('<space>')
   if (shortcuts.has(`${current.mode}:${inputKeys}`)) return shortcuts.get(`${current.mode}:${inputKeys}`)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
@@ -126,6 +149,27 @@ const sendKeys = async (e: KeyboardEvent) => {
   }
 }
 
+const sendToMotion = (inputKeys: string, inputType: InputType) => {
+  inputWatchers.notify(`${inputType}:${InputMode.Motion}`, inputKeys)
+}
+
+const sendKeys = async (e: KeyboardEvent, inputType: InputType) => {
+  // TODO: this doesn't work anymore. something is sending a keypress
+  // event on app startup. we should be using shadow buffers for this
+  // anyways for a proper startup screen. plskthx
+  if (initalVimStartupKeypress) {
+    initalVimStartupKeypress = false
+    touched()
+  }
+
+  const key = bypassEmptyMod(e.key)
+  if (!key) return
+  const inputKeys = formatInput(mapMods(e), mapKey(e.key))
+
+  if (activeInputMode === InputMode.Vim) return sendToVim(inputKeys)
+  if (activeInputMode === InputMode.Motion) return sendToMotion(inputKeys, inputType)
+}
+
 window.addEventListener('keydown', e => {
   if (!windowHasFocus || !isCapturing) return
 
@@ -134,7 +178,7 @@ window.addEventListener('keydown', e => {
 
   if (xfrmDown.has(es)) {
     const remapped = xfrmDown.get(holding)!(e)
-    sendKeys(remapped)
+    sendKeys(remapped, InputType.Down)
     return
   }
 
@@ -145,12 +189,12 @@ window.addEventListener('keydown', e => {
 
   if (xfrmHold.has(holding)) {
     const remapped = xfrmHold.get(holding)!(e)
-    sendKeys(remapped)
+    sendKeys(remapped, InputType.Down)
     xformed = true
     return
   }
 
-  sendKeys(e)
+  sendKeys(e, InputType.Down)
 })
 
 window.addEventListener('keyup', e => {
@@ -167,10 +211,10 @@ window.addEventListener('keyup', e => {
   const es = keToStr(e)
 
   const prevKeyAndThisOne = lastDown + es
-  if (xfrmUp.has(prevKeyAndThisOne)) return sendKeys(xfrmUp.get(prevKeyAndThisOne)!(e))
+  if (xfrmUp.has(prevKeyAndThisOne)) return sendKeys(xfrmUp.get(prevKeyAndThisOne)!(e), InputType.Up)
 
   if (holding === es) {
-    if (!xformed) sendKeys(e)
+    if (!xformed) sendKeys(e, InputType.Up)
     xformed = false
     holding = ''
   }
