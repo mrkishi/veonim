@@ -22,9 +22,6 @@ getWindowContainerElement does not return the right element in the following sce
 - call getWindowContainerElement
 - still returns the first window container, not the bottom (2nd one)
 
-statusline:
-- git status 0 is colored. should be gray. some issue prob as problems 0 colored
-
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 
 fork hyperapp-redux-devtools and host on npm.

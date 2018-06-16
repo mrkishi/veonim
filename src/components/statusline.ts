@@ -163,7 +163,7 @@ const view = ($: S) => h('div', {
       ,h('div', {
         style: {
           ...iconBoxStyle,
-          color: $.additions > 0 && colors.success,
+          color: $.additions > 0 ? colors.success : undefined,
         },
       }, [
         ,h(Icon.PlusSquare, iconStyle)
@@ -171,7 +171,7 @@ const view = ($: S) => h('div', {
 
       ,h('div', {
         style: {
-          color: $.additions > 0 && colors.success,
+          color: $.additions > 0 ? colors.success : undefined,
         }
       }, `${$.additions}`)
 
@@ -180,7 +180,7 @@ const view = ($: S) => h('div', {
         style: {
           ...iconBoxStyle,
           marginLeft: '12px',
-          color: $.deletions > 0 && colors.error,
+          color: $.deletions > 0 ? colors.error : undefined,
         },
       }, [
         ,h(Icon.MinusSquare, iconStyle)
@@ -188,7 +188,7 @@ const view = ($: S) => h('div', {
 
       ,h('div', {
         style: {
-          color: $.deletions > 0 && colors.error,
+          color: $.deletions > 0 ? colors.error : undefined,
         },
       }, `${$.deletions}`)
     ])
