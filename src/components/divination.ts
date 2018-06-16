@@ -1,9 +1,9 @@
+import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
 import { getWindowContainerElement, activeWindow } from '../core/windows'
 import { genList, merge } from '../support/utils'
 import { action, feedkeys } from '../core/neovim'
 import { cell } from '../core/canvas-container'
 import { cursor } from '../core/cursor'
-import * as input from '../core/input'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 
@@ -55,27 +55,31 @@ action('divination', () => {
       color: '#ff007c'
     }))
 
-  input.blur()
+  switchInputMode(InputMode.Motion)
   const grabbedKeys: string[] = []
 
+  const reset = () => {
+    stopWatchingInput()
+    winContainer.removeChild(labelContainer)
+    defaultInputMode()
+  }
+
   const joinTheDarkSide = () => {
-    const jumpLabel = grabbedKeys.join('')
+    const jumpLabel = grabbedKeys.join('').toUpperCase()
 
     const targetRow = jumpLabels.indexOf(jumpLabel)
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
     feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}`, 'n')
 
-    window.removeEventListener('keydown', keyHandler)
-    winContainer.removeChild(labelContainer)
-    input.focus()
+    reset()
   }
 
-  const keyHandler = ({ key }: KeyboardEvent) => {
-    grabbedKeys.push(key)
-    if (grabbedKeys.length === 1) return updateLabels(key)
+  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+    if (keys === '<Esc>') return reset()
+
+    grabbedKeys.push(keys)
+    if (grabbedKeys.length === 1) return updateLabels(keys)
     if (grabbedKeys.length === 2) joinTheDarkSide()
-  }
-
-  window.addEventListener('keydown', keyHandler)
+  })
 })
