@@ -9,6 +9,14 @@ import { paddingV } from '../ui/css'
 
 const jumpKeys = 'ASDFLGHQWERTYUIOPBNMCBVJK'
 
+// TODO: generate more ergonomic labels
+// for example, 'sw' is harder to type than 'ad'
+// also multi-hand might be better. aka 'aj' > 'ad'
+// perhaps we can also create some convention for
+// motions that go up vs down. e.g. if first label char...
+//  - starts on left hand: motion is down
+//  - starts on right hand: motion is up
+// not sure if this makes things faster?
 const jumpLabels = jumpKeys.split('').map(key => {
   const otherKeys = jumpKeys.replace(key, '')
   return otherKeys.split('').map(k => key + k)
@@ -20,6 +28,7 @@ action('divination', () => {
   if (!win || !winContainer) throw new Error('no window found for divination purposes lol wtf')
 
   const { height: rowCount, row } = win.getSpecs()
+  // TODO: don't render on the current line. account for missing in jumpDistance calcs?
   const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix) + cell.padding)
   const relativeCursorRow = cursor.row - row
 
@@ -35,7 +44,7 @@ action('divination', () => {
       top: `${y}px`,
       left: '8px',
       background: '#000',
-      color: 'white',
+      color: '#eee',
     })
 
     const label = jumpLabels[ix]
