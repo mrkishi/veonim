@@ -117,7 +117,7 @@ const sendKeys = async (e: KeyboardEvent) => {
   if (shortcuts.has(`${current.mode}:${inputKeys}`)) return shortcuts.get(`${current.mode}:${inputKeys}`)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else {
-    // TODO: document this
+    // a fix for terminal. only happens on cmd-tab. see below for more info
     if (inputKeys.toLowerCase() === '<esc>') lastEscapeTimestamp = Date.now()
     input(inputKeys)
   }
@@ -190,7 +190,19 @@ remote.getCurrentWindow().on('focus', () => {
   windowHasFocus = true
   resetInputState()
   if (shouldClearEscapeOnNextAppFocus) {
-    // TODO: document
+    // so if i remap 'cmd' down+up -> 'esc' and then hit cmd+tab to switch apps
+    // while in a terminal buffer, the application captures the 'cmd' (xform to
+    // 'esc') but not the 'tab' key. because of the xform to 'esc' this sends
+    // an escape sequence to the terminal. once the app gains focus again, the
+    // first char in the terminal buffer will be "swallowed". very annoying if
+    // copypasta commands, the first char gets lost and have to re-pasta
+
+    // i couldn't figure out an elegant solution to this (tried native
+    // keylistening but too much effort/unreliable), and decided to check if an
+    // 'esc' key was sent immediately before the app lost focus && we were in
+    // terminal insert mode. when the app gains focus again, we can "clear" the
+    // previous erranous 'escape' key sent to the terminal. this might only
+    // happen on macos + my custom config of remapping cmd -> cmd/esc
     input('<enter>')
     shouldClearEscapeOnNextAppFocus = false
   }
