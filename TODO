@@ -14,14 +14,6 @@ the openFile cache. maybe the buffer update can help here
   - tc: canvas-window -> drawText -> ui.fillText() -> try to add last arg to the func
   - it was working in previous version i'm pretty sure
 
-
-getWindowContainerElement does not return the right element in the following scenario:
-- initial window layout (1 win)
-- call getWindowContainerElement
-- split horizontal (2 win stacked)
-- call getWindowContainerElement
-- still returns the first window container, not the bottom (2nd one)
-
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 
 fork hyperapp-redux-devtools and host on npm.

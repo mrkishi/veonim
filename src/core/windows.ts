@@ -385,6 +385,8 @@ const setupWindow = ({ element, canvas, canvasBox, api }: Window, win: RenderWin
   })
 
   merge(lastWindow, emptyLastWindow)
+  merge(lastWindow2, emptyLastWindow)
+
   winPos.push([win.y, win.x, win.height, win.width, canvas, win, canvasBox])
   canvas
     .setSpecs(win.y, win.x, win.height, win.width, 10, 6)
