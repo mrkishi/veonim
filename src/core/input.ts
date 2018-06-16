@@ -106,7 +106,10 @@ export const transform = {
 }
 
 const sendKeys = async (e: KeyboardEvent) => {
-  if (initialKeyPress) (initialKeyPress = false, touched())
+  if (initialKeyPress) {
+    initialKeyPress = false
+    touched()
+  }
 
   const key = bypassEmptyMod(e.key)
   if (!key) return
