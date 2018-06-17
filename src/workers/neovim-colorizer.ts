@@ -1,9 +1,9 @@
 import { prefixWith, onFnCall, pascalCase } from '../support/utils'
-import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
 import { colorscheme } from '../config/default-configs'
 import WorkerClient from '../messaging/worker-client'
 import CreateTransport from '../messaging/transport'
 import NeovimUtils from '../support/neovim-utils'
+import { Neovim } from '../support/binaries'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 import { resolve } from 'path'
@@ -35,9 +35,9 @@ const asVimFunc = (name: string, fn: string) => {
 
 const runtimeDir = resolve(__dirname, '..', 'runtime')
 const { encoder, decoder } = CreateTransport()
-const proc = Neovim([
-  '--cmd', `let $VIM = '${vimpath}'`,
-  '--cmd', `let $VIMRUNTIME = '${vimruntime}'`,
+const proc = Neovim.run([
+  '--cmd', `let $VIM = '${Neovim.path}'`,
+  '--cmd', `let $VIMRUNTIME = '${Neovim.runtime}'`,
   '--cmd', `let &runtimepath .= ',${runtimeDir}'`,
   '--cmd', `colorscheme ${colorscheme}`,
   '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,

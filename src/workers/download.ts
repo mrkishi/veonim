@@ -1,6 +1,6 @@
 import { createWriteStream, ensureDir, remove } from 'fs-extra'
 import WorkerClient from '../messaging/worker-client'
-import Archiver from 'all-other-unzip-libs-suck'
+import { Archiver } from '../support/binaries'
 import { get } from 'request'
 // not using node built-in http lib because we need error handling and
 // redirects (in the case of github). tried using built-in fetch api, but

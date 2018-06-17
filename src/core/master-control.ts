@@ -1,9 +1,9 @@
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import NeovimUtils, { CmdGroup, FunctionGroup } from '../support/neovim-utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
-import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
 import { colorscheme } from '../config/default-configs'
 import CreateTransport from '../messaging/transport'
+import { Neovim } from '../support/binaries'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
@@ -140,7 +140,7 @@ startup.defineFunc.VK`
   call Veonim('register-shortcut', a:1, a:2)
 `
 
-const spawnVimInstance = () => Neovim([
+const spawnVimInstance = () => Neovim.run([
   '--cmd', `${startupCmds} | ${startup.funcs}`,
   '--cmd', `com! -nargs=* Plug 1`,
   '--cmd', `com! -nargs=* VeonimExt 1`,
@@ -150,8 +150,8 @@ const spawnVimInstance = () => Neovim([
   cwd: homedir(),
   env: {
     ...process.env,
-    VIM: vimpath,
-    VIMRUNTIME: vimruntime,
+    VIM: Neovim.path,
+    VIMRUNTIME: Neovim.runtime,
   },
 })
 

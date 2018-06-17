@@ -1,10 +1,10 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
-import Neovim, { vimpath, vimruntime } from '@veonim/neovim'
 import { prefixWith, onFnCall, is } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { QuickFixList } from '../core/vim-functions'
 import CreateTransport from '../messaging/transport'
 import NeovimUtils from '../support/neovim-utils'
+import { Neovim } from '../support/binaries'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 
@@ -19,9 +19,9 @@ const vimOptions = {
 }
 
 const { encoder, decoder } = CreateTransport()
-const proc = Neovim([
-  '--cmd', `let $VIM = '${vimpath}'`,
-  '--cmd', `let $VIMRUNTIME = '${vimruntime}'`,
+const proc = Neovim.run([
+  '--cmd', `let $VIM = '${Neovim.path}'`,
+  '--cmd', `let $VIMRUNTIME = '${Neovim.runtime}'`,
   '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,
   '--cmd', `exe ":fun! Veonim(...)\\n endfun"`,
   '--cmd', `exe ":fun! VK(...)\\n endfun"`,

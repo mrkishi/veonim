@@ -61,7 +61,7 @@ export const app = <StateT, ActionsT>({ state, actions, view, element, name }: A
   const containerElement = element || prepareContainerElement(name)
 
   if (process.env.VEONIM_DEV) {
-    const devtools = require('hyperapp-redux-devtools')
+    const devtools = require('@deomitrus/hyperapp-redux-devtools')
     return devtools(makeApp, { name })(state, actions, view, containerElement)
   }
 

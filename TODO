@@ -7,6 +7,7 @@
   - i wonder if other nvim guis have this issue. i tried simulating -u NONE, but not exact really
     - if i try some other nvim guis that have ext_cmdline implemented, we can check if it's spammy there
     - perhaps upgrading nvim version might fix this
+    triedinonibut didntseee anyth that stoodout. not sure i understand whats going on tho
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 

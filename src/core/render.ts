@@ -1,5 +1,5 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { asColor, merge, matchOn, CreateTask, debounce, throttle } from '../support/utils'
+import { asColor, merge, matchOn, CreateTask, debounce } from '../support/utils'
 import { onRedraw, getColor, getMode } from '../core/master-control'
 import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'

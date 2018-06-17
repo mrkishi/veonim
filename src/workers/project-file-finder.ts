@@ -1,7 +1,7 @@
 import WorkerClient from '../messaging/worker-client'
 import { NewlineSplitter } from '../support/utils'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
-import Ripgrep from '@veonim/ripgrep'
+import { Ripgrep } from '../support/binaries'
 
 const INTERVAL = 250
 const AMOUNT = 10
