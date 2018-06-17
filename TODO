@@ -1,20 +1,20 @@
 0.9.0 observations
-LOL WTF HAPPENED TO AUTOCOMPLETE ITS SO BROKEN WTF
------
-i don't recall making any changes to autocomplete code,
-i think the buffer is not being updated to the langserv
-and the keyword harvester. i think i messed around with
-the openFile cache. maybe the buffer update can help here
------
-- autocomplete not triggering for paths?
-- autocomplete not triggering in parens
-- autocomplete not triggering on objects
-- autocomplete not triggering for impmort {} suggestions
-- autocomplete not triggering sometimes? end of lines or end of function arguments?
-  - tc: canvas-window -> drawText -> ui.fillText() -> try to add last arg to the func
-  - it was working in previous version i'm pretty sure
-
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
+
+create realtime/live-interactive :g//norm ??cmds?? function. can't build it in vimscript
+because of shit UI. would prefer that we can see what's being typed.
+i imagine it might work something like:
+  - open input cmd (same as cmd-line? but diff icon?)
+  - would be best to have two inputs
+    - input 1: filter (if any - can be optional?)
+      - if not specified will use current/last search pattern
+      - need to somehow specify that want to apply to every line
+        - then run :norm ??cmds?? (or with visual selection marks)
+    - input 2: normal mode commands. assumes they will be remapped
+      - on string+ :g//norm ??cmds??
+      - on string- :undo
+      - i wonder if we can/should highlight changes in diff color?
+      - need someway to escape special chars (enter, space, ctrl-key, etc.)
 
 fork hyperapp-redux-devtools and host on npm.
 - the git strategy is always being removed when i do an npm i <package>

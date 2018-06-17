@@ -47,7 +47,7 @@ const orderCompletions = (m: CompletionOption[], query: string) => m
   .sort(({ text }) => hasUpperCase(text) ? -1 : text.startsWith(query) ? -1 : 1)
 
 const findQuery = (line: string, column: number) => {
-  const start = findIndexRight(line, /[^\w\-]/, column) || 0
+  const start = findIndexRight(line, /[^\w\-]/, column - 1) || 0
   const startIndex = start ? start + 1 : 0
   const query = line.slice(startIndex, column) || ''
   const leftChar = line[start]
