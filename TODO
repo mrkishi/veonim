@@ -1,4 +1,13 @@
 0.9.0 observations
+- cmdline slow AF
+  - onRedraw spams too much with 'cmdline_show'
+    - side effects from onRedraw method (updating cursor, windows, getMode, regenFontAtlas, etc.) get spammed
+    - we have a check in cmdline_show to skip if the update is same as previous.
+    - we should move this check up to onRedraw to premature exit onRedraw if call is same as before on cmdline_show
+  - i wonder if other nvim guis have this issue. i tried simulating -u NONE, but not exact really
+    - if i try some other nvim guis that have ext_cmdline implemented, we can check if it's spammy there
+    - perhaps upgrading nvim version might fix this
+
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 
 create realtime/live-interactive :g//norm ??cmds?? function. can't build it in vimscript
