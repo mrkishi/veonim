@@ -16,7 +16,7 @@ interface TransferRegion {
   }
 }
 
-interface Specs {
+export interface Specs {
   row: number
   col: number
   height: number

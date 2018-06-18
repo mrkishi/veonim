@@ -1,3 +1,11 @@
+0.9.0 observations:
+- diagnostics stop showing up / error highlights not appearing after some period
+- colorizer on :hint not coloring anymore after some period of time
+
+divination:
+- jumpTo line maintains current cursor.col. would be nice to jump to first
+  word char in the line (equiv of ^). or maybe the equiv of 0
+
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 
 create realtime/live-interactive :g//norm ??cmds?? function. can't build it in vimscript
