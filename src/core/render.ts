@@ -1,5 +1,5 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { asColor, merge, matchOn, CreateTask, debounce } from '../support/utils'
+import { asColor, merge, matchOn, CreateTask, debounce, is } from '../support/utils'
 import { onRedraw, getColor, getMode } from '../core/master-control'
 import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'
@@ -83,6 +83,12 @@ export interface CommandUpdate {
   position: number,
 }
 
+interface CommandLineCache {
+  cmd?: string,
+  active: boolean,
+  position: number,
+}
+
 let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 const commonColors = new Map<string, number>()
@@ -97,6 +103,11 @@ const getTopColors = (amount = 16) => Array
   .sort((a, b) => a[1] < b[1] ? 1 : -1)
   .slice(0, amount)
   .map(m => m[0])
+
+const cmdcache: CommandLineCache = {
+  active: false,
+  position: -999,
+}
 
 const attrDefaults: Attrs = {
   underline: false,
@@ -340,24 +351,11 @@ r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
 r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
 r.wildmenu_hide = () => dispatch.pub('wildmenu.hide')
 
-// TODO: is this a neovim bug or am i doing something stupid? why is it being spammed so much?!
-// TODO: because neovim bug (cmdline_show is spammed infinite rapid fire until hide)
-interface NeovimFail {
-  cmd?: string,
-  active: boolean,
-  position: number,
-}
-
-const cmdcache: NeovimFail = {
-  active: false,
-  position: -999,
-}
 
 r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level) => {
-  // TODO: all these checks here are because of the spam
-  if (cmdcache.active && cmdcache.position === position) return
   cmdcache.active = true
   cmdcache.position = position
+
   // TODO: process attributes!
   const cmd = content.reduce((str, [ _, item ]) => str + item, '')
   if (cmdcache.cmd === cmd) return
@@ -471,7 +469,21 @@ const regenerateFontAtlastIfNecessary = debounce(() => {
   lastTop = topColors
 }, 100)
 
+const cmdlineIsSame = (...args: any[]) => cmdcache.active && cmdcache.position === args[1]
+
+const doNotUpdateCmdlineIfSame = (args: any[]) => {
+  if (!args || !is.array(args)) return false
+  const [ cmd, data ] = args
+  if (cmd !== 'cmdline_show') return false
+  return cmdlineIsSame(...data)
+}
+
 onRedraw((m: any[]) => {
+  // because of circular logic/infinite loop. cmdline_show updates UI, UI makes
+  // a change in the cmdline, nvim sends redraw again. we cut that shit out
+  // with coding and algorithms
+  if (doNotUpdateCmdlineIfSame(m[0])) return
+
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
     const [ method, ...args ] = m[ix]

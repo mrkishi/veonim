@@ -1,14 +1,3 @@
-0.9.0 observations
-- cmdline slow AF
-  - onRedraw spams too much with 'cmdline_show'
-    - side effects from onRedraw method (updating cursor, windows, getMode, regenFontAtlas, etc.) get spammed
-    - we have a check in cmdline_show to skip if the update is same as previous.
-    - we should move this check up to onRedraw to premature exit onRedraw if call is same as before on cmdline_show
-  - i wonder if other nvim guis have this issue. i tried simulating -u NONE, but not exact really
-    - if i try some other nvim guis that have ext_cmdline implemented, we can check if it's spammy there
-    - perhaps upgrading nvim version might fix this
-    triedinonibut didntseee anyth that stoodout. not sure i understand whats going on tho
-
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 
 create realtime/live-interactive :g//norm ??cmds?? function. can't build it in vimscript
@@ -25,10 +14,6 @@ i imagine it might work something like:
       - on string- :undo
       - i wonder if we can/should highlight changes in diff color?
       - need someway to escape special chars (enter, space, ctrl-key, etc.)
-
-fork hyperapp-redux-devtools and host on npm.
-- the git strategy is always being removed when i do an npm i <package>
-- my PR on the main repo is being ignored, so whatever.
 
 backup repo to other places pls
   - git remote set-url origin --push --add REMOTELOL
