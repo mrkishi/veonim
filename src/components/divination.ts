@@ -155,5 +155,11 @@ action('blargblarg', async () => {
     bg: foreground,
   })
 
-  console.log('searchPositions', searchPositions)
+  const searchPixelPositions = searchPositions.map(m => {
+    // TODO: need api to support column position tooooooo
+    return win.relativeRowToY(m.row, m.col) + cell.padding
+  })
+
+  // TODO: construct labels and put them in the winContainer
+  // do the rest of the divination keybinds and such from 'divination' action
 })
