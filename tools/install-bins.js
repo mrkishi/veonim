@@ -7,7 +7,7 @@ const pkg = require(pkgPath)
 const os = process.platform
 const deps = Reflect.get(pkg, `bindeps-${os}`)
 
-go(async () => {
+require.main === module && go(async () => {
   if (!deps) return
   $`installing binary dependencies`
 
@@ -20,3 +20,5 @@ go(async () => {
 
   $`done installing binary dependencies`
 })
+
+module.exports = { deps }
