@@ -12,7 +12,7 @@ export enum CursorShape {
   underline,
 }
 
-const cursorPosition = { row: 0, col: 0, needsUpdate: false }
+export const cursor = { row: 0, col: 0, color: '#fff', type: CursorShape.block }
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const cursorChar = document.createElement('span')
 const cursorline = document.getElementById('cursorline') as HTMLElement
@@ -37,28 +37,6 @@ merge(cursorEl.style, {
 cursorChar.style.filter = 'invert(1) grayscale(1)'
 cursorEl.appendChild(cursorChar)
 
-export const cursor = {
-  color: '#fff',
-  type: CursorShape.block,
-  get row() { return cursorPosition.row },
-  get col() { return cursorPosition.col },
-  set row(row: number) {
-    if (row === cursorPosition.row) {
-      cursorPosition.needsUpdate = false
-      return
-    }
-
-    merge(cursorPosition, { row, needsUpdate: true })
-  },
-  set col(col: number) {
-    if (col === cursorPosition.col) {
-      cursorPosition.needsUpdate = false
-      return
-    }
-
-    merge(cursorPosition, { col, needsUpdate: true })
-  },
-}
 
 export const getCursorBoundingClientRect = () => cursorline.getBoundingClientRect()
 
@@ -146,8 +124,6 @@ const updateCursorPosition = (canvas: CanvasWindow) => {
 }
 
 export const moveCursor = (backgroundColor: string) => {
-  if (!cursorPosition.needsUpdate) return
-
   const res = getWindow(cursor.row, cursor.col, { getStuff: true })
   if (!res || !res.canvas) return
   const { canvas, win } = res
