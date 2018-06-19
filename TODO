@@ -1,12 +1,22 @@
 0.9.0 observations:
 - diagnostics stop showing up / error highlights not appearing after some period
-- colorizer on :hint not coloring anymore after some period of time
+- colorizer on action('hint') not coloring anymore after some period of time
+
+create search box at the top of the current window.
+- this will be used for <-- / --> search and viewport-search. maybe more in the future
+- can we copystrike pewdiepie. i mean can we blur background + alpha?
 
 divination:
 - jumpTo line maintains current cursor.col. would be nice to jump to first
   word char in the line (equiv of ^). or maybe the equiv of 0
+- line jump: anchor labels to first char in the line? how to?
+- do not create label/jump coordinates for position:
+  - line -> current line
+  - search hl -> position under cursor +/- 1-2
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
+- i feel like i might want this in a few different places.
+  - can create generic fn to use anywhere?
 
 create realtime/live-interactive :g//norm ??cmds?? function. can't build it in vimscript
 because of shit UI. would prefer that we can see what's being typed.
