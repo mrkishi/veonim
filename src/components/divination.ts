@@ -1,6 +1,6 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
 import { getWindowContainerElement, activeWindow } from '../core/windows'
-import { action, feedkeys, getColor, jumpTo } from '../core/neovim'
+import { action, feedkeys, getColor } from '../core/neovim'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
 import { cursor } from '../core/cursor'
@@ -19,7 +19,6 @@ interface FindPosOpts extends Specs {
 }
 
 const jumpKeys = 'ASDFLGHQWERTYUIOPBNMCBVJK'
-// TODO: UHH CAREFUL I NOTICED DUPLICATES HERE LOL
 
 // TODO: generate more ergonomic labels
 // for example, 'sw' is harder to type than 'ad'
@@ -29,10 +28,11 @@ const jumpKeys = 'ASDFLGHQWERTYUIOPBNMCBVJK'
 //  - starts on left hand: motion is down
 //  - starts on right hand: motion is up
 // not sure if this makes things faster?
-const jumpLabels = jumpKeys.split('').map(key => {
+const jumpLabelsRaw = jumpKeys.split('').map(key => {
   const otherKeys = jumpKeys.replace(key, '')
   return otherKeys.split('').map(k => key + k)
 }).reduce((res, grp) => [...res, ...grp])
+const jumpLabels = [...new Set(jumpLabelsRaw)]
 
 action('divination', () => {
   const winContainer = getWindowContainerElement(cursor.row, cursor.col) as HTMLElement
@@ -142,6 +142,8 @@ action('blarg', async () => {
 
   const { foreground, background } = await getColor('Search')
   const specs = win.getSpecs()
+  const relativeCursorRow = cursor.row - specs.row
+
   const searchPositions = findSearchPositions({
     ...specs,
     // TODO: this is a real shit way of doing it. getColor returns
@@ -157,6 +159,8 @@ action('blarg', async () => {
     bg: foreground,
   })
 
+  // TODO: again, same issue as above, remove/filter out the current line + col
+  // if mouse is right on top of it
   const searchPixelPositions = searchPositions.map(m => ({
     ...m,
     ...win.realtivePositionToPixels(m.row, m.col),
@@ -175,6 +179,8 @@ action('blarg', async () => {
       // may need to figure out a good way to determine the largest font-size
       // that we can display without overlapping!
       fontSize: '1.3rem',
+      // TODO: need to figure out what to do when labels stack on top of each other???
+      // like if two chars are highlighted right next to each other <2 spaces
       top: `${pos.y}px`,
       left: `${pos.x}px`,
       background: '#000',
@@ -182,8 +188,6 @@ action('blarg', async () => {
     })
 
     const label = jumpLabels[ix]
-    // TODO: either need absolute position in buffer (this is relative to render window)
-    // or we to use relative jump motion like gj gk | like we did for the line jump divination
     jumpTargets.set(label, { row: pos.row, col: pos.col })
     // using margin-right instead of letter-spacing because letter-spacing adds space
     // to the right of the last letter - so it ends up with more padding on the right :/
@@ -214,7 +218,13 @@ action('blarg', async () => {
   const joinTheDarkSide = () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
     const { row, col } = jumpTargets.get(jumpLabel)
-    jumpTo({ line: row, column: col })
+    const relativeRow = row - specs.row
+    const jumpY = relativeRow - relativeCursorRow
+    const jumpX = col - specs.col
+    const jumpMotion = jumpY > 0 ? 'j' : 'k'
+    const distance = Math.abs(jumpY)
+
+    feedkeys(`${distance}g${jumpMotion}0${jumpX + 1}|`, 'n')
 
     reset()
   }
