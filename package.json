@@ -28,7 +28,7 @@
   },
   "repository-mirrors": [
     "git@github.com:veonim/veonim.git",
-    "https://gitlab.com/veonim/veonim.git",
+    "https://veonim@gitlab.com/veonim/veonim.git",
     "https://veonim@bitbucket.org/veonim/veonim.git"
   ],
   "author": "VeonimDev",
