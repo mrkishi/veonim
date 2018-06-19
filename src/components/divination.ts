@@ -1,8 +1,7 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
 import { getWindowContainerElement, activeWindow } from '../core/windows'
-import { action, feedkeys, getColor } from '../core/neovim'
+import { action, feedkeys, getColor, jumpTo } from '../core/neovim'
 import { genList, merge } from '../support/utils'
-import { cell } from '../core/canvas-container'
 import { Specs } from '../core/canvas-window'
 import { cursor } from '../core/cursor'
 import { makel } from '../ui/vanilla'
@@ -15,11 +14,12 @@ interface CellPosition {
 }
 
 interface FindPosOpts extends Specs {
-  fg: string
-  bg: string
+  fg?: string
+  bg?: string
 }
 
 const jumpKeys = 'ASDFLGHQWERTYUIOPBNMCBVJK'
+// TODO: UHH CAREFUL I NOTICED DUPLICATES HERE LOL
 
 // TODO: generate more ergonomic labels
 // for example, 'sw' is harder to type than 'ad'
@@ -35,13 +35,13 @@ const jumpLabels = jumpKeys.split('').map(key => {
 }).reduce((res, grp) => [...res, ...grp])
 
 action('divination', () => {
-  const winContainer = getWindowContainerElement(cursor.row, cursor.col)
+  const winContainer = getWindowContainerElement(cursor.row, cursor.col) as HTMLElement
   const win = activeWindow()
   if (!win || !winContainer) throw new Error('no window found for divination purposes lol wtf')
 
   const { height: rowCount, row } = win.getSpecs()
   // TODO: don't render on the current line. account for missing in jumpDistance calcs?
-  const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix) + cell.padding)
+  const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
   const relativeCursorRow = cursor.row - row
 
   const labelContainer = makel('div', {
@@ -91,7 +91,7 @@ action('divination', () => {
     const targetRow = jumpLabels.indexOf(jumpLabel)
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
-    feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}`, 'n')
+    feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
 
     reset()
   }
@@ -105,7 +105,7 @@ action('divination', () => {
   })
 })
 
-const findSearchPositions = ({ row, col, height, width, fg, bg }: FindPosOpts) => {
+const findSearchPositions = ({ row, col, height, width, bg }: FindPosOpts) => {
   const maxRow = row + height
   const maxCol = col + width
 
@@ -114,7 +114,7 @@ const findSearchPositions = ({ row, col, height, width, fg, bg }: FindPosOpts) =
 
   for (let rowIx = row; rowIx < maxRow; rowIx++) {
     for (let colIx = col; colIx < maxCol; colIx++) {
-      const [ /*char*/, cellFg, cellBg ] = grid.get(rowIx, colIx)
+      const [ /*char*/, /*cellFg*/, cellBg ] = grid.get(rowIx, colIx)
       // TODO: don't know if this will ever be good with trying
       // to match search highlights from color information noly
       // ( see below for more comments )
@@ -133,10 +133,12 @@ const findSearchPositions = ({ row, col, height, width, fg, bg }: FindPosOpts) =
   return searchPositions
 }
 
-action('blargblarg', async () => {
+action('blarg', async () => {
+  // TODO: type this return in the api fn
+  const winContainer = getWindowContainerElement(cursor.row, cursor.col) as HTMLElement
   const win = activeWindow()
   // TODO: better msg pls
-  if (!win) throw new Error('better msg pls')
+  if (!win || !winContainer) throw new Error('no window found for divination purposes lol wtf')
 
   const { foreground, background } = await getColor('Search')
   const specs = win.getSpecs()
@@ -155,11 +157,73 @@ action('blargblarg', async () => {
     bg: foreground,
   })
 
-  const searchPixelPositions = searchPositions.map(m => {
-    // TODO: need api to support column position tooooooo
-    return win.relativeRowToY(m.row, m.col) + cell.padding
+  const searchPixelPositions = searchPositions.map(m => ({
+    ...m,
+    ...win.realtivePositionToPixels(m.row, m.col),
+  }))
+
+  const labelContainer = makel('div', { position: 'absolute' })
+  const jumpTargets = new Map()
+
+  const labels = searchPixelPositions.map((pos, ix) => {
+    // TODO: these styles should be shared. also i think we should use css translate
+    // instead of top/left
+    const el = makel('div', {
+      ...paddingV(4),
+      position: 'absolute',
+      // TODO: this font-size depends on global font-size + line-height
+      // may need to figure out a good way to determine the largest font-size
+      // that we can display without overlapping!
+      fontSize: '1.3rem',
+      top: `${pos.y}px`,
+      left: `${pos.x}px`,
+      background: '#000',
+      color: '#eee',
+    })
+
+    const label = jumpLabels[ix]
+    // TODO: either need absolute position in buffer (this is relative to render window)
+    // or we to use relative jump motion like gj gk | like we did for the line jump divination
+    jumpTargets.set(label, { row: pos.row, col: pos.col })
+    // using margin-right instead of letter-spacing because letter-spacing adds space
+    // to the right of the last letter - so it ends up with more padding on the right :/
+    el.innerHTML = `<span style="margin-right: 2px">${label[0]}</span><span>${label[1]}</span>`
+    return el
   })
 
-  // TODO: construct labels and put them in the winContainer
-  // do the rest of the divination keybinds and such from 'divination' action
+  // TODO: dedup some of this code for label creation
+  labels.forEach(label => labelContainer.appendChild(label))
+  winContainer.appendChild(labelContainer)
+
+  const updateLabels = (matchChar: string) => labels
+    .filter(m => (m.children[0] as HTMLElement).innerText.toLowerCase() === matchChar)
+    .forEach(m => merge((m.children[0] as HTMLElement).style, {
+      // TODO: inherit from colorscheme
+      color: '#ff007c'
+    }))
+
+  switchInputMode(InputMode.Motion)
+  const grabbedKeys: string[] = []
+
+  const reset = () => {
+    stopWatchingInput()
+    winContainer.removeChild(labelContainer)
+    defaultInputMode()
+  }
+
+  const joinTheDarkSide = () => {
+    const jumpLabel = grabbedKeys.join('').toUpperCase()
+    const { row, col } = jumpTargets.get(jumpLabel)
+    jumpTo({ line: row, column: col })
+
+    reset()
+  }
+
+  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+    if (keys === '<Esc>') return reset()
+
+    grabbedKeys.push(keys)
+    if (grabbedKeys.length === 1) return updateLabels(keys)
+    if (grabbedKeys.length === 2) joinTheDarkSide()
+  })
 })
