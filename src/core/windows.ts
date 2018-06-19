@@ -286,7 +286,7 @@ const emptyLastWindow = {
 }
 
 const lastWindow = { ...emptyLastWindow }
-const lastWindow2 = { ...emptyLastWindow, canvasBox: HTMLElement }
+const lastWindow2 = { ...emptyLastWindow, canvasBox: {} as HTMLElement }
 
 const isWindowRangeValid = (
   targetRow: number,
@@ -334,7 +334,9 @@ export const getWindow: GetWindow = (targetRow: number, targetCol: number, { get
   }
 }
 
-export const getWindowContainerElement = (targetRow: number, targetCol: number) => {
+// TODO: can we remove this function and just have one master function that returns us ALL the
+// window elements for the given position. i.e. either canvas, canvasBox, renderWindow, etc.
+const getWindowContainerElement = (targetRow = cursor.row, targetCol = cursor.col): HTMLElement | undefined => {
   const lastWindowValid = isWindowRangeValid(
     targetRow,
     targetCol,
@@ -356,6 +358,19 @@ export const getWindowContainerElement = (targetRow: number, targetCol: number) 
       return canvasBox
     }
   }
+}
+
+export const currentWindowElement = {
+  add: (element: HTMLElement) => {
+    const win = getWindowContainerElement()
+    if (!win) throw new Error('how is it possible to not have a window??')
+    win.appendChild(element)
+  },
+  remove: (element: HTMLElement) => {
+    const win = getWindowContainerElement()
+    if (!win) throw new Error('how is it possible to not have a window??')
+    win.removeChild(element)
+  },
 }
 
 export const activeWindow = () => getWindow(cursor.row, cursor.col)

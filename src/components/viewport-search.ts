@@ -1,11 +1,12 @@
-import { current as vim, cmd, jumpTo, action } from '../core/neovim'
-import { PluginBottom } from '../components/plugin-container'
-import { activeWindow } from '../core/windows'
+import { activeWindow, currentWindowElement } from '../core/windows'
+import { current as vim, cmd, action } from '../core/neovim'
+import { divinationSearch } from '../components/divination'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
-import { app } from '../ui/uikit'
+import { makel } from '../ui/vanilla'
+import { app, h } from '../ui/uikit'
 
 interface FilterResult {
   line: string,
@@ -36,11 +37,7 @@ const getVisibleRows = () => {
 }
 
 const topMatchPosition = { line: -1, column: -1 }
-
-const state = {
-  visible: false,
-  value: '',
-}
+const state = { value: '', focus: false }
 
 type S = typeof state
 
@@ -76,8 +73,11 @@ const searchInBuffer = (query: string, results: FilterResult[], performVimSearch
 }
 
 const actions = {
-  show: () => ({ visible: true }),
-  hide: () => ({ visible: false, value: '' }),
+  show: () => ({ focus: true }),
+  hide: () => {
+    currentWindowElement.remove(containerEl)
+    return { value: '', focus: false }
+  },
   change: (value: string) => {
     finder.request.query(vim.cwd, vim.file, value).then((res: QueryResult) => {
       const { performVimSearch = true, results = [] } = res || {}
@@ -87,18 +87,25 @@ const actions = {
     return { value }
   },
   select: () => {
-    jumpTo(topMatchPosition)
-    return { visible: false, value: '' }
+    currentWindowElement.remove(containerEl)
+    divinationSearch()
+    return { value: '', focus: false }
   },
 }
 
 type A = typeof actions
 
-const view = ($: S, a: A) => PluginBottom($.visible, [
+const view = ($: S, a: A) => h('div', {
+  style: {
+    background: 'rgba(0, 0, 0, 0.8)',
+    display: 'flex',
+    width: '100%',
+  },
+}, [
 
   ,Input({
     small: true,
-    focus: true,
+    focus: $.focus,
     value: $.value,
     icon: Icon.Search,
     hide: a.hide,
@@ -108,6 +115,16 @@ const view = ($: S, a: A) => PluginBottom($.visible, [
 
 ])
 
-const ui = app({ name: 'viewport-search', state, actions, view })
+const containerEl = makel('div', {
+  position: 'absolute',
+  width: '100%',
+  display: 'flex',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
+})
 
-action('viewport-search', ui.show)
+const ui = app({ name: 'viewport-search', state, actions, view, element: containerEl })
+
+action('viewport-search', () => {
+  currentWindowElement.add(containerEl)
+  ui.show()
+})

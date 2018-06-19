@@ -1,9 +1,9 @@
 import { action, current as vim, jumpTo, getCurrent, feedkeys } from '../core/neovim'
-import { cursor as visualCursor, getCursorBoundingClientRect } from '../core/cursor'
 import { PluginBottom } from '../components/plugin-container'
 import colorizer, { ColorData } from '../services/colorizer'
-import { getWindowContainerElement } from '../core/windows'
+import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
+import { currentWindowElement } from '../core/windows'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
@@ -43,18 +43,6 @@ const cursor = (() => {
   return { save, restore }
 })()
 
-const elementManager = (() => {
-  let container: HTMLElement
-
-  const show = (el: HTMLElement) => {
-    container = getWindowContainerElement(visualCursor.row, visualCursor.col)
-    container.appendChild(el)
-  }
-  const hide = (el: HTMLElement) => container && container.removeChild(el)
-
-  return { show, hide }
-})()
-
 let elPosTop = 0
 
 const captureOverlayPosition = () => setImmediate(() => {
@@ -87,11 +75,11 @@ const resetState = { visible: false, query: '', results: [], index: -1 }
 const actions = {
   hide: () => {
     cursor.restore()
-    elementManager.hide(componentElement)
+    currentWindowElement.remove(componentElement)
     return resetState
   },
   show: () => {
-    elementManager.show(componentElement)
+    currentWindowElement.add(componentElement)
     cursor.save()
     captureOverlayPosition()
     return { visible: true }

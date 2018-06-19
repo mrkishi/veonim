@@ -1,5 +1,5 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
-import { getWindowContainerElement, activeWindow } from '../core/windows'
+import { currentWindowElement, activeWindow } from '../core/windows'
 import { action, feedkeys, getColor } from '../core/neovim'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
@@ -35,9 +35,8 @@ const jumpLabelsRaw = jumpKeys.split('').map(key => {
 const jumpLabels = [...new Set(jumpLabelsRaw)]
 
 action('divination', () => {
-  const winContainer = getWindowContainerElement(cursor.row, cursor.col) as HTMLElement
   const win = activeWindow()
-  if (!win || !winContainer) throw new Error('no window found for divination purposes lol wtf')
+  if (!win) throw new Error('no window found for divination purposes lol wtf')
 
   const { height: rowCount, row } = win.getSpecs()
   // TODO: don't render on the current line. account for missing in jumpDistance calcs?
@@ -67,7 +66,7 @@ action('divination', () => {
   })
 
   labels.forEach(label => labelContainer.appendChild(label))
-  winContainer.appendChild(labelContainer)
+  currentWindowElement.add(labelContainer)
 
   const updateLabels = (matchChar: string) => labels
     .filter(m => (m.children[0] as HTMLElement).innerText.toLowerCase() === matchChar)
@@ -81,7 +80,7 @@ action('divination', () => {
 
   const reset = () => {
     stopWatchingInput()
-    winContainer.removeChild(labelContainer)
+    currentWindowElement.remove(labelContainer)
     defaultInputMode()
   }
 
@@ -133,12 +132,9 @@ const findSearchPositions = ({ row, col, height, width, bg }: FindPosOpts) => {
   return searchPositions
 }
 
-action('blarg', async () => {
-  // TODO: type this return in the api fn
-  const winContainer = getWindowContainerElement(cursor.row, cursor.col) as HTMLElement
+export const divinationSearch = async () => {
   const win = activeWindow()
-  // TODO: better msg pls
-  if (!win || !winContainer) throw new Error('no window found for divination purposes lol wtf')
+  if (!win) throw new Error('no window found for divination purposes lol wtf')
 
   const { foreground, background } = await getColor('Search')
   const specs = win.getSpecs()
@@ -197,7 +193,7 @@ action('blarg', async () => {
 
   // TODO: dedup some of this code for label creation
   labels.forEach(label => labelContainer.appendChild(label))
-  winContainer.appendChild(labelContainer)
+  currentWindowElement.add(labelContainer)
 
   const updateLabels = (matchChar: string) => labels
     .filter(m => (m.children[0] as HTMLElement).innerText.toLowerCase() === matchChar)
@@ -211,7 +207,7 @@ action('blarg', async () => {
 
   const reset = () => {
     stopWatchingInput()
-    winContainer.removeChild(labelContainer)
+    currentWindowElement.remove(labelContainer)
     defaultInputMode()
   }
 
@@ -236,4 +232,6 @@ action('blarg', async () => {
     if (grabbedKeys.length === 1) return updateLabels(keys)
     if (grabbedKeys.length === 2) joinTheDarkSide()
   })
-})
+}
+
+action('divination-search', divinationSearch)
