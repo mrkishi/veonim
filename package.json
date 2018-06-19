@@ -16,7 +16,8 @@
     "test:e2e": "jest test/e2e",
     "gen:api": "node tools/gen-api.js",
     "gen:font-sizes": "electron tools/font-sizer/index.js",
-    "unused-exports": "ts-unused-exports tsconfig.json $(find src -name *.ts)"
+    "unused-exports": "ts-unused-exports tsconfig.json $(find src -name *.ts)",
+    "setup-mirrors": "node tools/setup-mirrors.js"
   },
   "jest": {
     "collectCoverage": true
@@ -25,6 +26,10 @@
     "type": "git",
     "url": "git+https://github.com/veonim/veonim.git"
   },
+  "repository-mirrors": [
+    "https://gitlab.com/veonim/veonim.git",
+    "https://veonim@bitbucket.org/veonim/veonim.git"
+  ],
   "author": "VeonimDev",
   "license": "MIT",
   "bugs": {

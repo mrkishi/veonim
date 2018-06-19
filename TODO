@@ -41,6 +41,8 @@ backup repo to other places pls
 
 figure out why jest is the worst thing ever since sliced bread
 
+replace request with native https. just need to figure out how to pipe in my fetch code
+
 grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
 constrain overlay menus to a particular window (current window)
