@@ -2,13 +2,15 @@
 - diagnostics stop showing up / error highlights not appearing after some period
 - colorizer on action('hint') not coloring anymore after some period of time
 
-neovim api. i want to get current (buffer|window|tabpage) and call a method
-on it in one call. aka `const lines = await currentBuffer.getLines(1, 12)`
-right now this is not possible as get current buffer returns a promise and
-need to do this instead `const buf = await getCurrent.buffer; const lines =
-await buf.getLines(1, 12)`
-- should support the ability to chain additional methods on getCurrentBuffer
-  and await those...
+would be nice to do :%s@search@replace@g with :inccommand in buffer to get
+autocompletes and other vim functionality instead of cmdline...
+
+neovim.ts brings in electron from:
+- canvas-container
+  - uses electron to register screen change -> resize() handlers
+  - i think we could register those handlers outside of canvas-container. galaxy?
+  - uses document. can we remove cursor.ts from neovim???
+bringing in electron does not work in web workers?
 
 create search box at the top of the current window.
 - this will be used for <-- / --> search and viewport-search. maybe more in the future
