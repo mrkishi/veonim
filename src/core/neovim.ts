@@ -109,6 +109,7 @@ interface EventWait {
 }
 
 export interface NeovimState {
+  buffer: Buffer,
   absoluteFilepath: string
   bufferType: BufferType
   colorscheme: string
@@ -257,7 +258,7 @@ const subscribe = (event: string, fn: (data: any) => void) => {
 }
 
 export const cmd = (command: string) => api.core.command(command)
-export const ex = (command: string) => req.core.commandOutput(command)
+export const cmdOut = (command: string) => req.core.commandOutput(command)
 export const expr = (expression: string) => req.core.eval(expression)
 export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
 export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
@@ -373,6 +374,14 @@ export const list = {
 }
 
 export const current: NeovimState = new Proxy({
+  get buffer(): Buffer {
+    return onFnCall<Buffer>(async (fnName: string, args: any[]) => {
+      const buf = await as.buf(req.core.getCurrentBuf())
+      const fn = Reflect.get(buf, fnName)
+      if (!fn) throw new TypeError(`${fnName} does not exist on Buffer`)
+      return fn(...args)
+    })
+  },
   bufferType: BufferType.Normal,
   absoluteFilepath: '',
   mode: 'normal',

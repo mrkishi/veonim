@@ -79,9 +79,8 @@ const actions = {
     return { value: '', focus: false }
   },
   change: (value: string) => {
-    finder.request.query(vim.cwd, vim.file, value).then((res: QueryResult) => {
-      const { performVimSearch = true, results = [] } = res || {}
-      searchInBuffer(value, results, performVimSearch)
+    finder.request.visibleFuzzy(value).then((results: string[]) => {
+      searchInBuffer(results)
     })
 
     return { value }
@@ -97,9 +96,9 @@ type A = typeof actions
 
 const view = ($: S, a: A) => h('div', {
   style: {
-    background: 'rgba(0, 0, 0, 0.8)',
     display: 'flex',
-    width: '100%',
+    flex: 1,
+    // width: '100%',
   },
 }, [
 
@@ -119,6 +118,8 @@ const containerEl = makel('div', {
   position: 'absolute',
   width: '100%',
   display: 'flex',
+  // TODO: use colorscheme bg colors like in file/fuzzy menu
+  background: 'rgba(0, 0, 0, 0.8)',
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
 })
 
