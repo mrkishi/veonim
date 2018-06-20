@@ -1,4 +1,4 @@
-import { onFnCall, proxyFn, Watchers, ID, CreateTask } from '../support/utils'
+import { onFnCall, proxyFn, Watchers, uuid, CreateTask } from '../support/utils'
 
 type EventFn = { [index: string]: (...args: any[]) => void }
 type RequestEventFn = { [index: string]: (...args: any[]) => Promise<any> }
@@ -12,13 +12,12 @@ const send = (data: any) => postMessage(data)
 export default () => {
   const watchers = new Watchers()
   const pendingRequests = new Map()
-  const requestId = ID()
 
   const call: EventFn = onFnCall((event: string, args: any[]) => send([event, args]))
   const on = proxyFn((event: string, cb: (data: any) => void) => watchers.add(event, cb))
   const request: RequestEventFn = onFnCall((event: string, args: any[]) => {
     const task = CreateTask()
-    const id = requestId.next()
+    const id = uuid()
     pendingRequests.set(id, task.done)
     send([event, args, id])
     return task.promise

@@ -16,6 +16,11 @@ create search box at the top of the current window.
 - this will be used for <-- / --> search and viewport-search. maybe more in the future
 - can we copystrike pewdiepie. i mean can we blur background + alpha?
 
+viewport-search:
+// TODO: if only one search result, jump directly to it
+// or maybe if results <= 3? hitting two chars for jump
+// label is same as hitting nn (jump to next search)
+
 divination:
 - jumpTo line maintains current cursor.col. would be nice to jump to first
   word char in the line (equiv of ^). or maybe the equiv of 0

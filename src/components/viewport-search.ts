@@ -1,9 +1,8 @@
-import { activeWindow, currentWindowElement } from '../core/windows'
-import { current as vim, cmd, action } from '../core/neovim'
 import { divinationSearch } from '../components/divination'
+import { currentWindowElement } from '../core/windows'
+import { cmd, action, expr } from '../core/neovim'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
-import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
@@ -20,56 +19,28 @@ interface FilterResult {
   }
 }
 
-interface QueryResult {
-  results: FilterResult[],
-  performVimSearch: boolean,
-}
-
-const getVisibleResults = (results: FilterResult[], start: number, end: number): FilterResult[] => {
-  const visibleOnly = results.filter(m => m.start.line >= start && m.end.line <= end)
-  return visibleOnly.length ? visibleOnly : results
-}
-
-const getVisibleRows = () => {
-  const win = activeWindow()
-  if (!win) return 20
-  return win.getSpecs().height
-}
-
-const topMatchPosition = { line: -1, column: -1 }
 const state = { value: '', focus: false }
 
 type S = typeof state
 
-const searchInBuffer = (query: string, results: FilterResult[], performVimSearch: boolean) => {
-  if (!results.length || performVimSearch) {
-    return query ? cmd(`/${query}`) : cmd(`noh`)
-  }
+const searchInBuffer = async (results = [] as FilterResult[]) => {
+  if (!results.length) return cmd('noh')
 
-  const { line, column } = results[0].start
+  const [ start, end ] = await Promise.all([
+    expr(`line('w0')`),
+    expr(`line('w$')`),
+  ])
 
-  merge(topMatchPosition, {
-    line: line + 1,
-    column: column,
-  })
-
-  const range = {
-    start: line,
-    end: line + getVisibleRows(),
-  }
-
-  const visibleResults = getVisibleResults(results, range.start, range.end)
-
-  const parts = visibleResults
+  const parts = results
     .map(m => m.line.slice(m.start.column, m.end.column + 1))
     .filter((m, ix, arr) => arr.indexOf(m) === ix)
     .filter(m => m)
     .map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
 
-  const pattern = parts.length ? parts.join('\\|') : query
-  if (!pattern) return cmd(`noh`)
+  const pattern = parts.join('\\|')
+  if (!pattern) return cmd('noh')
 
-  cmd(`/\\%>${range.start}l\\%<${range.end}l${pattern}`)
+  cmd(`/\\%>${start}l\\%<${end}l${pattern}`)
 }
 
 const actions = {
@@ -79,7 +50,7 @@ const actions = {
     return { value: '', focus: false }
   },
   change: (value: string) => {
-    finder.request.visibleFuzzy(value).then((results: string[]) => {
+    finder.request.visibleFuzzy(value).then((results: FilterResult[]) => {
       searchInBuffer(results)
     })
 
@@ -87,6 +58,9 @@ const actions = {
   },
   select: () => {
     currentWindowElement.remove(containerEl)
+    // TODO: if only one search result, jump directly to it
+    // or maybe if results <= 3? hitting two chars for jump
+    // label is same as hitting nn (jump to next search)
     divinationSearch()
     return { value: '', focus: false }
   },
@@ -98,7 +72,6 @@ const view = ($: S, a: A) => h('div', {
   style: {
     display: 'flex',
     flex: 1,
-    // width: '100%',
   },
 }, [
 
@@ -123,7 +96,7 @@ const containerEl = makel('div', {
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
 })
 
-const ui = app({ name: 'viewport-search', state, actions, view, element: containerEl })
+const ui = app<S, A>({ name: 'viewport-search', state, actions, view, element: containerEl })
 
 action('viewport-search', () => {
   currentWindowElement.add(containerEl)

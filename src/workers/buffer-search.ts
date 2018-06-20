@@ -1,6 +1,5 @@
 import { filter as fuzzy, match } from 'fuzzaldrin-plus'
 import WorkerClient from '../messaging/worker-client'
-import { current, expr } from '../core/neovim'
 import { join } from 'path'
 
 interface FilterResult {
@@ -15,7 +14,7 @@ interface FilterResult {
   }
 }
 
-const { on } = WorkerClient()
+const { on, call, request } = WorkerClient()
 const buffers = new Map<string, string[]>()
 
 const getLocations = (str: string, query: string, buffer: string[]) => {
@@ -28,15 +27,16 @@ const getLocations = (str: string, query: string, buffer: string[]) => {
   }
 }
 
+const asFilterResults = (results: string[], lines: string[], query: string): FilterResult[] => [...new Set(results)]
+  .map(m => ({
+    line: m,
+    ...getLocations(m, query, lines),
+  }))
+
 const filter = (cwd: string, file: string, query: string, maxResults = 20): FilterResult[] => {
   const bufferData = buffers.get(join(cwd, file)) || []
   const results = fuzzy(bufferData, query, { maxResults })
-
-  return [...new Set(results)]
-    .map(m => ({
-      line: m,
-      ...getLocations(m, query, bufferData),
-    }))
+  return asFilterResults(results, bufferData, query)
 }
 
 on.set((cwd: string, file: string, buffer: string[]) => buffers.set(join(cwd, file), buffer))
@@ -45,17 +45,13 @@ on.fuzzy(async (cwd: string, file: string, query: string, max?: number): Promise
   return filter(cwd, file, query, max)
 })
 
-on.visibleFuzzy(async (query: string) => {
-  // TODO: can't require electron in workers apparently?
-  // how can we make neovim be self-contained and not
-  // pull in electron and other global shit?
-
-  const [ start, end ] = await Promise.all([
-    expr(`line('w0')`),
-    expr(`line('w$')`),
-  ])
-
-  const visibleLines = await current.buffer.getLines(start, end)
+on.visibleFuzzy(async (query: string): Promise<FilterResult[]> => {
+  // TODO: this is the inevitable result of moving neovim
+  // to its own dedicated worker thread: other web workers
+  // can't use the neovim api.
+  const visibleLines = await request.getVisibleLines()
+  // console.log('vis lines:', visibleLines)
   const results = fuzzy(visibleLines, query)
-  return [...new Set(results)]
+  // console.log('vis fuzzy:', results)
+  return asFilterResults(results, visibleLines, query)
 })

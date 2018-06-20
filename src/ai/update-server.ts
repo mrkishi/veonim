@@ -1,5 +1,5 @@
+import { current as vimState, getCurrent, current, expr } from '../core/neovim'
 import { fullBufferUpdate, partialBufferUpdate } from '../langserv/adapter'
-import { current as vimState, getCurrent } from '../core/neovim'
 import Worker from '../messaging/worker'
 
 export const harvester = Worker('harvester')
@@ -22,6 +22,15 @@ export const update = async ({ lineChange = false, bufferOpened = false } = {}) 
     fullBufferUpdate({ ...vimState, buffer }, bufferOpened)
   }
 }
+
+finder.on.getVisibleLines(async () => {
+  const [ start, end ] = await Promise.all([
+    expr(`line('w0')`),
+    expr(`line('w$')`),
+  ])
+
+  return current.buffer.getLines(start, end)
+})
 
 export const pause = () => pauseUpdate = true
 export const resume = () => pauseUpdate = false
