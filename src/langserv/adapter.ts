@@ -39,7 +39,7 @@ interface VimLocation {
 }
 
 interface BufferChange extends NeovimState {
-  buffer: string[],
+  bufferLines: string[],
 }
 
 interface MarkedStringPart {
@@ -101,7 +101,7 @@ const patchBufferCacheWithPartial = async (cwd: string, file: string, change: st
 }
 
 export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false) => {
-  const { cwd, file, buffer: contents, filetype } = bufferState
+  const { cwd, file, bufferLines: contents, filetype } = bufferState
 
   merge(currentBuffer, { cwd, file, contents })
 
@@ -114,18 +114,18 @@ export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false
 }
 
 export const partialBufferUpdate = async (change: BufferChange, bufferOpened = false) => {
-  const { cwd, file, buffer, line, filetype } = change
+  const { cwd, file, bufferLines, line, filetype } = change
   const syncKind = getSyncKind(cwd, filetype)
 
-  await patchBufferCacheWithPartial(cwd, file, buffer[0], line)
+  await patchBufferCacheWithPartial(cwd, file, bufferLines[0], line)
 
-  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, buffer: currentBuffer.contents })
+  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, bufferLines: currentBuffer.contents })
 
   const content = {
-    text: buffer[0],
+    text: bufferLines[0],
     range: {
       start: { line, character: 0 },
-      end: { line, character: buffer.length - 1 }
+      end: { line, character: bufferLines.length - 1 }
     }
   }
 

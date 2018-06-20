@@ -14,7 +14,7 @@ interface FilterResult {
   }
 }
 
-const { on, call, request } = WorkerClient()
+const { on, request } = WorkerClient()
 const buffers = new Map<string, string[]>()
 
 const getLocations = (str: string, query: string, buffer: string[]) => {
@@ -49,9 +49,7 @@ on.visibleFuzzy(async (query: string): Promise<FilterResult[]> => {
   // TODO: this is the inevitable result of moving neovim
   // to its own dedicated worker thread: other web workers
   // can't use the neovim api.
-  const visibleLines = await request.getVisibleLines()
-  // console.log('vis lines:', visibleLines)
+  const visibleLines = await request.getVisibleLines() as string[]
   const results = fuzzy(visibleLines, query)
-  // console.log('vis fuzzy:', results)
   return asFilterResults(results, visibleLines, query)
 })

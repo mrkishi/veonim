@@ -12,14 +12,14 @@ export const update = async ({ lineChange = false, bufferOpened = false } = {}) 
 
   if (lineChange) partialBufferUpdate({
     ...vimState,
-    buffer: [ await getCurrent.lineContent ]
+    bufferLines: [ await getCurrent.lineContent ]
   }, bufferOpened)
 
   else {
     const buffer = await getCurrent.bufferContents
     harvester.call.set(vimState.cwd, vimState.file, buffer)
     finder.call.set(vimState.cwd, vimState.file, buffer)
-    fullBufferUpdate({ ...vimState, buffer }, bufferOpened)
+    fullBufferUpdate({ ...vimState, bufferLines: buffer }, bufferOpened)
   }
 }
 
