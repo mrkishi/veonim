@@ -1,4 +1,4 @@
-import { current as vimState, getCurrent, current, expr } from '../core/neovim'
+import { current as vimState, getCurrent, current, lineNumber } from '../core/neovim'
 import { fullBufferUpdate, partialBufferUpdate } from '../langserv/adapter'
 import Worker from '../messaging/worker'
 
@@ -25,8 +25,8 @@ export const update = async ({ lineChange = false, bufferOpened = false } = {}) 
 
 finder.on.getVisibleLines(async () => {
   const [ start, end ] = await Promise.all([
-    expr(`line('w0')`),
-    expr(`line('w$')`),
+    lineNumber.top(),
+    lineNumber.bottom(),
   ])
 
   return current.buffer.getLines(start, end)

@@ -1,11 +1,13 @@
+import { cmd, action, expr, feedkeys } from '../core/neovim'
 import { divinationSearch } from '../components/divination'
 import { currentWindowElement } from '../core/windows'
-import { cmd, action, expr } from '../core/neovim'
+import { hexToRGBA, darken } from '../ui/css'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
+import $$ from '../core/state'
 
 interface FilterResult {
   line: string,
@@ -19,6 +21,7 @@ interface FilterResult {
   }
 }
 
+let displayTargetJumps = true
 const state = { value: '', focus: false }
 
 type S = typeof state
@@ -43,6 +46,7 @@ const searchInBuffer = async (results = [] as FilterResult[]) => {
   cmd(`/\\%>${start}l\\%<${end}l${pattern}`)
 }
 
+
 const actions = {
   show: () => ({ focus: true }),
   hide: () => {
@@ -51,6 +55,7 @@ const actions = {
   },
   change: (value: string) => {
     finder.request.visibleFuzzy(value).then((results: FilterResult[]) => {
+      displayTargetJumps = results.length > 2
       searchInBuffer(results)
     })
 
@@ -58,10 +63,8 @@ const actions = {
   },
   select: () => {
     currentWindowElement.remove(containerEl)
-    // TODO: if only one search result, jump directly to it
-    // or maybe if results <= 3? hitting two chars for jump
-    // label is same as hitting nn (jump to next search)
-    divinationSearch()
+    if (displayTargetJumps) divinationSearch()
+    else feedkeys('n', 'n')
     return { value: '', focus: false }
   },
 }
@@ -91,8 +94,8 @@ const containerEl = makel('div', {
   position: 'absolute',
   width: '100%',
   display: 'flex',
-  // TODO: use colorscheme bg colors like in file/fuzzy menu
-  background: 'rgba(0, 0, 0, 0.8)',
+  // TODO: make it transparent and blurry?
+  background: hexToRGBA(darken($$.background, 40), 0.8),
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
 })
 

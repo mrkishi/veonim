@@ -1,9 +1,9 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
+import { action, feedkeys, getColor, jumpTo, lineNumber } from '../core/neovim'
 import { currentWindowElement, activeWindow } from '../core/windows'
-import { action, feedkeys, getColor } from '../core/neovim'
+import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
-import { cursor } from '../core/cursor'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
@@ -138,7 +138,6 @@ export const divinationSearch = async () => {
 
   const { foreground, background } = await getColor('Search')
   const specs = win.getSpecs()
-  const relativeCursorRow = cursor.row - specs.row
 
   const searchPositions = findSearchPositions({
     ...specs,
@@ -203,25 +202,32 @@ export const divinationSearch = async () => {
     }))
 
   switchInputMode(InputMode.Motion)
+  hideCursor()
   const grabbedKeys: string[] = []
 
   const reset = () => {
     stopWatchingInput()
     currentWindowElement.remove(labelContainer)
     defaultInputMode()
+    showCursor()
   }
 
-  const joinTheDarkSide = () => {
+  const joinTheDarkSide = async () => {
+    const topLineNumber = await lineNumber.top()
     const jumpLabel = grabbedKeys.join('').toUpperCase()
     const { row, col } = jumpTargets.get(jumpLabel)
-    const relativeRow = row - specs.row
-    const jumpY = relativeRow - relativeCursorRow
-    const jumpX = col - specs.col
-    const jumpMotion = jumpY > 0 ? 'j' : 'k'
-    const distance = Math.abs(jumpY)
 
-    feedkeys(`${distance}g${jumpMotion}0${jumpX + 1}|`, 'n')
+    const distanceFrom = {
+      top: row - specs.row,
+      left: col - specs.col,
+    }
 
+    const target = {
+      line: topLineNumber + distanceFrom.top - 1,
+      column: distanceFrom.left,
+    }
+
+    jumpTo(target)
     reset()
   }
 
