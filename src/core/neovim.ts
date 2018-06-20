@@ -109,7 +109,9 @@ interface EventWait {
 }
 
 export interface NeovimState {
-  buffer: Buffer,
+  buffer: Buffer
+  window: Window
+  tabpage: Tabpage
   absoluteFilepath: string
   bufferType: BufferType
   colorscheme: string
@@ -378,7 +380,23 @@ export const current: NeovimState = new Proxy({
     return onFnCall<Buffer>(async (fnName: string, args: any[]) => {
       const buf = await as.buf(req.core.getCurrentBuf())
       const fn = Reflect.get(buf, fnName)
-      if (!fn) throw new TypeError(`${fnName} does not exist on Buffer`)
+      if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Buffer`)
+      return fn(...args)
+    })
+  },
+  get window(): Window {
+    return onFnCall<Window>(async (fnName: string, args: any[]) => {
+      const win = await as.win(req.core.getCurrentWin())
+      const fn = Reflect.get(win, fnName)
+      if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Window`)
+      return fn(...args)
+    })
+  },
+  get tabpage(): Tabpage {
+    return onFnCall<Tabpage>(async (fnName: string, args: any[]) => {
+      const tab = await as.tab(req.core.getCurrentTabpage())
+      const fn = Reflect.get(tab, fnName)
+      if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Tabpage`)
       return fn(...args)
     })
   },
