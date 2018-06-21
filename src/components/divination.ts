@@ -43,12 +43,12 @@ action('divination', () => {
   const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
   const relativeCursorRow = cursor.row - row
 
-  const labelContainer = makel('div', {
+  const labelContainer = makel({
     position: 'absolute'
   })
 
   const labels = rowPositions.map((y, ix) => {
-    const el = makel('div', {
+    const el = makel({
       ...paddingV(4),
       position: 'absolute',
       fontSize: '1.1rem',
@@ -161,13 +161,13 @@ export const divinationSearch = async () => {
     ...win.realtivePositionToPixels(m.row, m.col),
   }))
 
-  const labelContainer = makel('div', { position: 'absolute' })
+  const labelContainer = makel({ position: 'absolute' })
   const jumpTargets = new Map()
 
   const labels = searchPixelPositions.map((pos, ix) => {
     // TODO: these styles should be shared. also i think we should use css translate
     // instead of top/left
-    const el = makel('div', {
+    const el = makel({
       ...paddingV(4),
       position: 'absolute',
       // TODO: this font-size depends on global font-size + line-height

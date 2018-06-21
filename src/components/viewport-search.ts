@@ -46,7 +46,10 @@ const searchInBuffer = async (results = [] as FilterResult[]) => {
 
 
 const actions = {
-  show: () => ({ focus: true }),
+  show: () => {
+    currentWindowElement.add(containerEl)
+    return { focus: true }
+  },
   hide: () => {
     currentWindowElement.remove(containerEl)
     return { value: '', focus: false }
@@ -88,12 +91,12 @@ const view = ($: S, a: A) => h('div', {
 
 ])
 
-const containerEl = makel('div', {
+const containerEl = makel({
   position: 'absolute',
   width: '100%',
   display: 'flex',
-  backdropFilter: 'blur(8px)',
-  background: `rgba(var(--background-40-alpha), 0.8)`,
+  backdropFilter: 'blur(24px)',
+  background: `rgba(var(--background-45-alpha), 0.7)`,
   // TODO: this does not work with blur background. since backdrop-filter is
   // an experimental feature, it could be a bug.
   // actually backdrop-filter specification has a 'drop-shadow()' fn, but
@@ -103,7 +106,4 @@ const containerEl = makel('div', {
 
 const ui = app<S, A>({ name: 'viewport-search', state, actions, view, element: containerEl })
 
-action('viewport-search', () => {
-  currentWindowElement.add(containerEl)
-  ui.show()
-})
+action('viewport-search', () => ui.show())

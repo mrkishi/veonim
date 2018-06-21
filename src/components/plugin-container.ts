@@ -1,5 +1,4 @@
 import { is } from '../support/utils'
-import { cvar } from '../ui/css'
 import { h } from '../ui/uikit'
 
 type PluginFnNormal = (visible: boolean, children: any[]) => any
@@ -20,8 +19,8 @@ const bottom = { ...base, alignItems: 'flex-end' }
 const right = { ...base, alignItems: 'stretch', justifyContent: 'flex-end' }
 
 const dialog = {
-  background: `rgba(var(--background-40-alpha), 0.8)`,
-  backdropFilter: 'blur(8px)',
+  background: `rgba(var(--background-45-alpha), 0.7)`,
+  backdropFilter: 'blur(24px)',
   marginTop: '15%',
   flexFlow: 'column',
 }
@@ -64,7 +63,8 @@ export const PluginBottom: PluginFn = (visible: boolean, ...args: any[]) => h('d
       width: '100%',
       height: '100%',
       flexFlow: 'column',
-      background: cvar('background-45'),
+      backdropFilter: 'blur(8px)',
+      background: `rgba(var(--background-40-alpha), 0.8)`,
       display: visible ? 'flex' : 'none',
       ...args.find(is.object),
     }

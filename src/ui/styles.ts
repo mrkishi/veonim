@@ -23,6 +23,7 @@ const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
   setVar('background-50', darken(bg, 50))
 
   setVar('background-40-alpha', rgb(darken(bg, 40)))
+  setVar('background-45-alpha', rgb(darken(bg, 45)))
 
   setVar('foreground-b60', brighten(fg, 60))
   setVar('foreground-b40', brighten(fg, 40))

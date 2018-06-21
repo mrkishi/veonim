@@ -46,7 +46,8 @@ const cursor = (() => {
 let elPosTop = 0
 
 const captureOverlayPosition = () => setImmediate(() => {
-  const { top } = element.getBoundingClientRect()
+  // const { top } = element.getBoundingClientRect()
+  const { top } = containerEl.getBoundingClientRect()
   elPosTop = top
 })
 
@@ -75,11 +76,11 @@ const resetState = { visible: false, query: '', results: [], index: -1 }
 const actions = {
   hide: () => {
     cursor.restore()
-    currentWindowElement.remove(componentElement)
+    currentWindowElement.remove(containerEl)
     return resetState
   },
   show: () => {
-    currentWindowElement.add(componentElement)
+    currentWindowElement.add(containerEl)
     cursor.save()
     captureOverlayPosition()
     return { visible: true }
@@ -129,7 +130,13 @@ const actions = {
 
 type A = typeof actions
 
-const view = ($: S, a: A) => PluginBottom($.visible, [
+const view = ($: S, a: A) => h('div', {
+  style: {
+    display: $.visible ? 'flex' : 'none',
+    flexFlow: 'column',
+    flex: 1,
+  }
+}, [
 
   ,Input({
     hide: a.hide,
@@ -160,25 +167,18 @@ const view = ($: S, a: A) => PluginBottom($.visible, [
 ])
 
 
-const componentElement = makel({
+const containerEl = makel({
   position: 'absolute',
   display: 'flex',
-  height: '100%',
-  width: '100%',
-  zIndex: 90, // above cursor + cursorline
-})
-
-const element = makel({
+  bottom: 0,
+  zIndex: 90, // above cursor + cursorline,
+  backdropFilter: 'blur(24px)',
+  background: `rgba(var(--background-45-alpha), 0.7)`,
   maxHeight: '40%',
   height: '40%',
   width: '100%',
-  display: 'flex',
-  overflow: 'hidden',
-  alignSelf: 'flex-end',
 })
 
-componentElement.appendChild(element)
-
-const ui = app({ name: 'buffer-search', state, actions, view, element })
+const ui = app({ name: 'buffer-search', state, actions, view, element: containerEl })
 
 action('buffer-search', ui.show)
