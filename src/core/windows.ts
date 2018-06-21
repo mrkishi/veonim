@@ -363,12 +363,15 @@ const getWindowContainerElement = (targetRow = cursor.row, targetCol = cursor.co
 export const currentWindowElement = {
   add: (element: HTMLElement) => {
     const win = getWindowContainerElement()
-    if (!win) throw new Error('how is it possible to not have a window??')
+    // i noticed this error sometimes pops up indirectly when run in dev
+    // mode and redux-devtools is doing something funky with these actions
+    // that do not have proper context... or something like that
+    if (!win) return console.error('how is it possible to not have a window??')
     win.appendChild(element)
   },
   remove: (element: HTMLElement) => {
     const win = getWindowContainerElement()
-    if (!win) throw new Error('how is it possible to not have a window??')
+    if (!win) return console.error('how is it possible to not have a window??')
     if (win.contains(element)) win.removeChild(element)
   },
 }

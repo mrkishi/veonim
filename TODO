@@ -11,6 +11,9 @@ vim-search:
 - also pass in the type of search that happened: (forward|backward)
 - this can be used with some vimscript to call divination-search
   after a vim search completes
+- sometimes triggering on cmdsdsdsdsd
+- vim search hide action throwing error window not found. maybe redux, but
+  does it do the same in dist mode?
 
 constrain overlay menus to a particular window (current window)
 - (if it makes sense to be local - some might be global - like user menus or project switcher)
