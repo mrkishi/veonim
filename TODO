@@ -6,6 +6,12 @@
   - main is alpha4
 - help files missing
 
+vim-search:
+- dispatch callback events to vim when the vim-search window has closed
+- also pass in the type of search that happened: (forward|backward)
+- this can be used with some vimscript to call divination-search
+  after a vim search completes
+
 constrain overlay menus to a particular window (current window)
 - (if it makes sense to be local - some might be global - like user menus or project switcher)
   - i.e. show symbol/file menu on top of the current buffer window, instead of
@@ -24,10 +30,6 @@ would be nice to do :%s@search@replace@g with :inccommand in buffer to get
 autocompletes and other vim functionality instead of cmdline...
   - maybe this is the same thing as the realtime/live-interactive :g described below
   - basically multiple cursors lol
-
-- use top search box (from viewport-search) for:
-  - forward search
-  - backward search
 
 viewport-search, make sure search only happens in visible viewport!
 - open $vimrc
