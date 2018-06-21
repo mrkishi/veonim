@@ -6,8 +6,23 @@
   - main is alpha4
 - help files missing
 
+constrain overlay menus to a particular window (current window)
+- (if it makes sense to be local - some might be global - like user menus or project switcher)
+  - i.e. show symbol/file menu on top of the current buffer window, instead of
+  the center of the program, since selecting a symbol or file will make
+  changes in the current window, not globally
+- right now the overlay menu is hosted in the #plugins div.
+  we can get a reference to the current window element and add it in/next to
+  the "shadowbuffer" div container. this means that the container will keep
+  changing parent div containers. but that is okay, because these window local
+  overlay menus will always live inside a specific window, and not be global
+- what if the overlay menu does not fit in the window...?
+
+
 would be nice to do :%s@search@replace@g with :inccommand in buffer to get
 autocompletes and other vim functionality instead of cmdline...
+  - maybe this is the same thing as the realtime/live-interactive :g described below
+  - basically multiple cursors lol
 
 - use top search box (from viewport-search) for:
   - forward search
@@ -23,6 +38,8 @@ viewport-search, make sure search only happens in visible viewport!
 
 divination:
 - line jump: anchor labels to first char in the line? how to?
+  - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
+    return [row, col][] list map
 - do not create label/jump coordinates for position:
   - line -> current line
   - search hl -> position under cursor +/- 1-2
@@ -42,13 +59,19 @@ buffer-search: spaces to further filter query (just like fuzzy file finder?)
 
 create realtime/live-interactive :g//norm ??cmds?? function. can't build it in vimscript
 because of shit UI. would prefer that we can see what's being typed.
+  - can we somehow hook it up to use values from the current buffer as being typed?
+    then it would be like multiple cursors
 i imagine it might work something like:
   - open input cmd (same as cmd-line? but diff icon?)
   - would be best to have two inputs
     - input 1: filter (if any - can be optional?)
       - if not specified will use current/last search pattern
-      - need to somehow specify that want to apply to every line
+      - need to somehow specify in the GUI that want to apply to every line
         - then run :norm ??cmds?? (or with visual selection marks)
+      - alternatively, we can use different binds to launch different search modes?
+        - or a menu to select further the type (like spacemacs?)
+          - <space>sg -> menu [h, p, a] -> h: search highlight, p: pattern,
+            a: all -> select one, will prefill that in the :g/pattern/
     - input 2: normal mode commands. assumes they will be remapped
       - on string+ :g//norm ??cmds??
       - on string- :undo
@@ -61,21 +84,11 @@ replace request with native https. just need to figure out how to pipe in my fet
 
 grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
-constrain overlay menus to a particular window (current window)
-- (if it makes sense to be local - some might be global - like user menus or project switcher)
-  - i.e. show symbol/file menu on top of the current buffer window, instead of
-  the center of the program, since selecting a symbol or file will make
-  changes in the current window, not globally
-- right now the overlay menu is hosted in the #plugins div.
-  we can get a reference to the current window element and add it in/next to
-  the "shadowbuffer" div container. this means that the container will keep
-  changing parent div containers. but that is okay, because these window local
-  overlay menus will always live inside a specific window, and not be global
-
 - HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
   - maybe we just use fillText maxWidth property?
   - otherwise we need to cliprect mask. it's the only way with fixed width
     rendering. OS gets around this because it don't do fixed width
+    - or somehow dynamic determine if previous char renderd out o bounds, then redraw clipped?
 
 easymotion show bigger letters + show WHILE searching ooooooo
 
