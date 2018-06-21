@@ -96,6 +96,7 @@ const view = ($: S, a: A) => h('div', {
     small: true,
     focus: $.focus,
     value: $.value,
+    desc: 'search query',
     icon: Icon.Search,
     hide: a.hide,
     change: a.change,
