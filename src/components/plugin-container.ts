@@ -20,7 +20,8 @@ const bottom = { ...base, alignItems: 'flex-end' }
 const right = { ...base, alignItems: 'stretch', justifyContent: 'flex-end' }
 
 const dialog = {
-  background: cvar('background-40'),
+  background: `rgba(var(--background-40-alpha), 0.8)`,
+  backdropFilter: 'blur(8px)',
   marginTop: '15%',
   flexFlow: 'column',
 }

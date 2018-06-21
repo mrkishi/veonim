@@ -1,5 +1,13 @@
-import { setVar, paddingVH, paddingV, contrast, darken, brighten, cvar } from '../ui/css'
+import { setVar, paddingVH, paddingV, contrast, darken, brighten, cvar, hexToRGB } from '../ui/css'
 import $, { watch } from '../core/state'
+
+// this will return a var like '244, 120, 042'
+// then we can use this var in rgba color styles
+// background: rgba(var(--background-40-alpha), 0.8);
+const rgb = (hexColor: string) => {
+  const [ r, g, b ] = hexToRGB(hexColor)
+  return `${r}, ${g}, ${b}`
+}
 
 // TODO: investigate if css filters would be better suited for this
 const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
@@ -13,6 +21,8 @@ const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
   setVar('background-40', darken(bg, 40))
   setVar('background-45', darken(bg, 45))
   setVar('background-50', darken(bg, 50))
+
+  setVar('background-40-alpha', rgb(darken(bg, 40)))
 
   setVar('foreground-b60', brighten(fg, 60))
   setVar('foreground-b40', brighten(fg, 40))

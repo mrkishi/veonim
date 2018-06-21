@@ -72,7 +72,6 @@ type A = typeof actions
 
 const view = ($: S, a: A) => h('div', {
   style: {
-    background: hexToRGBA(darken(current.bg, 40), 0.8),
     display: 'flex',
     flex: 1,
   },
@@ -95,8 +94,11 @@ const containerEl = makel('div', {
   width: '100%',
   display: 'flex',
   backdropFilter: 'blur(8px)',
+  background: `rgba(var(--background-40-alpha), 0.8)`,
   // TODO: this does not work with blur background. since backdrop-filter is
   // an experimental feature, it could be a bug.
+  // actually backdrop-filter specification has a 'drop-shadow()' fn, but
+  // i have not been able to make it work in chrome 61
   // boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
 })
 

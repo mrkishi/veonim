@@ -27,7 +27,7 @@ const gradient = (deg: number, color1: string, fade1: number, color2: string, fa
 export const partialFill = (direction: string, color: string, size: number) =>
   gradient(direction === 'horizontal' ? 0 : 90, color, size, 'rgba(0,0,0,0)', 0)
 
-const hexToRGB = (color: string) => {
+export const hexToRGB = (color: string) => {
   const hex = parseInt(color.replace(/#/, ''), 16)
   return [hex >> 16, hex >> 8 & 0xFF, hex & 0xFF]
 }
