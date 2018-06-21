@@ -1,7 +1,6 @@
-import { cmd, action, expr, feedkeys, current } from '../core/neovim'
+import { cmd, action, expr, feedkeys } from '../core/neovim'
 import { divinationSearch } from '../components/divination'
 import { currentWindowElement } from '../core/windows'
-import { hexToRGBA, darken } from '../ui/css'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
