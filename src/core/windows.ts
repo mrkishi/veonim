@@ -369,7 +369,7 @@ export const currentWindowElement = {
   remove: (element: HTMLElement) => {
     const win = getWindowContainerElement()
     if (!win) throw new Error('how is it possible to not have a window??')
-    win.removeChild(element)
+    if (win.contains(element)) win.removeChild(element)
   },
 }
 

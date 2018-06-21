@@ -11,8 +11,6 @@ import { h, app } from '../ui/uikit'
 const modeSwitch = new Map([
   [ CommandType.Ex, Icon.Command],
   [ CommandType.Prompt, Icon.ChevronsRight ],
-  [ CommandType.SearchForward, Icon.Search ],
-  [ CommandType.SearchBackward, Icon.Search ],
 ])
 
 const state = {
@@ -34,11 +32,6 @@ const actions = {
   // different than the normal command update, since we do not use the text
   // input natively. we send input events directly to vim, vim sends cmd
   // updates back to us, and we update the text input field.
-  show: () => {
-    hideCursor()
-    disableCursor()
-    return { visible: true }
-  },
   hide: () => {
     enableCursor()
     showCursor()
@@ -95,5 +88,4 @@ sub('wildmenu.select', ix => ui.selectWildmenu(ix))
 sub('wildmenu.hide', () => ui.updateWildmenu([]))
 
 sub('cmd.hide', ui.hide)
-sub('cmd.show', ui.show)
 sub('cmd.update', ui.updateCommand)

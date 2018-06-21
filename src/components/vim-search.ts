@@ -18,24 +18,25 @@ const state = {
 type S = typeof state
 
 const actions = {
-  show: () => {
-    hideCursor()
-    disableCursor()
-    currentWindowElement.add(containerEl)
-  },
   hide: () => {
     enableCursor()
     showCursor()
     currentWindowElement.remove(containerEl)
     return { value: '' }
   },
-  updateQuery: ({ cmd, kind, position }: CommandUpdate) => (s: S) => ({
-    kind,
-    position,
-    value: is.string(cmd) && s.value !== cmd
-    ? cmd
-    : s.value
-  }),
+  updateQuery: ({ cmd, kind, position }: CommandUpdate) => (s: S) => {
+    hideCursor()
+    disableCursor()
+    currentWindowElement.add(containerEl)
+
+    return {
+      kind,
+      position,
+      value: is.string(cmd) && s.value !== cmd
+        ? cmd
+        : s.value
+    }
+  },
 }
 
 type A = typeof actions
@@ -88,5 +89,4 @@ const containerEl = makel({
 const ui = app<S, A>({ name: 'vim-search', state, actions, view, element: containerEl })
 
 sub('search.hide', ui.hide)
-sub('search.show', ui.show)
 sub('search.update', ui.updateQuery)

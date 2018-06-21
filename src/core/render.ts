@@ -351,7 +351,6 @@ r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
 r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
 r.wildmenu_hide = () => dispatch.pub('wildmenu.hide')
 
-
 r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level) => {
   cmdcache.active = true
   cmdcache.position = position
@@ -367,7 +366,16 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
     '?': CommandType.SearchBackward,
   }, opChar) || CommandType.Ex
 
-  dispatch.pub('cmd.update', {
+  const cmdPrompt = kind === CommandType.Ex
+  const searchPrompt = kind === CommandType.SearchForward || kind === CommandType.SearchBackward
+
+  cmdPrompt && dispatch.pub('cmd.update', {
+    cmd,
+    kind: prompt ? CommandType.Prompt : kind,
+    position
+  } as CommandUpdate)
+
+  searchPrompt && dispatch.pub('search.update', {
     cmd,
     kind: prompt ? CommandType.Prompt : kind,
     position
@@ -380,10 +388,17 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
 
 r.cmdline_hide = () => {
   merge(cmdcache, { active: false, position: -999, cmd: undefined })
+  // TODO: how to only call one instead of both? since only one can be up
+  // at a time?
   dispatch.pub('cmd.hide')
+  dispatch.pub('search.hide' )
 }
 
-r.cmdline_pos = position => dispatch.pub('cmd.update', { position })
+r.cmdline_pos = position => {
+  // TODO: how to only call one instead of both?
+  dispatch.pub('cmd.update', { position })
+  dispatch.pub('search.update', { position })
+}
 
 // from neovim PR 7466:
 // Multiple msg_chunk calls build up a msg line, msg_end tells the line is finished.
