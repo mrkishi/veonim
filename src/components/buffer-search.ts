@@ -1,5 +1,4 @@
 import { action, current as vim, jumpTo, getCurrent, feedkeys } from '../core/neovim'
-import { PluginBottom } from '../components/plugin-container'
 import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
