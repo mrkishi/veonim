@@ -2,6 +2,8 @@
 - diagnostics stop showing up / error highlights not appearing after some period
   - not observed on my main machine, only on secondary... same build version?
 - colorizer on action('hint') not coloring anymore after some period of time
+  - again, no issue on main machine...
+  - main is alpha4
 - help files missing
 
 would be nice to do :%s@search@replace@g with :inccommand in buffer to get
@@ -10,6 +12,14 @@ autocompletes and other vim functionality instead of cmdline...
 - use top search box (from viewport-search) for:
   - forward search
   - backward search
+
+viewport-search, make sure search only happens in visible viewport!
+- open $vimrc
+- 2 c-d (page-down scroll)
+- move cursor line like 30% down in the window
+- search for 'job'
+- as it happens, the buffer is scrolled away from the current line range. why?
+  - is it because 'job' is not found in the viewport?
 
 divination:
 - line jump: anchor labels to first char in the line? how to?
@@ -20,6 +30,11 @@ divination:
 - handle error if type bad label that does not exist. do what?
   - escape?
   - drop keys?
+- create binding for divination-search and set it up to work without previous prompts.
+  - aka, do viewport search to jump to search highlight
+  - then have a binding to trigger the jump labels again. can we do something with
+    key hold-down??
+    - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 - i feel like i might want this in a few different places.
@@ -119,11 +134,6 @@ grep:
 
 FIX INTERFACES TO NOT HAVE COMMAS LOL IM STUPID
   - don't do it manually
-
-investigate usage of css filter `backdrop-filter` (blur)
-https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter
-  - requires "Experimental Web Platform Features" flag enabled
-  - investigate how to do this in electron
 
 empty state icon for empty lists [results] - buffer search, etc.
 
