@@ -17,6 +17,7 @@ export const paddingV = (amount: number) => ({
 
 export const translate = (x: number | string, y: number | string) => `translate(${x}px, ${y}px)`
 export const cvar = (name: string) => `var(--${name})`
+export const rgba = (red: number, green: number, blue: number, alpha: number) => `rgba(${red}, ${green}, ${blue}, ${alpha})`
 
 export const setVar = (name: string, val: number | string) =>
   document.documentElement.style.setProperty(`--${name}`, val + '')

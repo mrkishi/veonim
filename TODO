@@ -7,9 +7,9 @@
 would be nice to do :%s@search@replace@g with :inccommand in buffer to get
 autocompletes and other vim functionality instead of cmdline...
 
-create search box at the top of the current window.
-- this will be used for <-- / --> search and viewport-search. maybe more in the future
-- can we copystrike pewdiepie. i mean can we blur background + alpha?
+- use top search box (from viewport-search) for:
+  - forward search
+  - backward search
 
 divination:
 - line jump: anchor labels to first char in the line? how to?
@@ -17,6 +17,9 @@ divination:
   - line -> current line
   - search hl -> position under cursor +/- 1-2
   - do not apply for viewport-search. only if invoked directly
+- handle error if type bad label that does not exist. do what?
+  - escape?
+  - drop keys?
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 - i feel like i might want this in a few different places.

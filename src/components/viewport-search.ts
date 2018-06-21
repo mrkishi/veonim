@@ -3,6 +3,7 @@ import { divinationSearch } from '../components/divination'
 import { currentWindowElement } from '../core/windows'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
+import { rgba, paddingV } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
@@ -79,6 +80,18 @@ const view = ($: S, a: A) => h('div', {
   },
 }, [
 
+  ,h('div', {
+    style: {
+      ...paddingV(20),
+      display: 'flex',
+      alignItems: 'center',
+      // TODO: figure out a good color from the colorscheme... StatusLine?
+      background: rgba(217, 150, 255, 0.17),
+    }
+  }, [
+    ,h('span', 'viewport search')
+  ])
+
   ,Input({
     small: true,
     focus: $.focus,
@@ -96,7 +109,7 @@ const containerEl = makel({
   width: '100%',
   display: 'flex',
   backdropFilter: 'blur(24px)',
-  background: `rgba(var(--background-45-alpha), 0.7)`,
+  background: `rgba(var(--background-30-alpha), 0.6)`,
   // TODO: this does not work with blur background. since backdrop-filter is
   // an experimental feature, it could be a bug.
   // actually backdrop-filter specification has a 'drop-shadow()' fn, but

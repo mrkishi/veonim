@@ -97,6 +97,7 @@ const view = ({
     background,
     ...paddingVH(12, small ? 5 : 10),
     display: 'flex',
+    flex: 1,
     alignItems: 'center',
     maxHeight: small ? '1.8rem' : '2.1rem',
     minHeight: small ? '1.8rem' : '2.1rem',
