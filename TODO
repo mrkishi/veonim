@@ -18,6 +18,7 @@ constrain overlay menus to a particular window (current window)
   overlay menus will always live inside a specific window, and not be global
 - what if the overlay menu does not fit in the window...?
 
+tweak the colors.important to bee lesss saturated. can we derive from colorscheme?
 
 would be nice to do :%s@search@replace@g with :inccommand in buffer to get
 autocompletes and other vim functionality instead of cmdline...
