@@ -1,4 +1,4 @@
-import { cmd, action, expr, feedkeys } from '../core/neovim'
+import { cmd, action, expr, feedkeys, current } from '../core/neovim'
 import { divinationSearch } from '../components/divination'
 import { currentWindowElement } from '../core/windows'
 import { hexToRGBA, darken } from '../ui/css'
@@ -7,7 +7,6 @@ import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
-import $$ from '../core/state'
 
 interface FilterResult {
   line: string,
@@ -73,6 +72,7 @@ type A = typeof actions
 
 const view = ($: S, a: A) => h('div', {
   style: {
+    background: hexToRGBA(darken(current.bg, 40), 0.8),
     display: 'flex',
     flex: 1,
   },
@@ -94,9 +94,10 @@ const containerEl = makel('div', {
   position: 'absolute',
   width: '100%',
   display: 'flex',
-  // TODO: make it transparent and blurry?
-  background: hexToRGBA(darken($$.background, 40), 0.8),
-  boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
+  backdropFilter: 'blur(8px)',
+  // TODO: this does not work with blur background. since backdrop-filter is
+  // an experimental feature, it could be a bug.
+  // boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
 })
 
 const ui = app<S, A>({ name: 'viewport-search', state, actions, view, element: containerEl })
