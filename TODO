@@ -47,12 +47,6 @@ change my <space>ss binding to include @g global flag
 
 tweak the colors.important to bee lesss saturated. can we derive from colorscheme?
 
-would be nice to do :%s@search@replace@g with :inccommand in buffer to get
-autocompletes and other vim functionality instead of cmdline...
-  - basically multiple cursors lol
-  - only ways to do this means we need to have both insert mode + cmd mode
-    at the same time. multiple vim sessions? seems hard.
-
 viewport-search, make sure search only happens in visible viewport!
 - open $vimrc
 - 2 c-d (page-down scroll)
@@ -308,6 +302,7 @@ move messages to bottom | top right corners. pimp them out to loook dope & lit A
 image preview buffers
 
 -- FLOATING WINDOW --
+edit already recorded macros in a floating window
 i want the ability to be able to record multiple macros and name them. i want some sort of visual
 selector gui so i can retrieve and rerun macros without having to remember what macro register
 i saved, and what the usage for a particular macro is supposed to be. this can work similar

@@ -382,24 +382,30 @@ export const list = {
 
 export const current: NeovimState = new Proxy({
   get buffer(): Buffer {
+    const bufferPromise = as.buf(req.core.getCurrentBuf())
+
     return onFnCall<Buffer>(async (fnName: string, args: any[]) => {
-      const buf = await as.buf(req.core.getCurrentBuf())
+      const buf = await bufferPromise
       const fn = Reflect.get(buf, fnName)
       if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Buffer`)
       return fn(...args)
     })
   },
   get window(): Window {
+    const windowPromise = as.win(req.core.getCurrentWin())
+
     return onFnCall<Window>(async (fnName: string, args: any[]) => {
-      const win = await as.win(req.core.getCurrentWin())
+      const win = await windowPromise
       const fn = Reflect.get(win, fnName)
       if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Window`)
       return fn(...args)
     })
   },
   get tabpage(): Tabpage {
+    const tabpagePromise = as.tab(req.core.getCurrentTabpage())
+
     return onFnCall<Tabpage>(async (fnName: string, args: any[]) => {
-      const tab = await as.tab(req.core.getCurrentTabpage())
+      const tab = await tabpagePromise
       const fn = Reflect.get(tab, fnName)
       if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Tabpage`)
       return fn(...args)
