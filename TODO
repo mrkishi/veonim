@@ -79,6 +79,7 @@ buffer-search: spaces to further filter query (just like fuzzy file finder?)
 figure out why jest is the worst thing ever since sliced bread
 
 replace request with native https. just need to figure out how to pipe in my fetch code
+build custom colorpicker in hyperapp
 
 grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
@@ -89,6 +90,8 @@ grep: i don't like the large/small icon unaligned padding/margins in query/filte
     - or somehow dynamic determine if previous char renderd out o bounds, then redraw clipped?
 
 easymotion show bigger letters + show WHILE searching ooooooo
+- how label triggered?
+- is it distracting that labels covering highlights?
 
 visual test results. at least somehow to show total number of fail/pass, last run,
 and jumplist for error files. would be nice to have desc and errors as well. maybe
@@ -110,12 +113,6 @@ easymotion jump to highlighted word
     visual selection, have an easymotion keybinding to jump between them real
     fast instead of n n n n n n n n n. could be useful i suppose. maybe extend
     for problems, symbol highlights, references, etc.
-
-create find overlay at the top or bottom of current window (like xcode/vscode/atom/sublime/etc). used for builtin vim / or ? and can be used by custom components (viewport fuzzy search)
-  - maybe the design can integrate somehow with the buffer fuzzy search list
-  - background blur/transparent
-  - i think this has some usefulness as right now the search is in the middle
-    of the screen covering up a lot of code viewport
 
 files not refresh after delete file (the fuzzy file find)
 
