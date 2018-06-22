@@ -28,10 +28,15 @@ const actions = {
   // how can we detect if there is a search pattern
   // and run :g//norm ??cmds??
   // and if there isn't run :norm ??cmds??
+  // maybe separate binding??
+  // - need someway to escape special chars (enter, space, ctrl-key, etc.)
+
+  // TODO: test to make sure it works with macros. are we
+  // calling undo at the right time?
   change: (value: string) => (s: S) => {
     const preprocess = value.length ? 'undo |' : ''
     const mm = s.mode === 'v' ? `'<,'>` : ''
-    cmd(`${preprocess} ${mm}g@@norm N${value}` )
+    cmd(`${preprocess} ${mm}g@@norm n${value}`)
     return { value }
   },
   select: () => {

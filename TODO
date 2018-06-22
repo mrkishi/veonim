@@ -6,6 +6,8 @@
   - main is alpha4
 - help files missing
 
+debug
+
 vim-search:
 - dispatch callback events to vim when the vim-search window has closed
 - also pass in the type of search that happened: (forward|backward)
@@ -14,6 +16,20 @@ vim-search:
 - sometimes triggering on cmdsdsdsdsd
 - vim search hide action throwing error window not found. maybe redux, but
   does it do the same in dist mode?
+
+annotate marks in buffer. experiment with drawing on top of render buffer output?
+- can get mark info via :marks?
+
+interactive lsp:rename. we know all the locations (via find references) of a
+symbol, so when we hit rename, we can ciw, and as we update the changes, we
+can propagate updates to the rest of the symbols in the visible buffer. on success
+update entire buffer. use atomic to batch so no flickr. only undo if lsp rename fail
+- can we make it work like xcode? collapse parts of buffer (folds?) and show as many
+  lines containing symbol as possible
+  interactive rename <lsp>
+- veonim rename does cw on all symbols in viewport. use find references to find
+  all positions. modify buffer via api but only visible region. on lsp response
+  commit renames to full buffer+other docs. only revert if lsp rename failed
 
 constrain overlay menus to a particular window (current window)
 - (if it makes sense to be local - some might be global - like user menus or project switcher)
@@ -27,12 +43,15 @@ constrain overlay menus to a particular window (current window)
   overlay menus will always live inside a specific window, and not be global
 - what if the overlay menu does not fit in the window...?
 
+change my <space>ss binding to include @g global flag
+
 tweak the colors.important to bee lesss saturated. can we derive from colorscheme?
 
 would be nice to do :%s@search@replace@g with :inccommand in buffer to get
 autocompletes and other vim functionality instead of cmdline...
-  - maybe this is the same thing as the realtime/live-interactive :g described below
   - basically multiple cursors lol
+  - only ways to do this means we need to have both insert mode + cmd mode
+    at the same time. multiple vim sessions? seems hard.
 
 viewport-search, make sure search only happens in visible viewport!
 - open $vimrc
@@ -62,27 +81,6 @@ divination:
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 - i feel like i might want this in a few different places.
   - can create generic fn to use anywhere?
-
-create realtime/live-interactive :g//norm ??cmds?? function. can't build it in vimscript
-because of shit UI. would prefer that we can see what's being typed.
-  - can we somehow hook it up to use values from the current buffer as being typed?
-    then it would be like multiple cursors
-i imagine it might work something like:
-  - open input cmd (same as cmd-line? but diff icon?)
-  - would be best to have two inputs
-    - input 1: filter (if any - can be optional?)
-      - if not specified will use current/last search pattern
-      - need to somehow specify in the GUI that want to apply to every line
-        - then run :norm ??cmds?? (or with visual selection marks)
-      - alternatively, we can use different binds to launch different search modes?
-        - or a menu to select further the type (like spacemacs?)
-          - <space>sg -> menu [h, p, a] -> h: search highlight, p: pattern,
-            a: all -> select one, will prefill that in the :g/pattern/
-    - input 2: normal mode commands. assumes they will be remapped
-      - on string+ :g//norm ??cmds??
-      - on string- :undo
-      - i wonder if we can/should highlight changes in diff color?
-      - need someway to escape special chars (enter, space, ctrl-key, etc.)
 
 figure out why jest is the worst thing ever since sliced bread
 
@@ -202,8 +200,6 @@ opt-in behavior
 simliar to the key timeouts, maybe we can make key triggers after a certain amount
 of key-down holding. e.g. press/release m immediatly and it takes you to a mark.
 press and hold m and a mark menu shows up
-
-spammy cmd-update lolwut?
 
 ok i guess i misunderstood how keys work... or there is a bug?
 when using keys in hyperapp lists, and clearing parts of the list,
