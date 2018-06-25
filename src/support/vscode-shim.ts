@@ -26,7 +26,21 @@ const LanguageClient = class LanguageClient {
   }
 }
 
-fakeModule('vscode', {}, logMissingModuleApiDuringDevelopment)
+const commands = {
+  registerCommand: (command: string, callback: (args: any[]) => any, thisArg?: any) => {
+    console.log('pls register cmd:', command)
+    // TODO: i'm guessing we just register this as a Veonim action?
+    // we will need to pass this back to main thread to talk with neovim
+    // if we are within the context of a web worker (right now this is YES)
+    // action(command, callback)
+    return () => console.log('this is a NYI Disposable that is supposed to unregister the command:', command)
+  }
+}
+
+fakeModule('vscode', {
+  commands,
+}, logMissingModuleApiDuringDevelopment)
+
 fakeModule('vscode-languageclient', {
   LanguageClient,
 }, logMissingModuleApiDuringDevelopment)

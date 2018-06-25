@@ -14,6 +14,7 @@ go(async () => {
     copy.index(),
     copy.assets(),
     copy.runtime(),
+    copy.memes(),
   ])
 
   const tsc = { main: createTask(), workers: createTask() }
