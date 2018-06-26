@@ -5,26 +5,32 @@ import * as rpc from 'vscode-jsonrpc'
 import { dirname, join } from 'path'
 import '../support/vscode-shim'
 
+interface Debugger {
+  label: string
+  type: string
+  program: string
+  runtime?: 'node' | 'mono'
+}
+
 // -- REFERENCE LINKS --
 // https://github.com/Microsoft/vscode-node-debug2/blob/master/package.json
 // https://github.com/Microsoft/vscode-chrome-debug/blob/master/package.json
 // https://github.com/Microsoft/vscode-mock-debug/blob/master/package.json
 // https://code.visualstudio.com/docs/extensionAPI/api-debugging
-// https://code.visualstudio.com/docs/extensions/example-debuggers#_using-a-debugconfigurationprovider
+// https://code.visualstudio.com/docs/extensions/example-debuggers
 
 // download extension for dev debug
 // vscode:extension/ms-vscode.node-debug2
 // https://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/node-debug2/latest/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
-//
 
 // TODO: once i have figured this out, we will dynamically get these vars with the code
 // that already exists in extension-host
 const TEMP_EXT_DIR = join(process.cwd(), 'memes', 'extension')
 const memeConfig = join(TEMP_EXT_DIR, 'package.json')
 
-const runningDebugAdapters = new Map<string, rpc.MessageConnection>()
+const availableDebugAdapters = new Map<string, Debugger>()
 
-const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
+const getPackageJsonConfig = async (packageJson: string): Promise<object> => {
   const rawFileData = await readFile(packageJson)
   const { main, activationEvents = [], contributes } = fromJSON(rawFileData).or({})
   const packageJsonDir = dirname(packageJson)
@@ -41,7 +47,7 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   }
 }
 
-const startDebugAdapter = (debugAdapterPath: string, runtime?: 'node' | 'mono'): ChildProcess => {
+const startDebugAdapter = (debugAdapterPath: string, runtime: Debugger['runtime']): ChildProcess => {
   // TODO: do we need to accept any arguments from launch.json config? (whether user provided or generated)
   const spawnOptions = {
     env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
@@ -60,17 +66,13 @@ const startDebugAdapter = (debugAdapterPath: string, runtime?: 'node' | 'mono'):
   return proc
 }
 
-const connectDebugAdapter = (proc: ChildProcess): string => {
-  const adaterId = uuid()
-
+const connectDebugAdapter = (proc: ChildProcess) => {
   const reader = new rpc.StreamMessageReader(proc.stdout)
   const writer = new rpc.StreamMessageWriter(proc.stdin)
   const conn = rpc.createMessageConnection(reader, writer)
 
   conn.listen()
-
-  runningDebugAdapters.set(adaterId, conn)
-  return adaterId
+  return conn
 }
 
 const doTheNeedful = async () => {
@@ -80,6 +82,13 @@ const doTheNeedful = async () => {
   // TODO: how is a debug extension activated???? "activationEvents" and etc.
   // dynamic DebugConfigurationProvider may control this too.
   // read about it here: https://code.visualstudio.com/docs/extensions/example-debuggers#_using-a-debugconfigurationprovider
+  //
+  // ok so first of all the debugger is initiated via user action.
+  // an extension may provide some default config for the debug adapter
+  // in which case it may have some activationEvents (but which?)
+  // also, keep in mind that some "debugger extensions" come bundled
+  // with other stuff like a general language extension (go, pythong, etc.)
+  //  - lsp stuff (but not lsp), debugging, linting, building, etc.
 
   //in here describes in more detail how to use the various "contributes" seciton in package.json
   //https://code.visualstudio.com/docs/extensions/example-debuggers
@@ -87,6 +96,13 @@ const doTheNeedful = async () => {
   // TODO: i'm guessing we use "breakpoints" to figure out which filetypes can set breakpoints?
   // e.g. for node2 debug extension we have 'javascript', 'javascriptreact'
   // are we supposed to map these to filetypes? how does it work for transpile to JS filetypes? (TS, etc.)
+
+  // i'm not gonna worry about restricting the setting of breakpoints
+  //
+  // instead i will do like vscode/visual studio
+  // and allow breakpoints to set on any file, but when the debugger
+  // starts the breakpoints will turn gray indicating that the breakpoints
+  // are not available (were not sent successfully to the debug adapter)
 
   // TODO: debuggers (are we supposed to add these to a UI user menu?)
   // in vscode you press F5 to start debugging. how do we know which debugger to pick from this list?
@@ -112,6 +128,9 @@ const doTheNeedful = async () => {
   // to figure this out, but probably too much effort/usefulness. launch.json
   // only done once per project, possibly often copypasta'd. then we can always
   // launch vscode for normies editing launch.json
+
+  // TODO: get types for debuggers?
+  debuggers.forEach((d: any) => availableDebugAdapters.set(d.type, d))
 
   // TODO: "type" is used in user debug config
   //https://code.visualstudio.com/docs/extensions/example-debuggers
@@ -159,24 +178,14 @@ const doTheNeedful = async () => {
   //started, VS Code "reaches" into the debugger extension, starts the debug
   //adapter, and then communicates with it by using the debug adapter protocol.
 
-  console.log('starting debugger', label)
-  const debuggerPath = join(TEMP_EXT_DIR, program)
-  console.log('debuggerPath', debuggerPath)
-
-  const debugAdapterProcess = startDebugAdapter(debuggerPath, runtime)
-  const adapterId = connectDebugAdapter(debugAdapterProcess)
-
-  // TODO: figure out how to determine:
-  // - when debug adapters are supposed to be started
-  // - how to "get" and "route" debug requests to the correct debug adapter
-  const testingAdapter = runningDebugAdapters.get(adapterId)
-  console.log('testing debug adapter', adapterId, testingAdapter)
-  // TODO: figure out the protocol and what we need to send for init and etc.
-  // testingAdapter.sendNotification(...)
 
   // TODO: so in the case of this node2 debugger extension, the only thing that the extension
   // does is dynamically setup a launch.json configuration? aka when the debug adapter is supposed
   // to be started...
+  //
+  // but it's tied behind a command?
+  // is that command the same as the one defined in package.json?
+  // how is the command called and who calls it?
   const ext = require(requirePath)
   if (!ext.activate) return console.log('this debug ext does not have an "activate" method lolwtf??')
 
@@ -187,5 +196,45 @@ const doTheNeedful = async () => {
 
   console.log('subs:', context.subscriptions)
 }
+
+// TODO: hook it up to worker-client.on event
+const startDebuggingSession = (debugType: string) => {
+  const adapter = availableDebugAdapters.get(debugType)
+  if (!adapter) return console.error(`debug adapter ${debugType} not found`)
+
+  const { label, program, runtime } = adapter
+  console.log(`starting debug adapter: ${label}`)
+
+  // TODO: not good enough, we will also need the path of the
+  // debug extension. we should probably create this abs path
+  // when adding to availableDebugAdapters
+  const adapterPath = join(TEMP_EXT_DIR, program)
+  const debugAdapterProcess = startDebugAdapter(adapterPath, runtime)
+  return connectDebugAdapter(debugAdapterProcess)
+}
+
+const getDebugLaunchConfig = (debugType: string) => {
+  // TODO: how does this work?
+
+  // use launch.json provided by user (available in ${cwd}/launch.json?)
+
+  // get whatever config is provided by extension
+  // - any config from package.json?
+  // - any config dynamically generated by extension.ts?
+
+  // merge configs together (user config: higher priority)
+  // const config = { ...defaultConfig, ...userConfig }
+}
+
+// this simulates an async action initiated by a user event
+// the user will start the debug session from the UI
+setTimeout(() => {
+  const testAdapter = 'node2'
+  console.log('starting debug adapter:', testAdapter)
+  const debugAdapter = startDebuggingSession(testAdapter)
+  // TODO: initalize adapter with launch config
+  // TODO: figure out the protocol and what we need to send for init and etc.
+  // testingAdapter.sendNotification(...)
+}, 1e3)
 
 doTheNeedful().catch(console.error)
