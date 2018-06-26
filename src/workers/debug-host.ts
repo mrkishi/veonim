@@ -56,9 +56,16 @@ const startDebugAdapter = (debugAdapterPath: string, runtime: Debugger['runtime'
   let proc
 
   // if a runtime is not provided, then the debug adapter is a binary executable
-  if (!runtime) proc = spawn(debugAdapterPath, spawnOptions)
+  // TODO: support cross-platform executables (see docs for examples)
+  // by the way, different platforms may require different executables. see the docs
+  // for example combinations of program/runtime
+  if (!runtime) proc = spawn(debugAdapterPath, [], spawnOptions)
   else if (runtime === 'node') proc = spawn(process.execPath, [debugAdapterPath], spawnOptions)
-  // TODO: figure out if vscode comes with mono/installs it? or it depends on it being on the system already
+  // TODO: figure out how to start a debug adapter with "mono" runtime
+  // i do not believe mono runtime comes with vscode (would be surprised if it did)
+  // the vscode-mono-debug extension readme asks that the user install mono
+  // separately. that means we just need to figure out how to start/run mono
+  // if installed and start the debug adapter with it (i.e. is mono in $PATH, etc.)
   else if (runtime === 'mono') throw new Error('debug adapter runtime "mono" not supported yet, but it should!')
   else throw new Error(`invalid debug adapter runtime provided: ${runtime}. are we supposed to support this?`)
 
@@ -79,6 +86,11 @@ const doTheNeedful = async () => {
   const { requirePath, activationEvents, contributes } = await getPackageJsonConfig(memeConfig)
   const { breakpoints, debuggers, commands, keybindings, menus } = contributes
 
+  // COMMANDS
+  // what do we use the provided commands for? are they always user-triggered
+  // or does vscode ever call them?
+
+  // ACTIVATION EVENTS
   // TODO: how is a debug extension activated???? "activationEvents" and etc.
   // dynamic DebugConfigurationProvider may control this too.
   // read about it here: https://code.visualstudio.com/docs/extensions/example-debuggers#_using-a-debugconfigurationprovider
@@ -106,86 +118,20 @@ const doTheNeedful = async () => {
 
   // TODO: debuggers (are we supposed to add these to a UI user menu?)
   // in vscode you press F5 to start debugging. how do we know which debugger to pick from this list?
-
-  // console.log('-- CONTRIBUTES --')
-  // console.log('BREAKPOINTS:', breakpoints)
-  // console.log('DEBUGGERS', debuggers)
-  // console.log('COMMANDS:', commands)
-  // console.log('KEYBINDINGS', keybindings)
-  // console.log('MENUS', menus)
-  // console.log('-----------------')
-
-  // TODO: there is something about config the launch.json
-  // i think it is possible to either use a user-provided launch.json file
-  // - OR -
-  // derived from "initalConfigurations" from package.json
-  // - OR -
-  // a default configuration is computed dynamically by the extension.
   //
-  // the "configurationAttributes", "configurationSnippets" from package.json
-  // are used to provide intellisense when the user is editing a launch.json
-  // file. for MVP i think we can ignore this. it might be an interesting exercise
-  // to figure this out, but probably too much effort/usefulness. launch.json
-  // only done once per project, possibly often copypasta'd. then we can always
-  // launch vscode for normies editing launch.json
+  // i think the only thing that is shown in the UI are configs
+  // provided by launch.json (using the :name property)
+  // otherwise it just shows "No Configurations"?
 
-  // TODO: get types for debuggers?
+  // TODO: how does "Start Debug" determine which debug adapter
+  // to use? i.e. javascript -> node2
+
+  // so there must be some config or mapping somewhere to know
+  // that Start Debug while in a typescript or javascript file
+  // will start the "node2" debugger?
+
   debuggers.forEach((d: any) => availableDebugAdapters.set(d.type, d))
 
-  // TODO: "type" is used in user debug config
-  //https://code.visualstudio.com/docs/extensions/example-debuggers
-  const { label, program, runtime } = debuggers.find(d => d.type === 'node2')
-  // TODO: i'm guessing the runtime is what we use to start the debug adapter with?
-  // if the runtime is "node" then it's just a simple process.spawn from electron (aka node)
-  // what if the runtime is not "node". then what? maybe it's a binary executable? or we
-  // call something that exists on the system like python/ruby/etc?
-  //
-  // from the docs (https://code.visualstudio.com/docs/extensions/example-debuggers):
-  // If the program is implemented in a platform independent way, e.g. as program
-  // that runs on a runtime that is available on all supported platforms, you
-  // can specify this runtime via the runtime attribute. As of today, VS Code
-  // supports node and mono runtimes. Our Mock Debug adapter from above uses
-  // this approach.
-  //
-  // ok so this means at the time of the writing of the doc there are 3 different types to start
-  // a debug adapter: 'node', 'mono', or binary executable.
-  //
-  // by the way, different platforms may require different executables. see the docs
-  // for example combinations of program/runtime
-
-  // TODO: i wonder how vscode starts "mono" debug adapters. does vscode ship with
-  // a "mono" runtime? or do they assume it exists on the filesystem?
-  //
-  //
-  //https://code.visualstudio.com/docs/extensionAPI/api-debugging
-  // from the vscode docs:
-  //A Debug Adapter is typically a standalone executable that talks to a real
-  //debugger and translates between the Debug Adapter Protocol and the concrete
-  //protocol or API of the debugger. Since a debug adapter can be implemented
-  //in the language that is best suited for a given debugger or runtime, the
-  //wire protocol is more important than the API of a particular client library
-  //that implements that protocol.
-  //
-  // the way i understand this is that we are given an executable and we just gotta run
-  // with it and start it up. i'm still confused why we have to start it up, and why
-  // does the extension not start it up like it does in LSP extensions.
-  //
-  // i guess we start the debug adater ourselves. from the vscode docs:
-  //Since a debug adapter is not a VS Code extension by itself, it is wrapped
-  //as an Debugger Extension, but this does not need to contribute any
-  //additional code. This extension is just used as a "container" that provides
-  //the necessary contributions in the package.json. When a debug session is
-  //started, VS Code "reaches" into the debugger extension, starts the debug
-  //adapter, and then communicates with it by using the debug adapter protocol.
-
-
-  // TODO: so in the case of this node2 debugger extension, the only thing that the extension
-  // does is dynamically setup a launch.json configuration? aka when the debug adapter is supposed
-  // to be started...
-  //
-  // but it's tied behind a command?
-  // is that command the same as the one defined in package.json?
-  // how is the command called and who calls it?
   const ext = require(requirePath)
   if (!ext.activate) return console.log('this debug ext does not have an "activate" method lolwtf??')
 
@@ -216,14 +162,34 @@ const startDebuggingSession = (debugType: string) => {
 const getDebugLaunchConfig = (debugType: string) => {
   // TODO: how does this work?
 
+  // IF LAUNCH.JSON
   // use launch.json provided by user (available in ${cwd}/launch.json?)
+  //
+  // ELSE
+  // extension provides a default config:
+  //
+  // package.json - "initialConfigurations" [STATIC]
+  // - OR -
+  // DebugConfigurationProvider func implementation in ext [DYNAMIC]
+  //
+  // is there every any merging of default config + user config?
+  // - YES. see below:
 
-  // get whatever config is provided by extension
-  // - any config from package.json?
-  // - any config dynamically generated by extension.ts?
+  // If the static nature of debug contributions in the package.json is not
+  // sufficient, a DebugConfigurationProvider can be used to dynamically
+  // control the following aspects of a debug extension:
 
-  // merge configs together (user config: higher priority)
-  // const config = { ...defaultConfig, ...userConfig }
+  //     - the initial debug configurations for a newly created launch.json can
+  //     be generated dynamically, e.g. based on some contextual information
+  //     available in the workspace,
+
+  //     - a launch configuration can be 'resolved' (or 'massaged') before it
+  //     is used to start a new debug session. This allows for filling in
+  //     default values based on information available in the workspace. 
+
+  //     - the executable path for the debug adapter and any command line
+  //     arguments passed to it can be dynamically calculated.
+
 }
 
 // this simulates an async action initiated by a user event
