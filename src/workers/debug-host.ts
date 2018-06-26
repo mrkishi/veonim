@@ -5,6 +5,13 @@ import * as rpc from 'vscode-jsonrpc'
 import { dirname, join } from 'path'
 import '../support/vscode-shim'
 
+// -- REFERENCE LINKS --
+// https://github.com/Microsoft/vscode-node-debug2/blob/master/package.json
+// https://github.com/Microsoft/vscode-chrome-debug/blob/master/package.json
+// https://github.com/Microsoft/vscode-mock-debug/blob/master/package.json
+// https://code.visualstudio.com/docs/extensionAPI/api-debugging
+// https://code.visualstudio.com/docs/extensions/example-debuggers#_using-a-debugconfigurationprovider
+
 // download extension for dev debug
 // vscode:extension/ms-vscode.node-debug2
 // https://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/node-debug2/latest/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
