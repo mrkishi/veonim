@@ -5,16 +5,6 @@ import * as rpc from 'vscode-jsonrpc'
 import { dirname, join } from 'path'
 import '../support/vscode-shim'
 
-// TODO: process.env is the same in every web worker, right?
-// we can just set this in one place instead of every web worker. galaxy maybe?
-
-// need this flag to spawn node child processes. this will use the same node
-// runtime included with electron. usually we would set this as an option in
-// the spawn call, but we do not have access to the spawn calls in the
-// extensions that are spawning node executables (language servers, etc.)
-process.env.ELECTRON_RUN_AS_NODE = '1'
-
-
 // download extension for dev debug
 // vscode:extension/ms-vscode.node-debug2
 // https://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/node-debug2/latest/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
@@ -45,11 +35,16 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
 }
 
 const startDebugAdapter = (debugAdapterPath: string, runtime?: 'node' | 'mono'): ChildProcess => {
+  // TODO: do we need to accept any arguments from launch.json config? (whether user provided or generated)
+  const spawnOptions = {
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+  }
+
   let proc
 
   // if a runtime is not provided, then the debug adapter is a binary executable
-  if (!runtime) proc = spawn(debugAdapterPath)
-  else if (runtime === 'node') proc = spawn(process.execPath, [debugAdapterPath])
+  if (!runtime) proc = spawn(debugAdapterPath, spawnOptions)
+  else if (runtime === 'node') proc = spawn(process.execPath, [debugAdapterPath], spawnOptions)
   // TODO: figure out if vscode comes with mono/installs it? or it depends on it being on the system already
   else if (runtime === 'mono') throw new Error('debug adapter runtime "mono" not supported yet, but it should!')
   else throw new Error(`invalid debug adapter runtime provided: ${runtime}. are we supposed to support this?`)
@@ -168,6 +163,7 @@ const doTheNeedful = async () => {
   // - when debug adapters are supposed to be started
   // - how to "get" and "route" debug requests to the correct debug adapter
   const testingAdapter = runningDebugAdapters.get(adapterId)
+  console.log('testing debug adapter', adapterId, testingAdapter)
   // TODO: figure out the protocol and what we need to send for init and etc.
   // testingAdapter.sendNotification(...)
 
