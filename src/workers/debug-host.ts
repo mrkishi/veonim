@@ -1,8 +1,19 @@
-import { readFile, fromJSON } from '../support/utils'
+import { readFile, fromJSON, uuid } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
-console.log('loading debug-host web worker')
+import { spawn, ChildProcess } from 'child_process'
+import * as rpc from 'vscode-jsonrpc'
 import { dirname, join } from 'path'
 import '../support/vscode-shim'
+
+// TODO: process.env is the same in every web worker, right?
+// we can just set this in one place instead of every web worker. galaxy maybe?
+
+// need this flag to spawn node child processes. this will use the same node
+// runtime included with electron. usually we would set this as an option in
+// the spawn call, but we do not have access to the spawn calls in the
+// extensions that are spawning node executables (language servers, etc.)
+process.env.ELECTRON_RUN_AS_NODE = '1'
+
 
 // download extension for dev debug
 // vscode:extension/ms-vscode.node-debug2
@@ -13,6 +24,8 @@ import '../support/vscode-shim'
 // that already exists in extension-host
 const TEMP_EXT_DIR = join(process.cwd(), 'memes', 'extension')
 const memeConfig = join(TEMP_EXT_DIR, 'package.json')
+
+const runningDebugAdapters = new Map<string, rpc.MessageConnection>()
 
 const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
   const rawFileData = await readFile(packageJson)
@@ -31,8 +44,31 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   }
 }
 
-const startDebugAdapter = (debugAdapterPath: string) => {
+const startDebugAdapter = (debugAdapterPath: string, runtime?: 'node' | 'mono'): ChildProcess => {
+  let proc
 
+  // if a runtime is not provided, then the debug adapter is a binary executable
+  if (!runtime) proc = spawn(debugAdapterPath)
+  else if (runtime === 'node') proc = spawn(process.execPath, [debugAdapterPath])
+  // TODO: figure out if vscode comes with mono/installs it? or it depends on it being on the system already
+  else if (runtime === 'mono') throw new Error('debug adapter runtime "mono" not supported yet, but it should!')
+  else throw new Error(`invalid debug adapter runtime provided: ${runtime}. are we supposed to support this?`)
+
+  proc.stderr.on('data', console.error)
+  return proc
+}
+
+const connectDebugAdapter = (proc: ChildProcess): string => {
+  const adaterId = uuid()
+
+  const reader = new rpc.StreamMessageReader(proc.stdout)
+  const writer = new rpc.StreamMessageWriter(proc.stdin)
+  const conn = rpc.createMessageConnection(reader, writer)
+
+  conn.listen()
+
+  runningDebugAdapters.set(adaterId, conn)
+  return adaterId
 }
 
 const doTheNeedful = async () => {
@@ -40,6 +76,8 @@ const doTheNeedful = async () => {
   const { breakpoints, debuggers, commands, keybindings, menus } = contributes
 
   // TODO: how is a debug extension activated???? "activationEvents" and etc.
+  // dynamic DebugConfigurationProvider may control this too.
+  // read about it here: https://code.visualstudio.com/docs/extensions/example-debuggers#_using-a-debugconfigurationprovider
 
   //in here describes in more detail how to use the various "contributes" seciton in package.json
   //https://code.visualstudio.com/docs/extensions/example-debuggers
@@ -119,12 +157,23 @@ const doTheNeedful = async () => {
   //started, VS Code "reaches" into the debugger extension, starts the debug
   //adapter, and then communicates with it by using the debug adapter protocol.
 
-  if (runtime !== 'node') throw new Error('how are we supposed to start a debug adapter that does not have a runtime of "node". do we just try to start it from the system? e.g. ruby, python, etc. or maybe the program is a self-contained binary executable')
-
   console.log('starting debugger', label)
   const debuggerPath = join(TEMP_EXT_DIR, program)
   console.log('debuggerPath', debuggerPath)
 
+  const debugAdapterProcess = startDebugAdapter(debuggerPath, runtime)
+  const adapterId = connectDebugAdapter(debugAdapterProcess)
+
+  // TODO: figure out how to determine:
+  // - when debug adapters are supposed to be started
+  // - how to "get" and "route" debug requests to the correct debug adapter
+  const testingAdapter = runningDebugAdapters.get(adapterId)
+  // TODO: figure out the protocol and what we need to send for init and etc.
+  // testingAdapter.sendNotification(...)
+
+  // TODO: so in the case of this node2 debugger extension, the only thing that the extension
+  // does is dynamically setup a launch.json configuration? aka when the debug adapter is supposed
+  // to be started...
   const ext = require(requirePath)
   if (!ext.activate) return console.log('this debug ext does not have an "activate" method lolwtf??')
 
