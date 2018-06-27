@@ -95,6 +95,28 @@ const doTheNeedful = async () => {
   // dynamic DebugConfigurationProvider may control this too.
   // read about it here: https://code.visualstudio.com/docs/extensions/example-debuggers#_using-a-debugconfigurationprovider
   //
+  // activationEvents used for debugging purposes
+  // "onDebug" - triggered as soon as any debug functionality is used
+  //
+  // TODO: where is DebugConfigurationProvider called and how are these
+  // events related to it?
+
+  // "onDebugInitialConfigurations" - is fired just before the
+  // 'provideDebugConfigurations' method of the 'DebugConfigurationProvider' is
+  // called. (wut?)
+
+  // "onDebugResolve:${type}" - is fired just before the
+  // 'resolveDebugConfiguration' method of the 'DebugConfigurationProvider' for
+  // the specified type is called. (wut?)
+  //
+  // some example activationEvents (command events excluded)
+  // - mock-debug -> onDebug
+  // - node-debug -> onDebugInitialConfigurations, onDebugResolve:node
+  // - chrome-debug -> onDebugInitialConfigurations, onDebugResolve:chrome
+  // - node-debug2 -> nothing, only a command... wat... how does this start?
+  //    - maybe because it's builtin to vscode the startup is hardcoded?
+  // - mono-debug -> nothing, only a command... wat??
+  //
   // ok so first of all the debugger is initiated via user action.
   // an extension may provide some default config for the debug adapter
   // in which case it may have some activationEvents (but which?)
