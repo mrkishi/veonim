@@ -32,14 +32,16 @@ interface ScrollRegion {
 }
 
 interface Attrs {
-  foreground?: number,
-  background?: number,
-  special?: number,
-  reverse?: string,
-  italic?: string,
-  bold?: string,
-  underline?: boolean,
-  undercurl?: boolean,
+  foreground?: number
+  background?: number
+  special?: number
+  reverse?: string
+  italic?: string
+  bold?: string
+  underline?: boolean
+  undercurl?: boolean
+  cterm_fg?: number
+  cterm_bg?: number
 }
 
 interface NextAttrs extends Attrs {
@@ -130,6 +132,8 @@ const normalizeVimMode = (mode: string): VimMode => {
 
 const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
+const options = new Map<string, any>()
+const highlights = new Map<number, Attrs>()
 
 // because a Map is higher perf than an object
 const r: Events = new Proxy(api, {
@@ -214,6 +218,8 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
   grid.moveRegionDown(amount, top, bottom, left, right)
 }
 
+r.option_set = (key, value) => options.set(key, value)
+
 r.cursor_goto = (row, col) => merge(cursor, { col, row })
 r.set_scroll_region = (top, bottom, left, right) => lastScrollRegion = { top, bottom, left, right }
 
@@ -283,6 +289,16 @@ r.mode_change = async mode => {
   info.color && setCursorColor(info.color)
   setCursorShape(info.shape, info.size)
 }
+
+r.hl_attr_define = (id, attrs: Attrs, info) => {
+  highlights.set(id, attrs)
+  // TODO: info
+}
+
+// TODO: support multiple grids
+r.grid_resize = (gridId, width, height) => grid.resize(height, width)
+
+r.grid_clear = gridId => grid.clear()
 
 r.highlight_set = (attrs: Attrs) => {
   const fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
@@ -422,41 +438,41 @@ const resetMsg = () => {
   setTimeout(() => message.kind = 'hidden', 1)
 }
 
-r.msg_start_kind = kind => {
-  if (msgKinds.has(kind)) message.kind = msgKinds.get(kind)!
+// r.msg_start_kind = kind => {
+//   if (msgKinds.has(kind)) message.kind = msgKinds.get(kind)!
 
-  else if (kind === 'showmode') setTimeout(() => {
-    if (message.buffer.includes('recording @')) {
-      const [ , register ] = message.buffer.match(/recording @(\w)/) || [] as string[]
-      dispatch.pub('vim:macro.start', register)
-    }
-  }, 30)
+//   else if (kind === 'showmode') setTimeout(() => {
+//     if (message.buffer.includes('recording @')) {
+//       const [ , register ] = message.buffer.match(/recording @(\w)/) || [] as string[]
+//       dispatch.pub('vim:macro.start', register)
+//     }
+//   }, 30)
 
-  else console.log('new msg kind:', kind)
-}
+//   else console.log('new msg kind:', kind)
+// }
 
 // TODO: join or call foreach?
-r.msg_showcmd = (content = []) => notify(content.join(''))
+// r.msg_showcmd = (content = []) => notify(content.join(''))
 
-r.msg_chunk = data => message.buffer += data
+// r.msg_chunk = data => message.buffer += data
 
-r.msg_end = () => {
-  // TODO: this only happens at startup, so maybe run this condition for a limitied period of time
-  // TODO: test without plugins!
-  if (message.buffer === '<') return resetMsg()
-  if (!message.kind) notify(message.buffer, NotifyKind.Hidden)
+// r.msg_end = () => {
+//   // TODO: this only happens at startup, so maybe run this condition for a limitied period of time
+//   // TODO: test without plugins!
+//   if (message.buffer === '<') return resetMsg()
+//   if (!message.kind) notify(message.buffer, NotifyKind.Hidden)
 
-  if (/recording @\w/.test(message.buffer)) return dispatch.pub('vim:macro.end')
+//   if (/recording @\w/.test(message.buffer)) return dispatch.pub('vim:macro.end')
 
-  matchOn(message.kind)({
-    [NotifyKind.Error]: () => notify(message.buffer, NotifyKind.Error),
-    [NotifyKind.Warning]: () => notify(message.buffer, NotifyKind.Warning),
-    [NotifyKind.Info]: () => notify(message.buffer, NotifyKind.Info),
-    [NotifyKind.Success]: () => notify(message.buffer, NotifyKind.Success),
-  })
+//   matchOn(message.kind)({
+//     [NotifyKind.Error]: () => notify(message.buffer, NotifyKind.Error),
+//     [NotifyKind.Warning]: () => notify(message.buffer, NotifyKind.Warning),
+//     [NotifyKind.Info]: () => notify(message.buffer, NotifyKind.Info),
+//     [NotifyKind.Success]: () => notify(message.buffer, NotifyKind.Success),
+//   })
 
-  resetMsg()
-}
+//   resetMsg()
+// }
 
 let lastTop: string[] = []
 let initialAtlasGenerated = false

@@ -1,5 +1,8 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
+## tasks
+- cleanup deprecated (aka v1 ui protocol) event handlers in render.ts
+
 ## interestings
 - render event `option_set` has `guifont` and `linespace`. we can use this now instead of our own custom global variables.
   - `guifont` replaces `g:vn_font` and `g:vn_font_size`
