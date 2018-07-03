@@ -290,15 +290,26 @@ r.mode_change = async mode => {
   setCursorShape(info.shape, info.size)
 }
 
-r.hl_attr_define = (id, attrs: Attrs, info) => {
-  highlights.set(id, attrs)
-  // TODO: info
-}
+// TODO: info
+r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
 
 // TODO: support multiple grids
-r.grid_resize = (gridId, width, height) => grid.resize(height, width)
+r.grid_clear = id => grid.clear()
+r.grid_resize = (id, width, height) => grid.resize(height, width)
+r.grid_cursor_goto = (id, row, col) => merge(cursor, { row, col })
+r.grid_destroy = id => console.log('pls nuke grid:', id)
+r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
+  ? moveRegionUp(amount, { top, bottom, left, right })
+  : moveRegionDown(-amount, { top, bottom, left, right })
 
-r.grid_clear = gridId => grid.clear()
+
+r.grid_line = (id, row, col, charData: any[]) => {
+  const position = { row, col }
+  const chars = charData.map(([ char, highlightId, repeatCount ]) => ({ char, highlightId, repeatCount }))
+  // TODO: we will get an empty char entry - e.g. { char: " ", repeatCount: 100 }
+  // instead of drawing empty chars to the screen, we should just clear that part of the line
+  console.log(position, ...chars)
+}
 
 r.highlight_set = (attrs: Attrs) => {
   const fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
