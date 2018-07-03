@@ -4,7 +4,10 @@
 - colorizer on action('hint') not coloring anymore after some period of time
   - again, no issue on main machine...
   - main is alpha4
+- actually i notice that problem underlines/highlights stop working after some time on
+  my main machine...
 - help files missing
+- Veonim buffers a little laggy and flickers windows???
 
 debug
 
