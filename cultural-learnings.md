@@ -2,6 +2,6 @@
 ---
 
 ## interestings
-- render event `option_set` has guifont. we can use this now instead of our own custom hack.
-  - `guifont` allows us to replace `g:vn_font` and `g:vn_font_size`
-  - look into `linespace` to replace `g:vn_line_height`
+- render event `option_set` has `guifont` and `linespace`. we can use this now instead of our own custom global variables.
+  - `guifont` replaces `g:vn_font` and `g:vn_font_size`
+  - `linespace` replaces `g:vn_line_height`
