@@ -32,7 +32,11 @@ const vimOptions = {
   ext_tabline: true,
   ext_wildmenu: true,
   ext_cmdline: true,
-  ext_messages: true,
+  // TODO: ext_message support not available with multigrid. need to merge and test.
+  // ext_messages: true,
+  ext_newgrid: true,
+  ext_multigrid: true,
+  ext_hlstate: true,
 }
 
 const ids = {
