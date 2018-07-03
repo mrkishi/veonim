@@ -508,13 +508,17 @@ onRedraw((m: any[]) => {
     if (fn) method === 'put' 
       ? fn(args)
       : args.forEach((a: any[]) => fn(...a))
+
+    if (process.env.VEONIM_DEV && !fn) console.log(method, args)
   }
 
   lastScrollRegion = null
   moveCursor(colors.bg)
 
   setImmediate(() => {
-    dispatch.pub('redraw')
+    // TODO: this spawns a bunch of window hacks. may need to re-enable, but probably
+    // rework the windows logic bound to this event
+    // dispatch.pub('redraw')
     if (!initialAtlasGenerated) initalFontAtlas.done(true)
     regenerateFontAtlastIfNecessary()
     getMode().then(m => $.mode = normalizeVimMode(m.mode))
