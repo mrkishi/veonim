@@ -13,6 +13,7 @@
 
 ## questions
 - verify `ext_messages` works with new ui protocol
+- `ui` api is wrong for `grid_line`. added comment in issue review. manually changing api.ts for now
 
 ## ref
 ui doc:

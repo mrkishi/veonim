@@ -39,7 +39,7 @@ export interface Events {
   grid_resize(grid: number, width: number, height: number): void,
   grid_clear(grid: number): void,
   grid_cursor_goto(grid: number, row: number, col: number): void,
-  grid_line(grid: number, row: number, startcol: number, clearcol: number, data: any[]): void,
+  grid_line(grid: number, row: number, startcol: number, data: any[]): void,
   grid_scroll(grid: number, top: number, bot: number, left: number, right: number, rows: number, cols: number): void,
   grid_destroy(grid: number): void,
   win_position(win: number, grid: number, startrow: number, startcol: number, width: number, height: number): void,

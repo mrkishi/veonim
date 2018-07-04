@@ -1,3 +1,5 @@
+import { EMPTY_CHAR, EMPTY_HIGHLIGHT } from '../support/constants'
+
 interface Cell {
   char: string
   hlid: number
@@ -5,8 +7,6 @@ interface Cell {
 
 type Line = Cell[]
 
-const EMPTY = ' '
-const NO_HIGHLIGHT = -1
 const grids = new Map<number, Line[]>()
 
 const getGrid = (id: number) => {
@@ -35,7 +35,7 @@ export const resize = (id: number, rows: number, columns: number) => {
 
     for (let yix = 0; yix <= columns; yix++) {
       // TODO: would it be faster to use Maps?
-      line[yix] = { char: EMPTY, hlid: NO_HIGHLIGHT }
+      line[yix] = { char: EMPTY_CHAR, hlid: EMPTY_HIGHLIGHT }
     }
 
     grid[xix] = line
@@ -46,10 +46,18 @@ export const resize = (id: number, rows: number, columns: number) => {
 
 export const set = (id: number, row: number, col: number, char: string, hlid: number) => {
   const grid = getGrid(id)
-  if (!grid[row] || !grid[row][col]) return console.error(`trying to set out of bounds grid (row:col) -> ${row}:${col}`)
 
   grid[row][col].char = char
   grid[row][col].hlid = hlid
+}
+
+export const setLine = (id: number, row: number, start: number, end: number, char: string, hlid: number) => {
+  const grid = getGrid(id)
+
+  for (let col = start; col < end; col++) {
+    grid[row][col].char = char
+    grid[row][col].hlid = hlid
+  }
 }
 
 export const moveRegionDown = (id: number, amount: number, top: number, bottom: number, left: number, right: number) => {
@@ -61,14 +69,14 @@ export const moveRegionDown = (id: number, amount: number, top: number, bottom: 
 
     for (let xix = left; xix <= right; xix++) {
       if (yix === top) {
-        line[xix].char = EMPTY
-        line[xix].hlid = NO_HIGHLIGHT
+        line[xix].char = EMPTY_CHAR
+        line[xix].hlid = EMPTY_HIGHLIGHT
       } else {
         if (!sourceLine) continue
         line[xix].char = sourceLine[xix].char
         line[xix].hlid = sourceLine[xix].hlid
-        sourceLine[xix].char = EMPTY
-        sourceLine[xix].hlid = NO_HIGHLIGHT
+        sourceLine[xix].char = EMPTY_CHAR
+        sourceLine[xix].hlid = EMPTY_HIGHLIGHT
       }
     }
   }
@@ -83,15 +91,15 @@ export const moveRegionUp = (id: number, amount: number, top: number, bottom: nu
 
     for (let xix = left; xix <= right; xix++) {
       if (yix === bottom) {
-        line[xix].char = EMPTY
-        line[xix].hlid = NO_HIGHLIGHT
+        line[xix].char = EMPTY_CHAR
+        line[xix].hlid = EMPTY_HIGHLIGHT
       }
       else {
         if (!sourceLine) continue
         line[xix].char = sourceLine[xix].char
         line[xix].hlid = sourceLine[xix].hlid
-        sourceLine[xix].char = EMPTY
-        sourceLine[xix].hlid = NO_HIGHLIGHT
+        sourceLine[xix].char = EMPTY_CHAR
+        sourceLine[xix].hlid = EMPTY_HIGHLIGHT
       }
     }
   }
@@ -106,19 +114,17 @@ export const clear = (id: number) => {
     const lineLength = line.length
 
     for (let charIx = 0; charIx < lineLength; charIx++) {
-      line[charIx].char = EMPTY
-      line[charIx].hlid = NO_HIGHLIGHT
+      line[charIx].char = EMPTY_CHAR
+      line[charIx].hlid = EMPTY_HIGHLIGHT
     }
   }
 }
 
-export const clearLine = (id: number, row: number, col: number) => {
+export const clearLine = (id: number, row: number, start: number, end: number) => {
   const grid = getGrid(id)
-  const line = grid[row]
-  const lineLength = line.length
 
-  for (let charIx = col; charIx < lineLength; charIx++) {
-    line[charIx].char = EMPTY
-    line[charIx].hlid = NO_HIGHLIGHT
+  for (let col = start; col < end; col++) {
+    grid[row][col].char = EMPTY_CHAR
+    grid[row][col].hlid = EMPTY_HIGHLIGHT
   }
 }

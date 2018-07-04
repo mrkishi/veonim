@@ -1,6 +1,7 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { asColor, merge, matchOn, CreateTask, debounce, is } from '../support/utils'
 import { onRedraw, getColor, getMode } from '../core/master-control'
+import { EMPTY_CHAR, EMPTY_HIGHLIGHT } from '../support/constants'
 import { getWindow, applyToWindows } from '../core/windows'
 import * as canvasContainer from '../core/canvas-container'
 import { NotifyKind, notify } from '../ui/notifications'
@@ -8,7 +9,7 @@ import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
 import $, { VimMode } from '../core/state'
 import fontAtlas from '../core/font-atlas'
-import * as grid from '../core/grid'
+import * as grid from '../core/the-grid'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
@@ -166,7 +167,7 @@ const cursorShapeType = (shape?: string) => {
   else return CursorShape.block
 }
 
-const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
+const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const w = getWindow(top, left)
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
@@ -189,10 +190,10 @@ const moveRegionUp = (amount: number, { top, bottom, left, right }: ScrollRegion
     .setColor(colors.bg)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 
-  grid.moveRegionUp(amount, top, bottom, left, right)
+  grid.moveRegionUp(id, amount, top, bottom, left, right)
 }
 
-const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegion) => {
+const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const w = getWindow(top, left)
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
@@ -215,7 +216,7 @@ const moveRegionDown = (amount: number, { top, bottom, left, right }: ScrollRegi
     .setColor(colors.bg)
     .fillRect(left, top, right - left + 1, amount)
 
-  grid.moveRegionDown(amount, top, bottom, left, right)
+  grid.moveRegionDown(id, amount, top, bottom, left, right)
 }
 
 r.option_set = (key, value) => options.set(key, value)
@@ -293,22 +294,28 @@ r.mode_change = async mode => {
 // TODO: info
 r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
 
-// TODO: support multiple grids
-r.grid_clear = id => grid.clear()
-r.grid_resize = (id, width, height) => grid.resize(height, width)
+r.grid_clear = id => grid.clear(id)
+r.grid_destroy = id => grid.destroy(id)
+r.grid_resize = (id, width, height) => grid.resize(id, height, width)
+// TODO: this will tell us which window the cursor belongs in. this means
+// we don't need the whole get active window first before rendering
 r.grid_cursor_goto = (id, row, col) => merge(cursor, { row, col })
-r.grid_destroy = id => console.log('pls nuke grid:', id)
 r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
-  ? moveRegionUp(amount, { top, bottom, left, right })
-  : moveRegionDown(-amount, { top, bottom, left, right })
+  ? moveRegionUp(id, amount, { top, bottom, left, right })
+  : moveRegionDown(id, -amount, { top, bottom, left, right })
 
 
-r.grid_line = (id, row, col, charData: any[]) => {
-  const position = { row, col }
-  const chars = charData.map(([ char, highlightId, repeatCount ]) => ({ char, highlightId, repeatCount }))
-  // TODO: we will get an empty char entry - e.g. { char: " ", repeatCount: 100 }
-  // instead of drawing empty chars to the screen, we should just clear that part of the line
-  console.log(position, ...chars)
+r.grid_line = (id, row, startCol, charData: any[]) => {
+  let col = startCol
+
+  charData
+    .map(([ char, hlid, repeat = 1 ]) => ({ char, hlid, repeat }))
+    .forEach(c => {
+      if (c.char === EMPTY_CHAR) grid.clearLine(id, row, col, col + c.repeat)
+      else if (c.repeat > 1) grid.setLine(id, row, col, col + c.repeat, c.char, c.hlid)
+      else grid.set(id, row, col, c.char, c.hlid)
+      col + c.repeat
+    })
 }
 
 r.highlight_set = (attrs: Attrs) => {
