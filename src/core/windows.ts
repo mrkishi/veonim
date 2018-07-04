@@ -616,7 +616,7 @@ export const collectTaxes = async () => {
   console.log('windows', ...ws)
 }
 
-dispatch.sub('collect-taxes', collectTaxes)
+dispatch.sub('collect-taxes', throttle(collectTaxes, 5))
 
 // export const render = async () => {
 //   const ws = await getWindows()

@@ -271,8 +271,12 @@ r.mode_change = async mode => {
 // TODO: info
 r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
 
-r.grid_clear = id => grid.clear(id)
+r.grid_clear = id => {
+  console.log('grid clear:', id)
+  grid.clear(id)
+}
 r.grid_destroy = id => {
+  console.log('grid destroy:', id)
   grid.destroy(id)
   gridInfo.delete(id)
 }
@@ -291,6 +295,7 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
 r.grid_line = (id, row, startCol, charData: any[]) => {
   let col = startCol
 
+  // console.log('grid line:', id, row)
   charData
     .map(([ char, hlid, repeat = 1 ]) => ({ char, hlid, repeat }))
     .forEach(c => {
@@ -302,7 +307,10 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
     })
 }
 
-r.win_position = (windowId, gridId, row, col, width, height) => gridInfo.set(gridId, { windowId, gridId, row, col, width, height })
+r.win_position = (windowId, gridId, row, col, width, height) => {
+  console.log(`W ${windowId} G ${gridId} - TOP: ${row} LEFT: ${col} WIDTH: ${width} HEIGHT: ${height}`)
+  gridInfo.set(gridId, { windowId, gridId, row, col, width, height })
+}
 
 // r.highlight_set = (attrs: Attrs) => {
 //   const fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
@@ -525,8 +533,9 @@ onRedraw((m: any[]) => {
   // lastScrollRegion = null
   moveCursor(colors.bg)
 
+  // gridInfo.forEach(m => console.log(`W ${m.windowId} G ${m.gridId} - TOP: ${m.row} LEFT: ${m.col} WIDTH: ${m.width} HEIGHT: ${m.height}`))
+
   console.log('---')
-  gridInfo.forEach(m => console.log(`W ${m.windowId} G ${m.gridId} - TOP: ${m.row} LEFT: ${m.col} WIDTH: ${m.width} HEIGHT: ${m.height}`))
 
   dispatch.pub('collect-taxes')
   setImmediate(() => {
