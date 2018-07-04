@@ -272,9 +272,15 @@ r.mode_change = async mode => {
 r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
 
 r.grid_clear = id => grid.clear(id)
-r.grid_destroy = id => grid.destroy(id)
+r.grid_destroy = id => {
+  grid.destroy(id)
+  gridInfo.delete(id)
+}
 // TODO: do we need to reset cursor position after resizing?
-r.grid_resize = (id, width, height) => grid.resize(id, height, width)
+r.grid_resize = (id, width, height) => {
+  console.log('RESIZE:', id, height, width)
+  grid.resize(id, height, width)
+}
 // TODO: this will tell us which window the cursor belongs in. this means
 // we don't need the whole get active window first before rendering
 r.grid_cursor_goto = (id, row, col) => merge(cursor, { row, col })
@@ -516,20 +522,21 @@ onRedraw((m: any[]) => {
     if (process.env.VEONIM_DEV && !fn) console.log(method, args)
   }
 
-  lastScrollRegion = null
+  // lastScrollRegion = null
   moveCursor(colors.bg)
 
   console.log('---')
-  gridInfo.forEach(info => console.log(info))
+  gridInfo.forEach(m => console.log(`W ${m.windowId} G ${m.gridId} - TOP: ${m.row} LEFT: ${m.col} WIDTH: ${m.width} HEIGHT: ${m.height}`))
 
+  dispatch.pub('collect-taxes')
   setImmediate(() => {
     // TODO: this spawns a bunch of window hacks. may need to re-enable, but probably
     // rework the windows logic bound to this event
     // dispatch.pub('redraw')
-    if (!initialAtlasGenerated) initalFontAtlas.done(true)
-    regenerateFontAtlastIfNecessary()
+    // if (!initialAtlasGenerated) initalFontAtlas.done(true)
+    // regenerateFontAtlastIfNecessary()
     getMode().then(m => $.mode = normalizeVimMode(m.mode))
   })
 })
 
-canvasContainer.on('device-pixel-ratio-changed', generateFontAtlas)
+// canvasContainer.on('device-pixel-ratio-changed', generateFontAtlas)

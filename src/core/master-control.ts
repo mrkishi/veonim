@@ -34,7 +34,6 @@ const vimOptions = {
   ext_cmdline: true,
   // TODO: ext_message support not available with multigrid. need to merge and test.
   // ext_messages: true,
-  ext_newgrid: true,
   ext_multigrid: true,
   ext_hlstate: true,
 }
