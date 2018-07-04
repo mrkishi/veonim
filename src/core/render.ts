@@ -13,6 +13,15 @@ import * as grid from '../core/the-grid'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
+interface GridInfo {
+  windowId: number
+  gridId: number
+  row: number
+  col: number
+  width: number
+  height: number
+}
+
 interface Colors {
   fg: string,
   bg: string,
@@ -135,6 +144,7 @@ const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
 const options = new Map<string, any>()
 const highlights = new Map<number, Attrs>()
+const gridInfo = new Map<number, GridInfo>()
 
 // because a Map is higher perf than an object
 const r: Events = new Proxy(api, {
@@ -152,13 +162,6 @@ const nextAttrs: NextAttrs = {
   bg: colors.bg,
   sp: colors.sp,
 }
-
-const defaultScrollRegion = (): ScrollRegion => ({
-  top: 0,
-  left: 0,
-  right: canvasContainer.size.cols,
-  bottom: canvasContainer.size.rows,
-})
 
 const cursorShapeType = (shape?: string) => {
   if (shape === 'block') return CursorShape.block
@@ -221,46 +224,20 @@ const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }
 
 r.option_set = (key, value) => options.set(key, value)
 
-r.cursor_goto = (row, col) => merge(cursor, { col, row })
-r.set_scroll_region = (top, bottom, left, right) => lastScrollRegion = { top, bottom, left, right }
+r.default_colors_set = (fg, bg, sp) => {
+  merge(colors, {
+    fg: asColor(fg),
+    bg: asColor(bg),
+    sp: asColor(sp),
+  })
 
-r.clear = () => {
-  applyToWindows(w => w.setColor(colors.bg).clear())
-  grid.clear()
-}
-
-r.eol_clear = () => {
-  const win = getWindow(cursor.row, cursor.col)
-
-  win && win
-    .setColor(colors.bg)
-    .fillRect(cursor.col, cursor.row, canvasContainer.size.cols, 1)
-
-  grid.clearLine(cursor.row, cursor.col)
-}
-
-r.update_fg = fg => {
-  if (fg < 0) return
-  merge(colors, { fg: asColor(fg) })
   dispatch.pub('colors.vim.fg', colors.fg)
-  $.foreground = colors.fg
-  grid.setForeground(colors.fg)
-}
-
-r.update_bg = bg => {
-  if (bg < 0) return
-  merge(colors, { bg: asColor(bg) })
   dispatch.pub('colors.vim.bg', colors.bg)
-  $.background = colors.bg
-  grid.setBackground(colors.bg)
-}
-
-r.update_sp = sp => {
-  if (sp < 0) return
-  merge(colors, { sp: asColor(sp) })
   dispatch.pub('colors.vim.sp', colors.sp)
+
+  $.foreground = colors.fg
+  $.background = colors.bg
   $.special = colors.sp
-  grid.setSpecial(colors.sp)
 }
 
 r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
@@ -296,6 +273,7 @@ r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
 
 r.grid_clear = id => grid.clear(id)
 r.grid_destroy = id => grid.destroy(id)
+// TODO: do we need to reset cursor position after resizing?
 r.grid_resize = (id, width, height) => grid.resize(id, height, width)
 // TODO: this will tell us which window the cursor belongs in. this means
 // we don't need the whole get active window first before rendering
@@ -303,7 +281,6 @@ r.grid_cursor_goto = (id, row, col) => merge(cursor, { row, col })
 r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })
   : moveRegionDown(id, -amount, { top, bottom, left, right })
-
 
 r.grid_line = (id, row, startCol, charData: any[]) => {
   let col = startCol
@@ -314,31 +291,24 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
       if (c.char === EMPTY_CHAR) grid.clearLine(id, row, col, col + c.repeat)
       else if (c.repeat > 1) grid.setLine(id, row, col, col + c.repeat, c.char, c.hlid)
       else grid.set(id, row, col, c.char, c.hlid)
+
       col + c.repeat
     })
 }
 
-r.highlight_set = (attrs: Attrs) => {
-  const fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
-  const bg = attrs.background ? asColor(attrs.background) : colors.bg
-  const sp = attrs.special ? asColor(attrs.special) : colors.sp
+r.win_position = (windowId, gridId, row, col, width, height) => gridInfo.set(gridId, { windowId, gridId, row, col, width, height })
 
-  attrs.reverse
-    ? merge(nextAttrs, attrDefaults, attrs, { sp, bg: fg, fg: bg })
-    : merge(nextAttrs, attrDefaults, attrs, { sp, fg, bg })
+// r.highlight_set = (attrs: Attrs) => {
+//   const fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
+//   const bg = attrs.background ? asColor(attrs.background) : colors.bg
+//   const sp = attrs.special ? asColor(attrs.special) : colors.sp
 
-  recordColor(nextAttrs.fg)
-}
+//   attrs.reverse
+//     ? merge(nextAttrs, attrDefaults, attrs, { sp, bg: fg, fg: bg })
+//     : merge(nextAttrs, attrDefaults, attrs, { sp, fg, bg })
 
-r.scroll = amount => {
-  amount > 0
-    ? moveRegionUp(amount, lastScrollRegion || defaultScrollRegion())
-    : moveRegionDown(-amount, lastScrollRegion || defaultScrollRegion())
-
-  lastScrollRegion = null
-}
-
-r.resize = () => merge(cursor, { row: 0, col: 0 })
+//   recordColor(nextAttrs.fg)
+// }
 
 
 r.put = chars => {
@@ -548,6 +518,9 @@ onRedraw((m: any[]) => {
 
   lastScrollRegion = null
   moveCursor(colors.bg)
+
+  console.log('---')
+  gridInfo.forEach(info => console.log(info))
 
   setImmediate(() => {
     // TODO: this spawns a bunch of window hacks. may need to re-enable, but probably
