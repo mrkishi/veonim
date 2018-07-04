@@ -2,6 +2,9 @@
 
 ## tasks
 - cleanup deprecated (aka v1 ui protocol) event handlers in render.ts
+- lets not do the resizing bullshit anymore. just define canvas vertical
+  paddings to be char-width / 2
+  - vsep takes up 1 char anyways, so we just subtract total container area cols - 1
 
 ## interestings
 - render event `option_set` has `guifont` and `linespace`. we can use this now instead of our own custom global variables.
