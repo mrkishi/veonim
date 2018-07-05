@@ -20,6 +20,8 @@ vim-search:
 - vim search hide action throwing error window not found. maybe redux, but
   does it do the same in dist mode?
 
+use user menu to create a git branch switcher. add it docs
+
 annotate marks in buffer. experiment with drawing on top of render buffer output?
 - can get mark info via :marks?
 
