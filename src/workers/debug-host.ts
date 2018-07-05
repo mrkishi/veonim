@@ -216,6 +216,23 @@ const getDebugLaunchConfig = (debugType: string) => {
 
 }
 
+// OBSERVATIONS OF NODE-DEBUG2 FROM VSCODE:
+// i'm not sure if debug2 is stupid or if the documentation is stupid.
+//
+// apparently debug2 gets loaded AND activated (.activate() func) on the start of a debug session
+// EVEN THOUGH there are no activationEvents registered... so i guess it's implicit. also i tried
+// starting a debug session on a python file, and it the extension still activated. i'm not sure
+// if this was because i lacked any other debuggers installed, or if ALL extensions get activated
+// when a debug session starts?
+//
+// first of all i would expect it to only start with the right activationEvent registered, but
+// second of all i would expect the extension to only start if the "contributes" section has an
+// entry for the current buffer filetype
+//
+// also, "provideInitialConfiguration" is never called in debug2. not when activation the extension
+// and neither when hitting the "cog wheel" button in vscode to generate a launch.json. i guess
+// it does what it says on the label: only providesInitialConfig when the registered command is called.
+
 // this simulates an async action initiated by a user event
 // the user will start the debug session from the UI
 setTimeout(() => {
