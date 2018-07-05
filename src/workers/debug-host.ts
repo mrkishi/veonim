@@ -116,6 +116,8 @@ const doTheNeedful = async () => {
   // - node-debug2 -> nothing, only a command... wat... how does this start?
   //    - maybe because it's builtin to vscode the startup is hardcoded?
   // - mono-debug -> nothing, only a command... wat??
+  //    - perhaps there is no auto start with mono. readme does not specify
+  //      anything about auto-start. it says either use cmdline flags or launch.json
   //
   // ok so first of all the debugger is initiated via user action.
   // an extension may provide some default config for the debug adapter
