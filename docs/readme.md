@@ -356,6 +356,7 @@ Veonim key-transform hold {"key":";"} e=>({key:';'+e.key})
 - current working directory `:pwd` relative to `g:vn_project_root`
 - current git branch
 - git additions / git deletions
+- language server enabled & activated
 
 ### center section
 - macro recording indicator
