@@ -245,7 +245,7 @@ You like all these fuzzy menus? Why not make your own? Veonim lets you build you
 
 `VeonimMenu(placeholderDescription: string, listItems: string[], onItemSelectHandler: Function)`
 
-Here is an example of a task runner fuzzy menu:
+Here is an example of a "task runner" fuzzy menu:
 
 ```vim
 let g:tasks = {
@@ -270,7 +270,7 @@ nno <silent> <c-'> :call VeonimMenu('run task', keys(g:tasks), {m->RunTask(m)})<
 ## create your own overlay fuzzy menu
 Create your own overlay fuzzy menu. Works like `VeonimMenu` but displays an overlay menu at the current cursor position.
 
-Here is an example of a "search current word on the following website" fuzzy overlay menu:
+Here is an example of a "search current word on the selected website" fuzzy overlay menu:
 
 ```vim
 let g:destinations = {
@@ -286,13 +286,12 @@ fun! OpenBrowser(url) range
   if g:vn_platform == 'darwin' | let cmd = 'open' | endif
   if g:vn_platform == 'linux' | let cmd = 'xdg-open' | endif
   if g:vn_platform == 'win32' | let cmd = 'google-chrome' | endif
-
   call jobstart(cmd . " '" . a:url . "'")
 endfun
 
 fun! SearchWeb(dest, visual) range
   if has_key(g:destinations, a:dest)
-    let base = 'http://www.google.com/search?q='
+    let base = 'https://www.google.com/search?q='
     let query = a:visual ?  getline("'<")[getpos("'<")[2]-1:getpos("'>")[2]] : expand('<cword>')
     let url = base . g:destinations[a:dest] . '%20' . query . '&btnI'
     call OpenBrowser(url)
