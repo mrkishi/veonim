@@ -1,6 +1,6 @@
 # docs
 
-this is documentation. nobody ready documentation tho. this is so sad. can we get 50 likes?
+this is documentation. nobody reads documentation tho. this is so sad can we get 50 likes?
 
 ## quick start copypasta config
 
