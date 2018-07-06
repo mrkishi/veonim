@@ -4,7 +4,7 @@ this is documentation. nobody reads documentation tho. this is so sad can we get
 
 ## quick start copypasta config
 
-Below is a snippet of configuration settings if you just want to quickly try out some Veonim features. It is highly recommended to personalize the settings according to your workflow (especially the keybindings!). See the rest of this guide for more info.
+Below is a copypasta config to quickly get a feel for Veonim. It is highly recommended to personalize the settings according to your workflow (especially the keybindings!). See the rest of this guide for more info.
 
 ```vim
 if exists('veonim')
@@ -42,7 +42,7 @@ nno <silent> <space>fa :Veonim grep<cr>
 nno <silent> <space>ff :Veonim grep-resume<cr>
 nno <silent> <space>fb :Veonim buffer-search<cr>
 
-" misc
+" color picker
 nno <silent> sc :Veonim pick-color<cr>
 
 " language server functions
