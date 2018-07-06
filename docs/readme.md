@@ -10,6 +10,7 @@ Below is a copypasta config to quickly get a feel for Veonim. It is highly recom
 if exists('veonim')
 
 " built-in plugin manager
+Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 
