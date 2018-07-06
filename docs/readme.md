@@ -68,7 +68,7 @@ call VK('s-c-p', 'insert', {->execute('Veonim signature-help-prev')})
 endif
 ```
 
-## design goals
+## design philosophy
 
 The design goal of Veonim is to not replace Vim but extend it. Veonim also tries to leverage existing technologies. Some key points:
 - do not replace core vim functinality unless we can greatly improve on it (e.g. statusline)
@@ -130,6 +130,13 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 ```
 
+## recommended project workspace workflow
+It is recommended to set the workspace / current working directory (`:cd` / `:pwd`) to the project you are currently working on. The workflow is similar to VSCode how one usually opens up a project folder instead of files here and there.
+
+Some features of Veonim will work best with this workflow. For example `:Veonim grep` or `:Veonim files` will look at `:pwd` as a starting point, otherwise default to the user home root.
+
+You can use the Veonim workspace features like `:Veonim change-dir` to easily assign workspaces to the current vim instance. Also with multiplexed vim instances, it is trivial to maintain multiple project workspaces open as each Vim instance will be assigned a project workspace directory.
+
 ## features
 Veonim features are accessible under the `:Veonim` command or `Veonim()` function call. For example, this is how you would use the file fuzzy find with a keybinding:
 
@@ -138,7 +145,7 @@ Veonim features are accessible under the `:Veonim` command or `Veonim()` functio
 You can always explore/run all the Veonim features in the command line with `:Veonim` and browsing the wildmenu list results.
 
 ### workspace features
-- `files` - fuzzy file finder
+- `files` - fuzzy file finder (powered by ripgrep + fuzzy engine from atom)
   - best if used after changing directory with `change-dir` or `:cd` to limit search scope
 - `explorer` - directory/file browser
 - `change-dir` (dir?) - a fuzzy version of `:cd`
@@ -160,6 +167,13 @@ This feature is like going to a multiplex movie theater, where there are multipl
   - optionally accepts a directory path to start from. e.g. `:Veonim vim-create-dir ~/proj`
 
 ### search features
+Realtime fuzzy search in the current project workspace using Ripgrep
+
+- `grep` - open up grep search menu
+- `grep-word` - grep search the current word under the cursor
+- `grep-selection` - grep search the current visual selection
+- `grep-resume` - open up grep search menu with the previous search query
+- `buffer-search` - fuzzy search lines in the current buffer
 
 ### language features
 The following features require a language server extension to be installed and activated for the current filetype.
@@ -207,6 +221,16 @@ Signature help (provide an overlay tooltip for function parameters/docs) is trig
 - `viewport-search` - fuzzy search in the current buffer viewport only. on search completion, display jump-to labels like easymotion (`divination-search`). useful for quickly jumping to another place currently visible in the viewport
 
 ## fuzzy menu keybindings
+In general all fuzzy menus share the same keybindings. These are hardcoded right now, but they will be configurable in the future (once I figure out a good way to do it)
 
-TODO
-these will be configurable in the future...
+`escape` - close menu
+`enter` - close menu and perform action on the currently selected item (like opening a file in the `files` fuzzy menu)
+`tab` - if there are multiple input fields, switch focus between inputs (e.g. `grep` menu)
+`ctrl/cmd + w` - delete word backwards
+`ctrl/cmd + j` - select next item
+`ctrl/cmd + k` - select previous item
+`ctrl/cmd + n` - select next group (usually items grouped by files like in `grep` menu or `problems` menu)
+`ctrl/cmd + p` - select previous group
+`ctrl/cmd + d` - scroll and select an item further down the list
+`ctrl/cmd + u` - scroll and select an item further up the list
+`ctrl/cmd + o` - jump up a directory in any explorer menu (`explorer`, `change-dir`, etc.)
