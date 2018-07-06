@@ -130,6 +130,15 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 ```
 
+## recommended vim plugins
+I'm not in the business of telling you how to live your life, but in the spirit of building a "lightweight modal IDE" I would strongly recommend the following vim plugins:
+
+[vim-polygot](https://github.com/sheerun/vim-polyglot) is a mega bundle of all vim language plugins supporting syntax highlighting, indentation, filetypes, etc. Each language plugin is of course lazy loaded only as needed.
+
+```vim
+Plug 'sheerun/vim-polyglot'
+```
+
 ## recommended project workspace workflow
 It is recommended to set the workspace / current working directory (`:cd` / `:pwd`) to the project you are currently working on. This workflow is similar to opening a folder as the workspace in VSCode.
 
