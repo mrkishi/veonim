@@ -1,8 +1,8 @@
 # docs
 
-here come dat docs boi. ayyy lmao
+this is documentation. nobody ready documentation tho. this is so sad. can we get 50 likes?
 
-## quick start
+## quick start copypasta config
 
 Below is a snippet of configuration settings if you just want to quickly try out some Veonim features. It is highly recommended to personalize the settings according to your workflow (especially the keybindings!). See the rest of this guide for more info.
 
@@ -19,21 +19,21 @@ VeonimExt 'veonim/ext-json'
 VeonimExt 'veonim/ext-html'
 VeonimExt 'vscode:extension/sourcegraph.javascript-typescript'
 
-" root directory to be used for project switcher menu
+" workspace management
 let g:vn_project_root = '~/proj'
+nno <silent> <c-t>p :call Veonim('vim-create-dir', g:vn_project_root)<cr>
+nno <silent> ,r :call Veonim('change-dir', g:vn_project_root)<cr>
 
 " multiplexed vim instance management
 nno <silent> <c-t>c :Veonim vim-create<cr>
 nno <silent> <c-g> :Veonim vim-switch<cr>
 nno <silent> <c-t>, :Veonim vim-rename<cr>
-nno <silent> <c-t>p :call Veonim('vim-create-dir', g:vn_project_root)<cr>
 
 " workspace functions
 nno <silent> ,f :Veonim files<cr>
 nno <silent> ,e :Veonim explorer<cr>
 nno <silent> ,b :Veonim buffers<cr>
 nno <silent> ,d :Veonim change-dir<cr>
-nno <silent> ,r :call Veonim('change-dir', g:vn_project_root)<cr>
 
 " searching text
 nno <silent> <space>fw :Veonim grep-word<cr>
@@ -139,8 +139,25 @@ You can always explore/run all the Veonim features in the command line with `:Ve
 
 ### workspace features
 - `files` - fuzzy file finder
-  - best if used after changing directory with `:cd` to limit search scope
+  - best if used after changing directory with `change-dir` or `:cd` to limit search scope
 - `explorer` - directory/file browser
+- `change-dir` (dir?) - a fuzzy version of `:cd`
+  - optionally accepts a directory path to start from. e.g. `:Veonim change-dir ~/proj`
+- `vim-create-dir` (dir?) - like `change-dir` but create a new multiplexed instance of vim with a directory selected from the fuzzy menu
+  - optionally accepts a directory path to start from. e.g. `:Veonim vim-create-dir ~/proj`
+
+### multiplexed vim sessions
+Veonim supports the ability to run multiple instance of neovim at a time. In my development workflow I prefer to maintain one project per vim instance/session. To switch between projects I simply switch to the respective vim instance that has that project loaded. This way I maintain all tabs, windows, buffers, settings, colorschemes, etc. with its respective project.
+
+When switching between instances the "background" instances are still running, but they are not wired up the user interface.
+
+This feature is like going to a multiplex movie theater, where there are multiple cinema theaters under a single roof. It is the same idea as tmux sessions, i3 workspaces, mac os spaces, etc.
+
+- `vim-create` - create a new vim instance with the given name
+- `vim-rename` - rename the current vim instance
+- `vim-switch` - switch between vim instances with a fuzzy menu
+- `vim-create-dir` - create a new vim instance with a directory selected from the fuzzy menu
+  - optionally accepts a directory path to start from. e.g. `:Veonim vim-create-dir ~/proj`
 
 ### search features
 
@@ -163,10 +180,33 @@ Signature help (provide an overlay tooltip for function parameters/docs) is trig
   - i prefer manually triggering this command from a keybinding, but it could be bound to an event like `CursorHold` to emulate IDE behavior
 - `symbols` - bring up a fuzzy menu to choose a symbol in the current buffer to jump to
 - `workspace-symbols` - like `symbols` but across the entire project workspace. this can be pretty slow on large projects, especially on first usage. this is a limitation of the language server
-- `show-problem` - bring up an overlay describing the problem with the highlighted (underlined) text
 - `highlight` - highlight the current symbol in the buffer
 - `highlight-clear` - clear symbol highlight
+- `next-usage` - jump to the next usage of the symbol under the cursor
+- `prev-usage` - jump to the previous usage of the symbol under the cursor
+- `code-action` - open an overlay menu displaying code action/quick-fix refactorings at the current position. e.g. remove unused declaration, etc.
+- `show-problem` - bring up an overlay describing the problem with the highlighted (underlined) text
+- `next-problem` - jump to the next problem in the current file. if there are no problems in the current file, jump to another file
+- `prev-problem` - jump to the previous problem in the current file. if there are no problems in the current file, jump to another file
+- `problems-toggle` - open or close the Problems list as an overlay at the bottom of the screen. does not focus the menu list
+- `problems-focus` - focus the Problems list. if the Problems list is not open, it will also open it.
 
 ### bonus ~~meme~~ features
+- `fullscreen` - open the Dark Portal and go fullscreen
 - `pick-color` - open a color picker and change the current value under the cursor
 - `modify-colorscheme-live` [experimental] - open a colorscheme file. move cursor to color value. trigger this command. a color picker is opened, and whenever the color is changed in the color picker, the colors are updated across all of vim LIVE. WE'LL DO IT LIVE!
+- `devtools` - open up the devtools if ur an U83R1337H4XX0R
+- `nc` - ehehehehe
+
+### experimental/wip features
+- `TermOpen` - open up a terminal that can be attached
+- `TermAttach` - attach to a terminal session and parse the output for any compiler output adding any errors/warnings to the Problems system in Veonim (underline highlights, problems menu, jump between problems, etc.). this can be really useful for incremental compilers (incremental compiler !== lang serv diagnostics or linter)
+- `TermDetach` - stop parsing terminal output for compiler output
+- `divination` - mark each line with a label. inputting the label keys will jump to that line. like easymotion
+- `divination-search` - mark each search result in the buffer with a label that can be used to jump to (easymotion style)
+- `viewport-search` - fuzzy search in the current buffer viewport only. on search completion, display jump-to labels like easymotion (`divination-search`). useful for quickly jumping to another place currently visible in the viewport
+
+## fuzzy menu keybindings
+
+TODO
+these will be configurable in the future...

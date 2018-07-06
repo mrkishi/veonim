@@ -9,6 +9,10 @@
 - help files missing
 - Veonim buffers a little laggy and flickers windows???
 
+change-dir/vim-create-dir default dir to :pwd if not specified. should we default
+to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
+path displayed in "project" statusline section
+
 debug
 
 vim-search:
@@ -271,6 +275,11 @@ rpc errors send to notifications? (try calling some broken execute() vimscript f
 upgrade ripgrep
 
 --ideas--
+
+if language extension is not installed, provide a install suggestion like vscode
+on buffer load
+
+yes/no popup dialog with shift_ctrl_y/n styled like messages/notifications to the bottom right
 
 readme screen showcase automation
   create demo script to start electron at a certain size
