@@ -82,7 +82,7 @@ The design goal of Veonim is to not replace Vim but extend it. Veonim also tries
 
 Language support is provided via language-servers (https://langserver.org). Technically Veonim is compatible with any programming language that has a language server, however the language server will need to be loaded from a vscode extension. Not all language servers have a vscode extension, but that can change.
 
-The following languages are "verified" to be working with Veonim. More will be verified soon or as demand arises.
+The following languages have been "verified" to work with Veonim. More languages are in the process of being verified.
 
 - typescript - `vscode:extension/sourcegraph.javascript-typescript`
 - javascript - `vscode:extension/sourcegraph.javascript-typescript`
@@ -92,9 +92,9 @@ The following languages are "verified" to be working with Veonim. More will be v
 
 ## extensions
 
-Extensions are installed by adding `VeonimExt 'some-extension-url-here'` to your `init.vim` and reloading the vim configuration, starting a new multiplexed vim session, or restarting Veonim.
+Extensions are installed by adding `VeonimExt 'some-extension-url-here'` to `init.vim`
 
-The extension url can either be a `user-or-organization/repository-name` which will be fetched from Github or a VSCode extension URI.
+The extension url can either be a Github `github-user-or-org/repo-name` or a VSCode extension URI.
 
 Example of a VSCode extension hosted on Github:
 ```
@@ -106,13 +106,13 @@ Example of a VSCode extension:
 VeonimExt 'vscode:extension/sourcegraph.javascript-typescript'
 ```
 
-VSCode extensions can be found on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode). The extension URI can be found by right-clicking the "Install" button and clicking "Copy Link Address" (Firefox) / "Copy??" (Chrome)
+VSCode extensions can be found on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode). The extension URI can be found grabbing the link from the "Install" button of an extension page in the marketplace.
 
-The vscode extension API is not yet 100% compatible with Veonim. It may never be 100%. Compatibility will be added as needed. Right now the focus is on supporting language server extensions and debugger extensions.
+The vscode extension API is not yet 100% compatible with Veonim. It may never be 100% as some features do not make sense in Veonim. Compatibility will be improved as needed. Right now the focus is on supporting language server extensions and debugger extensions.
 
 ## keep init.vim compatible with neovim
 
-It is recommended to wrap all Veonim configuration in `exists('veonim')` block(s) so that your init.vim remains compatible when loaded in neovim (or vim).
+It is recommended to wrap all Veonim configuration in `exists('veonim')` block(s) so that your 'init.vim' remains compatible when loaded in neovim (or vim).
 
 ```vim
 if exists('veonim')
@@ -122,7 +122,7 @@ endif
 
 ## vim plugin manager
 
-Veonim will install/remove any vim plugins into the (n)vim built-in plugin manager directories. Defining plugins can be done by adding `Plug 'github-user-or-org/repo-name'` to your `init.vim`. At this time plugins are downloaded from Github - this may improve.
+Veonim will download and install any vim plugins defined with `Plug 'github-user-or-org/repo-name'` in `init.vim`. At this time plugins are downloaded from Github - this may change to allow additional sources. The built-in vim plugin manager is used for loading plugins - see `:h packages`
 
 Example:
 ```
@@ -131,22 +131,28 @@ Plug 'tpope/vim-commentary'
 ```
 
 ## recommended project workspace workflow
-It is recommended to set the workspace / current working directory (`:cd` / `:pwd`) to the project you are currently working on. The workflow is similar to VSCode how one usually opens up a project folder instead of files here and there.
+It is recommended to set the workspace / current working directory (`:cd` / `:pwd`) to the project you are currently working on. This workflow is similar to opening a folder as the workspace in VSCode.
 
 Some features of Veonim will work best with this workflow. For example `:Veonim grep` or `:Veonim files` will look at `:pwd` as a starting point, otherwise default to the user home root.
 
-You can use the Veonim workspace features like `:Veonim change-dir` to easily assign workspaces to the current vim instance. Also with multiplexed vim instances, it is trivial to maintain multiple project workspaces open as each Vim instance will be assigned a project workspace directory.
+You can use Veonim workspace features like `:Veonim change-dir` to easily assign workspaces to the current vim instance. With multiplexed vim instances it is trivial to maintain multiple project workspaces open: one project workspace per vim instance.
 
 ## features
 Veonim features are accessible under the `:Veonim` command or `Veonim()` function call. For example, this is how you would use the file fuzzy find with a keybinding:
+```
+nnoremap <silent> ,f :Veonim files<cr>
+```
 
-`nnoremap <silent> ,f :Veonim files<cr>`
+The same thing with the function signature:
+```
+nnoremap <silent> ,f :call Veonim('files')<cr>
+```
 
-You can always explore/run all the Veonim features in the command line with `:Veonim` and browsing the wildmenu list results.
+You can always explore/run all available Veonim features in the command line with `:Veonim` and browse the wildmenu list results.
 
 ### workspace features
-- `files` - fuzzy file finder (powered by ripgrep + fuzzy engine from atom)
-  - best if used after changing directory with `change-dir` or `:cd` to limit search scope
+- `files` - fuzzy file finder (powered by ripgrep)
+  - best if used when vim current working directory (`:pwd`) is set to your current project (see `change-dir` or `:cd`). this limits the search scope to the current working directory
 - `explorer` - directory/file browser
 - `change-dir` (dir?) - a fuzzy version of `:cd`
   - optionally accepts a directory path to start from. e.g. `:Veonim change-dir ~/proj`
@@ -154,7 +160,7 @@ You can always explore/run all the Veonim features in the command line with `:Ve
   - optionally accepts a directory path to start from. e.g. `:Veonim vim-create-dir ~/proj`
 
 ### multiplexed vim sessions
-Veonim supports the ability to run multiple instance of neovim at a time. In my development workflow I prefer to maintain one project per vim instance/session. To switch between projects I simply switch to the respective vim instance that has that project loaded. This way I maintain all tabs, windows, buffers, settings, colorschemes, etc. with its respective project.
+Veonim supports the ability to run multiple instances of neovim at a time. In my development workflow I prefer to maintain one project per vim instance. To switch between projects I simply switch to the respective vim instance that has that project loaded. This way I maintain all tabs, windows, buffers, settings, colorschemes, etc. with its respective project.
 
 When switching between instances the "background" instances are still running, but they are not wired up the user interface.
 
@@ -178,20 +184,19 @@ Realtime fuzzy search in the current project workspace using Ripgrep
 ### language features
 The following features require a language server extension to be installed and activated for the current filetype.
 
-Autocomplete is triggered automatically. Choosing options can be done with `Tab` and `Shift-Tab`. Matching is done with a fuzzy-search engine. Automatic triggering and the option choosing keybinds will be changed soon to be opt-in/configurable.
+Autocomplete is triggered automatically. Choosing completions can be done with `Tab` and `Shift-Tab`. Matching is done with a fuzzy-search engine. Keybinds and auto-trigger will be changed soon to be opt-in and configurable.
 
 Autocompletion has two data sources for completion candidates:
-- current buffer keywords (available everywhere)
+- current buffer keywords (available in any buffer)
 - intellisense provided by language servers (available only if language support configured)
 
-Signature help (provide an overlay tooltip for function parameters/docs) is triggered automatically if the current buffer filetype has a valid language server extension installed and activated.
+Signature help (provides an overlay tooltip for function parameters and documentation) is triggered automatically (if supported)
 
 - `definition` - jump to definition
 - `references` - find references
-  - opens up side menu - this menu works just like the grep menu
+  - opens up side menu similar to the grep menu (see "fuzzy menu keybindings" below)
 - `rename` - rename current symbol under cursor
 - `hover` - show symbol information (and docs) in an overlay
-  - i prefer manually triggering this command from a keybinding, but it could be bound to an event like `CursorHold` to emulate IDE behavior
 - `symbols` - bring up a fuzzy menu to choose a symbol in the current buffer to jump to
 - `workspace-symbols` - like `symbols` but across the entire project workspace. this can be pretty slow on large projects, especially on first usage. this is a limitation of the language server
 - `highlight` - highlight the current symbol in the buffer
@@ -208,32 +213,32 @@ Signature help (provide an overlay tooltip for function parameters/docs) is trig
 ### bonus ~~meme~~ features
 - `fullscreen` - open the Dark Portal and go fullscreen
 - `pick-color` - open a color picker and change the current value under the cursor
-- `modify-colorscheme-live` [experimental] - open a colorscheme file. move cursor to color value. trigger this command. a color picker is opened, and whenever the color is changed in the color picker, the colors are updated across all of vim LIVE. WE'LL DO IT LIVE!
 - `devtools` - open up the devtools if ur an U83R1337H4XX0R
 - `nc` - ehehehehe
 
 ### experimental/wip features
 - `TermOpen` - open up a terminal that can be attached
-- `TermAttach` - attach to a terminal session and parse the output for any compiler output adding any errors/warnings to the Problems system in Veonim (underline highlights, problems menu, jump between problems, etc.). this can be really useful for incremental compilers (incremental compiler !== lang serv diagnostics or linter)
+- `TermAttach` - attach to a terminal session and parse the output for any compiler output adding any errors/warnings to the Problems system in Veonim (underline highlights, problems menu, jump between problems, etc.). this can be really useful for incremental compilers (btw: incremental compiler !== lang serv diagnostics or linter)
 - `TermDetach` - stop parsing terminal output for compiler output
 - `divination` - mark each line with a label. inputting the label keys will jump to that line. like easymotion
 - `divination-search` - mark each search result in the buffer with a label that can be used to jump to (easymotion style)
 - `viewport-search` - fuzzy search in the current buffer viewport only. on search completion, display jump-to labels like easymotion (`divination-search`). useful for quickly jumping to another place currently visible in the viewport
+- `modify-colorscheme-live` - open a colorscheme file. move cursor to color value. trigger this command. a color picker is opened, and whenever the color is changed in the color picker, the colors are updated across all of vim LIVE. WE'LL DO IT LIVE!
 
 ## fuzzy menu keybindings
 In general all fuzzy menus share the same keybindings. These are hardcoded right now, but they will be configurable in the future (once I figure out a good way to do it)
 
-`escape` - close menu
-`enter` - close menu and perform action on the currently selected item (like opening a file in the `files` fuzzy menu)
-`tab` - if there are multiple input fields, switch focus between inputs (e.g. `grep` menu)
-`ctrl/cmd + w` - delete word backwards
-`ctrl/cmd + j` - select next item
-`ctrl/cmd + k` - select previous item
-`ctrl/cmd + n` - select next group (usually items grouped by files like in `grep` menu or `problems` menu)
-`ctrl/cmd + p` - select previous group
-`ctrl/cmd + d` - scroll and select an item further down the list
-`ctrl/cmd + u` - scroll and select an item further up the list
-`ctrl/cmd + o` - jump up a directory in any explorer menu (`explorer`, `change-dir`, etc.)
+- `escape` - close menu
+- `enter` - close menu and perform action on the currently selected item (e.g. open file in the `files` fuzzy menu)
+- `tab` - if there are multiple input fields, switch focus between inputs (e.g. `grep` menu)
+- `ctrl/cmd + w` - delete word backwards
+- `ctrl/cmd + j` - select next item
+- `ctrl/cmd + k` - select previous item
+- `ctrl/cmd + n` - select next group (usually items grouped by files like in `grep` menu or `problems` menu)
+- `ctrl/cmd + p` - select previous group
+- `ctrl/cmd + d` - scroll and select an item further down the list
+- `ctrl/cmd + u` - scroll and select an item further up the list
+- `ctrl/cmd + o` - jump up a directory in any explorer menu (`explorer`, `change-dir`, etc.)
 
 ## create your own fuzzy menu
 You like all these fuzzy menus? Why not make your own? Veonim lets you build your own. Call `VeonimMenu` with an input list and a completion handler that will receive the selected item.
@@ -259,6 +264,8 @@ endfun
 
 nno <silent> <c-'> :call VeonimMenu('run task', keys(g:tasks), {m->RunTask(m)})<cr>
 ```
+
+![](https://veonim.github.io/veonim/tasks.png)
 
 ## create your own overlay fuzzy menu
 Create your own overlay fuzzy menu. Works like `VeonimMenu` but displays an overlay menu at the current cursor position.
@@ -295,6 +302,8 @@ endfun
 nno <silent> gd :call VeonimOverlayMenu('search on', keys(g:destinations), {m->SearchWeb(m,0)})<cr>
 vno <silent> gd :call VeonimOverlayMenu('search on', keys(g:destinations), {m->SearchWeb(m,1)})<cr>
 ```
+
+![](https://veonim.github.io/veonim/user-menu.png)
 
 ## open file from terminal in current window
 

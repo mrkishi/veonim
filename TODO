@@ -15,6 +15,10 @@ path displayed in "project" statusline section
 
 debug
 
+autocomplete:
+- do not hardcode 'tab' + 's-tab' keys. user config
+- allow opt-in autocomplete trigger. autocmds? -> enable/disable?
+
 vim-search:
 - dispatch callback events to vim when the vim-search window has closed
 - also pass in the type of search that happened: (forward|backward)
