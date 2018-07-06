@@ -153,7 +153,7 @@ You can always explore/run all available Veonim features in the command line wit
 ### workspace features
 - `files` - fuzzy file finder (powered by ripgrep)
   - best if used when vim current working directory (`:pwd`) is set to your current project (see `change-dir` or `:cd`). this limits the search scope to the current working directory
-- `explorer` - directory/file browser
+- `explorer` - directory/file browser. see [fuzzy menu keybindings](#fuzzy-menu-keybindings)
 - `change-dir` (dir?) - a fuzzy version of `:cd`
   - optionally accepts a directory path to start from. e.g. `:Veonim change-dir ~/proj`
 - `vim-create-dir` (dir?) - like `change-dir` but create a new multiplexed instance of vim with a directory selected from the fuzzy menu
@@ -194,7 +194,7 @@ Signature help (provides an overlay tooltip for function parameters and document
 
 - `definition` - jump to definition
 - `references` - find references
-  - opens up side menu similar to the grep menu (see "fuzzy menu keybindings" below)
+  - opens up side menu similar to the grep menu. see [fuzzy menu keybindings](#fuzzy-menu-keybindings)
 - `rename` - rename current symbol under cursor
 - `hover` - show symbol information (and docs) in an overlay
 - `symbols` - bring up a fuzzy menu to choose a symbol in the current buffer to jump to
@@ -315,10 +315,52 @@ new-js-framework.js    npm-is-a-meme.js    me-gusta.js
 $ vvim new-js-framework.js
 ```
 
-## key remappings
+## remapping input keys
 
-TODO
+### bind keys that vim can't
+Vim can't bind key combinations like `ctrl + shift + e`. Veonim can bind any combination of `cmd/ctrl`, `shift`, `alt`, `meta/super`. We can use the `VK` function to achieve this. For example:
+
+```vim
+"shift + ctrl/cmd + |
+call VK('s-c-|', 'normal', {->execute('Veonim devtools')})
+"shift + ctrl/cmd + n
+call VK('s-c-n', 'insert', {->execute('Veonim signature-help-next')})
+"shift + ctrl/cmd + p
+call VK('s-c-p', 'insert', {->execute('Veonim signature-help-prev')})
+```
+
+### remap modifiers
+It is possible to change keyboard modifiers with `remap-modifier`. For example to swap `ctrl` and `meta`:
+```vim
+Veonim remap-modifier C D
+Veonim remap-modifier D C
+```
+
+### transform key events
+
+If you are familar with key remapping in karabiner/xmodmap/xfb then this concept will be familiar. Basically since we are in a GUI we have access to both `keydown` + `keyup` keyboard events. This allows us to implement some clever remappings. For example:
+
+Remap 'Command' to be 'Command' or 'Escape'. If 'Command' is pressed with another key, send 'Command'. If 'Command' is pressed alone, send 'Escape'.
+```vim
+Veonim key-transform up {"key":"Meta","metaKey":true} e=>({key:'<Esc>'})
+```
+
+Turn `;` key into an extra modifier key. When `;` is being held down, send `semicolon` + the typed key. This allows me to create a mapping like `nno ;n :Veonim next-problem<cr>` and then I can hold down `;` and spam `n` to jump between problems.
+```vim
+Veonim key-transform hold {"key":";"} e=>({key:';'+e.key})
+```
 
 ## statusline
 
-TODO
+### left section
+- current working directory `:pwd` relative to `g:vn_project_root`
+- current git branch
+- git additions / git deletions
+
+### center section
+- macro recording indicator
+
+### right section
+- problem count / warning count
+- cursor line number / column number
+- list of vim tabs (only tab number displayed to condense space - think of it like i3 workspaces)

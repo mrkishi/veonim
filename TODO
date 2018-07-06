@@ -280,6 +280,8 @@ upgrade ripgrep
 
 --ideas--
 
+create a visual configurator for key remapings + key event viewer. it's hard to figure out otherwise
+
 if language extension is not installed, provide a install suggestion like vscode
 on buffer load
 
