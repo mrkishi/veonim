@@ -234,3 +234,83 @@ In general all fuzzy menus share the same keybindings. These are hardcoded right
 `ctrl/cmd + d` - scroll and select an item further down the list
 `ctrl/cmd + u` - scroll and select an item further up the list
 `ctrl/cmd + o` - jump up a directory in any explorer menu (`explorer`, `change-dir`, etc.)
+
+## create your own fuzzy menu
+You like all these fuzzy menus? Why not make your own? Veonim lets you build your own. Call `VeonimMenu` with an input list and a completion handler that will receive the selected item.
+
+`VeonimMenu(placeholderDescription: string, listItems: string[], onItemSelectHandler: Function)`
+
+Here is an example of a task runner fuzzy menu:
+
+```vim
+let g:tasks = {
+\'test': {->jobstart('npm test')},
+\'start': {->jobstart('npm start')},
+\'devtools': {->execute('Veonim devtools')},
+\'fullscreen': {->execute('Veonim fullscreen')}
+\}
+
+fun! RunTask(name)
+  if has_key(g:tasks, a:name)
+    let Func = g:tasks[a:name]
+    call Func()
+  endif
+endfun
+
+nno <silent> <c-'> :call VeonimMenu('run task', keys(g:tasks), {m->RunTask(m)})<cr>
+```
+
+## create your own overlay fuzzy menu
+Create your own overlay fuzzy menu. Works like `VeonimMenu` but displays an overlay menu at the current cursor position.
+
+Here is an example of a "search current word on the following website" fuzzy overlay menu:
+
+```vim
+let g:destinations = {
+\'google': '',
+\'node': 'site:nodejs.org',
+\'mdn': 'site:developer.mozilla.org',
+\'stackoverlow': 'site:stackoverflow.com',
+\'devdocs': 'site:devdocs.io',
+\}
+
+fun! OpenBrowser(url) range
+  "reference: https://stackoverflow.com/questions/8708154/open-current-file-in-web-browser-in-vim
+  if g:vn_platform == 'darwin' | let cmd = 'open' | endif
+  if g:vn_platform == 'linux' | let cmd = 'xdg-open' | endif
+  if g:vn_platform == 'win32' | let cmd = 'google-chrome' | endif
+
+  call jobstart(cmd . " '" . a:url . "'")
+endfun
+
+fun! SearchWeb(dest, visual) range
+  if has_key(g:destinations, a:dest)
+    let base = 'http://www.google.com/search?q='
+    let query = a:visual ?  getline("'<")[getpos("'<")[2]-1:getpos("'>")[2]] : expand('<cword>')
+    let url = base . g:destinations[a:dest] . '%20' . query . '&btnI'
+    call OpenBrowser(url)
+  endif
+endfun
+
+nno <silent> gd :call VeonimOverlayMenu('search on', keys(g:destinations), {m->SearchWeb(m,0)})<cr>
+vno <silent> gd :call VeonimOverlayMenu('search on', keys(g:destinations), {m->SearchWeb(m,1)})<cr>
+```
+
+## open file from terminal in current window
+
+When you are in `:term` you can open a file in the current window with the `vvim` executable - it is included and configured for Veonim terminals.
+
+Like this:
+```
+$ ls
+new-js-framework.js    npm-is-a-meme.js    me-gusta.js
+$ vvim new-js-framework.js
+```
+
+## key remappings
+
+TODO
+
+## statusline
+
+TODO
