@@ -280,6 +280,11 @@ upgrade ripgrep
 
 --ideas--
 
+supercharge the vim command line menu. provide menu completions automatically. fuzzy find results.
+can we provide a snippet of documentation for the selected menu item? for vim items this can be
+the first line from :h. For Veonim we can load from custom place.
+- using the same system to make a :Veonim only menu - bind to ctrl_shift_p?
+
 create a visual configurator for key remapings + key event viewer. it's hard to figure out otherwise
 
 if language extension is not installed, provide a install suggestion like vscode
