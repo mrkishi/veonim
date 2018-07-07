@@ -10,6 +10,7 @@ import * as dispatch from '../messaging/dispatch'
 import $, { VimMode } from '../core/state'
 import fontAtlas from '../core/font-atlas'
 import * as grid from '../core/the-grid'
+import { setWindow, setWindowGridSize } from '../core/windows2'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
@@ -283,7 +284,11 @@ r.grid_destroy = id => {
 // TODO: do we need to reset cursor position after resizing?
 r.grid_resize = (id, width, height) => {
   console.log('RESIZE:', id, height, width)
+  setWindowGridSize(id, width, height)
   grid.resize(id, height, width)
+  // this may be redundant since win_position gets called before anyways
+  const prev = gridInfo.get(id) || {}
+  gridInfo.set(id, merge(prev, { width, height }))
 }
 // TODO: this will tell us which window the cursor belongs in. this means
 // we don't need the whole get active window first before rendering
@@ -295,7 +300,7 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
 r.grid_line = (id, row, startCol, charData: any[]) => {
   let col = startCol
 
-  // console.log('grid line:', id, row)
+  console.log('grid line:', id, row)
   charData
     .map(([ char, hlid, repeat = 1 ]) => ({ char, hlid, repeat }))
     .forEach(c => {
@@ -308,6 +313,7 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 }
 
 r.win_position = (windowId, gridId, row, col, width, height) => {
+  setWindow(windowId, gridId, row, col, width, height)
   console.log(`W ${windowId} G ${gridId} - TOP: ${row} LEFT: ${col} WIDTH: ${width} HEIGHT: ${height}`)
   gridInfo.set(gridId, { windowId, gridId, row, col, width, height })
 }
@@ -535,7 +541,13 @@ onRedraw((m: any[]) => {
 
   // gridInfo.forEach(m => console.log(`W ${m.windowId} G ${m.gridId} - TOP: ${m.row} LEFT: ${m.col} WIDTH: ${m.width} HEIGHT: ${m.height}`))
 
+  // TODO: process:
+  // win_position / grid_resize resize the canvas. do we have to redraw canvas on resize?
+  // on grid_line/scroll/clear update canvas
+  // when redraw event complete, recalc/layout/redraw the HTML window containers
+
   console.log('---')
+  console.log(...[...gridInfo])
 
   dispatch.pub('collect-taxes')
   setImmediate(() => {
