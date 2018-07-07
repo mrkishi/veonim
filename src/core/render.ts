@@ -282,17 +282,19 @@ r.grid_destroy = id => {
   gridInfo.delete(id)
 }
 // TODO: do we need to reset cursor position after resizing?
-r.grid_resize = (id, width, height) => {
-  console.log('RESIZE:', id, height, width)
-  setWindowGridSize(id, width, height)
-  grid.resize(id, height, width)
-  // this may be redundant since win_position gets called before anyways
-  const prev = gridInfo.get(id) || {}
-  gridInfo.set(id, merge(prev, { width, height }))
-}
+// TODO: i think this event is redundant with win_position. enable if not true
+// r.grid_resize = (id, width, height) => {
+//   console.log('RESIZE:', id, height, width)
+//   setWindowGridSize(id, width, height)
+//   grid.resize(id, height, width)
+//   // this may be redundant since win_position gets called before anyways
+//   const prev = gridInfo.get(id) || {}
+//   gridInfo.set(id, merge(prev, { width, height }))
+// }
 // TODO: this will tell us which window the cursor belongs in. this means
 // we don't need the whole get active window first before rendering
 r.grid_cursor_goto = (id, row, col) => merge(cursor, { row, col })
+
 r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })
   : moveRegionDown(id, -amount, { top, bottom, left, right })

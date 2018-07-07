@@ -1,17 +1,29 @@
-import WindowNameplate from '../core/window-nameplate'
-import WindowCanvas from '../core/window-canvas'
+import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
+import CreateWindowNameplate from '../core/window-nameplate'
+import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
-interface WindowSizePos {
+interface WindowLayout {
   row: number
   col: number
   width: number
   height: number
 }
 
-export interface Window extends WindowSizePos {
+interface WindowInfo extends WindowLayout {
   id: number
   gridId: number
+}
+
+export interface Window {
+  canvas: WindowCanvas
+  element: HTMLElement
+  getWindowSizeAndPosition(): WindowLayout
+  setWindowInfo(info: WindowInfo): void
+  setCssGridAttributes(attributes: string): void
+  addOverlayElement(element: HTMLElement): void
+  removeOverlayElement(element: HTMLElement): void
+  destroy(): void
 }
 
 export interface Cell {
@@ -32,9 +44,8 @@ export interface Font {
 //    - overlay
 //    - canvas
 
-export default (winn: Window, { font, cell }: { font: Font, cell: Cell }) => {
-  let win = winn
-  // const win: Window = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
+export default ({ font, cell }: { font: Font, cell: Cell }) => {
+  const win: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
 
   const container = makel({
     flexFlow: 'column',
@@ -50,8 +61,8 @@ export default (winn: Window, { font, cell }: { font: Font, cell: Cell }) => {
     position: 'absolute',
   })
 
-  const nameplate = WindowNameplate()
-  const canvas = WindowCanvas({ font, cell })
+  const nameplate = CreateWindowNameplate()
+  const canvas = CreateWindowCanvas({ font, cell })
 
   content.appendChild(overlay)
   content.appendChild(canvas.element)
@@ -59,32 +70,32 @@ export default (winn: Window, { font, cell }: { font: Font, cell: Cell }) => {
   container.appendChild(nameplate.element)
   container.appendChild(content)
 
-  const setWindowSizeAndPosition = () => {
+  const api = {
+    get canvas() { return canvas.api },
+    get element() { return container },
+  } as Window
 
+  api.setWindowInfo = info => merge(win, info)
+
+  api.getWindowSizeAndPosition = () => {
+    const { row, col, width, height } = win
+    return { row, col, width, height }
   }
 
-  const getWindowSizeAndPosition = (): WindowSizePos => {
-    return { row: 0, col: 0, width: 0, height: 0 }
-  }
-
-  const setCssGridAttributes = () => {
+  api.setCssGridAttributes = () => {
     // TODO: set window div element size/pos from css grid attrs
   }
 
-  const addOverlayElement = () => {
-
+  api.addOverlayElement = element => {
+    overlay.appendChild(element)
+    return () => overlay.removeChild(element)
   }
 
-  const removeOverlayElement = () => {
+  api.removeOverlayElement = el => overlay.contains(el) && overlay.removeChild(el)
 
+  api.destroy = () => {
+    // TODO: destroy elements, cleanup, destroy canvas, components, anything else thanks etc.
   }
 
-  return {
-    get canvas() { return canvas.api },
-    getWindowSizeAndPosition,
-    setWindowSizeAndPosition,
-    setCssGridAttributes,
-    addOverlayElement,
-    removeOverlayElement,
-  }
+  return api
 }

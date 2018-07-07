@@ -25,25 +25,25 @@ export interface Specs {
   paddingY: number
 }
 
-export interface CanvasWindow {
+export interface WindowCanvas {
   getSpecs(): Specs
-  setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): CanvasWindow
+  setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): WindowCanvas
   rowToY(row: number): number
   rowToTransformY(row: number): number
   relativeRowToY(row: number): number
   realtivePositionToPixels(row: number, col: number): { x: number, y: number }
   cellsToPixelWidth(cells: number): number
   colToX(col: number): number
-  resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow
-  moveRegion(region: TransferRegion): CanvasWindow
-  fillText(text: string, col: number, row: number): CanvasWindow
-  fillRect(col: number, row: number, width: number, height: number): CanvasWindow
-  underline(col: number, row: number, width: number, color: string): CanvasWindow
-  setTextBaseline(mode: string): CanvasWindow
-  clear(): CanvasWindow
+  resize(canvasBox: HTMLElement, initBackgroundColor: string): WindowCanvas
+  moveRegion(region: TransferRegion): WindowCanvas
+  fillText(text: string, col: number, row: number): WindowCanvas
+  fillRect(col: number, row: number, width: number, height: number): WindowCanvas
+  underline(col: number, row: number, width: number, color: string): WindowCanvas
+  setTextBaseline(mode: string): WindowCanvas
+  clear(): WindowCanvas
   whereLine(row: number): { x: number, y: number, width: number }
   getCursorPosition(row: number, col: number): { x: number, y: number }
-  setColor(color: string): CanvasWindow
+  setColor(color: string): WindowCanvas
   readonly width: string
   readonly height: string
 }
@@ -85,7 +85,7 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
   const api = {
     get width() { return canvas.style.width },
     get height() { return canvas.style.height },
-  } as CanvasWindow
+  } as WindowCanvas
 
   api.getSpecs = () => specs
   api.setSpecs = (row, col, height, width, paddingX = 0, paddingY = 0) => (merge(specs, { row, col, height, width, paddingX, paddingY }), api)
