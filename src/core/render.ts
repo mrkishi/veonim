@@ -186,15 +186,14 @@ const lineProcessor = (id: number) => {
   const { grid, canvas } = getWindow(id)
 
   const clear = (cell: CellData, row: number, col: number) => {
-    grid.clearLine(row, col, col + cell.repeat)
     canvas
       .setColor(cell.background)
       .fillRect(col, row, cell.repeat, 1)
+
+    grid.clearLine(row, col, col + cell.repeat)
   }
 
   const fillRepeat = (cell: CellData, row: number, col: number) => {
-    grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
-
     canvas
       .setColor(cell.background)
       .fillRect(col, row, cell.repeat, 1)
@@ -203,10 +202,11 @@ const lineProcessor = (id: number) => {
     for (let ix = 0; ix < cell.repeat; ix++) canvas.fillText(cell.char, col + ix, row)
 
     if (cell.underline) canvas.underline(col, row, cell.repeat, cell.special)
+
+    grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
   }
 
   const fill = (cell: CellData, row: number, col: number) => {
-    grid.setCell(row, col, cell.char, cell.hlid)
     canvas
       .setColor(cell.background)
       .fillRect(col, row, 1, 1)
@@ -214,6 +214,8 @@ const lineProcessor = (id: number) => {
       .fillText(cell.char, col, row)
 
     if (cell.underline) canvas.underline(col, row, 1, cell.special)
+
+    grid.setCell(row, col, cell.char, cell.hlid)
   }
 
   return { clear, fillRepeat, fill }

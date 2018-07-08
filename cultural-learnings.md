@@ -5,7 +5,6 @@
   that as we are already looping thru to map to cell. just make it stateful and keep hlid ref
   around. this should speed it up a bit
 - charDataToCell a bit slow. how can we speed it up? maybe don't use map + create objects?
-- defer updating of grids (WindowGrid) as they are not used immediatly. rendering to canvas should be highest priority
 - resize canvas and canvasBox when `win_position` updates
   - see TODO in `window-canvas :: api.resize`
 - layout windows using css grid
