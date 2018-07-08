@@ -143,7 +143,7 @@ export default () => {
   api.clear = () => (ui.fillRect(0, 0, canvas.width, canvas.height), api)
 
   const drawText = (char: string, col: number, row: number) => {
-    const maxCharWidth = cell.width
+    // const maxCharWidth = cell.width
     // TODO: i didn't see any changes to rendering artifacts, but then again i didn't
     // have any good test cases. right now if we do a pretty diff-so-fancy git diff output
     // the filename header sections uses a unicode char dash that is wider than the normal
@@ -152,12 +152,12 @@ export default () => {
     // tested yet. we should create an official test suite using the offending unicode char
     // and draw it in different places on the grid. then we can see if this maxWidth param
     // works as described or we need to come up with an alternative strategy
-    ui.fillText(char, px.col.x(col), px.row.y(row) + cell.padding, maxCharWidth)
+    ui.fillText(char, px.col.x(col), px.row.y(row) + cell.padding, /*maxCharWidth*/)
     return api
   }
 
   api.fillText = (char, col, row) => {
-    if (!is.string(char)) return api
+    if (typeof char !== 'string') return api
     if (!fontAtlas.exists) return drawText(char, col, row)
 
     const pos = fontAtlas.getCharPosition(char, ui.fillStyle as string)
