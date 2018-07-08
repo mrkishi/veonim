@@ -28,7 +28,7 @@ sub('colors.vim.bg', color => {
 
 canvasContainer.on('resize', ({ rows, cols }) => {
   resize(cols, rows)
-  setImmediate(() => windows.render())
+  // setImmediate(() => windows.render())
 })
 
 const main = async () => {

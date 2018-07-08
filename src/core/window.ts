@@ -1,6 +1,8 @@
 import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
 import CreateWindowGrid, { WindowGrid } from '../core/window-grid'
+import { DEFAULT_BACKGROUND_COLOR } from '../support/constants'
 import CreateWindowNameplate from '../core/window-nameplate'
+import { Font, Cell, Pad } from '../core/canvas-container'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
@@ -22,22 +24,11 @@ export interface Window {
   element: HTMLElement
   getWindowSizeAndPosition(): WindowLayout
   setWindowInfo(info: WindowInfo): void
+  setDefaultBackgroundColor(color: string): void
   setCssGridAttributes(attributes: string): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
   destroy(): void
-}
-
-export interface Cell {
-  height: number
-  width: number
-  padding: number
-}
-
-export interface Font {
-  face: string
-  size: number
-  lineHeight: number
 }
 
 // container
@@ -46,9 +37,10 @@ export interface Font {
 //    - overlay
 //    - canvas
 
-export default ({ font, cell }: { font: Font, cell: Cell }) => {
+export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
   const grid = CreateWindowGrid()
+  let defaultBackgroundColor = DEFAULT_BACKGROUND_COLOR
 
   const container = makel({
     flexFlow: 'column',
@@ -65,7 +57,7 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
   })
 
   const nameplate = CreateWindowNameplate()
-  const canvas = CreateWindowCanvas({ font, cell })
+  const canvas = CreateWindowCanvas({ font, cell, pad })
 
   content.appendChild(overlay)
   content.appendChild(canvas.element)
@@ -79,7 +71,13 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
     get element() { return container },
   } as Window
 
-  api.setWindowInfo = info => merge(wininfo, info)
+  api.setDefaultBackgroundColor = color => defaultBackgroundColor = color
+
+  api.setWindowInfo = info => {
+    merge(wininfo, info)
+    grid.resize(info.height, info.width)
+    canvas.api.resize(info.height, info.width, defaultBackgroundColor)
+  }
 
   api.getWindowSizeAndPosition = () => {
     const { row, col, width, height } = wininfo

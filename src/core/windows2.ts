@@ -1,5 +1,5 @@
+import { font, cell, pad } from '../core/canvas-container'
 import CreateWindow, { Window } from '../core/window'
-import { font, cell } from '../core/canvas-container'
 import { merge } from '../support/utils'
 
 const container = document.getElementById('windows') as HTMLElement
@@ -20,8 +20,9 @@ merge(container.style, {
 const windows = new Map<number, Window>()
 
 export const setWindow = (id: number, gridId: number, row: number, col: number, width: number, height: number) => {
-  const win = windows.get(gridId) || CreateWindow({ font, cell })
+  const win = windows.get(gridId) || CreateWindow({ font, cell, pad })
   win.setWindowInfo({ id, gridId, row, col, width, height })
+  if (!windows.has(gridId)) windows.set(gridId, win)
   container.appendChild(win.element)
 }
 
@@ -36,7 +37,7 @@ export const removeWindow = (gridId: number) => {
 
 export const getWindow = (gridId: number) => {
   const win = windows.get(gridId)
-  if (!win) throw new Error(`trying to get window grid that does not exist ${gridId}`)
+  if (!win) throw new Error(`trying to get window that does not exist ${gridId}`)
   return win
 }
 

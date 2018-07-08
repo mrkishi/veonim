@@ -165,8 +165,8 @@ const getHighlightGroup = (hlid: number): HighlightGroup => {
 }
 
 const charDataToCell = (data: any[]): CellData[] => data.map(([ char, hlid, repeat = 1 ], ix) => { 
-  // the first charData will always have a hlid
-  const validHlid = hlid || data[ix - 1][0]
+  const lastIndex = ix ? ix - 1 : 0
+  const validHlid = hlid || data[lastIndex][1]
 
   return {
     char,
@@ -265,6 +265,9 @@ const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }
   grid.moveRegionDown(amount, top, bottom, left, right)
 }
 
+// grid: 1 is the global grid - not used with ext_multigrid
+const checkSkipDefaultGrid = (id: number) => id === 1
+
 r.option_set = (key, value) => options.set(key, value)
 
 r.default_colors_set = (fg, bg, sp) => {
@@ -281,6 +284,17 @@ r.default_colors_set = (fg, bg, sp) => {
   $.foreground = defaultColors.foreground
   $.background = defaultColors.background
   $.special = defaultColors.special
+
+  // hlid 0 -> default highlight group
+  highlights.set(0, {
+    foreground: defaultColors.foreground,
+    background: defaultColors.background,
+    special: defaultColors.special,
+    underline: false,
+    reverse: false,
+    italic: false,
+    bold: false,
+  })
 }
 
 r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
@@ -325,12 +339,16 @@ r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
 })
 
 r.grid_clear = id => {
+  if (checkSkipDefaultGrid(id)) return
   const { grid, canvas } = getWindow(id)
   grid.clear()
   canvas.clear()
 }
 
-r.grid_destroy = id => removeWindow(id)
+r.grid_destroy = id => {
+  if (checkSkipDefaultGrid(id)) return
+  removeWindow(id)
+}
 
 // TODO: do we need to reset cursor position after resizing?
 // TODO: i think this event is redundant with win_position. enable if not true
@@ -347,6 +365,8 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   : moveRegionDown(id, -amount, { top, bottom, left, right })
 
 r.grid_line = (id, row, startCol, charData: any[]) => {
+  if (checkSkipDefaultGrid(id)) return
+
   let col = startCol
   const processLine = lineProcessor(id)
   const cellData = charDataToCell(charData)

@@ -608,6 +608,7 @@ const controlShadowBuffer = (id: number, name: string, active: boolean, containe
 }
 
 export const render = async () => {
+  console.log('WRENDER WINDOWS')
   const ws = await getWindows()
 
   const closedWindows = getClosedWindows(ws)
@@ -703,4 +704,4 @@ export const render = async () => {
   setImmediate(() => dispatch.pub('windows:redraw'))
 }
 
-dispatch.sub('redraw', throttle(render, 5))
+// dispatch.sub('redraw', throttle(render, 5))

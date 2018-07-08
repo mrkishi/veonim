@@ -3,10 +3,27 @@ const robotoSizes = require('../assets/roboto-sizes.json')
 import * as electron from 'electron'
 import { setVar } from '../ui/css'
 
-export interface Font {
+export interface SetFontParams {
   face?: string,
   size?: number,
   lineHeight?: number,
+}
+
+export interface Cell {
+  height: number
+  width: number
+  padding: number
+}
+
+export interface Font {
+  face: string
+  size: number
+  lineHeight: number
+}
+
+export interface Pad {
+  x: number
+  y: number
 }
 
 const watchers = new Watchers()
@@ -24,6 +41,11 @@ const _font = {
   face: 'Roboto Mono Builtin',
   size: 14,
   lineHeight: 1.5,
+}
+
+const _pad = {
+  x: 4,
+  y: 8,
 }
 
 const _cell = {
@@ -49,7 +71,7 @@ const getCharWidth = (font: string, size: number): number => {
   return floatWidth || possibleSize
 }
 
-export const setFont = ({ size, lineHeight, face = _font.face }: Font) => {
+export const setFont = ({ size, lineHeight, face = _font.face }: SetFontParams) => {
   const fontSize = !size || isNaN(size) ? _font.size : size
   const fontLineHeight = !lineHeight || isNaN(lineHeight) ? _font.lineHeight : lineHeight
 
@@ -64,6 +86,9 @@ export const setFont = ({ size, lineHeight, face = _font.face }: Font) => {
     width: getCharWidth(face, fontSize),
     height: Math.floor(fontSize * fontLineHeight)
   })
+
+  _pad.x = Math.round(_cell.width / 2)
+  _pad.y = _pad.x + 4
 
   _cell.padding = Math.floor((_cell.height - _font.size) / 2)
 
@@ -89,6 +114,11 @@ export const redoResize = (rows: number, cols: number) => {
 }
 
 export const on = (event: string, handler: (data: any) => void) => watchers.add(event, handler)
+
+export const pad = {
+  get x() { return _pad.x },
+  get y() { return _pad.y },
+}
 
 export const size = {
   get rows() { return _size.rows },

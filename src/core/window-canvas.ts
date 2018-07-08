@@ -1,5 +1,5 @@
+import { Cell, Font, Pad } from '../core/canvas-container'
 import { is, merge } from '../support/utils'
-import { Cell, Font } from '../core/window'
 import fontAtlas from '../core/font-atlas'
 import { makel } from '../ui/vanilla'
 
@@ -26,15 +26,13 @@ export interface Specs {
 }
 
 export interface WindowCanvas {
-  getSpecs(): Specs
-  setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): WindowCanvas
   rowToY(row: number): number
   rowToTransformY(row: number): number
   relativeRowToY(row: number): number
   realtivePositionToPixels(row: number, col: number): { x: number, y: number }
   cellsToPixelWidth(cells: number): number
   colToX(col: number): number
-  resize(canvasBox: HTMLElement, initBackgroundColor: string): WindowCanvas
+  resize(rows: number, cols: number, initBackgroundColor: string): WindowCanvas
   moveRegion(region: TransferRegion): WindowCanvas
   fillText(text: string, col: number, row: number): WindowCanvas
   fillRect(col: number, row: number, width: number, height: number): WindowCanvas
@@ -48,7 +46,7 @@ export interface WindowCanvas {
   readonly height: string
 }
 
-export default ({ font, cell }: { font: Font, cell: Cell }) => {
+export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
   const container = makel({
     flex: 1,
     display: 'flex',
@@ -59,8 +57,8 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
 
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
-  const specs = { row: 0, col: 0, height: 0, width: 0, paddingX: 0, paddingY: 0 }
   const canvasBoxDimensions = { x: 0, y: 0, height: 0, width: 0 }
+  const size = { rows: 0, cols: 0 }
   const canvasDimensions = { height: 0 }
 
   ui.imageSmoothingEnabled = false
@@ -72,13 +70,13 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
       height: (row: number, scaled = false) =>
         Math.floor(row * cell.height * (scaled ? window.devicePixelRatio : 1)),
       y: (row: number, scaled = false) =>
-        px.row.height(row - specs.row, scaled) + (specs.paddingY * (scaled ? window.devicePixelRatio : 1)),
+        px.row.height(row, scaled) + (pad.y * (scaled ? window.devicePixelRatio : 1)),
     },
     col: {
       width: (col: number, scaled = false) =>
         Math.floor(col * cell.width * (scaled ? window.devicePixelRatio : 1)),
       x: (col: number, scaled = false) =>
-        px.col.width(col - specs.col, scaled) + (specs.paddingX * (scaled ? window.devicePixelRatio : 1)),
+        px.col.width(col, scaled) + (pad.x * (scaled ? window.devicePixelRatio : 1)),
     }
   }
 
@@ -86,9 +84,6 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
     get width() { return canvas.style.width },
     get height() { return canvas.style.height },
   } as WindowCanvas
-
-  api.getSpecs = () => specs
-  api.setSpecs = (row, col, height, width, paddingX = 0, paddingY = 0) => (merge(specs, { row, col, height, width, paddingX, paddingY }), api)
 
   api.colToX = col => canvasBoxDimensions.x + px.col.x(col)
   api.rowToY = row => canvasBoxDimensions.y + px.row.y(row)
@@ -98,14 +93,14 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
   // TODO: consumers of this should also add title height
   // because i suck at css
   api.rowToTransformY = row => canvasBoxDimensions.y + px.row.y(row)
-  api.relativeRowToY = row => (cell.height * row) + specs.paddingY + cell.padding
+  api.relativeRowToY = row => (cell.height * row) + pad.y + cell.padding
   api.realtivePositionToPixels = (row, col) => ({
     y: px.row.y(row),
     x: px.col.x(col),
   })
 
-  const grabCanvasBoxDimensions = (canvasBox: HTMLElement) => setImmediate(() => {
-    const { top: y, left: x, height, width } = canvasBox.getBoundingClientRect()
+  const grabCanvasBoxDimensions = () => setImmediate(() => {
+    const { top: y, left: x, height, width } = container.getBoundingClientRect()
     merge(canvasBoxDimensions, { y, x, height, width })
   })
 
@@ -115,10 +110,11 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
   const scrollReadjustAmount = () => (canvasDimensions.height - canvasBoxDimensions.height)
     + cell.padding
 
-  api.resize = (canvasBox, initBackgroundColor) => {
+  api.resize = (rows, cols, initBackgroundColor) => {
+    merge(size, { rows, cols })
     const { height, width } = container.getBoundingClientRect()
 
-    const vimHeight = px.row.height(specs.height) + (specs.paddingY * 2)
+    const vimHeight = px.row.height(rows) + (pad.y * 2)
     const heightToUse = Math.round(Math.max(height, vimHeight))
 
     canvas.height = Math.round(heightToUse * window.devicePixelRatio)
@@ -133,7 +129,7 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
     ui.fillRect(0, 0, canvas.width, canvas.height)
 
     canvasDimensions.height = heightToUse
-    grabCanvasBoxDimensions(canvasBox)
+    grabCanvasBoxDimensions()
 
     return api
   }
