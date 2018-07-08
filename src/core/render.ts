@@ -1,27 +1,17 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { asColor, merge, matchOn, CreateTask, debounce, is } from '../support/utils'
+import { setWindow, removeWindow, getWindowCanvas, getWindowGrid } from '../core/windows2'
+import { asColor, merge, CreateTask, debounce, is } from '../support/utils'
 import { onRedraw, getColor, getMode } from '../core/master-control'
-import { EMPTY_CHAR, EMPTY_HIGHLIGHT } from '../support/constants'
-import { getWindow, applyToWindows } from '../core/windows'
-import * as canvasContainer from '../core/canvas-container'
-import { NotifyKind, notify } from '../ui/notifications'
+import { EMPTY_CHAR } from '../support/constants'
+import { getWindow } from '../core/windows'
+// import * as canvasContainer from '../core/canvas-container'
+// import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
 import $, { VimMode } from '../core/state'
 import fontAtlas from '../core/font-atlas'
-import * as grid from '../core/the-grid'
-import { setWindow, setWindowGridSize } from '../core/windows2'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
-
-interface GridInfo {
-  windowId: number
-  gridId: number
-  row: number
-  col: number
-  width: number
-  height: number
-}
 
 interface Colors {
   fg: string,
@@ -145,7 +135,6 @@ const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
 const options = new Map<string, any>()
 const highlights = new Map<number, Attrs>()
-const gridInfo = new Map<number, GridInfo>()
 
 // because a Map is higher perf than an object
 const r: Events = new Proxy(api, {
@@ -273,23 +262,16 @@ r.mode_change = async mode => {
 r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
 
 r.grid_clear = id => {
-  console.log('grid clear:', id)
-  grid.clear(id)
+  getWindowGrid(id).clear()
+  getWindowCanvas(id).clear()
 }
-r.grid_destroy = id => {
-  console.log('grid destroy:', id)
-  grid.destroy(id)
-  gridInfo.delete(id)
-}
+
+r.grid_destroy = id => removeWindow(id)
+
 // TODO: do we need to reset cursor position after resizing?
 // TODO: i think this event is redundant with win_position. enable if not true
 // r.grid_resize = (id, width, height) => {
 //   console.log('RESIZE:', id, height, width)
-//   setWindowGridSize(id, width, height)
-//   grid.resize(id, height, width)
-//   // this may be redundant since win_position gets called before anyways
-//   const prev = gridInfo.get(id) || {}
-//   gridInfo.set(id, merge(prev, { width, height }))
 // }
 // TODO: this will tell us which window the cursor belongs in. this means
 // we don't need the whole get active window first before rendering
@@ -299,70 +281,92 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })
   : moveRegionDown(id, -amount, { top, bottom, left, right })
 
+const charDataToCell = (data: any[]) => data.map(([ char, hlid, repeat = 1 ], ix, arr) => ({
+  char,
+  repeat,
+  // the first charData cell will always have a hlid
+  hlid: hlid || arr[ix - 1][0],
+  // TODO: would be good to map to attribute fields, etc
+  // background:
+  // foreground:
+  // underline:
+}))
+
 r.grid_line = (id, row, startCol, charData: any[]) => {
   let col = startCol
+  const cellData = charDataToCell(charData)
 
-  console.log('grid line:', id, row)
-  charData
-    .map(([ char, hlid, repeat = 1 ]) => ({ char, hlid, repeat }))
-    .forEach(c => {
-      if (c.char === EMPTY_CHAR) grid.clearLine(id, row, col, col + c.repeat)
-      else if (c.repeat > 1) grid.setLine(id, row, col, col + c.repeat, c.char, c.hlid)
-      else grid.set(id, row, col, c.char, c.hlid)
+  const grid = getWindowGrid(id)
+  const canvas = getWindowCanvas(id)
 
-      col + c.repeat
-    })
-}
-
-r.win_position = (windowId, gridId, row, col, width, height) => {
-  setWindow(windowId, gridId, row, col, width, height)
-  console.log(`W ${windowId} G ${gridId} - TOP: ${row} LEFT: ${col} WIDTH: ${width} HEIGHT: ${height}`)
-  gridInfo.set(gridId, { windowId, gridId, row, col, width, height })
-}
-
-// r.highlight_set = (attrs: Attrs) => {
-//   const fg = attrs.foreground ? asColor(attrs.foreground) : colors.fg
-//   const bg = attrs.background ? asColor(attrs.background) : colors.bg
-//   const sp = attrs.special ? asColor(attrs.special) : colors.sp
-
-//   attrs.reverse
-//     ? merge(nextAttrs, attrDefaults, attrs, { sp, bg: fg, fg: bg })
-//     : merge(nextAttrs, attrDefaults, attrs, { sp, fg, bg })
-
-//   recordColor(nextAttrs.fg)
-// }
-
-
-r.put = chars => {
-  const total = chars.length
-  if (!total) return
-
-  const underlinePls = !!(nextAttrs.undercurl || nextAttrs.underline)
-  const { row: ogRow, col: ogCol } = cursor
-  const win = getWindow(cursor.row, cursor.col)
-  //// TODO: get all windows which apply for this range
-  //or is it even an issue? aka always in range of window dimensions?
-  //add check in canvas-window fillRect to see if out of bounds
-  win && win
-    .setColor(nextAttrs.bg)
-    .fillRect(cursor.col, cursor.row, total, 1)
-    .setColor(nextAttrs.fg)
-    .setTextBaseline('top')
-
-  for (let ix = 0; ix < total; ix++) {
-    if (chars[ix][0] !== ' ') {
-      // TODO: can we get window valid for the given range instead of each lookup?
-      const w = getWindow(cursor.row, cursor.col)
-      w && w.fillText(chars[ix][0], cursor.col, cursor.row)
+  // // TODO: handle underlines
+  // if (c.hlid === 'underline highlight group id') canvas.underline()
+  cellData.forEach(cell => {
+    if (cell.char === EMPTY_CHAR) {
+      grid.clearLine(row, col, col + cell.repeat)
+      // TODO: set background color
+      canvas
+        .setColor('background')
+        .fillRect(col, row, cell.repeat, 1)
     }
 
-    grid.set(cursor.row, cursor.col, chars[ix][0], nextAttrs.fg, nextAttrs.bg, underlinePls, nextAttrs.sp)
+    else if (cell.repeat > 1) {
+      grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
 
-    cursor.col++
-  }
+      canvas
+        .setColor('background')
+        .fillRect(col, row, cell.repeat, 1)
+        .setColor('foreground')
+        .fillText(cell.char, col, row)
+    }
 
-  if (win && underlinePls) win.underline(ogCol, ogRow, total, nextAttrs.sp)
+    else {
+      grid.setCell(row, col, cell.char, cell.hlid)
+      canvas
+        .setColor('background')
+        .fillRect(col, row, 1, 1)
+        .setColor('foreground')
+        .fillText(cell.char, col, row)
+    }
+
+    col += cell.repeat
+  })
+
+  console.log('grid line:', id, row)
 }
+
+r.win_position = (windowId, gridId, row, col, width, height) => setWindow(windowId, gridId, row, col, width, height)
+
+//r.put = chars => {
+//  const total = chars.length
+//  if (!total) return
+
+//  const underlinePls = !!(nextAttrs.undercurl || nextAttrs.underline)
+//  const { row: ogRow, col: ogCol } = cursor
+//  const win = getWindow(cursor.row, cursor.col)
+//  //// TODO: get all windows which apply for this range
+//  //or is it even an issue? aka always in range of window dimensions?
+//  //add check in canvas-window fillRect to see if out of bounds
+//  win && win
+//    .setColor(nextAttrs.bg)
+//    .fillRect(cursor.col, cursor.row, total, 1)
+//    .setColor(nextAttrs.fg)
+//    .setTextBaseline('top')
+
+//  for (let ix = 0; ix < total; ix++) {
+//    if (chars[ix][0] !== ' ') {
+//      // TODO: can we get window valid for the given range instead of each lookup?
+//      const w = getWindow(cursor.row, cursor.col)
+//      w && w.fillText(chars[ix][0], cursor.col, cursor.row)
+//    }
+
+//    grid.set(cursor.row, cursor.col, chars[ix][0], nextAttrs.fg, nextAttrs.bg, underlinePls, nextAttrs.sp)
+
+//    cursor.col++
+//  }
+
+//  if (win && underlinePls) win.underline(ogCol, ogRow, total, nextAttrs.sp)
+//}
 
 r.set_title = title => dispatch.pub('vim:title', title)
 
@@ -541,15 +545,12 @@ onRedraw((m: any[]) => {
   // lastScrollRegion = null
   moveCursor(colors.bg)
 
-  // gridInfo.forEach(m => console.log(`W ${m.windowId} G ${m.gridId} - TOP: ${m.row} LEFT: ${m.col} WIDTH: ${m.width} HEIGHT: ${m.height}`))
-
   // TODO: process:
   // win_position / grid_resize resize the canvas. do we have to redraw canvas on resize?
   // on grid_line/scroll/clear update canvas
   // when redraw event complete, recalc/layout/redraw the HTML window containers
 
   console.log('---')
-  console.log(...[...gridInfo])
 
   dispatch.pub('collect-taxes')
   setImmediate(() => {

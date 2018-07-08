@@ -1,5 +1,6 @@
 import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
 import CreateWindowNameplate from '../core/window-nameplate'
+import CreateWindowGrid, { WindowGrid } from '../core/grid2'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
@@ -16,6 +17,7 @@ interface WindowInfo extends WindowLayout {
 }
 
 export interface Window {
+  grid: WindowGrid
   canvas: WindowCanvas
   element: HTMLElement
   getWindowSizeAndPosition(): WindowLayout
@@ -45,7 +47,8 @@ export interface Font {
 //    - canvas
 
 export default ({ font, cell }: { font: Font, cell: Cell }) => {
-  const win: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
+  const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
+  const grid = CreateWindowGrid()
 
   const container = makel({
     flexFlow: 'column',
@@ -71,14 +74,15 @@ export default ({ font, cell }: { font: Font, cell: Cell }) => {
   container.appendChild(content)
 
   const api = {
+    get grid() { return grid },
     get canvas() { return canvas.api },
     get element() { return container },
   } as Window
 
-  api.setWindowInfo = info => merge(win, info)
+  api.setWindowInfo = info => merge(wininfo, info)
 
   api.getWindowSizeAndPosition = () => {
-    const { row, col, width, height } = win
+    const { row, col, width, height } = wininfo
     return { row, col, width, height }
   }
 

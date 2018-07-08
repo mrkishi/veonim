@@ -3,7 +3,7 @@ import { Cell, Font } from '../core/window'
 import fontAtlas from '../core/font-atlas'
 import { makel } from '../ui/vanilla'
 
-interface TransferRegion {
+export interface TransferRegion {
   width: number
   height: number
   source: {
