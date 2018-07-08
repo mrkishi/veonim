@@ -199,7 +199,8 @@ const lineProcessor = (id: number) => {
       .setColor(cell.background)
       .fillRect(col, row, cell.repeat, 1)
       .setColor(cell.foreground)
-      .fillText(cell.char, col, row)
+
+    for (let ix = 0; ix < cell.repeat; ix++) canvas.fillText(cell.char, col + ix, row)
 
     if (cell.underline) canvas.underline(col, row, cell.repeat, cell.special)
   }
@@ -309,6 +310,7 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
   }
 
   if (mi.hl_id) {
+    // TODO: don't need to call this anymore now that we get highlights, right?
     const { bg } = await getColor(mi.hl_id)
     merge(info, { color: bg || defaultColors.foreground })
     if (mi.name === currentMode && bg) {

@@ -1,18 +1,20 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
+- defer updating of grids (WindowGrid) as they are not used immediatly. rendering to canvas should be highest priority
 - resize canvas and canvasBox when `win_position` updates
   - see TODO in `window-canvas :: api.resize`
+- layout windows using css grid
+- create window nameplate component
+- get nvim_api info for windows (title, modified, etc.)
 - why highlights messed up
 - sometimes render glitches:
-  - scrolling offset not cleared up (try scrolling - too hard to explain)
-  - missing letters (fg text color === bg fill color?)
-- figure out why more than 1 window on startup:
-  - because creating shadow-buffer with `:badd`. verify how this will work
+  - scrolling offset not always cleared up (try scrolling - too hard to explain)
 - cleanup deprecated (aka v1 ui protocol) event handlers in render.ts
-- lets not do the resizing bullshit anymore. just define canvas vertical
-  paddings to be char-width / 2
-  - vsep takes up 1 char anyways, so we just subtract total container area cols - 1
+  - `mode_info_set`:
+    - figure out the color highlights in there. should not need to call anymore?
+- shadow buffers:
+  - creating shadow-buffer adds an extra window. figure out how to fix this
 
 ## interestings
 - do we flicker on canvas resize? if so, what about cache canvas then drawImage after resize?
