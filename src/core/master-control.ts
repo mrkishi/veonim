@@ -244,7 +244,7 @@ export const resize = (width: number, height: number) => {
 export const getColor = async (id: number) => {
   const { foreground, background } = await req.getHlById(id, true) as Color
   return {
-    fg: asColor(foreground || 0),
-    bg: asColor(background || 0),
+    fg: asColor(foreground),
+    bg: asColor(background),
   }
 }

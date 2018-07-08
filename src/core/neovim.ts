@@ -367,8 +367,8 @@ export const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordi
 export const getColor = async (name: string) => {
   const { foreground: fg, background: bg } = await req.core.getHlByName(name, true) as Color
   return {
-    foreground: asColor(fg || 0),
-    background: asColor(bg || 0),
+    foreground: asColor(fg),
+    background: asColor(bg),
   }
 }
 

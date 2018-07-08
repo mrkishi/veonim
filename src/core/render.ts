@@ -12,10 +12,10 @@ import fontAtlas from '../core/font-atlas'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
-interface Colors {
-  fg: string,
-  bg: string,
-  sp: string,
+interface DefaultColors {
+  foreground: string,
+  background: string,
+  special: string,
 }
 
 interface Mode {
@@ -44,10 +44,15 @@ interface Attrs {
   cterm_bg?: number
 }
 
-interface NextAttrs extends Attrs {
-  fg: string,
-  bg: string,
-  sp: string,
+interface HighlightGroup {
+  foreground: string
+  background: string
+  special: string
+  reverse: boolean
+  italic: boolean
+  bold: boolean
+  underline: boolean
+  undercurl: boolean
 }
 
 interface ModeInfo {
@@ -91,14 +96,13 @@ interface CommandLineCache {
   position: number,
 }
 
-let lastScrollRegion: ScrollRegion | null = null
 let currentMode: string
 const commonColors = new Map<string, number>()
 
-const recordColor = (color: string) => {
-  const count = commonColors.get(color) || 0
-  commonColors.set(color, count + 1)
-}
+// const recordColor = (color: string) => {
+//   const count = commonColors.get(color) || 0
+//   commonColors.set(color, count + 1)
+// }
 
 const getTopColors = (amount = 16) => Array
   .from(commonColors.entries())
@@ -109,11 +113,6 @@ const getTopColors = (amount = 16) => Array
 const cmdcache: CommandLineCache = {
   active: false,
   position: -999,
-}
-
-const attrDefaults: Attrs = {
-  underline: false,
-  undercurl: false
 }
 
 const normalizeVimMode = (mode: string): VimMode => {
@@ -133,23 +132,17 @@ const normalizeVimMode = (mode: string): VimMode => {
 const api = new Map<string, Function>()
 const modes = new Map<string, Mode>()
 const options = new Map<string, any>()
-const highlights = new Map<number, Attrs>()
+const highlights = new Map<number, HighlightGroup>()
 
 // because a Map is higher perf than an object
 const r: Events = new Proxy(api, {
   set: (_: any, name, fn) => (api.set(name as string, fn), true)
 })
 
-const colors: Colors = {
-  fg: '#dddddd',
-  bg: '#2d2d2d',
-  sp: '#ef5188'
-}
-
-const nextAttrs: NextAttrs = {
-  fg: colors.fg,
-  bg: colors.bg,
-  sp: colors.sp,
+const defaultColors: DefaultColors = {
+  foreground: '#dddddd',
+  background: '#2d2d2d',
+  special: '#ef5188'
 }
 
 const cursorShapeType = (shape?: string) => {
@@ -179,7 +172,7 @@ const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: 
 
   w && w
     .moveRegion(region)
-    .setColor(colors.bg)
+    .setColor(defaultColors.bg)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 
   grid.moveRegionUp(id, amount, top, bottom, left, right)
@@ -205,7 +198,7 @@ const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }
 
   w && w
     .moveRegion(region)
-    .setColor(colors.bg)
+    .setColor(defaultColors.bg)
     .fillRect(left, top, right - left + 1, amount)
 
   grid.moveRegionDown(id, amount, top, bottom, left, right)
@@ -214,19 +207,19 @@ const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }
 r.option_set = (key, value) => options.set(key, value)
 
 r.default_colors_set = (fg, bg, sp) => {
-  merge(colors, {
-    fg: asColor(fg),
-    bg: asColor(bg),
-    sp: asColor(sp),
+  merge(defaultColors, {
+    foreground: asColor(fg),
+    background: asColor(bg),
+    special: asColor(sp),
   })
 
-  dispatch.pub('colors.vim.fg', colors.fg)
-  dispatch.pub('colors.vim.bg', colors.bg)
-  dispatch.pub('colors.vim.sp', colors.sp)
+  dispatch.pub('colors.vim.fg', defaultColors.foreground)
+  dispatch.pub('colors.vim.bg', defaultColors.background)
+  dispatch.pub('colors.vim.sp', defaultColors.special)
 
-  $.foreground = colors.fg
-  $.background = colors.bg
-  $.special = colors.sp
+  $.foreground = defaultColors.foreground
+  $.background = defaultColors.background
+  $.special = defaultColors.special
 }
 
 r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
@@ -237,7 +230,7 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 
   if (mi.hl_id) {
     const { bg } = await getColor(mi.hl_id)
-    merge(info, { color: bg || colors.fg })
+    merge(info, { color: bg || defaultColors.foreground })
     if (mi.name === currentMode && bg) {
       setCursorColor(bg)
       setCursorShape(info.shape, info.size)
@@ -257,8 +250,19 @@ r.mode_change = async mode => {
   setCursorShape(info.shape, info.size)
 }
 
-// TODO: info
-r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
+// TODO: info - store the HighlightGroup name somewhere
+// this can be used to lookup items in the grid, for example:
+// find all positions where a char(s) start with Search hlgrp
+r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
+  foreground: asColor(attrs.foreground) || defaultColors.foreground,
+  background: asColor(attrs.background) || defaultColors.background,
+  special: asColor(attrs.special) || defaultColors.special,
+  reverse: !!attrs.reverse,
+  italic: !!attrs.italic,
+  bold: !!attrs.bold,
+  underline: !!attrs.underline,
+  undercurl: !!attrs.undercurl,
+})
 
 r.grid_clear = id => {
   const { grid, canvas } = getWindow(id)
@@ -281,16 +285,22 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })
   : moveRegionDown(id, -amount, { top, bottom, left, right })
 
-const charDataToCell = (data: any[]) => data.map(([ char, hlid, repeat = 1 ], ix, arr) => ({
-  char,
-  repeat,
-  // the first charData cell will always have a hlid
-  hlid: hlid || arr[ix - 1][0],
-  // TODO: would be good to map to attribute fields, etc
-  // background:
-  // foreground:
-  // underline:
-}))
+const getHighlightAttributes = (hlid: number): Attrs => {
+  const attrs = highlights.get(hlid)
+  return attrs ? { ...defaultColors, ...attrs } : defaultColors
+}
+
+const charDataToCell = (data: any[]) => data.map(([ char, hlid, repeat = 1 ], ix, arr) => { 
+  // the first charData will always have a hlid
+  const validHlid = hlid || arr[ix - 1][0]
+
+  return {
+    char,
+    repeat,
+    hlid: validHlid,
+    ...getHighlightAttributes(validHlid),
+  }
+})
 
 r.grid_line = (id, row, startCol, charData: any[]) => {
   let col = startCol
@@ -304,7 +314,7 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
       grid.clearLine(row, col, col + cell.repeat)
       // TODO: set background color
       canvas
-        .setColor('background')
+        .setColor(highlights.get(cell.hlid).background)
         .fillRect(col, row, cell.repeat, 1)
     }
 

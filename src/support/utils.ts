@@ -103,11 +103,11 @@ export const findIndexRight = (line: string, pattern: RegExp, start: number) => 
   }
 }
 
-export const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
+export const asColor = (color?: number) => color ? '#' + [16, 8, 0].map(shift => {
   const mask = 0xff << shift
   const hex = ((color & mask) >> shift).toString(16)
   return hex.length < 2 ? ('0' + hex) : hex
-}).join('')
+}).join('') : undefined
 
 export const readFile = (path: string, encoding = 'utf8') => fs.readFile(path, encoding)
 export const exists = (path: string): Promise<boolean> => new Promise(fin => fs.access(path, e => fin(!e)))
