@@ -387,7 +387,14 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
   }
 }
 
-r.win_position = (windowId, gridId, row, col, width, height) => setWindow(windowId, gridId, row, col, width, height)
+r.grid_resize = (id, width, height) => {
+  console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
+}
+
+r.win_position = (windowId, gridId, row, col, width, height) => {
+    console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
+  setWindow(windowId, gridId, row, col, width, height)
+}
 
 r.set_title = title => dispatch.pub('vim:title', title)
 
@@ -565,6 +572,8 @@ onRedraw((m: any[]) => {
   moveCursor(defaultColors.background)
 
   setImmediate(() => {
+    dispatch.pub('redraw')
+    // renderWindows()
     // TODO: re-enable font atlas generation once the dust settles
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)
     // regenerateFontAtlastIfNecessary()
