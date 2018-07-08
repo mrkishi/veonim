@@ -607,13 +607,6 @@ const controlShadowBuffer = (id: number, name: string, active: boolean, containe
   })
 }
 
-export const collectTaxes = async () => {
-  const ws = await getWindows()
-  console.log('windows', ...ws)
-}
-
-dispatch.sub('collect-taxes', throttle(collectTaxes, 5))
-
 export const render = async () => {
   const ws = await getWindows()
 

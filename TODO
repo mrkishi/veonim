@@ -11,6 +11,9 @@
 
 debug
 
+ext_messages:
+- how to handle macro recording events?
+
 vim-search:
 - dispatch callback events to vim when the vim-search window has closed
 - also pass in the type of search that happened: (forward|backward)

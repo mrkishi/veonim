@@ -1,6 +1,6 @@
 import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
+import CreateWindowGrid, { WindowGrid } from '../core/window-grid'
 import CreateWindowNameplate from '../core/window-nameplate'
-import CreateWindowGrid, { WindowGrid } from '../core/grid2'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 

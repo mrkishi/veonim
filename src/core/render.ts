@@ -529,7 +529,6 @@ onRedraw((m: any[]) => {
   for (let ix = 0; ix < count; ix++) {
     const [ method, ...args ] = m[ix]
 
-    // TODO: should prioritize the main events (put, etc.) and process stuff like 'tabline' later
     const fn = api.get(method)
     if (fn) method === 'put' 
       ? fn(args)
@@ -538,21 +537,12 @@ onRedraw((m: any[]) => {
     if (process.env.VEONIM_DEV && !fn) console.log(method, args)
   }
 
-  // lastScrollRegion = null
   moveCursor(defaultColors.background)
-
-  // TODO: process:
-  // win_position / grid_resize resize the canvas. do we have to redraw canvas on resize?
-  // on grid_line/scroll/clear update canvas
-  // when redraw event complete, recalc/layout/redraw the HTML window containers
 
   console.log('---')
 
-  dispatch.pub('collect-taxes')
   setImmediate(() => {
-    // TODO: this spawns a bunch of window hacks. may need to re-enable, but probably
-    // rework the windows logic bound to this event
-    // dispatch.pub('redraw')
+    // TODO: re-enable font atlas generation once the dust settles
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)
     // regenerateFontAtlastIfNecessary()
     getMode().then(m => $.mode = normalizeVimMode(m.mode))
