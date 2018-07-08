@@ -158,6 +158,61 @@ const cursorShapeType = (shape?: string) => {
   else return CursorShape.block
 }
 
+const getHighlightGroup = (hlid: number): HighlightGroup => {
+  const hlgrp = highlights.get(hlid)
+  if (!hlgrp) throw new Error(`could not get highlight group ${hlid}`)
+  return hlgrp
+}
+
+const charDataToCell = (data: any[]): CellData[] => data.map(([ char, hlid, repeat = 1 ], ix) => { 
+  // the first charData will always have a hlid
+  const validHlid = hlid || data[ix - 1][0]
+
+  return {
+    char,
+    repeat,
+    hlid: validHlid,
+    clear: char === EMPTY_CHAR,
+    ...getHighlightGroup(validHlid),
+  }
+})
+
+const lineProcessor = (id: number) => {
+  const { grid, canvas } = getWindow(id)
+
+  const clear = (cell: CellData, row: number, col: number) => {
+    grid.clearLine(row, col, col + cell.repeat)
+    canvas
+      .setColor(cell.background)
+      .fillRect(col, row, cell.repeat, 1)
+  }
+
+  const fillRepeat = (cell: CellData, row: number, col: number) => {
+    grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
+
+    canvas
+      .setColor(cell.background)
+      .fillRect(col, row, cell.repeat, 1)
+      .setColor(cell.foreground)
+      .fillText(cell.char, col, row)
+
+    if (cell.underline) canvas.underline(col, row, cell.repeat, cell.special)
+  }
+
+  const fill = (cell: CellData, row: number, col: number) => {
+    grid.setCell(row, col, cell.char, cell.hlid)
+    canvas
+      .setColor(cell.background)
+      .fillRect(col, row, 1, 1)
+      .setColor(cell.foreground)
+      .fillText(cell.char, col, row)
+
+    if (cell.underline) canvas.underline(col, row, 1, cell.special)
+  }
+
+  return { clear, fillRepeat, fill }
+}
+
 const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const w = getWindow(top, left)
   const width = right - left + 1
@@ -289,61 +344,6 @@ r.grid_cursor_goto = (id, row, col) => merge(cursor, { row, col })
 r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })
   : moveRegionDown(id, -amount, { top, bottom, left, right })
-
-const getHighlightGroup = (hlid: number): HighlightGroup => {
-  const hlgrp = highlights.get(hlid)
-  if (!hlgrp) throw new Error(`could not get highlight group ${hlid}`)
-  return hlgrp
-}
-
-const charDataToCell = (data: any[]): CellData[] => data.map(([ char, hlid, repeat = 1 ], ix) => { 
-  // the first charData will always have a hlid
-  const validHlid = hlid || data[ix - 1][0]
-
-  return {
-    char,
-    repeat,
-    hlid: validHlid,
-    clear: char === EMPTY_CHAR,
-    ...getHighlightGroup(validHlid),
-  }
-})
-
-const lineProcessor = (id: number) => {
-  const { grid, canvas } = getWindow(id)
-
-  const clear = (cell: CellData, row: number, col: number) => {
-    grid.clearLine(row, col, col + cell.repeat)
-    canvas
-      .setColor(cell.background)
-      .fillRect(col, row, cell.repeat, 1)
-  }
-
-  const fillRepeat = (cell: CellData, row: number, col: number) => {
-    grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
-
-    canvas
-      .setColor(cell.background)
-      .fillRect(col, row, cell.repeat, 1)
-      .setColor(cell.foreground)
-      .fillText(cell.char, col, row)
-
-    if (cell.underline) canvas.underline(col, row, cell.repeat, cell.special)
-  }
-
-  const fill = (cell: CellData, row: number, col: number) => {
-    grid.setCell(row, col, cell.char, cell.hlid)
-    canvas
-      .setColor(cell.background)
-      .fillRect(col, row, 1, 1)
-      .setColor(cell.foreground)
-      .fillText(cell.char, col, row)
-
-    if (cell.underline) canvas.underline(col, row, 1, cell.special)
-  }
-
-  return { clear, fillRepeat, fill }
-}
 
 r.grid_line = (id, row, startCol, charData: any[]) => {
   let col = startCol
