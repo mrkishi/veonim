@@ -55,6 +55,11 @@ export default () => {
   const nameplate = CreateWindowNameplate()
   const canvas = CreateWindowCanvas()
 
+  overlay.setAttribute('wat', 'overlay')
+  content.setAttribute('wat', 'content')
+  canvas.element.setAttribute('wat', 'canvas')
+  nameplate.element.setAttribute('wat', 'nameplate')
+
   content.appendChild(overlay)
   content.appendChild(canvas.element)
 
@@ -68,6 +73,7 @@ export default () => {
   } as Window
 
   api.setWindowInfo = info => {
+    container.id = `${info.id}`
     merge(wininfo, info)
     grid.resize(info.height, info.width)
     canvas.api.resize(info.height, info.width)

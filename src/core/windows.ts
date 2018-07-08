@@ -75,14 +75,14 @@ const cache = { windows: [] as VimWindow[] }
 const container = document.getElementById('windows') as HTMLElement
 const specs = { gridGap: 2 }
 
-merge(container.style, {
-  flex: 1,
-  maxWidth: '100%',
-  display: 'grid',
-  gridGap: `${specs.gridGap}px`,
-  justifyItems: 'stretch',
-  alignItems: 'stretch',
-})
+// merge(container.style, {
+//   flex: 1,
+//   maxWidth: '100%',
+//   display: 'grid',
+//   gridGap: `${specs.gridGap}px`,
+//   justifyItems: 'stretch',
+//   alignItems: 'stretch',
+// })
 
 const createWindowEl = () => {
   const element = makel({
@@ -243,7 +243,8 @@ const createWindowEl = () => {
   return { element, canvas, nameplateBox, nameplate, canvasBox, api, shadowBufferApi }
 }
 
-const windows = [ createWindowEl() ]
+// const windows = [ createWindowEl() ]
+const windows = []
 
 const getWindows = async (): Promise<VimWindow[]> => {
   const activeWindow = (await getCurrent.window).id

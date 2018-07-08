@@ -164,9 +164,14 @@ const getHighlightGroup = (hlid: number): HighlightGroup => {
   return hlgrp
 }
 
+const findLastHlid = (data: any[], startIndex: number) => {
+  for (let ix = startIndex; ix >= 0; ix--) {
+    if (typeof data[ix][1] === 'number') return data[ix][1]
+  }
+}
+
 const charDataToCell = (data: any[]): CellData[] => data.map(([ char, hlid, repeat = 1 ], ix) => { 
-  const lastIndex = ix ? ix - 1 : 0
-  const validHlid = hlid || data[lastIndex][1]
+  const validHlid = typeof hlid === 'number' ? hlid : findLastHlid(data, ix)
 
   return {
     char,
