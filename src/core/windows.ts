@@ -618,100 +618,100 @@ export const collectTaxes = async () => {
 
 dispatch.sub('collect-taxes', throttle(collectTaxes, 5))
 
-// export const render = async () => {
-//   const ws = await getWindows()
+export const render = async () => {
+  const ws = await getWindows()
 
-//   const closedWindows = getClosedWindows(ws)
-//   closedWindows.forEach(id => watchers.emit(`${id}`))
+  const closedWindows = getClosedWindows(ws)
+  closedWindows.forEach(id => watchers.emit(`${id}`))
 
-//   const { vertical, horizontal } = getSplitCount(ws)
-//   const { cols: availCols, rows: availRows } = availableSpace(vertical, horizontal)
+  const { vertical, horizontal } = getSplitCount(ws)
+  const { cols: availCols, rows: availRows } = availableSpace(vertical, horizontal)
 
-//   const colsOk = within(availCols, 1)(canvasContainer.size.cols - 1)
-//   const rowsOk = within(availRows, 2)(canvasContainer.size.rows - 1)
-//   const needsResize = !colsOk || !rowsOk
+  const colsOk = within(availCols, 1)(canvasContainer.size.cols - 1)
+  const rowsOk = within(availRows, 2)(canvasContainer.size.rows - 1)
+  const needsResize = !colsOk || !rowsOk
 
-//   if (needsResize && !gridResizeInProgress) {
-//     gridResizeInProgress = true
-//     canvasContainer.redoResize(availRows - 1, availCols + 1)
-//     // TODO: remove?
-//     cmd(`wincmd =`)
-//     return
-//   }
+  if (needsResize && !gridResizeInProgress) {
+    gridResizeInProgress = true
+    canvasContainer.redoResize(availRows - 1, availCols + 1)
+    // TODO: remove?
+    cmd(`wincmd =`)
+    return
+  }
 
-//   if (gridResizeInProgress && !needsResize) {
-//     gridResizeInProgress = false
-//     dispatch.pub('windows:resize.fit')
-//   }
+  if (gridResizeInProgress && !needsResize) {
+    gridResizeInProgress = false
+    dispatch.pub('windows:resize.fit')
+  }
 
-//   const wins = betterTitles(ws)
+  const wins = betterTitles(ws)
 
-//   if (cache.windows) {
-//     findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {
-//       // TODO: this could be better
-//       const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
-//       if (!win) return
-//       merge(win.api, vw)
+  if (cache.windows) {
+    findWindowsWithDifferentNameplate(wins, cache.windows).forEach(vw => {
+      // TODO: this could be better
+      const win = windows.find(w => w.canvas.getSpecs().row === vw.y && w.canvas.getSpecs().col === vw.x)
+      if (!win) return
+      merge(win.api, vw)
 
-//       if (process.env.VEONIM_DEV) {
-//         win.api.name = `${vw.id} - ${vw.name}`
-//       }
+      if (process.env.VEONIM_DEV) {
+        win.api.name = `${vw.id} - ${vw.name}`
+      }
 
-//       const isShadowBuffer = vw.filetype === SHADOW_BUFFER_TYPE
+      const isShadowBuffer = vw.filetype === SHADOW_BUFFER_TYPE
 
-//       if (isShadowBuffer) controlShadowBuffer(vw.id, vw.name, vw.active, win.shadowBufferApi)
-//       else watchers.emit(`${vw.id}`)
+      if (isShadowBuffer) controlShadowBuffer(vw.id, vw.name, vw.active, win.shadowBufferApi)
+      else watchers.emit(`${vw.id}`)
 
-//       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
-//       if (prevWin) merge(prevWin, {
-//         name: vw.name,
-//         active: vw.active,
-//         modified: vw.modified,
-//         terminal: vw.terminal,
-//         termAttached: vw.termAttached,
-//         termFormat: vw.termFormat,
-//       })
-//     })
+      const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
+      if (prevWin) merge(prevWin, {
+        name: vw.name,
+        active: vw.active,
+        modified: vw.modified,
+        terminal: vw.terminal,
+        termAttached: vw.termAttached,
+        termFormat: vw.termFormat,
+      })
+    })
 
-//     if (windowsDimensionsSame(wins, cache.windows)) return
-//   }
+    if (windowsDimensionsSame(wins, cache.windows)) return
+  }
 
-//   cache.windows = wins
+  cache.windows = wins
 
-//   if (wins.length > windows.length) {
-//     const toCreate = wins.length - windows.length
-//     windows.push(...listof(toCreate, () => createWindowEl()))
-//     // TODO: this is mega dirty hack...
-//     // because a html div window does not necessarily associate with a vim window.
-//     // they will be recycled if needed.
-//     windows.forEach(win => win.shadowBufferApi.hide())
-//     activeShadowBuffers.clear()
-//     // TODO: reactivate shadow buffers...
-//     // the code below restores it in the wrong window
-//     // wins
-//       // .filter(win => win.filetype === SHADOW_BUFFER_TYPE)
-//       // TODO: this could be better. can we use and associate with window id?
-//       // .map(win => ({
-//       //   win,
-//       //   shadowBufferApi: windows.find(w => w.canvas.getSpecs().row === win.y && w.canvas.getSpecs().col === win.x)!.shadowBufferApi
-//       // }))
-//       // .forEach(({ win, shadowBufferApi }) => controlShadowBuffer(win.id, win.name, win.active, shadowBufferApi))
-//   }
+  if (wins.length > windows.length) {
+    const toCreate = wins.length - windows.length
+    windows.push(...listof(toCreate, () => createWindowEl()))
+    // TODO: this is mega dirty hack...
+    // because a html div window does not necessarily associate with a vim window.
+    // they will be recycled if needed.
+    windows.forEach(win => win.shadowBufferApi.hide())
+    activeShadowBuffers.clear()
+    // TODO: reactivate shadow buffers...
+    // the code below restores it in the wrong window
+    // wins
+      // .filter(win => win.filetype === SHADOW_BUFFER_TYPE)
+      // TODO: this could be better. can we use and associate with window id?
+      // .map(win => ({
+      //   win,
+      //   shadowBufferApi: windows.find(w => w.canvas.getSpecs().row === win.y && w.canvas.getSpecs().col === win.x)!.shadowBufferApi
+      // }))
+      // .forEach(({ win, shadowBufferApi }) => controlShadowBuffer(win.id, win.name, win.active, shadowBufferApi))
+  }
 
-//   winPos = []
-//   const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
-//   merge(container.style, { gridTemplateRows, gridTemplateColumns })
+  winPos = []
+  const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
+  merge(container.style, { gridTemplateRows, gridTemplateColumns })
 
-//   for (let ix = 0; ix < windows.length; ix++) {
-//     if (ix < cache.windows.length)
-//       setupWindow(windows[ix], renderWindows[ix])
+  for (let ix = 0; ix < windows.length; ix++) {
+    if (ix < cache.windows.length)
+      setupWindow(windows[ix], renderWindows[ix])
 
-//     else if (windows[ix].element.style.display !== 'none')
-//       merge(windows[ix].element.style, { display: 'none' })
-//   }
+    else if (windows[ix].element.style.display !== 'none')
+      merge(windows[ix].element.style, { display: 'none' })
+  }
 
-//   setImmediate(() => moveCursor(current.bg))
-//   setImmediate(() => dispatch.pub('windows:redraw'))
-// }
+  setImmediate(() => moveCursor(current.bg))
+  setImmediate(() => dispatch.pub('windows:redraw'))
+}
 
-// dispatch.sub('redraw', throttle(render, 5))
+dispatch.sub('redraw', throttle(render, 5))

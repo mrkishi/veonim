@@ -1,4 +1,3 @@
-import { TransferRegion } from '../core/window-canvas'
 import CreateWindow, { Window } from '../core/window'
 import { font, cell } from '../core/canvas-container'
 import { merge } from '../support/utils'
@@ -41,17 +40,17 @@ export const getWindow = (gridId: number) => {
   return win
 }
 
-export const getWindowById = (windowId: number) => {
-  // TODO: to be used for adding overlays and whatever other shenanigans.
-  // or do we want to write a wrapper methods around the Window object and
-  // not expose it directly?
-  //
-  // here is a case where we need to do a lookup of windows by windowId instead
-  // of the default gridId key
-  //
-  // should we create another map with the windowId as the key or do a find
-  // everytime??
-}
+//export const getWindowById = (windowId: number) => {
+//  // TODO: to be used for adding overlays and whatever other shenanigans.
+//  // or do we want to write a wrapper methods around the Window object and
+//  // not expose it directly?
+//  //
+//  // here is a case where we need to do a lookup of windows by windowId instead
+//  // of the default gridId key
+//  //
+//  // should we create another map with the windowId as the key or do a find
+//  // everytime??
+//}
 
 // TODO: to be called after a redraw event. this recalcs the window grid sizes -> css grid
 // + calls nvim api to get window info like title and etc.

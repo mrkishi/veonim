@@ -1,5 +1,5 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { asColor, merge, CreateTask, debounce, is } from '../support/utils'
+import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
 import { setWindow, removeWindow, getWindow } from '../core/windows2'
 import { onRedraw, getColor, getMode } from '../core/master-control'
 import { EMPTY_CHAR } from '../support/constants'
@@ -8,9 +8,9 @@ import { EMPTY_CHAR } from '../support/constants'
 import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
 import $, { VimMode } from '../core/state'
-import fontAtlas from '../core/font-atlas'
+// import fontAtlas from '../core/font-atlas'
 
-type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
+// type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
 interface DefaultColors {
   foreground: string,
@@ -103,18 +103,18 @@ interface CommandLineCache {
 }
 
 let currentMode: string
-const commonColors = new Map<string, number>()
+// const commonColors = new Map<string, number>()
 
 // const recordColor = (color: string) => {
 //   const count = commonColors.get(color) || 0
 //   commonColors.set(color, count + 1)
 // }
 
-const getTopColors = (amount = 16) => Array
-  .from(commonColors.entries())
-  .sort((a, b) => a[1] < b[1] ? 1 : -1)
-  .slice(0, amount)
-  .map(m => m[0])
+// const getTopColors = (amount = 16) => Array
+//   .from(commonColors.entries())
+//   .sort((a, b) => a[1] < b[1] ? 1 : -1)
+//   .slice(0, amount)
+//   .map(m => m[0])
 
 const cmdcache: CommandLineCache = {
   active: false,
@@ -214,7 +214,7 @@ const lineProcessor = (id: number) => {
 }
 
 const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const w = getWindow(top, left)
+  const { grid, canvas } = getWindow(id)
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
@@ -231,16 +231,16 @@ const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: 
     }
   }
 
-  w && w
+  canvas
     .moveRegion(region)
-    .setColor(defaultColors.bg)
+    .setColor(defaultColors.background)
     .fillRect(left, bottom - amount + 1, right - left + 1, amount)
 
-  grid.moveRegionUp(id, amount, top, bottom, left, right)
+  grid.moveRegionUp(amount, top, bottom, left, right)
 }
 
 const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const w = getWindow(top, left)
+  const { grid, canvas } = getWindow(id)
   const width = right - left + 1
   const height = bottom - (top + amount) + 1
 
@@ -257,12 +257,12 @@ const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }
     }
   }
 
-  w && w
+  canvas
     .moveRegion(region)
-    .setColor(defaultColors.bg)
+    .setColor(defaultColors.background)
     .fillRect(left, top, right - left + 1, amount)
 
-  grid.moveRegionDown(id, amount, top, bottom, left, right)
+  grid.moveRegionDown(amount, top, bottom, left, right)
 }
 
 r.option_set = (key, value) => options.set(key, value)
@@ -339,7 +339,8 @@ r.grid_destroy = id => removeWindow(id)
 // }
 // TODO: this will tell us which window the cursor belongs in. this means
 // we don't need the whole get active window first before rendering
-r.grid_cursor_goto = (id, row, col) => merge(cursor, { row, col })
+// TODO: handle id
+r.grid_cursor_goto = (_id, row, col) => merge(cursor, { row, col })
 
 r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })
@@ -431,21 +432,21 @@ r.cmdline_pos = position => {
 // prepared msg_chunk:s come without a msg_start_kind(). msg_showcmd([attrs, text]) works 
 // independently of all other events.
 
-const msgKinds = new Map<string, NotificationKind>([
-  ['emsg', 'error'],
-  ['echo', 'info'],
-  ['echomsg', 'info'],
-])
+// const msgKinds = new Map<string, NotificationKind>([
+//   ['emsg', 'error'],
+//   ['echo', 'info'],
+//   ['echomsg', 'info'],
+// ])
 
-const message = {
-  buffer: '',
-  kind: 'info' as NotificationKind,
-}
+// const message = {
+//   buffer: '',
+//   kind: 'info' as NotificationKind,
+// }
 
-const resetMsg = () => {
-  message.buffer = ''
-  setTimeout(() => message.kind = 'hidden', 1)
-}
+// const resetMsg = () => {
+//   message.buffer = ''
+//   setTimeout(() => message.kind = 'hidden', 1)
+// }
 
 // r.msg_start_kind = kind => {
 //   if (msgKinds.has(kind)) message.kind = msgKinds.get(kind)!
@@ -483,31 +484,31 @@ const resetMsg = () => {
 //   resetMsg()
 // }
 
-let lastTop: string[] = []
-let initialAtlasGenerated = false
-const initalFontAtlas = CreateTask()
+// let lastTop: string[] = []
+// let initialAtlasGenerated = false
+// const initalFontAtlas = CreateTask()
 
-initalFontAtlas.promise.then(() => {
-  fontAtlas.generate([ colors.fg ])
-  initialAtlasGenerated = true
-})
+// initalFontAtlas.promise.then(() => {
+//   fontAtlas.generate([ colors.fg ])
+//   initialAtlasGenerated = true
+// })
 
-const sameColors = (colors: string[]) => colors.every(c => lastTop.includes(c))
+// const sameColors = (colors: string[]) => colors.every(c => lastTop.includes(c))
 
-const generateFontAtlas = () => {
-  const topColors = getTopColors()
-  const genColors = [...new Set([...topColors, colors.fg])]
-  fontAtlas.generate(genColors)
-}
+// const generateFontAtlas = () => {
+//   const topColors = getTopColors()
+//   const genColors = [...new Set([...topColors, colors.fg])]
+//   fontAtlas.generate(genColors)
+// }
 
-const regenerateFontAtlastIfNecessary = debounce(() => {
-  const topColors = getTopColors()
-  if (!sameColors(topColors)) {
-    const genColors = [...new Set([ ...topColors, colors.fg ])]
-    fontAtlas.generate(genColors)
-  }
-  lastTop = topColors
-}, 100)
+// const regenerateFontAtlastIfNecessary = debounce(() => {
+//   const topColors = getTopColors()
+//   if (!sameColors(topColors)) {
+//     const genColors = [...new Set([ ...topColors, colors.fg ])]
+//     fontAtlas.generate(genColors)
+//   }
+//   lastTop = topColors
+// }, 100)
 
 const cmdlineIsSame = (...args: any[]) => cmdcache.active && cmdcache.position === args[1]
 
@@ -538,7 +539,7 @@ onRedraw((m: any[]) => {
   }
 
   // lastScrollRegion = null
-  moveCursor(colors.bg)
+  moveCursor(defaultColors.background)
 
   // TODO: process:
   // win_position / grid_resize resize the canvas. do we have to redraw canvas on resize?
