@@ -1,10 +1,7 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
-- get rid of `findLastHlid`. this means we loop over the array again. there is not need to do
-  that as we are already looping thru to map to cell. just make it stateful and keep hlid ref
-  around. this should speed it up a bit
-- charDataToCell a bit slow. how can we speed it up? maybe don't use map + create objects?
+- canvas fills with wrong color on resize?
 - resize canvas and canvasBox when `win_position` updates
   - see TODO in `window-canvas :: api.resize`
 - layout windows using css grid

@@ -54,13 +54,6 @@ interface HighlightGroup {
   underline: boolean
 }
 
-interface CellData extends HighlightGroup {
-  char: string
-  repeat: number
-  hlid: number
-  clear: boolean
-}
-
 interface ModeInfo {
   blinkoff?: number,
   blinkon?: number,
@@ -162,63 +155,6 @@ const getHighlightGroup = (hlid: number): HighlightGroup => {
   const hlgrp = highlights.get(hlid)
   if (!hlgrp) throw new Error(`could not get highlight group ${hlid}`)
   return hlgrp
-}
-
-const findLastHlid = (data: any[], startIndex: number) => {
-  for (let ix = startIndex; ix >= 0; ix--) {
-    if (typeof data[ix][1] === 'number') return data[ix][1]
-  }
-}
-
-const charDataToCell = (data: any[]): CellData[] => data.map(([ char, hlid, repeat = 1 ], ix) => { 
-  const validHlid = typeof hlid === 'number' ? hlid : findLastHlid(data, ix)
-
-  return {
-    char,
-    repeat,
-    hlid: validHlid,
-    clear: char === EMPTY_CHAR,
-    ...getHighlightGroup(validHlid),
-  }
-})
-
-const lineProcessor = (id: number) => {
-  const { grid, canvas } = getWindow(id)
-
-  const clear = (cell: CellData, row: number, col: number) => {
-    canvas
-      .setColor(cell.background)
-      .fillRect(col, row, cell.repeat, 1)
-
-    grid.clearLine(row, col, col + cell.repeat)
-  }
-
-  const fillRepeat = (cell: CellData, row: number, col: number) => {
-    canvas
-      .setColor(cell.background)
-      .fillRect(col, row, cell.repeat, 1)
-      .setColor(cell.foreground)
-
-    for (let ix = 0; ix < cell.repeat; ix++) canvas.fillText(cell.char, col + ix, row)
-
-    if (cell.underline) canvas.underline(col, row, cell.repeat, cell.special)
-
-    grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
-  }
-
-  const fill = (cell: CellData, row: number, col: number) => {
-    canvas
-      .setColor(cell.background)
-      .fillRect(col, row, 1, 1)
-      .setColor(cell.foreground)
-      .fillText(cell.char, col, row)
-
-    if (cell.underline) canvas.underline(col, row, 1, cell.special)
-
-    grid.setCell(row, col, cell.char, cell.hlid)
-  }
-
-  return { clear, fillRepeat, fill }
 }
 
 const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
@@ -376,27 +312,57 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
 r.grid_line = (id, row, startCol, charData: any[]) => {
   if (checkSkipDefaultGrid(id)) return
 
+  const { canvas, grid } = getWindow(id)
+  const cellCount = charData.length
   let col = startCol
-  const processLine = lineProcessor(id)
-  const cellData = charDataToCell(charData)
-  const cellCount = cellData.length
+  let lastHlid = 0
 
   for (let ix = 0; ix < cellCount; ix++) {
-    const cell = cellData[ix]
-    if (cell.clear) processLine.clear(cell, row, col)
-    else if (cell.repeat > 1) processLine.fillRepeat(cell, row, col)
-    else processLine.fill(cell, row, col)
+    const [ char, hlid, repeat = 1 ] = charData[ix]
 
-    col += cell.repeat
+    const hlidExists = typeof hlid === 'number'
+    const validHlid = hlidExists ? hlid : lastHlid
+    const hlgrp = getHighlightGroup(validHlid)
+    if (hlidExists) lastHlid = hlid
+
+    if (char === EMPTY_CHAR) {
+      canvas
+        .setColor(hlgrp.background)
+        .fillRect(col, row, repeat, 1)
+
+      grid.clearLine(row, col, col + repeat)
+    }
+
+    else if (repeat > 1) {
+      canvas
+        .setColor(hlgrp.background)
+        .fillRect(col, row, repeat, 1)
+        .setColor(hlgrp.foreground)
+
+      for (let ix = 0; ix < repeat; ix++) canvas.fillText(char, col + ix, row)
+
+      if (hlgrp.underline) canvas.underline(col, row, repeat, hlgrp.special)
+
+      grid.setLine(row, col, col + repeat, char, validHlid)
+    }
+
+    else {
+      canvas
+        .setColor(hlgrp.background)
+        .fillRect(col, row, 1, 1)
+        .setColor(hlgrp.foreground)
+        .fillText(char, col, row)
+
+      if (hlgrp.underline) canvas.underline(col, row, 1, hlgrp.special)
+
+      grid.setCell(row, col, char, validHlid)
+    }
+
+    col += repeat
   }
 }
 
-r.grid_resize = (id, width, height) => {
-  console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
-}
-
 r.win_position = (windowId, gridId, row, col, width, height) => {
-    console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
   setWindow(windowId, gridId, row, col, width, height)
 }
 
@@ -407,7 +373,9 @@ r.popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
 r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
   dispatch.pub('pmenu.show', { items, ix, row, col })
 
-r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => dispatch.pub('tabs', { curtab, tabs })
+r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => (window as any).requestIdleCallback(() => {
+  dispatch.pub('tabs', { curtab, tabs })
+})
 
 r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
 r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
@@ -564,13 +532,11 @@ onRedraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
     const [ method, ...args ] = m[ix]
-
     const fn = api.get(method)
-    if (fn) method === 'put' 
-      ? fn(args)
-      : args.forEach((a: any[]) => fn(...a))
+    if (!fn) continue
 
-    if (process.env.VEONIM_DEV && !fn) console.log(method, args)
+    const argCount = args.length
+    for (let iy = 0; iy < argCount; iy++) fn(...args[iy])
   }
 
   moveCursor(defaultColors.background)

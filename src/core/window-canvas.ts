@@ -1,6 +1,6 @@
 import { cell, font, pad } from '../core/canvas-container'
-import { is, merge } from '../support/utils'
 import fontAtlas from '../core/font-atlas'
+import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 import $$ from '../core/state'
 
