@@ -52,7 +52,13 @@ interface HighlightGroup {
   italic: boolean
   bold: boolean
   underline: boolean
-  undercurl: boolean
+}
+
+interface CellData extends HighlightGroup {
+  char: string
+  repeat: number
+  hlid: number
+  clear: boolean
 }
 
 interface ModeInfo {
@@ -257,11 +263,10 @@ r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
   foreground: asColor(attrs.foreground) || defaultColors.foreground,
   background: asColor(attrs.background) || defaultColors.background,
   special: asColor(attrs.special) || defaultColors.special,
+  underline: !!(attrs.underline || attrs.undercurl),
   reverse: !!attrs.reverse,
   italic: !!attrs.italic,
   bold: !!attrs.bold,
-  underline: !!attrs.underline,
-  undercurl: !!attrs.undercurl,
 })
 
 r.grid_clear = id => {
@@ -285,96 +290,78 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })
   : moveRegionDown(id, -amount, { top, bottom, left, right })
 
-const getHighlightAttributes = (hlid: number): Attrs => {
-  const attrs = highlights.get(hlid)
-  return attrs ? { ...defaultColors, ...attrs } : defaultColors
+const getHighlightGroup = (hlid: number): HighlightGroup => {
+  const hlgrp = highlights.get(hlid)
+  if (!hlgrp) throw new Error(`could not get highlight group ${hlid}`)
+  return hlgrp
 }
 
-const charDataToCell = (data: any[]) => data.map(([ char, hlid, repeat = 1 ], ix, arr) => { 
+const charDataToCell = (data: any[]): CellData[] => data.map(([ char, hlid, repeat = 1 ], ix) => { 
   // the first charData will always have a hlid
-  const validHlid = hlid || arr[ix - 1][0]
+  const validHlid = hlid || data[ix - 1][0]
 
   return {
     char,
     repeat,
     hlid: validHlid,
-    ...getHighlightAttributes(validHlid),
+    clear: char === EMPTY_CHAR,
+    ...getHighlightGroup(validHlid),
   }
 })
 
-r.grid_line = (id, row, startCol, charData: any[]) => {
-  let col = startCol
-  const cellData = charDataToCell(charData)
+const lineProcessor = (id: number) => {
   const { grid, canvas } = getWindow(id)
 
-  // // TODO: handle underlines
-  // if (c.hlid === 'underline highlight group id') canvas.underline()
-  cellData.forEach(cell => {
-    if (cell.char === EMPTY_CHAR) {
-      grid.clearLine(row, col, col + cell.repeat)
-      // TODO: set background color
-      canvas
-        .setColor(highlights.get(cell.hlid).background)
-        .fillRect(col, row, cell.repeat, 1)
-    }
+  const clear = (cell: CellData, row: number, col: number) => {
+    grid.clearLine(row, col, col + cell.repeat)
+    canvas
+      .setColor(cell.background)
+      .fillRect(col, row, cell.repeat, 1)
+  }
 
-    else if (cell.repeat > 1) {
-      grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
+  const fillRepeat = (cell: CellData, row: number, col: number) => {
+    grid.setLine(row, col, col + cell.repeat, cell.char, cell.hlid)
 
-      canvas
-        .setColor('background')
-        .fillRect(col, row, cell.repeat, 1)
-        .setColor('foreground')
-        .fillText(cell.char, col, row)
-    }
+    canvas
+      .setColor(cell.background)
+      .fillRect(col, row, cell.repeat, 1)
+      .setColor(cell.foreground)
+      .fillText(cell.char, col, row)
 
-    else {
-      grid.setCell(row, col, cell.char, cell.hlid)
-      canvas
-        .setColor('background')
-        .fillRect(col, row, 1, 1)
-        .setColor('foreground')
-        .fillText(cell.char, col, row)
-    }
+    if (cell.underline) canvas.underline(col, row, cell.repeat, cell.special)
+  }
+
+  const fill = (cell: CellData, row: number, col: number) => {
+    grid.setCell(row, col, cell.char, cell.hlid)
+    canvas
+      .setColor(cell.background)
+      .fillRect(col, row, 1, 1)
+      .setColor(cell.foreground)
+      .fillText(cell.char, col, row)
+
+    if (cell.underline) canvas.underline(col, row, 1, cell.special)
+  }
+
+  return { clear, fillRepeat, fill }
+}
+
+r.grid_line = (id, row, startCol, charData: any[]) => {
+  let col = startCol
+  const processLine = lineProcessor(id)
+  const cellData = charDataToCell(charData)
+  const cellCount = cellData.length
+
+  for (let ix = 0; ix < cellCount; ix++) {
+    const cell = cellData[ix]
+    if (cell.clear) processLine.clear(cell, row, col)
+    else if (cell.repeat > 1) processLine.fillRepeat(cell, row, col)
+    else processLine.fill(cell, row, col)
 
     col += cell.repeat
-  })
-
-  console.log('grid line:', id, row)
+  }
 }
 
 r.win_position = (windowId, gridId, row, col, width, height) => setWindow(windowId, gridId, row, col, width, height)
-
-//r.put = chars => {
-//  const total = chars.length
-//  if (!total) return
-
-//  const underlinePls = !!(nextAttrs.undercurl || nextAttrs.underline)
-//  const { row: ogRow, col: ogCol } = cursor
-//  const win = getWindow(cursor.row, cursor.col)
-//  //// TODO: get all windows which apply for this range
-//  //or is it even an issue? aka always in range of window dimensions?
-//  //add check in canvas-window fillRect to see if out of bounds
-//  win && win
-//    .setColor(nextAttrs.bg)
-//    .fillRect(cursor.col, cursor.row, total, 1)
-//    .setColor(nextAttrs.fg)
-//    .setTextBaseline('top')
-
-//  for (let ix = 0; ix < total; ix++) {
-//    if (chars[ix][0] !== ' ') {
-//      // TODO: can we get window valid for the given range instead of each lookup?
-//      const w = getWindow(cursor.row, cursor.col)
-//      w && w.fillText(chars[ix][0], cursor.col, cursor.row)
-//    }
-
-//    grid.set(cursor.row, cursor.col, chars[ix][0], nextAttrs.fg, nextAttrs.bg, underlinePls, nextAttrs.sp)
-
-//    cursor.col++
-//  }
-
-//  if (win && underlinePls) win.underline(ogCol, ogRow, total, nextAttrs.sp)
-//}
 
 r.set_title = title => dispatch.pub('vim:title', title)
 
