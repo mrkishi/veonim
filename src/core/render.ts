@@ -1,9 +1,8 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { setWindow, removeWindow, getWindowCanvas, getWindowGrid } from '../core/windows2'
 import { asColor, merge, CreateTask, debounce, is } from '../support/utils'
+import { setWindow, removeWindow, getWindow } from '../core/windows2'
 import { onRedraw, getColor, getMode } from '../core/master-control'
 import { EMPTY_CHAR } from '../support/constants'
-import { getWindow } from '../core/windows'
 // import * as canvasContainer from '../core/canvas-container'
 // import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
@@ -262,8 +261,9 @@ r.mode_change = async mode => {
 r.hl_attr_define = (id, attrs: Attrs, info) => highlights.set(id, attrs)
 
 r.grid_clear = id => {
-  getWindowGrid(id).clear()
-  getWindowCanvas(id).clear()
+  const { grid, canvas } = getWindow(id)
+  grid.clear()
+  canvas.clear()
 }
 
 r.grid_destroy = id => removeWindow(id)
@@ -295,9 +295,7 @@ const charDataToCell = (data: any[]) => data.map(([ char, hlid, repeat = 1 ], ix
 r.grid_line = (id, row, startCol, charData: any[]) => {
   let col = startCol
   const cellData = charDataToCell(charData)
-
-  const grid = getWindowGrid(id)
-  const canvas = getWindowCanvas(id)
+  const { grid, canvas } = getWindow(id)
 
   // // TODO: handle underlines
   // if (c.hlid === 'underline highlight group id') canvas.underline()

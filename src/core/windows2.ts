@@ -35,19 +35,13 @@ export const removeWindow = (gridId: number) => {
   windows.delete(gridId)
 }
 
-export const getWindowCanvas = (gridId: number) => {
+export const getWindow = (gridId: number) => {
   const win = windows.get(gridId)
   if (!win) throw new Error(`trying to get window grid that does not exist ${gridId}`)
-  return win.canvas
+  return win
 }
 
-export const getWindowGrid = (gridId: number) => {
-  const win = windows.get(gridId)
-  if (!win) throw new Error(`trying to get window grid that does not exist ${gridId}`)
-  return win.grid
-}
-
-export const getWindow = (windowId: number) => {
+export const getWindowById = (windowId: number) => {
   // TODO: to be used for adding overlays and whatever other shenanigans.
   // or do we want to write a wrapper methods around the Window object and
   // not expose it directly?
