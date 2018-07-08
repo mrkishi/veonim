@@ -1,7 +1,8 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
-- reize canvas and canvasBox when `win_position` updates
+- resize canvas and canvasBox when `win_position` updates
+  - see TODO in `window-canvas :: api.resize`
 - why highlights messed up
 - sometimes render glitches:
   - scrolling offset not cleared up (try scrolling - too hard to explain)

@@ -112,6 +112,10 @@ export default () => {
 
   api.resize = (rows, cols) => {
     merge(size, { rows, cols })
+    // TODO: this is the old method where we laid out the container windows in the DOM
+    // *BEFORE* rendering to canvas. now we want to do the opposite: render to canvas
+    // first and then layout in DOM. we need to stop relying on parent container sizing
+    // and calculate sizing based on given rows + cols by neovim
     const { height, width } = container.getBoundingClientRect()
 
     const vimHeight = px.row.height(rows) + (pad.y * 2)
