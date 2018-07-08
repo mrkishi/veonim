@@ -23,10 +23,7 @@ export default () => {
   const encoder: Encoder = {
     unpipe: () => cheekyBuffoons.unpipe(),
     pipe: (stdin: NodeJS.WritableStream) => crustyJugglers = cheekyBuffoons.pipe(stdin), // WTF x 999
-    write: (data: any) => {
-      console.log('-->', data)
-      crustyJugglers.write(encode(data)) // WTF x 524
-    }
+    write: (data: any) => crustyJugglers.write(encode(data)) // WTF x 524
   }
 
   const decoder = createDecodeStream({ codec })

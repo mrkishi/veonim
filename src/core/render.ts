@@ -572,7 +572,6 @@ onRedraw((m: any[]) => {
   moveCursor(defaultColors.background)
 
   setImmediate(() => {
-    dispatch.pub('redraw')
     // renderWindows()
     // TODO: re-enable font atlas generation once the dust settles
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)

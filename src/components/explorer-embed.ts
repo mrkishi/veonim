@@ -278,23 +278,23 @@ const createComponent = () => {
   return { element, ui }
 }
 
-registerShadowComponent(() => {
-  const { element, ui } = createComponent()
+//registerShadowComponent(() => {
+//  const { element, ui } = createComponent()
 
-  return {
-    element,
-    name: 'Explorer',
-    onShow: async () => {
-      const { cwd } = current
-      const paths = sortDirFiles(await getDirFiles(cwd))
-      ui.show({ cwd, paths, path: cwd })
-    },
-    // TODO: focus and blur should be called when the current buffer
-    // does not match the defined shadow buffer
-    //
-    // forgot what this means?
-    // i think maybe right now the events get triggered on ANY shadow buffer...
-    onFocus: ui.focus,
-    onBlur: ui.blur,
-  }
-})
+//  return {
+//    element,
+//    name: 'Explorer',
+//    onShow: async () => {
+//      const { cwd } = current
+//      const paths = sortDirFiles(await getDirFiles(cwd))
+//      ui.show({ cwd, paths, path: cwd })
+//    },
+//    // TODO: focus and blur should be called when the current buffer
+//    // does not match the defined shadow buffer
+//    //
+//    // forgot what this means?
+//    // i think maybe right now the events get triggered on ANY shadow buffer...
+//    onFocus: ui.focus,
+//    onBlur: ui.blur,
+//  }
+//})
