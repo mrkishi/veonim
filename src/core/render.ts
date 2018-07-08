@@ -151,11 +151,19 @@ const cursorShapeType = (shape?: string) => {
   else return CursorShape.block
 }
 
-const getHighlightGroup = (hlid: number): HighlightGroup => {
+const getHighlightGroup = (hlid: number) => {
   const hlgrp = highlights.get(hlid)
   if (!hlgrp) throw new Error(`could not get highlight group ${hlid}`)
   return hlgrp
 }
+
+const getBackground = (hlgrp: HighlightGroup) => hlgrp.reverse
+  ? hlgrp.foreground || defaultColors.foreground
+  : hlgrp.background || defaultColors.background
+
+const getForeground = (hlgrp: HighlightGroup) => hlgrp.reverse
+  ? hlgrp.background || defaultColors.background
+  : hlgrp.foreground || defaultColors.foreground
 
 const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const { grid, canvas } = getWindow(id)
@@ -274,19 +282,22 @@ r.mode_change = async mode => {
 // this can be used to lookup items in the grid, for example:
 // find all positions where a char(s) start with Search hlgrp
 r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
-  foreground: asColor(attrs.foreground) || defaultColors.foreground,
-  background: asColor(attrs.background) || defaultColors.background,
-  special: asColor(attrs.special) || defaultColors.special,
+  foreground: asColor(attrs.foreground),
+  background: asColor(attrs.background),
+  special: asColor(attrs.special),
   underline: !!(attrs.underline || attrs.undercurl),
   reverse: !!attrs.reverse,
   italic: !!attrs.italic,
   bold: !!attrs.bold,
 })
 
+
 r.grid_clear = id => {
   if (checkSkipDefaultGrid(id)) return
   const { grid, canvas } = getWindow(id)
   grid.clear()
+  // TODO: should it be like this?
+  // canvas.setColor(defaultColors.background).clear()
   canvas.clear()
 }
 
@@ -327,7 +338,7 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 
     if (char === EMPTY_CHAR) {
       canvas
-        .setColor(hlgrp.background)
+        .setColor(getBackground(hlgrp))
         .fillRect(col, row, repeat, 1)
 
       grid.clearLine(row, col, col + repeat)
@@ -335,12 +346,11 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 
     else if (repeat > 1) {
       canvas
-        .setColor(hlgrp.background)
+        .setColor(getBackground(hlgrp))
         .fillRect(col, row, repeat, 1)
-        .setColor(hlgrp.foreground)
+        .setColor(getForeground(hlgrp))
 
       for (let ix = 0; ix < repeat; ix++) canvas.fillText(char, col + ix, row)
-
       if (hlgrp.underline) canvas.underline(col, row, repeat, hlgrp.special)
 
       grid.setLine(row, col, col + repeat, char, validHlid)
@@ -348,9 +358,9 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 
     else {
       canvas
-        .setColor(hlgrp.background)
+        .setColor(getBackground(hlgrp))
         .fillRect(col, row, 1, 1)
-        .setColor(hlgrp.foreground)
+        .setColor(getForeground(hlgrp))
         .fillText(char, col, row)
 
       if (hlgrp.underline) canvas.underline(col, row, 1, hlgrp.special)

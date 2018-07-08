@@ -1,20 +1,19 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
-- canvas fills with wrong color on resize?
+- sometimes render glitches:
+  - scrolling offset not always cleared up (try scrolling - too hard to explain)
 - resize canvas and canvasBox when `win_position` updates
   - see TODO in `window-canvas :: api.resize`
 - layout windows using css grid
 - create window nameplate component
 - get nvim_api info for windows (title, modified, etc.)
-- why highlights messed up
-- sometimes render glitches:
-  - scrolling offset not always cleared up (try scrolling - too hard to explain)
 - cleanup deprecated (aka v1 ui protocol) event handlers in render.ts
   - `mode_info_set`:
     - figure out the color highlights in there. should not need to call anymore?
 - shadow buffers:
   - creating shadow-buffer adds an extra window. figure out how to fix this
+- canvas-container getters are too slow for high perf rendering code
 
 ## interestings
 - do we flicker on canvas resize? if so, what about cache canvas then drawImage after resize?
