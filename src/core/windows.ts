@@ -607,10 +607,6 @@ const controlShadowBuffer = (id: number, name: string, active: boolean, containe
   })
 }
 
-export const render = async () => {
-  console.log('render windows NOPE LOL')
-}
-
 export const collectTaxes = async () => {
   const ws = await getWindows()
   console.log('windows', ...ws)

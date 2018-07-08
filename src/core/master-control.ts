@@ -146,10 +146,10 @@ startup.defineFunc.VK`
 `
 
 const spawnVimInstance = () => Neovim.run([
-  // '--cmd', `${startupCmds} | ${startup.funcs}`,
-  // '--cmd', `com! -nargs=* Plug 1`,
-  // '--cmd', `com! -nargs=* VeonimExt 1`,
-  // '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
+  '--cmd', `${startupCmds} | ${startup.funcs}`,
+  '--cmd', `com! -nargs=* Plug 1`,
+  '--cmd', `com! -nargs=* VeonimExt 1`,
+  '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
   '--embed'
 ], {
   cwd: homedir(),
