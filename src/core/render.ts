@@ -7,7 +7,7 @@ import { EMPTY_CHAR } from '../support/constants'
 // import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
-import $, { VimMode } from '../core/state'
+import $$, { VimMode } from '../core/state'
 // import fontAtlas from '../core/font-atlas'
 
 // type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
@@ -281,9 +281,9 @@ r.default_colors_set = (fg, bg, sp) => {
   dispatch.pub('colors.vim.bg', defaultColors.background)
   dispatch.pub('colors.vim.sp', defaultColors.special)
 
-  $.foreground = defaultColors.foreground
-  $.background = defaultColors.background
-  $.special = defaultColors.special
+  $$.foreground = defaultColors.foreground
+  $$.background = defaultColors.background
+  $$.special = defaultColors.special
 
   // hlid 0 -> default highlight group
   highlights.set(0, {
@@ -317,7 +317,7 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 
 r.mode_change = async mode => {
   dispatch.pub('vim:mode', mode)
-  $.mode = normalizeVimMode(mode)
+  $$.mode = normalizeVimMode(mode)
   currentMode = mode
   const info = modes.get(mode)
   if (!info) return
@@ -559,13 +559,11 @@ onRedraw((m: any[]) => {
 
   moveCursor(defaultColors.background)
 
-  console.log('---')
-
   setImmediate(() => {
     // TODO: re-enable font atlas generation once the dust settles
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)
     // regenerateFontAtlastIfNecessary()
-    getMode().then(m => $.mode = normalizeVimMode(m.mode))
+    getMode().then(m => $$.mode = normalizeVimMode(m.mode))
   })
 })
 

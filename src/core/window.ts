@@ -1,8 +1,6 @@
 import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
 import CreateWindowGrid, { WindowGrid } from '../core/window-grid'
-import { DEFAULT_BACKGROUND_COLOR } from '../support/constants'
 import CreateWindowNameplate from '../core/window-nameplate'
-import { Font, Cell, Pad } from '../core/canvas-container'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
@@ -24,7 +22,6 @@ export interface Window {
   element: HTMLElement
   getWindowSizeAndPosition(): WindowLayout
   setWindowInfo(info: WindowInfo): void
-  setDefaultBackgroundColor(color: string): void
   setCssGridAttributes(attributes: string): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
@@ -37,10 +34,9 @@ export interface Window {
 //    - overlay
 //    - canvas
 
-export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
+export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
   const grid = CreateWindowGrid()
-  let defaultBackgroundColor = DEFAULT_BACKGROUND_COLOR
 
   const container = makel({
     flexFlow: 'column',
@@ -57,7 +53,7 @@ export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
   })
 
   const nameplate = CreateWindowNameplate()
-  const canvas = CreateWindowCanvas({ font, cell, pad })
+  const canvas = CreateWindowCanvas()
 
   content.appendChild(overlay)
   content.appendChild(canvas.element)
@@ -71,12 +67,10 @@ export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
     get element() { return container },
   } as Window
 
-  api.setDefaultBackgroundColor = color => defaultBackgroundColor = color
-
   api.setWindowInfo = info => {
     merge(wininfo, info)
     grid.resize(info.height, info.width)
-    canvas.api.resize(info.height, info.width, defaultBackgroundColor)
+    canvas.api.resize(info.height, info.width)
   }
 
   api.getWindowSizeAndPosition = () => {

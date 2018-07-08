@@ -1,7 +1,8 @@
-import { Cell, Font, Pad } from '../core/canvas-container'
+import { cell, font, pad } from '../core/canvas-container'
 import { is, merge } from '../support/utils'
 import fontAtlas from '../core/font-atlas'
 import { makel } from '../ui/vanilla'
+import $$ from '../core/state'
 
 export interface TransferRegion {
   width: number
@@ -32,12 +33,11 @@ export interface WindowCanvas {
   realtivePositionToPixels(row: number, col: number): { x: number, y: number }
   cellsToPixelWidth(cells: number): number
   colToX(col: number): number
-  resize(rows: number, cols: number, initBackgroundColor: string): WindowCanvas
+  resize(rows: number, cols: number): WindowCanvas
   moveRegion(region: TransferRegion): WindowCanvas
   fillText(text: string, col: number, row: number): WindowCanvas
   fillRect(col: number, row: number, width: number, height: number): WindowCanvas
   underline(col: number, row: number, width: number, color: string): WindowCanvas
-  setTextBaseline(mode: string): WindowCanvas
   clear(): WindowCanvas
   whereLine(row: number): { x: number, y: number, width: number }
   getCursorPosition(row: number, col: number): { x: number, y: number }
@@ -46,7 +46,7 @@ export interface WindowCanvas {
   readonly height: string
 }
 
-export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
+export default () => {
   const container = makel({
     flex: 1,
     display: 'flex',
@@ -110,7 +110,7 @@ export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
   const scrollReadjustAmount = () => (canvasDimensions.height - canvasBoxDimensions.height)
     + cell.padding
 
-  api.resize = (rows, cols, initBackgroundColor) => {
+  api.resize = (rows, cols) => {
     merge(size, { rows, cols })
     const { height, width } = container.getBoundingClientRect()
 
@@ -124,8 +124,9 @@ export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
 
     // setting canvas properties resets font. need to reset it here
     ui.font = `${font.size}px ${font.face}`
+    ui.textBaseline = 'top'
     ui.scale(window.devicePixelRatio, window.devicePixelRatio)
-    ui.fillStyle = initBackgroundColor
+    ui.fillStyle = $$.background
     ui.fillRect(0, 0, canvas.width, canvas.height)
 
     canvasDimensions.height = heightToUse
@@ -136,7 +137,6 @@ export default ({ font, cell, pad }: { font: Font, cell: Cell, pad: Pad }) => {
 
   api.setColor = color => (ui.fillStyle = color, api)
   api.clear = () => (ui.fillRect(0, 0, canvas.width, canvas.height), api)
-  api.setTextBaseline = mode => (ui.textBaseline = mode, api)
 
   const drawText = (char: string, col: number, row: number) => {
     const maxCharWidth = cell.width

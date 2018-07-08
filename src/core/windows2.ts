@@ -1,4 +1,3 @@
-import { font, cell, pad } from '../core/canvas-container'
 import CreateWindow, { Window } from '../core/window'
 import { merge } from '../support/utils'
 
@@ -20,7 +19,7 @@ merge(container.style, {
 const windows = new Map<number, Window>()
 
 export const setWindow = (id: number, gridId: number, row: number, col: number, width: number, height: number) => {
-  const win = windows.get(gridId) || CreateWindow({ font, cell, pad })
+  const win = windows.get(gridId) || CreateWindow()
   win.setWindowInfo({ id, gridId, row, col, width, height })
   if (!windows.has(gridId)) windows.set(gridId, win)
   container.appendChild(win.element)
