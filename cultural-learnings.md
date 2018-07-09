@@ -17,6 +17,8 @@
 - shadow buffers:
   - creating shadow-buffer adds an extra window. figure out how to fix this
 
+- fix neovim.ts current onFnCall -> some stuff are properties!
+
 ## interestings
 - do we flicker on canvas resize? if so, what about cache canvas then drawImage after resize?
 - render event `option_set` has `guifont` and `linespace`. we can use this now instead of our own custom global variables.
@@ -24,6 +26,7 @@
   - `linespace` replaces `g:vn_line_height`
 
 ## questions
+- is adding neovim.ts to windows2.ts increase startup time?
 - memoize window-canvas px calculations?
 - is font-atlas faster than `fillText`? it seems slower...?
 - verify `ext_messages` works with new ui protocol

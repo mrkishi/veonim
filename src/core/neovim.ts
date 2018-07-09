@@ -404,6 +404,7 @@ export const current: NeovimState = new Proxy({
   get tabpage(): Tabpage {
     const tabpagePromise = as.tab(req.core.getCurrentTabpage())
 
+    // TODO: lol not everything is a function! some are properties!
     return onFnCall<Tabpage>(async (fnName: string, args: any[]) => {
       const tab = await tabpagePromise
       const fn = Reflect.get(tab, fnName)
