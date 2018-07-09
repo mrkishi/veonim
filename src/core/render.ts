@@ -1,11 +1,11 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
 import { setWindow, removeWindow, getWindow } from '../core/windows2'
-import { onRedraw, getColor, getMode } from '../core/master-control'
-import { EMPTY_CHAR } from '../support/constants'
 // import * as canvasContainer from '../core/canvas-container'
+import { onRedraw, getMode } from '../core/master-control'
 // import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
+import { EMPTY_CHAR } from '../support/constants'
 import * as dispatch from '../messaging/dispatch'
 import $$, { VimMode } from '../core/state'
 // import fontAtlas from '../core/font-atlas'
@@ -45,9 +45,9 @@ interface Attrs {
 }
 
 interface HighlightGroup {
-  foreground: string
-  background: string
-  special: string
+  foreground?: string
+  background?: string
+  special?: string
   reverse: boolean
   italic: boolean
   bold: boolean
@@ -157,13 +157,15 @@ const getHighlightGroup = (hlid: number) => {
   return hlgrp
 }
 
-const getBackground = (hlgrp: HighlightGroup) => hlgrp.reverse
-  ? hlgrp.foreground || defaultColors.foreground
-  : hlgrp.background || defaultColors.background
-
-const getForeground = (hlgrp: HighlightGroup) => hlgrp.reverse
-  ? hlgrp.background || defaultColors.background
-  : hlgrp.foreground || defaultColors.foreground
+const getColor = {
+  bg: (hlgrp: HighlightGroup) => hlgrp.reverse
+    ? hlgrp.foreground || defaultColors.foreground
+    : hlgrp.background || defaultColors.background,
+  fg: (hlgrp: HighlightGroup) => hlgrp.reverse
+    ? hlgrp.background || defaultColors.background
+    : hlgrp.foreground || defaultColors.foreground,
+  sp: (hlgrp: HighlightGroup) => hlgrp.special || defaultColors.special,
+}
 
 const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const { grid, canvas } = getWindow(id)
@@ -186,7 +188,7 @@ const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: 
   canvas
     .moveRegion(region)
     .setColor(defaultColors.background)
-    .fillRect(left, bottom - amount + 1, right - left + 1, amount)
+    .fillRect(left, bottom - amount, right - left + 1, amount)
 
   grid.moveRegionUp(amount, top, bottom, left, right)
 }
@@ -194,18 +196,18 @@ const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: 
 const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
   const { grid, canvas } = getWindow(id)
   const width = right - left + 1
-  const height = bottom - (top + amount) + 1
+  const height = bottom - (top + amount)
 
   const region = {
     width,
     height,
     source: {
       col: left,
-      row: top
+      row: top,
     },
     destination: {
       col: left,
-      row: top + amount
+      row: top + amount,
     }
   }
 
@@ -256,11 +258,10 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
   }
 
   if (mi.hl_id) {
-    // TODO: don't need to call this anymore now that we get highlights, right?
-    const { bg } = await getColor(mi.hl_id)
-    merge(info, { color: bg || defaultColors.foreground })
-    if (mi.name === currentMode && bg) {
-      setCursorColor(bg)
+    const { background } = getHighlightGroup(mi.hl_id)
+    merge(info, { color: background || defaultColors.foreground })
+    if (mi.name === currentMode && background) {
+      setCursorColor(background)
       setCursorShape(info.shape, info.size)
     }
   }
@@ -338,7 +339,7 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 
     if (char === EMPTY_CHAR) {
       canvas
-        .setColor(getBackground(hlgrp))
+        .setColor(getColor.bg(hlgrp))
         .fillRect(col, row, repeat, 1)
 
       grid.clearLine(row, col, col + repeat)
@@ -346,24 +347,24 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 
     else if (repeat > 1) {
       canvas
-        .setColor(getBackground(hlgrp))
+        .setColor(getColor.bg(hlgrp))
         .fillRect(col, row, repeat, 1)
-        .setColor(getForeground(hlgrp))
+        .setColor(getColor.fg(hlgrp))
 
       for (let ix = 0; ix < repeat; ix++) canvas.fillText(char, col + ix, row)
-      if (hlgrp.underline) canvas.underline(col, row, repeat, hlgrp.special)
+      if (hlgrp.underline) canvas.underline(col, row, repeat, getColor.sp(hlgrp))
 
       grid.setLine(row, col, col + repeat, char, validHlid)
     }
 
     else {
       canvas
-        .setColor(getBackground(hlgrp))
+        .setColor(getColor.bg(hlgrp))
         .fillRect(col, row, 1, 1)
-        .setColor(getForeground(hlgrp))
+        .setColor(getColor.fg(hlgrp))
         .fillText(char, col, row)
 
-      if (hlgrp.underline) canvas.underline(col, row, 1, hlgrp.special)
+      if (hlgrp.underline) canvas.underline(col, row, 1, getColor.sp(hlgrp))
 
       grid.setCell(row, col, char, validHlid)
     }
