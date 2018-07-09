@@ -37,28 +37,29 @@ merge(container.style, {
   background: 'var(--background-30)',
 })
 
-const _font = {
+export const font: Font = {
   face: 'Roboto Mono Builtin',
   size: 14,
   lineHeight: 1.5,
 }
 
-const _pad = {
+export const pad: Pad = {
   x: 4,
   y: 8,
 }
 
-const _cell = {
+export const cell: Cell = {
   width: 0,
   height: 0,
   padding: 0,
 }
 
-const _size = {
+export const size = {
   rows: 0,
   cols: 0,
   height: 0,
   width: 0,
+  get nameplateHeight() { return cell.height + 4 },
 }
 
 const getCharWidth = (font: string, size: number): number => {
@@ -71,9 +72,9 @@ const getCharWidth = (font: string, size: number): number => {
   return floatWidth || possibleSize
 }
 
-export const setFont = ({ size, lineHeight, face = _font.face }: SetFontParams) => {
-  const fontSize = !size || isNaN(size) ? _font.size : size
-  const fontLineHeight = !lineHeight || isNaN(lineHeight) ? _font.lineHeight : lineHeight
+export const setFont = ({ size, lineHeight, face = font.face }: SetFontParams) => {
+  const fontSize = !size || isNaN(size) ? font.size : size
+  const fontLineHeight = !lineHeight || isNaN(lineHeight) ? font.lineHeight : lineHeight
 
   setVar('font', face)
   setVar('font-size', fontSize)
@@ -81,64 +82,39 @@ export const setFont = ({ size, lineHeight, face = _font.face }: SetFontParams) 
 
   canvas.font = `${fontSize}px ${face}`
 
-  merge(_font, { size: fontSize, face, lineHeight: fontLineHeight })
-  merge(_cell, {
+  merge(font, { size: fontSize, face, lineHeight: fontLineHeight })
+  merge(cell, {
     width: getCharWidth(face, fontSize),
     height: Math.floor(fontSize * fontLineHeight)
   })
 
-  _pad.x = Math.round(_cell.width / 2)
-  _pad.y = _pad.x + 4
+  pad.x = Math.round(cell.width / 2)
+  pad.y = pad.x + 4
 
-  _cell.padding = Math.floor((_cell.height - _font.size) / 2)
+  cell.padding = Math.floor((cell.height - font.size) / 2)
 
-  watchers.notify('font', { ..._font })
-  watchers.notify('cell', { ..._cell })
+  watchers.notify('font', { ...font })
+  watchers.notify('cell', { ...cell })
 }
 
 export const resize = () => {
   const { width, height } = container.getBoundingClientRect()
-  merge(_size, {
+  merge(size, {
     height,
     width,
-    rows: Math.floor(height / _cell.height) - 1,
-    cols: Math.floor(width / _cell.width) - 2,
+    rows: Math.floor(height / cell.height) - 1,
+    cols: Math.floor(width / cell.width) - 2,
   })
 
-  watchers.notify('resize', _size)
+  watchers.notify('resize', size)
 }
 
 export const redoResize = (rows: number, cols: number) => {
-  merge(_size, { rows, cols })
-  watchers.notify('resize', _size)
+  merge(size, { rows, cols })
+  watchers.notify('resize', size)
 }
 
 export const on = (event: string, handler: (data: any) => void) => watchers.add(event, handler)
-
-export const pad = {
-  get x() { return _pad.x },
-  get y() { return _pad.y },
-}
-
-export const size = {
-  get rows() { return _size.rows },
-  get cols() { return _size.cols },
-  get height() { return _size.height },
-  get width() { return _size.width },
-  get nameplateHeight() { return _cell.height + 4 },
-}
-
-export const cell = {
-  get height() { return _cell.height },
-  get width() { return _cell.width },
-  get padding() { return _cell.padding },
-}
-
-export const font = {
-  get face() { return _font.face },
-  get size() { return _font.size },
-  get lineHeight() { return _font.lineHeight },
-}
 
 setFont({})
 setImmediate(() => resize())

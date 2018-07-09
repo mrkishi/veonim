@@ -244,7 +244,7 @@ const createWindowEl = () => {
 }
 
 // const windows = [ createWindowEl() ]
-const windows = []
+const windows: Window[] = []
 
 const getWindows = async (): Promise<VimWindow[]> => {
   const activeWindow = (await getCurrent.window).id

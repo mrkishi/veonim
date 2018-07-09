@@ -8,7 +8,6 @@
 - get nvim_api info for windows (title, modified, etc.)
 - shadow buffers:
   - creating shadow-buffer adds an extra window. figure out how to fix this
-- canvas-container getters are too slow for high perf rendering code
 - memoize window-canvas px calculations
 
 ## interestings

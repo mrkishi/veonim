@@ -58,7 +58,6 @@ export default () => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D
   const canvasBoxDimensions = { x: 0, y: 0, height: 0, width: 0 }
-  const size = { rows: 0, cols: 0 }
   const canvasDimensions = { height: 0 }
 
   ui.imageSmoothingEnabled = false
@@ -111,19 +110,12 @@ export default () => {
     + cell.padding
 
   api.resize = (rows, cols) => {
-    merge(size, { rows, cols })
-    // TODO: this is the old method where we laid out the container windows in the DOM
-    // *BEFORE* rendering to canvas. now we want to do the opposite: render to canvas
-    // first and then layout in DOM. we need to stop relying on parent container sizing
-    // and calculate sizing based on given rows + cols by neovim
-    const { height, width } = container.getBoundingClientRect()
+    const height = px.row.height(rows) + (pad.y * 2)
+    const width = px.col.width(cols) + (pad.x * 2)
 
-    const vimHeight = px.row.height(rows) + (pad.y * 2)
-    const heightToUse = Math.round(Math.max(height, vimHeight))
-
-    canvas.height = Math.round(heightToUse * window.devicePixelRatio)
+    canvas.height = Math.round(height * window.devicePixelRatio)
     canvas.width = Math.round(width * window.devicePixelRatio)
-    canvas.style.height = `${heightToUse}px`
+    canvas.style.height = `${height}px`
     canvas.style.width = `${width}px`
 
     // setting canvas properties resets font. need to reset it here
@@ -133,7 +125,7 @@ export default () => {
     ui.fillStyle = $$.background
     ui.fillRect(0, 0, canvas.width, canvas.height)
 
-    canvasDimensions.height = heightToUse
+    canvasDimensions.height = height
     grabCanvasBoxDimensions()
 
     return api
