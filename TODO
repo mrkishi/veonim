@@ -9,7 +9,15 @@
 - help files missing
 - Veonim buffers a little laggy and flickers windows???
 
+change-dir/vim-create-dir default dir to :pwd if not specified. should we default
+to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
+path displayed in "project" statusline section
+
 debug
+
+autocomplete:
+- do not hardcode 'tab' + 's-tab' keys. user config
+- allow opt-in autocomplete trigger. autocmds? -> enable/disable?
 
 vim-search:
 - dispatch callback events to vim when the vim-search window has closed
@@ -282,6 +290,18 @@ menus. e.g. (floating windows maybe?)
 [ d: file search                                           ]
 
 add documentation about guifont/size/cursor/colorscheme/roboto/etc
+
+supercharge the vim command line menu. provide menu completions automatically. fuzzy find results.
+can we provide a snippet of documentation for the selected menu item? for vim items this can be
+the first line from :h. For Veonim we can load from custom place.
+- using the same system to make a :Veonim only menu - bind to ctrl_shift_p?
+
+create a visual configurator for key remapings + key event viewer. it's hard to figure out otherwise
+
+if language extension is not installed, provide a install suggestion like vscode
+on buffer load
+
+yes/no popup dialog with shift_ctrl_y/n styled like messages/notifications to the bottom right
 
 readme screen showcase automation
   create demo script to start electron at a certain size
