@@ -1,8 +1,8 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
+import { onRedraw, getMode, getColor as getColorFromVim } from '../core/master-control'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
 import { setWindow, removeWindow, getWindow } from '../core/windows2'
 // import * as canvasContainer from '../core/canvas-container'
-import { onRedraw, getMode } from '../core/master-control'
 // import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
 import { EMPTY_CHAR } from '../support/constants'
@@ -258,10 +258,10 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
   }
 
   if (mi.hl_id) {
-    const { background } = getHighlightGroup(mi.hl_id)
-    merge(info, { color: background || defaultColors.foreground })
-    if (mi.name === currentMode && background) {
-      setCursorColor(background)
+    const { bg } = await getColorFromVim(mi.hl_id)
+    merge(info, { color: bg || defaultColors.foreground })
+    if (mi.name === currentMode && bg) {
+      setCursorColor(bg)
       setCursorShape(info.shape, info.size)
     }
   }
