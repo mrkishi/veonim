@@ -40,7 +40,7 @@ export default () => {
 
   const view = ($: S) => h('div', {
     style: {
-      // display: 'flex',
+      display: 'flex',
       paddingLeft: '10px',
       paddingRight: '10px',
       alignItems: 'center',
@@ -49,24 +49,22 @@ export default () => {
     }
   }, [
 
-    // TODO: set icon size
-
-    // terminal icon
     ,$.terminal && h(Icon.Terminal, {
       color: cvar('foreground-30'),
       style: {
+        fontSize: '1.2rem',
         display: 'flex',
         marginRight: '8px',
         alignItems: 'center',
       }
     })
 
-    // nameplate
     ,h('div', {
       style: {
         overflow: 'hidden',
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
+        // TODO: need to contrast, not brighten
         filter: `brightness(${$.active ? 130 : 90}%)`,
       }
     }, [
@@ -75,7 +73,6 @@ export default () => {
         color: cvar('foreground-50'),
       } }, $.name || '[No Name]')
 
-      // TODO: maybe don't render this element at all if we don't have a dir?
       ,$.dir && h('span', { style: {
         color: cvar('foreground-30'),
         marginRight: '1px',
@@ -83,32 +80,26 @@ export default () => {
 
     ])
 
-    // modified bubble
     ,$.modified && h('div', {
       style: {
+        width: '0.5rem',
+        height: '0.5rem',
         marginTop: '2px',
         marginLeft: '8px',
         borderRadius: '50%',
         background: cvar('foreground-50'),
-        // TODO: use rem
-        width: `${Math.round(font.size / 2)}px`,
-        height: `${Math.round(font.size / 2)}px`,
       }
     })
 
-    // TODO: set icon size
-    // reader icon
     ,$.termAttached && h(Icon.Eye, {
-      color: cvar('foreground-30'),
+      color: cvar('foreground-40'),
       style: {
-        // display: 'flex',
         marginLeft: '15px',
         marginRight: '4px',
         alignItems: 'center',
       }
     })
 
-    // reader type
     ,$.termAttached && h('div', {
       style: {
         color: cvar('foreground-50'),

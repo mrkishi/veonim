@@ -1,6 +1,7 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
+- canvas-resize flickers. we should not clear on resize. try to reuse
 - layout windows using css grid
   - verify if we are setting css grid row/column matching the exact window. could be relative
     as it was relative before...
@@ -9,6 +10,7 @@
 - shadow buffers:
   - creating shadow-buffer adds an extra window. figure out how to fix this
 - memoize window-canvas px calculations
+- investigate if canvas padding is still taking effect?
 
 ## interestings
 - do we flicker on canvas resize? if so, what about cache canvas then drawImage after resize?
