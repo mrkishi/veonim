@@ -2,6 +2,8 @@
 
 ## tasks
 - layout windows using css grid
+  - verify if we are setting css grid row/column matching the exact window. could be relative
+    as it was relative before...
 - create window nameplate component
 - get nvim_api info for windows (title, modified, etc.)
 - shadow buffers:

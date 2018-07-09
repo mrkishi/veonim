@@ -13,13 +13,18 @@ export interface WindowInfo {
   height: number
 }
 
+interface GridStyle {
+  gridRow: string
+  gridColumn: string
+}
+
 export interface Window {
   grid: WindowGrid
   canvas: WindowCanvas
   element: HTMLElement
   getWindowInfo(): WindowInfo
   setWindowInfo(info: WindowInfo): void
-  setCssGridAttributes(attributes: string): void
+  applyGridStyle(gridStyle: GridStyle): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
   destroy(): void
@@ -32,6 +37,7 @@ export default () => {
   const container = makel({
     flexFlow: 'column',
     background: 'none',
+    display: 'flex',
   })
 
   const content = makel({
@@ -72,9 +78,7 @@ export default () => {
 
   api.getWindowInfo = () => ({ ...wininfo })
 
-  api.setCssGridAttributes = () => {
-    // TODO: set window div element size/pos from css grid attrs
-  }
+  api.applyGridStyle = ({ gridRow, gridColumn }) => merge(container.style, { gridColumn, gridRow })
 
   api.addOverlayElement = element => {
     overlay.appendChild(element)
