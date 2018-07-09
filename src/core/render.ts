@@ -1,7 +1,7 @@
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { onRedraw, getMode, getColor as getColorFromVim } from '../core/master-control'
+import { setWindow, removeWindow, getWindow, renderWindows } from '../core/windows2'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
-import { setWindow, removeWindow, getWindow } from '../core/windows2'
 // import * as canvasContainer from '../core/canvas-container'
 // import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../core/api'
@@ -552,7 +552,9 @@ onRedraw((m: any[]) => {
 
   moveCursor(defaultColors.background)
 
-  setImmediate(() => {
+  requestAnimationFrame(() => renderWindows())
+
+  ;(window as any).requestIdleCallback(() => {
     // renderWindows()
     // TODO: re-enable font atlas generation once the dust settles
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)

@@ -55,5 +55,8 @@ export const getWindow = (gridId: number) => {
 // TODO: to be called after a redraw event. this recalcs the window grid sizes -> css grid
 // + calls nvim api to get window info like title and etc.
 export const renderWindows = () => {
+  const winpos = [...windows].map(([ id, win ]) => ({ id, ...win.getWindowSizeAndPosition() }))
+  console.log('winpos', ...winpos)
 
+  // TODO: call nvim_api for nameplate stuff
 }

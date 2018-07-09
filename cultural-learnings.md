@@ -1,8 +1,6 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
-- resize canvas and canvasBox when `win_position` updates
-  - see TODO in `window-canvas :: api.resize`
 - layout windows using css grid
 - create window nameplate component
 - get nvim_api info for windows (title, modified, etc.)
@@ -34,3 +32,10 @@ ui doc:
 
 api doc:
 - https://github.com/neovim/neovim/pull/8455/commits/85cf9d6454a5c7980cdb86c7293facf597456905
+
+## PRs of interest
+- multigrid: https://github.com/neovim/neovim/pull/8455
+- ui protocol v2: https://github.com/neovim/neovim/pull/8221
+- external messages: https://github.com/neovim/neovim/pull/7466
+- floating windows: https://github.com/neovim/neovim/pull/6619
+- external wincmds: https://github.com/neovim/neovim/pull/8707
