@@ -272,6 +272,17 @@ upgrade ripgrep
 
 --ideas--
 
+configurable mouse cursor hide enable/disable - enabled by default
+
+create overlay menu window with key shortcuts so users can create spacemacs-like
+menus. e.g. (floating windows maybe?)
+- press and hold a key to open up menu. next key press while key is being held will trigger action
+- press key to bring up menu. next key selects an action from the menu
+[ a: buffer search    b: grep search    c: viewport-search ]
+[ d: file search                                           ]
+
+add documentation about guifont/size/cursor/colorscheme/roboto/etc
+
 readme screen showcase automation
   create demo script to start electron at a certain size
   open various features
