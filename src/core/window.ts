@@ -4,7 +4,7 @@ import CreateWindowNameplate from '../core/window-nameplate'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
-interface WindowInfo {
+export interface WindowInfo {
   id: number
   gridId: number
   row: number

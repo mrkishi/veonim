@@ -1,21 +1,11 @@
-export const calcGridContainer = () => {
+import { size } from '../core/canvas-container'
+import { WindowInfo } from '../core/window'
 
-}
-
-export const calcGridPositions = () => {
-
-}
-
-const getSplits = (wins: VimWindow[]) => {
+const getSplits = (wins: WindowInfo[]) => {
   const vertical = new Set<number>()
   const horizontal = new Set<number>()
-  wins.forEach(w => (vertical.add(w.x), horizontal.add(w.y)))
+  wins.forEach(w => (vertical.add(w.col), horizontal.add(w.row)))
   return { vertical, horizontal }
-}
-
-const getSplitCount = (wins: VimWindow[]) => {
-  const { vertical, horizontal } = getSplits(wins)
-  return { vertical: vertical.size - 1, horizontal: horizontal.size - 1 }
 }
 
 const within = (target: number, tolerance: number) => (candidate: number) =>
@@ -31,9 +21,10 @@ const equalizeTo100 = (percentages: number[]) => {
   return items
 }
 
-const gogrid = (wins: VimWindow[]): GridInfo => {
-  const totalRows = canvasContainer.size.rows - 1
-  const totalColumns = canvasContainer.size.cols
+export default (wins: WindowInfo[]) => {
+  // TODO: should we use teh size (rows/cols) from grid 1?
+  const totalRows = size.rows - 1
+  const totalColumns = size.cols
   const { vertical, horizontal } = getSplits(wins)
 
   vertical.add(totalColumns)
@@ -66,12 +57,12 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   const windowsWithGridInfo = wins.map(w => ({
     ...w,
     col: {
-      start: w.x,
-      end: w.x + w.width === totalColumns ? w.x + w.width : w.x + w.width + 1,
+      start: w.col,
+      end: w.col + w.width === totalColumns ? w.col + w.width : w.col + w.width + 1,
     },
     row: {
-      start: w.y,
-      end: w.y + w.height === totalRows ? w.y + w.height : w.y + w.height + 1,
+      start: w.row,
+      end: w.row + w.height === totalRows ? w.row + w.height : w.row + w.height + 1,
     }
   })).map(w => {
     const rowStart = yrows.findIndex(within(w.row.start, 2)) + 1
@@ -89,15 +80,6 @@ const gogrid = (wins: VimWindow[]): GridInfo => {
   return {
     gridTemplateRows,
     gridTemplateColumns,
-    windows: windowsWithGridInfo,
+    windowGridInfo: windowsWithGridInfo,
   }
 }
-
-const { gridTemplateRows, gridTemplateColumns, windows: renderWindows } = gogrid(wins)
-merge(container.style, { gridTemplateRows, gridTemplateColumns })
-
-merge(element.style, {
-  display: 'flex',
-  gridColumn: win.gridColumn,
-  gridRow: win.gridRow,
-})

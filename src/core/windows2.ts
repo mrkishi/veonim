@@ -1,4 +1,4 @@
-import { calcGridContainer, calcGridPositions } from '../core/window-sizer'
+import windowSizer from '../core/window-sizer'
 import CreateWindow, { Window } from '../core/window'
 import { merge } from '../support/utils'
 
@@ -59,6 +59,11 @@ export const getWindow = (gridId: number) => {
 export const renderWindows = () => {
   const wininfos = [...windows].map(([ id, win ]) => ({ id, ...win.getWindowInfo() }))
   console.log('wininfos', ...wininfos)
+
+  const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)
+  console.log('gridTemplateRows', gridTemplateRows)
+  console.log('gridTemplateColumns', gridTemplateColumns)
+  console.log('windowGridInfo', windowGridInfo)
 
   // TODO: call nvim_api for nameplate stuff
 }
