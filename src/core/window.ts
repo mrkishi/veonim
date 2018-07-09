@@ -4,35 +4,26 @@ import CreateWindowNameplate from '../core/window-nameplate'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
-interface WindowLayout {
+interface WindowInfo {
+  id: number
+  gridId: number
   row: number
   col: number
   width: number
   height: number
 }
 
-interface WindowInfo extends WindowLayout {
-  id: number
-  gridId: number
-}
-
 export interface Window {
   grid: WindowGrid
   canvas: WindowCanvas
   element: HTMLElement
-  getWindowSizeAndPosition(): WindowLayout
+  getWindowInfo(): WindowInfo
   setWindowInfo(info: WindowInfo): void
   setCssGridAttributes(attributes: string): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
   destroy(): void
 }
-
-// container
-//  - nameplate
-//  - content
-//    - overlay
-//    - canvas
 
 export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
@@ -79,10 +70,7 @@ export default () => {
     canvas.api.resize(info.height, info.width)
   }
 
-  api.getWindowSizeAndPosition = () => {
-    const { row, col, width, height } = wininfo
-    return { row, col, width, height }
-  }
+  api.getWindowInfo = () => ({ ...wininfo })
 
   api.setCssGridAttributes = () => {
     // TODO: set window div element size/pos from css grid attrs
