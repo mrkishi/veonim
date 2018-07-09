@@ -1,6 +1,6 @@
+import { setWindow, removeWindow, getWindow, renderWindows, setActiveGrid } from '../core/windows2'
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { onRedraw, getMode, getColor as getColorFromVim } from '../core/master-control'
-import { setWindow, removeWindow, getWindow, renderWindows } from '../core/windows2'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
 // import * as canvasContainer from '../core/canvas-container'
 // import { NotifyKind, notify } from '../ui/notifications'
@@ -297,8 +297,6 @@ r.grid_clear = id => {
   if (checkSkipDefaultGrid(id)) return
   const { grid, canvas } = getWindow(id)
   grid.clear()
-  // TODO: should it be like this?
-  // canvas.setColor(defaultColors.background).clear()
   canvas.clear()
 }
 
@@ -308,14 +306,12 @@ r.grid_destroy = id => {
 }
 
 // TODO: do we need to reset cursor position after resizing?
-// TODO: i think this event is redundant with win_position. enable if not true
 // r.grid_resize = (id, width, height) => {
-//   console.log('RESIZE:', id, height, width)
-// }
-// TODO: this will tell us which window the cursor belongs in. this means
-// we don't need the whole get active window first before rendering
-// TODO: handle id
-r.grid_cursor_goto = (_id, row, col) => merge(cursor, { row, col })
+
+r.grid_cursor_goto = (id, row, col) => {
+  setActiveGrid(id, row, col)
+  merge(cursor, { row, col })
+}
 
 r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   ? moveRegionUp(id, amount, { top, bottom, left, right })

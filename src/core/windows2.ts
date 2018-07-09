@@ -12,11 +12,12 @@ merge(container.style, {
   alignItems: 'stretch',
 })
 
-// TODO: track current window? use currentWindow to append elements to overlay like file menu?
-// TODO: getWindow(windowId) for
-
-// TODO: do we need a map with key of window id?
 const windows = new Map<number, Window>()
+const activeGrid = { id: 1, row: 0, col: 0 }
+
+export const setActiveGrid = (id: number, row: number, col: number) => merge(activeGrid, { id, row, col })
+
+export const getActiveWindow = () => getWindow(activeGrid.id)
 
 export const setWindow = (id: number, gridId: number, row: number, col: number, width: number, height: number) => {
   const win = windows.get(gridId) || CreateWindow()
