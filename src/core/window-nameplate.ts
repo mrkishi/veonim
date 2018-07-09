@@ -67,17 +67,19 @@ export default () => {
         overflow: 'hidden',
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
+        filter: `brightness(${$.active ? 130 : 90}%)`,
       }
     }, [
 
       ,h('span', { style: {
         color: cvar('foreground-50'),
-      } }, $.name)
+      } }, $.name || '[No Name]')
 
-      ,h('span', { style: {
+      // TODO: maybe don't render this element at all if we don't have a dir?
+      ,$.dir && h('span', { style: {
         color: cvar('foreground-30'),
         marginRight: '1px',
-      } }, $.dir)
+      } }, `${dir}/`)
 
     ])
 
