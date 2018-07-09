@@ -25,9 +25,10 @@ export interface Window {
   getWindowInfo(): WindowInfo
   setWindowInfo(info: WindowInfo): void
   applyGridStyle(gridStyle: GridStyle): void
+  updateNameplate(data: NameplateState): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
-  updateNameplate(data: NameplateState): void
+  resizeWindow(width: number, height: number): void
   destroy(): void
 }
 
@@ -70,11 +71,14 @@ export default () => {
     get element() { return container },
   } as Window
 
+  api.resizeWindow = (width, height) => {
+    canvas.api.resize(height, width)
+    grid.resize(height, width)
+  }
+
   api.setWindowInfo = info => {
     container.id = `${info.id}`
     merge(wininfo, info)
-    grid.resize(info.height, info.width)
-    canvas.api.resize(info.height, info.width)
   }
 
   api.getWindowInfo = () => ({ ...wininfo })

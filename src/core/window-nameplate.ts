@@ -1,4 +1,4 @@
-import { size, font } from '../core/canvas-container'
+import { size } from '../core/canvas-container'
 import * as Icon from 'hyperapp-feather'
 import { uuid } from '../support/utils'
 import { makel } from '../ui/vanilla'
@@ -76,7 +76,7 @@ export default () => {
       ,$.dir && h('span', { style: {
         color: cvar('foreground-30'),
         marginRight: '1px',
-      } }, `${dir}/`)
+      } }, `${$.dir}/`)
 
     ])
 

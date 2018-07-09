@@ -135,6 +135,7 @@ export default () => {
   api.clear = () => (ui.fillRect(0, 0, canvas.width, canvas.height), api)
 
   const drawText = (char: string, col: number, row: number) => {
+    // TODO: try clip like we do in font atlas
     // const maxCharWidth = cell.width
     // TODO: i didn't see any changes to rendering artifacts, but then again i didn't
     // have any good test cases. right now if we do a pretty diff-so-fancy git diff output
