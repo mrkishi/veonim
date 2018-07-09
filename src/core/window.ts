@@ -1,6 +1,6 @@
+import CreateWindowNameplate, { NameplateState } from '../core/window-nameplate'
 import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
 import CreateWindowGrid, { WindowGrid } from '../core/window-grid'
-import CreateWindowNameplate from '../core/window-nameplate'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
@@ -27,6 +27,7 @@ export interface Window {
   applyGridStyle(gridStyle: GridStyle): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
+  updateNameplate(data: NameplateState): void
   destroy(): void
 }
 
@@ -86,6 +87,8 @@ export default () => {
   }
 
   api.removeOverlayElement = el => overlay.contains(el) && overlay.removeChild(el)
+
+  api.updateNameplate = data => nameplate.update(data)
 
   api.destroy = () => {
     // TODO: destroy elements, cleanup, destroy canvas, components, anything else thanks etc.

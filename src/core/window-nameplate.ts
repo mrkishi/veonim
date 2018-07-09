@@ -35,10 +35,7 @@ export default () => {
     termFormat: '',
   }
 
-  const actions = {
-    updateStuff: (stuff: any) => stuff,
-  }
-
+  const actions = { updateData: (data: S) => data }
   type A = typeof actions
 
   const view = ($: S) => h('div', {
@@ -120,7 +117,7 @@ export default () => {
   ])
 
   const ui = app<S, A>({ name: `nameplate-${uuid()}`, state, actions, view, element })
-  const update = (stuff: any) => ui.updateStuff(stuff)
+  const update = (data: S) => ui.updateData(data)
 
   return { element, update }
 }
