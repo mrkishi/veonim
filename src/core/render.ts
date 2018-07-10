@@ -306,7 +306,10 @@ r.grid_destroy = id => {
 }
 
 // TODO: do we need to reset cursor position after resizing?
-// r.grid_resize = (id, width, height) => {
+r.grid_resize = (id, width, height) => {
+  if (checkSkipDefaultGrid(id)) return
+  getWindow(id).resizeWindow(width, height)
+}
 
 r.grid_cursor_goto = (id, row, col) => {
   setActiveGrid(id, row, col)

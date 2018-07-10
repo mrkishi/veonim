@@ -1,14 +1,23 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
-- layout windows using css grid
-  - verify if we are setting css grid row/column matching the exact window. could be relative
-    as it was relative before...
-- create window nameplate component
+- creating new window causes black flicker... perhaps too slow to init and size canvas. can we precache canvas?
+- verify if we are setting css grid row/column matching the exact window. could be relative as it was relative before...
 - get nvim_api info for windows (title, modified, etc.)
+- redo cursor
+- investigate if canvas padding is still taking effect?
+  - it is - but before the padding was 10, now it's 4. 4 feels too clausterphobic
+- cleanup/redo window-canvas positionToXY functions.
+  - only need for absolute position? aka hover elements, cursor, etc.
+    - any relative positions should add themselves to the container...
+    - wait... what about relative... still need to XY if position to row/col
+        - think of jump labels. need to attach to a search result, but still
+          in relative container
+- when resizing can we use css animation so the splits "move"?
 - shadow buffers:
   - creating shadow-buffer adds an extra window. figure out how to fix this
-- memoize window-canvas px calculations
+
+- fix neovim.ts current onFnCall -> some stuff are properties!
 
 ## interestings
 - do we flicker on canvas resize? if so, what about cache canvas then drawImage after resize?
@@ -17,6 +26,8 @@
   - `linespace` replaces `g:vn_line_height`
 
 ## questions
+- is adding neovim.ts to windows2.ts increase startup time?
+- memoize window-canvas px calculations?
 - is font-atlas faster than `fillText`? it seems slower...?
 - verify `ext_messages` works with new ui protocol
 - `ui` api is wrong for `grid_line`. added comment in issue review. manually changing api.ts for now

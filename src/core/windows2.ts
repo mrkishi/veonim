@@ -1,5 +1,6 @@
-import windowSizer from '../core/window-sizer'
+import getWindowMetadata from '../core/window-metadata'
 import CreateWindow, { Window } from '../core/window'
+import windowSizer from '../core/window-sizer'
 import { merge } from '../support/utils'
 
 const container = document.getElementById('windows') as HTMLElement
@@ -42,7 +43,7 @@ export const getWindow = (gridId: number) => {
   return win
 }
 
-export const renderWindows = () => {
+export const renderWindows = async () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
   const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)
 
@@ -53,5 +54,8 @@ export const renderWindows = () => {
     win.applyGridStyle({ gridRow: w.gridRow, gridColumn: w.gridColumn })
   })
 
-  // TODO: call nvim_api for nameplate stuff
+  const winMeta = await getWindowMetadata()
+  console.log('ww', ...winMeta)
+
+  // TODO: update nameplates with win metadata
 }
