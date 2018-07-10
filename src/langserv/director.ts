@@ -145,19 +145,22 @@ export const onServerStart = (fn: (server: extensions.LanguageServer) => void) =
 export const onDiagnostics = (cb: (diagnostics: { uri: string, diagnostics: Diagnostic[] }) => void) => watchers.add('diagnostics', cb)
 
 export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
+  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
   if (!capabilities) return SyncKind.Full
   return pleaseGet(capabilities).textDocumentSync.change(SyncKind.Full)
 }
 
 const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
+  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
   if (!capabilities) return []
   return pleaseGet(capabilities)[kind].triggerCharacters()
 }
 
 export const canCall = (cwd: string, filetype: string, capability: string): boolean => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
+  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
   if (!capabilities) return false
   return pleaseGet(capabilities)[`${capability}Provider`](false)
 }

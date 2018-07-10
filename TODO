@@ -15,6 +15,11 @@ path displayed in "project" statusline section
 
 debug
 
+normalize-filetypes:
+- double check that trigger chars are working correctly
+  - autocomplete + signature-help
+  - test in start.js - should work identical to current version with autocmd fix
+
 autocomplete:
 - do not hardcode 'tab' + 's-tab' keys. user config
 - allow opt-in autocomplete trigger. autocmds? -> enable/disable?
@@ -27,6 +32,9 @@ vim-search:
 - sometimes triggering on cmdsdsdsdsd
 - vim search hide action throwing error window not found. maybe redux, but
   does it do the same in dist mode?
+
+key-transform:
+- support different modes
 
 use user menu to create a git branch switcher. add it docs
 
@@ -69,6 +77,7 @@ viewport-search, make sure search only happens in visible viewport!
   - is it because 'job' is not found in the viewport?
 
 divination:
+- whatever method we use for jumping does not add jumps to jumplist
 - line jump: anchor labels to first char in the line? how to?
   - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
     return [row, col][] list map
