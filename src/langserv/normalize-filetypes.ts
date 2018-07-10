@@ -11,3 +11,7 @@ const filetypes = new Map<string, string>([
 ])
 
 export default (filetype: string) => filetypes.get(filetype) || filetype
+
+export const toVimFiletype = (vscodeFiletype: string) => {
+  return ([...filetypes].find(m => m[1] === vscodeFiletype) || [])[0]
+}

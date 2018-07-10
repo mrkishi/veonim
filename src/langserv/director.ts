@@ -1,5 +1,5 @@
+import normalizeFiletype, { toVimFiletype } from '../langserv/normalize-filetypes'
 import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
-import normalizeFiletype from '../langserv/normalize-filetypes'
 import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
@@ -69,7 +69,8 @@ const startServer = async (cwd: string, filetype: string) => {
   await initServer(server, cwd, filetype)
 
   startingServers.delete(cwd + filetype)
-  dispatch.pub('ai:start', { cwd, filetype })
+  const vimFiletype = toVimFiletype(filetype)
+  dispatch.pub('ai:start', { cwd, filetype: vimFiletype })
 
   return server
 }
