@@ -1,6 +1,7 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
+- proof that win_position does not reset proper row/col after window kill
 - verify if we are setting css grid row/column matching the exact window. could be relative as it was relative before...
 - creating new window causes black flicker... perhaps too slow to init and size canvas. can we precache canvas?
 - redo cursor

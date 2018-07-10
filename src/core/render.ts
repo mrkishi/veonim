@@ -294,6 +294,7 @@ r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
 
 
 r.grid_clear = id => {
+  console.log('clear', id)
   if (checkSkipDefaultGrid(id)) return
   const { grid, canvas } = getWindow(id)
   grid.clear()
@@ -301,12 +302,14 @@ r.grid_clear = id => {
 }
 
 r.grid_destroy = id => {
+  console.log('destroy', id)
   if (checkSkipDefaultGrid(id)) return
   removeWindow(id)
 }
 
 // TODO: do we need to reset cursor position after resizing?
 r.grid_resize = (id, width, height) => {
+  console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
   if (checkSkipDefaultGrid(id)) return
   getWindow(id).resizeWindow(width, height)
 }
@@ -535,11 +538,11 @@ const doNotUpdateCmdlineIfSame = (args: any[]) => {
 }
 
 onRedraw((m: any[]) => {
-  let winUpdates = false
   // because of circular logic/infinite loop. cmdline_show updates UI, UI makes
   // a change in the cmdline, nvim sends redraw again. we cut that shit out
   // with coding and algorithms
   if (doNotUpdateCmdlineIfSame(m[0])) return
+  let winUpdates = false
 
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
