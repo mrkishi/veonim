@@ -3,7 +3,6 @@
 ## tasks
 - creating new window causes black flicker... perhaps too slow to init and size canvas. can we precache canvas?
 - verify if we are setting css grid row/column matching the exact window. could be relative as it was relative before...
-- get nvim_api info for windows (title, modified, etc.)
 - redo cursor
 - investigate if canvas padding is still taking effect?
   - it is - but before the padding was 10, now it's 4. 4 feels too clausterphobic
@@ -17,10 +16,7 @@
 - shadow buffers:
   - creating shadow-buffer adds an extra window. figure out how to fix this
 
-- fix neovim.ts current onFnCall -> some stuff are properties!
-
 ## interestings
-- do we flicker on canvas resize? if so, what about cache canvas then drawImage after resize?
 - render event `option_set` has `guifont` and `linespace`. we can use this now instead of our own custom global variables.
   - `guifont` replaces `g:vn_font` and `g:vn_font_size`
   - `linespace` replaces `g:vn_line_height`
@@ -35,6 +31,7 @@
 
 ## can we copystrike shitty engineering?!?
 - we are sending WAYYYY too many commands on the nvim_api on startup. either batch or do via vimscript
+    - some of these happen in web workers, but still... too much
 - now that we have semantic highlights via `ext_hlstate` we don't need to query `nvim_get_hl...` anymore. use local cache pls kthx
 
 ## ref

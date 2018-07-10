@@ -1,4 +1,4 @@
-import { current, getCurrent, BufferOption, BufferType } from '../core/neovim'
+import { current, BufferOption, BufferType } from '../core/neovim'
 import { simplifyPath, pathReducer } from '../support/utils'
 import { BufferVar } from '../core/vim-functions'
 
@@ -34,9 +34,8 @@ const betterTitles = (windows: any[]): WindowMetadata[] => {
 }
 
 export default async (): Promise<WindowMetadata[]> => {
-  // TODO: fix neovim.current to handle fuctions AND properties, then use that here
-  const activeWindow = (await getCurrent.window).id
-  const wins = await (await getCurrent.tab).windows
+  const activeWindow = await current.window.id
+  const wins = await current.tabpage.windows
 
   const windowsWithApiData = await Promise.all(wins.map(async w => {
     const buffer = await w.buffer
