@@ -15,6 +15,7 @@ merge(container.style, {
 })
 
 const windows = new Map<number, Window>()
+const windowsById = new Map<number, Window>()
 const activeGrid = { id: 1, row: 0, col: 0 }
 
 export const setActiveGrid = (id: number, row: number, col: number) => merge(activeGrid, { id, row, col })
@@ -25,6 +26,7 @@ export const setWindow = (id: number, gridId: number, row: number, col: number, 
   const win = windows.get(gridId) || CreateWindow()
   win.setWindowInfo({ id, gridId, row, col, width, height })
   if (!windows.has(gridId)) windows.set(gridId, win)
+  if (!windowsById.has(id)) windowsById.set(id, win)
   container.appendChild(win.element)
 }
 
@@ -34,6 +36,7 @@ export const removeWindow = (gridId: number) => {
 
   win.destroy()
   if (container.contains(win.element)) container.removeChild(win.element)
+  windowsById.delete(win.getWindowInfo().id)
   windows.delete(gridId)
 }
 
@@ -43,19 +46,22 @@ export const getWindow = (gridId: number) => {
   return win
 }
 
+const getWindowById = (windowId: number) => {
+  const win = windowsById.get(windowId)
+  if (!win) throw new Error(`trying to get window that does not exist ${windowId}`)
+  return win
+}
+
 export const renderWindows = async () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
   const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)
 
   merge(container.style, { gridTemplateRows, gridTemplateColumns })
 
-  windowGridInfo.forEach(w => {
-    const win = getWindow(w.gridId)
-    win.applyGridStyle({ gridRow: w.gridRow, gridColumn: w.gridColumn })
+  windowGridInfo.forEach(({ gridId, gridRow, gridColumn }) => {
+    getWindow(gridId).applyGridStyle({ gridRow, gridColumn })
   })
 
-  const winMeta = await getWindowMetadata()
-  console.log('ww', ...winMeta)
-
-  // TODO: update nameplates with win metadata
+  const windowsWithMetadata = await getWindowMetadata()
+  windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
 }
