@@ -1,7 +1,7 @@
 import getWindowMetadata from '../core/window-metadata'
 import CreateWindow, { Window } from '../core/window'
+import { merge, throttle } from '../support/utils'
 import windowSizer from '../core/window-sizer'
-import { merge } from '../support/utils'
 
 const container = document.getElementById('windows') as HTMLElement
 
@@ -52,7 +52,7 @@ const getWindowById = (windowId: number) => {
   return win
 }
 
-export const renderWindows = async () => {
+export const renderWindows = () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
   const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)
 
@@ -61,7 +61,11 @@ export const renderWindows = async () => {
   windowGridInfo.forEach(({ gridId, gridRow, gridColumn }) => {
     getWindow(gridId).applyGridStyle({ gridRow, gridColumn })
   })
+}
 
+const updateWindowNameplates = async () => {
   const windowsWithMetadata = await getWindowMetadata()
   windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
 }
+
+export const refreshWindows = throttle(updateWindowNameplates, 5)

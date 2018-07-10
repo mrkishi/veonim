@@ -374,6 +374,7 @@ export const getColor = async (name: string) => {
 
 export const systemAction = (event: string, cb: GenericCallback) => actionWatchers.add(event, cb)
 
+// TODO: move these with neovim.current
 export const list = {
   get buffers() { return as.bufl(req.core.listBufs()) },
   get windows() { return as.winl(req.core.listWins()) },

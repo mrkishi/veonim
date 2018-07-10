@@ -1,8 +1,8 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
-- creating new window causes black flicker... perhaps too slow to init and size canvas. can we precache canvas?
 - verify if we are setting css grid row/column matching the exact window. could be relative as it was relative before...
+- creating new window causes black flicker... perhaps too slow to init and size canvas. can we precache canvas?
 - redo cursor
 - investigate if canvas padding is still taking effect?
   - it is - but before the padding was 10, now it's 4. 4 feels too clausterphobic

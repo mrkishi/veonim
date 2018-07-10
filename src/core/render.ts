@@ -1,4 +1,4 @@
-import { setWindow, removeWindow, getWindow, renderWindows, setActiveGrid } from '../core/windows2'
+import { setWindow, removeWindow, getWindow, renderWindows, setActiveGrid, refreshWindows } from '../core/windows2'
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { onRedraw, getMode, getColor as getColorFromVim } from '../core/master-control'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
@@ -373,6 +373,7 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 }
 
 r.win_position = (windowId, gridId, row, col, width, height) => {
+  console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
   setWindow(windowId, gridId, row, col, width, height)
 }
 
@@ -534,6 +535,7 @@ const doNotUpdateCmdlineIfSame = (args: any[]) => {
 }
 
 onRedraw((m: any[]) => {
+  let winUpdates = false
   // because of circular logic/infinite loop. cmdline_show updates UI, UI makes
   // a change in the cmdline, nvim sends redraw again. we cut that shit out
   // with coding and algorithms
@@ -542,6 +544,7 @@ onRedraw((m: any[]) => {
   const count = m.length
   for (let ix = 0; ix < count; ix++) {
     const [ method, ...args ] = m[ix]
+    if (method === 'win_position') winUpdates = true
     const fn = api.get(method)
     if (!fn) continue
 
@@ -550,11 +553,10 @@ onRedraw((m: any[]) => {
   }
 
   moveCursor(defaultColors.background)
-
-  requestAnimationFrame(() => renderWindows())
+  if (winUpdates) requestAnimationFrame(() => renderWindows())
 
   ;(window as any).requestIdleCallback(() => {
-    // renderWindows()
+    refreshWindows()
     // TODO: re-enable font atlas generation once the dust settles
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)
     // regenerateFontAtlastIfNecessary()

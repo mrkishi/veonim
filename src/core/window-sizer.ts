@@ -1,5 +1,6 @@
 import { size } from '../core/canvas-container'
 import { WindowInfo } from '../core/window'
+import { within } from '../support/utils'
 
 const getSplits = (wins: WindowInfo[]) => {
   const vertical = new Set<number>()
@@ -7,9 +8,6 @@ const getSplits = (wins: WindowInfo[]) => {
   wins.forEach(w => (vertical.add(w.col), horizontal.add(w.row)))
   return { vertical, horizontal }
 }
-
-const within = (target: number, tolerance: number) => (candidate: number) =>
-  Math.abs(target - candidate) <= tolerance
 
 const equalizeTo100 = (percentages: number[]) => {
   const total = percentages.reduce((total, num) => total + num, 0)
@@ -32,6 +30,8 @@ export default (wins: WindowInfo[]) => {
 
   const yrows = [...horizontal].sort((a, b) => a - b)
   const xcols = [...vertical].sort((a, b) => a - b)
+  console.log('yrows', yrows)
+  console.log('xcols', xcols)
 
   const rr = yrows.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
@@ -47,8 +47,8 @@ export default (wins: WindowInfo[]) => {
 
     const next = arr[ix + 1]
     const diff = next - curr
-    const rowSize = <any>Math.round((diff / totalColumns) * 100).toFixed(1) - 0
-    return [...res, rowSize]
+    const colSize = <any>Math.round((diff / totalColumns) * 100).toFixed(1) - 0
+    return [...res, colSize]
   }, [] as number[])
 
   const gridTemplateRows = rr.length < 2 ? '100%' : rr.reduce((s, m) => s + m + '% ', '')
@@ -56,19 +56,21 @@ export default (wins: WindowInfo[]) => {
 
   const windowsWithGridInfo = wins.map(w => ({
     ...w,
-    col: {
+    scol: {
       start: w.col,
       end: w.col + w.width === totalColumns ? w.col + w.width : w.col + w.width + 1,
     },
-    row: {
+    srow: {
       start: w.row,
       end: w.row + w.height === totalRows ? w.row + w.height : w.row + w.height + 1,
     }
   })).map(w => {
-    const rowStart = yrows.findIndex(within(w.row.start, 2)) + 1
-    const rowEnd = yrows.findIndex(within(w.row.end, 2)) + 1
-    const colStart = xcols.findIndex(within(w.col.start, 2)) + 1
-    const colEnd = xcols.findIndex(within(w.col.end, 2)) + 1
+    const { srow, scol } = w
+    console.log('w', w)
+    const rowStart = yrows.findIndex(within(srow.start, 2)) + 1
+    const rowEnd = yrows.findIndex(within(srow.end, 2)) + 1
+    const colStart = xcols.findIndex(within(scol.start, 2)) + 1
+    const colEnd = xcols.findIndex(within(scol.end, 2)) + 1
 
     return {
       ...w,
