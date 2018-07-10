@@ -113,10 +113,11 @@ const bufferCallUntilServerStart = async (call: BufferedCall) => {
 }
 
 const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
-  if (isServerStarting(cwd, filetype)) return
-  if (servers.has(cwd + filetype)) return servers.get(cwd + filetype)
-
   const vscodeFiletype = normalizeFiletype(filetype)
+
+  if (isServerStarting(cwd, vscodeFiletype)) return
+  if (servers.has(cwd + vscodeFiletype)) return servers.get(cwd + vscodeFiletype)
+
   const serverAvailable = await extensions.existsForLanguage(vscodeFiletype)
   if (!serverAvailable) return
 
