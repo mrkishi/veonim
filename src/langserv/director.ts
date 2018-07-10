@@ -1,4 +1,5 @@
 import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
+import normalizeFiletype from '../langserv/normalize-filetypes'
 import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
@@ -115,10 +116,11 @@ const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
   if (isServerStarting(cwd, filetype)) return
   if (servers.has(cwd + filetype)) return servers.get(cwd + filetype)
 
-  const serverAvailable = await extensions.existsForLanguage(filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
+  const serverAvailable = await extensions.existsForLanguage(vscodeFiletype)
   if (!serverAvailable) return
 
-  return startServer(cwd, filetype)
+  return startServer(cwd, vscodeFiletype)
 }
 
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
