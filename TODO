@@ -15,6 +15,12 @@ path displayed in "project" statusline section
 
 debug
 
+if lang ext not installed suggest ext on new file type/bufload 
+
+custom vim input modes:
+- window resize
+- move windows
+
 normalize-filetypes:
 - double check that trigger chars are working correctly
   - autocomplete + signature-help
