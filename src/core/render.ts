@@ -315,6 +315,7 @@ r.grid_resize = (id, width, height) => {
 }
 
 r.grid_cursor_goto = (id, row, col) => {
+  console.log(`grid_cursor_goto(id: ${id}, row: ${row}, col: ${col})`)
   setActiveGrid(id, row, col)
   merge(cursor, { row, col })
 }

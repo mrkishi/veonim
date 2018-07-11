@@ -1,8 +1,14 @@
 # cultural learnings of neovim for make benefit glorious feature of THE GRID
 
 ## tasks
-- proof that win_position does not reset proper row/col after window kill
 - verify if we are setting css grid row/column matching the exact window. could be relative as it was relative before...
+    - 2 wins, close 1 fixed
+    - 3 wins: | | |
+              | |-|
+              | | |
+      close left split. top right resizes to span entire area. bottom right does not resize
+        - this an nvim bug
+
 - creating new window causes black flicker... perhaps too slow to init and size canvas. can we precache canvas?
 - redo cursor
 - investigate if canvas padding is still taking effect?
