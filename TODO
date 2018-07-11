@@ -95,6 +95,7 @@ divination:
     - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
+- if only one result in list and i hit enter, jump to the first result
 - i feel like i might want this in a few different places.
   - can create generic fn to use anywhere?
 
