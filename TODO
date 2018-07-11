@@ -96,6 +96,7 @@ divination:
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
 - if only one result in list and i hit enter, jump to the first result
+  - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
 - i feel like i might want this in a few different places.
   - can create generic fn to use anywhere?
 
