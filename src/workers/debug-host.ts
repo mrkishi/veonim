@@ -12,6 +12,12 @@ interface Debugger {
   runtime?: 'node' | 'mono'
 }
 
+interface ServerBridgeParams {
+  adapterId: string
+  method: string
+  params: any[]
+}
+
 // -- REFERENCE LINKS --
 // https://github.com/Microsoft/vscode-node-debug2/blob/master/package.json
 // https://github.com/Microsoft/vscode-chrome-debug/blob/master/package.json
@@ -28,7 +34,40 @@ interface Debugger {
 const TEMP_EXT_DIR = join(process.cwd(), 'memes', 'extension')
 const memeConfig = join(TEMP_EXT_DIR, 'package.json')
 
+const { on, call, request } = WorkerClient()
+
+const getAdapter = (id: string) => {
+  const server = runningDebugAdapters.get(id)
+  if (!server) throw new Error(`fail to get lang serv ${id}. this should not happen... ever.`)
+  return server
+}
+
+on.server_sendNotification(({ adapterId, method, params }: ServerBridgeParams) => {
+  getAdapter(adapterId).sendNotification(method, ...params)
+})
+
+on.server_sendRequest(({ adapterId, method, params }: ServerBridgeParams) => {
+  return getAdapter(adapterId).sendRequest(method, ...params)
+})
+
+on.server_onNotification(({ adapterId, method }: ServerBridgeParams) => {
+  getAdapter(adapterId).onNotification(method, (...args) => call[`${adapterId}:${method}`](args))
+})
+
+on.server_onRequest(({ adapterId, method }: ServerBridgeParams) => {
+  getAdapter(adapterId).onRequest(method, async (...args) => request[`${adapterId}:${method}`](args))
+})
+
+on.server_onError(({ adapterId }: ServerBridgeParams) => {
+  getAdapter(adapterId).onError(err => call[`${adapterId}:onError`](err))
+})
+
+on.server_onClose(({ adapterId }: ServerBridgeParams) => {
+  getAdapter(adapterId).onClose(() => call[`${adapterId}:onClose`]())
+})
+
 const availableDebugAdapters = new Map<string, Debugger>()
+const runningDebugAdapters = new Map<string, rpc.createMessageConnection>()
 
 const getPackageJsonConfig = async (packageJson: string): Promise<object> => {
   const rawFileData = await readFile(packageJson)
@@ -169,6 +208,7 @@ const doTheNeedful = async () => {
 
 // TODO: hook it up to worker-client.on event
 const startDebuggingSession = (debugType: string) => {
+  const adapterId = uuid()
   const adapter = availableDebugAdapters.get(debugType)
   if (!adapter) return console.error(`debug adapter ${debugType} not found`)
 
@@ -180,7 +220,9 @@ const startDebuggingSession = (debugType: string) => {
   // when adding to availableDebugAdapters
   const adapterPath = join(TEMP_EXT_DIR, program)
   const debugAdapterProcess = startDebugAdapter(adapterPath, runtime)
-  return connectDebugAdapter(debugAdapterProcess)
+  const adapterConnection = connectDebugAdapter(debugAdapterProcess)
+  runningDebugAdapters.set(adapterId, adapterConnection)
+  return adapterId
 }
 
 const getDebugLaunchConfig = (debugType: string) => {
@@ -233,15 +275,9 @@ const getDebugLaunchConfig = (debugType: string) => {
 // and neither when hitting the "cog wheel" button in vscode to generate a launch.json. i guess
 // it does what it says on the label: only providesInitialConfig when the registered command is called.
 
-// this simulates an async action initiated by a user event
-// the user will start the debug session from the UI
-setTimeout(() => {
-  const testAdapter = 'node2'
-  console.log('starting debug adapter:', testAdapter)
-  const debugAdapter = startDebuggingSession(testAdapter)
-  // TODO: initalize adapter with launch config
-  // TODO: figure out the protocol and what we need to send for init and etc.
-  // testingAdapter.sendNotification(...)
-}, 1e3)
-
 doTheNeedful().catch(console.error)
+
+on.startDebug(async (adapter: string) => {
+  console.log('starting adapter', adapter)
+  return startDebuggingSession(adapter)
+})
