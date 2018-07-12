@@ -24,14 +24,14 @@ interface BufferedCall {
 
 export enum SyncKind { None, Full, Incremental }
 
-const servers = new Map<string, extensions.LanguageServer>()
+const servers = new Map<string, extensions.RPCServer>()
 const serverCapabilities = new Map<string, any>()
 const serverStartCallbacks = new Set<Function>()
 const startingServers = new Set<string>()
 const bufferedServerCalls = new Map<string, BufferedCall[]>()
 const watchers = new Watchers()
 
-const processBufferedServerCalls = (key: string, server: extensions.LanguageServer) => {
+const processBufferedServerCalls = (key: string, server: extensions.RPCServer) => {
   const calls = bufferedServerCalls.get(key)
   if (!calls) return
 
@@ -43,7 +43,7 @@ const processBufferedServerCalls = (key: string, server: extensions.LanguageServ
   bufferedServerCalls.delete(key)
 }
 
-const initServer = async (server: extensions.LanguageServer, cwd: string, filetype: string) => {
+const initServer = async (server: extensions.RPCServer, cwd: string, filetype: string) => {
   const { error, capabilities } = await server
     .sendRequest('initialize', defaultCapabs(cwd))
     .catch(console.error)
@@ -133,7 +133,7 @@ export const notify = async (method: string, params: any, { bufferCallIfServerSt
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Notification, method, params })
 }
 
-export const onServerStart = (fn: (server: extensions.LanguageServer) => void) => {
+export const onServerStart = (fn: (server: extensions.RPCServer) => void) => {
   serverStartCallbacks.add(fn)
   return () => serverStartCallbacks.delete(fn)
 }

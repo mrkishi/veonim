@@ -28,7 +28,7 @@ const LanguageClient = class LanguageClient {
 
 const commands = {
   registerCommand: (command: string, callback: (args: any[]) => any, thisArg?: any) => {
-    console.log('pls register cmd:', command)
+    console.log('pls register cmd:', command, callback, thisArg)
     // TODO: i'm guessing we just register this as a Veonim action?
     // we will need to pass this back to main thread to talk with neovim
     // if we are within the context of a web worker (right now this is YES)

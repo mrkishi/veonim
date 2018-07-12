@@ -10,10 +10,6 @@ import '../ui/notifications'
 import '../core/render'
 import '../core/title'
 
-if (process.env.VEONIM_DEV) {
-  require('../core/debug')
-}
-
 const loadingConfig = CreateTask()
 
 configReader('nvim/init.vim', c => {
