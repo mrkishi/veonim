@@ -1,3 +1,4 @@
+import normalizeFiletype, { toVimFiletype } from '../langserv/normalize-filetypes'
 import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
 import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
@@ -68,7 +69,8 @@ const startServer = async (cwd: string, filetype: string) => {
   await initServer(server, cwd, filetype)
 
   startingServers.delete(cwd + filetype)
-  dispatch.pub('ai:start', { cwd, filetype })
+  const vimFiletype = toVimFiletype(filetype)
+  dispatch.pub('ai:start', { cwd, filetype: vimFiletype })
 
   return server
 }
@@ -112,13 +114,15 @@ const bufferCallUntilServerStart = async (call: BufferedCall) => {
 }
 
 const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
-  if (isServerStarting(cwd, filetype)) return
-  if (servers.has(cwd + filetype)) return servers.get(cwd + filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
 
-  const serverAvailable = await extensions.existsForLanguage(filetype)
+  if (isServerStarting(cwd, vscodeFiletype)) return
+  if (servers.has(cwd + vscodeFiletype)) return servers.get(cwd + vscodeFiletype)
+
+  const serverAvailable = await extensions.existsForLanguage(vscodeFiletype)
   if (!serverAvailable) return
 
-  return startServer(cwd, filetype)
+  return startServer(cwd, vscodeFiletype)
 }
 
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
@@ -141,19 +145,22 @@ export const onServerStart = (fn: (server: extensions.RPCServer) => void) => {
 export const onDiagnostics = (cb: (diagnostics: { uri: string, diagnostics: Diagnostic[] }) => void) => watchers.add('diagnostics', cb)
 
 export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
+  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
   if (!capabilities) return SyncKind.Full
   return pleaseGet(capabilities).textDocumentSync.change(SyncKind.Full)
 }
 
 const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
+  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
   if (!capabilities) return []
   return pleaseGet(capabilities)[kind].triggerCharacters()
 }
 
 export const canCall = (cwd: string, filetype: string, capability: string): boolean => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
+  const vscodeFiletype = normalizeFiletype(filetype)
+  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
   if (!capabilities) return false
   return pleaseGet(capabilities)[`${capability}Provider`](false)
 }

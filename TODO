@@ -9,7 +9,26 @@
 - help files missing
 - Veonim buffers a little laggy and flickers windows???
 
+change-dir/vim-create-dir default dir to :pwd if not specified. should we default
+to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
+path displayed in "project" statusline section
+
 debug
+
+if lang ext not installed suggest ext on new file type/bufload 
+
+custom vim input modes:
+- window resize
+- move windows
+
+normalize-filetypes:
+- double check that trigger chars are working correctly
+  - autocomplete + signature-help
+  - test in start.js - should work identical to current version with autocmd fix
+
+autocomplete:
+- do not hardcode 'tab' + 's-tab' keys. user config
+- allow opt-in autocomplete trigger. autocmds? -> enable/disable?
 
 vim-search:
 - dispatch callback events to vim when the vim-search window has closed
@@ -19,6 +38,11 @@ vim-search:
 - sometimes triggering on cmdsdsdsdsd
 - vim search hide action throwing error window not found. maybe redux, but
   does it do the same in dist mode?
+
+key-transform:
+- support different modes
+
+use user menu to create a git branch switcher. add it docs
 
 annotate marks in buffer. experiment with drawing on top of render buffer output?
 - can get mark info via :marks?
@@ -59,6 +83,7 @@ viewport-search, make sure search only happens in visible viewport!
   - is it because 'job' is not found in the viewport?
 
 divination:
+- whatever method we use for jumping does not add jumps to jumplist
 - line jump: anchor labels to first char in the line? how to?
   - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
     return [row, col][] list map
@@ -76,6 +101,8 @@ divination:
     - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
+- if only one result in list and i hit enter, jump to the first result
+  - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
 - i feel like i might want this in a few different places.
   - can create generic fn to use anywhere?
 
@@ -269,6 +296,29 @@ rpc errors send to notifications? (try calling some broken execute() vimscript f
 upgrade ripgrep
 
 --ideas--
+
+configurable mouse cursor hide enable/disable - enabled by default
+
+create overlay menu window with key shortcuts so users can create spacemacs-like
+menus. e.g. (floating windows maybe?)
+- press and hold a key to open up menu. next key press while key is being held will trigger action
+- press key to bring up menu. next key selects an action from the menu
+[ a: buffer search    b: grep search    c: viewport-search ]
+[ d: file search                                           ]
+
+add documentation about guifont/size/cursor/colorscheme/roboto/etc
+
+supercharge the vim command line menu. provide menu completions automatically. fuzzy find results.
+can we provide a snippet of documentation for the selected menu item? for vim items this can be
+the first line from :h. For Veonim we can load from custom place.
+- using the same system to make a :Veonim only menu - bind to ctrl_shift_p?
+
+create a visual configurator for key remapings + key event viewer. it's hard to figure out otherwise
+
+if language extension is not installed, provide a install suggestion like vscode
+on buffer load
+
+yes/no popup dialog with shift_ctrl_y/n styled like messages/notifications to the bottom right
 
 readme screen showcase automation
   create demo script to start electron at a certain size
