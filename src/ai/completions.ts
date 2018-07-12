@@ -6,6 +6,7 @@ import { CompletionItem } from 'vscode-languageserver-types'
 import { g, on, current as vimState } from '../core/neovim'
 import * as completionUI from '../components/autocomplete'
 import { harvester, update } from '../ai/update-server'
+import { resolveEnabled } from '../langserv/director'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
@@ -208,7 +209,10 @@ const getCompletions = async (lineContent: string, line: number, column: number)
   }
 }
 
-export const getCompletionDetail = (item: CompletionItem) => completionDetail(vimState, item)
+export const getCompletionDetail = (item: CompletionItem): Promise<CompletionItem> => {
+  const enabled = resolveEnabled(vimState.cwd, vimState.filetype, 'completion')
+  return enabled ?  completionDetail(vimState, item) : Promise.resolve({} as CompletionItem)
+}
 
 on.insertLeave(async () => {
   cache.activeCompletion = ''

@@ -165,6 +165,13 @@ export const canCall = (cwd: string, filetype: string, capability: string): bool
   return pleaseGet(capabilities)[`${capability}Provider`](false)
 }
 
+export const resolveEnabled = (cwd: string, filetype: string, capability: string): boolean => {
+  const language = toVSCodeLanguage(filetype)
+  const capabilities = serverCapabilities.get(cwd + language)
+  if (!capabilities) return false
+  return pleaseGet(capabilities)[`${capability}Provider`].resolveProvider(false)
+}
+
 export const triggers = {
   completion: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'completionProvider'),
   signatureHelp: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'signatureHelpProvider'),
