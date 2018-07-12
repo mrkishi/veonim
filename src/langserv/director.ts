@@ -1,5 +1,5 @@
-import normalizeFiletype, { toVimFiletype } from '../langserv/normalize-filetypes'
 import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
+import toVSCodeLanguage from '../langserv/vsc-languages'
 import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
@@ -44,33 +44,32 @@ const processBufferedServerCalls = (key: string, server: extensions.LanguageServ
   bufferedServerCalls.delete(key)
 }
 
-const initServer = async (server: extensions.LanguageServer, cwd: string, filetype: string) => {
+const initServer = async (server: extensions.LanguageServer, cwd: string, language: string) => {
   const { error, capabilities } = await server
     .sendRequest('initialize', defaultCapabs(cwd))
     .catch(console.error)
 
-  if (error) throw new Error(`failed to initialize server ${cwd}:${filetype} -> ${JSON.stringify(error)}`)
+  if (error) throw new Error(`failed to initialize server ${cwd}:${language} -> ${JSON.stringify(error)}`)
   server.sendNotification('initialized')
 
-  servers.set(cwd + filetype, server)
-  serverCapabilities.set(cwd + filetype, capabilities)
-  processBufferedServerCalls(cwd + filetype, server)
+  servers.set(cwd + language, server)
+  serverCapabilities.set(cwd + language, capabilities)
+  processBufferedServerCalls(cwd + language, server)
   serverStartCallbacks.forEach(fn => fn(server))
 }
 
-const startServer = async (cwd: string, filetype: string) => {
+const startServer = async (cwd: string, language: string, filetype: string) => {
   // yes, we check this status before calling this method, but it's async
   // so by the time we get here it will be wrong. there was an issue with
   // timing that was resolved by adding this check here.
-  if (isServerStarting(cwd, filetype)) return
-  startingServers.add(cwd + filetype)
+  if (isServerStarting(cwd, language)) return
+  startingServers.add(cwd + language)
 
-  const server = await extensions.activate.language(filetype)
-  await initServer(server, cwd, filetype)
+  const server = await extensions.activate.language(language)
+  await initServer(server, cwd, language)
 
-  startingServers.delete(cwd + filetype)
-  const vimFiletype = toVimFiletype(filetype)
-  dispatch.pub('ai:start', { cwd, filetype: vimFiletype })
+  startingServers.delete(cwd + language)
+  dispatch.pub('ai:start', { cwd, filetype })
 
   return server
 }
@@ -99,14 +98,15 @@ const startServer = async (cwd: string, filetype: string) => {
 //
 // so i have made it conditional. all langserv calls can now opt-in to buffering
 // until the server has started. this has been implemented for buffer sync events
-const isServerStarting = (cwd: string, filetype: string) => startingServers.has(cwd + filetype)
+const isServerStarting = (cwd: string, language: string) => startingServers.has(cwd + language)
 
 const bufferCallUntilServerStart = async (call: BufferedCall) => {
   const { cwd, filetype } = call.params
-  const serverAvailable = await extensions.existsForLanguage(filetype)
+  const language = toVSCodeLanguage(filetype)
+  const serverAvailable = await extensions.existsForLanguage(language)
   if (!serverAvailable) return
 
-  const key = cwd + filetype
+  const key = cwd + language
 
   bufferedServerCalls.has(key)
     ? bufferedServerCalls.get(key)!.push(call)
@@ -114,15 +114,15 @@ const bufferCallUntilServerStart = async (call: BufferedCall) => {
 }
 
 const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
-  const vscodeFiletype = normalizeFiletype(filetype)
+  const language = toVSCodeLanguage(filetype)
 
-  if (isServerStarting(cwd, vscodeFiletype)) return
-  if (servers.has(cwd + vscodeFiletype)) return servers.get(cwd + vscodeFiletype)
+  if (isServerStarting(cwd, language)) return
+  if (servers.has(cwd + language)) return servers.get(cwd + language)
 
-  const serverAvailable = await extensions.existsForLanguage(vscodeFiletype)
+  const serverAvailable = await extensions.existsForLanguage(language)
   if (!serverAvailable) return
 
-  return startServer(cwd, vscodeFiletype)
+  return startServer(cwd, language, filetype)
 }
 
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
@@ -145,22 +145,22 @@ export const onServerStart = (fn: (server: extensions.LanguageServer) => void) =
 export const onDiagnostics = (cb: (diagnostics: { uri: string, diagnostics: Diagnostic[] }) => void) => watchers.add('diagnostics', cb)
 
 export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
-  const vscodeFiletype = normalizeFiletype(filetype)
-  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
+  const language = toVSCodeLanguage(filetype)
+  const capabilities = serverCapabilities.get(cwd + language)
   if (!capabilities) return SyncKind.Full
   return pleaseGet(capabilities).textDocumentSync.change(SyncKind.Full)
 }
 
 const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
-  const vscodeFiletype = normalizeFiletype(filetype)
-  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
+  const language = toVSCodeLanguage(filetype)
+  const capabilities = serverCapabilities.get(cwd + language)
   if (!capabilities) return []
   return pleaseGet(capabilities)[kind].triggerCharacters([])
 }
 
 export const canCall = (cwd: string, filetype: string, capability: string): boolean => {
-  const vscodeFiletype = normalizeFiletype(filetype)
-  const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
+  const language = toVSCodeLanguage(filetype)
+  const capabilities = serverCapabilities.get(cwd + language)
   if (!capabilities) return false
   return pleaseGet(capabilities)[`${capability}Provider`](false)
 }

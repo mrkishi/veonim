@@ -9,22 +9,6 @@
 - help files missing
 - Veonim buffers a little laggy and flickers windows???
 
-filetypes - lang ids:
-  toVimFiletype is BAD and you should feel bad!
-  filetype to vscode lang translation is lossy. when we translate back
-  we can get a different filetype than what we started with
-  we need to be more deterministic.
-    e.g. css -> css -> ??
-    e.g. typescript -> typescript -> typescript.tsx
-  should keep and send both filetype AND vscode lang id thru the chain
-
-director.ts:
-  rename filetype to be vscode lang id
-  rename normalize filetype to be more clear too: toVscodeLang, etc.
-
-check zap icon always displays if langserv is active. may have something
-to do with vim ft -> vscode lang
-
 change-dir/vim-create-dir default dir to :pwd if not specified. should we default
 to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
 path displayed in "project" statusline section

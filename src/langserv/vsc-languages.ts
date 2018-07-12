@@ -5,13 +5,10 @@
 
 // valid vscode identifiers
 // https://code.visualstudio.com/docs/languages/identifiers
+
 const filetypes = new Map<string, string>([
   ['javascript.jsx', 'javascript'],
   ['typescript.tsx', 'typescript'],
 ])
 
 export default (filetype: string) => filetypes.get(filetype) || filetype
-
-export const toVimFiletype = (vscodeFiletype: string) => {
-  return ([...filetypes].find(m => m[1] === vscodeFiletype) || [])[0]
-}
