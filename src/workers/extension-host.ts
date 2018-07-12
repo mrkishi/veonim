@@ -54,11 +54,13 @@ interface ServerBridgeParams {
 }
 
 const { on, call, request } = WorkerClient()
+const extensions = new Set<Extension>()
+const languageExtensions = new Map<string, string>()
 const runningServers = new Map<string, rpc.MessageConnection>()
 
 on.load(() => load())
 
-on.existsForLanguage((language: string) => Promise.resolve(extensionCategories.language.has(language)))
+on.existsForLanguage((language: string) => Promise.resolve(languageExtensions.has(language)))
 
 on.activate(({ kind, data }: ActivateOpts) => {
   if (kind === 'language') return activate.language(data)
@@ -74,6 +76,7 @@ on.listDebuggers(async () => {
       return debuggers.map((d: any) => ({ type: d.type, label: d.label }))
     })
     .reduce((res: any[], ds: any[]) => [...res, ...ds], [])
+    .filter((d: any) => d.type !== 'extensionHost')
 
   return [...new Set(dbgs)]
 })
@@ -107,9 +110,6 @@ on.server_onError(({ serverId }: ServerBridgeParams) => {
 on.server_onClose(({ serverId }: ServerBridgeParams) => {
   getServer(serverId).onClose(() => call[`${serverId}:onClose`]())
 })
-
-const extensions = new Set<Extension>()
-const languageExtensions = new Map<string, string>()
 
 // so we download the zip file into user--repo dir. this dir will then contain
 // a folder with the extension contents. it will look something like the following:

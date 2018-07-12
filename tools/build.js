@@ -20,10 +20,6 @@ const copy = {
     $`copying runtime files`
     return fs.copy(fromRoot('runtime'), fromRoot('build/runtime'))
   },
-  memes: () => {
-    $`copying DANK MEMES`
-    return fs.copy(fromRoot('memes'), fromRoot('build/memes'))
-  },
 }
 
 const codemod = {
@@ -53,7 +49,6 @@ require.main === module && go(async () => {
     copy.index(),
     copy.assets(),
     copy.runtime(),
-    copy.memes(),
   ])
 })
 

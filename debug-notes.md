@@ -12,6 +12,7 @@ add extension to init.vim
 
 ```vim
 VeonimExt 'vscode:extension/ms-vscode.node-debug2'
+VeonimExt 'vscode:extension/ms-vscode.node-debug'
 ```
 
 ## activation
