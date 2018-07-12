@@ -1,5 +1,10 @@
 # debug notes lol
 
+## todo
+- when loading extensions, if a value starts and ends with %, this means that
+  it's an i18n and we need to parse package.nls.json to get the actual english
+  text value
+
 ## REFERENCE LINKS
 https://github.com/Microsoft/vscode-node-debug2/blob/master/package.json
 https://github.com/Microsoft/vscode-chrome-debug/blob/master/package.json

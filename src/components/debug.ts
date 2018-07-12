@@ -5,6 +5,7 @@ import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { action } from '../core/neovim'
+import * as debug from '../ai/debug'
 import { h, app } from '../ui/uikit'
 
 const state = {
@@ -23,7 +24,7 @@ const actions = {
   select: () => (s: S) => {
     if (!s.debuggers.length) return resetState
     const item = s.debuggers[s.index]
-    if (item) console.log('start debugging', item)
+    if (item) debug.start(item.type)
     return resetState
   },
 
