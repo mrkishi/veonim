@@ -59,13 +59,23 @@ const runningServers = new Map<string, rpc.MessageConnection>()
 on.load(() => load())
 
 on.existsForLanguage((language: string) => Promise.resolve(extensionCategories.language.has(language)))
+
 on.activate(({ kind, data }: ActivateOpts) => {
   if (kind === 'language') return activate.language(data)
 })
 
 on.startDebug((type: string) => start.debug(type))
+
 on.listDebuggers(async () => {
-  // TODO TODO TODO TODO TODO TODO TODO
+  const dbgs = [...extensions]
+    .filter(ext => !!pleaseGet(ext.config).contributes.debuggers())
+    .map(ext => {
+      const debuggers = pleaseGet(ext.config).contributes.debuggers([]) as any
+      return debuggers.map((d: any) => ({ type: d.type, label: d.label }))
+    })
+    .reduce((res: any[], ds: any[]) => [...res, ...ds], [])
+
+  return [...new Set(dbgs)]
 })
 
 const getServer = (id: string) => {

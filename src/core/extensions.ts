@@ -9,10 +9,16 @@ export interface LanguageServer {
   onClose: (cb: (err: any) => void) => void,
 }
 
+export interface DebuggerInfo {
+  label: string
+  type: string
+}
+
 const { on, call, request } = Worker('extension-host')
 
 export const load = () => call.load()
 export const existsForLanguage = (language: string) => request.existsForLanguage(language)
+export const listDebuggers = () => request.listDebuggers()
 
 export const activate = {
   language: async (language: string): Promise<LanguageServer> => {
