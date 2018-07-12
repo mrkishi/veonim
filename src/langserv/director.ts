@@ -155,7 +155,7 @@ const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] 
   const vscodeFiletype = normalizeFiletype(filetype)
   const capabilities = serverCapabilities.get(cwd + vscodeFiletype)
   if (!capabilities) return []
-  return pleaseGet(capabilities)[kind].triggerCharacters()
+  return pleaseGet(capabilities)[kind].triggerCharacters([])
 }
 
 export const canCall = (cwd: string, filetype: string, capability: string): boolean => {
