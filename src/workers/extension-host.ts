@@ -1,16 +1,26 @@
-import { readFile, fromJSON, is, uuid, getDirs, getFiles } from '../support/utils'
+import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
+import { ChildProcess, spawn } from 'child_process'
 import { basename, dirname, join } from 'path'
-import { ChildProcess } from 'child_process'
+import pleaseGet from '../support/please-get'
 import * as rpc from 'vscode-jsonrpc'
 import '../support/vscode-shim'
+
+interface Debugger {
+  type: string
+  label: string
+  program: string
+  runtime?: 'node' | 'mono'
+}
 
 // need this flag to spawn node child processes. this will use the same node
 // runtime included with electron. usually we would set this as an option in
 // the spawn call, but we do not have access to the spawn calls in the
 // extensions that are spawning node executables (language servers, etc.)
 process.env.ELECTRON_RUN_AS_NODE = '1'
+
+// TODO: this file is growing a bit big. split out some functionalities into separate modules
 
 enum ActivationEventType {
   WorkspaceContains = 'workspaceContains',
@@ -27,6 +37,7 @@ interface ActivationEvent {
 }
 
 interface Extension {
+  config: any,
   requirePath: string,
   activationEvents: ActivationEvent[],
 }
@@ -43,18 +54,23 @@ interface ServerBridgeParams {
 }
 
 const { on, call, request } = WorkerClient()
-const runningLanguageServers = new Map<string, rpc.MessageConnection>()
+const runningServers = new Map<string, rpc.MessageConnection>()
 
-on.existsForLanguage((language: string) => Promise.resolve(languageExtensions.has(language)))
+on.load(() => load())
+
+on.existsForLanguage((language: string) => Promise.resolve(extensionCategories.language.has(language)))
 on.activate(({ kind, data }: ActivateOpts) => {
   if (kind === 'language') return activate.language(data)
 })
 
-on.load(() => load())
+on.startDebug((type: string) => start.debug(type))
+on.listDebuggers(async () => {
+  // TODO TODO TODO TODO TODO TODO TODO
+})
 
 const getServer = (id: string) => {
-  const server = runningLanguageServers.get(id)
-  if (!server) throw new Error(`fail to get lang serv ${id}. this should not happen... ever.`)
+  const server = runningServers.get(id)
+  if (!server) throw new Error(`fail to get serv ${id}. this should not happen... ever.`)
   return server
 }
 
@@ -67,22 +83,22 @@ on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
 })
 
 on.server_onNotification(({ serverId, method }: ServerBridgeParams) => {
-  getServer(serverId).onNotification(method, (...args) => call[`${serverId}:${method}`](args))
+  getServer(serverId).onNotification(method, (...args: any[]) => call[`${serverId}:${method}`](args))
 })
 
 on.server_onRequest(({ serverId, method }: ServerBridgeParams) => {
-  getServer(serverId).onRequest(method, async (...args) => request[`${serverId}:${method}`](args))
+  getServer(serverId).onRequest(method, async (...args: any[]) => request[`${serverId}:${method}`](args))
 })
 
 on.server_onError(({ serverId }: ServerBridgeParams) => {
-  getServer(serverId).onError(err => call[`${serverId}:onError`](err))
+  getServer(serverId).onError((err: any) => call[`${serverId}:onError`](err))
 })
 
 on.server_onClose(({ serverId }: ServerBridgeParams) => {
   getServer(serverId).onClose(() => call[`${serverId}:onClose`]())
 })
 
-const extensions = new Map<string, Extension>()
+const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, string>()
 
 // so we download the zip file into user--repo dir. this dir will then contain
@@ -105,7 +121,8 @@ const findExtensions = async () => {
 
 const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
   const rawFileData = await readFile(packageJson)
-  const { main, activationEvents = [] } = fromJSON(rawFileData).or({})
+  const config = fromJSON(rawFileData).or({})
+  const { main, activationEvents = [] } = config
   const packageJsonDir = dirname(packageJson)
 
   const parsedActivationEvents = activationEvents.map((m: string) => ({
@@ -114,6 +131,7 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   }))
 
   return {
+    config,
     requirePath: join(packageJsonDir, main),
     activationEvents: parsedActivationEvents,
   }
@@ -121,20 +139,20 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
 
 const load = async () => {
   const extensionPaths = await findExtensions()
-  const extensionData = await Promise.all(extensionPaths.map(m => getPackageJsonConfig(m)))
+  const extensionsWithConfig = await Promise.all(extensionPaths.map(m => getPackageJsonConfig(m)))
 
   extensions.clear()
-  languageExtensions.clear()
 
-  extensionData.forEach(m => {
-    extensions.set(m.requirePath, m)
-    m.activationEvents
+  extensionsWithConfig.forEach(ext => {
+    extensions.add(ext)
+
+    ext.activationEvents
       .filter(a => a.type === ActivationEventType.Language)
-      .forEach(a => languageExtensions.set(a.value, m.requirePath))
+      .forEach(a => languageExtensions.set(a.value, ext.requirePath))
   })
 }
 
-const connectLanguageServer = (proc: ChildProcess): string => {
+const connectServer = (proc: ChildProcess): string => {
   const serverId = uuid()
 
   const reader = new rpc.StreamMessageReader(proc.stdout)
@@ -143,20 +161,20 @@ const connectLanguageServer = (proc: ChildProcess): string => {
 
   conn.listen()
 
-  runningLanguageServers.set(serverId, conn)
+  runningServers.set(serverId, conn)
   return serverId
 }
 
 const activateExtensionForLanguage = async (language: string) => {
-  const modulePath = languageExtensions.get(language)
-  if (!modulePath) {
+  const requirePath = languageExtensions.get(language)
+  if (!requirePath) {
     console.error(`extension for ${language} not found`)
     return []
   }
 
-  const extName = basename(modulePath)
+  const extName = basename(requirePath)
 
-  const extension = require(modulePath)
+  const extension = require(requirePath)
   if (!extension.activate) {
     console.error(`extension ${extName} does not have a .activate() method`)
     return []
@@ -180,7 +198,61 @@ const activate = {
       return
     }
 
-    const childProcess = await serverActivator
-    return connectLanguageServer(childProcess)
+    const proc = await serverActivator
+    return connectServer(proc)
+  },
+}
+
+const start = {
+  debug: async (type: string) => {
+    const { extension, debug } = getDebug(type)
+    if (!extension) return console.error(`extension for ${type} not found`)
+
+    // TODO: if activationEvents:
+    // - onDebug
+    // - onDebugResolve:${type} - wut?
+    // - onDebugInitialConfigurations - wut?
+    //
+    // call extension.activate() and collect context.subscriptions
+
+    return startDebugger(debug)
+  },
+}
+
+const getDebug = (type: string) => [...extensions].reduce((res, extension) => {
+  const debuggers = pleaseGet(extension.config).contributes.debuggers([])
+  const debug = debuggers.find((d: any) => d.type === type)
+  return debug ? merge(res, { extension, debug }) : res
+}, {} as { extension: Extension, debug: Debugger })
+
+const startDebugger = (debug: Debugger) => {
+  const adapterPath = join(EXT_PATH, debug.program)
+  const proc = startDebugAdapter(adapterPath, debug.runtime)
+  return connectServer(proc)
+}
+
+const startDebugAdapter = (debugAdapterPath: string, runtime: Debugger['runtime']): ChildProcess => {
+  // TODO: do we need to accept any arguments from launch.json config? (whether user provided or generated)
+  const spawnOptions = {
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
   }
+
+  let proc
+
+  // if a runtime is not provided, then the debug adapter is a binary executable
+  // TODO: support cross-platform executables (see docs for examples)
+  // by the way, different platforms may require different executables. see the docs
+  // for example combinations of program/runtime
+  if (!runtime) proc = spawn(debugAdapterPath, [], spawnOptions)
+  else if (runtime === 'node') proc = spawn(process.execPath, [debugAdapterPath], spawnOptions)
+  // TODO: figure out how to start a debug adapter with "mono" runtime
+  // i do not believe mono runtime comes with vscode (would be surprised if it did)
+  // the vscode-mono-debug extension readme asks that the user install mono
+  // separately. that means we just need to figure out how to start/run mono
+  // if installed and start the debug adapter with it (i.e. is mono in $PATH, etc.)
+  else if (runtime === 'mono') throw new Error('debug adapter runtime "mono" not supported yet, but it should!')
+  else throw new Error(`invalid debug adapter runtime provided: ${runtime}. are we supposed to support this?`)
+
+  proc.stderr.on('data', console.error)
+  return proc
 }
