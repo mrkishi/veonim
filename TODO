@@ -31,6 +31,12 @@ path displayed in "project" statusline section
 
 debug
 
+if lang ext not installed suggest ext on new file type/bufload 
+
+custom vim input modes:
+- window resize
+- move windows
+
 normalize-filetypes:
 - double check that trigger chars are working correctly
   - autocomplete + signature-help
@@ -111,6 +117,8 @@ divination:
     - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
 
 buffer-search: spaces to further filter query (just like fuzzy file finder?)
+- if only one result in list and i hit enter, jump to the first result
+  - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
 - i feel like i might want this in a few different places.
   - can create generic fn to use anywhere?
 
