@@ -9,10 +9,10 @@ import { rename } from '../langserv/adapter'
 action('rename', async () => {
   updateService.pause()
   const editPosition = { line: vim.line, column: vim.column }
-  await feedkeys('ciw')
+  feedkeys('ciw')
   await until.insertLeave
   const newName = await expr('@.')
-  await feedkeys('u')
+  feedkeys('u')
   updateService.resume()
   applyPatches(await rename({ ...vim, ...editPosition, newName }))
 })

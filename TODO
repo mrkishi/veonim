@@ -280,6 +280,16 @@ upgrade ripgrep
 
 --ideas--
 
+update user-guide to present an option for lang shortcuts as overlay user menu instead of bindings
+
+mapping for send buffer text to nearby terminal window
+
+macro recorder real-time history with edit window easily accessible after recording finished to edit
+- when starting a macro a small floating window shows up. the window updates in realtime
+  to reveal the characters typed. when editing finished, a key shortcut will change focus
+  to the floating window to be able to edit the macro.
+- where record keys from? veonim key events? what if neovim remaps?
+
 supercharge the vim command line menu. provide menu completions automatically. fuzzy find results.
 can we provide a snippet of documentation for the selected menu item? for vim items this can be
 the first line from :h. For Veonim we can load from custom place.
