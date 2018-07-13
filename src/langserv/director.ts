@@ -1,4 +1,5 @@
 import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
+import { registerServer } from '../langserv/server-features'
 import toVSCodeLanguage from '../langserv/vsc-languages'
 import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
@@ -22,11 +23,7 @@ interface BufferedCall {
   params: any,
 }
 
-// TODO: deprecate this in favor of textDocumentSyncKind
-export enum SyncKind { None, Full, Incremental }
-
 const servers = new Map<string, extensions.LanguageServer>()
-const serverCapabilities = new Map<string, any>()
 const serverStartCallbacks = new Set<Function>()
 const startingServers = new Set<string>()
 const bufferedServerCalls = new Map<string, BufferedCall[]>()
@@ -53,7 +50,7 @@ const initServer = async (server: extensions.LanguageServer, cwd: string, langua
   server.sendNotification('initialized')
 
   servers.set(cwd + language, server)
-  serverCapabilities.set(cwd + language, capabilities)
+  registerServer(cwd, language, capabilities)
   processBufferedServerCalls(cwd + language, server)
   serverStartCallbacks.forEach(fn => fn(server))
 }
