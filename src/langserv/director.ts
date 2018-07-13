@@ -145,18 +145,6 @@ export const onServerStart = (fn: (server: extensions.LanguageServer) => void) =
 
 export const onDiagnostics = (cb: (diagnostics: { uri: string, diagnostics: Diagnostic[] }) => void) => watchers.add('diagnostics', cb)
 
-const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
-  const language = toVSCodeLanguage(filetype)
-  const capabilities = serverCapabilities.get(cwd + language)
-  if (!capabilities) return []
-  return pleaseGet(capabilities)[kind].triggerCharacters([])
-}
-
-export const triggers = {
-  completion: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'completionProvider'),
-  signatureHelp: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'signatureHelpProvider'),
-}
-
 // TODO: on vimrc change load any new or updated extensions. provide user with manual extensions reload
 extensions.load()
 

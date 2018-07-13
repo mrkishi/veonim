@@ -1,5 +1,5 @@
 import { supports, getTriggerChars } from '../langserv/server-features'
-import { SignatureInformation } from 'vscode-languageserver-types'
+import { SignatureInformation } from 'vscode-languageserver-protocol'
 import { action, current as vim, on } from '../core/neovim'
 import { signatureHelp } from '../langserv/adapter'
 import { merge } from '../support/utils'
@@ -16,9 +16,8 @@ const cache = {
 const shouldCloseSignatureHint = (totalParams: number, currentParam: number, triggers: Set<string>, leftChar: string): boolean => {
   if (currentParam < totalParams - 1) return false
 
-  // TODO: wtf is going on here. help me obi wan kenobi
-  const hasEasilyIdentifiableSymmetricalMatcherChar = triggers.some(t => ['(', '{', '['].includes(t))
-  if (!hasEasilyIdentifiableSymmetricalMatcherChar) return true
+  const matching = triggers.has('(') || triggers.has('{') || triggers.has('[')
+  if (!matching) return true
 
   return (leftChar === ')' && triggers.has('('))
     || (leftChar === '}' && triggers.has('{'))

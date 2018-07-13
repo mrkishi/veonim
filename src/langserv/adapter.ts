@@ -11,7 +11,7 @@ import { notify, request } from '../langserv/director'
 import config from '../config/config-service'
 import * as path from 'path'
 
-export { triggers, onDiagnostics } from '../langserv/director'
+export { onDiagnostics } from '../langserv/director'
 
 export interface Reference {
   path: string,
