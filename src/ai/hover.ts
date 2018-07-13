@@ -1,5 +1,6 @@
-import { action, current as vimState, on } from '../core/neovim'
 import colorizer, { ColorData } from '../services/colorizer'
+import { action, current as vim, on } from '../core/neovim'
+import { supports } from '../langserv/server-features'
 import * as markdown from '../support/markdown'
 import { hover } from '../langserv/adapter'
 import { ui } from '../components/hover'
@@ -11,10 +12,13 @@ const textByWord = (data: ColorData[]): ColorData[] => data.reduce((res, item) =
 }, [] as ColorData[])
 
 action('hover', async () => {
-  const { value, doc } = await hover(vimState)
+  if (!supports.hover(vim.cwd, vim.filetype)) return
+
+  const { value, doc } = await hover(vim)
   if (!value) return
+
   const cleanData = markdown.remove(value)
-  const coloredLines: ColorData[][] = await colorizer.request.colorize(cleanData, vimState.filetype)
+  const coloredLines: ColorData[][] = await colorizer.request.colorize(cleanData, vim.filetype)
   const data = coloredLines
     .map(m => textByWord(m))
     .map(m => m.filter(m => m.text.length))

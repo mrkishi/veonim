@@ -1,4 +1,5 @@
-import { feedkeys, action, until, expr, current as vimState, applyPatches } from '../core/neovim'
+import { feedkeys, action, until, expr, current as vim, applyPatches } from '../core/neovim'
+import { supports } from '../langserv/server-features'
 import * as updateService from '../ai/update-server'
 import { rename } from '../langserv/adapter'
 
@@ -7,11 +8,13 @@ import { rename } from '../langserv/adapter'
 // call atomic? tricky with getting target lines for replacements
 // even if done before atomic operations, line numbers could be off
 action('rename', async () => {
+  if (!supports.rename(vim.cwd, vim.filetype)) return
+
   updateService.pause()
   await feedkeys('ciw')
   await until.insertLeave
   const newName = await expr('@.')
   await feedkeys('u')
   updateService.resume()
-  applyPatches(await rename({ ...vimState, newName }))
+  applyPatches(await rename({ ...vim, newName }))
 })

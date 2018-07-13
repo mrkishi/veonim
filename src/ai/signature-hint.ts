@@ -1,6 +1,7 @@
 import { SignatureInformation } from 'vscode-languageserver-types'
-import { action, current as vimState, on } from '../core/neovim'
 import { signatureHelp, triggers } from '../langserv/adapter'
+import { action, current as vim, on } from '../core/neovim'
+import { supports } from '../langserv/server-features'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
@@ -69,8 +70,8 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
 }
 
 const getSignatureHint = async (lineContent: string) => {
-  const triggerChars = triggers.signatureHelp(vimState.cwd, vimState.filetype)
-  const leftChar = lineContent[Math.max(vimState.column - 1, 0)]
+  const triggerChars = triggers.signatureHelp(vim.cwd, vim.filetype)
+  const leftChar = lineContent[Math.max(vim.column - 1, 0)]
 
   // TODO: should probably also hide if we jumped to another line
   // how do we determine the difference between multiline signatures and exit signature?
@@ -79,8 +80,9 @@ const getSignatureHint = async (lineContent: string) => {
   if (closeSignatureHint) return ui.hide()
 
   if (!triggerChars.includes(leftChar)) return
+  if (!supports.signatureHint(vim.cwd, vim.filetype)) return
 
-  const hint = await signatureHelp(vimState)
+  const hint = await signatureHelp(vim)
   if (!hint) return
 
   const { activeParameter, activeSignature, signatures = [] } = hint
