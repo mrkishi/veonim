@@ -4,7 +4,6 @@ import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
 import { applyEdit } from '../langserv/adapter'
-import pleaseGet from '../support/please-get'
 import { Watchers } from '../support/utils'
 
 interface ServKey {

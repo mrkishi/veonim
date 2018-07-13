@@ -39,9 +39,11 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
     ui.show({
       ...baseOpts,
       label,
-      paramDoc,
       currentParam,
-      documentation,
+      // TODO: support MarkupContent
+      paramDoc: paramDoc as any,
+      // TODO: support MarkupContent
+      documentation: documentation as any,
       selectedSignature: (which || 0) + 1,
     })
   }
@@ -63,7 +65,8 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
       ...baseOpts,
       label,
       currentParam,
-      documentation,
+      // TODO: support MarkupContent
+      documentation: documentation as any,
       selectedSignature: nextSignatureIndex + 1,
     })
   }
