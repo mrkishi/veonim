@@ -1,7 +1,7 @@
-import { ServerCapabilities } from 'vscode-languageserver-protocol'
+import { ServerCapabilities, TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import toVSCodeLanguage from '../langserv/vsc-languages'
+import { onFnCall, is } from '../support/utils'
 import pleaseGet from '../support/please-get'
-import { onFnCall } from '../support/utils'
 
 type EnableCheckFn = (cwd: string, filetype: string) => boolean
 
@@ -34,7 +34,7 @@ type Feature = keyof ServerFeatures
 
 const serverFeatures = new Map<string, Map<Feature, boolean>>()
 const serverTriggerChars = new Map<string, ServerTriggerChars>()
-const serverSyncKind = new Map<string, Map<string, boolean>>()
+const serverSyncKind = new Map<string, TextDocumentSyncKind>()
 
 const capabilitiesToFeatures = (c: ServerCapabilities) => {
   const m = new Map<Feature, boolean>()
@@ -65,9 +65,17 @@ const capabilitiesToTriggerChars = (c: ServerCapabilities) => ({
   signatureHint: new Set(pleaseGet(c).signatureHelpProvider.triggerCharacters() as string),
 })
 
+const capabilitiesToSyncKind = (c: ServerCapabilities): TextDocumentSyncKind => {
+  const syncKind = pleaseGet(c).textDocumentSync()
+  if (syncKind == null) return TextDocumentSyncKind.None
+  if (is.number(syncKind)) return syncKind
+  return pleaseGet(c).textDocumentSync.change(TextDocumentSyncKind.None)
+}
+
 export const registerServer = (cwd: string, language: string, capabilities: ServerCapabilities) => {
   serverFeatures.set(cwd + language, capabilitiesToFeatures(capabilities))
   serverTriggerChars.set(cwd + language, capabilitiesToTriggerChars(capabilities))
+  serverSyncKind.set(cwd + language, capabilitiesToSyncKind(capabilities))
 }
 
 export const unregisterServer = (cwd: string, language: string) => {
@@ -97,4 +105,9 @@ export const triggerChars = {
     const server = serverTriggerChars.get(cwd + language)
     return server ? server.signatureHint.has(character) : false
   },
+}
+
+export const getSyncKind = (cwd: string, filetype: string): TextDocumentSyncKind => {
+  const language = toVSCodeLanguage(filetype)
+  return serverSyncKind.get(cwd + language) || TextDocumentSyncKind.None
 }

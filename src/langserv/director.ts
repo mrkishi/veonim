@@ -23,6 +23,7 @@ interface BufferedCall {
   params: any,
 }
 
+// TODO: deprecate this in favor of textDocumentSyncKind
 export enum SyncKind { None, Full, Incremental }
 
 const servers = new Map<string, extensions.LanguageServer>()
