@@ -94,16 +94,16 @@ export const supports = <ServerFeatures>onFnCall((name, ...args: any[]) => {
   return featureEnabled(cwd, filetype, name as Feature)
 })
 
-export const hasTriggerChar = {
-  completion: (cwd: string, filetype: string, character: string): boolean => {
+export const getTriggerChars = {
+  completion: (cwd: string, filetype: string): Set<string> => {
     const language = toVSCodeLanguage(filetype)
     const server = serverTriggerChars.get(cwd + language)
-    return server ? server.completion.has(character) : false
+    return server ? server.completion : new Set()
   },
-  signatureHint: (cwd: string, filetype: string, character: string): boolean => {
+  signatureHint: (cwd: string, filetype: string): Set<string> => {
     const language = toVSCodeLanguage(filetype)
     const server = serverTriggerChars.get(cwd + language)
-    return server ? server.signatureHint.has(character) : false
+    return server ? server.signatureHint : new Set()
   },
 }
 

@@ -1,7 +1,7 @@
+import { supports, getTriggerChars } from '../langserv/server-features'
 import { SignatureInformation } from 'vscode-languageserver-types'
 import { signatureHelp, triggers } from '../langserv/adapter'
 import { action, current as vim, on } from '../core/neovim'
-import { supports } from '../langserv/server-features'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
