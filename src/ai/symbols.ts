@@ -1,10 +1,15 @@
-import { action, current as vimState } from '../core/neovim'
 import { show, SymbolMode } from '../components/symbols'
+import { action, current as vim } from '../core/neovim'
+import { supports } from '../langserv/server-features'
 import { symbols } from '../langserv/adapter'
 
 action('symbols', async () => {
-  const listOfSymbols = await symbols(vimState)
+  if (!supports.symbols(vim.cwd, vim.filetype)) return
+
+  const listOfSymbols = await symbols(vim)
   listOfSymbols && show(listOfSymbols, SymbolMode.Buffer)
 })
 
-action('workspace-symbols', () => show([], SymbolMode.Workspace))
+action('workspace-symbols', () => {
+  if (supports.workspaceSymbols(vim.cwd, vim.filetype)) show([], SymbolMode.Workspace)
+})

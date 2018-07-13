@@ -1,6 +1,6 @@
 import { action, current as vim, getCurrent, cmd, onStateChange, HighlightGroupId, Highlight } from '../core/neovim'
 import { highlights, references as getReferences } from '../langserv/adapter'
-import { canCall } from '../langserv/director'
+import { supports } from '../langserv/server-features'
 import { brighten } from '../ui/css'
 
 const setHighlightColor = () => {
@@ -12,8 +12,13 @@ onStateChange.colorscheme(setHighlightColor)
 setHighlightColor()
 
 action('highlight', async () => {
-  const highlightFeatureEnabled = canCall(vim.cwd, vim.filetype, 'documentHighlight')
-  const { references } = highlightFeatureEnabled
+  const referencesSupported = supports.references(vim.cwd, vim.filetype)
+  const highlightsSupported = supports.highlights(vim.cwd, vim.filetype)
+  const anySupport = highlightsSupported || referencesSupported
+
+  if (!anySupport) return
+
+  const { references } = highlightsSupported
     ? await highlights(vim)
     : await getReferences(vim)
 
