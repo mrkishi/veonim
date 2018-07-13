@@ -1,6 +1,12 @@
 import { action, cmd } from '../core/neovim'
 import { delay } from '../support/utils'
 
+action('blarg', async () => {
+  cmd('cd $pr/plugin-manager')
+  cmd('e blarg.js')
+  cmd('Veonim start-debug')
+})
+
 action('derp', async () => {
   cmd('cd $pr/plugin-manager')
   cmd('e src/main.ts')

@@ -65,6 +65,7 @@
     "react-color": "2.13.8",
     "react-dom": "16.3.2",
     "request": "2.85.0",
+    "vscode-debugprotocol": "1.29.0",
     "vscode-jsonrpc": "3.5.0",
     "vscode-languageserver-types": "3.5.0"
   },

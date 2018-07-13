@@ -38,6 +38,7 @@ interface ActivationEvent {
 
 interface Extension {
   config: any,
+  packagePath: string,
   requirePath: string,
   activationEvents: ActivationEvent[],
 }
@@ -133,7 +134,7 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   const rawFileData = await readFile(packageJson)
   const config = fromJSON(rawFileData).or({})
   const { main, activationEvents = [] } = config
-  const packageJsonDir = dirname(packageJson)
+  const packagePath = dirname(packageJson)
 
   const parsedActivationEvents = activationEvents.map((m: string) => ({
     type: m.split(':')[0] as ActivationEventType,
@@ -142,7 +143,8 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
 
   return {
     config,
-    requirePath: join(packageJsonDir, main),
+    packagePath,
+    requirePath: join(packagePath, main),
     activationEvents: parsedActivationEvents,
   }
 }
@@ -225,7 +227,7 @@ const start = {
     //
     // call extension.activate() and collect context.subscriptions
 
-    return startDebugger(debug)
+    return startDebugger(extension, debug)
   },
 }
 
@@ -235,8 +237,8 @@ const getDebug = (type: string) => [...extensions].reduce((res, extension) => {
   return debug ? merge(res, { extension, debug }) : res
 }, {} as { extension: Extension, debug: Debugger })
 
-const startDebugger = (debug: Debugger) => {
-  const adapterPath = join(EXT_PATH, debug.program)
+const startDebugger = (extension: Extension, debug: Debugger) => {
+  const adapterPath = join(extension.packagePath, debug.program)
   const proc = startDebugAdapter(adapterPath, debug.runtime)
   return connectServer(proc)
 }
@@ -263,6 +265,7 @@ const startDebugAdapter = (debugAdapterPath: string, runtime: Debugger['runtime'
   else if (runtime === 'mono') throw new Error('debug adapter runtime "mono" not supported yet, but it should!')
   else throw new Error(`invalid debug adapter runtime provided: ${runtime}. are we supposed to support this?`)
 
-  proc.stderr.on('data', console.error)
+  proc.stderr.on('data', err => console.error(debugAdapterPath, err + ''))
+  proc.stdout.on('data', m => console.log(debugAdapterPath, m + ''))
   return proc
 }
