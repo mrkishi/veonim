@@ -3,7 +3,7 @@ import toVSCodeLanguage from '../langserv/vsc-languages'
 import pleaseGet from '../support/please-get'
 import { onFnCall } from '../support/utils'
 
-type EnableCheckFn = (cwd: string, filetype: string) => void
+type EnableCheckFn = (cwd: string, filetype: string) => boolean
 
 export interface ServerFeatures {
   completion: EnableCheckFn
@@ -25,9 +25,16 @@ export interface ServerFeatures {
   executeCommand: EnableCheckFn
 }
 
+interface ServerTriggerChars {
+  completion: Set<string>
+  signatureHint: Set<string>
+}
+
 type Feature = keyof ServerFeatures
 
-const servers = new Map<string, Map<Feature, boolean>>()
+const serverFeatures = new Map<string, Map<Feature, boolean>>()
+const serverTriggerChars = new Map<string, ServerTriggerChars>()
+const serverSyncKind = new Map<string, Map<string, boolean>>()
 
 const capabilitiesToFeatures = (c: ServerCapabilities) => {
   const m = new Map<Feature, boolean>()
@@ -53,22 +60,41 @@ const capabilitiesToFeatures = (c: ServerCapabilities) => {
   return m
 }
 
+const capabilitiesToTriggerChars = (c: ServerCapabilities) => ({
+  completion: new Set(pleaseGet(c).completionProvider.triggerCharacters() as string),
+  signatureHint: new Set(pleaseGet(c).signatureHelpProvider.triggerCharacters() as string),
+})
+
 export const registerServer = (cwd: string, language: string, capabilities: ServerCapabilities) => {
-  servers.set(cwd + language, capabilitiesToFeatures(capabilities))
+  serverFeatures.set(cwd + language, capabilitiesToFeatures(capabilities))
+  serverTriggerChars.set(cwd + language, capabilitiesToTriggerChars(capabilities))
 }
 
 export const unregisterServer = (cwd: string, language: string) => {
-  servers.delete(cwd + language)
+  serverFeatures.delete(cwd + language)
 }
 
 const featureEnabled = (cwd: string, filetype: string, feature: Feature): boolean => {
   const language = toVSCodeLanguage(filetype)
-  const serverFeatures = servers.get(cwd + language)
-  if (!serverFeatures) return false
-  return !!serverFeatures.get(feature)
+  const server = serverFeatures.get(cwd + language)
+  if (!server) return false
+  return !!server.get(feature)
 }
 
 export const serverSupports = <ServerFeatures>onFnCall((name, ...args: any[]) => {
   const [ cwd, filetype ] = args
   return featureEnabled(cwd, filetype, name as Feature)
 })
+
+export const triggerChars = {
+  completion: (cwd: string, filetype: string, character: string): boolean => {
+    const language = toVSCodeLanguage(filetype)
+    const server = serverTriggerChars.get(cwd + language)
+    return server ? server.completion.has(character) : false
+  },
+  signatureHint: (cwd: string, filetype: string, character: string): boolean => {
+    const language = toVSCodeLanguage(filetype)
+    const server = serverTriggerChars.get(cwd + language)
+    return server ? server.signatureHint.has(character) : false
+  },
+}
