@@ -89,12 +89,12 @@ const featureEnabled = (cwd: string, filetype: string, feature: Feature): boolea
   return !!server.get(feature)
 }
 
-export const serverSupports = <ServerFeatures>onFnCall((name, ...args: any[]) => {
+export const supports = <ServerFeatures>onFnCall((name, ...args: any[]) => {
   const [ cwd, filetype ] = args
   return featureEnabled(cwd, filetype, name as Feature)
 })
 
-export const triggerChars = {
+export const hasTriggerChar = {
   completion: (cwd: string, filetype: string, character: string): boolean => {
     const language = toVSCodeLanguage(filetype)
     const server = serverTriggerChars.get(cwd + language)
