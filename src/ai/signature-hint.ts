@@ -1,7 +1,7 @@
 import { supports, getTriggerChars } from '../langserv/server-features'
 import { SignatureInformation } from 'vscode-languageserver-types'
-import { signatureHelp, triggers } from '../langserv/adapter'
 import { action, current as vim, on } from '../core/neovim'
+import { signatureHelp } from '../langserv/adapter'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
@@ -13,15 +13,16 @@ const cache = {
   currentParam: 0,
 }
 
-const shouldCloseSignatureHint = (totalParams: number, currentParam: number, triggers: string[], leftChar: string): boolean => {
+const shouldCloseSignatureHint = (totalParams: number, currentParam: number, triggers: Set<string>, leftChar: string): boolean => {
   if (currentParam < totalParams - 1) return false
 
+  // TODO: wtf is going on here. help me obi wan kenobi
   const hasEasilyIdentifiableSymmetricalMatcherChar = triggers.some(t => ['(', '{', '['].includes(t))
   if (!hasEasilyIdentifiableSymmetricalMatcherChar) return true
 
-  return (leftChar === ')' && triggers.includes('('))
-    || (leftChar === '}' && triggers.includes('{'))
-    || (leftChar === ']' && triggers.includes('['))
+  return (leftChar === ')' && triggers.has('('))
+    || (leftChar === '}' && triggers.has('{'))
+    || (leftChar === ']' && triggers.has('['))
 }
 
 const cursorPos = () => ({ row: cursor.row, col: cursor.col })
@@ -70,7 +71,7 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
 }
 
 const getSignatureHint = async (lineContent: string) => {
-  const triggerChars = triggers.signatureHelp(vim.cwd, vim.filetype)
+  const triggerChars = getTriggerChars.signatureHint(vim.cwd, vim.filetype)
   const leftChar = lineContent[Math.max(vim.column - 1, 0)]
 
   // TODO: should probably also hide if we jumped to another line
@@ -79,7 +80,7 @@ const getSignatureHint = async (lineContent: string) => {
   const closeSignatureHint = shouldCloseSignatureHint(cache.totalParams, cache.currentParam, triggerChars, leftChar)
   if (closeSignatureHint) return ui.hide()
 
-  if (!triggerChars.includes(leftChar)) return
+  if (!triggerChars.has(leftChar)) return
   if (!supports.signatureHint(vim.cwd, vim.filetype)) return
 
   const hint = await signatureHelp(vim)
