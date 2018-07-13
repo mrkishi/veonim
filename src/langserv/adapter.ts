@@ -1,11 +1,13 @@
 import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
   DocumentHighlight } from 'vscode-languageserver-types'
-import { notify, request, getSyncKind, SyncKind } from '../langserv/director'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
+import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
+import { getSyncKind } from '../langserv/server-features'
 import { getLines } from '../support/get-file-contents'
+import { notify, request } from '../langserv/director'
 import config from '../config/config-service'
 import * as path from 'path'
 
@@ -119,7 +121,7 @@ export const partialBufferUpdate = async (change: BufferChange, bufferOpened = f
 
   await patchBufferCacheWithPartial(cwd, file, bufferLines[0], line)
 
-  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, bufferLines: currentBuffer.contents })
+  if (syncKind !== TextDocumentSyncKind.Incremental) return fullBufferUpdate({ ...change, bufferLines: currentBuffer.contents })
 
   const content = {
     text: bufferLines[0],
