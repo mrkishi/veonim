@@ -1,7 +1,8 @@
 import { findIndexRight, hasUpperCase, EarlyPromise, exists, getDirFiles, resolvePath } from '../support/utils'
-import { completions, completionDetail, triggers } from '../langserv/adapter'
 import { CompletionItemKind, CompletionItem } from 'vscode-languageserver-types'
+import { completions, completionDetail } from '../langserv/adapter'
 import transformCompletions from '../ai/completion-transforms'
+import { hasTriggerChar } from '../langserv/server-features'
 import * as completionUI from '../components/autocomplete'
 import { harvester, update } from '../ai/update-server'
 import { g, on, current as vim } from '../core/neovim'
@@ -145,7 +146,6 @@ const showCompletionsRaw = (column: number, query: string, startIndex: number, l
 const getCompletions = async (lineContent: string, line: number, column: number) => {
   const { startIndex, query, leftChar } = findQuery(lineContent, column)
   const showCompletions = showCompletionsRaw(column, query, startIndex, lineContent)
-  const triggerChars = triggers.completion(vim.cwd, vim.filetype)
   let semanticCompletions: CompletionOption[] = []
 
   cache.activeCompletion = `${line}:${startIndex}`
@@ -164,7 +164,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     return
   }
 
-  if (triggerChars.includes(leftChar) || query.length) {
+  if (hasTriggerChar.completion(vim.cwd, vim.filetype, leftChar) || query.length) {
     const pendingSemanticCompletions = getSemanticCompletions(line, startIndex + 1)
 
     // TODO: send a $/cancelRequest on insertLeave if not interested anymore
