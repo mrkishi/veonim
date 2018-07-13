@@ -1,4 +1,4 @@
-import { feedkeys, action, until, expr, current as vimState, applyPatches } from '../core/neovim'
+import { feedkeys, action, until, expr, current as vim, applyPatches } from '../core/neovim'
 import * as updateService from '../ai/update-server'
 import { rename } from '../langserv/adapter'
 
@@ -8,10 +8,11 @@ import { rename } from '../langserv/adapter'
 // even if done before atomic operations, line numbers could be off
 action('rename', async () => {
   updateService.pause()
+  const editPosition = { line: vim.line, column: vim.column }
   await feedkeys('ciw')
   await until.insertLeave
   const newName = await expr('@.')
   await feedkeys('u')
   updateService.resume()
-  applyPatches(await rename({ ...vimState, newName }))
+  applyPatches(await rename({ ...vim, ...editPosition, newName }))
 })
