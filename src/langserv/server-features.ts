@@ -89,8 +89,7 @@ const featureEnabled = (cwd: string, filetype: string, feature: Feature): boolea
   return !!server.get(feature)
 }
 
-export const supports = <ServerFeatures>onFnCall((name, ...args: any[]) => {
-  const [ cwd, filetype ] = args
+export const supports = <ServerFeatures>onFnCall((name, [ cwd, filetype ]: any[]) => {
   return featureEnabled(cwd, filetype, name as Feature)
 })
 
