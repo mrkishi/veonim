@@ -1,4 +1,5 @@
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
+import DebugProtocolConnection from '../messaging/debug-protocol'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -82,6 +83,7 @@ on.listDebuggers(async () => {
   return [...new Set(dbgs)]
 })
 
+// TODO: rename this to getRPCServer and create another one like this but for DebugProtocol servers
 const getServer = (id: string) => {
   const server = runningServers.get(id)
   if (!server) throw new Error(`fail to get serv ${id}. this should not happen... ever.`)
@@ -164,7 +166,7 @@ const load = async () => {
   })
 }
 
-const connectServer = (proc: ChildProcess): string => {
+const connectRPCServer = (proc: ChildProcess): string => {
   const serverId = uuid()
 
   const reader = new rpc.StreamMessageReader(proc.stdout)
@@ -211,7 +213,7 @@ const activate = {
     }
 
     const proc = await serverActivator
-    return connectServer(proc)
+    return connectRPCServer(proc)
   },
 }
 
@@ -237,14 +239,25 @@ const getDebug = (type: string) => [...extensions].reduce((res, extension) => {
   return debug ? merge(res, { extension, debug }) : res
 }, {} as { extension: Extension, debug: Debugger })
 
+const connectDebugAdapter = (proc: ChildProcess): string => {
+  const serverId = uuid()
+  const conn = DebugProtocolConnection(proc.stdout, proc.stdin)
+  runningServers.set(serverId, conn)
+  return serverId
+}
+
 const startDebugger = (extension: Extension, debug: Debugger) => {
   const adapterPath = join(extension.packagePath, debug.program)
-  console.log('adapterpath:', adapterPath)
   const proc = startDebugAdapter(adapterPath, debug.runtime)
+
+  // TODO: testing
+  console.log('adapterpath:', adapterPath)
   proc.stderr.on('data', err => console.error(debug.type, err + ''))
   proc.stdout.on('data', m => console.log(debug.type, m + ''))
   proc.stdin.on('data', m => console.log(debug.type, m + ''))
-  return connectServer(proc)
+  // TODO: testing
+
+  return connectDebugAdapter(proc)
 }
 
 const startDebugAdapter = (debugAdapterPath: string, runtime: Debugger['runtime']): ChildProcess => {
