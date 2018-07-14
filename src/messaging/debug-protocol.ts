@@ -1,5 +1,6 @@
-// ref: https://github.com/Microsoft/vscode/blob/master/src/vs/workbench/parts/debug/node/debugAdapter.ts
+// ref: vscode/blob/master/src/vs/workbench/parts/debug/node/debugAdapter.ts
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
+import { ID, Watchers } from '../support/utils'
 import { Readable, Writable } from 'stream'
 import {} from 'vscode-debug'
 
@@ -8,8 +9,7 @@ const HEADER_LINE_SEP = /\r?\n/
 const HEADER_FIELD_SEP = /: */
 const TWO_CRLF_LENGTH = TWO_CRLF.length
 
-// TODO: define functions to register onMsg + onError handlers
-const streamProcessor = (readable: Readable, writable: Writable) => (onMessage: Function, onError: Function) => {
+const streamProcessor = (readable: Readable, writable: Writable, onMessage: Function, onError: Function) => {
   let rawData = Buffer.allocUnsafe(0)
   let contentLength = -1
 
@@ -66,4 +66,17 @@ const streamProcessor = (readable: Readable, writable: Writable) => (onMessage: 
   }
 
   return { send }
+}
+
+export default (readable: Readable, writable: Writable) => {
+  const requestHandlers = new Map<string, Function>()
+  const pendingRequests = new Map()
+  const id = ID()
+  const onError = () => {}
+  const onMessage = () => {}
+  const connection = streamProcessor(readable, writable, onMessage, onError)
+
+  const request = (command: string, ...args: any[]) => {
+    const reqId = id.next()
+  }
 }
