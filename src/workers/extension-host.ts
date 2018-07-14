@@ -239,7 +239,11 @@ const getDebug = (type: string) => [...extensions].reduce((res, extension) => {
 
 const startDebugger = (extension: Extension, debug: Debugger) => {
   const adapterPath = join(extension.packagePath, debug.program)
+  console.log('adapterpath:', adapterPath)
   const proc = startDebugAdapter(adapterPath, debug.runtime)
+  proc.stderr.on('data', err => console.error(debug.type, err + ''))
+  proc.stdout.on('data', m => console.log(debug.type, m + ''))
+  proc.stdin.on('data', m => console.log(debug.type, m + ''))
   return connectServer(proc)
 }
 
@@ -265,7 +269,5 @@ const startDebugAdapter = (debugAdapterPath: string, runtime: Debugger['runtime'
   else if (runtime === 'mono') throw new Error('debug adapter runtime "mono" not supported yet, but it should!')
   else throw new Error(`invalid debug adapter runtime provided: ${runtime}. are we supposed to support this?`)
 
-  proc.stderr.on('data', err => console.error(debugAdapterPath, err + ''))
-  proc.stdout.on('data', m => console.log(debugAdapterPath, m + ''))
   return proc
 }
