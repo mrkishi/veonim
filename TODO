@@ -42,6 +42,12 @@ vim-search:
 key-transform:
 - support different modes
 
+look into supporting more 3.6.0 lang serv features:
+- for example: workspace/configuration
+- goto type definition
+- goto implementation
+- etc
+
 use user menu to create a git branch switcher. add it docs
 
 annotate marks in buffer. experiment with drawing on top of render buffer output?
