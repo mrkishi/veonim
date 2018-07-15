@@ -1,6 +1,5 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import * as extensions from '../core/extensions'
-import { uuid } from '../support/utils'
 
 // TODO: in the future we will want the ability to have multiple
 // debuggers running at the same time (vscode does something like this)
@@ -27,13 +26,9 @@ export const start = async (type: string) => {
 
   console.log('initResponse', initResponse)
 
-  // const launchRequest: DP.LaunchRequest = {
-  //   seq: 2,
-  //   type: 'request',
-  //   command: 'launch',
-  //   arguments: {
-  //   }
-  // }
+  const launchRequest: DP.LaunchRequest['arguments'] = {
+    
+  }
 
   // const res2: DP.LaunchResponse = await activeDebugger.sendRequest('launch', launchRequest)
   // console.log('res2', res2)
