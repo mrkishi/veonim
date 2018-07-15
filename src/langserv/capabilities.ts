@@ -23,7 +23,8 @@ export default (cwd: string) => ({
       },
       executeCommand: {
         dynamicRegistration: true
-      }
+      },
+      configuration: true,
     },
     textDocument: {
       synchronization: {
