@@ -26,7 +26,7 @@ const actions = {
     enableCursor()
     showCursor()
     currentWindowElement.remove(containerEl)
-    targetCanvasWin && targetCanvasWin.setOverflowScrollState(true)
+    if (targetCanvasWin) targetCanvasWin.setOverflowScrollState(true)
     return { value: '', visible: false }
   },
   updateQuery: ({ cmd, kind, position }: CommandUpdate) => (s: S) => {
@@ -62,9 +62,9 @@ const printCommandType = (kind: CommandType) => {
   else return 'search'
 }
 
-const view = ($: S) => h('div', {
+const view = ($: S, a: A) => h('div', {
   style: {
-    display: 'flex',
+    display: $.visible ? 'flex' : 'none',
     flex: 1,
   },
 }, [
@@ -83,12 +83,14 @@ const view = ($: S) => h('div', {
 
   ,Input({
     small: true,
-    focus: true,
+    focus: $.visible,
     useVimInput: true,
     desc: 'search query',
     value: $.value,
     icon: Icon.Search,
     position: $.position,
+    hide: a.hide,
+    select: a.hide,
   })
 
 ])

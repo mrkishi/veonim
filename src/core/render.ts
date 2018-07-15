@@ -392,8 +392,8 @@ r.cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level
 
 r.cmdline_hide = () => {
   merge(cmdcache, { active: false, position: -999, cmd: undefined })
-  if (currentCommandMode === CommandType.Ex) dispatch.pub('cmd.hide')
-  else dispatch.pub('search.hide' )
+  dispatch.pub('cmd.hide')
+  dispatch.pub('search.hide')
 }
 
 r.cmdline_pos = position => {
