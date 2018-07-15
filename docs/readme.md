@@ -90,6 +90,8 @@ The following languages have been "verified" to work with Veonim. More languages
 - html - `veonim/ext-html`
 - json - `veonim/ext-json`
 - css - `veonim/ext-css`
+- scss - `veonim/ext-css`
+- less - `veonim/ext-css`
 
 ## extensions
 
