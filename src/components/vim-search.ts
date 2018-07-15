@@ -10,6 +10,7 @@ import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
 
 const state = {
+  visible: false,
   value: '',
   position: 0,
   kind: CommandType.Ex,
@@ -22,16 +23,19 @@ const actions = {
     enableCursor()
     showCursor()
     currentWindowElement.remove(containerEl)
-    return { value: '' }
+    return { value: '', visible: false }
   },
   updateQuery: ({ cmd, kind, position }: CommandUpdate) => (s: S) => {
+    const cmdKind = kind || s.kind
     hideCursor()
     disableCursor()
-    currentWindowElement.add(containerEl)
+
+    !s.visible && setImmediate(() => currentWindowElement.add(containerEl))
 
     return {
-      kind,
       position,
+      kind: cmdKind,
+      visible: true,
       value: is.string(cmd) && s.value !== cmd
         ? cmd
         : s.value
