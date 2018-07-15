@@ -28,6 +28,7 @@ export interface Specs {
 export interface CanvasWindow {
   getSpecs(): Specs
   setSpecs(row: number, col: number, height: number, width: number, paddingX?: number, paddingY?: number): CanvasWindow
+  setOverflowScrollState(enabled: boolean): void
   rowToY(row: number): number
   rowToTransformY(row: number): number
   relativeRowToY(row: number): number
@@ -54,6 +55,7 @@ export const createWindow = (container: HTMLElement) => {
   const specs = { row: 0, col: 0, height: 0, width: 0, paddingX: 0, paddingY: 0 }
   const canvasBoxDimensions = { x: 0, y: 0, height: 0, width: 0 }
   const canvasDimensions = { height: 0 }
+  let overflowScrollEnabled = true
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
@@ -100,11 +102,13 @@ export const createWindow = (container: HTMLElement) => {
     merge(canvasBoxDimensions, { y, x, height, width })
   })
 
-  const shouldScrollOverflow = (row: number) => canvasBoxDimensions.height
+  const shouldScrollOverflow = (row: number) => overflowScrollEnabled && canvasBoxDimensions.height
     && px.row.y(row) + px.row.height(1) > canvasBoxDimensions.height
 
   const scrollReadjustAmount = () => (canvasDimensions.height - canvasBoxDimensions.height)
     + canvasContainer.cell.padding
+
+  api.setOverflowScrollState = enabled => overflowScrollEnabled = enabled
 
   api.resize = (canvasBox, initBackgroundColor) => {
     const { height, width } = container.getBoundingClientRect()
