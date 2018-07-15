@@ -52,7 +52,7 @@ const initServer = async (server: extensions.LanguageServer, cwd: string, langua
   servers.set(cwd + language, server)
   registerServer(cwd, language, capabilities)
   processBufferedServerCalls(cwd + language, server)
-  serverStartCallbacks.forEach(fn => fn(server))
+  serverStartCallbacks.forEach(fn => fn(server, language))
 }
 
 const startServer = async (cwd: string, language: string, filetype: string) => {
@@ -134,7 +134,7 @@ export const notify = async (method: string, params: any, { bufferCallIfServerSt
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Notification, method, params })
 }
 
-export const onServerStart = (fn: (server: extensions.LanguageServer) => void) => {
+export const onServerStart = (fn: (server: extensions.LanguageServer, language: string) => void) => {
   serverStartCallbacks.add(fn)
   return () => serverStartCallbacks.delete(fn)
 }
