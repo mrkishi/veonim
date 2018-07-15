@@ -1,25 +1,24 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { Readable, Writable } from 'stream'
-import { ID } from '../support/utils'
-import {} from 'vscode-debug'
+import { ID, Watchers } from '../support/utils'
 
 export default (readable: Readable, writable: Writable) => {
   const pendingRequests = new Map()
+  const watchers = new Watchers()
   const id = ID()
 
   let onErrorFn = (_: any) => {}
-  let onEventFn = (_: DP.Event) => {}
   let onRequestFn = (_: DP.Request) => {}
 
   const onMessage = (msg: DP.ProtocolMessage) => {
-    if (msg.type === 'event') return onEventFn(msg as DP.Event)
+    if (msg.type === 'event') return watchers.notify((msg as DP.Event).event, (msg as DP.Event).body)
     if (msg.type === 'request') return onRequestFn(msg as DP.Request)
     if (msg.type === 'response') {
       const m = (msg as DP.Response)
       if (!pendingRequests.has(m.request_seq)) return
 
       const { done, fail } = pendingRequests.get(m.request_seq)
-      m.success ? done(m) : fail(m)
+      m.success ? done(m.body) : fail(m)
       pendingRequests.delete(m.request_seq)
     }
   }
@@ -30,13 +29,13 @@ export default (readable: Readable, writable: Writable) => {
     connection.send({ seq, type: 'response', command: response.command })
   }
 
-  const sendRequest = (command: string, args: any) => {
+  const sendRequest = (command: string, args = {} as any) => {
     const seq = id.next()
     connection.send({ command, seq, type: 'request', arguments: args })
     return new Promise((done, fail) => pendingRequests.set(seq, { done, fail }))
   }
 
-  const onNotification = (cb: (event: DP.Event) => void) => onEventFn = cb
+  const onNotification = (method: string, cb: (event: DP.Event) => void) => watchers.add(method, cb)
   const onRequest = (cb: (request: DP.Request) => void) => onRequestFn = cb
   const onError = (cb: (error: any) => void) => onErrorFn = cb
 

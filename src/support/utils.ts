@@ -29,6 +29,7 @@ export const configPath = process.env.XDG_CONFIG_HOME || (process.platform === '
 const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
 const type = (m: any) => (Object.prototype.toString.call(m).match(/^\[object (\w+)\]/) || [])[1].toLowerCase()
 
+export const objToMap = (obj: object, map: Map<any, any>) => Object.entries(obj).forEach(([k, v]) => map.set(k, v))
 export const listof = (count: number, fn: () => any) => [...Array(count)].map(fn)
 export const fromJSON = (m: string) => ({ or: (defaultVal: any) => { try { return JSON.parse(m) } catch(_) { return defaultVal } }})
 export const prefixWith = (prefix: string) => (m: string) => `${prefix}${snakeCase(m)}`
