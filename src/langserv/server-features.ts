@@ -40,7 +40,7 @@ const capabilitiesToFeatures = (c: ServerCapabilities) => {
   const m = new Map<Feature, boolean>()
 
   m.set('completion', !!c.completionProvider)
-  m.set('completionResolve', !!pleaseGet(c).completionProvider.resolveProvider)
+  m.set('completionResolve', !!pleaseGet(c).completionProvider.resolveProvider(false))
   m.set('implementation', !!c.implementationProvider)
   m.set('definition', !!c.definitionProvider)
   m.set('typeDefinition', !!c.typeDefinitionProvider)
@@ -53,7 +53,7 @@ const capabilitiesToFeatures = (c: ServerCapabilities) => {
   m.set('workspaceSymbols', !!c.workspaceSymbolProvider)
   m.set('codeActions', !!c.codeActionProvider)
   m.set('codeLens', !!c.codeLensProvider)
-  m.set('codeLensResolve', !!pleaseGet(c).codeLensProvider.resolveProvider)
+  m.set('codeLensResolve', !!pleaseGet(c).codeLensProvider.resolveProvider(false))
   m.set('color', !!c.colorProvider)
   m.set('executeCommand', !!c.executeCommandProvider)
 
