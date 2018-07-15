@@ -83,7 +83,6 @@ on.listDebuggers(async () => {
   return [...new Set(dbgs)]
 })
 
-// TODO: rename this to getRPCServer and create another one like this but for DebugProtocol servers
 const getServer = (id: string) => {
   const server = runningServers.get(id)
   if (!server) throw new Error(`fail to get serv ${id}. this should not happen... ever.`)
@@ -251,10 +250,7 @@ const startDebugger = (extension: Extension, debug: Debugger) => {
   const proc = startDebugAdapter(adapterPath, debug.runtime)
 
   // TODO: testing
-  console.log('adapterpath:', adapterPath)
-  proc.stderr.on('data', err => console.error(debug.type, err + ''))
-  proc.stdout.on('data', m => console.log(debug.type, m + ''))
-  proc.stdin.on('data', m => console.log(debug.type, m + ''))
+  proc.stderr.on('data', err => console.error(debug.type, 'errrrrrrr:' + err + ''))
   // TODO: testing
 
   return connectDebugAdapter(proc)
