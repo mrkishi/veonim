@@ -55,6 +55,7 @@ const streamProcessor = (readable: Readable, writable: Writable, onMessage: Func
   let contentLength = -1
 
   readable.on('data', (data: Buffer) => {
+    if (process.env.VEONIM_DEV) console.log('<<<', data+'')
     rawData = Buffer.concat([rawData, data])
 
     while (true) {
