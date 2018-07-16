@@ -20,18 +20,20 @@ let dbg = {} as extensions.RPCServer
 export const start = async (type: string) => {
   console.log('start debugger:', type)
 
+  let activeThreadId = -1
   const threads = new Map<number, string>()
   const features = new Map<string, any>()
 
   dbg = await extensions.start.debug(type)
   await new Promise(f => setTimeout(f, 1e3))
 
-  dbg.onNotification('stopped', m => {
+  dbg.onNotification('stopped', (m: DP.StoppedEvent['body']) => {
     console.log('DEBUGGER STOPPED:', m)
   })
 
-  dbg.onNotification('thread', m => {
+  dbg.onNotification('thread', (m: DP.ThreadEvent['body']) => {
     console.log('THREAD:', m)
+    activeThreadId = m.threadId
   })
 
   dbg.onNotification('initialized', async () => {
@@ -42,12 +44,12 @@ export const start = async (type: string) => {
     // multiple sources == multiple calls
     const breakpointsRequest: DP.SetBreakpointsRequest['arguments'] = {
       source: {
-        name: 'blarg.js',
-        path: '/Users/a/proj/plugin-manager/blarg.js',
+        name: 'main.js',
+        path: '/Users/a/proj/nvwin/main.js',
       },
       breakpoints: [
         // TODO: support the other thingies (see interface for other options)
-        { line: 6 }
+        { line: 26 }
       ]
     }
 
@@ -58,6 +60,11 @@ export const start = async (type: string) => {
 
     await dbg.sendRequest('configurationDone')
     console.log('CONFIG DONE')
+
+    setTimeout(() => {
+      console.log('the active thread is:', activeThreadId)
+      dbg.sendRequest('continue', { threadId: 1 })
+    }, 1e3)
   })
 
   dbg.onNotification('capabilities', ({ capabilities }) => {
