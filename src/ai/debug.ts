@@ -29,11 +29,22 @@ export const start = async (type: string) => {
 
   dbg.onNotification('stopped', (m: DP.StoppedEvent['body']) => {
     console.log('DEBUGGER STOPPED:', m)
+    // request:
+    // 'threads'
+    // 'stacktrace'
+    // 'scopes'
+    // 'variables' .. variables and more and more
   })
 
+  // TODO: this notification is optional
   dbg.onNotification('thread', (m: DP.ThreadEvent['body']) => {
     console.log('THREAD:', m)
     activeThreadId = m.threadId
+    // request: 'threads'
+  })
+
+  dbg.onNotification('terminated', () => {
+    console.log('YOU HAVE BEEN TERMINATED')
   })
 
   dbg.onNotification('initialized', async () => {
@@ -61,9 +72,19 @@ export const start = async (type: string) => {
     await dbg.sendRequest('configurationDone')
     console.log('CONFIG DONE')
 
-    setTimeout(() => {
+    setTimeout(async () => {
       console.log('the active thread is:', activeThreadId)
-      dbg.sendRequest('continue', { threadId: 1 })
+      const st1 = await dbg.sendRequest('stackTrace', { threadId: 1 })
+      console.log('st1', st1)
+
+      const next1 = await dbg.sendRequest('next', {threadId: 1 })
+      console.log('next1', next1)
+
+      const st2 = await dbg.sendRequest('stackTrace', { threadId: 1 })
+      console.log('st2', st2)
+
+      const cont1 = await dbg.sendRequest('continue', { threadId: 1 })
+      console.log('cont1', cont1)
     }, 1e3)
   })
 
