@@ -53,6 +53,7 @@ const stats = {
 }
 
 const mouseEv = (e: HTMLElement, updateFn: Function) => {
+  e.preventDefault()
   const onMouseMove = m => updateFn(m)
 
   const onMouseUp = m => {
@@ -66,35 +67,26 @@ const mouseEv = (e: HTMLElement, updateFn: Function) => {
   updateFn(e)
 }
 
+const getDimensions = (e, container) => {
+  const x = typeof e.pageX === 'number' ? e.pageX : e.touches[0].pageX
+  const left = x - (container.getBoundingClientRect().left + window.pageXOffset)
+  return { left, width: container.clientWidth }
+}
+
 const calc = {
-  hue: e => {
-    e.preventDefault()
-    const containerWidth = container.clientWidth
-    const containerHeight = container.clientHeight
-    const x = typeof e.pageX === 'number' ? e.pageX : e.touches[0].pageX
-    const y = typeof e.pageY === 'number' ? e.pageY : e.touches[0].pageY
-    const left = x - (container.getBoundingClientRect().left + window.pageXOffset)
-    const top = y - (container.getBoundingClientRect().top + window.pageYOffset)
+  hue: (e, container) => {
+    const { left, width } = getDimensions(e, container)
 
     if (left < 0) return 0
-    else if (left > containerWidth) return 359
-    else {
-      const percent = (left * 100) / containerWidth
-      return ((360 * percent) / 100)
-    }
+    else if (left > width) return 359
+    else return (360 * ((left * 100) / width)) / 100
   },
-  alpha: e => {
-    e.preventDefault()
-    const containerWidth = container.clientWidth
-    const containerHeight = container.clientHeight
-    const x = typeof e.pageX === 'number' ? e.pageX : e.touches[0].pageX
-    const y = typeof e.pageY === 'number' ? e.pageY : e.touches[0].pageY
-    const left = x - (container.getBoundingClientRect().left + window.pageXOffset)
-    const top = y - (container.getBoundingClientRect().top + window.pageYOffset)
+  alpha: (e, container) => {
+    const { left, width } = getDimensions(e, container)
 
     if (left < 0) return 0
-    else if (left > containerWidth) return 1
-    else return Math.round((left * 100) / containerWidth) / 100
+    else if (left > width) return 1
+    else return Math.round((left * 100) / width) / 100
   },
 }
 
