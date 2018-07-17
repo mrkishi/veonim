@@ -27,7 +27,7 @@ interface NewVimResponse {
 }
 
 const vimOptions = {
-  rgb: true,
+  // rgb: true,
   ext_popupmenu: true,
   ext_tabline: true,
   ext_wildmenu: true,
@@ -219,6 +219,7 @@ export const attachTo = (id: number) => {
   if (!vimInstances.has(id)) return
   const vim = vimInstances.get(id)!
   if (vim.attached) return
+  console.log(`attach(${clientSize.width}, ${clientSize.height}, ${vimOptions})`)
   api.uiAttach(clientSize.width, clientSize.height, vimOptions)
   vim.attached = true
 }
