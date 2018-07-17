@@ -153,7 +153,7 @@ const view = ($: S, a: A) => h('div', {
       ,h('div', {
         style: {
           ...styles.overlay,
-          background: 'rgb(255, 0, 0)',
+          background: `hsl(${$.hue}, ${$.saturation}%, ${$.lightness}%)`,
         }
       })
 
@@ -212,7 +212,7 @@ const view = ($: S, a: A) => h('div', {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          background: 'red',
+          background: `hsla(${$.hue}, ${$.saturation}%, ${$.lightness}%, ${$.alpha})`,
         }
       })
 
