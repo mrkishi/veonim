@@ -99,9 +99,9 @@ const calc = {
     }
 
     const saturation = (left * 100) / containerWidth
-    const bright = -((top * 100) / containerHeight) + 100
+    const lightness = -((top * 100) / containerHeight) + 100
 
-    return { saturation, bright }
+    return { saturation, lightness }
   }
 }
 
@@ -162,13 +162,17 @@ const view = ($: S, a: A) => h('div', {
       style: {
         position: 'relative',
         flex: 1,
-      }
+      },
+      onmousedown: (e: MouseEvent) => mouseEv(e, el => {
+        const { saturation, lightness } = calc.saturation(el, e.target as HTMLElement)
+        a.updateColors({ saturation, lightness })
+      }),
     }, [
 
       ,h('div', {
         style: {
           ...styles.overlay,
-          background: `hsl(${$.hue}, ${$.saturation}%, ${$.lightness}%)`,
+          background: `hsl(${$.hue}, 100%, 50%)`,
         }
       })
 
