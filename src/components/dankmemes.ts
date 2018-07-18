@@ -29,7 +29,7 @@ const styles = {
     position: 'absolute',
   },
   slider: {
-    height: '14px',
+    height: '12px',
     width: '100%',
     borderRadius: '2px',
   },
@@ -116,7 +116,7 @@ const hueSlider = ($: S, a: A) => h('div', {
   ,h('div', {
     style: {
       ...styles.sliderHandle,
-      transform: `translateX(${($.hue / stats.hueSliderWidthMultiplier) - 8}px)`,
+      transform: `translate(${($.hue / stats.hueSliderWidthMultiplier) - 8}px, -2px)`,
     }
   })
 ])
@@ -124,7 +124,7 @@ const hueSlider = ($: S, a: A) => h('div', {
 const alphaSlider = ($: S, a: A) => h('div', {
   style: {
     ...styles.slider,
-    background: `linear-gradient(to right, rgba(0, 0, 0, 0), hsl(${$.hue}, ${$.saturation}%, ${$.lightness}%))`,
+    background: `linear-gradient(to right, rgba(0, 0, 0, 0), hsl(${$.hue}, ${$.saturation}%, ${$.lightness / 2}%))`,
   },
   oncreate: (e: HTMLElement) => stats.alphaSliderWidth = e.clientWidth,
   onmousedown: (e: MouseEvent) => mouseEv(e, el => a.updateColors({ alpha: calc.alpha(el, e.target as HTMLElement) })),
@@ -132,7 +132,7 @@ const alphaSlider = ($: S, a: A) => h('div', {
   ,h('div', {
     style: {
       ...styles.sliderHandle,
-      transform: `translateX(${($.alpha * stats.alphaSliderWidth) - 8}px)`,
+      transform: `translate(${($.alpha * stats.alphaSliderWidth) - 8}px, -2px)`,
     }
   })
 ])
@@ -193,8 +193,8 @@ const view = ($: S, a: A) => h('div', {
       ,h('div', {
         style: {
           position: 'absolute',
-          top: '30%',
-          left: '30%',
+          top: `${-($.lightness) + 100}%`,
+          left: `${$.saturation}%`,
         }
       }, [
         ,h('div', {
@@ -231,7 +231,7 @@ const view = ($: S, a: A) => h('div', {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          background: `hsla(${$.hue}, ${$.saturation}%, ${$.lightness}%, ${$.alpha})`,
+          background: `hsla(${$.hue}, ${$.saturation}%, ${$.lightness / 2}%, ${$.alpha})`,
         }
       })
 
