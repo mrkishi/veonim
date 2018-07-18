@@ -1,4 +1,5 @@
 import { makel, addCSS } from '../ui/vanilla'
+import { hslToHex } from '../ui/css'
 import { h, app } from '../ui/uikit'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
@@ -83,15 +84,10 @@ const calc = {
     let left = e.pageX - (container.getBoundingClientRect().left + window.pageXOffset)
     let top = e.pageY - (container.getBoundingClientRect().top + window.pageYOffset)
 
-    if (left < 0) {
-      left = 0
-    } else if (left > containerWidth) {
-      left = containerWidth
-    } else if (top < 0) {
-      top = 0
-    } else if (top > containerHeight) {
-      top = containerHeight
-    }
+    if (left < 0) left = 0
+    else if (left > containerWidth) left = containerWidth
+    else if (top < 0) top = 0
+    else if (top > containerHeight) top = containerHeight
 
     const saturation = (left * 100) / containerWidth
     const lightness = -((top * 100) / containerHeight) + 100
@@ -155,8 +151,7 @@ const hexValue = ($: S) => h('div', {
       fontSize: '0.9rem',
       color: '#ccc',
     }
-    // TODO: need HSL -> HEX converter
-  }, '#abcdef')
+  }, hslToHex($.hue, $.saturation, $.lightness))
 
   ,h('div', {
     style: {
