@@ -1,4 +1,4 @@
-import { makel } from '../ui/vanilla'
+import { makel, addCSS } from '../ui/vanilla'
 import { h, app } from '../ui/uikit'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
@@ -40,6 +40,10 @@ const styles = {
     background: '#222',
     borderRadius: '50%',
     boxShadow: '1px 1px 0.3px rgba(0, 0, 0, 0.2)',
+  },
+  arrow: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: '0.5rem',
   }
 }
 
@@ -130,6 +134,95 @@ const alphaSlider = ($: S, a: A) => h('div', {
       transform: `translate(${($.alpha * stats.alphaSliderWidth) - 8}px, -2px)`,
     }
   })
+])
+
+const hexValue = ($: S) => h('div', {
+  style: {
+    flex: 1,
+    display: 'flex',
+    flexFlow: 'column',
+  }
+}, [
+  ,h('div', {
+    style: {
+      flex: 1,
+      display: 'flex',
+      paddingTop: '8px',
+      paddingBottom: '8px',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontSize: '0.9rem',
+      color: '#ccc',
+    }
+    // TODO: need HSL -> HEX converter
+  }, '#abcdef')
+
+  ,h('div', {
+    style: {
+      display: 'flex',
+      marginTop: '8px',
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontSize: '0.8rem',
+      color: '#888',
+    }
+  }, 'HEX')
+])
+
+addCSS(`
+  .switch-button {
+    outline: none;
+    background: none;
+    border: none;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: -5px;
+  }
+
+  .switch-button:hover {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+    border-color: none;
+  }
+`)
+
+const switchValues = ($: S, a: A) => h('div', {
+  style: {
+    display: 'flex',
+    flexFlow: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: '8px',
+  }
+}, [
+  ,h('.switch-button', [
+
+    ,h('div', { style: styles.arrow }, [
+      ,h('svg', {
+        viewBox: '0 0 30 20',
+        height: '1em',
+        width: '1em',
+        fill: 'currentColor',
+      }, [
+        ,h('polygon', { points: '15,0 0,20 30,20' })
+      ])
+    ])
+
+    ,h('div', { style: styles.arrow }, [
+      ,h('svg', {
+        viewBox: '0 0 30 20',
+        height: '1em',
+        width: '1em',
+        fill: 'currentColor',
+      }, [
+        ,h('polygon', { points: '30,0 0,0 15,20' })
+      ])
+    ])
+
+  ])
 ])
 
 const view = ($: S, a: A) => h('div', {
@@ -244,6 +337,18 @@ const view = ($: S, a: A) => h('div', {
       ])
 
     ])
+  ])
+
+  ,h('div', {
+    style: {
+      display: 'flex',
+      padding: '15px',
+    }
+  }, [
+
+    ,hexValue($)
+    ,switchValues($, a)
+
   ])
 ])
 

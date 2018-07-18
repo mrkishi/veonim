@@ -12,3 +12,10 @@ export const makel: EL1 & EL2 = (...args: any[]) => {
 
   return el
 }
+
+export const addCSS = (styles: string) => {
+  const style = document.createElement('style')
+  style.type = 'text/css'
+  style.appendChild(document.createTextNode(styles))
+  document.head.appendChild(style)
+}
