@@ -48,19 +48,10 @@ const stats = {
   alphaSliderWidth: 170,
 }
 
-const mouseEv = (e: MouseEvent, updateFn: (e: MouseEvent) => any) => {
-  e.preventDefault()
-  const onMouseMove = (m: MouseEvent) => updateFn(m)
-
-  const onMouseUp = () => {
-    e!.target!.removeEventListener('mousemove', onMouseMove as EventListener)
-    e!.target!.removeEventListener('mouseup', onMouseUp)
-  }
-
-  e!.target!.addEventListener('mousemove', onMouseMove as EventListener)
-  e!.target!.addEventListener('mouseup', onMouseUp)
-
-  updateFn(e)
+const updateOnMove = (e: HTMLElement, updateFn: (e: MouseEvent) => void) => {
+  const onMove = (m: MouseEvent) => updateFn(m)
+  e.addEventListener('mousedown', ev => (updateFn(ev), e.addEventListener('mousemove', onMove)))
+  e.addEventListener('mouseup', () => e.removeEventListener('mousemove', onMove))
 }
 
 const getDimensions = (e: MouseEvent, container: HTMLElement) => ({
@@ -110,8 +101,10 @@ const hueSlider = ($: S, a: A) => h('div', {
     ...styles.slider,
     background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
   },
-  oncreate: (e: HTMLElement) => stats.hueSliderWidthMultiplier = 360 / e.clientWidth,
-  onmousedown: (e: MouseEvent) => mouseEv(e, el => a.updateColors({ hue: calc.hue(el, e.target as HTMLElement) })),
+  oncreate: (e: HTMLElement) => {
+    stats.hueSliderWidthMultiplier = 360 / e.clientWidth
+    updateOnMove(e, ev => a.updateColors({ hue: calc.hue(ev, e) }))
+  },
 }, [
   ,h('div', {
     style: {
@@ -126,8 +119,10 @@ const alphaSlider = ($: S, a: A) => h('div', {
     ...styles.slider,
     background: `linear-gradient(to right, rgba(0, 0, 0, 0), hsl(${$.hue}, ${$.saturation}%, ${$.lightness / 2}%))`,
   },
-  oncreate: (e: HTMLElement) => stats.alphaSliderWidth = e.clientWidth,
-  onmousedown: (e: MouseEvent) => mouseEv(e, el => a.updateColors({ alpha: calc.alpha(el, e.target as HTMLElement) })),
+  oncreate: (e: HTMLElement) => {
+    stats.alphaSliderWidth = e.clientWidth
+    updateOnMove(e, ev => a.updateColors({ alpha: calc.alpha(ev, e) }))
+  },
 }, [
   ,h('div', {
     style: {
@@ -163,10 +158,10 @@ const view = ($: S, a: A) => h('div', {
         position: 'relative',
         flex: 1,
       },
-      onmousedown: (e: MouseEvent) => mouseEv(e, el => {
-        const { saturation, lightness } = calc.saturation(el, e.target as HTMLElement)
+      oncreate: (e: HTMLElement) => updateOnMove(e, ev => {
+        const { saturation, lightness } = calc.saturation(ev, e)
         a.updateColors({ saturation, lightness })
-      }),
+      })
     }, [
 
       ,h('div', {
