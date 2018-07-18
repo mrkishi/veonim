@@ -10,17 +10,13 @@ cc.appendChild(container)
 
 const state = {
   hue: 123,
-  saturation: 50,
-  lightness: 100,
+  saturation: 100,
+  lightness: 50,
   alpha: 1,
 }
 
 const actions = {
-  // updateColors: m => m,
-  updateColors: m => {
-    console.log(m)
-    return m
-  },
+  updateColors: m => m,
 }
 
 type S = typeof state

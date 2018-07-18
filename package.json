@@ -55,7 +55,7 @@
   "dependencies": {
     "fs-extra": "5.0.0",
     "fuzzaldrin-plus": "0.4.1",
-    "hyperapp": "1.2.5",
+    "hyperapp": "1.2.6",
     "hyperapp-feather": "0.4.0",
     "hyperapp-seti": "0.2.0",
     "mock-require": "3.0.2",
