@@ -1,7 +1,7 @@
 import { makel } from '../ui/vanilla'
 import { h, app } from '../ui/uikit'
 
-const cc = document.getElementById('canvas-container')
+const cc = document.getElementById('canvas-container') as HTMLElement
 const container = makel({
   position: 'absolute',
   display: 'flex',
@@ -16,7 +16,7 @@ const state = {
 }
 
 const actions = {
-  updateColors: m => m,
+  updateColors: (m: object) => m,
 }
 
 type S = typeof state
@@ -48,42 +48,61 @@ const stats = {
   alphaSliderWidth: 170,
 }
 
-const mouseEv = (e: HTMLElement, updateFn: Function) => {
+const mouseEv = (e: MouseEvent, updateFn: (e: MouseEvent) => any) => {
   e.preventDefault()
-  const onMouseMove = m => updateFn(m)
+  const onMouseMove = (m: MouseEvent) => updateFn(m)
 
-  const onMouseUp = m => {
-    e.target.removeEventListener('mousemove', onMouseMove)
-    e.target.removeEventListener('mouseup', onMouseUp)
+  const onMouseUp = () => {
+    e!.target!.removeEventListener('mousemove', onMouseMove as EventListener)
+    e!.target!.removeEventListener('mouseup', onMouseUp)
   }
 
-  e.target.addEventListener('mousemove', onMouseMove)
-  e.target.addEventListener('mouseup', onMouseUp)
+  e!.target!.addEventListener('mousemove', onMouseMove as EventListener)
+  e!.target!.addEventListener('mouseup', onMouseUp)
 
   updateFn(e)
 }
 
-const getDimensions = (e, container) => {
-  const x = typeof e.pageX === 'number' ? e.pageX : e.touches[0].pageX
-  const left = x - (container.getBoundingClientRect().left + window.pageXOffset)
-  return { left, width: container.clientWidth }
-}
+const getDimensions = (e: MouseEvent, container: HTMLElement) => ({
+  left: e.pageX - (container.getBoundingClientRect().left + window.pageXOffset),
+  width: container.clientWidth,
+})
 
 const calc = {
-  hue: (e, container) => {
+  hue: (e: MouseEvent, container: HTMLElement) => {
     const { left, width } = getDimensions(e, container)
 
     if (left < 0) return 0
     else if (left > width) return 359
     else return (360 * ((left * 100) / width)) / 100
   },
-  alpha: (e, container) => {
+  alpha: (e: MouseEvent, container: HTMLElement) => {
     const { left, width } = getDimensions(e, container)
 
     if (left < 0) return 0
     else if (left > width) return 1
     else return Math.round((left * 100) / width) / 100
   },
+  saturation: (e: MouseEvent, container: HTMLElement) => {
+    const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect()
+    let left = e.pageX - (container.getBoundingClientRect().left + window.pageXOffset)
+    let top = e.pageY - (container.getBoundingClientRect().top + window.pageYOffset)
+
+    if (left < 0) {
+      left = 0
+    } else if (left > containerWidth) {
+      left = containerWidth
+    } else if (top < 0) {
+      top = 0
+    } else if (top > containerHeight) {
+      top = containerHeight
+    }
+
+    const saturation = (left * 100) / containerWidth
+    const bright = -((top * 100) / containerHeight) + 100
+
+    return { saturation, bright }
+  }
 }
 
 const hueSlider = ($: S, a: A) => h('div', {
@@ -91,8 +110,8 @@ const hueSlider = ($: S, a: A) => h('div', {
     ...styles.slider,
     background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
   },
-  oncreate: e => stats.hueSliderWidthMultiplier = 360 / e.clientWidth,
-  onmousedown: e => mouseEv(e, el => a.updateColors({ hue: calc.hue(el, e.target) })),
+  oncreate: (e: HTMLElement) => stats.hueSliderWidthMultiplier = 360 / e.clientWidth,
+  onmousedown: (e: MouseEvent) => mouseEv(e, el => a.updateColors({ hue: calc.hue(el, e.target as HTMLElement) })),
 }, [
   ,h('div', {
     style: {
@@ -107,8 +126,8 @@ const alphaSlider = ($: S, a: A) => h('div', {
     ...styles.slider,
     background: `linear-gradient(to right, rgba(0, 0, 0, 0), hsl(${$.hue}, ${$.saturation}%, ${$.lightness}%))`,
   },
-  oncreate: e => stats.alphaSliderWidth = e.clientWidth,
-  onmousedown: e => mouseEv(e, el => a.updateColors({ alpha: calc.alpha(el, e.target) })),
+  oncreate: (e: HTMLElement) => stats.alphaSliderWidth = e.clientWidth,
+  onmousedown: (e: MouseEvent) => mouseEv(e, el => a.updateColors({ alpha: calc.alpha(el, e.target as HTMLElement) })),
 }, [
   ,h('div', {
     style: {
@@ -229,4 +248,4 @@ const view = ($: S, a: A) => h('div', {
   ])
 ])
 
-const ui = app({ name: 'dank-memes', state, actions, view, element: container })
+app({ name: 'dank-memes', state, actions, view, element: container })
