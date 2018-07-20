@@ -62,6 +62,14 @@ const styles = {
     width: '100%',
     position: 'absolute',
   },
+  checkboard: {
+    position: 'absolute',
+    background: `url(${Checkboard('#242424', '#3a3a3a', 5)}) center left`,
+  },
+  preview: {
+    width: '40px',
+    height: '40px',
+  },
   slider: {
     height: '12px',
     width: '100%',
@@ -181,8 +189,7 @@ const alphaSlider = ($: S, a: A) => h('div', {
   ,h('div', {
     style: {
       ...styles.slider,
-      position: 'absolute',
-      background: `url(${Checkboard('#242424', '#3a3a3a', 5)}) center left`,
+      ...styles.checkboard,
     }
   })
 
@@ -302,12 +309,29 @@ const view = ($: S, a: A) => h('div', {
 
       ,h('div', {
         style: {
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          background: `rgba(${$.red}, ${$.green}, ${$.blue}, ${$.alpha})`,
+          ...styles.preview,
+          position: 'relative',
         }
-      })
+      }, [
+
+        ,h('div', {
+          style: {
+            ...styles.preview,
+            borderRadius: '50%',
+            ...styles.checkboard,
+          }
+        })
+
+        ,h('div', {
+          style: {
+            ...styles.preview,
+            borderRadius: '50%',
+            position: 'absolute',
+            background: `rgba(${$.red}, ${$.green}, ${$.blue}, ${$.alpha})`,
+          }
+        })
+
+      ])
 
       ,h('div', {
         style: {
