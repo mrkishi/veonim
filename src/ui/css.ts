@@ -105,6 +105,37 @@ export const hsvToRGB = (hue: number, saturation: number, value: number) => {
   return [r, g, b]
 }
 
+export const rgbToHSV = (red: number, green: number, blue: number) => {
+  const r = bound(red, 255)
+  const g = bound(green, 255)
+  const b = bound(blue, 255)
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+
+  let h = max
+  let s = max
+  let v = max
+  let d = max - min
+  s = max === 0 ? 0 : d / max
+
+  if (max == min) h = 0
+
+  else {
+    switch(max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break
+      case g: h = (b - r) / d + 2; break
+      case b: h = (r - g) / d + 4; break
+    }
+    h /= 6
+  }
+
+  return [
+    Math.round(h * 360),
+    Math.round(s * 100),
+    Math.round(v * 100),
+  ]
+}
+
 const hue2rgb = (p: number, q: number, t: number) => {
   if (t < 0) t += 1
   if (t > 1) t -= 1
