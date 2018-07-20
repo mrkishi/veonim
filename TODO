@@ -13,6 +13,8 @@ change-dir/vim-create-dir default dir to :pwd if not specified. should we defaul
 to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
 path displayed in "project" statusline section
 
+document search-fn space
+
 debug
 
 if lang ext not installed suggest ext on new file type/bufload 
