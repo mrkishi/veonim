@@ -1,6 +1,7 @@
 import { hsvToRGB, rgbToHex, rgbToHSL } from '../ui/css'
 import { minmax, throttle } from '../support/utils'
 import { h, app, css } from '../ui/uikit'
+import Checkboard from '../ui/checkboard'
 import { makel } from '../ui/vanilla'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
