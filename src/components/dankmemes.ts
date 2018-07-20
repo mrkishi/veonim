@@ -1,7 +1,7 @@
+import { hsvToRGB, rgbToHex, rgbToHSL } from '../ui/css'
 import { h, app, css } from '../ui/uikit'
 import { minmax } from '../support/utils'
 import { makel } from '../ui/vanilla'
-import { hsvToRgb } from '../ui/css'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
 const container = makel({
@@ -12,22 +12,42 @@ cc.appendChild(container)
 
 enum ColorMode { hex, rgb, hsl }
 
+let onChange = (_: any) => {}
 const state = {
   mode: ColorMode.hex,
   hue: 100,
   saturation: 100,
   value: 50,
   alpha: 1,
-  r: 0,
-  g: 0,
-  b: 0,
+  red: 0,
+  green: 0,
+  blue: 0,
+}
+
+const reportChange = (m: S) => {
+  const useAlpha = m.alpha > 0 && m.alpha < 1
+
+  if (m.mode === ColorMode.hex) return onChange(rgbToHex(m.red, m.green, m.blue))
+
+  if (m.mode === ColorMode.rgb) return useAlpha
+    ? onChange(`rgba(${m.red}, ${m.green}, ${m.blue}, ${m.alpha})`)
+    : onChange(`rgb(${m.red}, ${m.green}, ${m.blue})`)
+
+  if (m.mode === ColorMode.hsl) {
+    const [ h, s, l ] = rgbToHSL(m.red, m.green, m.blue)
+
+    return useAlpha
+      ? onChange(`hsla(${h}, ${s}%, ${l}%, ${m.alpha})`)
+      : onChange(`hsl(${h}, ${s}%, ${l}%)`)
+  }
 }
 
 const actions = {
   up: (m: object) => (s: S) => {
     const next = { ...s, ...m }
-    const [ r, g, b ] = hsvToRgb(next.hue, next.saturation, next.value)
-    return { ...m, r, g, b }
+    const [ red, green, blue ] = hsvToRGB(next.hue, next.saturation, next.value)
+    reportChange(s)
+    return { ...m, red, green, blue }
   },
 }
 
@@ -152,7 +172,7 @@ const hueSlider = ($: S, a: A) => h('div', {
 const alphaSlider = ($: S, a: A) => h('div', {
   style: {
     ...styles.slider,
-    background: `linear-gradient(to right, rgba(${$.r}, ${$.g}, ${$.b}, 0), rgb(${$.r}, ${$.g}, ${$.b}))`,
+    background: `linear-gradient(to right, rgba(${$.red}, ${$.green}, ${$.blue}, 0), rgb(${$.red}, ${$.green}, ${$.blue}))`,
   },
   oncreate: (e: HTMLElement) => {
     stats.alphaSliderWidth = e.clientWidth
@@ -261,7 +281,7 @@ const view = ($: S, a: A) => h('div', {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          background: `rgba(${$.r}, ${$.g}, ${$.b}, ${$.alpha})`,
+          background: `rgba(${$.red}, ${$.green}, ${$.blue}, ${$.alpha})`,
         }
       })
 
@@ -309,3 +329,6 @@ const view = ($: S, a: A) => h('div', {
 ])
 
 app({ name: 'dank-memes', state, actions, view, element: container })
+// TODO: wrap this entire
+// TODO: allow consumer to inject onChange fn
+onChange = val => console.log(val)

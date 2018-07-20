@@ -39,7 +39,7 @@ export const hexToRGBA = (color: string, alpha: number) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-const rgbToHSL = (red: number, green: number, blue: number) => {
+export const rgbToHSL = (red: number, green: number, blue: number) => {
   const r = red / 255
   const g = green / 255
   const b = blue / 255
@@ -66,7 +66,7 @@ const rgbToHSL = (red: number, green: number, blue: number) => {
     h /= 6
   }
 
-  return { hue: h, saturation: s, luminosity: l }
+  return [h, s, l]
 }
 
 const toHex = (x: any) => {
@@ -74,15 +74,17 @@ const toHex = (x: any) => {
   return hex.length === 1 ? '0' + hex : hex
 }
 
-export const rgbToHex = (red: number, green: number, blue: number) => `#${toHex(r)}${toHex(g)}${toHex(b)}`
+export const rgbToHex = (red: number, green: number, blue: number) => {
+  return `#${toHex(red)}${toHex(green)}${toHex(blue)}`
+}
 
-const bound = (n: number, max: number) => {
+const bound = (n: any, max: any) => {
   n = Math.min(max, Math.max(0, parseFloat(n)))
   if ((Math.abs(n - max) < 0.000001)) return 1
   return (n % max) / parseFloat(max)
 }
 
-export const hsvToRgb = (hue: number, saturation: number, value: number) => {
+export const hsvToRGB = (hue: number, saturation: number, value: number) => {
   const h = bound(hue, 360) * 6
   const s = bound(saturation, 100)
   const v = bound(value, 100)
@@ -108,7 +110,7 @@ const hue2rgb = (p: number, q: number, t: number) => {
   return p
 }
 
-export const hslToRgb = (hue: number, saturation: number, lightness: number) => {
+export const hslToRGB = (hue: number, saturation: number, lightness: number) => {
   const h = bound(hue, 360)
   const s = bound(saturation, 100)
   const l = bound(lightness, 100)
@@ -148,8 +150,8 @@ const shadeColor = (color: string, percent: number) => {
 export const contrast = (color: string, contrastAgainst: string, amount: number) => {
   (amount)
   const [ r, g, b ] = hexToRGB(contrastAgainst)
-  const { luminosity } = rgbToHSL(r, g, b)
-  const lum = Math.floor(luminosity * 100)
+  const [ /*hue*/, /*saturation*/, lightness ] = rgbToHSL(r, g, b)
+  const lum = Math.floor(lightness * 100)
   const shouldDarken = lum < 50
   return shadeColor(color, shouldDarken ? -(amount / 100) : ((amount - 10) / 100))
 }
