@@ -1,6 +1,6 @@
 import { hsvToRGB, rgbToHex, rgbToHSL } from '../ui/css'
+import { minmax, throttle } from '../support/utils'
 import { h, app, css } from '../ui/uikit'
-import { minmax } from '../support/utils'
 import { makel } from '../ui/vanilla'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
@@ -13,6 +13,7 @@ cc.appendChild(container)
 enum ColorMode { hex, rgb, hsl }
 
 let onChange = (_: any) => {}
+
 const state = {
   mode: ColorMode.hex,
   hue: 100,
@@ -331,4 +332,4 @@ const view = ($: S, a: A) => h('div', {
 app({ name: 'dank-memes', state, actions, view, element: container })
 // TODO: wrap this entire
 // TODO: allow consumer to inject onChange fn
-onChange = val => console.log(val)
+onChange = throttle(val => console.log(val), 50)
