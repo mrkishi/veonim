@@ -1,7 +1,7 @@
-import { dirname, basename, join, extname, resolve } from 'path'
+import { dirname, basename, join, extname, resolve, sep } from 'path'
 import { exec } from 'child_process'
 import { Transform } from 'stream'
-import * as fs from 'fs-extra'
+import * as filesystem from 'fs'
 import { homedir } from 'os'
 const watch = require('node-watch')
 
@@ -50,6 +50,15 @@ export const uriAsFile = (m = '') => basename(uriToPath(m))
 export const CreateTask = <T>(): Task<T> => ( (done = (_: T) => {}, promise = new Promise<T>(m => done = m)) => ({ done, promise }) )()
 export const uuid = (): string => (<any>[1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,(a: any)=>(a^Math.random()*16>>a/4).toString(16))
 export const shell = (cmd: string, opts?: object): Promise<string> => new Promise(fin => exec(cmd, opts, (_, out) => fin(out + '')))
+
+// TODO: in node 10+ we can use require('fs').promises
+export const promisifyApi = <T>(o: object): T => onFnCall<T>((name: string, args: any[]) => new Promise((ok, no) => {
+  const theFunctionToCall: Function = Reflect.get(o, name)
+  theFunctionToCall(...args, (err: Error, res: any) => err ? no(err) : ok(res))
+}))
+
+export const fs = promisifyApi(filesystem)
+
 // TODO: remove listof because it's not as performant
 export const genList = <T>(count: number, fn: (index: number) => T) => {
   const resultList: T[] = []
@@ -129,6 +138,19 @@ export const getDirFiles = async (path: string) => {
 
 export const getDirs = async (path: string) => (await getDirFiles(path)).filter(m => m.dir)
 export const getFiles = async (path: string) => (await getDirFiles(path)).filter(m => m.file)
+
+export const remove = async (path: string) => {
+  if (!(await exists(path))) throw new Error(`remove: ${path} does not exist`)
+  if ((await fs.stat(path)).isFile()) return fs.unlink(path)
+
+  const dirFiles = await getDirFiles(path)
+  await Promise.all(dirFiles.map(m => m.dir ? remove(m.path) : fs.unlink(m.path)))
+  fs.rmdir(path)
+}
+
+export const ensureDir = (path: string) => path.split(sep).reduce((q, dir, ix, arr) => q.then(() => {
+  return fs.mkdir(join(...arr.slice(0, ix), dir)).catch(() => {})
+}), Promise.resolve())
 
 export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
   let delayExpired = false
