@@ -1,4 +1,5 @@
 import { h, app, css } from '../ui/uikit'
+import { minmax } from '../support/utils'
 import { makel } from '../ui/vanilla'
 import { hslToRGB } from '../ui/css'
 
@@ -123,7 +124,10 @@ const calc = {
     const saturation = (left * 100) / containerWidth
     const lightness = -((top * 100) / containerHeight) + 100
 
-    return { saturation, lightness }
+    return {
+      saturation: minmax(0, 100)(saturation),
+      lightness: minmax(0, 100)(lightness),
+    }
   }
 }
 
