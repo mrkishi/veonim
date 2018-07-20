@@ -1,5 +1,6 @@
 import { h, app, css } from '../ui/uikit'
 import { makel } from '../ui/vanilla'
+import { hslToRGB } from '../ui/css'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
 const container = makel({
@@ -12,14 +13,21 @@ enum ColorMode { hex, rgb, hsl }
 
 const state = {
   mode: ColorMode.hex,
-  hue: 123,
+  hue: 0,
   saturation: 100,
   lightness: 50,
   alpha: 1,
+  r: 0,
+  g: 0,
+  b: 0,
 }
 
 const actions = {
-  up: (m: object) => m,
+  up: (m: object) => (s: S) => {
+    const next = { ...s, ...m }
+    const [ r, g, b ] = hslToRGB(next.hue, next.saturation, next.lightness)
+    return { ...m, r, g, b }
+  },
 }
 
 type S = typeof state
@@ -140,7 +148,7 @@ const hueSlider = ($: S, a: A) => h('div', {
 const alphaSlider = ($: S, a: A) => h('div', {
   style: {
     ...styles.slider,
-    background: `linear-gradient(to right, rgba(0, 0, 0, 0), hsl(${$.hue}, ${$.saturation}%, ${$.lightness / 2}%))`,
+    background: `linear-gradient(to right, rgba(0, 0, 0, 0), hsl(${$.hue}, ${$.saturation}%, ${$.lightness}%))`,
   },
   oncreate: (e: HTMLElement) => {
     stats.alphaSliderWidth = e.clientWidth
@@ -170,6 +178,7 @@ const view = ($: S, a: A) => h('div', {
     zIndex: 99999999999,
   }
 }, [
+  ,console.log($)
   ,h('div', {
     style: {
       height: '125px',
@@ -249,7 +258,7 @@ const view = ($: S, a: A) => h('div', {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          background: `hsla(${$.hue}, ${$.saturation}%, ${$.lightness / 2}%, ${$.alpha})`,
+          background: `hsla(${$.hue}, ${$.saturation}%, ${$.lightness}%, ${$.alpha})`,
         }
       })
 

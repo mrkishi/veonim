@@ -69,7 +69,7 @@ const rgbToHSL = (red: number, green: number, blue: number) => {
   return { hue: h, saturation: s, luminosity: l }
 }
 
-export const hslToHex = (hue: number, saturation: number, lightness: number) => {
+export const hslToRGB = (hue: number, saturation: number, lightness: number) => {
   const h = hue / 360
   const s = saturation / 360
   const l = lightness / 360
@@ -91,6 +91,11 @@ export const hslToHex = (hue: number, saturation: number, lightness: number) => 
     g = hue2rgb(p, q, h)
     b = hue2rgb(p, q, h - 1 / 3)
   }
+  return [r, g, b]
+}
+
+export const hslToHex = (hue: number, saturation: number, lightness: number) => {
+  const [ r, g, b ] = hslToRGB(hue, saturation, lightness)
   const toHex = (x: any) => {
     const hex = Math.round(x * 255).toString(16)
     return hex.length === 1 ? '0' + hex : hex
