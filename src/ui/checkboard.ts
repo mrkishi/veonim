@@ -1,8 +1,6 @@
 const checkboardCache = new Map<string, any>()
 
 const render = (color1: string, color2: string, size: number) => {
-  if (typeof document === 'undefined') return null
-
   const canvas = document.createElement('canvas')
   canvas.width = size * 2
   canvas.height = size * 2
@@ -19,10 +17,11 @@ const render = (color1: string, color2: string, size: number) => {
 }
 
 export default (color1: string, color2: string, size: number) => {
-  const key = `${color1}-${color2}-${size}`
-  if (checkboardCache.has(key)) return Reflect.get(checkboardCache, key)
+  const scaledSize = size * window.devicePixelRatio
+  const key = `${color1}-${color2}-${scaledSize}`
+  if (checkboardCache.has(key)) return checkboardCache.get(key)
 
-  const checkboard = render(color1, color2, size)
+  const checkboard = render(color1, color2, scaledSize)
   checkboardCache.set(key, checkboard)
   return checkboard
 }

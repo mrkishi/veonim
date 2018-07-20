@@ -174,19 +174,37 @@ const hueSlider = ($: S, a: A) => h('div', {
 const alphaSlider = ($: S, a: A) => h('div', {
   style: {
     ...styles.slider,
-    background: `linear-gradient(to right, rgba(${$.red}, ${$.green}, ${$.blue}, 0), rgb(${$.red}, ${$.green}, ${$.blue}))`,
-  },
-  oncreate: (e: HTMLElement) => {
-    stats.alphaSliderWidth = e.clientWidth
-    updateOnMove(e, ev => a.up({ alpha: calc.alpha(ev, e) }))
-  },
+    position: 'relative',
+  }
 }, [
+
   ,h('div', {
     style: {
-      ...styles.sliderHandle,
-      transform: `translate(${($.alpha * stats.alphaSliderWidth) - 8}px, -2px)`,
+      ...styles.slider,
+      position: 'absolute',
+      background: `url(${Checkboard('#242424', '#3a3a3a', 5)}) center left`,
     }
   })
+
+  ,h('div', {
+    style: {
+      ...styles.slider,
+      position: 'absolute',
+      background: `linear-gradient(to right, rgba(${$.red}, ${$.green}, ${$.blue}, 0), rgb(${$.red}, ${$.green}, ${$.blue}))`,
+    },
+    oncreate: (e: HTMLElement) => {
+      stats.alphaSliderWidth = e.clientWidth
+      updateOnMove(e, ev => a.up({ alpha: calc.alpha(ev, e) }))
+    },
+  }, [
+    ,h('div', {
+      style: {
+        ...styles.sliderHandle,
+        transform: `translate(${($.alpha * stats.alphaSliderWidth) - 8}px, -2px)`,
+      }
+    })
+  ])
+
 ])
 
 const view = ($: S, a: A) => h('div', {
@@ -202,6 +220,8 @@ const view = ($: S, a: A) => h('div', {
     // TODO: DIRTY HACK FOR VEONIM NOT NEEDED IN COMPONENT!!!!
     // TODO: DIRTY HACK FOR VEONIM NOT NEEDED IN COMPONENT!!!!
     zIndex: 99999999999,
+    top: '100px',
+    left: '100px',
   }
 }, [
   ,h('div', {
