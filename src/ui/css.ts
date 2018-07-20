@@ -70,7 +70,7 @@ export const rgbToHSL = (red: number, green: number, blue: number) => {
 }
 
 const toHex = (x: any) => {
-  const hex = Math.round(x * 255).toString(16)
+  const hex = x.toString(16)
   return hex.length === 1 ? '0' + hex : hex
 }
 

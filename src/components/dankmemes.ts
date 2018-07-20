@@ -16,9 +16,9 @@ let onChange = (_: any) => {}
 
 const state = {
   mode: ColorMode.hex,
-  hue: 100,
-  saturation: 100,
-  value: 50,
+  hue: 0,
+  saturation: 0,
+  value: 0,
   alpha: 1,
   red: 0,
   green: 0,
@@ -332,4 +332,4 @@ const view = ($: S, a: A) => h('div', {
 app({ name: 'dank-memes', state, actions, view, element: container })
 // TODO: wrap this entire
 // TODO: allow consumer to inject onChange fn
-onChange = throttle(val => console.log(val), 50)
+onChange = throttle(val => console.log(val), 100)
