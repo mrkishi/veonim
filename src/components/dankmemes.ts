@@ -207,6 +207,7 @@ const view = ($: S, a: A) => h('div', {
     style: {
       height: '125px',
       display: 'flex',
+      overflow: 'hidden',
     }
   }, [
     ,h('div', {
@@ -246,6 +247,7 @@ const view = ($: S, a: A) => h('div', {
           position: 'absolute',
           top: `${-($.value) + 100}%`,
           left: `${$.saturation}%`,
+          cursor: 'default',
         }
       }, [
         ,h('div', {
