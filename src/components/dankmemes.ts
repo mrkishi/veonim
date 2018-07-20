@@ -362,19 +362,19 @@ export default (element: HTMLElement, onChange = (_: any) => {}) => {
 
   const setRGB = (red: number, green: number, blue: number, alpha?: number) => {
     const [ hue, saturation, value ] = rgbToHSV(red, green, blue)
-    ui.up({ hue, saturation, value, red, green, blue, alpha })
+    ui.up({ mode: ColorMode.rgb, hue, saturation, value, red, green, blue, alpha })
   }
 
   const setHex = (hex: string) => {
     const [ red, green, blue ] = hexToRGB(hex)
     const [ hue, saturation, value ] = rgbToHSV(red, green, blue)
-    ui.up({ hue, saturation, value, red, green, blue })
+    ui.up({ mode: ColorMode.hex, hue, saturation, value, red, green, blue })
   }
 
   const setHSL = (hue: number, saturation: number, lightness: number, alpha?: number) => {
     const [ red, green, blue ] = hslToRGB(hue, saturation, lightness)
     const [ h, s, value ] = rgbToHSV(red, green, blue)
-    ui.up({ hue: h, saturation: s, value, red, green, blue, alpha })
+    ui.up({ mode: ColorMode.hsl, hue: h, saturation: s, value, red, green, blue, alpha })
   }
   
   return { setRGB, setHex, setHSL }
