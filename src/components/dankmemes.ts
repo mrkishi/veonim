@@ -1,6 +1,5 @@
-import { makel, addCSS } from '../ui/vanilla'
-import { hslToHex } from '../ui/css'
-import { h, app } from '../ui/uikit'
+import { h, app, css } from '../ui/uikit'
+import { makel } from '../ui/vanilla'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
 const container = makel({
@@ -9,7 +8,10 @@ const container = makel({
 })
 cc.appendChild(container)
 
+enum ColorMode { hex, rgb, hsl }
+
 const state = {
+  mode: ColorMode.hex,
   hue: 123,
   saturation: 100,
   lightness: 50,
@@ -17,7 +19,7 @@ const state = {
 }
 
 const actions = {
-  updateColors: (m: object) => m,
+  up: (m: object) => m,
 }
 
 type S = typeof state
@@ -45,6 +47,27 @@ const styles = {
   arrow: {
     color: 'rgba(255, 255, 255, 0.3)',
     fontSize: '0.5rem',
+  },
+  modeButton: css(id => [
+    `.${id} {
+      outline: none;
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      padding: 5px;
+      padding-left: 12px;
+      padding-right: 12px;
+      color: rgba(255, 255, 255, 0.2);
+    }`,
+
+    `.${id}:hover {
+      border-color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.4);
+    }`
+  ]),
+  modeActive: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   }
 }
 
@@ -103,7 +126,7 @@ const hueSlider = ($: S, a: A) => h('div', {
   },
   oncreate: (e: HTMLElement) => {
     stats.hueSliderWidthMultiplier = 360 / e.clientWidth
-    updateOnMove(e, ev => a.updateColors({ hue: calc.hue(ev, e) }))
+    updateOnMove(e, ev => a.up({ hue: calc.hue(ev, e) }))
   },
 }, [
   ,h('div', {
@@ -121,7 +144,7 @@ const alphaSlider = ($: S, a: A) => h('div', {
   },
   oncreate: (e: HTMLElement) => {
     stats.alphaSliderWidth = e.clientWidth
-    updateOnMove(e, ev => a.updateColors({ alpha: calc.alpha(ev, e) }))
+    updateOnMove(e, ev => a.up({ alpha: calc.alpha(ev, e) }))
   },
 }, [
   ,h('div', {
@@ -130,94 +153,6 @@ const alphaSlider = ($: S, a: A) => h('div', {
       transform: `translate(${($.alpha * stats.alphaSliderWidth) - 8}px, -2px)`,
     }
   })
-])
-
-const hexValue = ($: S) => h('div', {
-  style: {
-    flex: 1,
-    display: 'flex',
-    flexFlow: 'column',
-  }
-}, [
-  ,h('div', {
-    style: {
-      flex: 1,
-      display: 'flex',
-      paddingTop: '8px',
-      paddingBottom: '8px',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontSize: '0.9rem',
-      color: '#ccc',
-    }
-  }, hslToHex($.hue, $.saturation, $.lightness))
-
-  ,h('div', {
-    style: {
-      display: 'flex',
-      marginTop: '8px',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontSize: '0.8rem',
-      color: '#888',
-    }
-  }, 'HEX')
-])
-
-addCSS(`
-  .switch-button {
-    outline: none;
-    background: none;
-    border: none;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    padding-left: 10px;
-    padding-right: 10px;
-    margin-left: -5px;
-  }
-
-  .switch-button:hover {
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: 2px;
-    border-color: none;
-  }
-`)
-
-const switchValues = ($: S, a: A) => h('div', {
-  style: {
-    display: 'flex',
-    flexFlow: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: '8px',
-  }
-}, [
-  ,h('.switch-button', [
-
-    ,h('div', { style: styles.arrow }, [
-      ,h('svg', {
-        viewBox: '0 0 30 20',
-        height: '1em',
-        width: '1em',
-        fill: 'currentColor',
-      }, [
-        ,h('polygon', { points: '15,0 0,20 30,20' })
-      ])
-    ])
-
-    ,h('div', { style: styles.arrow }, [
-      ,h('svg', {
-        viewBox: '0 0 30 20',
-        height: '1em',
-        width: '1em',
-        fill: 'currentColor',
-      }, [
-        ,h('polygon', { points: '30,0 0,0 15,20' })
-      ])
-    ])
-
-  ])
 ])
 
 const view = ($: S, a: A) => h('div', {
@@ -248,7 +183,7 @@ const view = ($: S, a: A) => h('div', {
       },
       oncreate: (e: HTMLElement) => updateOnMove(e, ev => {
         const { saturation, lightness } = calc.saturation(ev, e)
-        a.updateColors({ saturation, lightness })
+        a.up({ saturation, lightness })
       })
     }, [
 
@@ -338,11 +273,25 @@ const view = ($: S, a: A) => h('div', {
     style: {
       display: 'flex',
       padding: '15px',
+      paddingTop: '10px',
+      justifyContent: 'space-around',
     }
   }, [
 
-    ,hexValue($)
-    ,switchValues($, a)
+    ,h(`button.${styles.modeButton}`, {
+      style: $.mode === ColorMode.hex && styles.modeActive,
+      onclick: () => a.up({ mode: ColorMode.hex }),
+    }, 'HEX')
+
+    ,h(`button.${styles.modeButton}`, {
+      style: $.mode === ColorMode.rgb && styles.modeActive,
+      onclick: () => a.up({ mode: ColorMode.rgb }),
+    }, 'RGB')
+
+    ,h(`button.${styles.modeButton}`, {
+      style: $.mode === ColorMode.hsl && styles.modeActive,
+      onclick: () => a.up({ mode: ColorMode.hsl }),
+    }, 'HSL')
 
   ])
 ])

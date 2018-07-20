@@ -77,7 +77,7 @@ export const hslToHex = (hue: number, saturation: number, lightness: number) => 
   if (s === 0) {
     r = g = b = l
   } else {
-    const hue2rgb = (p, q, t) => {
+    const hue2rgb = (p: any, q: any, t: any) => {
       if (t < 0) t += 1
       if (t > 1) t -= 1
       if (t < 1 / 6) return p + (q - p) * 6 * t
@@ -91,7 +91,7 @@ export const hslToHex = (hue: number, saturation: number, lightness: number) => 
     g = hue2rgb(p, q, h)
     b = hue2rgb(p, q, h - 1 / 3)
   }
-  const toHex = x => {
+  const toHex = (x: any) => {
     const hex = Math.round(x * 255).toString(16)
     return hex.length === 1 ? '0' + hex : hex
   }
