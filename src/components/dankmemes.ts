@@ -47,7 +47,7 @@ const actions = {
   up: (m: object) => (s: S) => {
     const next = { ...s, ...m }
     const [ red, green, blue ] = hsvToRGB(next.hue, next.saturation, next.value)
-    reportChange(s)
+    reportChange(next)
     return { ...m, red, green, blue }
   },
 }

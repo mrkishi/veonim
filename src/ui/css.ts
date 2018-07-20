@@ -66,7 +66,11 @@ export const rgbToHSL = (red: number, green: number, blue: number) => {
     h /= 6
   }
 
-  return [h, s, l]
+  return [
+    Math.round(h * 360),
+    Math.round(s * 100),
+    Math.round(l * 100),
+  ]
 }
 
 const toHex = (x: any) => {
