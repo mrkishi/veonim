@@ -69,38 +69,62 @@ const rgbToHSL = (red: number, green: number, blue: number) => {
   return { hue: h, saturation: s, luminosity: l }
 }
 
-export const hslToRGB = (hue: number, saturation: number, lightness: number) => {
-  const h = hue / 360
-  const s = saturation / 360
-  const l = lightness / 360
-  let r, g, b
-  if (s === 0) {
-    r = g = b = l
-  } else {
-    const hue2rgb = (p: any, q: any, t: any) => {
-      if (t < 0) t += 1
-      if (t > 1) t -= 1
-      if (t < 1 / 6) return p + (q - p) * 6 * t
-      if (t < 1 / 2) return q
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-      return p
-    }
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-    const p = 2 * l - q
-    r = hue2rgb(p, q, h + 1 / 3)
-    g = hue2rgb(p, q, h)
-    b = hue2rgb(p, q, h - 1 / 3)
-  }
+const toHex = (x: any) => {
+  const hex = Math.round(x * 255).toString(16)
+  return hex.length === 1 ? '0' + hex : hex
+}
+
+export const rgbToHex = (red: number, green: number, blue: number) => `#${toHex(r)}${toHex(g)}${toHex(b)}`
+
+const bound = (n: number, max: number) => {
+  n = Math.min(max, Math.max(0, parseFloat(n)))
+  if ((Math.abs(n - max) < 0.000001)) return 1
+  return (n % max) / parseFloat(max)
+}
+
+export const hsvToRgb = (hue: number, saturation: number, value: number) => {
+  const h = bound(hue, 360) * 6
+  const s = bound(saturation, 100)
+  const v = bound(value, 100)
+  const i = Math.floor(h)
+  const f = h - i
+  const p = v * (1 - s)
+  const q = v * (1 - f * s)
+  const t = v * (1 - (1 - f) * s)
+  const mod = i % 6
+  const r = Math.round([v, q, p, p, t, v][mod] * 255)
+  const g = Math.round([t, v, v, q, p, p][mod] * 255)
+  const b = Math.round([p, p, t, v, v, q][mod] * 255)
+
   return [r, g, b]
 }
 
-export const hslToHex = (hue: number, saturation: number, lightness: number) => {
-  const [ r, g, b ] = hslToRGB(hue, saturation, lightness)
-  const toHex = (x: any) => {
-    const hex = Math.round(x * 255).toString(16)
-    return hex.length === 1 ? '0' + hex : hex
+const hue2rgb = (p: number, q: number, t: number) => {
+  if (t < 0) t += 1
+  if (t > 1) t -= 1
+  if (t < 1/6) return p + (q - p) * 6 * t
+  if (t < 1/2) return q
+  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
+  return p
+}
+
+export const hslToRgb = (hue: number, saturation: number, lightness: number) => {
+  const h = bound(hue, 360)
+  const s = bound(saturation, 100)
+  const l = bound(lightness, 100)
+
+  if (s === 0) {
+    const e = Math.round(l * 255)
+    return [e, e, e]
   }
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+  const p = 2 * l - q
+  const r = Math.round(hue2rgb(p, q, h + 1/3) * 255)
+  const g = Math.round(hue2rgb(p, q, h) * 255)
+  const b = Math.round(hue2rgb(p, q, h - 1/3) * 255)
+
+  return [r, g, b]
 }
 
 // https://stackoverflow.com/a/13542669

@@ -1,7 +1,7 @@
 import { h, app, css } from '../ui/uikit'
 import { minmax } from '../support/utils'
 import { makel } from '../ui/vanilla'
-import { hslToRGB } from '../ui/css'
+import { hsvToRgb } from '../ui/css'
 
 const cc = document.getElementById('canvas-container') as HTMLElement
 const container = makel({
@@ -14,9 +14,9 @@ enum ColorMode { hex, rgb, hsl }
 
 const state = {
   mode: ColorMode.hex,
-  hue: 0,
+  hue: 100,
   saturation: 100,
-  lightness: 50,
+  value: 50,
   alpha: 1,
   r: 0,
   g: 0,
@@ -26,7 +26,7 @@ const state = {
 const actions = {
   up: (m: object) => (s: S) => {
     const next = { ...s, ...m }
-    const [ r, g, b ] = hslToRGB(next.hue, next.saturation, next.lightness)
+    const [ r, g, b ] = hsvToRgb(next.hue, next.saturation, next.value)
     return { ...m, r, g, b }
   },
 }
@@ -122,11 +122,11 @@ const calc = {
     else if (top > containerHeight) top = containerHeight
 
     const saturation = (left * 100) / containerWidth
-    const lightness = -((top * 100) / containerHeight) + 100
+    const bright = -((top * 100) / containerHeight) + 100
 
     return {
       saturation: minmax(0, 100)(saturation),
-      lightness: minmax(0, 100)(lightness),
+      value: minmax(0, 100)(bright),
     }
   }
 }
@@ -152,7 +152,7 @@ const hueSlider = ($: S, a: A) => h('div', {
 const alphaSlider = ($: S, a: A) => h('div', {
   style: {
     ...styles.slider,
-    background: `linear-gradient(to right, rgba(0, 0, 0, 0), hsl(${$.hue}, ${$.saturation}%, ${$.lightness}%))`,
+    background: `linear-gradient(to right, rgba(${$.r}, ${$.g}, ${$.b}, 0), rgb(${$.r}, ${$.g}, ${$.b}))`,
   },
   oncreate: (e: HTMLElement) => {
     stats.alphaSliderWidth = e.clientWidth
@@ -170,7 +170,7 @@ const alphaSlider = ($: S, a: A) => h('div', {
 const view = ($: S, a: A) => h('div', {
   style: {
     borderRadius: '2px',
-    boxShadow: '0 0 2px rgba(0,0,0,.3), 0 4px 8px rgba(0,0,0,.3)',
+    boxShadow: '0 0 2px rgba(0, 0, 0, .3), 0 4px 8px rgba(0, 0, 0, .3)',
     boxSizing: 'initial',
     width: '250px',
     // TODO: DIRTY HACK FOR VEONIM NOT NEEDED IN COMPONENT!!!!
@@ -182,7 +182,6 @@ const view = ($: S, a: A) => h('div', {
     zIndex: 99999999999,
   }
 }, [
-  ,console.log($)
   ,h('div', {
     style: {
       height: '125px',
@@ -195,8 +194,8 @@ const view = ($: S, a: A) => h('div', {
         flex: 1,
       },
       oncreate: (e: HTMLElement) => updateOnMove(e, ev => {
-        const { saturation, lightness } = calc.saturation(ev, e)
-        a.up({ saturation, lightness })
+        const { saturation, value } = calc.saturation(ev, e)
+        a.up({ saturation, value })
       })
     }, [
 
@@ -210,21 +209,21 @@ const view = ($: S, a: A) => h('div', {
       ,h('div', {
         style: {
           ...styles.overlay,
-          background: 'linear-gradient(to right, #fff, rgba(255,255,255,0))',
+          background: 'linear-gradient(to right, #fff, rgba(255, 255, 255, 0))',
         }
       })
 
       ,h('div', {
         style: {
           ...styles.overlay,
-          background: 'linear-gradient(to top, #000, rgba(0,0,0,0))',
+          background: 'linear-gradient(to top, #000, rgba(0, 0, 0, 0))',
         }
       })
 
       ,h('div', {
         style: {
           position: 'absolute',
-          top: `${-($.lightness) + 100}%`,
+          top: `${-($.value) + 100}%`,
           left: `${$.saturation}%`,
         }
       }, [
@@ -262,7 +261,7 @@ const view = ($: S, a: A) => h('div', {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          background: `hsla(${$.hue}, ${$.saturation}%, ${$.lightness}%, ${$.alpha})`,
+          background: `rgba(${$.r}, ${$.g}, ${$.b}, ${$.alpha})`,
         }
       })
 
