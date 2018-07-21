@@ -55,7 +55,7 @@ export default async (configLines: string[]) => {
   const extensionsNotInstalled = extensions.filter(ext => !ext.installed)
   if (!extensionsNotInstalled.length) return removeExtraneous(extensions)
 
-  notify(`Found ${extensionsNotInstalled.length} Veonim extensions. Installing...`, NotifyKind.System)
+  notify(`Found ${extensionsNotInstalled.length} extensions. Installing...`, NotifyKind.System)
 
   const installed = await Promise.all(extensions.map(e => {
     const isVscodeExt = e.kind === ExtensionKind.VSCode
@@ -68,8 +68,8 @@ export default async (configLines: string[]) => {
   const installedOk = installed.filter(m => m).length
   const installedFail = installed.filter(m => !m).length
 
-  if (installedOk) notify(`Installed ${installedOk} Veonim extensions!`, NotifyKind.Success)
-  if (installedFail) notify(`Failed to install ${installedFail} Veonim extensions. See devtools console for more info.`, NotifyKind.Error)
+  if (installedOk) notify(`Installed ${installedOk} extensions!`, NotifyKind.Success)
+  if (installedFail) notify(`Failed to install ${installedFail} extensions. See devtools console for more info.`, NotifyKind.Error)
 
   removeExtraneous(extensions)
   loadExtensions()
