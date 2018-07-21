@@ -5,7 +5,9 @@ import Checkboard from '../ui/checkboard'
 
 enum ColorMode { hex, rgb, hsl }
 
-export default (element: HTMLElement, onChange = (_: any) => {}) => {
+export default () => {
+  let onChangeFn = (_: string) => {}
+
   const state = {
     mode: ColorMode.hex,
     hue: 0,
@@ -20,18 +22,18 @@ export default (element: HTMLElement, onChange = (_: any) => {}) => {
   const reportChange = throttle((m: S) => {
     const useAlpha = m.alpha > 0 && m.alpha < 1
 
-    if (m.mode === ColorMode.hex) return onChange(rgbToHex(m.red, m.green, m.blue))
+    if (m.mode === ColorMode.hex) return onChangeFn(rgbToHex(m.red, m.green, m.blue))
 
     if (m.mode === ColorMode.rgb) return useAlpha
-      ? onChange(`rgba(${m.red}, ${m.green}, ${m.blue}, ${m.alpha})`)
-      : onChange(`rgb(${m.red}, ${m.green}, ${m.blue})`)
+      ? onChangeFn(`rgba(${m.red}, ${m.green}, ${m.blue}, ${m.alpha})`)
+      : onChangeFn(`rgb(${m.red}, ${m.green}, ${m.blue})`)
 
     if (m.mode === ColorMode.hsl) {
       const [ h, s, l ] = rgbToHSL(m.red, m.green, m.blue)
 
       return useAlpha
-        ? onChange(`hsla(${h}, ${s}%, ${l}%, ${m.alpha})`)
-        : onChange(`hsl(${h}, ${s}%, ${l}%)`)
+        ? onChangeFn(`hsla(${h}, ${s}%, ${l}%, ${m.alpha})`)
+        : onChangeFn(`hsl(${h}, ${s}%, ${l}%)`)
     }
   }, 50)
 
@@ -70,7 +72,7 @@ export default (element: HTMLElement, onChange = (_: any) => {}) => {
       position: 'absolute',
       height: '16px',
       width: '16px',
-      background: '#222',
+      background: 'var(--background-b5)',
       borderRadius: '50%',
       boxShadow: '1px 1px 0.3px rgba(0, 0, 0, 0.2)',
     },
@@ -277,6 +279,7 @@ export default (element: HTMLElement, onChange = (_: any) => {}) => {
 
     ,h('div', {
       style: {
+        background: 'var(--background-10)',
         display: 'flex',
         padding: '15px',
       }
@@ -333,6 +336,7 @@ export default (element: HTMLElement, onChange = (_: any) => {}) => {
 
     ,h('div', {
       style: {
+        background: 'var(--background-10)',
         display: 'flex',
         padding: '15px',
         paddingTop: '10px',
@@ -358,7 +362,10 @@ export default (element: HTMLElement, onChange = (_: any) => {}) => {
     ])
   ])
 
+  const element = document.createElement('div')
   const ui = app({ name: 'dank-memes', state, actions, view, element })
+
+  const onChange = (fn: (color: string) => void) => onChangeFn = fn
 
   const setRGB = (red: number, green: number, blue: number, alpha?: number) => {
     const [ hue, saturation, value ] = rgbToHSV(red, green, blue)
@@ -377,5 +384,5 @@ export default (element: HTMLElement, onChange = (_: any) => {}) => {
     ui.up({ mode: ColorMode.hsl, hue: h, saturation: s, value, red, green, blue, alpha })
   }
   
-  return { setRGB, setHex, setHSL }
+  return { setRGB, setHex, setHSL, element, onChange }
 }
