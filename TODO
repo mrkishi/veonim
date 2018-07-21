@@ -29,6 +29,12 @@ normalize-filetypes:
 autocomplete:
 - do not hardcode 'tab' + 's-tab' keys. user config
 - allow opt-in autocomplete trigger. autocmds? -> enable/disable?
+- need to change neovim.ts -> onCreate()
+  cmd(`set completefunc=VeonimComplete`)
+  cmd(`ino <expr> <tab> CompleteScroll(1)`)
+  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+- the problem is that we currently do not render external popupmenu via GUI
+  so if someone does not use completefun=VeonimComplete, they will get ugly
 
 vim-search:
 - dispatch callback events to vim when the vim-search window has closed
@@ -47,6 +53,7 @@ look into supporting more 3.6.0 lang serv features:
 - goto type definition
 - goto implementation
 - etc
+- support extra symbol/completion icons (commented out in components)
 
 use user menu to create a git branch switcher. add it docs
 
@@ -63,6 +70,27 @@ update entire buffer. use atomic to batch so no flickr. only undo if lsp rename 
 - veonim rename does cw on all symbols in viewport. use find references to find
   all positions. modify buffer via api but only visible region. on lsp response
   commit renames to full buffer+other docs. only revert if lsp rename failed
+- tested that we can use buffer.setLines WHILE in insert mode and the performance
+  seems fine. a tad bit laggy, but not a big deal since this feature is only
+  seldom used. does not flicker and the updates from .setLines() seems fast enough.
+  tested with replacing 2 lines.
+
+  test code (call from 'keydown' event with a setTimeout/setImmediate to not
+  hold up rendering):
+
+  --- CODE ---
+  const dankMemes = async () => {
+    const buf = current.buffer
+    const line1 = await buf.getLine(1)
+    const line3 = await buf.getLine(3)
+    const newLine1 = line1.slice(0, 4) + letters[ix] + line1.slice(4)
+    const newLine3 = line3.slice(0, 4) + letters[ix] + line3.slice(4)
+    buf.replace(1, newLine1)
+    buf.replace(3, newLine3)
+    ix = ix + 1 > letters.length - 1 ? 0 : ix + 1
+  }
+  --- CODE ---
+- we should be able to implement this once we have EXTENDED MARKS feature merged
 
 constrain overlay menus to a particular window (current window)
 - (if it makes sense to be local - some might be global - like user menus or project switcher)
