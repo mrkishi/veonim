@@ -1,3 +1,4 @@
+import { switchInputMode, watchInputMode, defaultInputMode, InputMode } from '../core/input'
 import { action, call, cmd, current as vim } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
 import { activeWindow } from '../core/windows'
@@ -45,23 +46,13 @@ const possiblyUpdateColorScheme = debounce(() => {
 const state = {
   x: 0,
   y: 0,
-  color: '',
   visible: false,
   anchorBottom: false,
 }
 
 const actions = {
-  change: (color: string) => {
-    cmd(`exec "normal! ciw${color}"`)
-    possiblyUpdateColorScheme()
-    return { color }
-  },
-  show: (color: string) => ({
-    color,
-    visible: true,
-    ...getPosition(cursor.row, cursor.col),
-  }),
-  hide: () => ({ color: '', visible: false }),
+  show: () => ({ visible: true, ...getPosition(cursor.row, cursor.col) }),
+  hide: () => ({ visible: false }),
 }
 
 const view = ($: typeof state, a: typeof actions) => Overlay({
@@ -81,18 +72,39 @@ const view = ($: typeof state, a: typeof actions) => Overlay({
 
 const ui = app({ name: 'color-picker', state, actions, view })
 
-// TODO: not sure why we need to send this back into hyperapp
-// maybe just do the actions here...
-colorPicker.onChange(val => ui.change(val))
+const show = (color: string) => {
+  switchInputMode(InputMode.Motion)
+  // TODO: conditionally call setRGB or setHSL depending on input
+  // this will depend on functionality to parse/edit rgba+hsla
+  // colors from text.
+  colorPicker.setHex(color)
+  // colorPicker.setRGB(r, g, b, a)
+  // colorPicker.setHSL(h, s, l, a)
+  ui.show()
+
+  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+    if (keys !== '<Esc>') return
+    stopWatchingInput()
+    defaultInputMode()
+    ui.hide()
+  })
+}
+
+colorPicker.onChange(color => {
+  // TODO: will also need to send what kind of color is updated, that way
+  // we know which text edit to apply (rgba or hsla, etc.)
+  cmd(`exec "normal! ciw${color}"`)
+  possiblyUpdateColorScheme()
+})
 
 action('pick-color', async () => {
   liveMode = false
   const word = await call.expand('<cword>')
-  ui.show(word)
+  show(word)
 })
 
 action('modify-colorscheme-live', async () => {
   liveMode = true
   const word = await call.expand('<cword>')
-  ui.show(word)
+  show(word)
 })
