@@ -159,8 +159,10 @@ export default () => {
       ...styles.slider,
       background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
     },
-    oncreate: (e: HTMLElement) => {
+    onupdate: (e: HTMLElement) => {
       stats.hueSliderWidthMultiplier = 360 / e.clientWidth
+    },
+    oncreate: (e: HTMLElement) => {
       updateOnMove(e, ev => a.up({ hue: calc.hue(ev, e) }))
     },
   }, [
@@ -192,8 +194,10 @@ export default () => {
         position: 'absolute',
         background: `linear-gradient(to right, rgba(${$.red}, ${$.green}, ${$.blue}, 0), rgb(${$.red}, ${$.green}, ${$.blue}))`,
       },
-      oncreate: (e: HTMLElement) => {
+      onupdate: (e: HTMLElement) => {
         stats.alphaSliderWidth = e.clientWidth
+      },
+      oncreate: (e: HTMLElement) => {
         updateOnMove(e, ev => a.up({ alpha: calc.alpha(ev, e) }))
       },
     }, [
