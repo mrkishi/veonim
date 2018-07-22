@@ -68,6 +68,10 @@ export const genList = <T>(count: number, fn: (index: number) => T) => {
   return resultList
 }
 
+export const minmax = (min: number, max: number) => (...numbers: number[]) => {
+  return Math.min(max, Math.max(min, ...numbers))
+}
+
 export const pathRelativeToHome = (path: string) => path.includes($HOME)
   ? path.replace($HOME, '~')
   : path
