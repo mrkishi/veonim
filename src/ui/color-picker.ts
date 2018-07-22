@@ -1,5 +1,5 @@
 import { hsvToRGB, rgbToHex, rgbToHSL, rgbToHSV, hexToRGB, hslToRGB } from '../ui/css'
-import { minmax, throttle } from '../support/utils'
+import { minmax, throttle, merge } from '../support/utils'
 import { h, app, css } from '../ui/uikit'
 import Checkboard from '../ui/checkboard'
 
@@ -41,6 +41,7 @@ export default () => {
     up: (m: object) => (s: S) => {
       const next = { ...s, ...m }
       const [ red, green, blue ] = hsvToRGB(next.hue, next.saturation, next.value)
+      merge(next, { red, green, blue })
       reportChange(next)
       return { ...m, red, green, blue }
     },
