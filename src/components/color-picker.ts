@@ -1,10 +1,8 @@
 import { action, call, cmd, current as vim } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
-const { ChromePicker } = require('react-color')
 import { activeWindow } from '../core/windows'
-import { toReactComponent } from '../ui/react'
+import ColorPicker from '../ui/color-picker'
 import Overlay from '../components/overlay'
-import { throttle } from '../support/utils'
 import { debounce } from '../support/utils'
 import onLoseFocus from '../ui/lose-focus'
 import { basename, extname } from 'path'
@@ -18,6 +16,8 @@ const getPosition = (row: number, col: number) => ({
   y: activeWindow() ? activeWindow()!.rowToTransformY(row > 12 ? row : row + 1) : 0,
   anchorBottom: row > 12,
 })
+
+const colorPicker = ColorPicker()
 
 // TODO: this will save/modify the current colorscheme file. any way to
 // short-circuit the save through an alt temp file or other clever method?
@@ -72,23 +72,18 @@ const view = ($: typeof state, a: typeof actions) => Overlay({
   anchorAbove: $.anchorBottom,
 }, [
 
-  ,h('div', {
+  ,h('.show-cursor', {
     onupdate: (e: HTMLElement) => onLoseFocus(e, a.hide),
-  }, [
-
-    ,h('.show-cursor', {
-      ...toReactComponent(ChromePicker, {
-        color: $.color,
-        onChangeComplete: (color: any) => a.change(color.hex),
-        onChange: throttle((color: any) => a.change(color.hex), 150),
-      })
-    })
-
-  ])
+    oncreate: (e: HTMLElement) => e.appendChild(colorPicker.element),
+  })
 
 ])
 
 const ui = app({ name: 'color-picker', state, actions, view })
+
+// TODO: not sure why we need to send this back into hyperapp
+// maybe just do the actions here...
+colorPicker.onChange(val => ui.change(val))
 
 action('pick-color', async () => {
   liveMode = false
