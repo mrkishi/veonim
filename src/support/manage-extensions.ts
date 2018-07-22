@@ -1,9 +1,8 @@
+import { exists, getDirs, is, remove as removePath } from '../support/utils'
 import { load as loadExtensions } from '../core/extensions'
 import { NotifyKind, notify } from '../ui/notifications'
-import { exists, getDirs, is } from '../support/utils'
 import { EXT_PATH } from '../config/default-configs'
 import { url, download } from '../support/download'
-import { remove as removePath } from 'fs-extra'
 import { join } from 'path'
 
 interface Extension {
