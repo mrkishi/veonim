@@ -75,17 +75,7 @@ const view = ($: typeof state, a: typeof actions) => Overlay({
   ,h('.show-cursor', {
     onupdate: (e: HTMLElement) => onLoseFocus(e, a.hide),
     oncreate: (e: HTMLElement) => e.appendChild(colorPicker.element),
-  }, [
-
-    // ,h('.show-cursor', {
-    //   ...toReactComponent(ChromePicker, {
-    //     color: $.color,
-    //     onChangeComplete: (color: any) => a.change(color.hex),
-    //     onChange: throttle((color: any) => a.change(color.hex), 150),
-    //   })
-    // })
-
-  ])
+  })
 
 ])
 

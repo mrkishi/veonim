@@ -186,8 +186,7 @@ export const contrast = (color: string, contrastAgainst: string, amount: number)
   (amount)
   const [ r, g, b ] = hexToRGB(contrastAgainst)
   const [ /*hue*/, /*saturation*/, lightness ] = rgbToHSL(r, g, b)
-  const lum = Math.floor(lightness * 100)
-  const shouldDarken = lum < 50
+  const shouldDarken = lightness < 50
   return shadeColor(color, shouldDarken ? -(amount / 100) : ((amount - 10) / 100))
 }
 
