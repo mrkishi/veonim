@@ -53,7 +53,6 @@
     "all-other-unzip-libs-suck-linux": "0.0.2"
   },
   "dependencies": {
-    "fs-extra": "5.0.0",
     "fuzzaldrin-plus": "0.4.1",
     "hyperapp": "1.2.6",
     "hyperapp-feather": "0.4.0",
@@ -67,7 +66,7 @@
     "vscode-languageserver-types": "3.5.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "5.0.1",
+    "@deomitrus/hyperapp-redux-devtools": "1.2.0",
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/mock-require": "2.0.0",
     "@types/msgpack-lite": "0.1.4",
@@ -76,7 +75,7 @@
     "electron": "2.0.0",
     "electron-builder": "20.13.3",
     "electron-devtools-installer": "2.2.3",
-    "@deomitrus/hyperapp-redux-devtools": "1.2.0",
+    "fs-extra": "5.0.0",
     "jest": "22.4.3",
     "jscodeshift": "0.3.32",
     "mocha": "5.1.1",

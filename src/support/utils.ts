@@ -1,8 +1,9 @@
-import { dirname, basename, join, extname, resolve } from 'path'
+import { dirname, basename, join, extname, resolve, sep } from 'path'
+import { promisify as P } from 'util'
 import { exec } from 'child_process'
 import { Transform } from 'stream'
-import * as fs from 'fs-extra'
 import { homedir } from 'os'
+import * as fs from 'fs'
 const watch = require('node-watch')
 
 interface Task<T> {
@@ -50,6 +51,7 @@ export const uriAsFile = (m = '') => basename(uriToPath(m))
 export const CreateTask = <T>(): Task<T> => ( (done = (_: T) => {}, promise = new Promise<T>(m => done = m)) => ({ done, promise }) )()
 export const uuid = (): string => (<any>[1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,(a: any)=>(a^Math.random()*16>>a/4).toString(16))
 export const shell = (cmd: string, opts?: object): Promise<string> => new Promise(fin => exec(cmd, opts, (_, out) => fin(out + '')))
+
 // TODO: remove listof because it's not as performant
 export const genList = <T>(count: number, fn: (index: number) => T) => {
   const resultList: T[] = []
@@ -113,18 +115,18 @@ export const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
   return hex.length < 2 ? ('0' + hex) : hex
 }).join('')
 
-export const readFile = (path: string, encoding = 'utf8') => fs.readFile(path, encoding)
+export const readFile = (path: string, encoding = 'utf8') => P(fs.readFile)(path, encoding)
 export const exists = (path: string): Promise<boolean> => new Promise(fin => fs.access(path, e => fin(!e)))
 
 const emptyStat = { isDirectory: () => false, isFile: () => false }
 
 export const getDirFiles = async (path: string) => {
-  const paths = await fs.readdir(path).catch((_e: string) => []) as string[]
+  const paths = await P(fs.readdir)(path).catch((_e: string) => []) as string[]
   const filepaths = paths.map(f => ({ name: f, path: join(path, f) }))
   const filesreq = await Promise.all(filepaths.map(async f => ({
     path: f.path,
     name: f.name,
-    stats: await fs.stat(f.path).catch((_e: string) => emptyStat)
+    stats: await P(fs.stat)(f.path).catch((_e: string) => emptyStat)
   })))
   return filesreq
     .map(({ name, path, stats }) => ({ name, path, dir: stats.isDirectory(), file: stats.isFile() }))
@@ -133,6 +135,19 @@ export const getDirFiles = async (path: string) => {
 
 export const getDirs = async (path: string) => (await getDirFiles(path)).filter(m => m.dir)
 export const getFiles = async (path: string) => (await getDirFiles(path)).filter(m => m.file)
+
+export const remove = async (path: string) => {
+  if (!(await exists(path))) throw new Error(`remove: ${path} does not exist`)
+  if ((await P(fs.stat)(path)).isFile()) return P(fs.unlink)(path)
+
+  const dirFiles = await getDirFiles(path)
+  await Promise.all(dirFiles.map(m => m.dir ? remove(m.path) : P(fs.unlink)(m.path)))
+  P(fs.rmdir)(path)
+}
+
+export const ensureDir = (path: string) => path.split(sep).reduce((q, dir, ix, arr) => q.then(() => {
+  return P(fs.mkdir)(join(...arr.slice(0, ix), dir)).catch(() => {})
+}), Promise.resolve())
 
 export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
   let delayExpired = false
