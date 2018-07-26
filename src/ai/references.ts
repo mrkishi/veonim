@@ -1,6 +1,7 @@
 import { references as getReferences, Reference } from '../langserv/adapter'
-import { action, current as vimState, jumpTo } from '../core/neovim'
 import { findNext, findPrevious } from '../support/relative-finder'
+import { action, current as vim, jumpTo } from '../core/neovim'
+import { supports } from '../langserv/server-features'
 import { show } from '../components/references'
 
 const groupResults = (m: Reference[]) => [...m.reduce((map, ref: Reference) => {
@@ -12,7 +13,9 @@ const groupResults = (m: Reference[]) => [...m.reduce((map, ref: Reference) => {
 }, new Map<string, Reference[]>())]
 
 action('references', async () => {
-  const { keyword, references } = await getReferences(vimState)
+  if (!supports.references(vim.cwd, vim.filetype)) return
+
+  const { keyword, references } = await getReferences(vim)
   if (!references.length) return
 
   const referencesForUI = groupResults(references)
@@ -20,19 +23,23 @@ action('references', async () => {
 })
 
 action('next-usage', async () => {
-  const { references } = await getReferences(vimState)
+  if (!supports.references(vim.cwd, vim.filetype)) return
+
+  const { references } = await getReferences(vim)
   if (!references.length) return
 
-  const { line, column, absoluteFilepath } = vimState
+  const { line, column, absoluteFilepath } = vim
   const reference = findNext<Reference>(references, absoluteFilepath, line, column)
   if (reference) jumpTo(reference)
 })
 
 action('prev-usage', async () => {
-  const { references } = await getReferences(vimState)
+  if (!supports.references(vim.cwd, vim.filetype)) return
+
+  const { references } = await getReferences(vim)
   if (!references.length) return
 
-  const { line, column, absoluteFilepath } = vimState
+  const { line, column, absoluteFilepath } = vim
   const reference = findPrevious<Reference>(references, absoluteFilepath, line, column)
   if (reference) jumpTo(reference)
 })

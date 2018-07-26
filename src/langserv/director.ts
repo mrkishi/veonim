@@ -1,9 +1,10 @@
 import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
+import { registerServer } from '../langserv/server-features'
+import toVSCodeLanguage from '../langserv/vsc-languages'
 import defaultCapabs from '../langserv/capabilities'
 import * as dispatch from '../messaging/dispatch'
 import * as extensions from '../core/extensions'
 import { applyEdit } from '../langserv/adapter'
-import pleaseGet from '../support/please-get'
 import { Watchers } from '../support/utils'
 
 interface ServKey {
@@ -22,10 +23,7 @@ interface BufferedCall {
   params: any,
 }
 
-export enum SyncKind { None, Full, Incremental }
-
 const servers = new Map<string, extensions.LanguageServer>()
-const serverCapabilities = new Map<string, any>()
 const serverStartCallbacks = new Set<Function>()
 const startingServers = new Set<string>()
 const bufferedServerCalls = new Map<string, BufferedCall[]>()
@@ -43,31 +41,31 @@ const processBufferedServerCalls = (key: string, server: extensions.LanguageServ
   bufferedServerCalls.delete(key)
 }
 
-const initServer = async (server: extensions.LanguageServer, cwd: string, filetype: string) => {
+const initServer = async (server: extensions.LanguageServer, cwd: string, language: string) => {
   const { error, capabilities } = await server
     .sendRequest('initialize', defaultCapabs(cwd))
     .catch(console.error)
 
-  if (error) throw new Error(`failed to initialize server ${cwd}:${filetype} -> ${JSON.stringify(error)}`)
+  if (error) throw new Error(`failed to initialize server ${cwd}:${language} -> ${JSON.stringify(error)}`)
   server.sendNotification('initialized')
 
-  servers.set(cwd + filetype, server)
-  serverCapabilities.set(cwd + filetype, capabilities)
-  processBufferedServerCalls(cwd + filetype, server)
-  serverStartCallbacks.forEach(fn => fn(server))
+  servers.set(cwd + language, server)
+  registerServer(cwd, language, capabilities)
+  processBufferedServerCalls(cwd + language, server)
+  serverStartCallbacks.forEach(fn => fn(server, language))
 }
 
-const startServer = async (cwd: string, filetype: string) => {
+const startServer = async (cwd: string, language: string, filetype: string) => {
   // yes, we check this status before calling this method, but it's async
   // so by the time we get here it will be wrong. there was an issue with
   // timing that was resolved by adding this check here.
-  if (isServerStarting(cwd, filetype)) return
-  startingServers.add(cwd + filetype)
+  if (isServerStarting(cwd, language)) return
+  startingServers.add(cwd + language)
 
-  const server = await extensions.activate.language(filetype)
-  await initServer(server, cwd, filetype)
+  const server = await extensions.activate.language(language)
+  await initServer(server, cwd, language)
 
-  startingServers.delete(cwd + filetype)
+  startingServers.delete(cwd + language)
   dispatch.pub('ai:start', { cwd, filetype })
 
   return server
@@ -97,14 +95,15 @@ const startServer = async (cwd: string, filetype: string) => {
 //
 // so i have made it conditional. all langserv calls can now opt-in to buffering
 // until the server has started. this has been implemented for buffer sync events
-const isServerStarting = (cwd: string, filetype: string) => startingServers.has(cwd + filetype)
+const isServerStarting = (cwd: string, language: string) => startingServers.has(cwd + language)
 
 const bufferCallUntilServerStart = async (call: BufferedCall) => {
   const { cwd, filetype } = call.params
-  const serverAvailable = await extensions.existsForLanguage(filetype)
+  const language = toVSCodeLanguage(filetype)
+  const serverAvailable = await extensions.existsForLanguage(language)
   if (!serverAvailable) return
 
-  const key = cwd + filetype
+  const key = cwd + language
 
   bufferedServerCalls.has(key)
     ? bufferedServerCalls.get(key)!.push(call)
@@ -112,13 +111,15 @@ const bufferCallUntilServerStart = async (call: BufferedCall) => {
 }
 
 const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
-  if (isServerStarting(cwd, filetype)) return
-  if (servers.has(cwd + filetype)) return servers.get(cwd + filetype)
+  const language = toVSCodeLanguage(filetype)
 
-  const serverAvailable = await extensions.existsForLanguage(filetype)
+  if (isServerStarting(cwd, language)) return
+  if (servers.has(cwd + language)) return servers.get(cwd + language)
+
+  const serverAvailable = await extensions.existsForLanguage(language)
   if (!serverAvailable) return
 
-  return startServer(cwd, filetype)
+  return startServer(cwd, language, filetype)
 }
 
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
@@ -133,35 +134,12 @@ export const notify = async (method: string, params: any, { bufferCallIfServerSt
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Notification, method, params })
 }
 
-export const onServerStart = (fn: (server: extensions.LanguageServer) => void) => {
+export const onServerStart = (fn: (server: extensions.LanguageServer, language: string) => void) => {
   serverStartCallbacks.add(fn)
   return () => serverStartCallbacks.delete(fn)
 }
 
 export const onDiagnostics = (cb: (diagnostics: { uri: string, diagnostics: Diagnostic[] }) => void) => watchers.add('diagnostics', cb)
-
-export const getSyncKind = (cwd: string, filetype: string): SyncKind => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
-  if (!capabilities) return SyncKind.Full
-  return pleaseGet(capabilities).textDocumentSync.change(SyncKind.Full)
-}
-
-const getTriggerChars = (cwd: string, filetype: string, kind: string): string[] => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
-  if (!capabilities) return []
-  return pleaseGet(capabilities)[kind].triggerCharacters()
-}
-
-export const canCall = (cwd: string, filetype: string, capability: string): boolean => {
-  const capabilities = serverCapabilities.get(cwd + filetype)
-  if (!capabilities) return false
-  return pleaseGet(capabilities)[`${capability}Provider`](false)
-}
-
-export const triggers = {
-  completion: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'completionProvider'),
-  signatureHelp: (cwd: string, filetype: string): string[] => getTriggerChars(cwd, filetype, 'signatureHelpProvider'),
-}
 
 // TODO: on vimrc change load any new or updated extensions. provide user with manual extensions reload
 extensions.load()
