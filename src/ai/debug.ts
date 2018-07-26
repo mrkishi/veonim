@@ -2,6 +2,11 @@ import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import * as extensions from '../core/extensions'
 import { objToMap } from '../support/utils'
 
+type ThreadsRes = DP.ThreadsResponse['body']
+type StackRes = DP.ThreadsResponse['body']
+type ScopesRes = DP.ScopesResponse['body']
+type VarRes = DP.VariablesResponse['body']
+
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
 
 // TODO: in the future we will want the ability to have multiple
@@ -27,8 +32,20 @@ export const start = async (type: string) => {
   dbg = await extensions.start.debug(type)
   await new Promise(f => setTimeout(f, 1e3))
 
-  dbg.onNotification('stopped', (m: DP.StoppedEvent['body']) => {
+  dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
     console.log('DEBUGGER STOPPED:', m)
+    const threads: ThreadsRes = await dbg.sendRequest('threads')
+    console.log('threads', threads)
+
+    const stack: StackRes = await dbg.sendRequest('stackTrace', { threadId: 1 }).catch(console.error)
+    console.log('stack', stack)
+
+    const scopes: ScopesRes = await dbg.sendRequest('scopes', { frameId: 1000 }).catch(console.error)
+    console.log('scopes', scopes)
+
+    const variables: VarRes = await dbg.sendRequest('variables', { variablesReference: 1000 }).catch(console.error)
+    console.log('variables', variables)
+
     // request:
     // 'threads'
     // 'stacktrace'
@@ -55,12 +72,12 @@ export const start = async (type: string) => {
     // multiple sources == multiple calls
     const breakpointsRequest: DP.SetBreakpointsRequest['arguments'] = {
       source: {
-        name: 'main.js',
-        path: '/Users/a/proj/nvwin/main.js',
+        name: 'asunc.js',
+        path: '/Users/a/proj/playground/asunc.js',
       },
       breakpoints: [
         // TODO: support the other thingies (see interface for other options)
-        { line: 26 }
+        { line: 10 }
       ]
     }
 
@@ -74,14 +91,9 @@ export const start = async (type: string) => {
 
     setTimeout(async () => {
       console.log('the active thread is:', activeThreadId)
-      const st1 = await dbg.sendRequest('stackTrace', { threadId: 1 })
-      console.log('st1', st1)
 
       const next1 = await dbg.sendRequest('next', {threadId: 1 })
       console.log('next1', next1)
-
-      const st2 = await dbg.sendRequest('stackTrace', { threadId: 1 })
-      console.log('st2', st2)
 
       const cont1 = await dbg.sendRequest('continue', { threadId: 1 })
       console.log('cont1', cont1)
@@ -102,19 +114,30 @@ export const start = async (type: string) => {
   })
 
   const initRequest: DP.InitializeRequest['arguments'] = {
+    clientID: 'veonim',
+    clientName: 'Veonim',
     adapterID: 'node2',
     pathFormat: 'path',
     linesStartAt1: false,
     columnsStartAt1: false,
+    locale: 'en',
   }
 
   const supportedCapabilities = await dbg.sendRequest('initialize', initRequest)
   objToMap(supportedCapabilities, features)
 
   // TODO: SEE DIS WAT DO? "Instead VS Code passes all arguments from the user's launch configuration to the launch or attach requests"
-  await dbg.sendRequest('launch')
+  const launchRequest = {
+    type: 'node2',
+    request: 'launch',
+    name: 'Launch Program',
+    program: '/Users/a/proj/playground/asunc.js',
+    cwd: '/Users/a/proj/playground'
+  }
 
-  const threadsResponse: DP.ThreadsResponse['body'] = await dbg.sendRequest('threads' )
+  await dbg.sendRequest('launch', launchRequest)
+
+  const threadsResponse: DP.ThreadsResponse['body'] = await dbg.sendRequest('threads')
   Object.values(threadsResponse.threads).forEach(({ id, name }) => threads.set(id, name))
-  console.log('threads:', threads)
+  console.log('initial threads:', threads)
 }
