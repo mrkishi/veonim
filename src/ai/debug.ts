@@ -1,17 +1,22 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import * as extensions from '../core/extensions'
 import { objToMap } from '../support/utils'
+import { action } from '../core/neovim'
 
 type ThreadsRes = DP.ThreadsResponse['body']
 type StackRes = DP.ThreadsResponse['body']
 type ScopesRes = DP.ScopesResponse['body']
 type VarRes = DP.VariablesResponse['body']
 
+const getStopInfo = (dbg: extensions.RPCServer, threadId: number) => {
+
+}
+
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
 
 // TODO: in the future we will want the ability to have multiple
 // debuggers running at the same time (vscode does something like this)
-let dbg = {} as extensions.RPCServer
+
 
     // setBreakpoints for every source file with breakpoints,
     // setFunctionBreakpoints if the debug adapter supports function breakpoints,
@@ -29,8 +34,11 @@ export const start = async (type: string) => {
   const threads = new Map<number, string>()
   const features = new Map<string, any>()
 
-  dbg = await extensions.start.debug(type)
+  const dbg = await extensions.start.debug(type)
   await new Promise(f => setTimeout(f, 1e3))
+
+  action('debug-next', () => dbg.sendRequest('next', { threadId: activeThreadId }))
+  action('debug-continue', () => dbg.sendRequest('continue', { threadId: activeThreadId }))
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
     console.log('DEBUGGER STOPPED:', m)
@@ -54,6 +62,8 @@ export const start = async (type: string) => {
   })
 
   // TODO: this notification is optional
+  // if this does not set the active thread, then assign the first thread
+  // from 'threads' request/response?
   dbg.onNotification('thread', (m: DP.ThreadEvent['body']) => {
     console.log('THREAD:', m)
     activeThreadId = m.threadId
@@ -88,23 +98,13 @@ export const start = async (type: string) => {
 
     await dbg.sendRequest('configurationDone')
     console.log('CONFIG DONE')
-
-    setTimeout(async () => {
-      console.log('the active thread is:', activeThreadId)
-
-      const next1 = await dbg.sendRequest('next', {threadId: 1 })
-      console.log('next1', next1)
-
-      const cont1 = await dbg.sendRequest('continue', { threadId: 1 })
-      console.log('cont1', cont1)
-    }, 1e3)
   })
 
   dbg.onNotification('capabilities', ({ capabilities }) => {
     objToMap(capabilities, features)
   })
 
-  dbg.onNotification('loadedSource', m => {
+  dbg.onNotification('loadedSource', (_m) => {
     // TODO: wat i do wit dis?
     // console.log('loadedSource:', m)
   })
@@ -137,7 +137,10 @@ export const start = async (type: string) => {
 
   await dbg.sendRequest('launch', launchRequest)
 
-  const threadsResponse: DP.ThreadsResponse['body'] = await dbg.sendRequest('threads')
+  const threadsResponse: ThreadsRes = await dbg.sendRequest('threads')
   Object.values(threadsResponse.threads).forEach(({ id, name }) => threads.set(id, name))
+  const [ firstThread ] = threadsResponse.threads
+  if (firstThread) activeThreadId = firstThread.id
+
   console.log('initial threads:', threads)
 }

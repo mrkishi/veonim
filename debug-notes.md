@@ -4,6 +4,12 @@
 - when loading extensions, if a value starts and ends with %, this means that
   it's an i18n and we need to parse package.nls.json to get the actual english
   text value
+- investigate vsvode extension dependencies (node-debug depends on node-debug2)
+  - this may be why node-debug2 has nothing to provide configuration to the
+    ext host. (maybe node-debug has it instead?)
+- sometimes on 'stopped' event we request the stackTraces, we get an error that no
+  stack traces are available. why? is this normal? should we expect it and handle
+  gracefully somehow?
 
 ## REFERENCE LINKS
 https://github.com/Microsoft/vscode-node-debug2/blob/master/package.json
@@ -19,6 +25,15 @@ add extension to init.vim
 VeonimExt 'vscode:extension/ms-vscode.node-debug2'
 VeonimExt 'vscode:extension/ms-vscode.node-debug'
 ```
+
+## observations
+- yeap so we can start the node-debug2 when we provide the correct request
+  arguments to 'launch' request (this is the info we would typically get
+  from launch.json). right now the launch config is hardcoded, but we need
+  to figure out how to get the configs from the extension.
+  - node-debug2 does not provide any launch configs, but it is a dependency
+    of node-debug, so i wonder if we are supposed to receive the launch config
+    from node-debug instead
 
 ## activation
 COMMANDS
