@@ -4,12 +4,37 @@ import { objToMap } from '../support/utils'
 import { action } from '../core/neovim'
 
 type ThreadsRes = DP.ThreadsResponse['body']
-type StackRes = DP.ThreadsResponse['body']
+type StackRes = DP.StackTraceResponse['body']
 type ScopesRes = DP.ScopesResponse['body']
 type VarRes = DP.VariablesResponse['body']
 
-const getStopInfo = (dbg: extensions.RPCServer, threadId: number) => {
+// TODO: when the debugger is stopped, we can change the:
+// - threads
+// - stacks
+// - scopes
+//
+// we will need some way to hookup this fn to user selecting different
+// threads/stacks/scopes/etc.
+const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: number, scope?: number) => {
+  // request:
+  // 'threads'
+  // 'stacktrace'
+  // 'scopes'
+  // 'variables' .. variables and more and more
+  const { threads }: ThreadsRes = await dbg.sendRequest('threads')
+  const threadId = thread || threads[0].id
+  console.log('threadId', threadId)
 
+  const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
+  const frameId = stack || stackFrames[0].id
+  console.log('stack', stackFrames)
+
+  const scopes: ScopesRes = await dbg.sendRequest('scopes', { frameId })
+  const variablesReference = scope || 1000
+  console.log('scopes', scopes)
+
+  const vars: VarRes = await dbg.sendRequest('variables', { variablesReference })
+  console.log('variables', vars)
 }
 
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
@@ -42,23 +67,7 @@ export const start = async (type: string) => {
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
     console.log('DEBUGGER STOPPED:', m)
-    const threads: ThreadsRes = await dbg.sendRequest('threads')
-    console.log('threads', threads)
-
-    const stack: StackRes = await dbg.sendRequest('stackTrace', { threadId: 1 }).catch(console.error)
-    console.log('stack', stack)
-
-    const scopes: ScopesRes = await dbg.sendRequest('scopes', { frameId: 1000 }).catch(console.error)
-    console.log('scopes', scopes)
-
-    const variables: VarRes = await dbg.sendRequest('variables', { variablesReference: 1000 }).catch(console.error)
-    console.log('variables', variables)
-
-    // request:
-    // 'threads'
-    // 'stacktrace'
-    // 'scopes'
-    // 'variables' .. variables and more and more
+    getStopInfo(dbg, activeThreadId)
   })
 
   // TODO: this notification is optional
