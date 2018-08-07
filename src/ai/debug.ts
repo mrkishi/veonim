@@ -17,6 +17,7 @@ type VarRes = DP.VariablesResponse['body']
 // we will need some way to hookup this fn to user selecting different
 // threads/stacks/scopes/etc.
 const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: number, scope?: number) => {
+  console.log('get stop info :: THREAD - STACK - SCOPE', thread, stack, scope)
   // request:
   // 'threads'
   // 'stacktrace'
@@ -25,6 +26,14 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
   const { threads }: ThreadsRes = await dbg.sendRequest('threads')
   const threadId = thread || threads[0].id
   debugUI.updateState({ threads, activeThread: threadId })
+
+  // TODO: EVERYTIME WE CALL 'stackTrace' and 'scopes' again we get a list of
+  // stacks/scopes with different IDs. i think we should be more conservative
+  // and only call the stacks/scopes/vars if the parent above changes. e.g.
+  // -- if change 'thread' change all below (stacks, scopes, vars)
+  // -- if change 'stack' change all below (scopes, vars)
+  // -- if change 'scope' change all below (vars)
+  // etc...
 
   const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
   const frameId = stack || stackFrames[0].id
@@ -36,6 +45,8 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
 
   const { variables }: VarRes = await dbg.sendRequest('variables', { variablesReference })
   debugUI.updateState({ variables })
+
+  console.log('------> THREAD - STACK - SCOPE', threadId, frameId, variablesReference)
 }
 
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
@@ -58,9 +69,15 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
 // debugger... who will that be?
 
 let activeDBG: extensions.RPCServer
-export const userSelectStack = (thread: number, stack: number) => getStopInfo(activeDBG, thread, stack)
+export const userSelectStack = (thread: number, stack: number) => {
+  console.log('user select stack', thread, stack)
+  getStopInfo(activeDBG, thread, stack)
+}
 
-export const userSelectScope = (thread: number, stack: number, scope: number) => getStopInfo(activeDBG, thread, stack, scope)
+export const userSelectScope = (thread: number, stack: number, scope: number) => {
+  console.log('user select scope:', thread, stack, scope)
+  getStopInfo(activeDBG, thread, stack, scope)
+}
 
 export const start = async (type: string) => {
   console.log('start debugger:', type)

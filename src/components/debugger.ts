@@ -47,7 +47,7 @@ const ListItem = (name: string, active: boolean, clickFn: Function) => h('div', 
   onclick: clickFn,
 }, name)
 
-const view = ($: S, a: A) => {
+const view = ($: S) => {
   return PluginRight($.visible, {
     // TODO: TESTING ONLY
     zIndex: 99999999,
