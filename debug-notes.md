@@ -25,6 +25,9 @@
 - how do we do debugger hover show value of variable on cursor position
 - figure out LaunchRequest parameters for 'launch' req. this comes from launch.json configs. see musings about getting launch configs from extension config
 
+- can we do 'watch' expressions? how do these work? on every breakpoint stop?
+- create a master list of 'breakpoints'
+
 - remember to remove commented out .show-cursor css class
 
 ## REFERENCE LINKS

@@ -83,6 +83,8 @@ export const PluginRight = (visible: boolean, ...args: any[]) => h('div', {
       height: '100%',
       flexFlow: 'column',
       marginTop: 0,
+      backdropFilter: 'blur(8px)',
+      background: `rgba(var(--background-40-alpha), 0.8)`,
       display: visible ? 'flex' : 'none',
       ...args.find(is.object),
     }
