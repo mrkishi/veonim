@@ -193,6 +193,7 @@ export const start = async (type: string) => {
   }
 
   const supportedCapabilities = await dbg.sendRequest('initialize', initRequest)
+  // TODO: what do with DEEZ capabilities??
   objToMap(supportedCapabilities, features)
 
   // TODO: SEE DIS WAT DO? "Instead VS Code passes all arguments from the user's launch configuration to the launch or attach requests"

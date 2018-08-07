@@ -30,6 +30,14 @@
 
 - remember to remove commented out .show-cursor css class
 
+## wishlist
+- would like to track debug history. at every breakpoint, save breakpoint info
+  threads/stacks/scopes/variables
+- would like some sort of easy/automatic way of simplying knowing a variables
+  value thru the runtime of the program/function. right now i do console.log
+  but it would be neat if we could do this with conditional breakpoints/log BPs
+  and debug history to know value of variables thru some sort of log (inspire redux)
+
 ## REFERENCE LINKS
 https://github.com/Microsoft/vscode-node-debug2/blob/master/package.json
 https://github.com/Microsoft/vscode-chrome-debug/blob/master/package.json
