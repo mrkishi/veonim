@@ -12,13 +12,12 @@ type Variables = DP.Variable[]
 const state = {
   visible: false,
   threads: [] as Threads,
-  stacks: [] as Stacks,
+  stackFrames: [] as Stacks,
   scopes: [] as Scopes,
   variables: [] as Variables,
   activeThread: 0,
   activeStack: 0,
   activeScope: 0,
-  activeVar: 0,
 }
 
 type S = typeof state
@@ -47,49 +46,53 @@ const ListItem = (name: string, active: boolean, clickFn: Function) => h('div', 
   onclick: clickFn,
 }, name)
 
-const view = ($: S) => {
-  return PluginRight($.visible, {
-    // TODO: TESTING ONLY
-    zIndex: 99999999,
-  }, [
+const view = ($: S, a: A) => PluginRight($.visible, {
+  // TODO: TESTING ONLY
+  zIndex: 99999999,
+}, [
 
-    ,h('div', [
-      ,header('Threads')
-      ,h('div', $.threads.map(m => ListItem(
-        m.name,
-        $.activeThread === m.id,
-        () => console.log('pls change thread to:', m.id),
-      )))
-    ])
-
-    ,h('div', [
-      ,header('Stacks')
-      ,h('div', $.stacks.map(m => ListItem(
-        m.name,
-        $.activeStack === m.id,
-        () => userSelectStack($.activeThread, m.id),
-      )))
-    ])
-
-    ,h('div', [
-      ,header('Scopes')
-      ,h('div', $.scopes.map(m => ListItem(
-        m.name,
-        $.activeScope === m.variablesReference,
-        () => userSelectScope($.activeThread, $.activeStack, m.variablesReference),
-      )))
-    ])
-
-    ,h('div', [
-      ,header('Variables')
-      ,h('div', $.variables.map(m => ListItem(
-        `${m.name} -> ${m.value}`,
-        false,
-        () => console.log('pls get var:', m.value),
-      )))
-    ])
-
+  ,h('div', [
+    ,header('Threads')
+    ,h('div', $.threads.map(m => ListItem(
+      m.name,
+      $.activeThread === m.id,
+      () => console.log('pls change thread to:', m.id),
+    )))
   ])
-}
+
+  ,h('div', [
+    ,header('Stacks')
+    ,h('div', $.stackFrames.map(m => ListItem(
+      m.name,
+      $.activeStack === m.id,
+      () => {
+        userSelectStack(m.id)
+        a.updateState({ activeStack: m.id })
+      }
+    )))
+  ])
+
+  ,h('div', [
+    ,header('Scopes')
+    ,h('div', $.scopes.map(m => ListItem(
+      m.name,
+      $.activeScope === m.variablesReference,
+      () => {
+        userSelectScope(m.variablesReference)
+        a.updateState({ activeScope: m.variablesReference })
+      }
+    )))
+  ])
+
+  ,h('div', [
+    ,header('Variables')
+    ,h('div', $.variables.map(m => ListItem(
+      `${m.name} -> ${m.value}`,
+      false,
+      () => console.log('pls get var:', m.value),
+    )))
+  ])
+
+])
 
 export default app<S, A>({ name: 'debugger', state, actions, view })

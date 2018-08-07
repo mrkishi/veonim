@@ -9,6 +9,29 @@ type StackRes = DP.StackTraceResponse['body']
 type ScopesRes = DP.ScopesResponse['body']
 type VarRes = DP.VariablesResponse['body']
 
+const Refresher = (dbg: extensions.RPCServer) => ({
+  threads: async () => {
+    const { threads }: ThreadsRes = await dbg.sendRequest('threads')
+    debugUI.updateState({ threads })
+    return threads
+  },
+  stackFrames: async (threadId: number) => {
+    const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
+    debugUI.updateState({ stackFrames })
+    return stackFrames
+  },
+  scopes: async (frameId: number) => {
+    const { scopes }: ScopesRes = await dbg.sendRequest('scopes', { frameId })
+    debugUI.updateState({ scopes })
+    return scopes
+  },
+  variables: async (variablesReference: number) => {
+    const { variables }: VarRes = await dbg.sendRequest('variables', { variablesReference })
+    debugUI.updateState({ variables })
+    return variables
+  },
+})
+
 // TODO: when the debugger is stopped, we can change the:
 // - threads
 // - stacks
@@ -23,9 +46,6 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
   // 'stacktrace'
   // 'scopes'
   // 'variables' .. variables and more and more
-  const { threads }: ThreadsRes = await dbg.sendRequest('threads')
-  const threadId = thread || threads[0].id
-  debugUI.updateState({ threads, activeThread: threadId })
 
   // TODO: EVERYTIME WE CALL 'stackTrace' and 'scopes' again we get a list of
   // stacks/scopes with different IDs. i think we should be more conservative
@@ -35,16 +55,8 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
   // -- if change 'scope' change all below (vars)
   // etc...
 
-  const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
-  const frameId = stack || stackFrames[0].id
-  debugUI.updateState({ stacks: stackFrames, activeStack: frameId })
 
-  const { scopes }: ScopesRes = await dbg.sendRequest('scopes', { frameId })
-  const variablesReference = scope || 1000
-  debugUI.updateState({ scopes, activeScope: variablesReference })
 
-  const { variables }: VarRes = await dbg.sendRequest('variables', { variablesReference })
-  debugUI.updateState({ variables })
 
   console.log('------> THREAD - STACK - SCOPE', threadId, frameId, variablesReference)
 }
@@ -69,14 +81,15 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
 // debugger... who will that be?
 
 let activeDBG: extensions.RPCServer
-export const userSelectStack = (thread: number, stack: number) => {
-  console.log('user select stack', thread, stack)
-  getStopInfo(activeDBG, thread, stack)
+export const userSelectStack = async (frameId: number) => {
+  const refresh = Refresher(activeDBG)
+  const scopes = await refresh.scopes(frameId)
+  debugUI.updateState({ activeScope: scopes[0].variablesReference })
+  return refresh.variables(scopes[0].variablesReference)
 }
 
-export const userSelectScope = (thread: number, stack: number, scope: number) => {
-  console.log('user select scope:', thread, stack, scope)
-  getStopInfo(activeDBG, thread, stack, scope)
+export const userSelectScope = async (variablesReference: number) => {
+  return Refresher(activeDBG).variables(variablesReference)
 }
 
 export const start = async (type: string) => {
@@ -86,6 +99,7 @@ export const start = async (type: string) => {
   const features = new Map<string, any>()
 
   const dbg = await extensions.start.debug(type)
+  const refresh = Refresher(dbg)
   activeDBG = dbg
   await new Promise(f => setTimeout(f, 1e3))
 
@@ -93,8 +107,28 @@ export const start = async (type: string) => {
   action('debug-continue', () => dbg.sendRequest('continue', { threadId: activeThreadId }))
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
+    // TODO: i think on this notification we SOMETIMES get 'threadId'
+    // how do we use 'activeThreadId'???
+
+    // how does it work in VSCode when the user selects a different thread?
+    // i don't think it makes any difference in the stopped breakpoints???
+    // 
+    // i guess i'm a noob at debuggers - not sure how you can switch between
+    // threads on a breakpoint. isn't a breakpoint per thread??
     console.log('DEBUGGER STOPPED:', m)
-    getStopInfo(dbg, activeThreadId)
+    // TODO: do something with breakpoint 'reason'
+    const targetThread = m.threadId || activeThreadId
+
+    await refresh.threads()
+    const stackFrames = await refresh.stackFrames(targetThread)
+    const scopes = await refresh.scopes(stackFrames[0].id)
+    await refresh.variables(scopes[0].variablesReference)
+
+    debugUI.updateState({
+      activeThread: targetThread,
+      activeStack: stackFrames[0].id,
+      activeScope: scopes[0].variablesReference,
+    })
   })
 
   // TODO: this notification is optional
