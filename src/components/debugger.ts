@@ -1,3 +1,4 @@
+import { userSelectStack, userSelectScope } from '../ai/debug'
 import { PluginRight } from '../components/plugin-container'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { paddingVH } from '../ui/css'
@@ -38,41 +39,54 @@ const header = (title: string) => h('div', {
   },
 }, title)
 
-interface Item {
-  name: string
-  id: number
-}
-
-const ListItemererer = (a: A) => (item: Item, kind: string) => h('div', {
+const ListItem = (name: string, active: boolean, clickFn: Function) => h('div', {
   style: {
     ...paddingVH(8, 4),
+    background: active ? 'rgba(255, 255, 255, 0.05)' : undefined,
   },
-  onclick: () => console.log('PLS MAKE:', kind, item.id)
-}, item.name)
+  onclick: clickFn,
+}, name)
 
 const view = ($: S, a: A) => {
-  const ListItem = ListItemererer(a)
-
-  return PluginRight($.visible, [
+  return PluginRight($.visible, {
+    // TODO: TESTING ONLY
+    zIndex: 99999999,
+  }, [
 
     ,h('div', [
       ,header('Threads')
-      ,h('div', $.threads.map(m => ListItem(m, 'threads')))
+      ,h('div', $.threads.map(m => ListItem(
+        m.name,
+        $.activeThread === m.id,
+        () => console.log('pls change thread to:', m.id),
+      )))
     ])
 
     ,h('div', [
       ,header('Stacks')
-      ,h('div', $.stacks.map(m => ListItem(m, 'stacks')))
+      ,h('div', $.stacks.map(m => ListItem(
+        m.name,
+        $.activeStack === m.id,
+        () => userSelectStack($.activeThread, m.id),
+      )))
     ])
 
     ,h('div', [
       ,header('Scopes')
-      ,h('div', $.scopes.map(m => ListItem(m, 'scopes')))
+      ,h('div', $.scopes.map(m => ListItem(
+        m.name,
+        $.activeScope === m.variablesReference,
+        () => userSelectScope($.activeThread, $.activeStack, m.variablesReference),
+      )))
     ])
 
     ,h('div', [
       ,header('Variables')
-      ,h('div', $.variables.map(m => ListItem(m, 'variables')))
+      ,h('div', $.variables.map(m => ListItem(
+        `${m.name} -> ${m.value}`,
+        false,
+        () => console.log('pls get var:', m.value),
+      )))
     ])
 
   ])

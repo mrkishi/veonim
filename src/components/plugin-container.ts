@@ -72,7 +72,7 @@ export const PluginBottom: PluginFn = (visible: boolean, ...args: any[]) => h('d
 
 ])
 
-export const PluginRight = (visible: boolean, children: any[]) => h('div', {
+export const PluginRight = (visible: boolean, ...args: any[]) => h('div', {
   style: right,
 }, [
 
@@ -84,7 +84,8 @@ export const PluginRight = (visible: boolean, children: any[]) => h('div', {
       flexFlow: 'column',
       marginTop: 0,
       display: visible ? 'flex' : 'none',
+      ...args.find(is.object),
     }
-  }, children)
+  }, args.find(is.array))
 
 ])

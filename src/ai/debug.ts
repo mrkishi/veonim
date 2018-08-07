@@ -53,6 +53,15 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
 // const functionBreakpoints = new Map<string, any>()
 // const exceptionBreakpoints = new Map<string, any>()
 
+// TODO: this is a dirty hack. need to figure out a better way to contextualize
+// the various debuggers in teh UI. someone needs to own the current instance of
+// debugger... who will that be?
+
+let activeDBG: extensions.RPCServer
+export const userSelectStack = (thread: number, stack: number) => getStopInfo(activeDBG, thread, stack)
+
+export const userSelectScope = (thread: number, stack: number, scope: number) => getStopInfo(activeDBG, thread, stack, scope)
+
 export const start = async (type: string) => {
   console.log('start debugger:', type)
 
@@ -60,6 +69,7 @@ export const start = async (type: string) => {
   const features = new Map<string, any>()
 
   const dbg = await extensions.start.debug(type)
+  activeDBG = dbg
   await new Promise(f => setTimeout(f, 1e3))
 
   action('debug-next', () => dbg.sendRequest('next', { threadId: activeThreadId }))
