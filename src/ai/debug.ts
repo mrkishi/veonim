@@ -1,5 +1,6 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import * as extensions from '../core/extensions'
+import debugUI from '../components/debugger'
 import { objToMap } from '../support/utils'
 import { action } from '../core/neovim'
 
@@ -23,18 +24,18 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
   // 'variables' .. variables and more and more
   const { threads }: ThreadsRes = await dbg.sendRequest('threads')
   const threadId = thread || threads[0].id
-  console.log('threadId', threadId)
+  debugUI.updateState({ threads, activeThread: threadId })
 
   const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
   const frameId = stack || stackFrames[0].id
-  console.log('stack', stackFrames)
+  debugUI.updateState({ stacks: stackFrames, activeStack: frameId })
 
-  const scopes: ScopesRes = await dbg.sendRequest('scopes', { frameId })
+  const { scopes }: ScopesRes = await dbg.sendRequest('scopes', { frameId })
   const variablesReference = scope || 1000
-  console.log('scopes', scopes)
+  debugUI.updateState({ scopes, activeScope: variablesReference })
 
-  const vars: VarRes = await dbg.sendRequest('variables', { variablesReference })
-  console.log('variables', vars)
+  const { variables }: VarRes = await dbg.sendRequest('variables', { variablesReference })
+  debugUI.updateState({ variables })
 }
 
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
@@ -56,7 +57,6 @@ export const start = async (type: string) => {
   console.log('start debugger:', type)
 
   let activeThreadId = -1
-  const threads = new Map<number, string>()
   const features = new Map<string, any>()
 
   const dbg = await extensions.start.debug(type)
@@ -115,7 +115,6 @@ export const start = async (type: string) => {
 
   dbg.onNotification('loadedSource', (_m) => {
     // TODO: wat i do wit dis?
-    // console.log('loadedSource:', m)
   })
 
   dbg.onNotification('output', data => {
@@ -146,10 +145,11 @@ export const start = async (type: string) => {
 
   await dbg.sendRequest('launch', launchRequest)
 
+  debugUI.show()
+
   const threadsResponse: ThreadsRes = await dbg.sendRequest('threads')
-  Object.values(threadsResponse.threads).forEach(({ id, name }) => threads.set(id, name))
+  debugUI.updateState({ threads: threadsResponse.threads })
+
   const [ firstThread ] = threadsResponse.threads
   if (firstThread) activeThreadId = firstThread.id
-
-  console.log('initial threads:', threads)
 }
