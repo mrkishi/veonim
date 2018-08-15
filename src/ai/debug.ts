@@ -1,5 +1,6 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import * as extensions from '../core/extensions'
+import debugUI from '../components/debugger'
 import { objToMap } from '../support/utils'
 import { action } from '../core/neovim'
 
@@ -7,6 +8,29 @@ type ThreadsRes = DP.ThreadsResponse['body']
 type StackRes = DP.StackTraceResponse['body']
 type ScopesRes = DP.ScopesResponse['body']
 type VarRes = DP.VariablesResponse['body']
+
+const Refresher = (dbg: extensions.RPCServer) => ({
+  threads: async () => {
+    const { threads }: ThreadsRes = await dbg.sendRequest('threads')
+    debugUI.updateState({ threads })
+    return threads
+  },
+  stackFrames: async (threadId: number) => {
+    const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
+    debugUI.updateState({ stackFrames })
+    return stackFrames
+  },
+  scopes: async (frameId: number) => {
+    const { scopes }: ScopesRes = await dbg.sendRequest('scopes', { frameId })
+    debugUI.updateState({ scopes })
+    return scopes
+  },
+  variables: async (variablesReference: number) => {
+    const { variables }: VarRes = await dbg.sendRequest('variables', { variablesReference })
+    debugUI.updateState({ variables })
+    return variables
+  },
+})
 
 // TODO: when the debugger is stopped, we can change the:
 // - threads
@@ -16,25 +40,25 @@ type VarRes = DP.VariablesResponse['body']
 // we will need some way to hookup this fn to user selecting different
 // threads/stacks/scopes/etc.
 const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: number, scope?: number) => {
+  console.log('get stop info :: THREAD - STACK - SCOPE', thread, stack, scope)
   // request:
   // 'threads'
   // 'stacktrace'
   // 'scopes'
   // 'variables' .. variables and more and more
-  const { threads }: ThreadsRes = await dbg.sendRequest('threads')
-  const threadId = thread || threads[0].id
-  console.log('threadId', threadId)
 
-  const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
-  const frameId = stack || stackFrames[0].id
-  console.log('stack', stackFrames)
+  // TODO: EVERYTIME WE CALL 'stackTrace' and 'scopes' again we get a list of
+  // stacks/scopes with different IDs. i think we should be more conservative
+  // and only call the stacks/scopes/vars if the parent above changes. e.g.
+  // -- if change 'thread' change all below (stacks, scopes, vars)
+  // -- if change 'stack' change all below (scopes, vars)
+  // -- if change 'scope' change all below (vars)
+  // etc...
 
-  const scopes: ScopesRes = await dbg.sendRequest('scopes', { frameId })
-  const variablesReference = scope || 1000
-  console.log('scopes', scopes)
 
-  const vars: VarRes = await dbg.sendRequest('variables', { variablesReference })
-  console.log('variables', vars)
+
+
+  console.log('------> THREAD - STACK - SCOPE', threadId, frameId, variablesReference)
 }
 
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
@@ -52,22 +76,59 @@ const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: n
 // const functionBreakpoints = new Map<string, any>()
 // const exceptionBreakpoints = new Map<string, any>()
 
+// TODO: this is a dirty hack. need to figure out a better way to contextualize
+// the various debuggers in teh UI. someone needs to own the current instance of
+// debugger... who will that be?
+
+let activeDBG: extensions.RPCServer
+export const userSelectStack = async (frameId: number) => {
+  const refresh = Refresher(activeDBG)
+  const scopes = await refresh.scopes(frameId)
+  debugUI.updateState({ activeScope: scopes[0].variablesReference })
+  return refresh.variables(scopes[0].variablesReference)
+}
+
+export const userSelectScope = async (variablesReference: number) => {
+  return Refresher(activeDBG).variables(variablesReference)
+}
+
 export const start = async (type: string) => {
   console.log('start debugger:', type)
 
   let activeThreadId = -1
-  const threads = new Map<number, string>()
   const features = new Map<string, any>()
 
   const dbg = await extensions.start.debug(type)
+  const refresh = Refresher(dbg)
+  activeDBG = dbg
   await new Promise(f => setTimeout(f, 1e3))
 
   action('debug-next', () => dbg.sendRequest('next', { threadId: activeThreadId }))
   action('debug-continue', () => dbg.sendRequest('continue', { threadId: activeThreadId }))
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
+    // TODO: i think on this notification we SOMETIMES get 'threadId'
+    // how do we use 'activeThreadId'???
+
+    // how does it work in VSCode when the user selects a different thread?
+    // i don't think it makes any difference in the stopped breakpoints???
+    // 
+    // i guess i'm a noob at debuggers - not sure how you can switch between
+    // threads on a breakpoint. isn't a breakpoint per thread??
     console.log('DEBUGGER STOPPED:', m)
-    getStopInfo(dbg, activeThreadId)
+    // TODO: do something with breakpoint 'reason'
+    const targetThread = m.threadId || activeThreadId
+
+    await refresh.threads()
+    const stackFrames = await refresh.stackFrames(targetThread)
+    const scopes = await refresh.scopes(stackFrames[0].id)
+    await refresh.variables(scopes[0].variablesReference)
+
+    debugUI.updateState({
+      activeThread: targetThread,
+      activeStack: stackFrames[0].id,
+      activeScope: scopes[0].variablesReference,
+    })
   })
 
   // TODO: this notification is optional
@@ -115,7 +176,6 @@ export const start = async (type: string) => {
 
   dbg.onNotification('loadedSource', (_m) => {
     // TODO: wat i do wit dis?
-    // console.log('loadedSource:', m)
   })
 
   dbg.onNotification('output', data => {
@@ -133,6 +193,7 @@ export const start = async (type: string) => {
   }
 
   const supportedCapabilities = await dbg.sendRequest('initialize', initRequest)
+  // TODO: what do with DEEZ capabilities??
   objToMap(supportedCapabilities, features)
 
   // TODO: SEE DIS WAT DO? "Instead VS Code passes all arguments from the user's launch configuration to the launch or attach requests"
@@ -146,10 +207,11 @@ export const start = async (type: string) => {
 
   await dbg.sendRequest('launch', launchRequest)
 
+  debugUI.show()
+
   const threadsResponse: ThreadsRes = await dbg.sendRequest('threads')
-  Object.values(threadsResponse.threads).forEach(({ id, name }) => threads.set(id, name))
+  debugUI.updateState({ threads: threadsResponse.threads })
+
   const [ firstThread ] = threadsResponse.threads
   if (firstThread) activeThreadId = firstThread.id
-
-  console.log('initial threads:', threads)
 }

@@ -11,6 +11,33 @@
   stack traces are available. why? is this normal? should we expect it and handle
   gracefully somehow?
 
+- create UI for debug controls (like teh debug bar with buttons in vsc)
+- show breakpoints in buffer
+- show current STOPPED breakpoint in buffer
+- jump to relevant file and position when breakpoint hit
+- jump to relevant file and position when stack frame changes
+
+- figure out who owns the multiple debugger instances
+  - get rid of global activeDBG variable
+  - maybe UI should not own any of the state (stacks, scopes, threads, activeStack, activeScope, etc.) because when we change current debugger we need to refresh UI.
+
+- how do we implement the debug console?
+- how do we do debugger hover show value of variable on cursor position
+- figure out LaunchRequest parameters for 'launch' req. this comes from launch.json configs. see musings about getting launch configs from extension config
+
+- can we do 'watch' expressions? how do these work? on every breakpoint stop?
+- create a master list of 'breakpoints'
+
+- remember to remove commented out .show-cursor css class
+
+## wishlist
+- would like to track debug history. at every breakpoint, save breakpoint info
+  threads/stacks/scopes/variables
+- would like some sort of easy/automatic way of simplying knowing a variables
+  value thru the runtime of the program/function. right now i do console.log
+  but it would be neat if we could do this with conditional breakpoints/log BPs
+  and debug history to know value of variables thru some sort of log (inspire redux)
+
 ## REFERENCE LINKS
 https://github.com/Microsoft/vscode-node-debug2/blob/master/package.json
 https://github.com/Microsoft/vscode-chrome-debug/blob/master/package.json
