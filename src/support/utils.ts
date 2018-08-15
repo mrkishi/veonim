@@ -4,7 +4,7 @@ import { exec } from 'child_process'
 import { Transform } from 'stream'
 import { homedir } from 'os'
 import * as fs from 'fs'
-const watch = require('node-watch')
+export { watchFile } from '../support/fs-watch'
 
 interface Task<T> {
   done: (value: T) => void,
@@ -90,13 +90,6 @@ export const pathReducer = (p = '') => ((p, levels = 0) => ({ reduce: () =>
   levels ? basename(join(p, '../'.repeat(levels++))) : (levels++, basename(p))
 }))(p)
 
-export const watchPath = (path: string, callback: () => void) => watch(path, callback)
-
-export const watchPathSymlink = (path: string, callback: () => void) => {
-  const throttledCallback = throttle(callback, 15)
-  return fs.watch(path, () => throttledCallback())
-}
-
 export const matchOn = (val: any) => (opts: object): any => (Reflect.get(opts, val) || (() => {}))()
 
 export const isOnline = (host = 'google.com') => new Promise(fin => {
@@ -118,7 +111,13 @@ export const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
 export const readFile = (path: string, encoding = 'utf8') => P(fs.readFile)(path, encoding)
 export const exists = (path: string): Promise<boolean> => new Promise(fin => fs.access(path, e => fin(!e)))
 
-const emptyStat = { isDirectory: () => false, isFile: () => false }
+const emptyStat = {
+  isDirectory: () => false,
+  isFile: () => false,
+  isSymbolicLink: () => false,
+}
+
+const getFSStat = async (path: string) => P(fs.stat)(path).catch((_) => emptyStat)
 
 export const getDirFiles = async (path: string) => {
   const paths = await P(fs.readdir)(path).catch((_e: string) => []) as string[]
@@ -126,7 +125,7 @@ export const getDirFiles = async (path: string) => {
   const filesreq = await Promise.all(filepaths.map(async f => ({
     path: f.path,
     name: f.name,
-    stats: await P(fs.stat)(f.path).catch((_e: string) => emptyStat)
+    stats: await getFSStat(f.path),
   })))
   return filesreq
     .map(({ name, path, stats }) => ({ name, path, dir: stats.isDirectory(), file: stats.isFile() }))
