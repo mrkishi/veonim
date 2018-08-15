@@ -59,7 +59,6 @@
     "hyperapp-seti": "0.2.0",
     "mock-require": "3.0.2",
     "msgpack-lite": "0.1.26",
-    "request": "2.85.0",
     "vscode-jsonrpc": "3.5.0",
     "vscode-languageserver-protocol": "3.9.0",
     "vscode-languageserver-types": "3.5.0"
