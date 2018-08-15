@@ -1,3 +1,4 @@
+import { throttle } from '../support/utils'
 import { promisify as P } from 'util'
 import { EventEmitter } from 'events'
 import { join } from 'path'
@@ -22,14 +23,8 @@ const watchDir = (path: string) => fs.watch(path, ((_, file) => {
 }))
 
 export const watchFile = async (path: string, callback: () => void) => {
-  console.log('watching file:', path)
   const realpath = await getRealPath(path)
-  console.log('realpath', realpath)
   const parentPath = join(realpath, '../')
-  watchers.on(realpath, callback)
+  watchers.on(realpath, throttle(callback, 15))
   if (!watchedParentPaths.has(parentPath)) watchDir(parentPath)
 }
-
-watchFile('/Users/a/.config/nvim/init.vim', () => {
-  console.log('CONFIG FILE CHANGED LOL!')
-})
