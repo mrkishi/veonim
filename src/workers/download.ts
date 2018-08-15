@@ -3,9 +3,6 @@ import { ensureDir, remove } from '../support/utils'
 import { Archiver } from '../support/binaries'
 import { fetchStream } from '../support/fetch'
 import { createWriteStream } from 'fs'
-// not using node built-in http lib because we need error handling and
-// redirects (in the case of github). tried using built-in fetch api, but
-// the stream interface does not seem to be compatible with node's stream api
 
 const { on } = WorkerClient()
 
