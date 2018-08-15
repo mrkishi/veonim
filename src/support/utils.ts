@@ -5,7 +5,6 @@ import { Transform } from 'stream'
 import { homedir } from 'os'
 import * as fs from 'fs'
 export { watchFile } from '../support/fs-watch'
-const watch = require('node-watch')
 
 interface Task<T> {
   done: (value: T) => void,
@@ -90,13 +89,6 @@ export const simplifyPath = (fullpath: string, cwd: string) => fullpath.includes
 export const pathReducer = (p = '') => ((p, levels = 0) => ({ reduce: () =>
   levels ? basename(join(p, '../'.repeat(levels++))) : (levels++, basename(p))
 }))(p)
-
-export const watchPath = (path: string, callback: () => void) => watch(path, callback)
-
-export const watchPathSymlink = (path: string, callback: () => void) => {
-  const throttledCallback = throttle(callback, 15)
-  return fs.watch(path, () => throttledCallback())
-}
 
 export const matchOn = (val: any) => (opts: object): any => (Reflect.get(opts, val) || (() => {}))()
 
