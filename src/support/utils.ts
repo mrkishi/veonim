@@ -4,6 +4,7 @@ import { exec } from 'child_process'
 import { Transform } from 'stream'
 import { homedir } from 'os'
 import * as fs from 'fs'
+export { watchFile } from '../support/fs-watch'
 const watch = require('node-watch')
 
 interface Task<T> {
@@ -118,7 +119,13 @@ export const asColor = (color: number) => '#' + [16, 8, 0].map(shift => {
 export const readFile = (path: string, encoding = 'utf8') => P(fs.readFile)(path, encoding)
 export const exists = (path: string): Promise<boolean> => new Promise(fin => fs.access(path, e => fin(!e)))
 
-const emptyStat = { isDirectory: () => false, isFile: () => false }
+const emptyStat = {
+  isDirectory: () => false,
+  isFile: () => false,
+  isSymbolicLink: () => false,
+}
+
+const getFSStat = async (path: string) => P(fs.stat)(path).catch((_) => emptyStat)
 
 export const getDirFiles = async (path: string) => {
   const paths = await P(fs.readdir)(path).catch((_e: string) => []) as string[]
@@ -126,7 +133,7 @@ export const getDirFiles = async (path: string) => {
   const filesreq = await Promise.all(filepaths.map(async f => ({
     path: f.path,
     name: f.name,
-    stats: await P(fs.stat)(f.path).catch((_e: string) => emptyStat)
+    stats: await getFSStat(f.path),
   })))
   return filesreq
     .map(({ name, path, stats }) => ({ name, path, dir: stats.isDirectory(), file: stats.isFile() }))
