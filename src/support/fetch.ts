@@ -4,7 +4,9 @@ interface FetchOptions extends RequestOptions {
   data?: any
 }
 
-export const fetchStream = (url: string, options = { method: 'GET' } as FetchOptions) => new Promise((done, fail) => {
+type FetchStreamFn = (url: string, options?: FetchOptions) => Promise<IncomingMessage>
+
+export const fetchStream: FetchStreamFn = (url, options = { method: 'GET' }) => new Promise((done, fail) => {
   const { data, ...requestOptions } = options
   const opts = { ...require('url').parse(url), ...requestOptions }
 
