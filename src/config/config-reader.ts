@@ -1,4 +1,4 @@
-import { log, exists, readFile, configPath as base, watchPathSymlink } from '../support/utils'
+import { log, exists, readFile, configPath as base, watchFile } from '../support/utils'
 
 type Config = Map<string, any>
 type ConfigCallback = (config: Config) => void
@@ -28,12 +28,12 @@ export default async (location: string, cb: ConfigCallback) => {
   if (!pathExists) return log `config file at ${path} not found`
 
   loadConfig(path, cb).catch(e => log(e))
-  watchPathSymlink(path, () => loadConfig(path, cb).catch(e => log(e)))
+  watchFile(path, () => loadConfig(path, cb).catch(e => log(e)))
 }
 
 export const watchConfig = async (location: string, cb: Function) => {
   const path = `${base}/${location}`
   const pathExists = await exists(path)
   if (!pathExists) return log `config file at ${path} not found`
-  watchPathSymlink(path, () => cb())
+  watchFile(path, () => cb())
 }
