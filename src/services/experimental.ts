@@ -1,5 +1,6 @@
 import { action, cmd } from '../core/neovim'
 import { delay } from '../support/utils'
+import finder from '@medv/finder'
 
 if (process.env.VEONIM_DEV) {
 
@@ -30,35 +31,60 @@ const monitorEvents = [
 ]
 
 let recordedEvents = [] as any[]
-let captureEvents = true
+let captureEvents = false
 let startTime = Date.now()
-console.log('starting to capture for 10s')
+
+action('replay-record', () => {
+  console.warn('REPLAY --> starting capture')
+  recordedEvents = []
+  startTime = Date.now()
+  captureEvents = true
+})
+
+action('replay-stop', () => {
+  console.warn('REPLAY --> capture finished')
+  captureEvents = false
+  console.log(recordedEvents)
+})
 
 monitorEvents.forEach(ev => window.addEventListener(ev, e => {
   if (!captureEvents) return
   console.log(ev, e)
-  recordedEvents.push([ Date.now() - startTime, e ])
+  recordedEvents.push({
+    when: Date.now(),
+    selector: finder(e.target),
+    event: e,
+    serializedEvent: simpleKeys(e),
+  })
 }))
 
-setTimeout(() => {
-  console.log('INSTANT REPLAY')
-  captureEvents = false
-  console.log(recordedEvents)
-  recordedEvents.forEach(([ time, ev ]) => {
-    setTimeout(() => {
-      ev.target.dispatchEvent(ev)
-    }, time)
-  })
-  recordedEvents = []
-  captureEvents = true
-}, 10e3)
+// ref: https://stackoverflow.com/questions/11547672/how-to-stringify-event-object
 
-// action('replay', () => {
+const eventToJSON = (evt: any) => JSON.stringify(evt, function(_, v) {
+  if (v instanceof Node) return 'Node'
+  if (v instanceof Window) return 'Window'
+  return v
+}, ' ')
+
+function simpleKeys (original) {
+  return Object.keys(original).reduce(function (obj, key) {
+    obj[key] = typeof original[key] === 'object' ? '{ ... }' : original[key];
+    return obj;
+  }, {});
+}
+
+// setTimeout(() => {
+//   console.log('INSTANT REPLAY')
 //   captureEvents = false
-//   recordedEvents.forEach(e => window.dispatchEvent(e))
+//   console.log(recordedEvents)
+//   recordedEvents.forEach(([ time, ev ]) => {
+//     setTimeout(() => {
+//       ev.target.dispatchEvent(ev)
+//     }, time)
+//   })
 //   recordedEvents = []
 //   captureEvents = true
-// })
+// }, 10e3)
 
 // discover all events
 // Object.keys(window).forEach(key => {

@@ -65,6 +65,7 @@
   },
   "devDependencies": {
     "@deomitrus/hyperapp-redux-devtools": "1.2.0",
+    "@medv/finder": "1.1.0",
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/mock-require": "2.0.0",
     "@types/msgpack-lite": "0.1.4",
