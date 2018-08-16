@@ -4,7 +4,7 @@ const Module = require('module')
 const originalLoader = Module._load
 const fakeModules = new Map()
 
-Module._load = (request, ...args) => fakeModules.has(request)
+Module._load = (request: string, ...args: any[]) => fakeModules.has(request)
   ? fakeModules.get(request)
   : originalLoader(request, ...args)
 
