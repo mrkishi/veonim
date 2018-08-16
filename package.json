@@ -69,7 +69,6 @@
     "@types/mock-require": "2.0.0",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "9.4.0",
-    "@types/request": "2.47.0",
     "electron": "2.0.0",
     "electron-builder": "20.13.3",
     "electron-devtools-installer": "2.2.3",
