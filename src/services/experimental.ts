@@ -1,6 +1,8 @@
 import { action, cmd } from '../core/neovim'
 import { delay } from '../support/utils'
 
+if (process.env.VEONIM_DEV) {
+
 action('derp', async () => {
   cmd('cd $pr/plugin-manager')
   cmd('e src/main.ts')
@@ -62,3 +64,4 @@ setTimeout(() => {
 // Object.keys(window).forEach(key => {
 //   if (/on/.test(key)) console.log(key.slice(2))
 // })
+}
