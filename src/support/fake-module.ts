@@ -1,5 +1,12 @@
 import { hasUpperCase, is, objDeepGet } from '../support/utils'
-import * as mock from 'mock-require'
+
+const Module = require('module')
+const originalLoader = Module._load
+const fakeModules = new Map()
+
+Module._load = (request: string, ...args: any[]) => fakeModules.has(request)
+  ? fakeModules.get(request)
+  : originalLoader(request, ...args)
 
 export default (moduleName: string, fakeImplementation: any, onMissing?: (name: string, path: string) => void) => {
   const getFake = objDeepGet(fakeImplementation)
@@ -15,6 +22,6 @@ export default (moduleName: string, fakeImplementation: any, onMissing?: (name: 
     if (hasUpperCase(key[0])) return class Anon {}
     return fake(objPath)
   } })
-
-  mock(moduleName, fake())
+  
+  fakeModules.set(moduleName, fake())
 }
