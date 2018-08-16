@@ -1,3 +1,5 @@
+import userSelectOption from '../components/generic-menu'
+import userPrompt from '../components/generic-prompt'
 import { action, cmd } from '../core/neovim'
 import { delay } from '../support/utils'
 import finder from '@medv/finder'
@@ -18,50 +20,62 @@ action('derp:explorer', async () => {
   cmd('b Explorer')
 })
 
-const monitorEvents = [
-  'keydown',
-  'keyup',
-  'keypress',
-  'input',
-  'beforeinput',
-  'change',
-  'focus',
-  'blur',
-]
+const monitorEvents = ['keydown', 'keyup', 'keypress', 'input', 'beforeinput', 'change', 'focus', 'blur']
 
+const recordings = new Map<string, any[]>()
 let recordedEvents = [] as any[]
 let captureEvents = false
-let startTime = Date.now()
+let lastRecordedAt = Date.now()
 
 action('replay-record', () => {
   console.warn('REPLAY --> starting capture')
   recordedEvents = []
-  startTime = Date.now()
+  lastRecordedAt = Date.now()
   captureEvents = true
 })
 
-action('replay-stop', () => {
+action('replay-stop', async () => {
   console.warn('REPLAY --> capture finished')
   captureEvents = false
-  console.log(recordedEvents)
+  const recordingName = await userPrompt('recording name')
+  recordings.set(recordingName, recordedEvents)
+  console.log('recordings', recordings)
+})
+
+const recordingOptions = () => [...recordings.keys()].map(k => ({ key: k, value: k }))
+
+action('replay', async () => {
+  const recordingName = await userSelectOption({
+    description: 'select recording',
+    options: recordingOptions(),
+  })
+
+  const recording = recordings.get(recordingName)
+  console.log('recording', recording)
 })
 
 monitorEvents.forEach(ev => window.addEventListener(ev, e => {
   if (!captureEvents) return
-  console.log(ev, e)
+
   recordedEvents.push({
-    when: Date.now(),
-    selector: finder(e.target),
     event: e,
+    kind: e.type,
+    when: Date.now(),
+    offset: Date.now() - lastRecordedAt,
+    selector: finder(e.target),
     serializedEvent: eventToJSON(e),
   })
+
+  lastRecordedAt = Date.now()
 }))
   
-const props = ['altKey', 'bubbles', 'cancelBubble', 'cancelable', 'charCode', 'code', 'composed', 'ctrlKey', 'currentTarget', 'data', 'dataTransfer', 'defaultPrevented', 'detail', 'eventPhase', 'inputType', 'isComposing', 'isTrusted', 'key', 'keyCode', 'location', 'metaKey', 'repeat', 'returnValue', 'shiftKey', 'sourceCapabilities', 'timeStamp', 'type', 'which']
-const eventToJSON = (eo: any) => JSON.stringify(props.reduce((res, prop) => Object.assign(res, { [prop]: eo[prop] }), {}))
+const props = [
+  'altKey', 'bubbles', 'cancelBubble', 'cancelable', 'charCode', 'code',
+  'composed', 'ctrlKey', 'data', 'dataTransfer', 'defaultPrevented', 'detail',
+  'eventPhase', 'inputType', 'isComposing', 'isTrusted', 'key', 'keyCode',
+  'location', 'metaKey', 'repeat', 'returnValue', 'shiftKey',
+  'sourceCapabilities', 'timeStamp', 'type', 'which',
+]
 
-// discover all events
-// Object.keys(window).forEach(key => {
-//   if (/on/.test(key)) console.log(key.slice(2))
-// })
+const eventToJSON = (eo: any) => JSON.stringify(props.reduce((res, prop) => Object.assign(res, { [prop]: eo[prop] }), {}))
 }
