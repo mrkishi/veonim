@@ -27,7 +27,6 @@ const monitorEvents = [
   'change',
   'focus',
   'blur',
-  'resize',
 ]
 
 let recordedEvents = [] as any[]
@@ -54,37 +53,12 @@ monitorEvents.forEach(ev => window.addEventListener(ev, e => {
     when: Date.now(),
     selector: finder(e.target),
     event: e,
-    serializedEvent: simpleKeys(e),
+    serializedEvent: eventToJSON(e),
   })
 }))
-
-// ref: https://stackoverflow.com/questions/11547672/how-to-stringify-event-object
-
-const eventToJSON = (evt: any) => JSON.stringify(evt, function(_, v) {
-  if (v instanceof Node) return 'Node'
-  if (v instanceof Window) return 'Window'
-  return v
-}, ' ')
-
-function simpleKeys (original) {
-  return Object.keys(original).reduce(function (obj, key) {
-    obj[key] = typeof original[key] === 'object' ? '{ ... }' : original[key];
-    return obj;
-  }, {});
-}
-
-// setTimeout(() => {
-//   console.log('INSTANT REPLAY')
-//   captureEvents = false
-//   console.log(recordedEvents)
-//   recordedEvents.forEach(([ time, ev ]) => {
-//     setTimeout(() => {
-//       ev.target.dispatchEvent(ev)
-//     }, time)
-//   })
-//   recordedEvents = []
-//   captureEvents = true
-// }, 10e3)
+  
+const props = ['altKey', 'bubbles', 'cancelBubble', 'cancelable', 'charCode', 'code', 'composed', 'ctrlKey', 'currentTarget', 'data', 'dataTransfer', 'defaultPrevented', 'detail', 'eventPhase', 'inputType', 'isComposing', 'isTrusted', 'key', 'keyCode', 'location', 'metaKey', 'repeat', 'returnValue', 'shiftKey', 'sourceCapabilities', 'timeStamp', 'type', 'which']
+const eventToJSON = (eo: any) => JSON.stringify(props.reduce((res, prop) => Object.assign(res, { [prop]: eo[prop] }), {}))
 
 // discover all events
 // Object.keys(window).forEach(key => {
