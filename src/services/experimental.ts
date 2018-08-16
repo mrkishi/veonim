@@ -27,15 +27,15 @@ let recordedEvents = [] as any[]
 let captureEvents = false
 let lastRecordedAt = Date.now()
 
-action('replay-record', () => {
-  console.warn('REPLAY --> starting capture')
+action('record-start', () => {
+  console.warn('RECORD - START')
   recordedEvents = []
   lastRecordedAt = Date.now()
   captureEvents = true
 })
 
-action('replay-stop', async () => {
-  console.warn('REPLAY --> capture finished')
+action('record-stop', async () => {
+  console.warn('RECORD - STOP')
   captureEvents = false
   const recordingName = await userPrompt('recording name')
   recordings.set(recordingName, recordedEvents)
@@ -44,8 +44,18 @@ action('replay-stop', async () => {
 
 const recordingOptions = () => [...recordings.keys()].map(k => ({ key: k, value: k }))
 
-action('replay', async () => {
-  const recordingName = await userSelectOption({
+action('record-replay', async () => {
+  const recordingName = await userSelectOption<string>({
+    description: 'select recording',
+    options: recordingOptions(),
+  })
+
+  const recording = recordings.get(recordingName)
+  console.log('recording', recording)
+})
+
+action('record-set-startup', async () => {
+  const recordingName = await userSelectOption<string>({
     description: 'select recording',
     options: recordingOptions(),
   })
