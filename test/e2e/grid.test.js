@@ -39,7 +39,7 @@ describe('grid', function () {
     await app.client.waitUntilWindowLoaded()
   })
 
-  test('do stuff', async () => {
+  it('do stuff', async () => {
     await input(':cd ~/Documents/projects/plugin-manager')
     await enter()
     await input(':Veonim TermOpen')

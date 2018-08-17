@@ -1,4 +1,4 @@
-import { dirname, basename, join, extname, resolve, sep } from 'path'
+import { dirname, basename, join, extname, resolve, sep, parse } from 'path'
 import { promisify as P } from 'util'
 import { exec } from 'child_process'
 import { Transform } from 'stream'
@@ -144,8 +144,30 @@ export const remove = async (path: string) => {
   P(fs.rmdir)(path)
 }
 
+export const pathParts = (path: string) => {
+  const properPath = resolve(path)
+  const parts = properPath.split(sep)
+  const { root } = parse(properPath)
+  return [ root, ...parts ].filter(m => m)
+}
+
+const testpath = '/Users/a/proj/veonim/xdg_config/veonim/extensions'
+const testpath2 = './Users/a/proj/veonim/xdg_config/veonim/extensions/'
+const testpath3 = 'Users/a/proj/veonim/xdg_config/veonim/extensions/../'
+
+const parts1 = testpath.split(sep)
+const parts2 = pathReducer(testpath).reduce()
+const parts3 = pathParts(testpath)
+const parts4 = pathParts(testpath2)
+const parts5 = pathParts(testpath3)
+console.log('parts1', parts1)
+console.log('parts2', parts2)
+console.log('parts3', parts3)
+console.log('parts4', parts4)
+console.log('parts5', parts5)
+
 export const ensureDir = (path: string) => path.split(sep).reduce((q, dir, ix, arr) => q.then(() => {
-  return P(fs.mkdir)(join(...arr.slice(0, ix), dir)).catch(() => {})
+  return P(fs.mkdir)(join(...arr.slice(0, ix), dir)).catch((e) => { console.error(e) })
 }), Promise.resolve())
 
 export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
