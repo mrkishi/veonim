@@ -47,6 +47,8 @@ action('record-stop', async () => {
   // TODO: show in ui instead of log
   console.warn('RECORD - STOP')
 
+  // TODO: need to remove the 'record-stop' key events present in the recorded events
+
   captureEvents = false
   const recordingName = await userPrompt('recording name')
 
@@ -59,6 +61,8 @@ action('record-stop', async () => {
   const uniqRecordings = new Set(recordings)
   uniqRecordings.add(recordingName)
   storage.setItem(KEY.ALL, [...uniqRecordings])
+
+  notify(`saved "${recordingName}" to local storage`, NotifyKind.Success)
 })
 
 action('record-replay', async () => {
@@ -67,8 +71,11 @@ action('record-replay', async () => {
     options: getAllRecordings(),
   })
 
-  const { name, events } = storage.getItem<Record>(recordingName)
-  notify(`replaying "${name}" recording`, NotifyKind.System)
+  const key = recordingName.replace(KEY.ONE, '')
+  const { events } = storage.getItem<Record>(recordingName)
+  if (!events || !events.length) return notify(`recording "${key}" does not exist`, NotifyKind.Error)
+
+  notify(`replaying "${key}" recording`, NotifyKind.System)
   recordPlayer(events)
 })
 
@@ -80,11 +87,14 @@ action('record-remove', async () => {
 
   if (!recording) return
 
+  const key = recording.replace(KEY.ONE, '')
   const recordings = storage.getItem<string[]>(KEY.ALL, [])
-  const next = recordings.filter(m => m !== recording)
+  const next = recordings.filter(m => m !== key)
+
   storage.setItem(KEY.ALL, next)
   storage.removeItem(recording)
-  notify(`removed "${recording}" recording`, NotifyKind.Success)
+
+  notify(`removed "${key}" recording`, NotifyKind.Success)
 })
 
 action('record-remove-all', async () => {
@@ -106,8 +116,9 @@ action('record-set-startup', async () => {
     options: getAllRecordings(),
   })
 
-  const { name, events } = storage.getItem<Record>(recordingName)
-  notify(`set "${name}" as startup replay`, NotifyKind.System)
+  const key = recordingName.replace(KEY.ONE, '')
+  const { events } = storage.getItem<Record>(recordingName)
+  notify(`set "${key}" as startup replay`, NotifyKind.System)
 
   // TODO: set as startup
   console.log('events', events)
