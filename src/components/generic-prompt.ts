@@ -16,7 +16,7 @@ type S = typeof state
 const resetState = { value: '', visible: false, desc: '' } 
 
 const actions = {
-  show: (desc: string, task: Task<string>) => ({
+  show: ({ desc, task }: any) => ({
     desc,
     task,
     value: '',
@@ -50,6 +50,6 @@ const ui = app<S, A>({ name: 'generic-prompt', state, actions, view })
 
 export default (question: string) => {
   const task = CreateTask<string>()
-  ui.show(question, task)
+  ui.show({ task, desc: question })
   return task.promise
 }
