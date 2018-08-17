@@ -16,6 +16,16 @@ interface RecordingEvent {
   event: Event
 }
 
+interface Record {
+  name: string
+  events: RecordingEvent[]
+}
+
+const KEY = {
+  ALL: 'veonim-dev-recordings',
+  ONE: 'veonim-dev-recording-',
+}
+
 const monitorEvents = ['keydown', 'keyup', 'keypress', 'input', 'beforeinput', 'change', 'focus', 'blur']
 
 let recordedEvents = [] as RecordingEvent[]
@@ -24,7 +34,9 @@ let lastRecordedAt = Date.now()
 let recordingStartTime = Date.now()
 
 action('record-start', () => {
+  // TODO: show in ui instead of log
   console.warn('RECORD - START')
+
   recordedEvents = []
   lastRecordedAt = Date.now()
   recordingStartTime = Date.now()
@@ -32,7 +44,9 @@ action('record-start', () => {
 })
 
 action('record-stop', async () => {
+  // TODO: show in ui instead of log
   console.warn('RECORD - STOP')
+
   captureEvents = false
   const recordingName = await userPrompt('recording name')
 
@@ -43,7 +57,7 @@ action('record-stop', async () => {
 
   const recordings = storage.getItem('veonim-dev-recordings', [])
   recordings.push(recordingName)
-  storage.setItem('veonim-dev-recordings', recordings)
+  storage.setItem(KEY.ALL, recordings)
 })
 
 action('record-replay', async () => {
@@ -52,9 +66,29 @@ action('record-replay', async () => {
     options: getAllRecordings(),
   })
 
-  const { name, events } = storage.getItem(recordingName, {})
-  notify(`DEV Recording: replaying "${name}" recording`, NotifyKind.System)
+  const { name, events } = storage.getItem<Record>(recordingName)
+  notify(`replaying "${name}" recording`, NotifyKind.System)
   recordPlayer(events)
+})
+
+action('record-remove', async () => {
+  const recording = await userSelectOption<string>({
+    description: 'select recording to REMOVE',
+    options: getAllRecordings(),
+  })
+
+  if (!recording) return
+
+  const recordings = storage.getItem<string[]>(KEY.ALL, [])
+  const next = recordings.filter(m => m !== recording)
+  storage.setItem(KEY.ALL, next)
+})
+
+action('record-remove-all', async () => {
+  const confirmation = await userPrompt('type "yes" to remove all recordings')
+  if (confirmation !== 'yes') return notify('did NOT remove all recordings', NotifyKind.Error)
+  storage.removeItem('veonim-dev-recordings')
+  notify('removed all recordings', NotifyKind.Success)
 })
 
 action('record-set-startup', async () => {
