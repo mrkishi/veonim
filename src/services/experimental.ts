@@ -2,8 +2,7 @@ import userSelectOption from '../components/generic-menu'
 import { notify, NotifyKind } from '../ui/notifications'
 import userPrompt from '../components/generic-prompt'
 import * as storage from '../support/local-storage'
-import { action, cmd } from '../core/neovim'
-import { delay } from '../support/utils'
+import { action } from '../core/neovim'
 import finder from '@medv/finder'
 
 if (process.env.VEONIM_DEV) {
@@ -16,20 +15,6 @@ interface RecordingEvent {
   selector: string
   event: Event
 }
-
-action('derp', async () => {
-  cmd('cd $pr/plugin-manager')
-  cmd('e src/main.ts')
-})
-
-action('derp:explorer', async () => {
-  cmd('cd $pr/veonim')
-  cmd('e src/bootstrap/main.ts')
-  cmd('topleft vnew')
-  await delay(250)
-  cmd('vert resize 30')
-  cmd('b Explorer')
-})
 
 const monitorEvents = ['keydown', 'keyup', 'keypress', 'input', 'beforeinput', 'change', 'focus', 'blur']
 
