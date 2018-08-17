@@ -83,13 +83,20 @@ action('record-remove', async () => {
   const recordings = storage.getItem<string[]>(KEY.ALL, [])
   const next = recordings.filter(m => m !== recording)
   storage.setItem(KEY.ALL, next)
+  storage.removeItem(recording)
   notify(`removed "${recording}" recording`, NotifyKind.Success)
 })
 
 action('record-remove-all', async () => {
   const confirmation = await userPrompt('type "yes" to remove all recordings')
   if (confirmation !== 'yes') return notify('did NOT remove all recordings', NotifyKind.Error)
+
+  storage
+    .getItem<string[]>(KEY.ALL, [])
+    .forEach(rec => storage.removeItem(`${KEY.ONE}${rec}`))
+
   storage.removeItem(KEY.ALL)
+
   notify('removed all recordings', NotifyKind.Success)
 })
 
