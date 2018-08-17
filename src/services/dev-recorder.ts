@@ -69,8 +69,9 @@ action('record-set-startup', async () => {
 })
 
 const createEvent = (kind: string, event: Event) => {
+  // InputEvent is still experimental - not widely supported but used in Chrome. No typings in TS lib
+  if (kind.includes('input')) return new (window as any).InputEvent(kind, event)
   if (kind.includes('key')) return new KeyboardEvent(kind, event)
-  if (kind.includes('input')) return new InputEvent(kind, event)
   else return new Event(kind, event)
 }
 
@@ -99,7 +100,7 @@ monitorEvents.forEach(ev => window.addEventListener(ev, e => {
     when: Date.now(),
     offsetPrevious: Date.now() - lastRecordedAt,
     offsetStart: Date.now() - recordingStartTime,
-    selector: finder(e.target),
+    selector: finder(e.target as Element),
     event: evvy(e),
   })
 
@@ -113,5 +114,5 @@ const props = [
   'location', 'metaKey', 'repeat', 'returnValue', 'shiftKey', 'type', 'which',
 ]
 
-const evvy = (eo: any) => props.reduce((res, prop) => Object.assign(res, { [prop]: eo[prop] }), {})
+const evvy = (eo: any) => props.reduce((res, prop) => Object.assign(res, { [prop]: eo[prop] }), {}) as Event
 }

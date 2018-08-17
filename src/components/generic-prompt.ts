@@ -1,5 +1,5 @@
 import { Plugin } from '../components/plugin-container'
-import { CreateTask, Task } from '../support/utils'
+import { CreateTask } from '../support/utils'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
 import { app } from '../ui/uikit'
