@@ -14,7 +14,7 @@ interface RecordingEvent {
   offsetStart: number
   offsetPrevious: number
   selector: string
-  event: object
+  event: Event
 }
 
 action('derp', async () => {
@@ -83,13 +83,18 @@ action('record-set-startup', async () => {
   console.log('events', events)
 })
 
+const createEvent = (kind: string, event: Event) => {
+  if (kind.includes('key')) return new KeyboardEvent(kind, event)
+  if (kind.includes('input')) return new InputEvent(kind, event)
+  else return new Event(kind, event)
+}
+
 const recordPlayer = (events: RecordingEvent[]) => {
-  const replays = events.map(m => {
-    const target = document.querySelector(m.selector)
-    if (!target) console.error('no valid target element found for event')
-    const event = new Event(m.kind, m.event)
-    return { target, event, timeout: m.offsetStart }
-  })
+  const replays = events.map(m => ({
+    target: document.querySelector(m.selector),
+    event: createEvent(m.kind, m.event),
+    timeout: m.offsetStart,
+  }))
 
   replays.filter(m => m.target).forEach(m => setTimeout(() => {
     m.target!.dispatchEvent(m.event)
