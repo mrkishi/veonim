@@ -50,19 +50,20 @@ action('record-stop', async () => {
   captureEvents = false
   const recordingName = await userPrompt('recording name')
 
-  storage.setItem(`veonim-dev-recording-${recordingName}`, {
+  storage.setItem(`${KEY.ONE}${recordingName}`, {
     name: recordingName,
     events: recordedEvents,
   })
 
-  const recordings = storage.getItem('veonim-dev-recordings', [])
-  recordings.push(recordingName)
-  storage.setItem(KEY.ALL, recordings)
+  const recordings = storage.getItem<string[]>(KEY.ALL, [])
+  const uniqRecordings = new Set(recordings)
+  uniqRecordings.add(recordingName)
+  storage.setItem(KEY.ALL, [...uniqRecordings])
 })
 
 action('record-replay', async () => {
   const recordingName = await userSelectOption<string>({
-    description: 'select recording',
+    description: 'select recording to replay',
     options: getAllRecordings(),
   })
 
@@ -82,23 +83,26 @@ action('record-remove', async () => {
   const recordings = storage.getItem<string[]>(KEY.ALL, [])
   const next = recordings.filter(m => m !== recording)
   storage.setItem(KEY.ALL, next)
+  notify(`removed "${recording}" recording`, NotifyKind.Success)
 })
 
 action('record-remove-all', async () => {
   const confirmation = await userPrompt('type "yes" to remove all recordings')
   if (confirmation !== 'yes') return notify('did NOT remove all recordings', NotifyKind.Error)
-  storage.removeItem('veonim-dev-recordings')
+  storage.removeItem(KEY.ALL)
   notify('removed all recordings', NotifyKind.Success)
 })
 
 action('record-set-startup', async () => {
   const recordingName = await userSelectOption<string>({
-    description: 'select recording',
+    description: 'select recording for startup',
     options: getAllRecordings(),
   })
 
-  const { name, events } = storage.getItem(recordingName, {})
-  notify(`DEV Recording: set "${name}" as startup replay`, NotifyKind.System)
+  const { name, events } = storage.getItem<Record>(recordingName)
+  notify(`set "${name}" as startup replay`, NotifyKind.System)
+
+  // TODO: set as startup
   console.log('events', events)
 })
 
@@ -121,8 +125,8 @@ const recordPlayer = (events: RecordingEvent[]) => {
   }, m.timeout))
 }
 
-const getAllRecordings = () => storage.getItem('veonim-dev-recordings', []).map((m: string) => ({
-  key: `veonim-dev-recording-${m}`,
+const getAllRecordings = () => storage.getItem(KEY.ALL, []).map((m: string) => ({
+  key: `${KEY.ONE}${m}`,
   value: m,
 }))
 
