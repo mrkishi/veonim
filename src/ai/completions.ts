@@ -4,6 +4,7 @@ import { completions, completionDetail } from '../langserv/adapter'
 import transformCompletions from '../ai/completion-transforms'
 import { getTriggerChars } from '../langserv/server-features'
 import * as completionUI from '../components/autocomplete'
+import toVSCodeLanguage from '../langserv/vsc-languages'
 import { harvester, update } from '../ai/update-server'
 import { g, on, current as vim } from '../core/neovim'
 import * as ai from '../langserv/server-features'
@@ -128,7 +129,7 @@ const smartCaseQuery = (query: string): string => hasUpperCase(query[0])
 
 const showCompletionsRaw = (column: number, query: string, startIndex: number, lineContent: string) =>
   (completions: CompletionOption[], completionKind: CompletionKind) => {
-    const transformedCompletions = transformCompletions(vim.filetype, {
+    const transformedCompletions = transformCompletions(toVSCodeLanguage(vim.filetype), {
       completionKind,
       lineContent,
       column,
