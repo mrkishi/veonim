@@ -1,6 +1,10 @@
 const { src, same } = require('./util')
 const m = src('support/utils')
 
+const nix = process.platform === 'linux' || process.platform === 'darwin'
+
+if (nix) {
+
 describe('path parts', () => {
   it('root path', () => {
     const testpath = '/Users/a/veonim'
@@ -26,3 +30,5 @@ describe('path parts', () => {
     same(res, ['/', 'Users'])
   })
 })
+
+}
