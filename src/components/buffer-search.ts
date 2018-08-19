@@ -65,12 +65,19 @@ const state = {
   highlightColor: 'pink',
   visible: false,
   query: '',
-  index: -1,
+  index: 0,
 }
 
 type S = typeof state
 
-const resetState = { visible: false, query: '', results: [], index: -1 }
+const resetState = { visible: false, query: '', results: [], index: 0 }
+
+const jumpToResult = (state: S, index: number, { readjustViewport = false } = {}) => {
+  const location = state.results[index]
+  if (!location) return
+  jumpTo(location.start)
+  if (readjustViewport) checkReadjustViewport()
+}
 
 const actions = {
   hide: () => {
@@ -85,9 +92,7 @@ const actions = {
     return { visible: true }
   },
   select: () => (s: S) => {
-    const index = s.index === -1 ? 0 : s.index
-    const location = s.results[index]
-    if (location) jumpTo(location.start)
+    jumpToResult(s, s.index)
     currentWindowElement.remove(containerEl)
     return resetState
   },
@@ -107,25 +112,22 @@ const actions = {
     })
     return { query }
   },
-  updateResults: (results: ColorizedFilterResult[]) => ({ results }),
+  updateResults: (results: ColorizedFilterResult[]) => (s: S) => {
+    jumpToResult(s, 0, { readjustViewport: true })
+    return { results, index: 0 }
+  },
   next: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
-
-    jumpTo(s.results[index].start)
-    checkReadjustViewport()
-
+    jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
   prev: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index - 1 < 0 ? s.results.length - 1 : s.index - 1
-
-    jumpTo(s.results[index].start)
-    checkReadjustViewport()
-
+    jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
 }
