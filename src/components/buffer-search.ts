@@ -62,7 +62,6 @@ const checkReadjustViewport = () => setTimeout(() => {
 
 const state = {
   results: [] as ColorizedFilterResult[],
-  highlightColor: 'pink',
   visible: false,
   query: '',
   index: 0,
