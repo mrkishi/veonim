@@ -85,7 +85,10 @@ const actions = {
     return { visible: true }
   },
   select: () => (s: S) => {
-    jumpTo(s.results[s.index].start)
+    const index = s.index === -1 ? 0 : s.index
+    const location = s.results[index]
+    if (location) jumpTo(location.start)
+    currentWindowElement.remove(containerEl)
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
