@@ -1,4 +1,4 @@
-import { exists, watchPath } from '../support/utils'
+import { exists, watchFile } from '../support/utils'
 import { sub } from '../messaging/dispatch'
 import { cmd, on } from '../core/neovim'
 import { join } from 'path'
@@ -20,7 +20,7 @@ on.bufLoad(async ({ cwd, file }) => {
   if (!filepath) return
   if (!await exists(filepath)) return
   currentSession.add(filepath)
-  const w = watchPath(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
+  const w = watchFile(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
   watchers.set(filepath, w)
 })
 

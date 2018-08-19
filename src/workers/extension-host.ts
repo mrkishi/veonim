@@ -1,3 +1,4 @@
+import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import DebugProtocolConnection from '../messaging/debug-protocol'
 import WorkerClient from '../messaging/worker-client'
@@ -5,7 +6,6 @@ import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
 import { basename, dirname, join } from 'path'
 import pleaseGet from '../support/please-get'
-import * as rpc from 'vscode-jsonrpc'
 import '../support/vscode-shim'
 
 interface Debugger {
@@ -58,7 +58,7 @@ interface ServerBridgeParams {
 const { on, call, request } = WorkerClient()
 const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, string>()
-const runningServers = new Map<string, rpc.MessageConnection>()
+const runningServers = new Map<string, ProtocolConnection>()
 
 on.load(() => load())
 
@@ -90,7 +90,7 @@ const getServer = (id: string) => {
 }
 
 on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
-  getServer(serverId).sendNotification(method, ...params)
+  getServer(serverId).sendNotification(method as any, ...params)
 })
 
 on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
@@ -168,9 +168,9 @@ const load = async () => {
 const connectRPCServer = (proc: ChildProcess): string => {
   const serverId = uuid()
 
-  const reader = new rpc.StreamMessageReader(proc.stdout)
-  const writer = new rpc.StreamMessageWriter(proc.stdin)
-  const conn = rpc.createMessageConnection(reader, writer)
+  const reader = new StreamMessageReader(proc.stdout)
+  const writer = new StreamMessageWriter(proc.stdin)
+  const conn = createProtocolConnection(reader, writer, console)
 
   conn.listen()
 

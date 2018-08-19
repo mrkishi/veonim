@@ -1,15 +1,19 @@
 import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
-  DocumentHighlight } from 'vscode-languageserver-types'
-import { notify, request, getSyncKind, SyncKind } from '../langserv/director'
+  DocumentHighlight, DidOpenTextDocumentParams, DidChangeTextDocumentParams }
+from 'vscode-languageserver-protocol'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
+import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
+import { getSyncKind } from '../langserv/server-features'
+import toVSCodeLangauge from '../langserv/vsc-languages'
 import { getLines } from '../support/get-file-contents'
+import { notify, request } from '../langserv/director'
 import config from '../config/config-service'
 import * as path from 'path'
 
-export { triggers, onDiagnostics } from '../langserv/director'
+export { onDiagnostics } from '../langserv/director'
 
 export interface Reference {
   path: string,
@@ -94,6 +98,9 @@ const toProtocol = (data: NeovimState, more?: any) => {
   return more ? merge(base, more) : base
 }
 
+const didOpen = (m: DidOpenTextDocumentParams) => notify('textDocument/didOpen', m, { bufferCallIfServerStarting: true })
+const didChange = (m: DidChangeTextDocumentParams) => notify('textDocument/didChange', m, { bufferCallIfServerStarting: true })
+
 const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
   if (currentBuffer.cwd !== cwd && currentBuffer.file !== file)
     return console.error('trying to do a partial update before a full update has been done. normally before doing a partial update a bufEnter event happens which triggers a full update.', currentBuffer, cwd, file)
@@ -105,12 +112,19 @@ export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false
 
   merge(currentBuffer, { cwd, file, contents })
 
-  const content = { text: contents.join('\n') }
-  const req = toProtocol(bufferState, { contentChanges: [ content ], filetype })
+  const text = contents.join('\n')
+  const protocolRequest = toProtocol(bufferState, { filetype })
 
-  bufferOpened
-    ? notify('textDocument/didOpen', req, { bufferCallIfServerStarting: true })
-    : notify('textDocument/didChange', req, { bufferCallIfServerStarting: true })
+  if (bufferOpened) merge(protocolRequest.textDocument, {
+    text,
+    languageId: toVSCodeLangauge(filetype),
+  })
+
+  if (!bufferOpened) merge(protocolRequest, {
+    contentChanges: [ { text } ]
+  })
+
+  bufferOpened ? didOpen(protocolRequest) : didChange(protocolRequest)
 }
 
 export const partialBufferUpdate = async (change: BufferChange, bufferOpened = false) => {
@@ -119,7 +133,7 @@ export const partialBufferUpdate = async (change: BufferChange, bufferOpened = f
 
   await patchBufferCacheWithPartial(cwd, file, bufferLines[0], line)
 
-  if (syncKind !== SyncKind.Incremental) return fullBufferUpdate({ ...change, bufferLines: currentBuffer.contents })
+  if (syncKind !== TextDocumentSyncKind.Incremental) return fullBufferUpdate({ ...change, bufferLines: currentBuffer.contents })
 
   const content = {
     text: bufferLines[0],

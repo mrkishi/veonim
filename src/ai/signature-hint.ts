@@ -1,6 +1,7 @@
-import { SignatureInformation } from 'vscode-languageserver-types'
-import { action, current as vimState, on } from '../core/neovim'
-import { signatureHelp, triggers } from '../langserv/adapter'
+import { supports, getTriggerChars } from '../langserv/server-features'
+import { SignatureInformation } from 'vscode-languageserver-protocol'
+import { action, current as vim, on } from '../core/neovim'
+import { signatureHelp } from '../langserv/adapter'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
@@ -12,15 +13,15 @@ const cache = {
   currentParam: 0,
 }
 
-const shouldCloseSignatureHint = (totalParams: number, currentParam: number, triggers: string[], leftChar: string): boolean => {
+const shouldCloseSignatureHint = (totalParams: number, currentParam: number, triggers: Set<string>, leftChar: string): boolean => {
   if (currentParam < totalParams - 1) return false
 
-  const hasEasilyIdentifiableSymmetricalMatcherChar = triggers.some(t => ['(', '{', '['].includes(t))
-  if (!hasEasilyIdentifiableSymmetricalMatcherChar) return true
+  const matching = triggers.has('(') || triggers.has('{') || triggers.has('[')
+  if (!matching) return true
 
-  return (leftChar === ')' && triggers.includes('('))
-    || (leftChar === '}' && triggers.includes('{'))
-    || (leftChar === ']' && triggers.includes('['))
+  return (leftChar === ')' && triggers.has('('))
+    || (leftChar === '}' && triggers.has('{'))
+    || (leftChar === ']' && triggers.has('['))
 }
 
 const cursorPos = () => ({ row: cursor.row, col: cursor.col })
@@ -38,9 +39,11 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
     ui.show({
       ...baseOpts,
       label,
-      paramDoc,
       currentParam,
-      documentation,
+      // TODO: support MarkupContent
+      paramDoc: paramDoc as any,
+      // TODO: support MarkupContent
+      documentation: documentation as any,
       selectedSignature: (which || 0) + 1,
     })
   }
@@ -62,15 +65,16 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
       ...baseOpts,
       label,
       currentParam,
-      documentation,
+      // TODO: support MarkupContent
+      documentation: documentation as any,
       selectedSignature: nextSignatureIndex + 1,
     })
   }
 }
 
 const getSignatureHint = async (lineContent: string) => {
-  const triggerChars = triggers.signatureHelp(vimState.cwd, vimState.filetype)
-  const leftChar = lineContent[Math.max(vimState.column - 1, 0)]
+  const triggerChars = getTriggerChars.signatureHint(vim.cwd, vim.filetype)
+  const leftChar = lineContent[Math.max(vim.column - 1, 0)]
 
   // TODO: should probably also hide if we jumped to another line
   // how do we determine the difference between multiline signatures and exit signature?
@@ -78,9 +82,10 @@ const getSignatureHint = async (lineContent: string) => {
   const closeSignatureHint = shouldCloseSignatureHint(cache.totalParams, cache.currentParam, triggerChars, leftChar)
   if (closeSignatureHint) return ui.hide()
 
-  if (!triggerChars.includes(leftChar)) return
+  if (!triggerChars.has(leftChar)) return
+  if (!supports.signatureHint(vim.cwd, vim.filetype)) return
 
-  const hint = await signatureHelp(vimState)
+  const hint = await signatureHelp(vim)
   if (!hint) return
 
   const { activeParameter, activeSignature, signatures = [] } = hint

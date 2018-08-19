@@ -42,7 +42,7 @@ const searchInBuffer = async (results = [] as FilterResult[]) => {
   const pattern = parts.join('\\|')
   if (!pattern) return cmd('noh')
 
-  cmd(`/\\%>${start}l\\%<${end}l${pattern}`)
+  cmd(`/\\%>${start - 1}l\\%<${end + 1}l${pattern}`)
 }
 
 

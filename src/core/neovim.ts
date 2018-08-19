@@ -518,6 +518,8 @@ export const applyPatches = async (patches: Patch[]) => {
   // TODO: this assumes all missing files are in the cwd
   // TODO: badd allows the option of specifying a line number to position the curosr
   // when loading the buffer. might be nice to use on a rename op. see :h badd
+
+  // TODO: we should notify user that other files were changed
   patches
     .filter(p => buffers.some(b => b.path !== p.path))
     .forEach(b => cmd(`badd ${b.file}`))

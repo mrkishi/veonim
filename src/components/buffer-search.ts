@@ -5,6 +5,7 @@ import { RowNormal } from '../components/row-container'
 import { currentWindowElement } from '../core/windows'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
+import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
@@ -62,30 +63,41 @@ const checkReadjustViewport = () => setTimeout(() => {
 
 const state = {
   results: [] as ColorizedFilterResult[],
-  highlightColor: 'pink',
   visible: false,
   query: '',
-  index: -1,
+  index: 0,
 }
+
+const previousSearchCache = state
 
 type S = typeof state
 
-const resetState = { visible: false, query: '', results: [], index: -1 }
+const resetState = { visible: false, query: '', results: [], index: 0 }
+
+const jumpToResult = (state: S, index: number, { readjustViewport = false } = {}) => {
+  const location = state.results[index]
+  if (!location) return
+  jumpTo(location.start)
+  if (readjustViewport) checkReadjustViewport()
+}
 
 const actions = {
-  hide: () => {
+  hide: () => (s: S) => {
     cursor.restore()
     currentWindowElement.remove(containerEl)
+    merge(previousSearchCache, s)
     return resetState
   },
-  show: () => {
+  show: (resumeState?: S) => {
     currentWindowElement.add(containerEl)
     cursor.save()
     captureOverlayPosition()
-    return { visible: true }
+    return resumeState || { visible: true }
   },
   select: () => (s: S) => {
-    jumpTo(s.results[s.index].start)
+    jumpToResult(s, s.index)
+    currentWindowElement.remove(containerEl)
+    merge(previousSearchCache, s)
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
@@ -104,25 +116,22 @@ const actions = {
     })
     return { query }
   },
-  updateResults: (results: ColorizedFilterResult[]) => ({ results }),
+  updateResults: (results: ColorizedFilterResult[]) => (s: S) => {
+    jumpToResult(s, 0, { readjustViewport: true })
+    return { results, index: 0 }
+  },
   next: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
-
-    jumpTo(s.results[index].start)
-    checkReadjustViewport()
-
+    jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
   prev: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index - 1 < 0 ? s.results.length - 1 : s.index - 1
-
-    jumpTo(s.results[index].start)
-    checkReadjustViewport()
-
+    jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
 }
@@ -165,7 +174,6 @@ const view = ($: S, a: A) => h('div', {
   }, text)))))
 ])
 
-
 const containerEl = makel({
   position: 'absolute',
   display: 'flex',
@@ -178,6 +186,7 @@ const containerEl = makel({
   width: '100%',
 })
 
-const ui = app({ name: 'buffer-search', state, actions, view, element: containerEl })
+const ui = app<S, A>({ name: 'buffer-search', state, actions, view, element: containerEl })
 
 action('buffer-search', ui.show)
+action('buffer-search-resume', () => ui.show(previousSearchCache))

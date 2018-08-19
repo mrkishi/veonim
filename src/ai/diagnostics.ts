@@ -1,12 +1,13 @@
 import { ProblemHighlight, Highlight, HighlightGroupId, on, action, getCurrent,
   current as vim, jumpTo } from '../core/neovim'
-import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
+import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-protocol'
 import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { ui as problemInfoUI } from '../components/problem-info'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as codeActionUI from '../components/code-actions'
+import { supports } from '../langserv/server-features'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
@@ -174,13 +175,14 @@ export const setProblems = (problems: Problem[]) => {
 }
 
 on.cursorMove(async state => {
-  const { line, column, cwd, file } = state
+  const { line, column, cwd, file, filetype } = state
   const diagnostics = current.diagnostics.get(path.join(cwd, file))
   if (!diagnostics) return
 
   const relevantDiagnostics = diagnostics
     .filter(d => positionWithinRange(line, column, d.range))
 
+  if (!supports.codeActions(cwd, filetype)) return
   const actions = await codeAction(state, relevantDiagnostics)
 
   if (actions && actions.length) {

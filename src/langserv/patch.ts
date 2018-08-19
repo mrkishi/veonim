@@ -1,4 +1,4 @@
-import { Position, TextEdit, WorkspaceEdit } from 'vscode-languageserver-types'
+import { Position, TextEdit, WorkspaceEdit } from 'vscode-languageserver-protocol'
 import { uriAsCwd, uriAsFile } from '../support/utils'
 import { join } from 'path'
 

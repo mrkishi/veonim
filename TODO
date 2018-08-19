@@ -13,6 +13,10 @@ change-dir/vim-create-dir default dir to :pwd if not specified. should we defaul
 to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
 path displayed in "project" statusline section
 
+document search-fn space
+
+package.json node_modules import completions
+
 debug
 
 if lang ext not installed suggest ext on new file type/bufload 
@@ -29,6 +33,12 @@ normalize-filetypes:
 autocomplete:
 - do not hardcode 'tab' + 's-tab' keys. user config
 - allow opt-in autocomplete trigger. autocmds? -> enable/disable?
+- need to change neovim.ts -> onCreate()
+  cmd(`set completefunc=VeonimComplete`)
+  cmd(`ino <expr> <tab> CompleteScroll(1)`)
+  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+- the problem is that we currently do not render external popupmenu via GUI
+  so if someone does not use completefun=VeonimComplete, they will get ugly
 
 vim-search:
 - dispatch callback events to vim when the vim-search window has closed
@@ -41,6 +51,23 @@ vim-search:
 
 key-transform:
 - support different modes
+
+look into supporting more 3.6.0 lang serv features:
+- for example: workspace/configuration
+- goto type definition
+- goto implementation
+- etc
+- support extra symbol/completion icons (commented out in components)
+
+DEV_MDOE -> SPECTRON
+- the following crashes the thing:
+  - opening devtools :: win.webContents.openDevTools()
+  - installing devtools extensions :: load(REDUX_DEVTOOLS.id)
+- opening devtools from spectron crashes as well (different error though)
+   - it does open the devtools, but protocol crashes somewhere
+- i think any kind of messing around with devtools is bad because
+  devtools is probably the domain of SPECTRON (remote debugging and what not)
+  - try to do all devtools commands thru SPECTRON api
 
 use user menu to create a git branch switcher. add it docs
 
@@ -57,8 +84,31 @@ update entire buffer. use atomic to batch so no flickr. only undo if lsp rename 
 - veonim rename does cw on all symbols in viewport. use find references to find
   all positions. modify buffer via api but only visible region. on lsp response
   commit renames to full buffer+other docs. only revert if lsp rename failed
+- tested that we can use buffer.setLines WHILE in insert mode and the performance
+  seems fine. a tad bit laggy, but not a big deal since this feature is only
+  seldom used. does not flicker and the updates from .setLines() seems fast enough.
+  tested with replacing 2 lines.
+
+  test code (call from 'keydown' event with a setTimeout/setImmediate to not
+  hold up rendering):
+
+  --- CODE ---
+  const dankMemes = async () => {
+    const buf = current.buffer
+    const line1 = await buf.getLine(1)
+    const line3 = await buf.getLine(3)
+    const newLine1 = line1.slice(0, 4) + letters[ix] + line1.slice(4)
+    const newLine3 = line3.slice(0, 4) + letters[ix] + line3.slice(4)
+    buf.replace(1, newLine1)
+    buf.replace(3, newLine3)
+    ix = ix + 1 > letters.length - 1 ? 0 : ix + 1
+  }
+  --- CODE ---
+- we should be able to implement this once we have EXTENDED MARKS feature merged
 
 constrain overlay menus to a particular window (current window)
+- i think we should defer this until we get EXT_WINDOWS - otherwise will need
+  to reimplement again
 - (if it makes sense to be local - some might be global - like user menus or project switcher)
   - i.e. show symbol/file menu on top of the current buffer window, instead of
   the center of the program, since selecting a symbol or file will make
@@ -69,8 +119,6 @@ constrain overlay menus to a particular window (current window)
   changing parent div containers. but that is okay, because these window local
   overlay menus will always live inside a specific window, and not be global
 - what if the overlay menu does not fit in the window...?
-
-change my <space>ss binding to include @g global flag
 
 tweak the colors.important to bee lesss saturated. can we derive from colorscheme?
 
@@ -105,6 +153,7 @@ buffer-search: spaces to further filter query (just like fuzzy file finder?)
   - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
 - i feel like i might want this in a few different places.
   - can create generic fn to use anywhere?
+- collect & show line numbers?
 
 figure out why jest is the worst thing ever since sliced bread
 
@@ -296,6 +345,16 @@ rpc errors send to notifications? (try calling some broken execute() vimscript f
 upgrade ripgrep
 
 --ideas--
+
+update user-guide to present an option for lang shortcuts as overlay user menu instead of bindings
+
+mapping for send buffer text to nearby terminal window
+
+macro recorder real-time history with edit window easily accessible after recording finished to edit
+- when starting a macro a small floating window shows up. the window updates in realtime
+  to reveal the characters typed. when editing finished, a key shortcut will change focus
+  to the floating window to be able to edit the macro.
+- where record keys from? veonim key events? what if neovim remaps?
 
 configurable mouse cursor hide enable/disable - enabled by default
 

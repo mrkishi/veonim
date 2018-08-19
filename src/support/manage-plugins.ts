@@ -1,7 +1,6 @@
-import { exists, getDirs, is, configPath } from '../support/utils'
+import { exists, getDirs, is, configPath, remove as removePath } from '../support/utils'
 import { NotifyKind, notify } from '../ui/notifications'
 import { url, download } from '../support/download'
-import { remove as removePath } from 'fs-extra'
 import { cmd } from '../core/neovim'
 import { join } from 'path'
 

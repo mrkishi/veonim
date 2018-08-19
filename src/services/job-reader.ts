@@ -6,8 +6,9 @@ import { sessions } from '../core/sessions'
 import { addQF } from '../ai/diagnostics'
 import * as Icon from 'hyperapp-feather'
 import Worker from '../messaging/worker'
-import { writeFile } from 'fs-extra'
+import { promisify as P } from 'util'
 import { join } from 'path'
+import * as fs from 'fs'
 
 enum ParserFormat {
   Typescript,
@@ -58,7 +59,7 @@ let parsingQueue = [] as any[]
 
 const writeData = async (lines: string[]) => {
   const location = join(__dirname, '..', 'errorz')
-  await writeFile(location, lines.join('\n'))
+  await P(fs.writeFile)(location, lines.join('\n'))
   return location
 }
 

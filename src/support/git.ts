@@ -1,6 +1,6 @@
 import { on, onStateChange, current } from '../core/neovim'
+import { shell, exists, watchFile } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-import { shell, exists, watchPath } from '../support/utils'
 import * as path from 'path'
 
 const watchers: { branch: any, status: any } = {
@@ -45,6 +45,6 @@ onStateChange.cwd(async (cwd: string) => {
   const headPath = path.join(cwd, '.git/HEAD')
   const indexPath = path.join(cwd, '.git/index')
 
-  if (await exists(headPath)) watchers.branch = watchPath(headPath, () => (getBranch(cwd), getStatus(cwd)))
-  if (await exists(indexPath)) watchers.status = watchPath(indexPath, () => getStatus(cwd))
+  if (await exists(headPath)) watchers.branch = watchFile(headPath, () => (getBranch(cwd), getStatus(cwd)))
+  if (await exists(indexPath)) watchers.status = watchFile(indexPath, () => getStatus(cwd))
 })

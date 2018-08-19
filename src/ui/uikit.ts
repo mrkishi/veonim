@@ -2,11 +2,21 @@ import { app as makeApp, h as makeHyperscript, ActionsType, View } from 'hyperap
 import { showCursor, hideCursor } from '../core/cursor'
 import { specs as titleSpecs } from '../core/title'
 import * as dispatch from '../messaging/dispatch'
+import { merge, uuid } from '../support/utils'
 import hyperscript from '../ui/hyperscript'
 import * as viminput from '../core/input'
-import { merge } from '../support/utils'
 
 export const h = hyperscript(makeHyperscript)
+
+export const css = (builder: (classname: string) => string[]): string => {
+  const id = `sc-${uuid()}`
+  const styles = builder(id).join('\n')
+  const style = document.createElement('style')
+  style.type = 'text/css'
+  style.appendChild(document.createTextNode(styles))
+  document.head.appendChild(style)
+  return id
+}
 
 const hostElement = document.getElementById('plugins') as HTMLElement
 merge(hostElement.style, {
