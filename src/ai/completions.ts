@@ -1,5 +1,5 @@
 import { findIndexRight, hasUpperCase, EarlyPromise, exists, getDirFiles, resolvePath } from '../support/utils'
-import { CompletionItemKind, CompletionItem } from 'vscode-languageserver-types'
+import { CompletionItemKind, CompletionItem } from 'vscode-languageserver-protocol'
 import { completions, completionDetail } from '../langserv/adapter'
 import transformCompletions from '../ai/completion-transforms'
 import { getTriggerChars } from '../langserv/server-features'

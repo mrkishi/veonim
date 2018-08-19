@@ -1,5 +1,5 @@
+import { Command } from 'vscode-languageserver-protocol'
 import { RowNormal } from '../components/row-container'
-import { Command } from 'vscode-languageserver-types'
 import { runCodeAction } from '../ai/diagnostics'
 import { activeWindow } from '../core/windows'
 import Input from '../components/text-input'

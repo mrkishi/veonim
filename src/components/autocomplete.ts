@@ -1,6 +1,6 @@
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { RowNormal, RowComplete } from '../components/row-container'
-import { CompletionItemKind } from 'vscode-languageserver-types'
+import { CompletionItemKind } from 'vscode-languageserver-protocol'
 import * as canvasContainer from '../core/canvas-container'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
@@ -53,14 +53,14 @@ const icons = new Map([
   [ CompletionItemKind.Color, h(Icon.Eye, { color: '#54ffe5' }) ],
   [ CompletionItemKind.File, h(Icon.File, { color: '#a5c3ff' }) ],
   [ CompletionItemKind.Reference, h(Icon.Link, { color: '#ffdca3' }) ],
-  // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ CompletionItemKind.Folder, h('folder', { color: '#' }) ],
-  //[ CompletionItemKind.EnumMember, h('menu', { color: '#' }) ],
-  //[ CompletionItemKind.Constant, h('save', { color: '#' }) ],
-  //[ CompletionItemKind.Struct, h('layers', { color: '#' }) ],
-  //[ CompletionItemKind.Event, h('video', { color: '#' }) ],
-  //[ CompletionItemKind.Operator, h('anchor', { color: '#' }) ],
-  //[ CompletionItemKind.TypeParameter, h('type', { color: '#' }) ],
+  // TODO: we need some colors pls
+  [ CompletionItemKind.Folder, h(Icon.Folder, { color: '#ccc' }) ],
+  [ CompletionItemKind.EnumMember, h(Icon.Menu, { color: '#ccc' }) ],
+  [ CompletionItemKind.Constant, h(Icon.Save, { color: '#ccc' }) ],
+  [ CompletionItemKind.Struct, h(Icon.Layers, { color: '#ccc' }) ],
+  [ CompletionItemKind.Event, h(Icon.Video, { color: '#ccc' }) ],
+  [ CompletionItemKind.Operator, h(Icon.Anchor, { color: '#ccc' }) ],
+  [ CompletionItemKind.TypeParameter, h(Icon.Type, { color: '#ccc' }) ],
 ])
 
 const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || h(Icon.Code)

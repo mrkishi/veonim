@@ -1,6 +1,6 @@
 import { ProblemHighlight, Highlight, HighlightGroupId, on, action, getCurrent,
   current as vim, jumpTo } from '../core/neovim'
-import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
+import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-protocol'
 import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { ui as problemInfoUI } from '../components/problem-info'

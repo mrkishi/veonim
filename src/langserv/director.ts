@@ -1,4 +1,4 @@
-import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
+import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-protocol'
 import { registerServer } from '../langserv/server-features'
 import toVSCodeLanguage from '../langserv/vsc-languages'
 import defaultCapabs from '../langserv/capabilities'
