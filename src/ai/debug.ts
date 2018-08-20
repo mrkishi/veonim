@@ -99,15 +99,27 @@ export const changeStack = async (frameId: number) => {
 
   const refresh = Refresher(dbg.rpc)
   const scopes = await refresh.scopes(frameId)
-  debugUI.updateState({ activeScope: scopes[0].variablesReference })
-  return refresh.variables(scopes[0].variablesReference)
+  const variables = await refresh.variables(scopes[0].variablesReference)
+
+  updateDebuggerState(activeDebugger, {
+    scopes,
+    variables,
+    activeStack: frameId,
+    activeScope: scopes[0].variablesReference,
+  })
 }
 
 export const changeScope = async (variablesReference: number) => {
   const dbg = debuggers.get(activeDebugger)
   if (!dbg) return console.error('no active debugger found. this is a problem because we already have the debug context present in the UI')
 
-  return Refresher(dbg.rpc).variables(variablesReference)
+  const refresh = Refresher(dbg.rpc)
+  const variables = await refresh.variables(variablesReference)
+
+  updateDebuggerState(activeDebugger, {
+    variables,
+    activeScope: variablesReference,
+  })
 }
 
 const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
