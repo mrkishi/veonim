@@ -21,6 +21,7 @@ const state = {
   activeStack: 0,
   activeScope: 0,
   debuggers: [] as DebuggerInfo[],
+  breakpoints: [] as string[],
 }
 
 type S = typeof state
@@ -68,7 +69,7 @@ const view = ($: S) => PluginRight($.visible, {
     ,h('div', $.stackFrames.map(m => ListItem(
       m.name,
       $.activeStack === m.id,
-      () => changeStack(m.id)
+      () => changeStack(m.id),
     )))
   ])
 
@@ -77,7 +78,7 @@ const view = ($: S) => PluginRight($.visible, {
     ,h('div', $.scopes.map(m => ListItem(
       m.name,
       $.activeScope === m.variablesReference,
-      () => changeScope(m.variablesReference)
+      () => changeScope(m.variablesReference),
     )))
   ])
 
@@ -87,6 +88,15 @@ const view = ($: S) => PluginRight($.visible, {
       `${m.name} -> ${m.value}`,
       false,
       () => console.log('pls get var:', m.value),
+    )))
+  ])
+
+  ,h('div', [
+    ,header('Breakpoints')
+    ,h('div', $.breakpoints.map(m => ListItem(
+      m,
+      false,
+      () => {},
     )))
   ])
 
