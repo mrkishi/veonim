@@ -117,7 +117,9 @@ export const userSelectScope = async (variablesReference: number) => {
   return Refresher(dbg.rpc).variables(variablesReference)
 }
 
-const updateState = (id: string, partialState: Partial<DebuggerState>) => {
+// TODO: this function should add a debugger entry if it does not exist
+// should not error if a debugger does not exist
+const updateDebuggerState = (id: string, partialState: Partial<DebuggerState>) => {
   const dbg = debuggers.get(id)
   if (!dbg) return console.error('can not update debugger state of non-existing debugger.')
 
@@ -253,6 +255,10 @@ export const start = async (type: string) => {
   debugUI.updateState({ threads: threadsResponse.threads })
 
   const [ firstThread ] = threadsResponse.threads
+
+  updateDebuggerState(uuid(), {
+
+  })
 
   merge(state, {
     threads: threadsResponse.threads,
