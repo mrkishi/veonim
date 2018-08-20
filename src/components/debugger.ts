@@ -5,19 +5,21 @@ import { paddingVH } from '../ui/css'
 import { h, app } from '../ui/uikit'
 
 type Threads = DP.Thread[]
-type Stacks = DP.StackFrame[]
+type StackFrames = DP.StackFrame[]
 type Scopes = DP.Scope[]
 type Variables = DP.Variable[]
 
 const state = {
   visible: false,
   threads: [] as Threads,
-  stackFrames: [] as Stacks,
+  stackFrames: [] as StackFrames,
   scopes: [] as Scopes,
   variables: [] as Variables,
   activeThread: 0,
   activeStack: 0,
   activeScope: 0,
+  activeDebugger: '',
+  activeDebuggers: [] as string[],
 }
 
 type S = typeof state

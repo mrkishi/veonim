@@ -10,6 +10,10 @@ type ThreadsRes = DP.ThreadsResponse['body']
 type StackRes = DP.StackTraceResponse['body']
 type ScopesRes = DP.ScopesResponse['body']
 type VarRes = DP.VariablesResponse['body']
+type Threads = DP.Thread[]
+type StackFrames = DP.StackFrame[]
+type Scopes = DP.Scope[]
+type Variables = DP.Variable[]
 
 interface Debugger {
   id: string
@@ -18,6 +22,10 @@ interface Debugger {
   activeThread: number
   activeStack: number
   activeScope: number
+  threads: Threads
+  stackFrames: StackFrames
+  scopes: Scopes
+  variables: Variables
 }
 
 const Refresher = (dbg: extensions.RPCServer) => ({
@@ -60,10 +68,21 @@ action('debug-continue', () => {
   dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
 })
 
-export const listActiveDebuggers = () => [...activeDebuggers.entries()]
+const listActiveDebuggers = () => [...activeDebuggers.values()]
+  .map(d => ({ id: d.id, type: d.type }))
+
 export const switchActiveDebugger = (id: string) => {
   if (!activeDebuggers.has(id)) return false
   activeDebugger = id
+  const { activeThread, activeStack, activeScope } = activeDebuggers.get(id)!
+
+  debugUI.updateState({
+    activeDebugger,
+    activeThread,
+    activeStack,
+    activeScope,
+  })
+
   return true
 }
 
@@ -205,16 +224,28 @@ export const start = async (type: string) => {
   const [ firstThread ] = threadsResponse.threads
   if (firstThread) activeThread = firstThread.id
 
-  activeDebuggers.set(debuggerID, {
-    type,
+  const state = {
     activeThread,
-    rpc: dbg,
-    id: debuggerID,
     activeStack: 0,
     activeScope: 0,
+    threads: threadsResponse.threads,
+    stackFrames: [],
+    scopes: [],
+    variables: [],
+  }
+
+  activeDebuggers.set(debuggerID, {
+    ...state,
+    type,
+    rpc: dbg,
+    id: debuggerID,
   })
 
-  debugUI.show()
+  debugUI.show({
+    ...state,
+    activeDebugger: debuggerID,
+    activeDebuggers: listActiveDebuggers(),
+  })
 
   activeDebugger = debuggerID
 }
