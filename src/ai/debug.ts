@@ -71,21 +71,16 @@ action('debug-continue', () => {
   dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
 })
 
-const listActiveDebuggers = () => [...debuggers.values()]
-  .map(d => ({ id: d.id, type: d.type }))
+const listActiveDebuggers = () => [...debuggers.values()].map(d => ({
+  id: d.id,
+  type: d.type,
+}))
 
 export const switchActiveDebugger = (id: string) => {
   if (!debuggers.has(id)) return false
   activeDebugger = id
-  const { activeThread, activeStack, activeScope } = debuggers.get(id)!
-
-  debugUI.updateState({
-    activeDebugger,
-    activeThread,
-    activeStack,
-    activeScope,
-  })
-
+  const { rpc, ...debuggerState } = debuggers.get(id)!
+  debugUI.updateState(debuggerState)
   return true
 }
 
