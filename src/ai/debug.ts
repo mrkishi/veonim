@@ -130,6 +130,8 @@ const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
 }
 
 export const start = async (type: string) => {
+  console.warn(`starting debugger: ${type}`)
+
   const dbg: Debugger = {
     type,
     id: uuid(),
@@ -223,12 +225,12 @@ export const start = async (type: string) => {
   })
 
   const initRequest: DP.InitializeRequest['arguments'] = {
+    adapterID: type,
     clientID: 'veonim',
     clientName: 'Veonim',
-    adapterID: 'node2',
-    pathFormat: 'path',
     linesStartAt1: false,
     columnsStartAt1: false,
+    pathFormat: 'path',
     locale: 'en',
   }
 
