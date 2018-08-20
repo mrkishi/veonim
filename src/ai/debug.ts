@@ -239,15 +239,11 @@ export const start = async (type: string) => {
   objToMap(supportedCapabilities, features)
 
   await dbg.rpc.sendRequest('launch', getDebugConfig(type))
-
-  const threadsResponse: ThreadsRes = await dbg.rpc.sendRequest('threads')
-  debugUI.updateState({ threads: threadsResponse.threads })
-
-  const [ firstThread ] = threadsResponse.threads
+  const { threads }: ThreadsRes = await dbg.rpc.sendRequest('threads')
 
   merge(dbg, {
-    threads: threadsResponse.threads,
-    activeThread: firstThread.id || -1,
+    threads,
+    activeThread: (threads[0] || {}).id || -1,
   })
 
   updateDebuggerState(dbg.id, dbg)
