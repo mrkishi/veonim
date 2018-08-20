@@ -33,35 +33,6 @@ const Refresher = (dbg: extensions.RPCServer) => ({
   },
 })
 
-// TODO: when the debugger is stopped, we can change the:
-// - threads
-// - stacks
-// - scopes
-//
-// we will need some way to hookup this fn to user selecting different
-// threads/stacks/scopes/etc.
-const getStopInfo = async (dbg: extensions.RPCServer, thread?: number, stack?: number, scope?: number) => {
-  console.log('get stop info :: THREAD - STACK - SCOPE', thread, stack, scope)
-  // request:
-  // 'threads'
-  // 'stacktrace'
-  // 'scopes'
-  // 'variables' .. variables and more and more
-
-  // TODO: EVERYTIME WE CALL 'stackTrace' and 'scopes' again we get a list of
-  // stacks/scopes with different IDs. i think we should be more conservative
-  // and only call the stacks/scopes/vars if the parent above changes. e.g.
-  // -- if change 'thread' change all below (stacks, scopes, vars)
-  // -- if change 'stack' change all below (scopes, vars)
-  // -- if change 'scope' change all below (vars)
-  // etc...
-
-
-
-
-  console.log('------> THREAD - STACK - SCOPE', threadId, frameId, variablesReference)
-}
-
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
 
 // TODO: in the future we will want the ability to have multiple
