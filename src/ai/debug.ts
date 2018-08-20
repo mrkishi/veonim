@@ -195,6 +195,8 @@ export const start = async (type: string) => {
 
   const supportedCapabilities = await dbg.sendRequest('initialize', initRequest)
   // TODO: what do with DEEZ capabilities??
+  // use capabilities to determine what kind of breakpoints to send, etc.
+  // for example: log breakpoints that are not supported by all debuggers
   objToMap(supportedCapabilities, features)
 
   await dbg.sendRequest('launch', getDebugConfig(type))
