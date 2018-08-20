@@ -13,8 +13,11 @@ type VarRes = DP.VariablesResponse['body']
 
 interface Debugger {
   id: string
+  type: string
   rpc: RPCServer
-  activeThreadId: number
+  activeThread: number
+  activeStack: number
+  activeScope: number
 }
 
 const Refresher = (dbg: extensions.RPCServer) => ({
@@ -41,19 +44,28 @@ const Refresher = (dbg: extensions.RPCServer) => ({
 })
 
 const activeDebuggers = new Map<string, Debugger>()
-let currentDebugger = 'lolnope'
+let activeDebugger = 'lolnope'
 
+// TODO: put these in separate functions? i think we may
+// be calling these from the UI as well
 action('debug-next', () => {
-  const dbg = activeDebuggers.get(currentDebugger)
+  const dbg = activeDebuggers.get(activeDebugger)
   if (!dbg) return
-  dbg.rpc.sendRequest('next', { threadId: dbg.activeThreadId })
+  dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 })
 
 action('debug-continue', () => {
-  const dbg = activeDebuggers.get(currentDebugger)
+  const dbg = activeDebuggers.get(activeDebugger)
   if (!dbg) return
-  dbg.rpc.sendRequest('continue', { threadId: dbg.activeThreadId })
+  dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
 })
+
+export const listActiveDebuggers = () => [...activeDebuggers.entries()]
+export const switchActiveDebugger = (id: string) => {
+  if (!activeDebuggers.has(id)) return false
+  activeDebugger = id
+  return true
+}
 
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
 
@@ -67,7 +79,7 @@ action('debug-continue', () => {
 // const exceptionBreakpoints = new Map<string, any>()
 
 export const userSelectStack = async (frameId: number) => {
-  const dbg = activeDebuggers.get(currentDebugger)
+  const dbg = activeDebuggers.get(activeDebugger)
   if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
 
   const refresh = Refresher(dbg.rpc)
@@ -77,7 +89,7 @@ export const userSelectStack = async (frameId: number) => {
 }
 
 export const userSelectScope = async (variablesReference: number) => {
-  const dbg = activeDebuggers.get(currentDebugger)
+  const dbg = activeDebuggers.get(activeDebugger)
   if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
 
   return Refresher(dbg.rpc).variables(variablesReference)
@@ -86,7 +98,7 @@ export const userSelectScope = async (variablesReference: number) => {
 export const start = async (type: string) => {
   console.log('start debugger:', type)
   const debuggerID = uuid()
-  let activeThreadId = -1
+  let activeThread = -1
   const features = new Map<string, any>()
 
   const dbg = await extensions.start.debug(type)
@@ -95,7 +107,7 @@ export const start = async (type: string) => {
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
     // TODO: i think on this notification we SOMETIMES get 'threadId'
-    // how do we use 'activeThreadId'???
+    // how do we use 'activeThread'???
 
     // how does it work in VSCode when the user selects a different thread?
     // i don't think it makes any difference in the stopped breakpoints???
@@ -104,7 +116,7 @@ export const start = async (type: string) => {
     // threads on a breakpoint. isn't a breakpoint per thread??
     console.log('DEBUGGER STOPPED:', m)
     // TODO: do something with breakpoint 'reason'
-    const targetThread = m.threadId || activeThreadId
+    const targetThread = m.threadId || activeThread
 
     await refresh.threads()
     const stackFrames = await refresh.stackFrames(targetThread)
@@ -123,7 +135,7 @@ export const start = async (type: string) => {
   // from 'threads' request/response?
   dbg.onNotification('thread', (m: DP.ThreadEvent['body']) => {
     console.log('THREAD:', m)
-    activeThreadId = m.threadId
+    activeThread = m.threadId
     // request: 'threads'
   })
 
@@ -187,19 +199,22 @@ export const start = async (type: string) => {
 
   await dbg.sendRequest('launch', getDebugConfig(type))
 
-  debugUI.show()
-
   const threadsResponse: ThreadsRes = await dbg.sendRequest('threads')
   debugUI.updateState({ threads: threadsResponse.threads })
 
   const [ firstThread ] = threadsResponse.threads
-  if (firstThread) activeThreadId = firstThread.id
+  if (firstThread) activeThread = firstThread.id
 
   activeDebuggers.set(debuggerID, {
-    activeThreadId,
+    type,
+    activeThread,
     rpc: dbg,
     id: debuggerID,
+    activeStack: 0,
+    activeScope: 0,
   })
 
-  currentDebugger = debuggerID
+  debugUI.show()
+
+  activeDebugger = debuggerID
 }

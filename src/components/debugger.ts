@@ -23,9 +23,9 @@ const state = {
 type S = typeof state
 
 const actions = {
-  show: () => ({ visible: true }),
+  show: (partialState = {} as any) => ({ ...partialState, visible: true }),
   hide: () => ({ visible: false }),
-  updateState: (m: any) => m,
+  updateState: (partialState: any) => partialState,
 }
 
 type A = typeof actions
