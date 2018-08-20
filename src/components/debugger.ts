@@ -48,7 +48,7 @@ const ListItem = (name: string, active: boolean, clickFn: Function) => h('div', 
   onclick: clickFn,
 }, name)
 
-const view = ($: S, a: A) => PluginRight($.visible, {
+const view = ($: S) => PluginRight($.visible, {
   // TODO: TESTING ONLY
   zIndex: 99999999,
 }, [
@@ -67,10 +67,7 @@ const view = ($: S, a: A) => PluginRight($.visible, {
     ,h('div', $.stackFrames.map(m => ListItem(
       m.name,
       $.activeStack === m.id,
-      () => {
-        changeStack(m.id)
-        a.updateState({ activeStack: m.id })
-      }
+      () => changeStack(m.id)
     )))
   ])
 
@@ -79,10 +76,7 @@ const view = ($: S, a: A) => PluginRight($.visible, {
     ,h('div', $.scopes.map(m => ListItem(
       m.name,
       $.activeScope === m.variablesReference,
-      () => {
-        changeScope(m.variablesReference)
-        a.updateState({ activeScope: m.variablesReference })
-      }
+      () => changeScope(m.variablesReference)
     )))
   ])
 
