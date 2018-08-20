@@ -1,14 +1,21 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import getDebugConfig from '../ai/get-debug-config'
+import { objToMap, uuid } from '../support/utils'
 import * as extensions from '../core/extensions'
+import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
-import { objToMap } from '../support/utils'
 import { action } from '../core/neovim'
 
 type ThreadsRes = DP.ThreadsResponse['body']
 type StackRes = DP.StackTraceResponse['body']
 type ScopesRes = DP.ScopesResponse['body']
 type VarRes = DP.VariablesResponse['body']
+
+interface Debugger {
+  id: string
+  rpc: RPCServer
+  activeThreadId: number
+}
 
 const Refresher = (dbg: extensions.RPCServer) => ({
   threads: async () => {
@@ -31,6 +38,21 @@ const Refresher = (dbg: extensions.RPCServer) => ({
     debugUI.updateState({ variables })
     return variables
   },
+})
+
+const activeDebuggers = new Map<string, Debugger>()
+let currentDebugger = 'lolnope'
+
+action('debug-next', () => {
+  const dbg = activeDebuggers.get(currentDebugger)
+  if (!dbg) return
+  dbg.rpc.sendRequest('next', { threadId: dbg.activeThreadId })
+})
+
+action('debug-continue', () => {
+  const dbg = activeDebuggers.get(currentDebugger)
+  if (!dbg) return
+  dbg.rpc.sendRequest('continue', { threadId: dbg.activeThreadId })
 })
 
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
@@ -66,7 +88,7 @@ export const userSelectScope = async (variablesReference: number) => {
 
 export const start = async (type: string) => {
   console.log('start debugger:', type)
-
+  const debuggerID = uuid()
   let activeThreadId = -1
   const features = new Map<string, any>()
 
@@ -74,9 +96,6 @@ export const start = async (type: string) => {
   const refresh = Refresher(dbg)
   activeDBG = dbg
   await new Promise(f => setTimeout(f, 1e3))
-
-  action('debug-next', () => dbg.sendRequest('next', { threadId: activeThreadId }))
-  action('debug-continue', () => dbg.sendRequest('continue', { threadId: activeThreadId }))
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
     // TODO: i think on this notification we SOMETIMES get 'threadId'
@@ -179,4 +198,10 @@ export const start = async (type: string) => {
 
   const [ firstThread ] = threadsResponse.threads
   if (firstThread) activeThreadId = firstThread.id
+
+  activeDebuggers.set(debuggerID, {
+    activeThreadId,
+    rpc: dbg,
+    id: debuggerID,
+  })
 }
