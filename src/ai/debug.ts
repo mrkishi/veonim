@@ -6,6 +6,17 @@ import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
 import { action } from '../core/neovim'
 
+// TODO: FOR TESTING ONLY
+// TODO: FOR TESTING ONLY
+// TODO: FOR TESTING ONLY
+// TODO: FOR TESTING ONLY
+// TODO: FOR TESTING ONLY
+debugUI.show()
+// TODO: FOR TESTING ONLY
+// TODO: FOR TESTING ONLY
+// TODO: FOR TESTING ONLY
+// TODO: FOR TESTING ONLY
+
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
 
     // setBreakpoints for every source file with breakpoints,
@@ -26,9 +37,12 @@ type StackFrames = DP.StackFrame[]
 type Scopes = DP.Scope[]
 type Variables = DP.Variable[]
 
-interface DebuggerState {
+export interface DebuggerInfo {
   id: string
   type: string
+}
+
+interface DebuggerState extends DebuggerInfo {
   activeThread: number
   activeStack: number
   activeScope: number
@@ -129,7 +143,7 @@ const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
   debuggers.set(id, { rpc, ...next })
 
   if (id !== activeDebugger) return
-  debugUI.updateState({ next, debuggers: listActiveDebuggers() })
+  debugUI.updateState({ ...next, debuggers: listActiveDebuggers() })
 }
 
 export const start = async (type: string) => {

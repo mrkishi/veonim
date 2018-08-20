@@ -1,4 +1,4 @@
-import { changeStack, changeScope } from '../ai/debug'
+import { DebuggerInfo, changeStack, changeScope } from '../ai/debug'
 import { PluginRight } from '../components/plugin-container'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { paddingVH } from '../ui/css'
@@ -10,6 +10,8 @@ type Scopes = DP.Scope[]
 type Variables = DP.Variable[]
 
 const state = {
+  id: '',
+  type: '',
   visible: false,
   threads: [] as Threads,
   stackFrames: [] as StackFrames,
@@ -18,16 +20,15 @@ const state = {
   activeThread: 0,
   activeStack: 0,
   activeScope: 0,
-  activeDebugger: '',
-  activeDebuggers: [] as string[],
+  debuggers: [] as DebuggerInfo[],
 }
 
 type S = typeof state
 
 const actions = {
-  show: (partialState = {} as any) => ({ ...partialState, visible: true }),
+  show: () => ({ visible: true }),
   hide: () => ({ visible: false }),
-  updateState: (partialState: any) => partialState,
+  updateState: (state: Partial<S>) => state,
 }
 
 type A = typeof actions
