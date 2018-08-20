@@ -1,6 +1,6 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
+import { objToMap, uuid, merge } from '../support/utils'
 import getDebugConfig from '../ai/get-debug-config'
-import { objToMap, uuid } from '../support/utils'
 import * as extensions from '../core/extensions'
 import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
@@ -15,10 +15,9 @@ type StackFrames = DP.StackFrame[]
 type Scopes = DP.Scope[]
 type Variables = DP.Variable[]
 
-interface Debugger {
+interface DebuggerState {
   id: string
   type: string
-  rpc: RPCServer
   activeThread: number
   activeStack: number
   activeScope: number
@@ -26,6 +25,10 @@ interface Debugger {
   stackFrames: StackFrames
   scopes: Scopes
   variables: Variables
+}
+
+interface Debugger extends DebuggerState {
+  rpc: RPCServer
 }
 
 const Refresher = (dbg: extensions.RPCServer) => ({
@@ -51,30 +54,30 @@ const Refresher = (dbg: extensions.RPCServer) => ({
   },
 })
 
-const activeDebuggers = new Map<string, Debugger>()
+const debuggers = new Map<string, Debugger>()
 let activeDebugger = 'lolnope'
 
 // TODO: put these in separate functions? i think we may
 // be calling these from the UI as well
 action('debug-next', () => {
-  const dbg = activeDebuggers.get(activeDebugger)
+  const dbg = debuggers.get(activeDebugger)
   if (!dbg) return
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 })
 
 action('debug-continue', () => {
-  const dbg = activeDebuggers.get(activeDebugger)
+  const dbg = debuggers.get(activeDebugger)
   if (!dbg) return
   dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
 })
 
-const listActiveDebuggers = () => [...activeDebuggers.values()]
+const listActiveDebuggers = () => [...debuggers.values()]
   .map(d => ({ id: d.id, type: d.type }))
 
 export const switchActiveDebugger = (id: string) => {
-  if (!activeDebuggers.has(id)) return false
+  if (!debuggers.has(id)) return false
   activeDebugger = id
-  const { activeThread, activeStack, activeScope } = activeDebuggers.get(id)!
+  const { activeThread, activeStack, activeScope } = debuggers.get(id)!
 
   debugUI.updateState({
     activeDebugger,
@@ -98,7 +101,7 @@ export const switchActiveDebugger = (id: string) => {
 // const exceptionBreakpoints = new Map<string, any>()
 
 export const userSelectStack = async (frameId: number) => {
-  const dbg = activeDebuggers.get(activeDebugger)
+  const dbg = debuggers.get(activeDebugger)
   if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
 
   const refresh = Refresher(dbg.rpc)
@@ -108,20 +111,47 @@ export const userSelectStack = async (frameId: number) => {
 }
 
 export const userSelectScope = async (variablesReference: number) => {
-  const dbg = activeDebuggers.get(activeDebugger)
+  const dbg = debuggers.get(activeDebugger)
   if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
 
   return Refresher(dbg.rpc).variables(variablesReference)
 }
 
+const updateState = (id: string, partialState: Partial<DebuggerState>) => {
+  const dbg = debuggers.get(id)
+  if (!dbg) return console.error('can not update debugger state of non-existing debugger.')
+
+  const { rpc, ...next } = merge(dbg, partialState)
+  debuggers.set(id, { rpc, ...next })
+
+  if (id !== activeDebugger) return
+  debugUI.updateState(next)
+}
+
 export const start = async (type: string) => {
   console.log('start debugger:', type)
-  const debuggerID = uuid()
-  let activeThread = -1
-  const features = new Map<string, any>()
 
+  const state: DebuggerState = {
+    type,
+    id: uuid(),
+    activeThread: -1,
+    activeStack: -1,
+    activeScope: -1,
+    threads: [],
+    stackFrames: [],
+    scopes: [],
+    variables: [],
+  }
+
+  const features = new Map<string, any>()
   const dbg = await extensions.start.debug(type)
   const refresh = Refresher(dbg)
+
+  // TODO: what is this timeout for???
+  // TODO: what is this timeout for???
+  // TODO: what is this timeout for???
+  // TODO: what is this timeout for???
+  // TODO: what is this timeout for???
   await new Promise(f => setTimeout(f, 1e3))
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
@@ -154,6 +184,7 @@ export const start = async (type: string) => {
   // from 'threads' request/response?
   dbg.onNotification('thread', (m: DP.ThreadEvent['body']) => {
     console.log('THREAD:', m)
+    merge(state, { activeThread: m.threadId })
     activeThread = m.threadId
     // request: 'threads'
   })
@@ -222,30 +253,22 @@ export const start = async (type: string) => {
   debugUI.updateState({ threads: threadsResponse.threads })
 
   const [ firstThread ] = threadsResponse.threads
-  if (firstThread) activeThread = firstThread.id
 
-  const state = {
-    activeThread,
-    activeStack: 0,
-    activeScope: 0,
+  merge(state, {
     threads: threadsResponse.threads,
-    stackFrames: [],
-    scopes: [],
-    variables: [],
-  }
+    activeThread: firstThread.id || -1,
+  })
 
-  activeDebuggers.set(debuggerID, {
+  debuggers.set(state.id, {
     ...state,
-    type,
     rpc: dbg,
-    id: debuggerID,
   })
 
   debugUI.show({
     ...state,
-    activeDebugger: debuggerID,
-    activeDebuggers: listActiveDebuggers(),
+    activeDebugger: state.id,
+    debuggers: listActiveDebuggers(),
   })
 
-  activeDebugger = debuggerID
+  activeDebugger = state.id
 }
