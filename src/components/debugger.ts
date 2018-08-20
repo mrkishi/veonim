@@ -1,4 +1,4 @@
-import { userSelectStack, userSelectScope } from '../ai/debug'
+import { changeStack, changeScope } from '../ai/debug'
 import { PluginRight } from '../components/plugin-container'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { paddingVH } from '../ui/css'
@@ -68,7 +68,7 @@ const view = ($: S, a: A) => PluginRight($.visible, {
       m.name,
       $.activeStack === m.id,
       () => {
-        userSelectStack(m.id)
+        changeStack(m.id)
         a.updateState({ activeStack: m.id })
       }
     )))
@@ -80,7 +80,7 @@ const view = ($: S, a: A) => PluginRight($.visible, {
       m.name,
       $.activeScope === m.variablesReference,
       () => {
-        userSelectScope(m.variablesReference)
+        changeScope(m.variablesReference)
         a.updateState({ activeScope: m.variablesReference })
       }
     )))
