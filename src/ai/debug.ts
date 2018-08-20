@@ -1,4 +1,5 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
+import getDebugConfig from '../ai/get-debug-config'
 import * as extensions from '../core/extensions'
 import debugUI from '../components/debugger'
 import { objToMap } from '../support/utils'
@@ -196,16 +197,7 @@ export const start = async (type: string) => {
   // TODO: what do with DEEZ capabilities??
   objToMap(supportedCapabilities, features)
 
-  // TODO: SEE DIS WAT DO? "Instead VS Code passes all arguments from the user's launch configuration to the launch or attach requests"
-  const launchRequest = {
-    type: 'node2',
-    request: 'launch',
-    name: 'Launch Program',
-    program: '/Users/a/proj/playground/asunc.js',
-    cwd: '/Users/a/proj/playground'
-  }
-
-  await dbg.sendRequest('launch', launchRequest)
+  await dbg.sendRequest('launch', getDebugConfig(type))
 
   debugUI.show()
 
