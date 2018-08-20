@@ -6,6 +6,17 @@ import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
 import { action } from '../core/neovim'
 
+// type Breakpoint = DP.SetBreakpointsRequest['arguments']
+
+    // setBreakpoints for every source file with breakpoints,
+    // setFunctionBreakpoints if the debug adapter supports function breakpoints,
+    // setExceptionBreakpoints if the debug adapter supports any exception options,
+    // configurationDoneRequest to indicate the end of the configuration sequence.
+
+// const breakpoints = new Map<string, any>()
+// const functionBreakpoints = new Map<string, any>()
+// const exceptionBreakpoints = new Map<string, any>()
+
 type ThreadsRes = DP.ThreadsResponse['body']
 type StackRes = DP.StackTraceResponse['body']
 type ScopesRes = DP.ScopesResponse['body']
@@ -31,6 +42,9 @@ interface Debugger extends DebuggerState {
   rpc: RPCServer
 }
 
+const debuggers = new Map<string, Debugger>()
+let activeDebugger = 'lolnope'
+
 const Refresher = (dbg: extensions.RPCServer) => ({
   threads: async () => {
     const { threads }: ThreadsRes = await dbg.sendRequest('threads')
@@ -54,27 +68,22 @@ const Refresher = (dbg: extensions.RPCServer) => ({
   },
 })
 
-const debuggers = new Map<string, Debugger>()
-let activeDebugger = 'lolnope'
-
-// TODO: put these in separate functions? i think we may
-// be calling these from the UI as well
-action('debug-next', () => {
-  const dbg = debuggers.get(activeDebugger)
-  if (!dbg) return
-  dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
-})
-
-action('debug-continue', () => {
-  const dbg = debuggers.get(activeDebugger)
-  if (!dbg) return
-  dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
-})
-
 const listActiveDebuggers = () => [...debuggers.values()].map(d => ({
   id: d.id,
   type: d.type,
 }))
+
+export const continuee = () => {
+  const dbg = debuggers.get(activeDebugger)
+  if (!dbg) return
+  dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
+}
+
+export const next = () => {
+  const dbg = debuggers.get(activeDebugger)
+  if (!dbg) return
+  dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
+}
 
 export const switchActiveDebugger = (id: string) => {
   if (!debuggers.has(id)) return false
@@ -84,20 +93,9 @@ export const switchActiveDebugger = (id: string) => {
   return true
 }
 
-// type Breakpoint = DP.SetBreakpointsRequest['arguments']
-
-    // setBreakpoints for every source file with breakpoints,
-    // setFunctionBreakpoints if the debug adapter supports function breakpoints,
-    // setExceptionBreakpoints if the debug adapter supports any exception options,
-    // configurationDoneRequest to indicate the end of the configuration sequence.
-
-// const breakpoints = new Map<string, any>()
-// const functionBreakpoints = new Map<string, any>()
-// const exceptionBreakpoints = new Map<string, any>()
-
-export const userSelectStack = async (frameId: number) => {
+export const changeStack = async (frameId: number) => {
   const dbg = debuggers.get(activeDebugger)
-  if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
+  if (!dbg) return console.error('no active debugger found. this is a problem because we already have the debug context present in the UI')
 
   const refresh = Refresher(dbg.rpc)
   const scopes = await refresh.scopes(frameId)
@@ -105,15 +103,13 @@ export const userSelectStack = async (frameId: number) => {
   return refresh.variables(scopes[0].variablesReference)
 }
 
-export const userSelectScope = async (variablesReference: number) => {
+export const changeScope = async (variablesReference: number) => {
   const dbg = debuggers.get(activeDebugger)
-  if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
+  if (!dbg) return console.error('no active debugger found. this is a problem because we already have the debug context present in the UI')
 
   return Refresher(dbg.rpc).variables(variablesReference)
 }
 
-// TODO: this function should add a debugger entry if it does not exist
-// should not error if a debugger does not exist
 const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
   const dbg = debuggers.get(id) || {} as Debugger
 
@@ -246,3 +242,6 @@ export const start = async (type: string) => {
   updateDebuggerState(dbg.id, dbg)
   activeDebugger = dbg.id
 }
+
+action('debug-next', next)
+action('debug-continue', continuee)
