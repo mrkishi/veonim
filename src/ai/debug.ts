@@ -57,10 +57,6 @@ action('debug-continue', () => {
 
 // type Breakpoint = DP.SetBreakpointsRequest['arguments']
 
-// TODO: in the future we will want the ability to have multiple
-// debuggers running at the same time (vscode does something like this)
-
-
     // setBreakpoints for every source file with breakpoints,
     // setFunctionBreakpoints if the debug adapter supports function breakpoints,
     // setExceptionBreakpoints if the debug adapter supports any exception options,
@@ -70,20 +66,21 @@ action('debug-continue', () => {
 // const functionBreakpoints = new Map<string, any>()
 // const exceptionBreakpoints = new Map<string, any>()
 
-// TODO: this is a dirty hack. need to figure out a better way to contextualize
-// the various debuggers in teh UI. someone needs to own the current instance of
-// debugger... who will that be?
-
-let activeDBG: extensions.RPCServer
 export const userSelectStack = async (frameId: number) => {
-  const refresh = Refresher(activeDBG)
+  const dbg = activeDebuggers.get(currentDebugger)
+  if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
+
+  const refresh = Refresher(dbg.rpc)
   const scopes = await refresh.scopes(frameId)
   debugUI.updateState({ activeScope: scopes[0].variablesReference })
   return refresh.variables(scopes[0].variablesReference)
 }
 
 export const userSelectScope = async (variablesReference: number) => {
-  return Refresher(activeDBG).variables(variablesReference)
+  const dbg = activeDebuggers.get(currentDebugger)
+  if (!dbg) return console.error('no current debugger found. this is a problem because we already have the debug context present in the UI.')
+
+  return Refresher(dbg.rpc).variables(variablesReference)
 }
 
 export const start = async (type: string) => {
@@ -94,7 +91,6 @@ export const start = async (type: string) => {
 
   const dbg = await extensions.start.debug(type)
   const refresh = Refresher(dbg)
-  activeDBG = dbg
   await new Promise(f => setTimeout(f, 1e3))
 
   dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
@@ -204,4 +200,6 @@ export const start = async (type: string) => {
     rpc: dbg,
     id: debuggerID,
   })
+
+  currentDebugger = debuggerID
 }
