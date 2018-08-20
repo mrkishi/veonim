@@ -119,21 +119,18 @@ export const userSelectScope = async (variablesReference: number) => {
 
 // TODO: this function should add a debugger entry if it does not exist
 // should not error if a debugger does not exist
-const updateDebuggerState = (id: string, partialState: Partial<DebuggerState>) => {
-  const dbg = debuggers.get(id)
-  if (!dbg) return console.error('can not update debugger state of non-existing debugger.')
+const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
+  const dbg = debuggers.get(id) || {} as Debugger
 
-  const { rpc, ...next } = merge(dbg, partialState)
+  const { rpc, ...next } = merge(dbg, state)
   debuggers.set(id, { rpc, ...next })
 
   if (id !== activeDebugger) return
-  debugUI.updateState(next)
+  debugUI.updateState({ next, debuggers: listActiveDebuggers() })
 }
 
 export const start = async (type: string) => {
-  console.log('start debugger:', type)
-
-  const state: DebuggerState = {
+  const dbg: Debugger = {
     type,
     id: uuid(),
     activeThread: -1,
@@ -143,20 +140,13 @@ export const start = async (type: string) => {
     stackFrames: [],
     scopes: [],
     variables: [],
+    rpc: await extensions.start.debug(type),
   }
 
   const features = new Map<string, any>()
-  const dbg = await extensions.start.debug(type)
-  const refresh = Refresher(dbg)
+  const refresh = Refresher(dbg.rpc)
 
-  // TODO: what is this timeout for???
-  // TODO: what is this timeout for???
-  // TODO: what is this timeout for???
-  // TODO: what is this timeout for???
-  // TODO: what is this timeout for???
-  await new Promise(f => setTimeout(f, 1e3))
-
-  dbg.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
+  dbg.rpc.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
     // TODO: i think on this notification we SOMETIMES get 'threadId'
     // how do we use 'activeThread'???
 
@@ -167,7 +157,7 @@ export const start = async (type: string) => {
     // threads on a breakpoint. isn't a breakpoint per thread??
     console.log('DEBUGGER STOPPED:', m)
     // TODO: do something with breakpoint 'reason'
-    const targetThread = m.threadId || activeThread
+    const targetThread = m.threadId || dbg.activeThread
 
     await refresh.threads()
     const stackFrames = await refresh.stackFrames(targetThread)
@@ -184,18 +174,17 @@ export const start = async (type: string) => {
   // TODO: this notification is optional
   // if this does not set the active thread, then assign the first thread
   // from 'threads' request/response?
-  dbg.onNotification('thread', (m: DP.ThreadEvent['body']) => {
+  dbg.rpc.onNotification('thread', (m: DP.ThreadEvent['body']) => {
     console.log('THREAD:', m)
-    merge(state, { activeThread: m.threadId })
-    activeThread = m.threadId
+    updateDebuggerState(dbg.id, { activeThread: m.threadId })
     // request: 'threads'
   })
 
-  dbg.onNotification('terminated', () => {
+  dbg.rpc.onNotification('terminated', () => {
     console.log('YOU HAVE BEEN TERMINATED')
   })
 
-  dbg.onNotification('initialized', async () => {
+  dbg.rpc.onNotification('initialized', async () => {
     console.log('INITIALIZED! SEND DA BREAKPOINTS!')
     console.log(features)
 
@@ -212,24 +201,24 @@ export const start = async (type: string) => {
       ]
     }
 
-    const breakpointsResponse = await dbg.sendRequest('setBreakpoints', breakpointsRequest)
+    const breakpointsResponse = await dbg.rpc.sendRequest('setBreakpoints', breakpointsRequest)
     console.log('BRSK:', breakpointsResponse)
     // TODO: send function breakpoints
     // TODO: send exception breakpoints
 
-    await dbg.sendRequest('configurationDone')
+    await dbg.rpc.sendRequest('configurationDone')
     console.log('CONFIG DONE')
   })
 
-  dbg.onNotification('capabilities', ({ capabilities }) => {
+  dbg.rpc.onNotification('capabilities', ({ capabilities }) => {
     objToMap(capabilities, features)
   })
 
-  dbg.onNotification('loadedSource', (_m) => {
+  dbg.rpc.onNotification('loadedSource', (_m) => {
     // TODO: wat i do wit dis?
   })
 
-  dbg.onNotification('output', data => {
+  dbg.rpc.onNotification('output', data => {
     if (data.category === 'console' || data.category === 'stderr') console.log(type, data.output)
   })
 
@@ -243,38 +232,24 @@ export const start = async (type: string) => {
     locale: 'en',
   }
 
-  const supportedCapabilities = await dbg.sendRequest('initialize', initRequest)
+  const supportedCapabilities = await dbg.rpc.sendRequest('initialize', initRequest)
   // TODO: what do with DEEZ capabilities??
   // use capabilities to determine what kind of breakpoints to send, etc.
   // for example: log breakpoints that are not supported by all debuggers
   objToMap(supportedCapabilities, features)
 
-  await dbg.sendRequest('launch', getDebugConfig(type))
+  await dbg.rpc.sendRequest('launch', getDebugConfig(type))
 
-  const threadsResponse: ThreadsRes = await dbg.sendRequest('threads')
+  const threadsResponse: ThreadsRes = await dbg.rpc.sendRequest('threads')
   debugUI.updateState({ threads: threadsResponse.threads })
 
   const [ firstThread ] = threadsResponse.threads
 
-  updateDebuggerState(uuid(), {
-
-  })
-
-  merge(state, {
+  merge(dbg, {
     threads: threadsResponse.threads,
     activeThread: firstThread.id || -1,
   })
 
-  debuggers.set(state.id, {
-    ...state,
-    rpc: dbg,
-  })
-
-  debugUI.show({
-    ...state,
-    activeDebugger: state.id,
-    debuggers: listActiveDebuggers(),
-  })
-
-  activeDebugger = state.id
+  updateDebuggerState(dbg.id, dbg)
+  activeDebugger = dbg.id
 }
