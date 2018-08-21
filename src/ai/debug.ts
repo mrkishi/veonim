@@ -183,6 +183,7 @@ export const start = async (type: string) => {
     rpc: await extensions.start.debug(type),
   }
 
+  // TODO: should features and refresh be stored on the debugger object?
   const features = new Map<string, any>()
   const refresh = Refresher(dbg.rpc)
 
@@ -228,21 +229,25 @@ export const start = async (type: string) => {
     console.log('INITIALIZED! SEND DA BREAKPOINTS!')
     console.log(features)
 
-    // TODO: need to call this request once per source!
-    // multiple sources == multiple calls
-    const breakpointsRequest: DP.SetBreakpointsRequest['arguments'] = {
-      source: {
-        name: 'asunc.js',
-        path: '/Users/a/proj/playground/asunc.js',
-      },
-      breakpoints: [
-        // TODO: support the other thingies (see interface for other options)
-        { line: 10 }
-      ]
+    // TODO: find out what the key is that we are looking for. is this typed?
+    // (i don't think so)
+    const functionBreakpointsSupported = features.has('functionBreakpoints')
+    const sourceBreakpoints = breakpoints.listSourceBreakpoints()
+    const functionBreakpoints = breakpoints.listFunctionBreakpoints()
+
+    if (functionBreakpointsSupported) {
+      console.warn('NYI: pls sendRequest for function breakpoints to the debug adapter')
+      console.log(functionBreakpoints)
     }
 
-    const breakpointsResponse = await dbg.rpc.sendRequest('setBreakpoints', breakpointsRequest)
-    console.log('BRSK:', breakpointsResponse)
+    const sourceBreakpointRequests = sourceBreakpoints.map(breakpointSource => {
+      return dbg.rpc.sendRequest('setBreakpoints', breakpointSource)
+    })
+
+    const sourceBreakpointResponses = await Promise.all(sourceBreakpointRequests)
+    // TODO: wat do wid dis?
+    console.log('sourceBreakpointResponses', sourceBreakpointResponses)
+
     // TODO: send function breakpoints
     // TODO: send exception breakpoints
 
