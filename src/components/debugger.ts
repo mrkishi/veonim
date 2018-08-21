@@ -95,7 +95,7 @@ const view = ($: S) => PluginRight($.visible, {
   ,h('div', [
     ,header('Breakpoints')
     ,h('div', $.breakpoints.map(m => ListItem(
-      `${m.path}: ${m.line}`,
+      `${m.path}:${m.line}`,
       false,
       () => {},
     )))

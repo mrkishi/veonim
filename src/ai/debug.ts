@@ -306,5 +306,5 @@ export const start = async (type: string) => {
 // action('debug-stop')
 action('debug-next', next)
 action('debug-continue', continuee)
-action('debug-breakpoint-source', toggleSourceBreakpoint)
+action('debug-breakpoint', toggleSourceBreakpoint)
 action('debug-breakpoint-function', toggleFunctionBreakpoint)
