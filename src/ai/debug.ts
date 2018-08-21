@@ -1,7 +1,7 @@
 import { action, current as vim, cmd } from '../core/neovim'
+import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
-import { objToMap, uuid, merge } from '../support/utils'
 import getDebugConfig from '../ai/get-debug-config'
 import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
@@ -53,6 +53,7 @@ interface Debugger extends DebuggerState {
   rpc: RPCServer
 }
 
+const tempVimSignsIDGenerator = ID(1)
 let activeDebugger = 'lolnope'
 const debuggers = new Map<string, Debugger>()
 
@@ -96,15 +97,30 @@ const next = () => {
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 }
 
-const tempShowBreakpointSigns = (points: breakpoints.Breakpoint[]) => {
+// TODO: TEMP LOL
+const fileToID = new Map()
+setTimeout(() => {
   cmd(`sign unplace *`)
-  cmd(`sign define vnbp text=»`)
-  points.forEach(bp => cmd(`sign place 9001 name=vnbp line=${bp.line + 1} file=${bp.path}`))
+  cmd(`sign define vnbp text=» texthl=String`)
+}, 1e3)
+// TODO: TEMP LOL
+
+const addOrRemoveVimSign = (bp: breakpoints.Breakpoint) => {
+  if (!fileToID.has(bp.path)) fileToID.set(bp.path, tempVimSignsIDGenerator.next())
+  const line = bp.line + 1
+  const fileId = fileToID.get(bp.path)
+  const signId = `${fileId}${line}`
+
+  breakpoints.has(bp)
+    ? cmd(`sign unplace ${signId}`)
+    : cmd(`sign place ${signId} name=vnbp line=${line} file=${bp.path}`)
 }
 
 const toggleBreakpoint = () => {
   const { absoluteFilepath: path, line, column } = vim
   const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Source }
+
+  addOrRemoveVimSign(breakpoint)
 
   breakpoints.has(breakpoint)
     ? breakpoints.remove(breakpoint)
@@ -112,7 +128,6 @@ const toggleBreakpoint = () => {
 
   const nextBreakpoints = breakpoints.list()
   debugUI.updateState({ breakpoints: nextBreakpoints })
-  tempShowBreakpointSigns(nextBreakpoints)
 
   // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
   debugUI.show()
