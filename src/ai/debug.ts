@@ -1,4 +1,5 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
+import userSelectOption from '../components/generic-menu'
 import { objToMap, uuid, merge } from '../support/utils'
 import { action, current as vim } from '../core/neovim'
 import getDebugConfig from '../ai/get-debug-config'
@@ -6,6 +7,7 @@ import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
 import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
+import * as Icon from 'hyperapp-feather'
 
 // TODO: FOR TESTING ONLY
 // TODO: FOR TESTING ONLY
@@ -304,6 +306,23 @@ export const start = async (type: string) => {
 // can't we use the GenericMenu module instead?
 // TODO: stop debugger action
 // action('debug-stop')
+action('debug-start', async (type?: string) => {
+  if (type) return start(type)
+  const availableDebuggers = await extensions.listDebuggers()
+  console.log('availableDebuggers', availableDebuggers)
+
+  const choice = await userSelectOption<string>({
+    description: 'choose a debugger to start',
+    options: [{
+      key: 1,
+      value: 'nodenodenode',
+    }],
+    icon: Icon.Cpu,
+  })
+
+  console.log('debugger chosen', choice)
+})
+
 action('debug-next', next)
 action('debug-continue', continuee)
 action('debug-breakpoint', toggleSourceBreakpoint)
