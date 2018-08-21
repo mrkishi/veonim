@@ -1,11 +1,12 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { objToMap, uuid, merge } from '../support/utils'
+import { action, current as vim } from '../core/neovim'
 import getDebugConfig from '../ai/get-debug-config'
 import * as extensions from '../core/extensions'
-import { action, current } from '../core/neovim'
 import * as breakpoints from '../ai/breakpoints'
 import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
+import { join } from 'path'
 
 // TODO: FOR TESTING ONLY
 // TODO: FOR TESTING ONLY
@@ -100,16 +101,22 @@ const next = () => {
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 }
 
-const toggleSourceBreakpoint = (breakpoint: DP.SourceBreakpoint) => {
-  breakpoints.source.has(breakpoint)
-    ? breakpoints.source.delete(breakpoint)
-    : breakpoints.source.add(breakpoint)
+const toggleSourceBreakpoint = () => {
+  const { absoluteFilepath: path, file: name, line, column } = vim
+  const breakpoint = { path, name, line, column, kind: breakpoints.BreakpointKind.Source }
+
+  breakpoints.has(breakpoint)
+    ? breakpoints.remove(breakpoint)
+    : breakpoints.add(breakpoint)
 }
 
-const toggleFunctionBreakpoint = (breakpoint: DP.FunctionBreakpoint) => {
-  breakpoints.function.has(breakpoint)
-    ? breakpoints.function.delete(breakpoint)
-    : breakpoints.function.add(breakpoint)
+const toggleFunctionBreakpoint = () => {
+  const { absoluteFilepath: path, file: name, line, column } = vim
+  const breakpoint = { path, name, line, column, kind: breakpoints.BreakpointKind.Function }
+
+  breakpoints.has(breakpoint)
+    ? breakpoints.remove(breakpoint)
+    : breakpoints.add(breakpoint)
 }
 
 // TODO: exception breakpoints??

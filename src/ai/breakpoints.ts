@@ -1,21 +1,38 @@
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 
-export enum BreakpointType { Source, Function, Exception }
+export enum BreakpointKind { Source, Function, Exception }
+
+export interface BreakpointPosition {
+  path: string
+  line: number
+  column: number
+}
 
 export interface Breakpoint {
-  type: BreakpointType
-  breakpoint: DP.SourceBreakpoint | DP.FunctionBreakpoint
+  kind: BreakpointKind
+  path: string
+  name: string
+  line: number
+  column: number
+  condition?: string
+  functionName?: string
+  hitCondition?: string
+  logMessage?: string
 }
 
 const files = new Map<string, Set<Breakpoint>>()
 
-export const add = (path: string, breakpoint: Breakpoint) => files.has(path)
-  ? files.get(path)!.add(breakpoint)
-  : files.set(path, new Set([ breakpoint ]))
-
-export const remove = (path: string, breakpoint: Breakpoint) => {
-  if (!files.has(path)) return
-  files.get(path)!.delete(breakpoint)
+export const add = (breakpoint: Breakpoint) => {
+  return false
+    // ? files.get(path)!.add(breakpoint)
+    // : files.set(path, new Set([ breakpoint ]))
 }
 
-export const has = (path: string, breakpoint: Breakpoint) => files.has(path) && files.get(path)!.has(breakpoint)
+export const remove = (breakpoint: Breakpoint) => {
+  // if (!files.has(path)) return
+  // files.get(path)!.delete(breakpoint)
+}
+
+export const has = (position: BreakpointPosition) => {
+  return true
+}
