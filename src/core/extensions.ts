@@ -1,3 +1,4 @@
+import { DebugAdapterConnection } from '../messaging/debug-protocol'
 import Worker from '../messaging/worker'
 
 export interface RPCServer {
@@ -16,6 +17,7 @@ export interface DebuggerInfo {
 
 const { on, call, request } = Worker('extension-host')
 
+// TODO: this does not need to be async right?
 const bridgeServer = async (serverId: string): Promise<RPCServer> => {
   const sendNotification = (method: string, ...params: any[]) => {
     call.server_sendNotification({ serverId, method, params })
@@ -48,6 +50,35 @@ const bridgeServer = async (serverId: string): Promise<RPCServer> => {
   return { sendNotification, sendRequest, onNotification, onRequest, onError, onClose }
 }
 
+const bridgeDebugAdapterServer = (serverId: string): DebugAdapterConnection => {
+  const api = {} as DebugAdapterConnection
+
+  api.sendRequest = (command, args) => request.debug_sendRequest({ serverId, command, args })
+  api.sendNotification = (response) => call.debug_sendNotification({ serverId, response })
+
+  api.onNotification = (method, cb) => {
+    call.debug_onNotification({ serverId, method })
+    on[`${serverId}:${method}`]((args: any) => cb(args))
+  }
+
+  api.onRequest = cb => {
+    call.debug_onRequest({ serverId })
+    on[`${serverId}:onRequest`]((args: any) => cb(args))
+  }
+
+  api.onError = cb => {
+    call.debug_onError({ serverId })
+    on[`${serverId}:onError`]((args: any) => cb(args))
+  }
+
+  api.onClose = cb => {
+    call.debug_onClose({ serverId })
+    on[`${serverId}:onClose`](() => cb())
+  }
+
+  return api
+}
+
 export const load = () => call.load()
 export const existsForLanguage = (language: string) => request.existsForLanguage(language)
 export const listDebuggers = () => request.listDebuggers()
@@ -61,9 +92,9 @@ export const activate = {
 }
 
 export const start = {
-  debug: async (type: string): Promise<RPCServer> => {
+  debug: async (type: string): Promise<DebugAdapterConnection> => {
     const serverId = await request.startDebug(type)
     if (!serverId) throw new Error(`was not able to start debug adapter ${type}`)
-    return bridgeServer(serverId)
+    return bridgeDebugAdapterServer(serverId)
   }
 }
