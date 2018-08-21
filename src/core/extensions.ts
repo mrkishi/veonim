@@ -2,12 +2,12 @@ import { DebugAdapterConnection } from '../messaging/debug-protocol'
 import Worker from '../messaging/worker'
 
 export interface RPCServer {
-  sendNotification: (method: string, ...params: any[]) => void,
-  sendRequest: (method: string, ...params: any[]) => Promise<any>,
-  onNotification: (method: string, cb: (...args: any[]) => void) => void,
-  onRequest: (method: string, cb: (...args: any[]) => Promise<any>) => void,
-  onError: (cb: (err: any) => void) => void,
-  onClose: (cb: (err: any) => void) => void,
+  sendNotification: (method: string, ...params: any[]) => void
+  sendRequest: (method: string, ...params: any[]) => Promise<any>
+  onNotification: (method: string, cb: (...args: any[]) => void) => void
+  onRequest: (method: string, cb: (...args: any[]) => Promise<any>) => void
+  onError: (cb: (err: any) => void) => void
+  onClose: (cb: (err: any) => void) => void
 }
 
 export interface DebuggerInfo {
@@ -17,37 +17,38 @@ export interface DebuggerInfo {
 
 const { on, call, request } = Worker('extension-host')
 
-// TODO: this does not need to be async right?
-const bridgeServer = async (serverId: string): Promise<RPCServer> => {
-  const sendNotification = (method: string, ...params: any[]) => {
+const bridgeServer = (serverId: string): RPCServer => {
+  const api = {} as RPCServer
+
+  api.sendNotification = (method, ...params) => {
     call.server_sendNotification({ serverId, method, params })
   }
 
-  const sendRequest = (method: string, ...params: any[]) => {
+  api.sendRequest = (method, ...params) => {
     return request.server_sendRequest({ serverId, method, params })
   }
 
-  const onNotification = (method: string, cb: (...args: any[]) => void) => {
+  api.onNotification = (method, cb) => {
     call.server_onNotification({ serverId, method })
     on[`${serverId}:${method}`]((args: any[]) => cb(...args))
   }
 
-  const onRequest = (method: string, cb: (...args: any[]) => Promise<any>) => {
+  api.onRequest = (method, cb) => {
     call.server_onRequest({ serverId, method })
     on[`${serverId}:${method}`]((args: any[]) => cb(...args))
   }
 
-  const onError = (cb: (err: any) => void) => {
+  api.onError = cb => {
     call.server_onError({ serverId })
     on[`${serverId}:onError`]((err: any) => cb(err))
   }
 
-  const onClose = (cb: (err: any) => void) => {
+  api.onClose = cb => {
     call.server_onExit({ serverId })
     on[`${serverId}:onClose`]((err: any) => cb(err))
   }
 
-  return { sendNotification, sendRequest, onNotification, onRequest, onError, onClose }
+  return api
 }
 
 const bridgeDebugAdapterServer = (serverId: string): DebugAdapterConnection => {
