@@ -17,6 +17,22 @@ type Threads = DP.Thread[]
 type StackFrames = DP.StackFrame[]
 type Scopes = DP.Scope[]
 type Variables = DP.Variable[]
+type PossibleDebuggerFeatures = string
+  | 'exceptionBreakpointFilters'
+  | 'supportsConfigurationDoneRequest'
+  | 'supportsSetVariable'
+  | 'supportsConditionalBreakpoints'
+  | 'supportsCompletionsRequest'
+  | 'supportsHitConditionalBreakpoints'
+  | 'supportsRestartFrame'
+  | 'supportsExceptionInfoRequest'
+  | 'supportsDelayedStackTraceLoading'
+  | 'supportsValueFormattingOptions'
+  | 'supportsEvaluateForHovers'
+  | 'supportsLoadedSourcesRequest'
+  | 'supportsLogPoints'
+  | 'supportsTerminateRequest'
+  | 'supportsStepBack'
 
 export interface DebuggerInfo {
   id: string
@@ -185,7 +201,7 @@ const start = async (type: string) => {
   }
 
   // TODO: should features and refresh be stored on the debugger object?
-  const features = new Map<string, any>()
+  const features = new Map<PossibleDebuggerFeatures, any>()
   const refresh = Refresher(dbg.rpc)
 
   dbg.rpc.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
@@ -283,7 +299,13 @@ const start = async (type: string) => {
   // for example: log breakpoints that are not supported by all debuggers
   objToMap(supportedCapabilities, features)
 
-  await dbg.rpc.sendRequest('launch', getDebugConfig(type))
+  const launchConfig = {
+    ...getDebugConfig(type),
+    // TODO: this is the main entry point of the program. may or may not be the current file
+    program: vim.absoluteFilepath,
+    cwd: vim.cwd,
+  }
+  await dbg.rpc.sendRequest('launch', launchConfig)
   const { threads }: ThreadsRes = await dbg.rpc.sendRequest('threads')
 
   merge(dbg, {

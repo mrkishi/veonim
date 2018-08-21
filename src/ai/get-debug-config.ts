@@ -5,8 +5,6 @@ export default (debugType: string) => {
     type: 'node2',
     request: 'launch',
     name: 'Launch Program',
-    program: '/Users/a/proj/playground/asunc.js',
-    cwd: '/Users/a/proj/playground'
   }
 }
 // TODO: SEE DIS WAT DO? "Instead VS Code passes all arguments from the user's launch configuration to the launch or attach requests"
