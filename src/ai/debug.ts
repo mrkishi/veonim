@@ -8,29 +8,6 @@ import * as breakpoints from '../ai/breakpoints'
 import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
-console.log('debugUI', debugUI)
-
-// TODO: FOR TESTING ONLY
-// TODO: FOR TESTING ONLY
-// TODO: FOR TESTING ONLY
-// TODO: FOR TESTING ONLY
-// TODO: FOR TESTING ONLY
-debugUI.show()
-// TODO: FOR TESTING ONLY
-// TODO: FOR TESTING ONLY
-// TODO: FOR TESTING ONLY
-// TODO: FOR TESTING ONLY
-
-// type Breakpoint = DP.SetBreakpointsRequest['arguments']
-
-    // setBreakpoints for every source file with breakpoints,
-    // setFunctionBreakpoints if the debug adapter supports function breakpoints,
-    // setExceptionBreakpoints if the debug adapter supports any exception options,
-    // configurationDoneRequest to indicate the end of the configuration sequence.
-
-// const breakpoints = new Map<string, any>()
-// const functionBreakpoints = new Map<string, any>()
-// const exceptionBreakpoints = new Map<string, any>()
 
 type ThreadsRes = DP.ThreadsResponse['body']
 type StackRes = DP.StackTraceResponse['body']
@@ -112,6 +89,10 @@ const toggleSourceBreakpoint = () => {
     : breakpoints.add(breakpoint)
 
   debugUI.updateState({ breakpoints: breakpoints.list() })
+
+  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
+  debugUI.show()
+  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
 }
 
 const toggleFunctionBreakpoint = () => {
@@ -123,6 +104,10 @@ const toggleFunctionBreakpoint = () => {
     : breakpoints.add(breakpoint)
 
   debugUI.updateState({ breakpoints: breakpoints.list() })
+
+  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
+  debugUI.show()
+  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
 }
 
 // TODO: exception breakpoints??
@@ -242,6 +227,8 @@ export const start = async (type: string) => {
     const sourceBreakpoints = breakpoints.listSourceBreakpoints()
     const functionBreakpoints = breakpoints.listFunctionBreakpoints()
 
+    // TODO: send function breakpoints
+    // TODO: send exception breakpoints
     if (functionBreakpointsSupported) {
       console.warn('NYI: pls sendRequest for function breakpoints to the debug adapter')
       console.log(functionBreakpoints)
@@ -254,9 +241,6 @@ export const start = async (type: string) => {
     const sourceBreakpointResponses = await Promise.all(sourceBreakpointRequests)
     // TODO: wat do wid dis?
     console.log('sourceBreakpointResponses', sourceBreakpointResponses)
-
-    // TODO: send function breakpoints
-    // TODO: send exception breakpoints
 
     await dbg.rpc.sendRequest('configurationDone')
     console.log('CONFIG DONE')
@@ -300,6 +284,7 @@ export const start = async (type: string) => {
 
   updateDebuggerState(dbg.id, dbg)
   activeDebugger = dbg.id
+  debugUI.show()
 }
 
 // TODO: stop debugger action
