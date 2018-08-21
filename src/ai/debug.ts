@@ -1,7 +1,7 @@
+import { action, current as vim, cmd } from '../core/neovim'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
 import { objToMap, uuid, merge } from '../support/utils'
-import { action, current as vim } from '../core/neovim'
 import getDebugConfig from '../ai/get-debug-config'
 import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
@@ -96,6 +96,12 @@ const next = () => {
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 }
 
+const tempShowBreakpointSigns = (points: breakpoints.Breakpoint[]) => {
+  cmd(`sign unplace *`)
+  cmd(`sign define vnbp text=»`)
+  points.forEach(bp => cmd(`sign place 9001 name=vnbp line=${bp.line + 1} file=${bp.path}`))
+}
+
 const toggleBreakpoint = () => {
   const { absoluteFilepath: path, line, column } = vim
   const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Source }
@@ -104,7 +110,9 @@ const toggleBreakpoint = () => {
     ? breakpoints.remove(breakpoint)
     : breakpoints.add(breakpoint)
 
-  debugUI.updateState({ breakpoints: breakpoints.list() })
+  const nextBreakpoints = breakpoints.list()
+  debugUI.updateState({ breakpoints: nextBreakpoints })
+  tempShowBreakpointSigns(nextBreakpoints)
 
   // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
   debugUI.show()
@@ -225,10 +233,6 @@ const start = async (type: string) => {
     // location
     //
     // do the same thing when we change stackFrames from the UI
-
-    // TODO: since our UI shadow buffer layer is buggy, maybe we can use
-    // vim signs feature to temporarily show where the breakpoints are
-    // in the buffer. kthx
 
     await refresh.threads()
     const stackFrames = await refresh.stackFrames(targetThread)
