@@ -1,3 +1,4 @@
+import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { basename } from 'path'
 
 export enum BreakpointKind { Source, Function, Exception }
@@ -44,7 +45,27 @@ export const remove = (breakpoint: Breakpoint) => {
 
 export const has = (breakpoint: Breakpoint) => findBreakpoint(breakpoint).exists
 
-export const list = () => {
-  const items = [...files.entries()]
-
+const asSourceBreakpoint = (breakpoint: Breakpoint): DP.SourceBreakpoint => {
+  const { kind, path, functionName, ...rest } = breakpoint
+  return rest
 }
+
+const asFunctionBreakpoint = (breakpoint: Breakpoint): DP.FunctionBreakpoint => {
+  const { functionName: name = '', condition, hitCondition } = breakpoint
+  return { name, condition, hitCondition }
+}
+
+export const listSourceBreakpoints = () => [...files.entries()].map(([ path, allBreakpoints ]) => ({
+  source: { path, name: basename(path) },
+  breakpoints: allBreakpoints
+    .filter(b => b.kind === BreakpointKind.Source)
+    .map(asSourceBreakpoint),
+}))
+
+export const listFunctionBreakpoints = () => [...files.entries()].map(([ path, allBreakpoints ]) => ({
+  source: { path, name: basename(path) },
+  breakpoints: allBreakpoints
+    .filter(b => b.kind === BreakpointKind.Function)
+    .map(asFunctionBreakpoint)
+    .filter(b => b.name)
+}))
