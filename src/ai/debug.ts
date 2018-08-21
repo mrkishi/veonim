@@ -56,8 +56,12 @@ interface Debugger extends DebuggerState {
   rpc: RPCServer
 }
 
-const debuggers = new Map<string, Debugger>()
 let activeDebugger = 'lolnope'
+const debuggers = new Map<string, Debugger>()
+const breakpoints = {
+  source: new Set<DP.SourceBreakpoint>(),
+  function: new Set<DP.FunctionBreakpoint>(),
+}
 
 const Refresher = (dbg: extensions.RPCServer) => ({
   threads: async () => {
@@ -89,15 +93,28 @@ const listActiveDebuggers = () => [...debuggers.values()].map(d => ({
 
 export const continuee = () => {
   const dbg = debuggers.get(activeDebugger)
-  if (!dbg) return
+  if (!dbg) return console.warn('debug continue called without an active debugger')
   dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
 }
 
 export const next = () => {
   const dbg = debuggers.get(activeDebugger)
-  if (!dbg) return
+  if (!dbg) return console.warn('debug next called without an active debugger')
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 }
+
+export const toggleSourceBreakpoint = (breakpoint: DP.SourceBreakpoint) => {
+  const dbg = debuggers.get(activeDebugger)
+
+
+}
+
+// TODO: need to check if supported
+export const toggleFunctionBreakpoint = (breakpoint: DP.FunctionBreakpoint) => {
+
+}
+
+// TODO: setExceptionBreakpoints
 
 export const switchActiveDebugger = (id: string) => {
   if (!debuggers.has(id)) return false
