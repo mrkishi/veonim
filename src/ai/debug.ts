@@ -159,7 +159,16 @@ const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
   debugUI.updateState({ ...next, debuggers: listActiveDebuggers() })
 }
 
-export const start = async (type: string) => {
+const stop = async () => {
+  const dbg = debuggers.get(activeDebugger)
+  if (!dbg) return console.warn('no active debugger found to stop')
+
+  // TODO: figure out the termination sequence
+  dbg.rpc.sendNotification('terminate')
+  debuggers.delete(activeDebugger)
+}
+
+const start = async (type: string) => {
   console.warn(`starting debugger: ${type}`)
 
   const dbg: Debugger = {
@@ -287,8 +296,6 @@ export const start = async (type: string) => {
   debugUI.show()
 }
 
-// TODO: stop debugger action
-// action('debug-stop')
 action('debug-start', async (type?: string) => {
   if (type) return start(type)
   const availableDebuggers = await extensions.listDebuggers()
@@ -306,6 +313,7 @@ action('debug-start', async (type?: string) => {
   console.log('debugger chosen', choice)
 })
 
+action('debug-stop', stop)
 action('debug-next', next)
 action('debug-continue', continuee)
 action('debug-breakpoint', toggleSourceBreakpoint)
