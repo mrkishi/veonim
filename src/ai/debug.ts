@@ -96,7 +96,7 @@ const next = () => {
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 }
 
-const toggleSourceBreakpoint = () => {
+const toggleBreakpoint = () => {
   const { absoluteFilepath: path, line, column } = vim
   const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Source }
 
@@ -358,5 +358,5 @@ action('debug-start', async (type?: string) => {
 action('debug-stop', stop)
 action('debug-next', next)
 action('debug-continue', continuee)
-action('debug-breakpoint', toggleSourceBreakpoint)
+action('debug-breakpoint', toggleBreakpoint)
 action('debug-breakpoint-function', toggleFunctionBreakpoint)
