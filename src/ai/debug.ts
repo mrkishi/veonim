@@ -129,27 +129,20 @@ const toggleBreakpoint = () => {
     ? breakpoints.remove(breakpoint)
     : breakpoints.add(breakpoint)
 
-  const nextBreakpoints = breakpoints.list()
-  debugUI.updateState({ breakpoints: nextBreakpoints })
-
-  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
-  debugUI.show()
-  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
+  debugUI.updateState({ breakpoints: breakpoints.list() })
 }
 
 const toggleFunctionBreakpoint = () => {
   const { absoluteFilepath: path, line, column } = vim
   const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Function }
 
+  addOrRemoveVimSign(breakpoint)
+
   breakpoints.has(breakpoint)
     ? breakpoints.remove(breakpoint)
     : breakpoints.add(breakpoint)
 
   debugUI.updateState({ breakpoints: breakpoints.list() })
-
-  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
-  debugUI.show()
-  // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
 }
 
 // TODO: what about exception breakpoints?? i think this is just a boolean
@@ -286,7 +279,7 @@ const start = async (type: string) => {
 
     // TODO: find out what the key is that we are looking for. is this typed?
     // (i don't think so)
-    const functionBreakpointsSupported = features.has('functionBreakpoints')
+    const functionBreakpointsSupported = features.has('supportsFunctionBreakpoints')
     const sourceBreakpoints = breakpoints.listSourceBreakpoints()
     const functionBreakpoints = breakpoints.listFunctionBreakpoints()
 
