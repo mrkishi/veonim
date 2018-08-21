@@ -126,7 +126,9 @@ const toggleFunctionBreakpoint = () => {
   // TODO: ONLY FOR DEV BECAUSE WE ARE NOT MARKING THEM IN THE EDITOR JUST YET
 }
 
-// TODO: exception breakpoints??
+// TODO: what about exception breakpoints?? i think this is just a boolean
+// on/off. like in chrome devtools, you just specify if you want the debugger
+// to stop on exceptions. there is no "setting" of breakpoints in the source
 
 export const switchActiveDebugger = (id: string) => {
   if (!debuggers.has(id)) return false
@@ -217,12 +219,26 @@ const start = async (type: string) => {
     // TODO: do something with breakpoint 'reason'
     const targetThread = m.threadId || dbg.activeThread
 
+    // TODO: from the stackFrames we can get the current breakpoint
+    // source path, line, and column. we should jumpTo that location
+    // in the buffer, and show a cursorline highlight for current debug
+    // location
+    //
+    // do the same thing when we change stackFrames from the UI
+
+    // TODO: since our UI shadow buffer layer is buggy, maybe we can use
+    // vim signs feature to temporarily show where the breakpoints are
+    // in the buffer. kthx
+
     await refresh.threads()
     const stackFrames = await refresh.stackFrames(targetThread)
     const scopes = await refresh.scopes(stackFrames[0].id)
-    await refresh.variables(scopes[0].variablesReference)
+    const variables = await refresh.variables(scopes[0].variablesReference)
 
     debugUI.updateState({
+      scopes,
+      variables,
+      stackFrames,
       activeThread: targetThread,
       activeStack: stackFrames[0].id,
       activeScope: scopes[0].variablesReference,
@@ -259,13 +275,16 @@ const start = async (type: string) => {
       console.log(functionBreakpoints)
     }
 
-    const sourceBreakpointRequests = sourceBreakpoints.map(breakpointSource => {
+    const breakpointsReq = sourceBreakpoints.map(breakpointSource => {
       return dbg.rpc.sendRequest('setBreakpoints', breakpointSource)
     })
 
-    const sourceBreakpointResponses = await Promise.all(sourceBreakpointRequests)
-    // TODO: wat do wid dis?
-    console.log('sourceBreakpointResponses', sourceBreakpointResponses)
+    const breakpointsRes: DP.SetBreakpointsResponse['body'][] = await Promise.all(breakpointsReq)
+    // TODO: the debug adapter will let us know which breakpoints are "verified" as registered
+    // with the debugger. we can use this to highlight breakpoints with an active color.
+    // or mayve we do like vsc or visual studio. if the breakpoint was not verified when
+    // the debugger started, we gray it out to mark it as "inactive"
+    console.log('breakpoints verified by the debugger', breakpointsRes)
 
     await dbg.rpc.sendRequest('configurationDone')
     console.log('CONFIG DONE')
@@ -322,7 +341,7 @@ action('debug-start', async (type?: string) => {
   if (type) return start(type)
 
   const availableDebuggers = await extensions.listDebuggers()
-  const debuggerOptions = availableDebuggers.map(d => ({
+  const debuggerOptions = availableDebuggers.map((d: any) => ({
     key: d.type,
     value: d.label,
   }))
