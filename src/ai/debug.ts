@@ -101,8 +101,8 @@ const next = () => {
 }
 
 const toggleSourceBreakpoint = () => {
-  const { absoluteFilepath: path, file: name, line, column } = vim
-  const breakpoint = { path, name, line, column, kind: breakpoints.BreakpointKind.Source }
+  const { absoluteFilepath: path, line, column } = vim
+  const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Source }
 
   breakpoints.has(breakpoint)
     ? breakpoints.remove(breakpoint)
@@ -110,8 +110,8 @@ const toggleSourceBreakpoint = () => {
 }
 
 const toggleFunctionBreakpoint = () => {
-  const { absoluteFilepath: path, file: name, line, column } = vim
-  const breakpoint = { path, name, line, column, kind: breakpoints.BreakpointKind.Function }
+  const { absoluteFilepath: path, line, column } = vim
+  const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Function }
 
   breakpoints.has(breakpoint)
     ? breakpoints.remove(breakpoint)

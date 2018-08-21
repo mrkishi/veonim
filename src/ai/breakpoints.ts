@@ -1,9 +1,10 @@
+import { basename } from 'path'
+
 export enum BreakpointKind { Source, Function, Exception }
 
 export interface Breakpoint {
   kind: BreakpointKind
   path: string
-  name: string
   line: number
   column: number
   condition?: string
@@ -16,6 +17,7 @@ const files = new Map<string, Breakpoint[]>()
 
 // TODO: can we have multiple breakpoints on the path/line/column? like
 // conditional breakpoints or logMessage breakpoints?
+// if so, then we need to check additional properties for equality comparison
 const findBreakpoint = (breakpoint: Breakpoint) => {
   const breakpoints = files.get(breakpoint.path) || []
 
@@ -41,3 +43,8 @@ export const remove = (breakpoint: Breakpoint) => {
 }
 
 export const has = (breakpoint: Breakpoint) => findBreakpoint(breakpoint).exists
+
+export const list = () => {
+  const items = [...files.entries()]
+
+}
