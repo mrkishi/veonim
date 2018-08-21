@@ -364,6 +364,10 @@ export const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordi
   jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
 }
 
+export const openFile = async (fullpath: string) => {
+  return fullpath !== current.absoluteFilepath && openBuffer(fullpath)
+}
+
 export const getColor = async (name: string) => {
   const { foreground: fg, background: bg } = await req.core.getHlByName(name, true) as Color
   return {

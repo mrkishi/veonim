@@ -1,13 +1,16 @@
-import { action, current as vim, cmd } from '../core/neovim'
+import { action, current as vim, cmd, openFile, lineNumber } from '../core/neovim'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
 import getDebugConfig from '../ai/get-debug-config'
+import { debugline, cursor } from '../core/cursor'
 import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
 import { RPCServer } from '../core/extensions'
+import { getWindow } from '../core/windows'
 import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
+import { translate } from '../ui/css'
 
 type ThreadsRes = DP.ThreadsResponse['body']
 type StackRes = DP.StackTraceResponse['body']
@@ -56,6 +59,31 @@ interface Debugger extends DebuggerState {
 const tempVimSignsIDGenerator = ID(1)
 let activeDebugger = 'lolnope'
 const debuggers = new Map<string, Debugger>()
+
+const moveDebugLine = async (path: string, line: number) => {
+  // TODO: need a way to show inline breakpoints. we can get multiple calls
+  // for the same path/line, but with different columns. without showing that
+  // the column changed in the UI, the user does not know if their actions
+  // actually worked
+  await openFile(path)
+
+  const canvasWindow = getWindow(cursor.row, cursor.col)
+  if (!canvasWindow) return console.error('there is no current window. lolwut?')
+  const specs = canvasWindow.getSpecs()
+
+  const topLine = await lineNumber.top()
+  const distanceFromTop = line - topLine
+  const relativeLine = specs.row + distanceFromTop
+
+  const { x, y, width } = canvasWindow.whereLine(relativeLine)
+
+  merge(debugline.style, {
+    background: 'rgba(118, 0, 57, 0.6)',
+    display: 'block',
+    transform: translate(x, y),
+    width: `${width}px`,
+  })
+}
 
 const Refresher = (dbg: extensions.RPCServer) => ({
   threads: async () => {
@@ -238,17 +266,16 @@ const start = async (type: string) => {
     // TODO: do something with breakpoint 'reason'
     const targetThread = m.threadId || dbg.activeThread
 
-    // TODO: from the stackFrames we can get the current breakpoint
-    // source path, line, and column. we should jumpTo that location
-    // in the buffer, and show a cursorline highlight for current debug
-    // location
-    //
-    // do the same thing when we change stackFrames from the UI
-
     await refresh.threads()
     const stackFrames = await refresh.stackFrames(targetThread)
     const scopes = await refresh.scopes(stackFrames[0].id)
     const variables = await refresh.variables(scopes[0].variablesReference)
+
+    const { source = {}, line } = stackFrames[0]
+    // TODO: this might not be the correct property and usage.
+    // refer to interface docs on the proper way to get current
+    // debug line location
+    moveDebugLine(source.path || vim.absoluteFilepath, line)
 
     updateDebuggerState(dbg.id, {
       scopes,

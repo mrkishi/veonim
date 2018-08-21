@@ -16,10 +16,19 @@ export const cursor = { row: 0, col: 0, color: '#fff', type: CursorShape.block }
 const cursorEl = document.getElementById('cursor') as HTMLElement
 const cursorChar = document.createElement('span')
 const cursorline = document.getElementById('cursorline') as HTMLElement
+export const debugline = document.getElementById('debugline') as HTMLElement
 let cursorRequestedToBeHidden = false
 let cursorEnabled = true
 
 merge(cursorline.style, {
+  position: 'absolute',
+  mixBlendMode: 'screen',
+  height: `${canvasContainer.cell.height}px`,
+  zIndex: 60,
+})
+
+merge(debugline.style, {
+  display: 'none',
   position: 'absolute',
   mixBlendMode: 'screen',
   height: `${canvasContainer.cell.height}px`,
