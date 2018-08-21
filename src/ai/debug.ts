@@ -105,6 +105,9 @@ setTimeout(() => {
 }, 1e3)
 // TODO: TEMP LOL
 
+// TODO: now that we have these visual signs, we can use the SetBreakpointsResponse
+// "verified" rating to change colors of any inactive (not verified) breakpoints
+// and visually see them as gray signs in the vim buffer
 const addOrRemoveVimSign = (bp: breakpoints.Breakpoint) => {
   if (!fileToID.has(bp.path)) fileToID.set(bp.path, tempVimSignsIDGenerator.next())
   const line = bp.line + 1
