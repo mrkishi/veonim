@@ -56,15 +56,22 @@ interface Debugger extends DebuggerState {
   rpc: RPCServer
 }
 
+interface Position {
+  path: string
+  line: number
+  column: number
+}
+
 const tempVimSignsIDGenerator = ID(1)
 let activeDebugger = 'lolnope'
 const debuggers = new Map<string, Debugger>()
 
-const moveDebugLine = async (path: string, line: number) => {
+const moveDebugLine = async ({ path, line, column }: Position) => {
   // TODO: need a way to show inline breakpoints. we can get multiple calls
   // for the same path/line, but with different columns. without showing that
   // the column changed in the UI, the user does not know if their actions
   // actually worked
+  console.log('NYI: move debugline ++ show COLUMN location', column)
   await openFile(path)
 
   const canvasWindow = getWindow(cursor.row, cursor.col)
@@ -123,6 +130,14 @@ const next = () => {
   const dbg = debuggers.get(activeDebugger)
   if (!dbg) return console.warn('debug next called without an active debugger')
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
+}
+
+const getStackFramePosition = (stackFrame: DP.StackFrame): Position => {
+  const { source = {}, line, column } = stackFrame
+  // TODO: this might not be the correct property and usage.
+  // refer to interface docs on the proper way to get current
+  // debug line location
+  return { line, column, path: source.path || vim.absoluteFilepath }
 }
 
 // TODO: TEMP LOL
@@ -199,6 +214,10 @@ export const changeStack = async (frameId: number) => {
     activeStack: frameId,
     activeScope: scopes[0].variablesReference,
   })
+
+  const chosenStackFrame = dbg.stackFrames.find(sf => sf.id === frameId)
+  if (!chosenStackFrame) return console.error('trying to change to a debug stack frame that does not exist')
+  moveDebugLine(getStackFramePosition(chosenStackFrame))
 }
 
 export const changeScope = async (variablesReference: number) => {
@@ -271,11 +290,7 @@ const start = async (type: string) => {
     const scopes = await refresh.scopes(stackFrames[0].id)
     const variables = await refresh.variables(scopes[0].variablesReference)
 
-    const { source = {}, line } = stackFrames[0]
-    // TODO: this might not be the correct property and usage.
-    // refer to interface docs on the proper way to get current
-    // debug line location
-    moveDebugLine(source.path || vim.absoluteFilepath, line)
+    moveDebugLine(getStackFramePosition(stackFrames[0]))
 
     updateDebuggerState(dbg.id, {
       scopes,
@@ -397,6 +412,8 @@ action('debug-start', async (type?: string) => {
   start(selectedDebugger)
 })
 
+// TODO: add action to jump cursor location to currently stopped debug location
+// action('debug-jumpto-stopped', jumpToStopped)
 action('debug-stop', stop)
 action('debug-next', next)
 action('debug-continue', continuee)
