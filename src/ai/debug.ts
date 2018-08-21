@@ -91,30 +91,31 @@ const listActiveDebuggers = () => [...debuggers.values()].map(d => ({
   type: d.type,
 }))
 
-export const continuee = () => {
+const continuee = () => {
   const dbg = debuggers.get(activeDebugger)
   if (!dbg) return console.warn('debug continue called without an active debugger')
   dbg.rpc.sendRequest('continue', { threadId: dbg.activeThread })
 }
 
-export const next = () => {
+const next = () => {
   const dbg = debuggers.get(activeDebugger)
   if (!dbg) return console.warn('debug next called without an active debugger')
   dbg.rpc.sendRequest('next', { threadId: dbg.activeThread })
 }
 
-export const toggleSourceBreakpoint = (breakpoint: DP.SourceBreakpoint) => {
-  const dbg = debuggers.get(activeDebugger)
-
-
+const toggleSourceBreakpoint = (breakpoint: DP.SourceBreakpoint) => {
+  breakpoints.source.has(breakpoint)
+    ? breakpoints.source.delete(breakpoint)
+    : breakpoints.source.add(breakpoint)
 }
 
-// TODO: need to check if supported
-export const toggleFunctionBreakpoint = (breakpoint: DP.FunctionBreakpoint) => {
-
+const toggleFunctionBreakpoint = (breakpoint: DP.FunctionBreakpoint) => {
+  breakpoints.function.has(breakpoint)
+    ? breakpoints.function.delete(breakpoint)
+    : breakpoints.function.add(breakpoint)
 }
 
-// TODO: setExceptionBreakpoints
+// TODO: exception breakpoints??
 
 export const switchActiveDebugger = (id: string) => {
   if (!debuggers.has(id)) return false
