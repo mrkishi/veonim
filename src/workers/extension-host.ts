@@ -90,6 +90,12 @@ const getServer = (id: string) => {
   return server
 }
 
+const getDebugAdapter = (id: string) => {
+  const server = runningDebugAdapters.get(id)
+  if (!server) throw new Error(`fail to get debug adapter ${id}. this should not happen... ever.`)
+  return server
+}
+
 on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
   getServer(serverId).sendNotification(method as any, ...params)
 })
@@ -112,6 +118,30 @@ on.server_onError(({ serverId }: ServerBridgeParams) => {
 
 on.server_onClose(({ serverId }: ServerBridgeParams) => {
   getServer(serverId).onClose(() => call[`${serverId}:onClose`]())
+})
+
+on.debug_sendRequest(({ serverId, command, args }: any) => {
+  return getDebugAdapter(serverId).sendRequest(command, args)
+})
+
+on.debug_sendNotification(({ serverId, response }: any) => {
+  getDebugAdapter(serverId).sendNotification(response)
+})
+
+on.debug_onNotification(({ serverId, method }: any) => {
+  getDebugAdapter(serverId).onNotification(method, a => call[`${serverId}:${method}`](a))
+})
+
+on.debug_onRequest(({ serverId }: any) => {
+  getDebugAdapter(serverId).onRequest(a => call[`${serverId}:onRequest`](a))
+})
+
+on.debug_onError(({ serverId }: any) => {
+  getDebugAdapter(serverId).onError(a => call[`${serverId}:onError`](a))
+})
+
+on.debug_onClose(({ serverId }: any) => {
+  getDebugAdapter(serverId).onClose(() => call[`${serverId}:onClose`]())
 })
 
 // so we download the zip file into user--repo dir. this dir will then contain
