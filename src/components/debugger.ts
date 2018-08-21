@@ -1,6 +1,7 @@
 import { DebuggerInfo, changeStack, changeScope } from '../ai/debug'
 import { PluginRight } from '../components/plugin-container'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
+import { Breakpoint } from '../ai/breakpoints'
 import { paddingVH } from '../ui/css'
 import { h, app } from '../ui/uikit'
 
@@ -21,7 +22,7 @@ const state = {
   activeStack: 0,
   activeScope: 0,
   debuggers: [] as DebuggerInfo[],
-  breakpoints: [] as string[],
+  breakpoints: [] as Breakpoint[],
 }
 
 type S = typeof state
@@ -94,7 +95,7 @@ const view = ($: S) => PluginRight($.visible, {
   ,h('div', [
     ,header('Breakpoints')
     ,h('div', $.breakpoints.map(m => ListItem(
-      m,
+      `${m.path}: ${m.line}`,
       false,
       () => {},
     )))

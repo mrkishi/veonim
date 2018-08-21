@@ -3,8 +3,8 @@ import { delay } from '../support/utils'
 
 action('blarg', async () => {
   cmd('cd $pr/playground')
-  cmd('e asunc.js')
-  cmd('Veonim start-debug')
+  cmd('e remove.js')
+  cmd('Veonim debug-start')
 })
 
 action('derp', async () => {

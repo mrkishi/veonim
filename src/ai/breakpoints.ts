@@ -69,3 +69,7 @@ export const listFunctionBreakpoints = () => [...files.entries()].map(([ path, a
     .map(asFunctionBreakpoint)
     .filter(b => b.name)
 }))
+
+export const list = () => [...files.values()].reduce((res, breakpoints) => {
+  return [ ...res, ...breakpoints ]
+}, [])

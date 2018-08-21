@@ -66,4 +66,4 @@ const view = ($: S, a: A) => Plugin($.visible, [
 
 const ui = app<S, A>({ name: 'debug', state, actions, view })
 
-action('start-debug', async () => ui.show(await listDebuggers()))
+action('debug-start', async () => ui.show(await listDebuggers()))

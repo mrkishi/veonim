@@ -107,6 +107,8 @@ const toggleSourceBreakpoint = () => {
   breakpoints.has(breakpoint)
     ? breakpoints.remove(breakpoint)
     : breakpoints.add(breakpoint)
+
+  debugUI.updateState({ breakpoints: breakpoints.list() })
 }
 
 const toggleFunctionBreakpoint = () => {
@@ -116,6 +118,8 @@ const toggleFunctionBreakpoint = () => {
   breakpoints.has(breakpoint)
     ? breakpoints.remove(breakpoint)
     : breakpoints.add(breakpoint)
+
+  debugUI.updateState({ breakpoints: breakpoints.list() })
 }
 
 // TODO: exception breakpoints??
@@ -295,6 +299,11 @@ export const start = async (type: string) => {
   activeDebugger = dbg.id
 }
 
+// TODO: move debug-start action here. this module should be the GRAND central
+// actually, why did we even create a custom component for listing debuggers??
+// can't we use the GenericMenu module instead?
+// TODO: stop debugger action
+// action('debug-stop')
 action('debug-next', next)
 action('debug-continue', continuee)
 action('debug-breakpoint-source', toggleSourceBreakpoint)
