@@ -2,9 +2,10 @@ import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { objToMap, uuid, merge } from '../support/utils'
 import getDebugConfig from '../ai/get-debug-config'
 import * as extensions from '../core/extensions'
+import { action, current } from '../core/neovim'
+import * as breakpoints from '../ai/breakpoints'
 import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
-import { action } from '../core/neovim'
 
 // TODO: FOR TESTING ONLY
 // TODO: FOR TESTING ONLY
@@ -58,10 +59,6 @@ interface Debugger extends DebuggerState {
 
 let activeDebugger = 'lolnope'
 const debuggers = new Map<string, Debugger>()
-const breakpoints = {
-  source: new Set<DP.SourceBreakpoint>(),
-  function: new Set<DP.FunctionBreakpoint>(),
-}
 
 const Refresher = (dbg: extensions.RPCServer) => ({
   threads: async () => {
@@ -289,3 +286,5 @@ export const start = async (type: string) => {
 
 action('debug-next', next)
 action('debug-continue', continuee)
+action('debug-breakpoint-source', toggleSourceBreakpoint)
+action('debug-breakpoint-function', toggleFunctionBreakpoint)
