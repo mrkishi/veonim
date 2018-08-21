@@ -1,4 +1,5 @@
 import { action, current as vim, cmd, openFile, lineNumber } from '../core/neovim'
+import { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
@@ -6,7 +7,6 @@ import getDebugConfig from '../ai/get-debug-config'
 import { debugline, cursor } from '../core/cursor'
 import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
-import { RPCServer } from '../core/extensions'
 import { getWindow } from '../core/windows'
 import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
@@ -53,7 +53,7 @@ interface DebuggerState extends DebuggerInfo {
 }
 
 interface Debugger extends DebuggerState {
-  rpc: RPCServer
+  rpc: DebugAdapterConnection
 }
 
 interface Position {
@@ -92,7 +92,7 @@ const moveDebugLine = async ({ path, line, column }: Position) => {
   })
 }
 
-const Refresher = (dbg: extensions.RPCServer) => ({
+const Refresher = (dbg: DebugAdapterConnection) => ({
   threads: async () => {
     const { threads }: ThreadsRes = await dbg.sendRequest('threads')
     debugUI.updateState({ threads })
