@@ -235,7 +235,7 @@ const start = async (type: string) => {
     const scopes = await refresh.scopes(stackFrames[0].id)
     const variables = await refresh.variables(scopes[0].variablesReference)
 
-    debugUI.updateState({
+    updateDebuggerState(dbg.id, {
       scopes,
       variables,
       stackFrames,

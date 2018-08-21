@@ -103,4 +103,4 @@ const view = ($: S) => PluginRight($.visible, {
 
 ])
 
-export default app<S, A>({ name: 'debugger', state, actions, view })
+export default app<S, A>({ name: 'debug', state, actions, view })
