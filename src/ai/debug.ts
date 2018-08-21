@@ -6,7 +6,6 @@ import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
 import { RPCServer } from '../core/extensions'
 import debugUI from '../components/debugger'
-import { join } from 'path'
 
 // TODO: FOR TESTING ONLY
 // TODO: FOR TESTING ONLY

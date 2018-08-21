@@ -1,12 +1,4 @@
-import { DebugProtocol as DP } from 'vscode-debugprotocol'
-
 export enum BreakpointKind { Source, Function, Exception }
-
-export interface BreakpointPosition {
-  path: string
-  line: number
-  column: number
-}
 
 export interface Breakpoint {
   kind: BreakpointKind
@@ -20,19 +12,32 @@ export interface Breakpoint {
   logMessage?: string
 }
 
-const files = new Map<string, Set<Breakpoint>>()
+const files = new Map<string, Breakpoint[]>()
 
-export const add = (breakpoint: Breakpoint) => {
-  return false
-    // ? files.get(path)!.add(breakpoint)
-    // : files.set(path, new Set([ breakpoint ]))
+// TODO: can we have multiple breakpoints on the path/line/column? like
+// conditional breakpoints or logMessage breakpoints?
+const findBreakpoint = (breakpoint: Breakpoint) => {
+  const breakpoints = files.get(breakpoint.path) || []
+
+  const index = breakpoints.findIndex(b => b.kind === breakpoint.kind
+    && b.path === breakpoint.path
+    && b.line === breakpoint.line
+    && b.column === breakpoint.column)
+
+  return {
+    exists: index !== -1,
+    remove: () => breakpoints.splice(index, 1),
+  }
 }
+
+export const add = (breakpoint: Breakpoint) => files.has(breakpoint.path)
+  ? files.get(breakpoint.path)!.push(breakpoint)
+  : files.set(breakpoint.path, [ breakpoint ])
 
 export const remove = (breakpoint: Breakpoint) => {
-  // if (!files.has(path)) return
-  // files.get(path)!.delete(breakpoint)
+  if (!files.has(breakpoint.path)) return
+  const { exists, remove } = findBreakpoint(breakpoint)
+  if (exists) remove()
 }
 
-export const has = (position: BreakpointPosition) => {
-  return true
-}
+export const has = (breakpoint: Breakpoint) => findBreakpoint(breakpoint).exists
