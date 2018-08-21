@@ -6,8 +6,9 @@ import getDebugConfig from '../ai/get-debug-config'
 import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
 import { RPCServer } from '../core/extensions'
-import debugUI from '../components/debugger'
+import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
+console.log('debugUI', debugUI)
 
 // TODO: FOR TESTING ONLY
 // TODO: FOR TESTING ONLY
@@ -301,9 +302,6 @@ export const start = async (type: string) => {
   activeDebugger = dbg.id
 }
 
-// TODO: move debug-start action here. this module should be the GRAND central
-// actually, why did we even create a custom component for listing debuggers??
-// can't we use the GenericMenu module instead?
 // TODO: stop debugger action
 // action('debug-stop')
 action('debug-start', async (type?: string) => {
