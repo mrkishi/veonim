@@ -369,11 +369,8 @@ const start = async (type: string) => {
     locale: 'en',
   }
 
-  const supportedCapabilities = await dbg.rpc.sendRequest('initialize', initRequest)
-  // TODO: what do with DEEZ capabilities??
-  // use capabilities to determine what kind of breakpoints to send, etc.
-  // for example: log breakpoints that are not supported by all debuggers
-  objToMap(supportedCapabilities, features)
+  const capabilities = await dbg.rpc.sendRequest<DP.InitializeResponse>('initialize', initRequest)
+  if (capabilities) objToMap(capabilities, features)
 
   const launchConfig = {
     ...getDebugConfig(type),
@@ -382,7 +379,7 @@ const start = async (type: string) => {
     cwd: vim.cwd,
   }
   await dbg.rpc.sendRequest('launch', launchConfig)
-  const { threads }: ThreadsRes = await dbg.rpc.sendRequest('threads')
+  const { threads } = await dbg.rpc.sendRequest<DP.ThreadsResponse>('threads')
 
   merge(dbg, {
     threads,

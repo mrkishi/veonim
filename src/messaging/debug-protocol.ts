@@ -3,7 +3,7 @@ import { Readable, Writable } from 'stream'
 import { ID, Watchers } from '../support/utils'
 
 export interface DebugAdapterConnection {
-  sendRequest<T>(command: string, args?: any): Promise<T>
+  sendRequest<T extends { body?: any }>(command: string, args?: any): Promise<T['body']>
   sendNotification(response: DP.Response): void
   onNotification(method: string, cb: (event: DP.Event) => void): void
   onRequest(cb: (request: DP.Request) => void): void
