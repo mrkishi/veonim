@@ -1,6 +1,6 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
-import DebugProtocolConnection from '../messaging/debug-protocol'
+import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -58,7 +58,8 @@ interface ServerBridgeParams {
 const { on, call, request } = WorkerClient()
 const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, string>()
-const runningServers = new Map<string, ProtocolConnection>()
+const runningLangServers = new Map<string, ProtocolConnection>()
+const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
 
 on.load(() => load())
 
@@ -84,7 +85,7 @@ on.listDebuggers(async () => {
 })
 
 const getServer = (id: string) => {
-  const server = runningServers.get(id)
+  const server = runningLangServers.get(id)
   if (!server) throw new Error(`fail to get serv ${id}. this should not happen... ever.`)
   return server
 }
@@ -174,7 +175,7 @@ const connectRPCServer = (proc: ChildProcess): string => {
 
   conn.listen()
 
-  runningServers.set(serverId, conn)
+  runningLangServers.set(serverId, conn)
   return serverId
 }
 
@@ -241,7 +242,7 @@ const getDebug = (type: string) => [...extensions].reduce((res, extension) => {
 const connectDebugAdapter = (proc: ChildProcess): string => {
   const serverId = uuid()
   const conn = DebugProtocolConnection(proc.stdout, proc.stdin)
-  runningServers.set(serverId, conn)
+  runningDebugAdapters.set(serverId, conn)
   return serverId
 }
 

@@ -2,13 +2,26 @@ import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import { Readable, Writable } from 'stream'
 import { ID, Watchers } from '../support/utils'
 
-export default (readable: Readable, writable: Writable) => {
+export interface DebugAdapterConnection {
+  sendRequest<T>(command: string, args?: any): Promise<T>
+  sendNotification(response: DP.Response): void
+  onNotification(method: string, cb: (event: DP.Event) => void): void
+  onRequest(cb: (request: DP.Request) => void): void
+  onError(cb: (error: any) => void): void
+  onClose(cb: () => void): void
+}
+
+export default (readable: Readable, writable: Writable): DebugAdapterConnection => {
   const pendingRequests = new Map()
   const watchers = new Watchers()
   const id = ID()
 
   let onErrorFn = (_: any) => {}
   let onRequestFn = (_: DP.Request) => {}
+  let onCloseFn = () => {}
+
+  readable.on('close', () => onCloseFn())
+  writable.on('close', () => onCloseFn())
 
   const onMessage = (msg: DP.ProtocolMessage) => {
     if (msg.type === 'event') return watchers.notify((msg as DP.Event).event, (msg as DP.Event).body)
@@ -23,25 +36,27 @@ export default (readable: Readable, writable: Writable) => {
     }
   }
 
-  const sendNotification = (response: DP.Response) => {
+  const api = {} as DebugAdapterConnection
+
+  api.sendNotification = response => {
     if (response.seq > 0) return onErrorFn(new Error(`don't send more than one response for: ${response.command}`))
     const seq = id.next()
     connection.send({ seq, type: 'response', command: response.command })
   }
 
-  const sendRequest = (command: string, args = {} as any) => {
+  api.sendRequest = (command, args = {}) => {
     const seq = id.next()
     connection.send({ command, seq, type: 'request', arguments: args })
     return new Promise((done, fail) => pendingRequests.set(seq, { done, fail }))
   }
 
-  const onNotification = (method: string, cb: (event: DP.Event) => void) => watchers.add(method, cb)
-  const onRequest = (cb: (request: DP.Request) => void) => onRequestFn = cb
-  const onError = (cb: (error: any) => void) => onErrorFn = cb
+  api.onNotification = (method, cb) => watchers.add(method, cb)
+  api.onRequest = cb => onRequestFn = cb
+  api.onError = cb => onErrorFn = cb
+  api.onClose = cb => onCloseFn = cb
 
   const connection = streamProcessor(readable, writable, onMessage, onErrorFn)
-
-  return { sendRequest, sendNotification, onNotification, onRequest, onError }
+  return api
 }
 
 const TWO_CRLF = '\r\n\r\n'
