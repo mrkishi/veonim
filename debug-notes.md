@@ -1,6 +1,8 @@
 # debug notes lol
 
 ## todo
+- handle termination of debugger - from debugger
+- handle termination of debugger - by user
 - when loading extensions, if a value starts and ends with %, this means that
   it's an i18n and we need to parse package.nls.json to get the actual english
   text value
@@ -21,6 +23,13 @@
 - create a master list of 'breakpoints'
 
 - remember to remove commented out .show-cursor css class
+
+## keep in mind
+- extensionDepencies also need to be installed. this means we need to have downloader
+  download, extract, and install any extensionDependencies found in package.json.
+  this complicates things a bit...
+  - i think for first round we will skip this functionality, and the user will be responsible
+    for defining and installing them via vimscript
 
 ## wishlist
 - would like to track debug history. at every breakpoint, save breakpoint info
