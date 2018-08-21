@@ -298,19 +298,20 @@ const start = async (type: string) => {
 
 action('debug-start', async (type?: string) => {
   if (type) return start(type)
-  const availableDebuggers = await extensions.listDebuggers()
-  console.log('availableDebuggers', availableDebuggers)
 
-  const choice = await userSelectOption<string>({
+  const availableDebuggers = await extensions.listDebuggers()
+  const debuggerOptions = availableDebuggers.map(d => ({
+    key: d.type,
+    value: d.label,
+  }))
+
+  const selectedDebugger = await userSelectOption<string>({
     description: 'choose a debugger to start',
-    options: [{
-      key: 1,
-      value: 'nodenodenode',
-    }],
+    options: debuggerOptions,
     icon: Icon.Cpu,
   })
 
-  console.log('debugger chosen', choice)
+  start(selectedDebugger)
 })
 
 action('debug-stop', stop)
