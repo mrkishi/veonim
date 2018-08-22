@@ -20,6 +20,7 @@ interface Disposable {
   [index: string]: any
 }
 
+// TODO: THIS LEAKS OUTSIDE OF WORKER!
 // need this flag to spawn node child processes. this will use the same node
 // runtime included with electron. usually we would set this as an option in
 // the spawn call, but we do not have access to the spawn calls in the
@@ -27,7 +28,6 @@ interface Disposable {
 process.env.ELECTRON_RUN_AS_NODE = '1'
 
 // TODO: this file is growing a bit big. split out some functionalities into separate modules
-
 enum ActivationEventType {
   WorkspaceContains = 'workspaceContains',
   Language = 'onLanguage',
