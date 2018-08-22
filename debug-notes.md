@@ -175,6 +175,14 @@ will start the "node2" debugger?
   - maybe extension dependencies do not get added to select debugger menu?
     - what about extension packs (check debugger extension packs - if exists)?
 
+  found in the schema: this could  be interestin
+	description: nls.localize('vscode.extension.contributes.debuggers.languages', "List of languages for which the debug extension could be considered the \"default debugger\"."),
+
+  maybe if there are a list of languages, then this specific debugger becomes
+  the "default debugger". meaning, if there are any other debuggers they
+  somehow are lower priority... but by what criteria? node-debug2 has no
+  language definitions... is it because it's an ext dep?
+
 ## launch config
 IF LAUNCH.JSON
 use launch.json provided by user (available in ${cwd}/launch.json?)
