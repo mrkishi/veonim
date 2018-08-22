@@ -15,6 +15,11 @@ interface Debugger {
   runtime?: 'node' | 'mono'
 }
 
+interface Disposable {
+  dispose: () => any
+  [index: string]: any
+}
+
 // need this flag to spawn node child processes. this will use the same node
 // runtime included with electron. usually we would set this as an option in
 // the spawn call, but we do not have access to the spawn calls in the
@@ -63,7 +68,7 @@ interface ServerBridgeParams {
 
 const { on, call, request } = WorkerClient()
 const extensions = new Set<Extension>()
-const languageExtensions = new Map<string, string>()
+const languageExtensions = new Map<string, Extension>()
 const runningLangServers = new Map<string, ProtocolConnection>()
 const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
 
@@ -176,6 +181,7 @@ const parseExtensionDependency = (extString: string): ExtensionInfo => {
 const findExtensionDependency = ({ name, publisher }: ExtensionInfo) => [...extensions]
   .find(e => e.name === name && e.publisher === publisher)
 
+// TODO: handle recursive dependencies. THIS IDEA SUCKS WTF
 const installExtensionsIfNeeded = (extensions: string[]) => extensions
   .map(parseExtensionDependency)
   .map(e => ({ ...e, installed: !!findExtensionDependency(e) }))
@@ -219,7 +225,7 @@ const load = async () => {
 
     ext.activationEvents
       .filter(a => a.type === ActivationEventType.Language)
-      .forEach(a => languageExtensions.set(a.value, ext.requirePath))
+      .forEach(a => languageExtensions.set(a.value, ext))
   })
 }
 
@@ -236,25 +242,30 @@ const connectRPCServer = (proc: ChildProcess): string => {
   return serverId
 }
 
-const activateExtensionForLanguage = async (language: string) => {
-  const requirePath = languageExtensions.get(language)
-  if (!requirePath) {
-    console.error(`extension for ${language} not found`)
-    return []
-  }
-
+const activateExtension = async (e: Extension): Promise<Disposable[]> => {
+  const requirePath = e.requirePath
   const extName = basename(requirePath)
 
   const extension = require(requirePath)
   if (!extension.activate) {
     console.error(`extension ${extName} does not have a .activate() method`)
-    return []
+    return [] as any[]
   }
 
-  const context = { subscriptions: [] }
+  const context = { subscriptions: [] as any[] }
   await extension.activate(context).catch((err: any) => console.error(extName, err))
 
   return context.subscriptions
+}
+
+const activateExtensionForLanguage = async (language: string) => {
+  const extension = languageExtensions.get(language)
+  if (!extension) {
+    console.error(`extension for ${language} not found`)
+    return []
+  }
+
+  return activateExtension(extension)
 }
 
 const activate = {
@@ -262,14 +273,17 @@ const activate = {
     const subscriptions = await activateExtensionForLanguage(language)
     if (!subscriptions.length) return
 
-    const [ serverActivator ] = subscriptions
+    // TODO: potentially other subscriptions disposables
+    // how can subs be both disposables and promises that return child processes?
+    // would like to double check the typings in vscode
+    const [ serverActivator ] = subscriptions as any[]
 
     if (!is.promise(serverActivator)) {
       console.error(`server activator function not valid or did not return a promise for ${language}`)
       return
     }
 
-    const proc = await serverActivator
+    const proc: ChildProcess = await serverActivator
     return connectRPCServer(proc)
   },
 }
@@ -279,16 +293,29 @@ const start = {
     const { extension, debug } = getDebug(type)
     if (!extension) return console.error(`extension for ${type} not found`)
 
-    if (extension.extensionDependencies.length) {
-      console.warn('NYI: need to activate these extension dependencies first', extension.extensionDependencies)
-    }
+    // TODO: handle recursive extension dependencies
+    const activations = extension.extensionDependencies
+      .map(parseExtensionDependency)
+      .map(e => ({ ...e, ...findExtensionDependency(e) }))
+      .map(async e => {
+        const extInstalled = (e as Extension).requirePath
+        if (!extInstalled) {
+          console.error(`extension ${e.name} was not installed before activation`)
+          return { dispose: () => {} } as Disposable
+        }
+        return activateExtension(e as Extension)
+      })
 
-    // TODO: if activationEvents:
+    // TODO: do something with the subscriptions? for later cleanup purposes?
+    await Promise.all(activations)
+
+    // TODO: do something with the subscriptions? for later cleanup purposes?
+    await activateExtension(extension)
+
+    // debug activationEvents:
     // - onDebug
     // - onDebugResolve:${type} - wut?
     // - onDebugInitialConfigurations - wut?
-    //
-    // call extension.activate() and collect context.subscriptions
 
     return startDebugger(extension, debug)
   },
