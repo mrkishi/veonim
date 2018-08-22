@@ -67,7 +67,7 @@ const moveDebugLine = async ({ path, line, column }: Position) => {
   // for the same path/line, but with different columns. without showing that
   // the column changed in the UI, the user does not know if their actions
   // actually worked
-  console.log('NYI: move debugline ++ show COLUMN location', column)
+  console.warn('NYI: move debugline ++ show COLUMN location', column)
   await openFile(path)
 
   const canvasWindow = getWindow(cursor.row, cursor.col)
@@ -187,6 +187,7 @@ const toggleFunctionBreakpoint = () => {
 const terminateDebugger = (dbg: Debugger) => {
   dbg.rpc.sendRequest('disconnect')
   debuggers.delete(activeDebugger)
+  merge(debugline.style, { display: 'none' })
 
   const [ anotherDebugger ] = [...debuggers.values()]
   if (!anotherDebugger) return debugUI.hide()
@@ -416,6 +417,10 @@ action('debug-start', async (type?: string) => {
 
 // TODO: add action to jump cursor location to currently stopped debug location
 // action('debug-jumpto-stopped', jumpToStopped)
+// TODO: add action to remove all breakpoints GLOBALLY
+// action('debug-breakpoints-clear-all', clearAllBreakpoints)
+// TODO: add action to remove all breakpoints in current file
+// action('debug-breakpoints-clear-file', clearFileBreakpoints)
 action('debug-stop', stop)
 action('debug-next', next)
 action('debug-continue', continuee)
