@@ -75,7 +75,7 @@ const moveDebugLine = async ({ path, line, column }: Position) => {
   const specs = canvasWindow.getSpecs()
 
   const topLine = await lineNumber.top()
-  const distanceFromTop = line - topLine
+  const distanceFromTop = line - topLine + 1
   const relativeLine = specs.row + distanceFromTop
 
   const { x, y, width } = canvasWindow.whereLine(relativeLine)
