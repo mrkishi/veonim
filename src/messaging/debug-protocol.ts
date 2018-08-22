@@ -3,12 +3,12 @@ import { Readable, Writable } from 'stream'
 import { ID, Watchers } from '../support/utils'
 
 export interface DebugAdapterConnection {
-  sendRequest<T extends { body?: any }>(command: string, args?: any): Promise<T['body']>
-  sendNotification(response: DP.Response): void
-  onNotification(method: string, cb: (event: DP.Event) => void): void
-  onRequest(cb: (request: DP.Request) => void): void
-  onError(cb: (error: any) => void): void
-  onClose(cb: () => void): void
+  sendRequest: <T extends DP.Response>(command: string, args?: any) => Promise<T['body']>
+  sendNotification: (response: DP.Response) => void
+  onNotification: <T extends DP.Event>(method: string, cb: (event: T['body']) => void) => void
+  onRequest: (cb: (request: DP.Request) => void) => void
+  onError: (cb: (error: any) => void) => void
+  onClose: (cb: () => void) => void
 }
 
 export default (readable: Readable, writable: Writable): DebugAdapterConnection => {

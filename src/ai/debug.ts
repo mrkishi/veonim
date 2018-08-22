@@ -12,10 +12,6 @@ import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
 import { translate } from '../ui/css'
 
-type ThreadsRes = DP.ThreadsResponse['body']
-type StackRes = DP.StackTraceResponse['body']
-type ScopesRes = DP.ScopesResponse['body']
-type VarRes = DP.VariablesResponse['body']
 type Threads = DP.Thread[]
 type StackFrames = DP.StackFrame[]
 type Scopes = DP.Scope[]
@@ -272,7 +268,7 @@ const start = async (type: string) => {
   const features = new Map<PossibleDebuggerFeatures, any>()
   const refresh = Refresher(dbg.rpc)
 
-  dbg.rpc.onNotification('stopped', async (m: DP.StoppedEvent['body']) => {
+  dbg.rpc.onNotification<DP.StoppedEvent>('stopped', async m => {
     // TODO: i think on this notification we SOMETIMES get 'threadId'
     // how do we use 'activeThread'???
 
@@ -305,17 +301,17 @@ const start = async (type: string) => {
   // TODO: this notification is optional
   // if this does not set the active thread, then assign the first thread
   // from 'threads' request/response?
-  dbg.rpc.onNotification('thread', (m: DP.ThreadEvent['body']) => {
+  dbg.rpc.onNotification<DP.ThreadEvent>('thread', m => {
     console.log('THREAD:', m)
     updateDebuggerState(dbg.id, { activeThread: m.threadId })
     // request: 'threads'
   })
 
-  dbg.rpc.onNotification('terminated', () => {
+  dbg.rpc.onNotification<DP.TerminatedEvent>('terminated', () => {
     console.log('YOU HAVE BEEN TERMINATED')
   })
 
-  dbg.rpc.onNotification('initialized', async () => {
+  dbg.rpc.onNotification<DP.InitializedEvent>('initialized', async () => {
     console.log('INITIALIZED! SEND DA BREAKPOINTS!')
     console.log(features)
 
@@ -347,15 +343,15 @@ const start = async (type: string) => {
     console.log('CONFIG DONE')
   })
 
-  dbg.rpc.onNotification('capabilities', ({ capabilities }) => {
+  dbg.rpc.onNotification<DP.CapabilitiesEvent>('capabilities', ({ capabilities }) => {
     objToMap(capabilities, features)
   })
 
-  dbg.rpc.onNotification('loadedSource', (_m) => {
+  dbg.rpc.onNotification<DP.LoadedSourceEvent>('loadedSource', (_m) => {
     // TODO: wat i do wit dis?
   })
 
-  dbg.rpc.onNotification('output', data => {
+  dbg.rpc.onNotification<DP.OutputEvent>('output', data => {
     if (data.category === 'console' || data.category === 'stderr') console.log(type, data.output)
   })
 
