@@ -37,9 +37,12 @@ interface ActivationEvent {
   value: string,
 }
 
-interface Extension {
+interface ExtensionInfo {
   name: string
   publisher: string
+}
+
+interface Extension extends ExtensionInfo {
   config: any
   packagePath: string
   requirePath: string
@@ -165,18 +168,27 @@ const findExtensions = async () => {
   return Promise.all(extensionDirs.map(m => findPackageJson(m.path)))
 }
 
-const installExtensionsIfNeeded = (extensions: string[]) => {
-  // TODO: check if these extensions are already installed
-  const notInstalled = true
-  if (notInstalled) console.warn('NYI: need to install extension dependencies', extensions)
+const parseExtensionDependency = (extString: string): ExtensionInfo => {
+  const [ publisher, name ] = extString.split('.')
+  return { publisher, name }
 }
+
+const findExtensionDependency = ({ name, publisher }: ExtensionInfo) => [...extensions]
+  .find(e => e.name === name && e.publisher === publisher)
+
+const installExtensionsIfNeeded = (extensions: string[]) => extensions
+  .map(parseExtensionDependency)
+  .map(e => ({ ...e, installed: !!findExtensionDependency(e) }))
+  .forEach(e => {
+    if (!e.installed) console.warn('NYI: please install extension dependency:', e)
+    // TODO: actually install it lol
+  })
 
 const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
   const rawFileData = await readFile(packageJson)
   const config = fromJSON(rawFileData).or({})
-  const { main, activationEvents = [] } = config
+  const { name, publisher, main, activationEvents = [], extensionDependencies = [] } = config
   const packagePath = dirname(packageJson)
-  const extensionDependencies = pleaseGet(config).extensionDependencies([])
 
   const parsedActivationEvents = activationEvents.map((m: string) => ({
     type: m.split(':')[0] as ActivationEventType,
@@ -184,6 +196,8 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   }))
 
   return {
+    name,
+    publisher,
     config,
     packagePath,
     extensionDependencies,
