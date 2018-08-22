@@ -38,22 +38,24 @@ interface ActivationEvent {
 }
 
 interface Extension {
-  config: any,
-  packagePath: string,
-  requirePath: string,
-  extensionDependencies: string[],
-  activationEvents: ActivationEvent[],
+  name: string
+  publisher: string
+  config: any
+  packagePath: string
+  requirePath: string
+  extensionDependencies: string[]
+  activationEvents: ActivationEvent[]
 }
 
 interface ActivateOpts {
-  kind: string,
-  data: string,
+  kind: string
+  data: string
 }
 
 interface ServerBridgeParams {
-  serverId: string,
-  method: string,
-  params: any[],
+  serverId: string
+  method: string
+  params: any[]
 }
 
 const { on, call, request } = WorkerClient()
