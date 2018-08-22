@@ -184,6 +184,18 @@ const toggleFunctionBreakpoint = () => {
   debugUI.updateState({ breakpoints: breakpoints.list() })
 }
 
+const terminateDebugger = (dbg: Debugger) => {
+  dbg.rpc.sendRequest('disconnect')
+  debuggers.delete(activeDebugger)
+
+  const [ anotherDebugger ] = [...debuggers.values()]
+  if (!anotherDebugger) return debugUI.hide()
+
+  activeDebugger = anotherDebugger.id
+  const { rpc, ...debuggerState } = anotherDebugger
+  debugUI.updateState({ ...debuggerState, debuggers: listActiveDebuggers() })
+}
+
 // TODO: what about exception breakpoints?? i think this is just a boolean
 // on/off. like in chrome devtools, you just specify if you want the debugger
 // to stop on exceptions. there is no "setting" of breakpoints in the source
@@ -242,16 +254,7 @@ const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
 const stop = async () => {
   const dbg = debuggers.get(activeDebugger)
   if (!dbg) return console.log('no active debugger found to stop')
-
-  dbg.rpc.sendRequest('disconnect')
-  debuggers.delete(activeDebugger)
-
-  const [ anotherDebugger ] = [...debuggers.values()]
-  if (!anotherDebugger) return debugUI.hide()
-
-  activeDebugger = anotherDebugger.id
-  const { rpc, ...debuggerState } = anotherDebugger
-  debugUI.updateState({ ...debuggerState, debuggers: listActiveDebuggers() })
+  terminateDebugger(dbg)
 }
 
 const start = async (type: string) => {
@@ -311,8 +314,10 @@ const start = async (type: string) => {
     // request: 'threads'
   })
 
-  dbg.rpc.onNotification<DP.TerminatedEvent>('terminated', () => {
-    console.log('YOU HAVE BEEN TERMINATED')
+  dbg.rpc.onNotification<DP.TerminatedEvent>('terminated', (m) => {
+    // TODO: a debug adapter may set 'restart' to true (or to an arbitrary object) to request that the front end restarts the session.
+    if (m && m.restart) console.warn('NYI: debug adapter has requested that we restart the debugger')
+    terminateDebugger(dbg)
   })
 
   dbg.rpc.onNotification<DP.InitializedEvent>('initialized', async () => {
