@@ -241,16 +241,20 @@ const updateDebuggerState = (id: string, state: Partial<Debugger>) => {
 
 const stop = async () => {
   const dbg = debuggers.get(activeDebugger)
-  if (!dbg) return console.warn('no active debugger found to stop')
+  if (!dbg) return console.log('no active debugger found to stop')
 
-  // TODO: figure out the termination sequence
-  dbg.rpc.sendNotification('terminate')
+  dbg.rpc.sendRequest('disconnect')
   debuggers.delete(activeDebugger)
+
+  const [ anotherDebugger ] = [...debuggers.values()]
+  if (!anotherDebugger) return debugUI.hide()
+
+  activeDebugger = anotherDebugger.id
+  const { rpc, ...debuggerState } = anotherDebugger
+  debugUI.updateState({ ...debuggerState, debuggers: listActiveDebuggers() })
 }
 
 const start = async (type: string) => {
-  console.warn(`starting debugger: ${type}`)
-
   const dbg: Debugger = {
     type,
     id: uuid(),
