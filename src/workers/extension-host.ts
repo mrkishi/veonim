@@ -41,6 +41,7 @@ interface Extension {
   config: any,
   packagePath: string,
   requirePath: string,
+  extensionDependencies: string[],
   activationEvents: ActivationEvent[],
 }
 
@@ -162,11 +163,18 @@ const findExtensions = async () => {
   return Promise.all(extensionDirs.map(m => findPackageJson(m.path)))
 }
 
+const installExtensionsIfNeeded = (extensions: string[]) => {
+  // TODO: check if these extensions are already installed
+  const notInstalled = true
+  if (notInstalled) console.warn('NYI: need to install extension dependencies', extensions)
+}
+
 const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
   const rawFileData = await readFile(packageJson)
   const config = fromJSON(rawFileData).or({})
   const { main, activationEvents = [] } = config
   const packagePath = dirname(packageJson)
+  const extensionDependencies = pleaseGet(config).extensionDependencies([])
 
   const parsedActivationEvents = activationEvents.map((m: string) => ({
     type: m.split(':')[0] as ActivationEventType,
@@ -176,6 +184,7 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   return {
     config,
     packagePath,
+    extensionDependencies,
     requirePath: join(packagePath, main),
     activationEvents: parsedActivationEvents,
   }
@@ -189,6 +198,8 @@ const load = async () => {
 
   extensionsWithConfig.forEach(ext => {
     extensions.add(ext)
+
+    if (ext.extensionDependencies.length) installExtensionsIfNeeded(ext.extensionDependencies)
 
     ext.activationEvents
       .filter(a => a.type === ActivationEventType.Language)
@@ -251,6 +262,10 @@ const start = {
   debug: async (type: string) => {
     const { extension, debug } = getDebug(type)
     if (!extension) return console.error(`extension for ${type} not found`)
+
+    if (extension.extensionDependencies.length) {
+      console.warn('NYI: need to activate these extension dependencies first', extension.extensionDependencies)
+    }
 
     // TODO: if activationEvents:
     // - onDebug

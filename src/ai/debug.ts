@@ -322,11 +322,7 @@ const start = async (type: string) => {
   })
 
   dbg.rpc.onNotification<DP.InitializedEvent>('initialized', async () => {
-    console.log('INITIALIZED! SEND DA BREAKPOINTS!')
-    console.log(features)
-
-    // TODO: find out what the key is that we are looking for. is this typed?
-    // (i don't think so)
+    // TODO: find out what the key is that we are looking for (not sure this is correct)
     const functionBreakpointsSupported = features.has('supportsFunctionBreakpoints')
     const sourceBreakpoints = breakpoints.listSourceBreakpoints()
     const functionBreakpoints = breakpoints.listFunctionBreakpoints()
@@ -347,10 +343,9 @@ const start = async (type: string) => {
     // with the debugger. we can use this to highlight breakpoints with an active color.
     // or mayve we do like vsc or visual studio. if the breakpoint was not verified when
     // the debugger started, we gray it out to mark it as "inactive"
-    console.log('breakpoints verified by the debugger', breakpointsRes)
+    console.warn('NYI: breakpoints verified by the debugger', breakpointsRes)
 
     await dbg.rpc.sendRequest('configurationDone')
-    console.log('CONFIG DONE')
   })
 
   dbg.rpc.onNotification<DP.CapabilitiesEvent>('capabilities', ({ capabilities }) => {
@@ -359,6 +354,10 @@ const start = async (type: string) => {
 
   dbg.rpc.onNotification<DP.LoadedSourceEvent>('loadedSource', (_m) => {
     // TODO: wat i do wit dis?
+    // vscode has a section in the debug panel called LoadedSources.
+    // it can be expanded (it is collapsed by default). inside this panel
+    // there is a list of loaded sources in a tree view which can be
+    // explored. see vscode debugger for more info
   })
 
   dbg.rpc.onNotification<DP.OutputEvent>('output', data => {
