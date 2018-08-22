@@ -94,22 +94,22 @@ const moveDebugLine = async ({ path, line, column }: Position) => {
 
 const Refresher = (dbg: DebugAdapterConnection) => ({
   threads: async () => {
-    const { threads }: ThreadsRes = await dbg.sendRequest('threads')
+    const { threads } = await dbg.sendRequest<DP.ThreadsResponse>('threads')
     debugUI.updateState({ threads })
     return threads
   },
   stackFrames: async (threadId: number) => {
-    const { stackFrames }: StackRes = await dbg.sendRequest('stackTrace', { threadId })
+    const { stackFrames } = await dbg.sendRequest<DP.StackTraceResponse>('stackTrace', { threadId })
     debugUI.updateState({ stackFrames })
     return stackFrames
   },
   scopes: async (frameId: number) => {
-    const { scopes }: ScopesRes = await dbg.sendRequest('scopes', { frameId })
+    const { scopes } = await dbg.sendRequest<DP.ScopesResponse>('scopes', { frameId })
     debugUI.updateState({ scopes })
     return scopes
   },
   variables: async (variablesReference: number) => {
-    const { variables }: VarRes = await dbg.sendRequest('variables', { variablesReference })
+    const { variables } = await dbg.sendRequest<DP.VariablesResponse>('variables', { variablesReference })
     debugUI.updateState({ variables })
     return variables
   },
@@ -333,10 +333,10 @@ const start = async (type: string) => {
     }
 
     const breakpointsReq = sourceBreakpoints.map(breakpointSource => {
-      return dbg.rpc.sendRequest('setBreakpoints', breakpointSource)
+      return dbg.rpc.sendRequest<DP.SetBreakpointsResponse>('setBreakpoints', breakpointSource)
     })
 
-    const breakpointsRes: DP.SetBreakpointsResponse['body'][] = await Promise.all(breakpointsReq)
+    const breakpointsRes = await Promise.all(breakpointsReq)
     // TODO: the debug adapter will let us know which breakpoints are "verified" as registered
     // with the debugger. we can use this to highlight breakpoints with an active color.
     // or mayve we do like vsc or visual studio. if the breakpoint was not verified when
