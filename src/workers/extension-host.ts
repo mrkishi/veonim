@@ -304,6 +304,7 @@ const start = {
           console.error(`extension ${e.name} was not installed before activation`)
           return { dispose: () => {} } as Disposable
         }
+        // TODO: only activate if has relevant activation events???? or always activate?
         return activateExtension(e as Extension)
       })
 
@@ -311,6 +312,7 @@ const start = {
     await Promise.all(activations)
 
     // TODO: do something with the subscriptions? for later cleanup purposes?
+    // TODO: only activate if has relevant activation events???? or always activate?
     await activateExtension(extension)
 
     // debug activationEvents:

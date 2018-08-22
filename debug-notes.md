@@ -130,9 +130,50 @@ otherwise it just shows "No Configurations"?
 TODO: how does "Start Debug" determine which debug adapter
 to use? i.e. javascript -> node2
 
+VSCODE SHOWS A MENU WHERE YOU CAN PICK THE DEBUGGER (chrome, node.js, etc.)
+
 so there must be some config or mapping somewhere to know
 that Start Debug while in a typescript or javascript file
 will start the "node2" debugger?
+
+## cultural learnings...
+- yeah so node2 does not get loaded as an option in the UI and it does not provide any config.
+  this appears to be intentional. i found some references in the vsc src that indicate that
+  node2 is not used directly. i think this makes sense now because...
+
+  node-debug has an extensionDependency on node-debug2
+  node-debug has all the activation events and provides configuration for both
+  debugger types 'node' and 'node2'
+
+  it seems like we are only supposed to activate node-debug and it will provide
+  configuration and let us know if we should start node-debug or node-debug2 adapters
+
+- therefore: i think we use the extensions to load all debug adapters.
+  HOWEVER! even though an extension provides a debug adapter, it does not mean that
+  the extension will be activated, provide launch config, or provide an option to the UI
+
+- so the question remains, how do we determine what debuggers to list in the UI.
+  i installed a bunch of debuggers and looked at the pattersn between them. i think the answer
+  is that a debugger must provide a "languages" array to show up as an option in the UI.
+  otherwise you can only launch it via launch.json "type" property
+
+  (extension package.json "contributes.debuggers[n].languages")
+
+  - would be nice to verify that this is the case. the results for "languages" arr ('x' does not appear in vscode select debugger menu):
+    x node-debug2: no "languages" list
+    - node-debug: [js, ts, react]
+    - chrome-debug: [js, ts, react]
+    - java-debug: [java]
+    - go: [go]
+    - user/lua: [lua]
+    - mock-debug: no "languages" list (still appears tho... hmmmmmm wat?)
+    - mono-debug: no "languages" list (still appears...)
+    - code-debug (Native Debug): no "languages" list
+    - perl: [perl]
+    - php: no "languages" list
+
+  - maybe extension dependencies do not get added to select debugger menu?
+    - what about extension packs (check debugger extension packs - if exists)?
 
 ## launch config
 IF LAUNCH.JSON
