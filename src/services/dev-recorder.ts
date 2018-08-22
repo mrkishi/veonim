@@ -151,6 +151,8 @@ const getAllRecordings = () => storage.getItem(KEY.ALL, []).map((m: string) => (
 monitorEvents.forEach(ev => window.addEventListener(ev, e => {
   if (!captureEvents) return
 
+  console.log(e)
+
   recordedEvents.push({
     kind: e.type,
     when: Date.now(),
@@ -162,6 +164,26 @@ monitorEvents.forEach(ev => window.addEventListener(ev, e => {
 
   lastRecordedAt = Date.now()
 }))
+
+const cleanupStopEvents = (events: RecordingEvent[]) => {
+  // events that need to be cleaned up
+  //
+  // -- BDEGINNING
+  // r: keyup
+  //
+  /*
+   * -- END --
+   * space: keydown
+   * space: keypress
+   * space: keyup
+   * r: keydown
+   * r: keypress
+   * s: keydown
+   * s: keypress
+   *
+   */
+
+}
   
 const props = [
   'altKey', 'bubbles', 'cancelBubble', 'cancelable', 'charCode', 'code',
