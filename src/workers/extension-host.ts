@@ -1,6 +1,6 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
-import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -270,6 +270,7 @@ const activateExtensionForLanguage = async (language: string) => {
 
 const activate = {
   language: async (language: string) => {
+    // TODO: handle extension dependencies
     const subscriptions = await activateExtensionForLanguage(language)
     if (!subscriptions.length) return
 
