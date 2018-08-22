@@ -165,7 +165,13 @@ monitorEvents.forEach(ev => window.addEventListener(ev, e => {
   lastRecordedAt = Date.now()
 }))
 
-const cleanupStopEvents = (events: RecordingEvent[]) => {
+const cleanupStopEvents = (events: RecordingEvent[]): RecordingEvent[] => {
+  if (!events.length) return events
+  const event1 = events[0].event as KeyboardEvent
+
+  if (event1.type === 'keyup' && event1.key === 'r') events.splice(0, 1)
+
+  return events
   // events that need to be cleaned up
   //
   // -- BDEGINNING
