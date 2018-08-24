@@ -45,6 +45,10 @@ onStateChange.cwd(async (cwd: string) => {
   const headPath = path.join(cwd, '.git/HEAD')
   const indexPath = path.join(cwd, '.git/index')
 
-  if (await exists(headPath)) watchers.branch = watchFile(headPath, () => (getBranch(cwd), getStatus(cwd)))
-  if (await exists(indexPath)) watchers.status = watchFile(indexPath, () => getStatus(cwd))
+  if (await exists(headPath)) {
+    watchers.branch = await watchFile(headPath, () => (getBranch(cwd), getStatus(cwd)))
+  }
+  if (await exists(indexPath)) {
+    watchers.status = await watchFile(indexPath, () => getStatus(cwd))
+  }
 })

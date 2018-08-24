@@ -20,7 +20,7 @@ on.bufLoad(async ({ cwd, file }) => {
   if (!filepath) return
   if (!await exists(filepath)) return
   currentSession.add(filepath)
-  const w = watchFile(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
+  const w = await watchFile(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
   watchers.set(filepath, w)
 })
 

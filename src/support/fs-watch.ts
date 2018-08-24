@@ -25,6 +25,8 @@ const watchDir = (path: string) => fs.watch(path, ((_, file) => {
 export const watchFile = async (path: string, callback: () => void) => {
   const realpath = await getRealPath(path)
   const parentPath = join(realpath, '../')
-  watchers.on(realpath, throttle(callback, 15))
+  const notifyCallback = throttle(callback, 15)
+  watchers.on(realpath, notifyCallback)
   if (!watchedParentPaths.has(parentPath)) watchDir(parentPath)
+  return { close: () => watchers.removeListener(realpath, notifyCallback) }
 }
