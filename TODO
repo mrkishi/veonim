@@ -15,6 +15,8 @@ path displayed in "project" statusline section
 
 document search-fn space
 
+package.json node_modules import completions
+
 debug
 
 if lang ext not installed suggest ext on new file type/bufload 

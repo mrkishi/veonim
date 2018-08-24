@@ -1,7 +1,7 @@
 import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
-  DocumentHighlight } from 'vscode-languageserver-types'
-import { DidOpenTextDocumentParams, DidChangeTextDocumentParams } from 'vscode-languageserver-protocol'
+  DocumentHighlight, DidOpenTextDocumentParams, DidChangeTextDocumentParams }
+from 'vscode-languageserver-protocol'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
 import { NeovimState, applyPatches, current as vim } from '../core/neovim'
 import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'

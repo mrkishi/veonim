@@ -1,4 +1,4 @@
-import { dirname, basename, join, extname, resolve, sep } from 'path'
+import { dirname, basename, join, extname, resolve, sep, parse, normalize } from 'path'
 import { promisify as P } from 'util'
 import { exec } from 'child_process'
 import { Transform } from 'stream'
@@ -144,7 +144,14 @@ export const remove = async (path: string) => {
   P(fs.rmdir)(path)
 }
 
-export const ensureDir = (path: string) => path.split(sep).reduce((q, dir, ix, arr) => q.then(() => {
+export const pathParts = (path: string) => {
+  const properPath = normalize(path)
+  const parts = properPath.split(sep)
+  const { root } = parse(properPath)
+  return [ root, ...parts ].filter(m => m)
+}
+
+export const ensureDir = (path: string) => pathParts(path).reduce((q, dir, ix, arr) => q.then(() => {
   return P(fs.mkdir)(join(...arr.slice(0, ix), dir)).catch(() => {})
 }), Promise.resolve())
 

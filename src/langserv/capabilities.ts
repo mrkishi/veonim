@@ -1,4 +1,4 @@
-import { SymbolKind, CompletionItemKind } from 'vscode-languageserver-types'
+import { SymbolKind, CompletionItemKind } from 'vscode-languageserver-protocol'
 
 export default (cwd: string) => ({
   rootPath: cwd,

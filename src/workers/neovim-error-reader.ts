@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
+import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-protocol'
 import { prefixWith, onFnCall, is } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { QuickFixList } from '../core/vim-functions'

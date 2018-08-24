@@ -1,9 +1,9 @@
+import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { basename, dirname, join } from 'path'
 import { ChildProcess } from 'child_process'
-import * as rpc from 'vscode-jsonrpc'
 import '../support/vscode-shim'
 
 // need this flag to spawn node child processes. this will use the same node
@@ -43,7 +43,7 @@ interface ServerBridgeParams {
 }
 
 const { on, call, request } = WorkerClient()
-const runningLanguageServers = new Map<string, rpc.MessageConnection>()
+const runningLanguageServers = new Map<string, ProtocolConnection>()
 
 on.existsForLanguage((language: string) => Promise.resolve(languageExtensions.has(language)))
 on.activate(({ kind, data }: ActivateOpts) => {
@@ -59,7 +59,7 @@ const getServer = (id: string) => {
 }
 
 on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
-  getServer(serverId).sendNotification(method, ...params)
+  getServer(serverId).sendNotification(method as any, ...params)
 })
 
 on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
@@ -67,15 +67,15 @@ on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
 })
 
 on.server_onNotification(({ serverId, method }: ServerBridgeParams) => {
-  getServer(serverId).onNotification(method, (...args) => call[`${serverId}:${method}`](args))
+  getServer(serverId).onNotification(method, (...args: any[]) => call[`${serverId}:${method}`](args))
 })
 
 on.server_onRequest(({ serverId, method }: ServerBridgeParams) => {
-  getServer(serverId).onRequest(method, async (...args) => request[`${serverId}:${method}`](args))
+  getServer(serverId).onRequest(method, async (...args: any[]) => request[`${serverId}:${method}`](args))
 })
 
 on.server_onError(({ serverId }: ServerBridgeParams) => {
-  getServer(serverId).onError(err => call[`${serverId}:onError`](err))
+  getServer(serverId).onError((err: any) => call[`${serverId}:onError`](err))
 })
 
 on.server_onClose(({ serverId }: ServerBridgeParams) => {
@@ -137,9 +137,9 @@ const load = async () => {
 const connectLanguageServer = (proc: ChildProcess): string => {
   const serverId = uuid()
 
-  const reader = new rpc.StreamMessageReader(proc.stdout)
-  const writer = new rpc.StreamMessageWriter(proc.stdin)
-  const conn = rpc.createMessageConnection(reader, writer)
+  const reader = new StreamMessageReader(proc.stdout)
+  const writer = new StreamMessageWriter(proc.stdin)
+  const conn = createProtocolConnection(reader, writer, console)
 
   conn.listen()
 
