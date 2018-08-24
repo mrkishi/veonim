@@ -6,7 +6,7 @@ import { homedir } from 'os'
 import * as fs from 'fs'
 export { watchFile } from '../support/fs-watch'
 
-interface Task<T> {
+export interface Task<T> {
   done: (value: T) => void,
   promise: Promise<T>,
 }
