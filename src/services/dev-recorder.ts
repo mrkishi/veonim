@@ -32,14 +32,20 @@ const recEl = makel({
   position: 'absolute',
   color: '#fff',
   fontWeight: 'bold',
-  background: '#7f0202',
   right: 0,
   padding: '4px',
   paddingLeft: '8px',
   paddingRight: '8px',
 })
 
-const labelize = (msg: string) => recEl.innerText = msg
+const banner = {
+  HULK_SMASH: (message: string, color: string) => {
+    recEl.innerText = message
+    recEl.style.background = color
+    targetEl.appendChild(recEl)
+  },
+  heyBigGuySunsGettingRealLow: () => targetEl.contains(recEl) && targetEl.removeChild(recEl),
+}
 
 const monitorEvents = ['keydown', 'keyup', 'keypress', 'input', 'beforeinput', 'change', 'focus', 'blur']
 
@@ -49,8 +55,7 @@ let lastRecordedAt = Date.now()
 let recordingStartTime = Date.now()
 
 action('record-start', () => {
-  labelize('RECORDING EVENTS')
-  targetEl.appendChild(recEl)
+  banner.HULK_SMASH('RECORDING EVENTS', '#7f0202')
 
   recordedEvents = []
   lastRecordedAt = Date.now()
@@ -59,7 +64,7 @@ action('record-start', () => {
 })
 
 action('record-stop', async () => {
-  targetEl.contains(recEl) && targetEl.removeChild(recEl)
+  banner.heyBigGuySunsGettingRealLow()
 
   captureEvents = false
   const recordingName = await userPrompt('recording name')
@@ -87,8 +92,7 @@ action('record-replay', async () => {
   const { events } = storage.getItem<Record>(recordingName)
   if (!events || !events.length) return notify(`recording "${key}" does not exist`, NotifyKind.Error)
 
-  notify(`replaying "${key}" recording`, NotifyKind.System)
-  recordPlayer(events)
+  recordPlayer(events, key)
 })
 
 action('record-remove', async () => {
@@ -143,16 +147,21 @@ const createEvent = (kind: string, event: Event) => {
   else return new Event(kind, event)
 }
 
-const recordPlayer = (events: RecordingEvent[]) => {
+const recordPlayer = async (events: RecordingEvent[], key: string) => {
   const replays = events.map(m => ({
     target: document.querySelector(m.selector),
     event: createEvent(m.kind, m.event),
     timeout: m.offsetStart,
-  }))
+  })).filter(m => m.target)
 
-  replays.filter(m => m.target).forEach(m => setTimeout(() => {
+  banner.HULK_SMASH(`${key} REPLAY`, '#3c6d1c')
+  const replayFinished = Promise.all(replays.map(m => new Promise(done => setTimeout(() => {
     m.target!.dispatchEvent(m.event)
-  }, m.timeout))
+    done()
+  }, m.timeout))))
+
+  await replayFinished
+  banner.heyBigGuySunsGettingRealLow()
 }
 
 const getAllRecordings = () => storage.getItem(KEY.ALL, []).map((m: string) => ({
