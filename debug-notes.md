@@ -1,5 +1,13 @@
 # debug notes lol
 
+## config todo
+- find all extensions with "initialConfigurations"
+- somehow need to activate extensions and track if they do the "provideDebugConfiguration"
+    - read the docs to see if this is about the `activate()` func calling vscode api to register
+      a provide debug config func
+    - when the provide func is called, figure out how to associate back to a debugger extension
+- read `${cwd}/.vscode/launch.json` and parse for debug configs
+
 ## todo
 - when loading extensions, if a value starts and ends with %, this means that
   it's an i18n and we need to parse package.nls.json to get the actual english

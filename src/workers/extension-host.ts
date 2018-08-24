@@ -15,6 +15,13 @@ interface Debugger {
   runtime?: 'node' | 'mono'
 }
 
+// TODO: can we consolidate these interfaces?
+interface DaRealDebugger extends Debugger {
+  initialConfigurations?: any[]
+  hasInitialConfiguration: boolean
+  hasConfigurationProvider: boolean
+}
+
 interface Disposable {
   dispose: () => any
   [index: string]: any
@@ -71,6 +78,7 @@ const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, Extension>()
 const runningLangServers = new Map<string, ProtocolConnection>()
 const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
+const debuggers = new Map<string, DaRealDebugger>()
 
 on.load(() => load())
 
@@ -188,7 +196,47 @@ const installExtensionsIfNeeded = (extensions: string[]) => extensions
   .forEach(e => {
     if (!e.installed) console.warn('NYI: please install extension dependency:', e)
     // TODO: actually install it lol
+    // and do the whole package.json parse routine
+    // and we need to do it recursively... sheesh great design here
   })
+
+const getExtensionDebuggers = (extension: Extension): DaRealDebugger[] => {
+  const debuggers = pleaseGet(extension.config).contributes.debuggers([]) as any[]
+  return debuggers.map(d => ({
+    extension,
+    type: d.type,
+    label: d.label,
+    program: d.program,
+    runtime: d.runtime,
+    initialConfigurations: d.initialConfigurations,
+    hasInitialConfiguration: !!d.initialConfigurations,
+    // TODO: how do we get dis
+    hasConfigurationProvider: false,
+  }))
+}
+
+const collectDebuggers = (extensions: Extension[]): DaRealDebugger[] => {
+  // TODO: initialConfigurations are static in the json, right? so we don't need to activat
+  // extneions to determine dis.
+  //
+  // we only need to activate extensions to know if they have a debug configuration provider
+  // also... we may be activating these extensions multiple times. is that okay?
+  // as i recall vsc activates multiple times...?
+
+  // await activate extensions 'onDebugInitialConfigurations'
+  // await activate extensions 'onDebug'
+
+  const debuggers = extensions.reduce((res, ext) => {
+    const extDebuggers = getExtensionDebuggers(ext)
+    return [...res, ...extDebuggers]
+  }, [] as DaRealDebugger[])
+
+  return debuggers
+}
+
+const getDebuggersWithConfig = (debuggers: DaRealDebugger[]): DaRealDebugger[] => {
+  return debuggers.filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
+}
 
 const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
   const rawFileData = await readFile(packageJson)
@@ -227,6 +275,9 @@ const load = async () => {
       .filter(a => a.type === ActivationEventType.Language)
       .forEach(a => languageExtensions.set(a.value, ext))
   })
+
+  const extensionDebuggers = collectDebuggers(extensionsWithConfig)
+  extensionDebuggers.forEach(ed => debuggers.set(ed.type, ed))
 }
 
 const connectRPCServer = (proc: ChildProcess): string => {
@@ -290,6 +341,20 @@ const activate = {
 }
 
 const start = {
+  debugging: () => {
+    // TODO: i think some (or most) of this func will have to live
+    // in the main thread to access UI prompts
+    // TODO: get debug configs from launch.json
+    // TODO: if (launch.json exists) prompt user to select configuration to use for debugging
+
+    // if no launch.json or no config chosen...
+    const dbgs = getDebuggersWithConfig([...debuggers.values()])
+    // TODO: prompt user for debugger to use
+    const chosenDebugger = dbgs[0]
+    console.log('chosenDebugger', chosenDebugger)
+    // TODO: get configuration from chosen debugger
+
+  },
   debug: async (type: string) => {
     const { extension, debug } = getDebug(type)
     if (!extension) return console.error(`extension for ${type} not found`)
