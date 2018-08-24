@@ -3,6 +3,7 @@ import { notify, NotifyKind } from '../ui/notifications'
 import userPrompt from '../components/generic-prompt'
 import * as storage from '../support/local-storage'
 import { action } from '../core/neovim'
+import { makel } from '../ui/vanilla'
 import finder from '@medv/finder'
 
 if (process.env.VEONIM_DEV) {
@@ -26,6 +27,20 @@ const KEY = {
   ONE: 'veonim-dev-recording-',
 }
 
+const targetEl = document.getElementById('canvas-container') as HTMLElement
+const recEl = makel({
+  position: 'absolute',
+  color: '#fff',
+  fontWeight: 'bold',
+  background: '#7f0202',
+  right: 0,
+  padding: '4px',
+  paddingLeft: '8px',
+  paddingRight: '8px',
+})
+
+const labelize = (msg: string) => recEl.innerText = msg
+
 const monitorEvents = ['keydown', 'keyup', 'keypress', 'input', 'beforeinput', 'change', 'focus', 'blur']
 
 let recordedEvents = [] as RecordingEvent[]
@@ -34,8 +49,8 @@ let lastRecordedAt = Date.now()
 let recordingStartTime = Date.now()
 
 action('record-start', () => {
-  // TODO: show in ui instead of log
-  console.warn('RECORD - START')
+  labelize('RECORDING EVENTS')
+  targetEl.appendChild(recEl)
 
   recordedEvents = []
   lastRecordedAt = Date.now()
@@ -44,16 +59,15 @@ action('record-start', () => {
 })
 
 action('record-stop', async () => {
-  // TODO: show in ui instead of log
-  console.warn('RECORD - STOP')
-
-  const events = cleanupRecControlEvents(recordedEvents)
-  console.log('events', events)
+  targetEl.contains(recEl) && targetEl.removeChild(recEl)
 
   captureEvents = false
   const recordingName = await userPrompt('recording name')
 
-  storage.setItem(`${KEY.ONE}${recordingName}`, { events, name: recordingName })
+  storage.setItem(`${KEY.ONE}${recordingName}`, {
+    name: recordingName,
+    events: cleanupRecControlEvents(recordedEvents),
+  })
 
   const recordings = storage.getItem<string[]>(KEY.ALL, [])
   const uniqRecordings = new Set(recordings)
@@ -148,8 +162,6 @@ const getAllRecordings = () => storage.getItem(KEY.ALL, []).map((m: string) => (
 
 monitorEvents.forEach(ev => window.addEventListener(ev, e => {
   if (!captureEvents) return
-
-  console.log(e)
 
   recordedEvents.push({
     kind: e.type,
