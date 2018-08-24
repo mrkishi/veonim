@@ -47,15 +47,13 @@ action('record-stop', async () => {
   // TODO: show in ui instead of log
   console.warn('RECORD - STOP')
 
-  // TODO: need to remove the 'record-stop' key events present in the recorded events
+  const events = cleanupRecControlEvents(recordedEvents)
+  console.log('events', events)
 
   captureEvents = false
   const recordingName = await userPrompt('recording name')
 
-  storage.setItem(`${KEY.ONE}${recordingName}`, {
-    name: recordingName,
-    events: recordedEvents,
-  })
+  storage.setItem(`${KEY.ONE}${recordingName}`, { events, name: recordingName })
 
   const recordings = storage.getItem<string[]>(KEY.ALL, [])
   const uniqRecordings = new Set(recordings)
@@ -121,7 +119,7 @@ action('record-set-startup', async () => {
   notify(`set "${key}" as startup replay`, NotifyKind.System)
 
   // TODO: set as startup
-  console.log('events', events)
+  console.warn('NYI: set recorded events to run on startup', events)
 })
 
 const createEvent = (kind: string, event: Event) => {
@@ -165,30 +163,41 @@ monitorEvents.forEach(ev => window.addEventListener(ev, e => {
   lastRecordedAt = Date.now()
 }))
 
-const cleanupStopEvents = (events: RecordingEvent[]): RecordingEvent[] => {
-  if (!events.length) return events
-  const event1 = events[0].event as KeyboardEvent
+const cleanupRecControlEvents = (recordedEvents: RecordingEvent[]): RecordingEvent[] => {
+  if (!recordedEvents.length) return recordedEvents
+  const event1 = recordedEvents[0].event as KeyboardEvent
+  const events = [...recordedEvents.filter(m => m)]
 
   if (event1.type === 'keyup' && event1.key === 'r') events.splice(0, 1)
 
-  return events
-  // events that need to be cleaned up
-  //
-  // -- BDEGINNING
-  // r: keyup
-  //
-  /*
-   * -- END --
-   * space: keydown
-   * space: keypress
-   * space: keyup
-   * r: keydown
-   * r: keypress
-   * s: keydown
-   * s: keypress
-   *
-   */
+  const eventsToRemove = [
+    { key: 's', kind: 'keypress' },
+    { key: 's', kind: 'keydown' },
+    { key: 'r', kind: 'keypress' },
+    { key: 'r', kind: 'keydown' },
+    { key: ' ', kind: 'keyup' },
+    { key: ' ', kind: 'keypress' },
+    { key: ' ', kind: 'keydown' },
+  ]
 
+  eventsToRemove.forEach(criteria => {
+    const found = findLast(events, ({ event }) => {
+      const e = event as KeyboardEvent
+      if (!e.key || !e.type) return false
+      return e.key === criteria.key && e.type === criteria.kind
+    })
+
+    if (found > -1) events.splice(found, 1)
+  })
+
+  return events
+}
+
+const findLast = <T>(arr: T[], fn: (item: T) => any): number => {
+  for (let ix = arr.length - 1; ix > 0; ix--) {
+    if (!!fn(arr[ix])) return ix
+  }
+  return -1
 }
   
 const props = [
