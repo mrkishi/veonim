@@ -229,3 +229,98 @@ entry for the current buffer filetype
 also, "provideInitialConfiguration" is never called in debug2. not when activation the extension
 and neither when hitting the "cog wheel" button in vscode to generate a launch.json. i guess
 it does what it says on the label: only providesInitialConfig when the registered command is called.
+
+## vsc source logic analysis
+```
+class Debugger {
+  hasInitialConfiguration(): boolean
+    return !!extension.contributes.debuggers[n].initialConfigurations
+
+  hasConfigurationProvider()
+    check if provider contributes "provideDebugConfiguration" method
+}
+
+
+startDebugging()
+  type = null
+  launchConfig = null
+
+  if (!launch.json exists)
+    get launch.json configurations
+    launchConfig = prompt user for config to use
+    type = config.type
+
+  await activate extensions 'onDebug'
+
+  if (!type)
+    type = guessDebugger()
+
+  defaultConfig = await resolveConfigurationByProviders(type)
+
+  // launchConfig and defaultConfig get merged together?
+  startDebugAdapter(type, launchConfig, defaultConfig)
+    
+
+guessDebugger()
+  await activate extensions 'onDebugInitialConfigurations'
+  await activate extensions 'onDebug'
+
+  // first round checks to see if there are any debuggers for the current editor language
+  // i'm not sure this was working for me, since i received debugger options for more
+  // languages than the current editor (java, go, python, etc.)
+
+  candidates = debuggers.filter(d => d.hasInitialConfiguration() || a.hasConfigurationProvider)
+  return prompt user for debugger to use(candidates)
+
+
+resolveConfigurationByProviders(type
+  await activate extensions `onDebugResolve:${type}`
+  // if any extensions have the resolve debug config method
+  // registered then we call it to get the config?
+  // in vscode src it says "providers". not sure what that means
+  extensions.filter(e => e.resolveDebugConfiguration)
+  return extensions.map(e => e.resolveDebugConfiguration())
+```
+
+## observations: activation-events
+vscode-node-debug
+- onDebugInitialConfigurations
+- onDebugResolve:node
+
+vscode-node-debug2
+. (is an ext-dependency for vscode-node-debug)
+
+vscode-go
+- onDebugResolve:go
+
+vscode-chrome-debug
+- onDebugInitialConfigurations
+- onDebugResolve:chrome
+
+vscode-mono-debug
+. (does have "initialConfigurations")
+
+felixfbecker/vscode-php-debug
+. (does have "initialConfigurations")
+
+raix/vscode-perl-debug
+. (does have "initialConfigurations")
+
+actboy168/vscode-lua-debug
+- onDebugInitialConfigurations
+- onDebugResolve:lua
+
+Microsoft/vscode-java-debug
+- onDebugInitialConfigurations
+- onDebugResolve:java
+
+WebFreak001/code-debug
+. ( does have "initialConfigurations" )
+
+rogalmic/vscode-bash-debug
+- onDebug
++ "initialConfigurations" obj
+
+Microsoft/vscode-python
+- onDebugResolve:python
++ "initialConfigurations" obj
