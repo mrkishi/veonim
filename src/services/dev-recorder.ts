@@ -25,6 +25,7 @@ interface Record {
 const KEY = {
   ALL: 'veonim-dev-recordings',
   ONE: 'veonim-dev-recording-',
+  START: 'veonim-dev-recording-startup',
 }
 
 const targetEl = document.getElementById('canvas-container') as HTMLElement
@@ -136,8 +137,7 @@ action('record-set-startup', async () => {
   const { events } = storage.getItem<Record>(recordingName)
   notify(`set "${key}" as startup replay`, NotifyKind.System)
 
-  // TODO: set as startup
-  console.warn('NYI: set recorded events to run on startup', events)
+  storage.setTemp(KEY.START, { events, name: key })
 })
 
 const createEvent = (kind: string, event: Event) => {
@@ -229,4 +229,9 @@ const props = [
 ]
 
 const evvy = (eo: any) => props.reduce((res, prop) => Object.assign(res, { [prop]: eo[prop] }), {}) as Event
-}
+
+setTimeout(() => {
+  const { events, name } = storage.getTemp<Record>(KEY.START)
+  if (events && events.length) recordPlayer(events, name)
+}, 250)
+} // end of "if" block that only runs stuff in dev mode

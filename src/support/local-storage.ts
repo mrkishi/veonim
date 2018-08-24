@@ -8,3 +8,9 @@ export const getItem = <T>(key: string, defaultValue = {} as T): T => {
   return fromJSON(raw).or(defaultValue)
 }
 
+export const setTemp = (key: string, value: any) => sessionStorage.setItem(key, JSON.stringify(value))
+export const getTemp = <T>(key: string, defaultValue = {} as T): T => {
+  const raw = sessionStorage.getItem(key)
+  if (!raw) return defaultValue
+  return fromJSON(raw).or(defaultValue)
+}
