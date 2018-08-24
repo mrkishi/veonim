@@ -1,8 +1,6 @@
 # debug notes lol
 
 ## todo
-- handle termination of debugger - from debugger
-- handle termination of debugger - by user
 - when loading extensions, if a value starts and ends with %, this means that
   it's an i18n and we need to parse package.nls.json to get the actual english
   text value
