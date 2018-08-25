@@ -1,6 +1,6 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { collectDebuggersFromExtensions, getAvailableDebuggers } from '../extensions/debuggers'
+import { collectDebuggersFromExtensions, getAvailableDebuggers, getLaunchConfigs } from '../extensions/debuggers'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
@@ -82,7 +82,6 @@ const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, Extension>()
 const runningLangServers = new Map<string, ProtocolConnection>()
 const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
-const debuggers = new Map<string, DaRealDebugger>()
 
 on.load(() => load())
 
@@ -92,20 +91,9 @@ on.activate(({ kind, data }: ActivateOpts) => {
   if (kind === 'language') return activate.language(data)
 })
 
+on.listDebuggers(() => getAvailableDebuggers())
+on.listLaunchConfigs(() => getLaunchConfigs())
 on.startDebug((type: string) => start.debug(type))
-
-on.listDebuggers(async () => {
-  const dbgs = [...extensions]
-    .filter(ext => !!pleaseGet(ext.config).contributes.debuggers())
-    .map(ext => {
-      const debuggers = pleaseGet(ext.config).contributes.debuggers([]) as any
-      return debuggers.map((d: any) => ({ type: d.type, label: d.label }))
-    })
-    .reduce((res: any[], ds: any[]) => [...res, ...ds], [])
-    .filter((d: any) => d.type !== 'extensionHost')
-
-  return [...new Set(dbgs)]
-})
 
 const getServer = (id: string) => {
   const server = runningLangServers.get(id)
@@ -203,32 +191,6 @@ const installExtensionsIfNeeded = (extensions: string[]) => extensions
     // and do the whole package.json parse routine
     // and we need to do it recursively... sheesh great design here
   })
-
-
-const collectDebuggers = (extensions: Extension[]): DaRealDebugger[] => {
-  // TODO: initialConfigurations are static in the json, right? so we don't need to activat
-  // extneions to determine dis.
-  //
-  // we only need to activate extensions to know if they have a debug configuration provider
-  // also... we may be activating these extensions multiple times. is that okay?
-  // as i recall vsc activates multiple times...?
-
-  // according to docs, initialConfigurations are used AFTER dynamic debug config...
-
-  // await activate extensions 'onDebugInitialConfigurations'
-  // await activate extensions 'onDebug'
-
-  const debuggers = extensions.reduce((res, ext) => {
-    const extDebuggers = getExtensionDebuggers(ext)
-    return [...res, ...extDebuggers]
-  }, [] as DaRealDebugger[])
-
-  return debuggers
-}
-
-const getDebuggersWithConfig = (debuggers: DaRealDebugger[]): DaRealDebugger[] => {
-  return debuggers.filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
-}
 
 const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => {
   const rawFileData = await readFile(packageJson)
@@ -331,21 +293,10 @@ const activate = {
   },
 }
 
-const chooseDebuggerToUse = async () => {
-  // TODO: get debug configs from launch.json
-
-  // if no launch.json configs
-  const debuggers = await getAvailableDebuggers()
-  console.log('debuggers with configs to be chosen by user', debuggers)
-}
-
 const start = {
   debug: async (type: string) => {
     const { extension, debug } = getDebug(type)
     if (!extension) return console.error(`extension for ${type} not found`)
-
-    const availableDebuggers = await getAvailableDebuggers([...debuggers.values()])
-    console.log('availableDebuggers', availableDebuggers)
 
     // TODO: handle recursive extension dependencies
     const activations = extension.extensionDependencies

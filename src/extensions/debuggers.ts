@@ -57,16 +57,22 @@ export const collectDebuggersFromExtensions = (extensions: Extension[]): void =>
   })
 }
 
-export const getAvailableDebuggers = async (debuggers: Debugger[]): Promise<Debugger[]> => {
+export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
   const hasNeededActivationEvent = ae => ae.type === ActivationEventType.Debug
     || ae.type === ActivationEventType.DebugInitialConfigs
 
-  const activations = debuggers
+  const activations = [...debuggers.values()]
     .filter(d => d.extension.activationEvents.some(hasNeededActivationEvent))
     .map(d => activateExtension(d.extension))
 
   // TODO: need to reach into the vscode api and get the debug provider funcs (and call them)
+  // TODO: or return if it has static "initialConfigurations" datas (after
+  // debug config provider. are they merged tho? if both exist?)
 
   const subs = await Promise.all(activations)
   return subs
+}
+
+export const getLaunchConfigs = async (): Promise<any> => {
+  // TODO: get launch.json configs
 }
