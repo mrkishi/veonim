@@ -279,7 +279,7 @@ guessDebugger()
   return prompt user for debugger to use(candidates)
 
 
-resolveConfigurationByProviders(type
+resolveConfigurationByProviders(type)
   await activate extensions `onDebugResolve:${type}`
   // if any extensions have the resolve debug config method
   // registered then we call it to get the config?

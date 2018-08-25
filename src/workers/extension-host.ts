@@ -20,6 +20,7 @@ interface DaRealDebugger extends Debugger {
   initialConfigurations?: any[]
   hasInitialConfiguration: boolean
   hasConfigurationProvider: boolean
+  extension: Extension,
 }
 
 interface Disposable {
@@ -40,6 +41,8 @@ enum ActivationEventType {
   Language = 'onLanguage',
   Command = 'onCommand',
   Debug = 'onDebug',
+  DebugInitialConfigs = 'onDebugInitialConfigurations',
+  DebugResolve = 'onDebugResolve',
   View = 'onView',
   Always  = '*',
 }
@@ -211,8 +214,25 @@ const getExtensionDebuggers = (extension: Extension): DaRealDebugger[] => {
     initialConfigurations: d.initialConfigurations,
     hasInitialConfiguration: !!d.initialConfigurations,
     // TODO: how do we get dis
+    // maybe this is a function that gets called, since it's dynamic
+    // then we can have an activate function to activate the extension
+    // under various activationEvents (specified as params in func)
     hasConfigurationProvider: false,
   }))
+}
+
+const getAvailableDebuggers = async (debuggers: DaRealDebugger[]): DaRealDebugger[] => {
+  const hasNeededActivationEvent = ae => ae.type === ActivationEventType.Debug
+    || ae.type === ActivationEventType.DebugInitialConfigs
+
+  const activations = debuggers
+    .filter(d => d.extension.activationEvents.some(hasNeededActivationEvent))
+    .map(d => activateExtension(d.extension))
+
+  // TODO: need to reach into the vscode api and get the debug provider funcs (and call them)
+
+  const subs = await Promise.all(activations)
+  return subs
 }
 
 const collectDebuggers = (extensions: Extension[]): DaRealDebugger[] => {
@@ -222,6 +242,8 @@ const collectDebuggers = (extensions: Extension[]): DaRealDebugger[] => {
   // we only need to activate extensions to know if they have a debug configuration provider
   // also... we may be activating these extensions multiple times. is that okay?
   // as i recall vsc activates multiple times...?
+
+  // according to docs, initialConfigurations are used AFTER dynamic debug config...
 
   // await activate extensions 'onDebugInitialConfigurations'
   // await activate extensions 'onDebug'
@@ -353,11 +375,15 @@ const start = {
     const chosenDebugger = dbgs[0]
     console.log('chosenDebugger', chosenDebugger)
     // TODO: get configuration from chosen debugger
-
+    // TODO: initilaConfigurations has more than 1 config (duh). do we need to ask user
+    // to chose a config? check in vsc with python-debug
   },
   debug: async (type: string) => {
     const { extension, debug } = getDebug(type)
     if (!extension) return console.error(`extension for ${type} not found`)
+
+    const availableDebuggers = await getAvailableDebuggers([...debuggers.values()])
+    console.log('availableDebuggers', availableDebuggers)
 
     // TODO: handle recursive extension dependencies
     const activations = extension.extensionDependencies
