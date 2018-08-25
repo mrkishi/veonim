@@ -16,14 +16,6 @@ interface Debugger {
   runtime?: 'node' | 'mono'
 }
 
-// TODO: can we consolidate these interfaces?
-interface DaRealDebugger extends Debugger {
-  initialConfigurations?: any[]
-  hasInitialConfiguration: boolean
-  hasConfigurationProvider: boolean
-  extension: Extension,
-}
-
 interface Disposable {
   dispose: () => any
   [index: string]: any
