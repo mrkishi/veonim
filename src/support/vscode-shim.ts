@@ -33,11 +33,27 @@ const commands = {
     // we will need to pass this back to main thread to talk with neovim
     // if we are within the context of a web worker (right now this is YES)
     // action(command, callback)
-    return () => console.log('this is a NYI Disposable that is supposed to unregister the command:', command)
+    return () => console.warn('NYI: this is a NYI Disposable that is supposed to unregister the command:', command)
+  }
+}
+
+const debug = {
+  registerDebugConfigurationProvider: (debugType: string, provider: any) => {
+    console.log('register debug config provider:', debugType, provider)
+    return () => console.warn('NYI: dispoosesssese the debug provider pls kthx!')
+  },
+  // TODO: type these functions as 'DebugSession'. see api
+  // https://code.visualstudio.com/docs/extensionAPI/vscode-api#_debug
+  onDidStartDebugSession: (fn: Function) => {
+    console.warn('NYI: onDidStartDebugSession register event callback', fn)
+  },
+  onDidTerminateDebugSession: (fn: Function) => {
+    console.warn('NYI: onDidTerminateDebugSession register event callback', fn)
   }
 }
 
 fakeModule('vscode', {
+  debug,
   commands,
 }, logMissingModuleApiDuringDevelopment)
 
