@@ -1,4 +1,5 @@
-import { Extension } from '../workers/extension-host'
+// TODO: worried about what happens if we import the worker module again...?
+import { Extension, ActivationEventType, activateExtension } from '../workers/extension-host'
 import pleaseGet from '../support/please-get'
 
 export interface DebugConfiguration {
@@ -54,4 +55,18 @@ export const collectDebuggersFromExtensions = (extensions: Extension[]): void =>
     const dbgs = getExtensionDebuggers(ext)
     dbgs.forEach(dbg => debuggers.set(dbg.type, dbg))
   })
+}
+
+export const getAvailableDebuggers = async (debuggers: Debugger[]): Promise<Debugger[]> => {
+  const hasNeededActivationEvent = ae => ae.type === ActivationEventType.Debug
+    || ae.type === ActivationEventType.DebugInitialConfigs
+
+  const activations = debuggers
+    .filter(d => d.extension.activationEvents.some(hasNeededActivationEvent))
+    .map(d => activateExtension(d.extension))
+
+  // TODO: need to reach into the vscode api and get the debug provider funcs (and call them)
+
+  const subs = await Promise.all(activations)
+  return subs
 }

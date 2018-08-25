@@ -1,7 +1,7 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { collectDebuggersFromExtensions, getAvailableDebuggers } from '../extensions/debuggers'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
-import { collectDebuggersFromExtensions } from '../extensions/debuggers'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -37,7 +37,7 @@ interface Disposable {
 process.env.ELECTRON_RUN_AS_NODE = '1'
 
 // TODO: this file is growing a bit big. split out some functionalities into separate modules
-enum ActivationEventType {
+export enum ActivationEventType {
   WorkspaceContains = 'workspaceContains',
   Language = 'onLanguage',
   Command = 'onCommand',
@@ -204,37 +204,6 @@ const installExtensionsIfNeeded = (extensions: string[]) => extensions
     // and we need to do it recursively... sheesh great design here
   })
 
-const getExtensionDebuggers = (extension: Extension): DaRealDebugger[] => {
-  const debuggers = pleaseGet(extension.config).contributes.debuggers([]) as any[]
-  return debuggers.map(d => ({
-    extension,
-    type: d.type,
-    label: d.label,
-    program: d.program,
-    runtime: d.runtime,
-    initialConfigurations: d.initialConfigurations,
-    hasInitialConfiguration: !!d.initialConfigurations,
-    // TODO: how do we get dis
-    // maybe this is a function that gets called, since it's dynamic
-    // then we can have an activate function to activate the extension
-    // under various activationEvents (specified as params in func)
-    hasConfigurationProvider: false,
-  }))
-}
-
-const getAvailableDebuggers = async (debuggers: DaRealDebugger[]): DaRealDebugger[] => {
-  const hasNeededActivationEvent = ae => ae.type === ActivationEventType.Debug
-    || ae.type === ActivationEventType.DebugInitialConfigs
-
-  const activations = debuggers
-    .filter(d => d.extension.activationEvents.some(hasNeededActivationEvent))
-    .map(d => activateExtension(d.extension))
-
-  // TODO: need to reach into the vscode api and get the debug provider funcs (and call them)
-
-  const subs = await Promise.all(activations)
-  return subs
-}
 
 const collectDebuggers = (extensions: Extension[]): DaRealDebugger[] => {
   // TODO: initialConfigurations are static in the json, right? so we don't need to activat
@@ -299,8 +268,7 @@ const load = async () => {
       .forEach(a => languageExtensions.set(a.value, ext))
   })
 
-  const extensionDebuggers = collectDebuggers(extensionsWithConfig)
-  extensionDebuggers.forEach(ed => debuggers.set(ed.type, ed))
+  collectDebuggersFromExtensions(extensionsWithConfig)
 }
 
 const connectRPCServer = (proc: ChildProcess): string => {
@@ -316,7 +284,7 @@ const connectRPCServer = (proc: ChildProcess): string => {
   return serverId
 }
 
-const activateExtension = async (e: Extension): Promise<Disposable[]> => {
+export const activateExtension = async (e: Extension): Promise<Disposable[]> => {
   const requirePath = e.requirePath
   const extName = basename(requirePath)
 
@@ -363,22 +331,15 @@ const activate = {
   },
 }
 
-const start = {
-  debugging: () => {
-    // TODO: i think some (or most) of this func will have to live
-    // in the main thread to access UI prompts
-    // TODO: get debug configs from launch.json
-    // TODO: if (launch.json exists) prompt user to select configuration to use for debugging
+const chooseDebuggerToUse = async () => {
+  // TODO: get debug configs from launch.json
 
-    // if no launch.json or no config chosen...
-    const dbgs = getDebuggersWithConfig([...debuggers.values()])
-    // TODO: prompt user for debugger to use
-    const chosenDebugger = dbgs[0]
-    console.log('chosenDebugger', chosenDebugger)
-    // TODO: get configuration from chosen debugger
-    // TODO: initilaConfigurations has more than 1 config (duh). do we need to ask user
-    // to chose a config? check in vsc with python-debug
-  },
+  // if no launch.json configs
+  const debuggers = await getAvailableDebuggers()
+  console.log('debuggers with configs to be chosen by user', debuggers)
+}
+
+const start = {
   debug: async (type: string) => {
     const { extension, debug } = getDebug(type)
     if (!extension) return console.error(`extension for ${type} not found`)
