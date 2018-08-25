@@ -1,3 +1,4 @@
+import { DebugConfigurationProvider } from '../extensions/debuggers'
 import fakeModule from '../support/fake-module'
 
 type LogMissingModuleApi = (moduleName: string, apiPath: string) => void
@@ -38,7 +39,7 @@ const commands = {
 }
 
 const debug = {
-  registerDebugConfigurationProvider: (debugType: string, provider: any) => {
+  registerDebugConfigurationProvider: (debugType: string, provider: DebugConfigurationProvider) => {
     console.log('register debug config provider:', debugType, provider)
     return () => console.warn('NYI: dispoosesssese the debug provider pls kthx!')
   },
@@ -49,7 +50,7 @@ const debug = {
   },
   onDidTerminateDebugSession: (fn: Function) => {
     console.warn('NYI: onDidTerminateDebugSession register event callback', fn)
-  }
+  },
 }
 
 fakeModule('vscode', {
