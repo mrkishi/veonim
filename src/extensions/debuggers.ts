@@ -1,5 +1,6 @@
 // TODO: worried about what happens if we import the worker module again...?
-import { Extension, activateExtension } from '../workers/extension-host'
+import { activateExtension } from '../extensions/extensions'
+import { Extension } from '../workers/extension-host'
 import pleaseGet from '../support/please-get'
 
 export interface DebugConfiguration {

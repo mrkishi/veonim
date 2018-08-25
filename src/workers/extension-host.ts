@@ -2,6 +2,7 @@ import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, Pro
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { collectDebuggersFromExtensions, getAvailableDebuggers, getLaunchConfigs } from '../extensions/debuggers'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
+import { activateExtension } from '../extensions/extensions'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -236,22 +237,6 @@ const connectRPCServer = (proc: ChildProcess): string => {
 
   runningLangServers.set(serverId, conn)
   return serverId
-}
-
-export const activateExtension = async (e: Extension): Promise<Disposable[]> => {
-  const requirePath = e.requirePath
-  const extName = basename(requirePath)
-
-  const extension = require(requirePath)
-  if (!extension.activate) {
-    console.error(`extension ${extName} does not have a .activate() method`)
-    return [] as any[]
-  }
-
-  const context = { subscriptions: [] as any[] }
-  await extension.activate(context).catch((err: any) => console.error(extName, err))
-
-  return context.subscriptions
 }
 
 const activateExtensionForLanguage = async (language: string) => {
