@@ -1,6 +1,7 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
+import { collectDebuggersFromExtensions } from '../extensions/debuggers'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -57,7 +58,7 @@ interface ExtensionInfo {
   publisher: string
 }
 
-interface Extension extends ExtensionInfo {
+export interface Extension extends ExtensionInfo {
   config: any
   packagePath: string
   requirePath: string
