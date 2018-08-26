@@ -24,7 +24,7 @@ interface Debugger {
   hasInitialConfiguration: boolean
   hasConfigurationProvider: () => boolean
   extension: Extension
-  debugConfigProviders: DebugConfigurationProvider[]
+  debugConfigProviders: Set<DebugConfigurationProvider>
 }
 
 const debuggers = new Map<string, Debugger>()
@@ -39,7 +39,7 @@ const getExtensionDebuggers = (extension: Extension): Debugger[] => {
     program: d.program,
     runtime: d.runtime,
     initialConfigurations: d.initialConfigurations,
-    debugConfigProviders: [],
+    debugConfigProviders: new Set(),
     hasInitialConfiguration: !!d.initialConfigurations,
     hasConfigurationProvider: () => false,
   }))
@@ -58,12 +58,17 @@ export const collectDebuggersFromExtensions = (extensions: Extension[]): void =>
   })
 }
 
+export const registerDebugConfigProvider = (type: string, provider: DebugConfigurationProvider) => {
+  const dbg = debuggers.get(type)
+  if (!dbg) return console.error(`can't register debug config provider. debugger ${type} does not exist.`)
+
+  dbg.debugConfigProviders.add(provider)
+}
+
 export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
   const activations = [...debuggers.values()]
     .filter(d => d.extension.activationEvents.some(ae => {
-      const onDebug = ae.type === 'onDebug'
-      const onDebugInitalConfig = ae.type === 'onDebugInitialConfigurations'
-      return onDebug || onDebugInitalConfig
+      return ['onDebug', 'onDebugInitialConfigurations'].includes(ae.type)
     }))
     .map(d => activateExtension(d.extension))
 
@@ -72,6 +77,7 @@ export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
   // debug config provider. are they merged tho? if both exist?)
 
   const subs = await Promise.all(activations)
+  // TODO: do something with these subbbbbzzzzzzz
   return subs
 }
 
