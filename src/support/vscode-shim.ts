@@ -1,4 +1,4 @@
-import { DebugConfigurationProvider } from '../extensions/debuggers'
+import { DebugConfigurationProvider, registerDebugConfigProvider } from '../extensions/debuggers'
 import fakeModule from '../support/fake-module'
 
 type LogMissingModuleApi = (moduleName: string, apiPath: string) => void
@@ -40,7 +40,7 @@ const commands = {
 
 const debug = {
   registerDebugConfigurationProvider: (debugType: string, provider: DebugConfigurationProvider) => {
-    console.log('register debug config provider:', debugType, provider)
+    registerDebugConfigProvider(debugType, provider)
     return () => console.warn('NYI: dispoosesssese the debug provider pls kthx!')
   },
   // TODO: type these functions as 'DebugSession'. see api

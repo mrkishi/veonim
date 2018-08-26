@@ -59,6 +59,8 @@ export const collectDebuggersFromExtensions = (extensions: Extension[]): void =>
 }
 
 export const registerDebugConfigProvider = (type: string, provider: DebugConfigurationProvider) => {
+  if (!provider) return
+
   const dbg = debuggers.get(type)
   if (!dbg) return console.error(`can't register debug config provider. debugger ${type} does not exist.`)
 
