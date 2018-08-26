@@ -65,6 +65,8 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
   if (!dbg) return console.error(`can't register debug config provider. debugger ${type} does not exist.`)
 
   dbg.debugConfigProviders.add(provider)
+  // TODO: in the vsc source, this flag gets set to true if 'provideDebugConfigurations' exists
+  // i'm not sure how the filter works later, because we never track the existnce of 'resolveDebugConfiguration'
   dbg.hasConfigurationProvider = true
 }
 
@@ -75,10 +77,6 @@ export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
       return ['onDebug', 'onDebugInitialConfigurations'].includes(ae.type)
     }))
     .map(d => activateExtension(d.extension))
-
-  // TODO: need to reach into the vscode api and get the debug provider funcs (and call them)
-  // TODO: or return if it has static "initialConfigurations" datas (after
-  // debug config provider. are they merged tho? if both exist?)
 
   await Promise.all(activations)
   return dbgs.filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
