@@ -70,16 +70,18 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
   dbg.hasConfigurationProvider = true
 }
 
-export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
-  const dbgs = [...debuggers.values()]
-  const activations = dbgs
-    .filter(d => d.extension.activationEvents.some(ae => {
-      return ['onDebug', 'onDebugInitialConfigurations'].includes(ae.type)
-    }))
+const activateDebuggersByEvent = async (eventType: string) => {
+  const activations = [...debuggers.values()]
+    .filter(d => d.extension.activationEvents.some(ae => ae.type === eventType))
     .map(d => activateExtension(d.extension))
 
-  await Promise.all(activations)
-  return dbgs.filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
+  return Promise.all(activations)
+}
+
+export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
+  await activateDebuggersByEvent('onDebugInitialConfigurations')
+  await activateDebuggersByEvent('onDebug')
+  return [...debuggers.values()].filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
 }
 
 export const getLaunchConfigs = async (): Promise<any> => {
@@ -87,22 +89,18 @@ export const getLaunchConfigs = async (): Promise<any> => {
 }
 
 export const resolveConfigurationByProviders = async (type: string) => {
-  const dbgs = [...debuggers.values()]
-  const activations = dbgs
-    .filter(d => d.extension.activationEvents.some(ae => ae.type === `onDebugResolve:${type}`))
-    .map(d => activateExtension(d.extension))
+  await activateDebuggersByEvent(`onDebugResolve:${type}`)
 
-  await Promise.all(activations)
-
-  const debuggersWithConfig = dbgs.filter(d => d.hasConfigurationProvider)
-  return debuggersWithConfig.reduce((res, dbg) => {
-    const configProviders = [...dbg.debugConfigProviders.values()]
-    // TODO: provide cwd here
-    // TODO: why calling provideDebugConfigurations, the analysis and func name
-    // inidicates that we should be calling resolveDebugConfiguration here.
-    // the problem is that we need to have some debug configurations before
-    // calling "resolve..." (via "resolveDebugConfiguration")
-    const configs = configProviders.map(cp => cp.provideDebugConfigurations('/Users/a/proj/veonim'))
-    return [...res, ...configs]
-  }, [] as DebugConfiguration)
+  return [...debuggers.values()]
+    .filter(d => d.hasConfigurationProvider)
+    .reduce((res, dbg) => {
+      const configProviders = [...dbg.debugConfigProviders.values()]
+      // TODO: provide cwd here
+      // TODO: why calling provideDebugConfigurations, the analysis and func name
+      // inidicates that we should be calling resolveDebugConfiguration here.
+      // the problem is that we need to have some debug configurations before
+      // calling "resolve..." (via "resolveDebugConfiguration")
+      const configs = configProviders.map(cp => cp.provideDebugConfigurations('/Users/a/proj/veonim'))
+      return [...res, ...configs]
+    }, [] as DebugConfiguration)
 }
