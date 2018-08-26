@@ -1,11 +1,13 @@
 import { activateExtension } from '../extensions/extensions'
 import { Extension } from '../workers/extension-host'
 import pleaseGet from '../support/please-get'
+import { merge } from '../support/utils'
 
-export interface DebugConfiguration {
+interface DebugConfiguration {
   name: string
   request: string
   type: string
+  [index: string]: any
 }
 
 export interface DebugConfigurationProvider {
@@ -62,7 +64,21 @@ const activateDebuggersByEvent = async (eventType: string) => {
   return Promise.all(activations)
 }
 
-const getDebugConfig = async ()
+const getInitialConfigurations = (dbg: Debugger): DebugConfiguration[] => {
+  return []
+
+}
+
+const getDebuggerConfig = async (cwd: string, type: string) => {
+  const dbg = debuggers.get(type)
+  if (!dbg) return console.error(`the debugger ${type} does not exist. lolwat`)
+
+  const initialConfigs = getInitialConfigurations(dbg)
+  const initialConfig = initialConfigs
+    .reduce((finalConfig, config) => merge(finalConfig, config), {} as DebugConfiguration)
+
+  return resolveConfigurationByProviders(cwd, type, initialConfig)
+}
 
 export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
   await activateDebuggersByEvent('onDebugInitialConfigurations')
@@ -74,17 +90,22 @@ export const getLaunchConfigs = async (): Promise<any> => {
   // TODO: get launch.json configs
 }
 
-// TODO: who uses this
-// can accept no config. then it's up to the extension to provide the config.
-// i think the other scenario is when we already have a config from launch.json
-// (then config won't default to empty object)
+/*
+ * Resolve a debug configuration from either an inital config or no config.
+ *
+ * Gets called from either of the following scenarios (in the following order)
+ *
+ * - We have a configuration from launch.json and we need to resolve it further
+ * - We have an initial configuration from "initialConfigurations" or "provideDebugConfigurations"
+ * - We have no configuration at all
+ */
 export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration) => {
   await activateDebuggersByEvent(`onDebugResolve:${type}`)
   // not sure the significance of the * but that's how it is in the vsc source
   return [...getProviders(type), ...getProviders('*')]
     .filter(p => p.resolveDebugConfiguration)
     .reduce((q, provider) => q.then(config => config
-      ? provider.resolveDebugConfiguration(cwd, config)
+      ? provider.resolveDebugConfiguration!(cwd, config)
       : Promise.resolve(config)
     ), Promise.resolve(config))
 }
