@@ -1,4 +1,3 @@
-// TODO: worried about what happens if we import the worker module again...?
 import { activateExtension } from '../extensions/extensions'
 import { Extension } from '../workers/extension-host'
 import pleaseGet from '../support/please-get'
@@ -10,21 +9,8 @@ export interface DebugConfiguration {
 }
 
 export interface DebugConfigurationProvider {
-  // TODO: better param types here pls
-  provideDebugConfigurations?: (folder: string, token?: any) => DebugConfiguration[]
-  resolveDebugConfiguration?: (folder: string, debugConfig: DebugConfiguration, token?: any) => DebugConfiguration
-}
-
-interface WorkspaceFolder {
-  /**
-   * CWD in uri format e.g. `file://Users/a/proj/veonim`
-   */
-  uri: string
-  /**
-   * Basename of workspace folder
-   */
-  name: string
-  index: number
+  provideDebugConfigurations?: (folderURI: string, token?: any) => DebugConfiguration[]
+  resolveDebugConfiguration?: (folderURI: string, debugConfig: DebugConfiguration, token?: any) => DebugConfiguration
 }
 
 interface Debugger {
@@ -57,6 +43,52 @@ const getExtensionDebuggers = (extension: Extension): Debugger[] => {
   }))
 }
 
+const getProviders = (type: string) => {
+  const dbg = debuggers.get(type)
+
+  if (!dbg) {
+    console.error(`could not get debug providers for ${type}`)
+    return []
+  }
+
+  return [...dbg.debugConfigProviders.values()]
+}
+
+const activateDebuggersByEvent = async (eventType: string) => {
+  const activations = [...debuggers.values()]
+    .filter(d => d.extension.activationEvents.some(ae => ae.type === eventType))
+    .map(d => activateExtension(d.extension))
+
+  return Promise.all(activations)
+}
+
+const getDebugConfig = async ()
+
+export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
+  await activateDebuggersByEvent('onDebugInitialConfigurations')
+  await activateDebuggersByEvent('onDebug')
+  return [...debuggers.values()].filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
+}
+
+export const getLaunchConfigs = async (): Promise<any> => {
+  // TODO: get launch.json configs
+}
+
+// TODO: who uses this
+// can accept no config. then it's up to the extension to provide the config.
+// i think the other scenario is when we already have a config from launch.json
+// (then config won't default to empty object)
+export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration) => {
+  await activateDebuggersByEvent(`onDebugResolve:${type}`)
+  // not sure the significance of the * but that's how it is in the vsc source
+  return [...getProviders(type), ...getProviders('*')]
+    .filter(p => p.resolveDebugConfiguration)
+    .reduce((q, provider) => q.then(config => config
+      ? provider.resolveDebugConfiguration(cwd, config)
+      : Promise.resolve(config)
+    ), Promise.resolve(config))
+}
+
 export const collectDebuggersFromExtensions = (extensions: Extension[]): void => {
   // this function should only be called when we load extensions.  loading
   // extensions reloads ALL extensions whether they were loaded before or not.
@@ -82,48 +114,4 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
   // or if its possible to only have one or the other. the interface
   // indicates that both must be present
   dbg.hasConfigurationProvider = !!provider.provideDebugConfigurations
-}
-
-const getProviders = (type: string) => {
-  const dbg = debuggers.get(type)
-
-  if (!dbg) {
-    console.error(`could not get debug providers for ${type}`)
-    return []
-  }
-
-  return [...dbg.debugConfigProviders.values()]
-}
-
-const activateDebuggersByEvent = async (eventType: string) => {
-  const activations = [...debuggers.values()]
-    .filter(d => d.extension.activationEvents.some(ae => ae.type === eventType))
-    .map(d => activateExtension(d.extension))
-
-  return Promise.all(activations)
-}
-
-export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
-  await activateDebuggersByEvent('onDebugInitialConfigurations')
-  await activateDebuggersByEvent('onDebug')
-  return [...debuggers.values()].filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
-}
-
-export const getLaunchConfigs = async (): Promise<any> => {
-  // TODO: get launch.json configs
-}
-
-// TODO: who uses this
-// can accept no config. then it's up to the extension to provide the config.
-// i think the other scenario is when we already have a config from launch.json
-// (then config won't default to empty object)
-export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration) => {
-  await activateDebuggersByEvent(`onDebugResolve:${type}`)
-  // not sure the significance of the * but that's how it is in the vsc source
-  return [...getProviders(type), ...getProviders('*')]
-    .filter(p => p.resolveDebugConfiguration)
-    .reduce((q, provider) => q.then(config => config
-      ? provider.resolveDebugConfiguration(cwd, config)
-      : Promise.resolve(config)
-    ), Promise.resolve(config))
 }
