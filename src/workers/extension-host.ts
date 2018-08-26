@@ -6,8 +6,8 @@ import { activateExtension } from '../extensions/extensions'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
-import { basename, dirname, join } from 'path'
 import pleaseGet from '../support/please-get'
+import { dirname, join } from 'path'
 import '../support/vscode-shim'
 
 interface Debugger {
@@ -57,6 +57,7 @@ export interface Extension extends ExtensionInfo {
   requirePath: string
   extensionDependencies: string[]
   activationEvents: ActivationEvent[]
+  subscriptions: Set<Disposable>
 }
 
 interface ActivateOpts {
@@ -202,6 +203,7 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
     config,
     packagePath,
     extensionDependencies,
+    subscriptions: new Set(),
     requirePath: join(packagePath, main),
     activationEvents: parsedActivationEvents,
   }
