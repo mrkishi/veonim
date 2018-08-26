@@ -72,10 +72,7 @@ export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
     .filter(d => d.extension.activationEvents.some(ae => {
       return ['onDebug', 'onDebugInitialConfigurations'].includes(ae.type)
     }))
-    .map(async d => ({
-      ...d,
-      subscriptions: await activateExtension(d.extension),
-    }))
+    .map(d => activateExtension(d.extension))
 
   // TODO: need to reach into the vscode api and get the debug provider funcs (and call them)
   // TODO: or return if it has static "initialConfigurations" datas (after
@@ -87,4 +84,10 @@ export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
 
 export const getLaunchConfigs = async (): Promise<any> => {
   // TODO: get launch.json configs
+}
+
+export const resolveConfigurationByProviders = async (type: string) => {
+  const dbgs = [...debuggers.values()]
+  const activations = dbgs.map()
+
 }
