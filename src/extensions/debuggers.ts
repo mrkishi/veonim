@@ -98,7 +98,10 @@ export const getLaunchConfigs = async (): Promise<any> => {
 }
 
 // TODO: who uses this
-export const resolveConfigurationByProviders = async (cwd: string, type: string, config: DebugConfiguration) => {
+// can accept no config. then it's up to the extension to provide the config.
+// i think the other scenario is when we already have a config from launch.json
+// (then config won't default to empty object)
+export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration) => {
   await activateDebuggersByEvent(`onDebugResolve:${type}`)
   // not sure the significance of the * but that's how it is in the vsc source
   return [...getProviders(type), ...getProviders('*')]
