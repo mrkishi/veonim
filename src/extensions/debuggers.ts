@@ -20,7 +20,7 @@ interface Debugger {
   label: string
   program: string
   runtime?: 'node' | 'mono'
-  initialConfigurations?: any[]
+  initialConfigurations?: DebugConfiguration[]
   hasInitialConfiguration: boolean
   hasConfigurationProvider: boolean
   extension: Extension
@@ -64,19 +64,28 @@ const activateDebuggersByEvent = async (eventType: string) => {
   return Promise.all(activations)
 }
 
-const getInitialConfigurations = (dbg: Debugger): DebugConfiguration[] => {
-  return []
+const getInitialConfig = (dbg: Debugger, cwd: string): DebugConfiguration => {
+  const providers = [...dbg.debugConfigProviders.values()]
+  const initialConfigsStatic = dbg.initialConfigurations || []
 
+  const initialConfigsDynamic = providers
+    .filter(p => p.provideDebugConfigurations)
+    .map(p => p.provideDebugConfigurations!(cwd))
+    .reduce((res, config) => [...res, ...config], [] as DebugConfiguration[])
+
+  const initialConfigs = [...initialConfigsStatic, ...initialConfigsDynamic]
+  return initialConfigs.reduce((res, config) => merge(res, config), {} as DebugConfiguration)
 }
 
-const getDebuggerConfig = async (cwd: string, type: string) => {
+/*
+ * Get debugger config. Should probably be called after "getAvailableDebuggers"
+ * and user chooses a specific debugger to start debugging with.
+ */
+export const getDebuggerConfig = async (cwd: string, type: string) => {
   const dbg = debuggers.get(type)
   if (!dbg) return console.error(`the debugger ${type} does not exist. lolwat`)
 
-  const initialConfigs = getInitialConfigurations(dbg)
-  const initialConfig = initialConfigs
-    .reduce((finalConfig, config) => merge(finalConfig, config), {} as DebugConfiguration)
-
+  const initialConfig = getInitialConfig(dbg, cwd)
   return resolveConfigurationByProviders(cwd, type, initialConfig)
 }
 
@@ -110,11 +119,15 @@ export const resolveConfigurationByProviders = async (cwd: string, type: string,
     ), Promise.resolve(config))
 }
 
+/*
+ * Collect debuggers from the list of extensions
+ *
+ * This function should only be called when we load extensions. Loading
+ * extensions reloads ALL extensions whether they were loaded before or not.
+ * this means we should reset the collection of debuggers from any previous
+ * extension loadings
+ */
 export const collectDebuggersFromExtensions = (extensions: Extension[]): void => {
-  // this function should only be called when we load extensions.  loading
-  // extensions reloads ALL extensions whether they were loaded before or not.
-  // this means we should reset the collection of debuggers from any previous
-  // extension loadings
   debuggers.clear()
 
   extensions.forEach(ext => {
@@ -130,9 +143,5 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
   if (!dbg) return console.error(`can't register debug config provider. debugger ${type} does not exist.`)
 
   dbg.debugConfigProviders.add(provider)
-  // TODO: this is according to the vsc source. i wonder if we always get
-  // provideDebugConfigurations and resolveDebugConfiguration together
-  // or if its possible to only have one or the other. the interface
-  // indicates that both must be present
-  dbg.hasConfigurationProvider = !!provider.provideDebugConfigurations
+  dbg.hasConfigurationProvider = true
 }
