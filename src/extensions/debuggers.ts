@@ -67,7 +67,8 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
 }
 
 export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
-  const activations = [...debuggers.values()]
+  const dbgs = [...debuggers.values()]
+  const activations = dbgs
     .filter(d => d.extension.activationEvents.some(ae => {
       return ['onDebug', 'onDebugInitialConfigurations'].includes(ae.type)
     }))
@@ -81,6 +82,7 @@ export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
   // debug config provider. are they merged tho? if both exist?)
 
   await Promise.all(activations)
+  return dbgs.filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
 }
 
 export const getLaunchConfigs = async (): Promise<any> => {
