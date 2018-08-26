@@ -22,7 +22,7 @@ interface Debugger {
   runtime?: 'node' | 'mono'
   initialConfigurations?: any[]
   hasInitialConfiguration: boolean
-  hasConfigurationProvider: () => boolean
+  hasConfigurationProvider: boolean
   extension: Extension
   debugConfigProviders: Set<DebugConfigurationProvider>
 }
@@ -41,7 +41,7 @@ const getExtensionDebuggers = (extension: Extension): Debugger[] => {
     initialConfigurations: d.initialConfigurations,
     debugConfigProviders: new Set(),
     hasInitialConfiguration: !!d.initialConfigurations,
-    hasConfigurationProvider: () => false,
+    hasConfigurationProvider: false,
   }))
 }
 
@@ -63,6 +63,7 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
   if (!dbg) return console.error(`can't register debug config provider. debugger ${type} does not exist.`)
 
   dbg.debugConfigProviders.add(provider)
+  dbg.hasConfigurationProvider = true
 }
 
 export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
