@@ -11,8 +11,20 @@ export interface DebugConfiguration {
 
 export interface DebugConfigurationProvider {
   // TODO: better param types here pls
-  provideDebugConfigurations: (folder: string, token?: any) => DebugConfiguration[]
-  resolveDebugConfiguration: (folder: string, debugConfig: DebugConfiguration, token?: any) => DebugConfiguration
+  provideDebugConfigurations?: (folder: string, token?: any) => DebugConfiguration[]
+  resolveDebugConfiguration?: (folder: string, debugConfig: DebugConfiguration, token?: any) => DebugConfiguration
+}
+
+interface WorkspaceFolder {
+  /**
+   * CWD in uri format e.g. `file://Users/a/proj/veonim`
+   */
+  uri: string
+  /**
+   * Basename of workspace folder
+   */
+  name: string
+  index: number
 }
 
 interface Debugger {
@@ -65,6 +77,10 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
   if (!dbg) return console.error(`can't register debug config provider. debugger ${type} does not exist.`)
 
   dbg.debugConfigProviders.add(provider)
+  // TODO: this is according to the vsc source. i wonder if we always get
+  // provideDebugConfigurations and resolveDebugConfiguration together
+  // or if its possible to only have one or the other. the interface
+  // indicates that both must be present
   dbg.hasConfigurationProvider = !!provider.provideDebugConfigurations
 }
 

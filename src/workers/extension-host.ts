@@ -1,6 +1,6 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { collectDebuggersFromExtensions, getAvailableDebuggers, getLaunchConfigs } from '../extensions/debuggers'
+import { collectDebuggersFromExtensions, getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders } from '../extensions/debuggers'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import { activateExtension } from '../extensions/extensions'
 import WorkerClient from '../messaging/worker-client'
@@ -272,8 +272,20 @@ const activate = {
   },
 }
 
+// TODO: 
+const startDebuggerAfterChosenByUser = async (type: string) => {
+  // TODO: cwd lol
+  const config = await resolveConfigurationByProviders('/Users/a/proj', type)
+  console.log('config', config)
+  // if (!config) // TODO: get config from elsewhere
+  //see debugConfigurationManager.openConfigFile(type)
+}
+
 const start = {
   debug: async (type: string) => {
+    // TODO: only activate extensions for 'onDebug'
+    // other events are called by getting config fns...
+
     const { extension, debug } = getDebug(type)
     if (!extension) return console.error(`extension for ${type} not found`)
 
