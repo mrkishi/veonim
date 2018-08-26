@@ -65,9 +65,18 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
   if (!dbg) return console.error(`can't register debug config provider. debugger ${type} does not exist.`)
 
   dbg.debugConfigProviders.add(provider)
-  // TODO: in the vsc source, this flag gets set to true if 'provideDebugConfigurations' exists
-  // i'm not sure how the filter works later, because we never track the existnce of 'resolveDebugConfiguration'
-  dbg.hasConfigurationProvider = true
+  dbg.hasConfigurationProvider = !!provider.provideDebugConfigurations
+}
+
+const getProviders = (type: string) => {
+  const dbg = debuggers.get(type)
+
+  if (!dbg) {
+    console.error(`could not get debug providers for ${type}`)
+    return []
+  }
+
+  return [...dbg.debugConfigProviders.values()]
 }
 
 const activateDebuggersByEvent = async (eventType: string) => {
@@ -88,19 +97,14 @@ export const getLaunchConfigs = async (): Promise<any> => {
   // TODO: get launch.json configs
 }
 
-export const resolveConfigurationByProviders = async (type: string) => {
+// TODO: who uses this
+export const resolveConfigurationByProviders = async (cwd: string, type: string, config: DebugConfiguration) => {
   await activateDebuggersByEvent(`onDebugResolve:${type}`)
-
-  return [...debuggers.values()]
-    .filter(d => d.hasConfigurationProvider)
-    .reduce((res, dbg) => {
-      const configProviders = [...dbg.debugConfigProviders.values()]
-      // TODO: provide cwd here
-      // TODO: why calling provideDebugConfigurations, the analysis and func name
-      // inidicates that we should be calling resolveDebugConfiguration here.
-      // the problem is that we need to have some debug configurations before
-      // calling "resolve..." (via "resolveDebugConfiguration")
-      const configs = configProviders.map(cp => cp.provideDebugConfigurations('/Users/a/proj/veonim'))
-      return [...res, ...configs]
-    }, [] as DebugConfiguration)
+  // not sure the significance of the * but that's how it is in the vsc source
+  return [...getProviders(type), ...getProviders('*')]
+    .filter(p => p.resolveDebugConfiguration)
+    .reduce((q, provider) => q.then(config => config
+      ? provider.resolveDebugConfiguration(cwd, config)
+      : Promise.resolve(config)
+    ), Promise.resolve(config))
 }
