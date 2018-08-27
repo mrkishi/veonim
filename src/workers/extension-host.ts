@@ -57,7 +57,10 @@ on.activate(({ kind, data }: ActivateOpts) => {
 on.listLaunchConfigs(() => getLaunchConfigs())
 on.listDebuggers(async () => {
   const debuggers = await getAvailableDebuggers()
-  return debuggers.map(d => ({ type: d.type, label: d.label }))
+  return debuggers.map(d => {
+    const localizedLabel = d.extension.localize(d.label)
+    return { type: d.type, label: localizedLabel }
+  })
 })
 
 on.startDebugWithConfig((folderUri: string, config: DebugConfiguration) => startDebugWithConfig(folderUri, config))
@@ -168,8 +171,8 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   const config = fromJSON(rawFileData).or({})
   const { name, publisher, main, activationEvents = [], extensionDependencies = [] } = config
   const packagePath = dirname(packageJson)
-  const languageFile = join(packagePath, 'package.nls.json')
-  const localize = await LocalizeFile(languageFile)
+  const languageFilePath = join(packagePath, 'package.nls.json')
+  const localize = await LocalizeFile(languageFilePath)
 
   const parsedActivationEvents = activationEvents.map((m: string) => ({
     type: m.split(':')[0] as ActivationEventType,
