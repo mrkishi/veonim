@@ -176,7 +176,7 @@ Veonim supports the ability to run multiple instances of neovim at a time. In my
 
 When switching between instances the "background" instances are still running, but they are not wired up the user interface.
 
-This feature is like going to a multiplex movie theater, where there are multiple cinema theaters under a single roof. It is the same idea as tmux sessions, i3 workspaces, mac os spaces, etc.
+This feature is like going to a multiplex movie theater, where there are multiple cinema theaters under a single roof - but you can only be in one theater at a time. It is the same idea as tmux sessions, i3 workspaces, mac os spaces, etc.
 
 - `vim-create` - create a new vim instance with the given name
 - `vim-rename` - rename the current vim instance
