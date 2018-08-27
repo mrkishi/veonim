@@ -1,11 +1,12 @@
-import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
-import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { StreamMessageReader, StreamMessageWriter, createProtocolConnection,
+  ProtocolConnection } from 'vscode-languageserver-protocol'
 import { DebugConfiguration, collectDebuggersFromExtensions,
   getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
   getDebuggerConfig } from '../extensions/debuggers'
-import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import { ExtensionInfo, Extension, ActivationEventType,
   Disposable, activateExtension } from '../extensions/extensions'
+import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'

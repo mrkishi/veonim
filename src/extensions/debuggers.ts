@@ -94,8 +94,9 @@ export const getAvailableDebuggers = async (): Promise<Debugger[]> => {
   return [...debuggers.values()].filter(d => d.hasInitialConfiguration || d.hasConfigurationProvider)
 }
 
-export const getLaunchConfigs = async (): Promise<any> => {
+export const getLaunchConfigs = async (): Promise<DebugConfiguration[]> => {
   // TODO: get launch.json configs
+  return []
 }
 
 /*
