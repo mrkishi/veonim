@@ -17,6 +17,8 @@ document search-fn space
 
 better visuals to indicate quickfix (instead of red cursor)
 
+add user-guide built-in to veonim. create display window for it (with keybindings)
+
 bundle vim-polygot with veonim
 maybe create a veonim vimscript plugin to speed up load timem
 
