@@ -1,6 +1,6 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { collectDebuggersFromExtensions, getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders } from '../extensions/debuggers'
+import { DebugConfiguration, collectDebuggersFromExtensions, getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders, getDebuggerConfig } from '../extensions/debuggers'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import { activateExtension } from '../extensions/extensions'
 import WorkerClient from '../messaging/worker-client'
@@ -87,6 +87,10 @@ on.activate(({ kind, data }: ActivateOpts) => {
 
 on.listDebuggers(() => getAvailableDebuggers())
 on.listLaunchConfigs(() => getLaunchConfigs())
+on.startDebugWithConfig((cwd: string, config: DebugConfiguration) => startDebugWithConfig(cwd, config))
+on.startDebugWithType((cwd: string, type: string) => startDebugWithType(cwd, type))
+
+// TODO: deprecate?
 on.startDebug((type: string) => start.debug(type))
 
 const getServer = (id: string) => {
@@ -279,6 +283,40 @@ const startDebuggerAfterChosenByUser = async (type: string) => {
   console.log('config', config)
   // if (!config) // TODO: get config from elsewhere
   //see debugConfigurationManager.openConfigFile(type)
+}
+
+/*
+ * Start a debugger with a given launch.json configuration chosen by user
+ *
+ * Starts the debug adapter and returns debug configuration that will be sent
+ * along with the 'launch' request on the debug adapter protocol.
+ */
+const startDebugWithConfig = async (cwd: string, config: DebugConfiguration): Promise<DebugConfiguration> => {
+  const debugConfig = await resolveConfigurationByProviders(cwd, config.type, config)
+
+  // TODO: start debugger
+  console.log('start debugger with config:', debugConfig)
+
+  return debugConfig
+}
+
+/*
+ * Start a debugger with a given debug 'type'. This is a debugger chosen
+ * by the user after calling 'getAvailableDebuggers'. The configuration
+ * will be resolved automagically by via configs provided in extension
+ * package.json and/or via DebugConfigurationProvider
+ *
+ * Starts a debug adapter and returns debug configuration that will be sent
+ * along with the 'launch' request on the debug adapter protocol.
+ */
+const startDebugWithType = async (cwd: string, type: string) => {
+  const debugConfig = await getDebuggerConfig(cwd, type)
+  if (!debugConfig) return console.error(`can not start debugger ${type}`)
+
+  // TODO: start debugger
+  console.log('start debugger with config:', debugConfig)
+
+  return debugConfig
 }
 
 const start = {

@@ -3,7 +3,7 @@ import { Extension } from '../workers/extension-host'
 import pleaseGet from '../support/please-get'
 import { merge } from '../support/utils'
 
-interface DebugConfiguration {
+export interface DebugConfiguration {
   name: string
   request: string
   type: string
@@ -108,7 +108,7 @@ export const getLaunchConfigs = async (): Promise<any> => {
  * - We have an initial configuration from "initialConfigurations" or "provideDebugConfigurations"
  * - We have no configuration at all
  */
-export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration) => {
+export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration): Promise<DebugConfiguration> => {
   await activateDebuggersByEvent(`onDebugResolve:${type}`)
   // not sure the significance of the * but that's how it is in the vsc source
   return [...getProviders(type), ...getProviders('*')]
