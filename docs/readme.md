@@ -109,7 +109,7 @@ Example of a VSCode extension:
 VeonimExt 'vscode:extension/sourcegraph.javascript-typescript'
 ```
 
-VSCode extensions can be found on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode). The extension URI can be found grabbing the link from the "Install" button of an extension page in the marketplace.
+VSCode extensions can be found on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode). The extension URI can be found by grabbing the link from the "Install" button of an extension page in the marketplace.
 
 The vscode extension API is not yet 100% compatible with Veonim. It may never be 100% as some features do not make sense in Veonim. Compatibility will be improved as needed. Right now the focus is on supporting language server extensions and debugger extensions.
 
