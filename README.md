@@ -4,6 +4,12 @@ veonim is a simple modal IDE built on neovim. the goal is to create my ideal pro
 
 ![](https://veonim.github.io/veonim/smart.png)
 
+## project status
+
+veonim is still very early alpha and experimental. nothing is guaranteed.
+
+if you are feeling brave, maybe checkout the [User Guide](docs/readme.md)
+
 ## coming soon
 
 - built-in debugger via debug adapter protocol & vscode extensions
