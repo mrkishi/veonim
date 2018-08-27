@@ -437,7 +437,7 @@ const startWithDebugger = async () => {
 
 action('debug-start', async () => {
   const launchConfigs = await extensions.list.launchConfigs()
-  launchConfigs
+  launchConfigs.length
     ? startWithLaunchConfig(launchConfigs)
     : startWithDebugger()
 })

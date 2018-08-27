@@ -107,7 +107,7 @@ export const activate = {
 
 export const list = {
   debuggers: (): Promise<{ type: string, label: string }[]> => request.listDebuggers(),
-  launchConfigs: () => request.listLaunchConfigs(),
+  launchConfigs: (): Promise<DebugConfiguration[]> => request.listLaunchConfigs(),
 }
 
 export const start = {
