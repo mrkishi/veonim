@@ -1,5 +1,4 @@
-import { activateExtension } from '../extensions/extensions'
-import { Extension } from '../workers/extension-host'
+import { Extension, activateExtension } from '../extensions/extensions'
 import pleaseGet from '../support/please-get'
 import { merge } from '../support/utils'
 
@@ -12,7 +11,7 @@ export interface DebugConfiguration {
 
 export interface DebugConfigurationProvider {
   provideDebugConfigurations?: (folderURI: string, token?: any) => DebugConfiguration[]
-  resolveDebugConfiguration?: (folderURI: string, debugConfig: DebugConfiguration, token?: any) => DebugConfiguration
+  resolveDebugConfiguration?: (folderURI: string, debugConfig: DebugConfiguration, token?: any) => DebugConfiguration | Promise<DebugConfiguration>
 }
 
 interface Debugger {
@@ -111,9 +110,10 @@ export const getLaunchConfigs = async (): Promise<any> => {
 export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration): Promise<DebugConfiguration> => {
   await activateDebuggersByEvent(`onDebugResolve:${type}`)
   // not sure the significance of the * but that's how it is in the vsc source
+  type UghWTF = Promise<DebugConfiguration>
   return [...getProviders(type), ...getProviders('*')]
     .filter(p => p.resolveDebugConfiguration)
-    .reduce((q, provider) => q.then(config => config
+    .reduce((q: UghWTF, provider: DebugConfigurationProvider) => q.then(config => config
       ? provider.resolveDebugConfiguration!(cwd, config)
       : Promise.resolve(config)
     ), Promise.resolve(config))

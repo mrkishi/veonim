@@ -1,6 +1,5 @@
 import { action, current as vim, cmd, openFile, lineNumber } from '../core/neovim'
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { DebugConfiguration } from '../extensions/debuggers'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
@@ -12,6 +11,14 @@ import { getWindow } from '../core/windows'
 import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
 import { translate } from '../ui/css'
+
+// TODO: move to shared place
+interface DebugConfiguration {
+  name: string
+  request: string
+  type: string
+  [index: string]: any
+}
 
 type Threads = DP.Thread[]
 type StackFrames = DP.StackFrame[]
@@ -259,7 +266,7 @@ const stop = async () => {
   terminateDebugger(dbg)
 }
 
-const start = async (type: string) => {
+export const start = async (type: string) => {
   const dbg: Debugger = {
     type,
     id: uuid(),
@@ -416,7 +423,7 @@ const startWithDebugger = async () => {
   const availableDebuggers = await extensions.list.debuggers()
   const debuggerOptions = availableDebuggers.map(d => ({
     key: d.type,
-    value: d.value,
+    value: d.label,
   }))
 
   const selectedDebugger = await userSelectOption<string>({

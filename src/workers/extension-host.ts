@@ -1,8 +1,11 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { DebugConfiguration, collectDebuggersFromExtensions, getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders, getDebuggerConfig } from '../extensions/debuggers'
+import { DebugConfiguration, collectDebuggersFromExtensions,
+  getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
+  getDebuggerConfig } from '../extensions/debuggers'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
-import { activateExtension } from '../extensions/extensions'
+import { ExtensionInfo, Extension, ActivationEventType,
+  Disposable, activateExtension } from '../extensions/extensions'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -17,48 +20,12 @@ interface Debugger {
   runtime?: 'node' | 'mono'
 }
 
-interface Disposable {
-  dispose: () => any
-  [index: string]: any
-}
-
 // TODO: THIS LEAKS OUTSIDE OF WORKER!
 // need this flag to spawn node child processes. this will use the same node
 // runtime included with electron. usually we would set this as an option in
 // the spawn call, but we do not have access to the spawn calls in the
 // extensions that are spawning node executables (language servers, etc.)
 process.env.ELECTRON_RUN_AS_NODE = '1'
-
-// TODO: this file is growing a bit big. split out some functionalities into separate modules
-export enum ActivationEventType {
-  WorkspaceContains = 'workspaceContains',
-  Language = 'onLanguage',
-  Command = 'onCommand',
-  Debug = 'onDebug',
-  DebugInitialConfigs = 'onDebugInitialConfigurations',
-  DebugResolve = 'onDebugResolve',
-  View = 'onView',
-  Always  = '*',
-}
-
-interface ActivationEvent {
-  type: ActivationEventType,
-  value: string,
-}
-
-interface ExtensionInfo {
-  name: string
-  publisher: string
-}
-
-export interface Extension extends ExtensionInfo {
-  config: any
-  packagePath: string
-  requirePath: string
-  extensionDependencies: string[]
-  activationEvents: ActivationEvent[]
-  subscriptions: Set<Disposable>
-}
 
 interface ActivateOpts {
   kind: string
@@ -278,15 +245,6 @@ const activate = {
     const proc: ChildProcess = await serverActivator
     return connectRPCServer(proc)
   },
-}
-
-// TODO: 
-const startDebuggerAfterChosenByUser = async (type: string) => {
-  // TODO: cwd lol
-  const config = await resolveConfigurationByProviders('/Users/a/proj', type)
-  console.log('config', config)
-  // if (!config) // TODO: get config from elsewhere
-  //see debugConfigurationManager.openConfigFile(type)
 }
 
 /*

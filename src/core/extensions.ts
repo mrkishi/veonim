@@ -1,6 +1,13 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { DebugConfiguration } from '../extensions/debuggers'
 import Worker from '../messaging/worker'
+
+// TODO: move to shared place
+interface DebugConfiguration {
+  name: string
+  request: string
+  type: string
+  [index: string]: any
+}
 
 export interface RPCServer {
   sendNotification: (method: string, ...params: any[]) => void
