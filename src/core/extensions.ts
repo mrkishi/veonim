@@ -1,4 +1,5 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { onCreate, onSwitch } from '../core/sessions'
 import Worker from '../messaging/worker'
 
 // TODO: move to shared place
@@ -29,6 +30,10 @@ export interface DebugStarterPack {
 }
 
 const { on, call, request } = Worker('extension-host')
+
+const anyInitialCreatedVims = onCreate(call.sessionCreate)
+onSwitch(call.sessionSwitch)
+anyInitialCreatedVims.forEach(m => call.sessionCreate(m.id, m.path))
 
 const bridgeServer = (serverId: string): RPCServer => {
   const api = {} as RPCServer
