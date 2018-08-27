@@ -1,12 +1,20 @@
-import { fromJSON, readFile } from '../support/utils'
+import { fromJSON, readFile, exists } from '../support/utils'
 
 const localize = (lang: any) => (value: string) => {
+  // assumes that the entire value is a label. aka % at beginning
+  // and end. this is from observations of package.nls.json
   const [ /*match*/, key = '' ] = value.match(/^%(.*?)%$/) || []
-  console.log('key', key)
   return Reflect.get(lang, key)
 }
 
 export default async (languageFilePath: string) => {
+  const languageFileExists = await exists(languageFilePath)
+
+  if (!languageFileExists) {
+    console.log('i18n localize package.nls.json not found:', languageFilePath)
+    return (value: string) => value
+  }
+
   const languageRaw = await readFile(languageFilePath)
   const languageData = fromJSON(languageRaw).or({})
   return localize(languageData)
