@@ -53,9 +53,35 @@ const debug = {
   },
 }
 
+const window = {
+  // TODO: implement these
+  activeTextEditor: {
+    document: {
+      languageId: 'javascript'
+    }
+
+  },
+  showErrorMessage: () => {
+
+  },
+}
+
+const workspace = {
+  // TODO: implement these
+  textDocuments: [],
+  getWorkspaceFolder: (uri: string) => {
+    return '/Users/a/proj/veonim'
+  },
+  asRelativePath: (uri: string) => {
+    return './'
+  },
+}
+
 fakeModule('vscode', {
   debug,
   commands,
+  workspace,
+  window,
 }, logMissingModuleApiDuringDevelopment)
 
 fakeModule('vscode-languageclient', {
