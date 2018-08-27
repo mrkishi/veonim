@@ -1,4 +1,5 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { DebugConfiguration } from '../extensions/debuggers'
 import Worker from '../messaging/worker'
 
 export interface RPCServer {
@@ -13,6 +14,11 @@ export interface RPCServer {
 export interface DebuggerInfo {
   label: string
   type: string
+}
+
+export interface DebugStarterPack {
+  connection: DebugAdapterConnection
+  launchConfig: DebugConfiguration
 }
 
 const { on, call, request } = Worker('extension-host')
@@ -92,10 +98,29 @@ export const activate = {
   }
 }
 
+export const list = {
+  debuggers: () => request.listDebuggers(),
+  launchConfigs: () => request.listLaunchConfigs(),
+}
+
 export const start = {
+  // TODO: deprecate?
   debug: async (type: string): Promise<DebugAdapterConnection> => {
     const serverId = await request.startDebug(type)
     if (!serverId) throw new Error(`was not able to start debug adapter ${type}`)
+
     return bridgeDebugAdapterServer(serverId)
-  }
+  },
+  debugWithType: async (cwd: string, type: string): Promise<DebugStarterPack> => {
+    const { launchConfig, serverId } = await request.startDebugWithType(cwd, type)
+    if (!serverId) throw new Error(`was not able to start debug adapter ${type}`)
+
+    return { launchConfig, connection: bridgeDebugAdapterServer(serverId) }
+  },
+  debugWithConfig: async (cwd: string, config: DebugConfiguration): Promise<DebugStarterPack> => {
+    const { launchConfig, serverId } = await request.startDebugWithConfig(cwd, config)
+    if (!serverId) throw new Error(`was not able to start debug adapter ${config.type}`)
+
+    return { launchConfig, connection: bridgeDebugAdapterServer(serverId) }
+  },
 }

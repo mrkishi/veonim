@@ -287,17 +287,14 @@ const startDebuggerAfterChosenByUser = async (type: string) => {
 
 /*
  * Start a debugger with a given launch.json configuration chosen by user
- *
- * Starts the debug adapter and returns debug configuration that will be sent
- * along with the 'launch' request on the debug adapter protocol.
  */
-const startDebugWithConfig = async (cwd: string, config: DebugConfiguration): Promise<DebugConfiguration> => {
-  const debugConfig = await resolveConfigurationByProviders(cwd, config.type, config)
+const startDebugWithConfig = async (cwd: string, config: DebugConfiguration) => {
+  const launchConfig = await resolveConfigurationByProviders(cwd, config.type, config)
 
   // TODO: start debugger
-  console.log('start debugger with config:', debugConfig)
+  console.log('start debugger with config:', launchConfig)
 
-  return debugConfig
+  return { launchConfig, serverId: -1 }
 }
 
 /*
@@ -305,18 +302,15 @@ const startDebugWithConfig = async (cwd: string, config: DebugConfiguration): Pr
  * by the user after calling 'getAvailableDebuggers'. The configuration
  * will be resolved automagically by via configs provided in extension
  * package.json and/or via DebugConfigurationProvider
- *
- * Starts a debug adapter and returns debug configuration that will be sent
- * along with the 'launch' request on the debug adapter protocol.
  */
 const startDebugWithType = async (cwd: string, type: string) => {
-  const debugConfig = await getDebuggerConfig(cwd, type)
-  if (!debugConfig) return console.error(`can not start debugger ${type}`)
+  const launchConfig = await getDebuggerConfig(cwd, type)
+  if (!launchConfig) return console.error(`can not start debugger ${type}`)
 
   // TODO: start debugger
-  console.log('start debugger with config:', debugConfig)
+  console.log('start debugger with config:', launchConfig)
 
-  return debugConfig
+  return { launchConfig, serverId: -1 }
 }
 
 const start = {
