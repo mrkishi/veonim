@@ -85,8 +85,12 @@ on.activate(({ kind, data }: ActivateOpts) => {
   if (kind === 'language') return activate.language(data)
 })
 
-on.listDebuggers(() => getAvailableDebuggers())
 on.listLaunchConfigs(() => getLaunchConfigs())
+on.listDebuggers(async () => {
+  const debuggers = await getAvailableDebuggers()
+  return debuggers.map(d => ({ type: d.type, label: d.label }))
+})
+
 on.startDebugWithConfig((cwd: string, config: DebugConfiguration) => startDebugWithConfig(cwd, config))
 on.startDebugWithType((cwd: string, type: string) => startDebugWithType(cwd, type))
 

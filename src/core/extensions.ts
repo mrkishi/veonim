@@ -99,7 +99,7 @@ export const activate = {
 }
 
 export const list = {
-  debuggers: () => request.listDebuggers(),
+  debuggers: (): Promise<{ type: string, label: string }[]> => request.listDebuggers(),
   launchConfigs: () => request.listLaunchConfigs(),
 }
 

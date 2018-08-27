@@ -1,5 +1,6 @@
 import { action, current as vim, cmd, openFile, lineNumber } from '../core/neovim'
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { DebugConfiguration } from '../extensions/debuggers'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
@@ -396,13 +397,26 @@ const start = async (type: string) => {
   debugUI.show()
 }
 
-action('debug-start', async (type?: string) => {
-  if (type) return start(type)
+const startWithLaunchConfig = async (launchConfigs: DebugConfiguration[]) => {
+  const launchOptions = launchConfigs.map(c => ({
+    key: c.type,
+    value: c.name,
+  }))
 
-  const availableDebuggers = await extensions.listDebuggers()
-  const debuggerOptions = availableDebuggers.map((d: any) => ({
+  const selectedConfig = await userSelectOption<string>({
+    description: 'choose a debug configuration',
+    options: launchOptions,
+    icon: Icon.Cpu,
+  })
+
+  console.log('selectedConfig', selectedConfig)
+}
+
+const startWithDebugger = async () => {
+  const availableDebuggers = await extensions.list.debuggers()
+  const debuggerOptions = availableDebuggers.map(d => ({
     key: d.type,
-    value: d.label,
+    value: d.value,
   }))
 
   const selectedDebugger = await userSelectOption<string>({
@@ -411,7 +425,14 @@ action('debug-start', async (type?: string) => {
     icon: Icon.Cpu,
   })
 
-  start(selectedDebugger)
+  console.log('selectedDebugger', selectedDebugger)
+}
+
+action('debug-start', async () => {
+  const launchConfigs = await extensions.list.launchConfigs()
+  launchConfigs
+    ? startWithLaunchConfig(launchConfigs)
+    : startWithDebugger()
 })
 
 // TODO: add action to jump cursor location to currently stopped debug location
