@@ -110,9 +110,8 @@ export const getLaunchConfigs = async (): Promise<DebugConfiguration[]> => {
  */
 export const resolveConfigurationByProviders = async (cwd: string, type: string, config = {} as DebugConfiguration): Promise<DebugConfiguration> => {
   await activateDebuggersByEvent(`onDebugResolve:${type}`)
-  // not sure the significance of the * but that's how it is in the vsc source
   type UghWTF = Promise<DebugConfiguration>
-  return [...getProviders(type), ...getProviders('*')]
+  return getProviders(type)
     .filter(p => p.resolveDebugConfiguration)
     .reduce((q: UghWTF, provider: DebugConfigurationProvider) => q.then(config => config
       ? provider.resolveDebugConfiguration!(cwd, config)
