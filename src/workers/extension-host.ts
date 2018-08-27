@@ -10,6 +10,7 @@ import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../suppo
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
+import LocalizeFile from '../support/localize'
 import pleaseGet from '../support/please-get'
 import { dirname, join } from 'path'
 import '../support/vscode-shim'
@@ -167,6 +168,8 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
   const config = fromJSON(rawFileData).or({})
   const { name, publisher, main, activationEvents = [], extensionDependencies = [] } = config
   const packagePath = dirname(packageJson)
+  const languageFile = join(packagePath, 'package.nls.json')
+  const localize = await LocalizeFile(languageFile)
 
   const parsedActivationEvents = activationEvents.map((m: string) => ({
     type: m.split(':')[0] as ActivationEventType,
@@ -175,8 +178,9 @@ const getPackageJsonConfig = async (packageJson: string): Promise<Extension> => 
 
   return {
     name,
-    publisher,
     config,
+    localize,
+    publisher,
     packagePath,
     extensionDependencies,
     subscriptions: new Set(),

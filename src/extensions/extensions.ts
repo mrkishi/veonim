@@ -33,6 +33,7 @@ export interface Extension extends ExtensionInfo {
   extensionDependencies: string[]
   activationEvents: ActivationEvent[]
   subscriptions: Set<Disposable>
+  localize: Function
 }
 
 export const activateExtension = async (e: Extension): Promise<Disposable[]> => {

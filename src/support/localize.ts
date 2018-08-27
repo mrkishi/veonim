@@ -6,7 +6,7 @@ const localize = (lang: any) => (value: string) => {
   return Reflect.get(lang, key)
 }
 
-export const setupLocalize = async (languageFilePath: string) => {
+export default async (languageFilePath: string) => {
   const languageRaw = await readFile(languageFilePath)
   const languageData = fromJSON(languageRaw).or({})
   return localize(languageData)
