@@ -46,7 +46,10 @@ export const activateExtension = async (e: Extension): Promise<Disposable[]> => 
   }
 
   const context = { subscriptions: [] as any[] }
-  await extension.activate(context).catch((err: any) => console.error(extName, err))
+
+  const maybePromise = extension.activate(context)
+  const isPromise = maybePromise && maybePromise.then
+  if (isPromise) await maybePromise.catch((err: any) => console.error(extName, err))
 
   context.subscriptions.forEach(sub => e.subscriptions.add(sub))
 
