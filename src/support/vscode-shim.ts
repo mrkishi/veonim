@@ -70,9 +70,11 @@ const workspace = {
   // TODO: implement these
   textDocuments: [],
   getWorkspaceFolder: (uri: string) => {
+    console.warn('NYI: vscode.workspace.getWorkspaceFolder for uri', uri)
     return '/Users/a/proj/veonim'
   },
   asRelativePath: (uri: string) => {
+    console.warn('NYI: vscode.workspace.asRelativePath for uri:', uri)
     return './'
   },
 }
