@@ -118,14 +118,14 @@ export const start = {
 
     return bridgeDebugAdapterServer(serverId)
   },
-  debugWithType: async (cwd: string, type: string): Promise<DebugStarterPack> => {
-    const { launchConfig, serverId } = await request.startDebugWithType(cwd, type)
+  debugWithType: async (folderUri: string, type: string): Promise<DebugStarterPack> => {
+    const { launchConfig, serverId } = await request.startDebugWithType(folderUri, type)
     if (!serverId) throw new Error(`was not able to start debug adapter ${type}`)
 
     return { launchConfig, connection: bridgeDebugAdapterServer(serverId) }
   },
-  debugWithConfig: async (cwd: string, config: DebugConfiguration): Promise<DebugStarterPack> => {
-    const { launchConfig, serverId } = await request.startDebugWithConfig(cwd, config)
+  debugWithConfig: async (folderUri: string, config: DebugConfiguration): Promise<DebugStarterPack> => {
+    const { launchConfig, serverId } = await request.startDebugWithConfig(folderUri, config)
     if (!serverId) throw new Error(`was not able to start debug adapter ${config.type}`)
 
     return { launchConfig, connection: bridgeDebugAdapterServer(serverId) }

@@ -426,13 +426,15 @@ const startWithDebugger = async () => {
     value: d.label,
   }))
 
-  const selectedDebugger = await userSelectOption<string>({
+  const selectedDebuggerType = await userSelectOption<string>({
     description: 'choose a debugger to start',
     options: debuggerOptions,
     icon: Icon.Cpu,
   })
 
-  console.log('selectedDebugger', selectedDebugger)
+  const folderUri = `file://${vim.cwd}`
+  const { launchConfig, connection } = await extensions.start.debugWithType(folderUri, selectedDebuggerType)
+  console.log('starting debugger wtih type:', launchConfig, connection)
 }
 
 action('debug-start', async () => {

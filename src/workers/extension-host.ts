@@ -59,8 +59,8 @@ on.listDebuggers(async () => {
   return debuggers.map(d => ({ type: d.type, label: d.label }))
 })
 
-on.startDebugWithConfig((cwd: string, config: DebugConfiguration) => startDebugWithConfig(cwd, config))
-on.startDebugWithType((cwd: string, type: string) => startDebugWithType(cwd, type))
+on.startDebugWithConfig((folderUri: string, config: DebugConfiguration) => startDebugWithConfig(folderUri, config))
+on.startDebugWithType((folderUri: string, type: string) => startDebugWithType(folderUri, type))
 
 // TODO: deprecate?
 on.startDebug((type: string) => start.debug(type))
