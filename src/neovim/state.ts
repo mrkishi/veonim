@@ -4,12 +4,20 @@ import { EventEmitter } from 'events'
 const state = {
   background: '#2d2d2d',
   foreground: '#dddddd',
-  special: '#ff0000',
+  special: '#ef5188',
   mode: VimMode.Normal,
   bufferType: BufferType.Normal,
+  absoluteFilepath: '',
+  file: '',
+  filetype: '',
+  cwd: '',
+  colorscheme: '',
+  revision: -1,
+  line: 0,
+  column: 0,
 }
 
-type State = typeof state
+export type State = typeof state
 type StateKeys = keyof State
 type WatchState = { [Key in StateKeys]: (fn: (value: State[Key]) => void) => void }
 

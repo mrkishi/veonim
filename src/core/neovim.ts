@@ -15,11 +15,6 @@ import { join as pathJoin } from 'path'
 import setupRPC from '../messaging/rpc'
 import { watch } from '../core/state'
 
-interface PathBuf {
-  buffer: Buffer
-  path: string
-}
-
 const prefix = {
   core: prefixWith(Prefixes.Core),
   buffer: prefixWith(Prefixes.Buffer),
@@ -200,7 +195,7 @@ export const list = {
   get tabs() { return as.tabl(req.core.listTabpages()) },
 }
 
-export const current: NeovimState = new Proxy({
+export const current = new Proxy({
   get buffer(): Buffer {
     const bufferPromise = as.buf(req.core.getCurrentBuf())
 
@@ -231,19 +226,6 @@ export const current: NeovimState = new Proxy({
       return fn(...args)
     })
   },
-  bufferType: BufferType.Normal,
-  absoluteFilepath: '',
-  mode: 'normal',
-  file: '',
-  filetype: '',
-  cwd: '',
-  colorscheme: '',
-  revision: -1,
-  line: 0,
-  column: 0,
-  fg: '#ccc',
-  bg: '#222',
-  sp: '#ef5188',
 }, {
   set: (target, key, value) => {
     const prevValue = Reflect.get(target, key)
@@ -347,6 +329,7 @@ export const applyPatches = async (patches: Patch[]) => {
   applyPatchesToBuffers(patches, buffers)
 }
 
+interface PathBuf { buffer: Buffer, path: string }
 const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => buffers.forEach(({ buffer, path }) => {
   const patch = patches.find(p => p.path === path)
   if (!patch) return
