@@ -13,9 +13,13 @@ import '../core/title'
 import STATE from '../neovim/state'
 
 let last = 42
-setInterval(() => {
+const timer = setInterval(() => {
   STATE.background = '#a' + last++
 }, 3e3)
+
+setTimeout(() => {
+  clearInterval(timer)
+}, 10e3)
 
 const loadingConfig = CreateTask()
 

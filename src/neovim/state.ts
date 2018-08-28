@@ -1,7 +1,6 @@
 import { VimMode } from '../neovim/interfaces'
 import { EventEmitter } from 'events'
 
-// TODO: make it redux compatible. immutable pls
 const state = {
   background: '#2d2d2d',
   foreground: '#dddddd',
@@ -39,29 +38,18 @@ export default new Proxy(state, {
   }
 })
 
-onStateChange((nextState, key, val) => {
-  console.log('state changed', key, val, nextState)
-})
-
 if (process.env.VEONIM_DEV) {
   // assumes we are also using hyperapp-redux-devtools
   // we are gonna steal the modules from ^^^
   const { createStore } = require('redux')
   const { composeWithDevTools } = require('redux-devtools-extension')
-  type A = any
 
-  const action = (name: A, data: A) => ({ type: name, payload: data })
-  const composeEnhancers = composeWithDevTools({ name: 'neovim-state', action })
-  const reducer = (state: A, action: A) => ({ ...state, ...action.payload })
+  const composeEnhancers = composeWithDevTools({ name: 'neovim-state' })
+  const reducer = (state: any, action: any) => ({ ...state, ...action.payload })
   const store = createStore(reducer, state, composeEnhancers())
 
+  store.subscribe(() => Object.assign(state, store.getState()))
   onStateChange((_, key, val) => {
-    store.dispatch({ type: `SET::${key}`, payload: val })
-  })
-
-  // TODO: what is this used for? for posting state changes from devtools?
-  // won't we get infinite loops tho?
-  store.subscribe(() => {
-    console.log('neovim-state changed... from somewhere??')
+    store.dispatch({ type: `SET::${key}`, payload: { [key]: val } })
   })
 }
