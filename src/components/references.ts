@@ -2,6 +2,7 @@ import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { jumpToProjectFile } from '../core/neovim'
 import { Reference } from '../langserv/adapter'
+import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import * as Icon from 'hyperapp-feather'
@@ -50,6 +51,7 @@ const selectResult = (references: Result[], ix: number, subix: number) => {
   const [ path, items ] = references[ix]
   const { line, column } = items[subix]
   jumpToProjectFile({ line, column, path })
+  showCursorline()
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: {

@@ -343,7 +343,6 @@ const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: Jum
   // line: 1-index based
   // column: 0-index based
   ;(await getCurrent.window).setCursor(line + 1, column || 0)
-  showCursorline()
 }
 
 export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {

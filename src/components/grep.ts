@@ -1,6 +1,7 @@
 import { action, call, current, feedkeys, expr, jumpToProjectFile } from '../core/neovim'
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
+import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import Worker from '../messaging/worker'
@@ -63,6 +64,7 @@ const selectResult = (results: Result[], ix: number, subix: number) => {
   const [ path, items ] = results[ix]
   const { line, column } = items[subix]
   jumpToProjectFile({ path, line, column })
+  showCursorline()
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: {

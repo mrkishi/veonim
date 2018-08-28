@@ -1,6 +1,6 @@
 import { action, current as vim, jumpTo } from '../core/neovim'
-import { definition } from '../langserv/adapter'
 import { supports } from '../langserv/server-features'
+import { definition } from '../langserv/adapter'
 
 action('definition', async () => {
   if (!supports.definition(vim.cwd, vim.filetype)) return

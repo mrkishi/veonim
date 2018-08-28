@@ -6,6 +6,7 @@ import * as canvasContainer from '../core/canvas-container'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { badgeStyle, colors } from '../ui/styles'
 import { simplifyPath } from '../support/utils'
+import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
 import { Problem } from '../ai/diagnostics'
 import * as Icon from 'hyperapp-feather'
@@ -44,6 +45,7 @@ const selectResult = (results: Problem[], ix: number, subix: number) => {
 
   const path = join(dir, file)
   jumpToProjectFile({ path, line, column: character })
+  showCursorline()
 }
 
 const state = {

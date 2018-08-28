@@ -3,6 +3,7 @@ import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
 import { currentWindowElement } from '../core/windows'
+import { showCursorline } from '../core/cursor'
 import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import { merge } from '../support/utils'
@@ -78,6 +79,7 @@ const jumpToResult = (state: S, index: number, { readjustViewport = false } = {}
   const location = state.results[index]
   if (!location) return
   jumpTo(location.start)
+  showCursorline()
   if (readjustViewport) checkReadjustViewport()
 }
 
