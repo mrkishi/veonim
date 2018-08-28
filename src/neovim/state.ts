@@ -1,4 +1,4 @@
-import { VimMode } from '../neovim/interfaces'
+import { VimMode, BufferType } from '../neovim/types'
 import { EventEmitter } from 'events'
 
 const state = {
@@ -6,6 +6,7 @@ const state = {
   foreground: '#dddddd',
   special: '#ff0000',
   mode: VimMode.Normal,
+  bufferType: BufferType.Normal,
 }
 
 type State = typeof state

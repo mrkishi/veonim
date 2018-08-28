@@ -3,13 +3,14 @@ import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   DocumentHighlight, DidOpenTextDocumentParams, DidChangeTextDocumentParams }
 from 'vscode-languageserver-protocol'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
-import { NeovimState, applyPatches, current as vim } from '../core/neovim'
+import { applyPatches, current as vim } from '../core/neovim'
 import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
 import { getSyncKind } from '../langserv/server-features'
 import toVSCodeLangauge from '../langserv/vsc-languages'
 import { getLines } from '../support/get-file-contents'
 import { notify, request } from '../langserv/director'
+import { NeovimState } from '../neovim/types'
 import config from '../config/config-service'
 import * as path from 'path'
 

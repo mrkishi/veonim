@@ -7,7 +7,7 @@ import { Neovim } from '../support/binaries'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
-import { Color } from '../core/neovim'
+import { Color } from '../neovim/types'
 import { resolve } from 'path'
 import { homedir } from 'os'
 

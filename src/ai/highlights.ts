@@ -1,5 +1,6 @@
-import { action, current as vim, getCurrent, cmd, onStateChange, HighlightGroupId, Highlight } from '../core/neovim'
+import { action, current as vim, getCurrent, cmd, onStateChange } from '../core/neovim'
 import { highlights, references as getReferences } from '../langserv/adapter'
+import { Highlight, HighlightGroupId } from '../neovim/types'
 import { supports } from '../langserv/server-features'
 import { brighten } from '../ui/css'
 

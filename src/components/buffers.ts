@@ -1,5 +1,6 @@
-import { list, action, current, getCurrent, cmd, BufferOption, BufferType } from '../core/neovim'
+import { list, action, current, getCurrent, cmd } from '../core/neovim'
 import FiletypeIcon, { Terminal } from '../components/filetype-icon'
+import { BufferType, BufferOption } from '../neovim/types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { simplifyPath } from '../support/utils'
