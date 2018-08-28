@@ -1,5 +1,4 @@
 import { onExit, attachTo, switchTo, create } from '../core/master-control'
-import { pub } from '../messaging/dispatch'
 import { EventEmitter } from 'events'
 import { remote } from 'electron'
 
@@ -25,18 +24,14 @@ export default (id: number, path: string) => {
   currentVimID = id
   watchers.emit('create', { id, path })
   watchers.emit('switch', id)
-  pub('session:create', { id, path })
-  pub('session:switch', id)
 }
 
 export const createVim = async (name: string, dir?: string) => {
   const { id, path } = await create({ dir })
   currentVimID = id
   watchers.emit('create', { id, path })
-  pub('session:create', { id, path })
   attachTo(id)
   switchTo(id)
-  pub('session:switch', id)
   watchers.emit('switch', id)
   vims.forEach(v => v.active = false)
   vims.set(id, { id, path, name, active: true, nameFollowsCwd: !!dir })
@@ -46,7 +41,6 @@ export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
   currentVimID = id
   switchTo(id)
-  pub('session:switch', id)
   watchers.emit('switch', id)
   vims.forEach(v => v.active = false)
   vims.get(id)!.active = true

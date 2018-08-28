@@ -593,7 +593,6 @@ on.termEnter(() => hideCursor())
 on.termLeave(() => showCursor())
 
 onSwitchVim(() => refreshState())
-// sub('session:switch', refreshState())
 
 onCreate(() => {
   sub('vim:mode', mode => current.mode = mode)
