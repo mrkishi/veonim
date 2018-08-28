@@ -44,7 +44,10 @@ const main = async () => {
     // aka, either load when user requests, or after 10 sec of app startup shit
     requireDir(`${__dirname}/../services`)
     requireDir(`${__dirname}/../components`)
-    setTimeout(() => require('../core/ai'))
+    setTimeout(() => {
+      require('../core/dirty-hacks')
+      require('../core/ai')
+    })
   }, 1)
 
   // TODO: THIS SHOULD BE LOADED IN A WEB WORKER. WTF IS THIS SHIT DOING IN THE MAIN THREAD LOL

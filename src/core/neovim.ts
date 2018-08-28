@@ -2,7 +2,6 @@ import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow,
   Tabpage as ITabpage } from '../core/api'
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
   camelCase, prefixWith, uuid } from '../support/utils'
-import { showCursorline, hideCursor, showCursor } from '../core/cursor'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
@@ -584,13 +583,6 @@ watch.mode(mode => {
   if (mode === VimMode.Terminal) return notifyEvent('termEnter')
   if (current.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
 })
-
-// neovim terminal mode draws its own cursor, and the gui cursor location is
-// not in the same place as the terminal mode cursor - in fact nvim presents
-// the cursor location as the last normal mode cursor position. nvim bug: this
-// is a temp workaround to hide the second cursor
-on.termEnter(() => hideCursor())
-on.termLeave(() => showCursor())
 
 onSwitchVim(refreshState())
 
