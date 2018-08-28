@@ -592,7 +592,7 @@ watch.mode(mode => {
 on.termEnter(() => hideCursor())
 on.termLeave(() => showCursor())
 
-onSwitchVim(() => refreshState())
+onSwitchVim(refreshState())
 
 onCreate(() => {
   sub('vim:mode', mode => current.mode = mode)
