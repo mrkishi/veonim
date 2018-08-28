@@ -9,11 +9,11 @@ import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
+import currentVim, { watch } from '../neovim/state'
 import { Functions } from '../core/vim-functions'
 import { Patch } from '../langserv/patch'
 import { join as pathJoin } from 'path'
 import setupRPC from '../messaging/rpc'
-import { watch } from '../core/state'
 
 const prefix = {
   core: prefixWith(Prefixes.Core),
@@ -34,7 +34,7 @@ const autocmdWatchers = new Watchers()
 const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
-const notifyEvent = (event: keyof Event) => events.notify(event, current)
+const notifyEvent = (event: keyof Event) => events.notify(event, currentVim)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
@@ -163,7 +163,7 @@ const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: Jum
 }
 
 export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
-  const bufferLoaded = path ? path === current.absoluteFilepath : true
+  const bufferLoaded = path ? path === currentVim.absoluteFilepath : true
   jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
 }
 
@@ -171,12 +171,12 @@ export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
 // will have the abs path in names and buffer lists. idk, it just behaves wierdly
 // so it's much easier to open a file realtive to the current project (:cd/:pwd)
 export const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordinates) => {
-  const bufferLoaded = path ? path === current.file : true
+  const bufferLoaded = path ? path === currentVim.file : true
   jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
 }
 
 export const openFile = async (fullpath: string) => {
-  return fullpath !== current.absoluteFilepath && openBuffer(fullpath)
+  return fullpath !== currentVim.absoluteFilepath && openBuffer(fullpath)
 }
 
 export const getColor = async (name: string) => {
@@ -360,7 +360,7 @@ const refreshState = (event?: keyof Event) => async () => {
 
   const bufferType = await buffer.getOption(BufferOption.Type)
 
-  merge(current, {
+  merge(currentVim, {
     cwd,
     file,
     line,
@@ -385,16 +385,16 @@ const processBufferedActions = async () => {
 // nvim does not currently have TermEnter/TermLeave autocmds - it might in the future
 watch.mode(mode => {
   if (mode === VimMode.Terminal) return notifyEvent('termEnter')
-  if (current.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
+  if (currentVim.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
 })
 
 onSwitchVim(refreshState())
 
 onCreate(() => {
-  sub('vim:mode', mode => current.mode = mode)
-  sub('colors.vim.fg', fg => current.fg = fg)
-  sub('colors.vim.bg', bg => current.bg = bg)
-  sub('colors.vim.sp', sp => current.sp = sp)
+  sub('vim:mode', mode => currentVim.mode = mode)
+  sub('colors.vim.fg', fg => currentVim.foreground = fg)
+  sub('colors.vim.bg', bg => currentVim.background = bg)
+  sub('colors.vim.sp', sp => currentVim.special = sp)
   processAnyBuffered('colors.vim.fg')
   processAnyBuffered('colors.vim.bg')
   processAnyBuffered('colors.vim.sp')
@@ -420,37 +420,37 @@ onCreate(() => {
 autocmd.bufAdd(refreshState('bufAdd'))
 autocmd.bufEnter(refreshState())
 autocmd.bufDelete(refreshState('bufUnload'))
-autocmd.dirChanged(`v:event.cwd`, m => current.cwd = m)
-autocmd.fileType(`expand('<amatch>')`, m => current.filetype = m)
-autocmd.colorScheme(`expand('<amatch>')`, m => current.colorscheme = m)
+autocmd.dirChanged(`v:event.cwd`, m => currentVim.cwd = m)
+autocmd.fileType(`expand('<amatch>')`, m => currentVim.filetype = m)
+autocmd.colorScheme(`expand('<amatch>')`, m => currentVim.colorscheme = m)
 autocmd.insertEnter(() => notifyEvent('insertEnter'))
 autocmd.insertLeave(() => notifyEvent('insertLeave'))
 
 autocmd.cursorMoved(async () => {
   const { line, column } = await getCurrentPosition()
-  merge(current, { line, column })
+  merge(currentVim, { line, column })
   notifyEvent('cursorMove')
 })
 
 autocmd.completeDone(async () => {
   const { word } = await expr(`v:completed_item`)
-  events.notify('completion', word, current)
+  events.notify('completion', word, currentVim)
 })
 
 autocmd.textChanged(async () => {
-  current.revision = await expr(`b:changedtick`)
+  currentVim.revision = await expr(`b:changedtick`)
   notifyEvent('bufChange')
 })
 
 autocmd.bufWritePost(() => notifyEvent('bufWrite'))
 
 autocmd.cursorMovedI(async () => {
-  const prevRevision = current.revision
+  const prevRevision = currentVim.revision
   const [ revision, { line, column } ] = await cc(expr(`b:changedtick`), getCurrentPosition())
-  merge(current, { revision, line, column })
+  merge(currentVim, { revision, line, column })
 
-  if (prevRevision !== current.revision) notifyEvent('bufChangeInsert')
-  events.notify('cursorMoveInsert', prevRevision !== current.revision, current)
+  if (prevRevision !== currentVim.revision) notifyEvent('bufChangeInsert')
+  events.notify('cursorMoveInsert', prevRevision !== currentVim.revision, currentVim)
 })
 
 define.VeonimComplete`
