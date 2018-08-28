@@ -4,6 +4,7 @@ import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers, pascalCase,
   camelCase, prefixWith, uuid } from '../support/utils'
 import { showCursorline, hideCursor, showCursor } from '../core/cursor'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
+import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Functions } from '../core/vim-functions'
 import { watch, VimMode } from '../core/state'
@@ -221,14 +222,9 @@ const notifyEvent = (event: keyof Event) => events.notify(event, current)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
-sub('session:create', m => io.postMessage([65, m]))
-sub('session:switch', m => io.postMessage([66, m]))
-sub('session:create', () => notifyCreated())
-
-setImmediate(() => {
-  processAnyBuffered('session:create')
-  processAnyBuffered('session:switch')
-})
+onCreateVim(info => io.postMessage([65, info]))
+onSwitchVim(id => io.postMessage([66, id]))
+onCreateVim(() => notifyCreated())
 
 const req = {
   core: onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args)) as Api,
@@ -596,7 +592,7 @@ watch.mode(mode => {
 on.termEnter(() => hideCursor())
 on.termLeave(() => showCursor())
 
-sub('session:switch', refreshState())
+onSwitchVim(refreshState())
 
 onCreate(() => {
   sub('vim:mode', mode => current.mode = mode)

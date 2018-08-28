@@ -11,6 +11,7 @@ import { supports } from '../langserv/server-features'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
+import { onSwitchVim } from '../core/sessions'
 import { sessions } from '../core/sessions'
 import { cursor } from '../core/cursor'
 import '../ai/remote-problems'
@@ -195,7 +196,7 @@ export const runCodeAction = (action: Command) => executeCommand(vim, action)
 
 action('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
 
-dispatch.sub('session:switch', () => {
+onSwitchVim(() => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   updateUI()
   refreshProblemHighlights()
