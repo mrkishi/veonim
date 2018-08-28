@@ -3,6 +3,7 @@ import { onStateChange, getColor, current } from '../core/neovim'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
 import configReader from '../config/config-service'
 import { darken, brighten, cvar } from '../ui/css'
+import { onSwitchVim } from '../core/sessions'
 import { ExtContainer } from '../core/api'
 import * as Icon from 'hyperapp-feather'
 import { colors } from '../ui/styles'
@@ -347,11 +348,11 @@ sub('tabs', async ({ curtab, tabs }: { curtab: ExtContainer, tabs: Tab[] }) => {
 
 sub('git:branch', branch => ui.setGitBranch(branch))
 sub('git:status', status => ui.setGitStatus(status))
-sub('session:switch', () => ui.updateTabs({ active: -1, tabs: [] }))
 sub('ai:diagnostics.count', count => ui.setDiagnostics(count))
 sub('ai:start', opts => ui.aiStart(opts))
 sub('vim:macro.start', reg => ui.setMacro(reg))
 sub('vim:macro.end', () => ui.setMacro())
+onSwitchVim(() => ui.updateTabs({ active: -1, tabs: [] }))
 
 setImmediate(() => {
   processAnyBuffered('tabs')

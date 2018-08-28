@@ -11,6 +11,11 @@ interface Vim {
   nameFollowsCwd: boolean,
 }
 
+interface VimInfo {
+  id: number
+  path: string
+}
+
 const watchers = new EventEmitter()
 const vims = new Map<number, Vim>()
 let currentVimID = -1
@@ -18,7 +23,7 @@ let currentVimID = -1
 export default (id: number, path: string) => {
   vims.set(id, { id, path, name: 'main', active: true, nameFollowsCwd: true })
   currentVimID = id
-  watchers.emit('create', id, path)
+  watchers.emit('create', { id, path })
   watchers.emit('switch', id)
   pub('session:create', { id, path })
   pub('session:switch', id)
@@ -27,7 +32,7 @@ export default (id: number, path: string) => {
 export const createVim = async (name: string, dir?: string) => {
   const { id, path } = await create({ dir })
   currentVimID = id
-  watchers.emit('create', id, path)
+  watchers.emit('create', { id, path })
   pub('session:create', { id, path })
   attachTo(id)
   switchTo(id)
@@ -77,9 +82,9 @@ export const sessions = {
   get current() { return currentVimID }
 }
 
-export const onCreateVim = (fn: (id: number, path: Vim) => void) => {
-  watchers.on('create', (id, path) => fn(id, path))
-  ;[...vims.entries()].forEach(m => fn(m[0], m[1]))
+export const onCreateVim = (fn: (info: VimInfo) => void) => {
+  watchers.on('create', (info: VimInfo) => fn(info))
+  ;[...vims.entries()].forEach(([ id, vim ]) => fn({ id, path: vim.path }))
 }
 
 export const onSwitchVim = (fn: (id: number) => void) => {

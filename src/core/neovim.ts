@@ -222,28 +222,9 @@ const notifyEvent = (event: keyof Event) => events.notify(event, current)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
-// TODO: need to wait until vim was started
-// but wait, for some reason we are getting the ids
-// and paths correctly in extension-host BEFORE
-// this gets called. so what gives? do we have the server path
-// but nvim is still starting up and not accepting connections?
-// do we just need to retry spam until we get connected?
-setTimeout(() => {
-  console.log('register on creates!')
-  onCreateVim(m => console.log('vim created:', m[0]) ^ io.postMessage([65, m]))
-  onSwitchVim(m => io.postMessage([66, m]))
-}, 1e3)
-
+onCreateVim(info => io.postMessage([65, info]))
+onSwitchVim(id => io.postMessage([66, id]))
 onCreateVim(() => notifyCreated())
-
-// sub('session:create', m => io.postMessage([65, m]))
-// sub('session:switch', m => io.postMessage([66, m]))
-// sub('session:create', () => notifyCreated())
-
-// setImmediate(() => {
-//   processAnyBuffered('session:create')
-//   processAnyBuffered('session:switch')
-// })
 
 const req = {
   core: onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args)) as Api,

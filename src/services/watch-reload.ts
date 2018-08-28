@@ -1,5 +1,5 @@
 import { exists, watchFile } from '../support/utils'
-import { sub } from '../messaging/dispatch'
+import { onSwitchVim } from '../core/sessions'
 import { cmd, on } from '../core/neovim'
 import { join } from 'path'
 
@@ -9,7 +9,7 @@ let currentSession = new Set<string>()
 
 const anySessionsHaveFile = (file: string) => [...sessions.values()].some(s => s.has(file))
 
-sub('session:switch', (id: number) => {
+onSwitchVim(id => {
   if (sessions.has(id)) currentSession = sessions.get(id)!
   else sessions.set(id, currentSession = new Set<string>())
   cmd(`checktime`)
