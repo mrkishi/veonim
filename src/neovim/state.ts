@@ -20,9 +20,9 @@ export const watch = new Proxy(Object.create(null) as WatchState, {
   get: (_, key: string) => (fn: (value: any) => void) => watchers.on(key, fn),
 })
 
-export const onStateChange = (fn: (nextState: State) => void) => stateChangeFns.add(fn)
+export const onStateChange = (fn: (nextState: State, key: string, value: any) => void) => stateChangeFns.add(fn)
 
-const notifyStateChange = (nextState: State) => stateChangeFns.forEach(fn => fn(nextState))
+const notifyStateChange = (nextState: State, key: string, value: any) => stateChangeFns.forEach(fn => fn(nextState, key, value))
 
 export default new Proxy(state, {
   set: (_, key: string, val: any) => {
@@ -33,15 +33,35 @@ export default new Proxy(state, {
 
     Reflect.set(state, key, val)
     watchers.emit(key, val)
-    notifyStateChange(nextState)
+    notifyStateChange(nextState, key, val)
 
     return true
   }
 })
 
+onStateChange((nextState, key, val) => {
+  console.log('state changed', key, val, nextState)
+})
+
 if (process.env.VEONIM_DEV) {
   // assumes we are also using hyperapp-redux-devtools
   // we are gonna steal the modules from ^^^
-  // const redux = 
+  const { createStore } = require('redux')
+  const { composeWithDevTools } = require('redux-devtools-extension')
+  type A = any
 
+  const action = (name: A, data: A) => ({ type: name, payload: data })
+  const composeEnhancers = composeWithDevTools({ name: 'neovim-state', action })
+  const reducer = (state: A, action: A) => ({ ...state, ...action.payload })
+  const store = createStore(reducer, state, composeEnhancers())
+
+  onStateChange((_, key, val) => {
+    store.dispatch({ type: `SET::${key}`, payload: val })
+  })
+
+  // TODO: what is this used for? for posting state changes from devtools?
+  // won't we get infinite loops tho?
+  store.subscribe(() => {
+    console.log('neovim-state changed... from somewhere??')
+  })
 }

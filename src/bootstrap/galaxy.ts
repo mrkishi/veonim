@@ -9,6 +9,13 @@ import * as uiInput from '../core/input'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
+// TODO: temp for testing only!
+import STATE from '../neovim/state'
+
+let last = 42
+setInterval(() => {
+  STATE.background = '#a' + last++
+}, 3e3)
 
 const loadingConfig = CreateTask()
 
