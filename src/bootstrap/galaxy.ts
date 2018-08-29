@@ -3,23 +3,12 @@ import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
 import setDefaultSession from '../core/sessions'
-import { sub } from '../messaging/dispatch'
 import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
+import { watch } from '../neovim/state'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
-// TODO: temp for testing only!
-import STATE from '../neovim/state'
-
-let last = 42
-const timer = setInterval(() => {
-  STATE.background = '#a' + last++
-}, 3e3)
-
-setTimeout(() => {
-  clearInterval(timer)
-}, 10e3)
 
 const loadingConfig = CreateTask()
 
@@ -33,7 +22,7 @@ configReader('nvim/init.vim', c => {
   loadingConfig.done('')
 })
 
-sub('colors.vim.bg', color => {
+watch.background(color => {
   if (document.body.style.background !== color) document.body.style.background = color
 })
 

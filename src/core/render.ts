@@ -236,7 +236,6 @@ r.eol_clear = () => {
 r.update_fg = fg => {
   if (fg < 0) return
   merge(colors, { fg: asColor(fg) })
-  dispatch.pub('colors.vim.fg', colors.fg)
   currentVim.foreground = colors.fg
   grid.setForeground(colors.fg)
 }
@@ -244,7 +243,6 @@ r.update_fg = fg => {
 r.update_bg = bg => {
   if (bg < 0) return
   merge(colors, { bg: asColor(bg) })
-  dispatch.pub('colors.vim.bg', colors.bg)
   currentVim.background = colors.bg
   grid.setBackground(colors.bg)
 }
@@ -252,7 +250,6 @@ r.update_bg = bg => {
 r.update_sp = sp => {
   if (sp < 0) return
   merge(colors, { sp: asColor(sp) })
-  dispatch.pub('colors.vim.sp', colors.sp)
   currentVim.special = colors.sp
   grid.setSpecial(colors.sp)
 }
@@ -276,7 +273,6 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 })
 
 r.mode_change = async mode => {
-  dispatch.pub('vim:mode', mode)
   currentVim.mode = normalizeVimMode(mode)
   currentMode = mode
   const info = modes.get(mode)

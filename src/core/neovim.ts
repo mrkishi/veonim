@@ -4,7 +4,6 @@ import { VimMode, Event, EventWait, HyperspaceCoordinates, Highlight,
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers,
   pascalCase, camelCase, prefixWith, uuid } from '../support/utils'
-import { sub, processAnyBuffered } from '../messaging/dispatch'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import currentVim, { watch } from '../neovim/state'
@@ -389,14 +388,6 @@ watch.mode(mode => {
 onSwitchVim(refreshState())
 
 onCreate(() => {
-  sub('vim:mode', mode => currentVim.mode = mode)
-  sub('colors.vim.fg', fg => currentVim.foreground = fg)
-  sub('colors.vim.bg', bg => currentVim.background = bg)
-  sub('colors.vim.sp', sp => currentVim.special = sp)
-  processAnyBuffered('colors.vim.fg')
-  processAnyBuffered('colors.vim.bg')
-  processAnyBuffered('colors.vim.sp')
-
   g.veonim_completing = 0
   g.veonim_complete_pos = 1
   g.veonim_completions = []
