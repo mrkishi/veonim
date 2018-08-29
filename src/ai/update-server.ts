@@ -1,6 +1,7 @@
-import { current as vimState, getCurrent, current, lineNumber } from '../core/neovim'
+import { getCurrent, current, lineNumber } from '../core/neovim'
 import { fullBufferUpdate, partialBufferUpdate } from '../langserv/adapter'
 import Worker from '../messaging/worker'
+import vimState from '../neovim/state'
 
 export const harvester = Worker('harvester')
 export const finder = Worker('buffer-search')

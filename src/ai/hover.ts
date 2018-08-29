@@ -1,9 +1,10 @@
 import colorizer, { ColorData } from '../services/colorizer'
-import { action, current as vim, on } from '../core/neovim'
 import { supports } from '../langserv/server-features'
 import * as markdown from '../support/markdown'
+import { action, on } from '../core/neovim'
 import { hover } from '../langserv/adapter'
 import { ui } from '../components/hover'
+import vim from '../neovim/state'
 
 const textByWord = (data: ColorData[]): ColorData[] => data.reduce((res, item) => {
   const words = item.text.split(/(\s+)/)

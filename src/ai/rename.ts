@@ -1,7 +1,8 @@
-import { feedkeys, action, until, expr, current as vim, applyPatches } from '../core/neovim'
+import { feedkeys, action, until, expr, applyPatches } from '../core/neovim'
 import { supports } from '../langserv/server-features'
 import * as updateService from '../ai/update-server'
 import { rename } from '../langserv/adapter'
+import vim from '../neovim/state'
 
 // TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
 // or maybe figure out how to diff based on the partial modification

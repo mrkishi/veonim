@@ -1,8 +1,9 @@
 import { references as getReferences, Reference } from '../langserv/adapter'
 import { findNext, findPrevious } from '../support/relative-finder'
-import { action, current as vim, jumpTo } from '../core/neovim'
 import { supports } from '../langserv/server-features'
+import { action, jumpTo } from '../core/neovim'
 import { show } from '../components/references'
+import vim from '../neovim/state'
 
 const groupResults = (m: Reference[]) => [...m.reduce((map, ref: Reference) => {
   map.has(ref.path)

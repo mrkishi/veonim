@@ -1,6 +1,7 @@
-import { on, onStateChange, current } from '../core/neovim'
 import { shell, exists, watchFile } from '../support/utils'
+import { on, onStateChange } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
+import current from '../neovim/state'
 import * as path from 'path'
 
 const watchers: { branch: any, status: any } = {

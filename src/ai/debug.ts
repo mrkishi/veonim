@@ -1,5 +1,5 @@
-import { action, current as vim, cmd, openFile, lineNumber } from '../core/neovim'
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { action, cmd, openFile, lineNumber } from '../core/neovim'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
@@ -11,6 +11,7 @@ import { getWindow } from '../core/windows'
 import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
 import { translate } from '../ui/css'
+import vim from '../neovim/state'
 
 // TODO: move to shared place
 interface DebugConfiguration {

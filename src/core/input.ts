@@ -1,8 +1,9 @@
 import { $, Watchers, is, fromJSON } from '../support/utils'
-import { action, call, current } from '../core/neovim'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
+import { action, call } from '../core/neovim'
 import $$, { VimMode } from '../core/state'
+import current from '../neovim/state'
 import { remote } from 'electron'
 import { Script } from 'vm'
 

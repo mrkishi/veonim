@@ -1,4 +1,4 @@
-import { action, call, current, feedkeys, expr, jumpToProjectFile } from '../core/neovim'
+import { action, call, feedkeys, expr, jumpToProjectFile } from '../core/neovim'
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { showCursorline } from '../core/cursor'
@@ -6,6 +6,7 @@ import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import Worker from '../messaging/worker'
 import * as Icon from 'hyperapp-feather'
+import current from '../neovim/state'
 import { h, app } from '../ui/uikit'
 
 type TextTransformer = (text: string, last?: boolean) => string

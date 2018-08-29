@@ -1,5 +1,5 @@
 import { switchInputMode, watchInputMode, defaultInputMode, InputMode } from '../core/input'
-import { action, call, cmd, current as vim } from '../core/neovim'
+import { action, call, cmd } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
 import { activeWindow } from '../core/windows'
 import ColorPicker from '../ui/color-picker'
@@ -9,6 +9,7 @@ import onLoseFocus from '../ui/lose-focus'
 import { basename, extname } from 'path'
 import { cursor } from '../core/cursor'
 import { h, app } from '../ui/uikit'
+import vim from '../neovim/state'
 
 let liveMode = false
 

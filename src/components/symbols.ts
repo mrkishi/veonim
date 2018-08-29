@@ -1,11 +1,12 @@
 import { workspaceSymbols, Symbol } from '../langserv/adapter'
-import { current as vimState, jumpTo } from '../core/neovim'
 import { SymbolKind } from 'vscode-languageserver-protocol'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
+import { jumpTo } from '../core/neovim'
+import vimState from '../neovim/state'
 import { h, app } from '../ui/uikit'
 import { join } from 'path'
 

@@ -1,6 +1,7 @@
 import HttpServer from '../support/http-server'
-import { cmd, current } from '../core/neovim'
+import current from '../neovim/state'
 import { relative, join } from 'path'
+import { cmd } from '../core/neovim'
 
 interface RemoteRequest { cwd: string, file: string }
 

@@ -1,5 +1,5 @@
-import { list, action, current, getCurrent, cmd } from '../core/neovim'
 import FiletypeIcon, { Terminal } from '../components/filetype-icon'
+import { list, action, getCurrent, cmd } from '../core/neovim'
 import { BufferType, BufferOption } from '../neovim/types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
@@ -8,6 +8,7 @@ import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
+import current from '../neovim/state'
 import { h, app } from '../ui/uikit'
 
 interface BufferInfo {

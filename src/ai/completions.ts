@@ -6,12 +6,13 @@ import { getTriggerChars } from '../langserv/server-features'
 import * as completionUI from '../components/autocomplete'
 import toVSCodeLanguage from '../langserv/vsc-languages'
 import { harvester, update } from '../ai/update-server'
-import { g, on, current as vim } from '../core/neovim'
 import * as ai from '../langserv/server-features'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
+import { g, on } from '../core/neovim'
 import { join, dirname } from 'path'
+import vim from '../neovim/state'
 
 interface Cache {
   semanticCompletions: Map<string, CompletionOption[]>,

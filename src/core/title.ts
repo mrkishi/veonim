@@ -1,7 +1,8 @@
 import * as canvasContainer from '../core/canvas-container'
-import { onStateChange, current } from '../core/neovim'
 import { merge, simplifyPath } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
+import { onStateChange } from '../core/neovim'
+import current from '../neovim/state'
 import { remote } from 'electron'
 
 const macos = process.platform === 'darwin'

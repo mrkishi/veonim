@@ -65,7 +65,7 @@ export interface HyperspaceCoordinates {
 type EventCallback = (state: NeovimState) => void
 
   // TODO: make this go bye bye
-export interface NeovimState {
+interface NeovimState {
   buffer: Buffer
   window: Window
   tabpage: Tabpage

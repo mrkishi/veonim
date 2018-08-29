@@ -1,7 +1,8 @@
 import { show, SymbolMode } from '../components/symbols'
-import { action, current as vim } from '../core/neovim'
 import { supports } from '../langserv/server-features'
 import { symbols } from '../langserv/adapter'
+import { action } from '../core/neovim'
+import vim from '../neovim/state'
 
 action('symbols', async () => {
   if (!supports.symbols(vim.cwd, vim.filetype)) return

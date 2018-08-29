@@ -1,11 +1,12 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import FiletypeIcon from '../components/filetype-icon'
-import { action, current, cmd } from '../core/neovim'
 import { basename, dirname, join } from 'path'
+import { action, cmd } from '../core/neovim'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
 import * as Icon from 'hyperapp-feather'
+import current from '../neovim/state'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 

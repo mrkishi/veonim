@@ -1,5 +1,6 @@
-import { getCurrent, current } from '../core/neovim'
+import { getCurrent } from '../core/neovim'
 import Worker from '../messaging/worker'
+import current from '../neovim/state'
 
 interface LineContents {
   ix: number,

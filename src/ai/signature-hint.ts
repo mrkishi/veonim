@@ -1,10 +1,11 @@
 import { supports, getTriggerChars } from '../langserv/server-features'
 import { SignatureInformation } from 'vscode-languageserver-protocol'
-import { action, current as vim, on } from '../core/neovim'
 import { signatureHelp } from '../langserv/adapter'
+import { action, on } from '../core/neovim'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
+import vim from '../neovim/state'
 
 const cache = {
   signatures: [] as SignatureInformation[],

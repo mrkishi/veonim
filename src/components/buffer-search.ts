@@ -1,4 +1,4 @@
-import { action, current as vim, jumpTo, getCurrent, feedkeys } from '../core/neovim'
+import { action, jumpTo, getCurrent, feedkeys } from '../core/neovim'
 import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
@@ -10,6 +10,7 @@ import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
+import vim from '../neovim/state'
 import { cvar } from '../ui/css'
 
 interface FilterResult {

@@ -17,9 +17,9 @@ const state = {
   column: 0,
 }
 
-export type State = typeof state
-type StateKeys = keyof State
-type WatchState = { [Key in StateKeys]: (fn: (value: State[Key]) => void) => void }
+export type NeovimState = typeof state
+type StateKeys = keyof NeovimState
+type WatchState = { [Key in StateKeys]: (fn: (value: NeovimState[Key]) => void) => void }
 
 const watchers = new EventEmitter()
 const stateChangeFns = new Set<Function>()
@@ -28,9 +28,13 @@ export const watch = new Proxy(Object.create(null) as WatchState, {
   get: (_, key: string) => (fn: (value: any) => void) => watchers.on(key, fn),
 })
 
-export const onStateChange = (fn: (nextState: State, key: string, value: any) => void) => stateChangeFns.add(fn)
+export const onStateChange = (fn: (nextState: NeovimState, key: string, value: any) => void) => {
+  stateChangeFns.add(fn)
+}
 
-const notifyStateChange = (nextState: State, key: string, value: any) => stateChangeFns.forEach(fn => fn(nextState, key, value))
+const notifyStateChange = (nextState: NeovimState, key: string, value: any) => {
+  stateChangeFns.forEach(fn => fn(nextState, key, value))
+}
 
 export default new Proxy(state, {
   set: (_, key: string, val: any) => {
