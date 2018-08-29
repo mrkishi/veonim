@@ -1,3 +1,5 @@
+import { NeovimState } from '../neovim/initial-state'
+
 export type GenericCallback = (...args: any[]) => void
 export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
 export type KeyVal = { [index: string]: any }
@@ -63,26 +65,6 @@ export interface HyperspaceCoordinates {
 }
 
 type EventCallback = (state: NeovimState) => void
-
-  // TODO: make this go bye bye
-interface NeovimState {
-  buffer: Buffer
-  window: Window
-  tabpage: Tabpage
-  absoluteFilepath: string
-  bufferType: BufferType
-  colorscheme: string
-  filetype: string
-  revision: number
-  column: number
-  file: string
-  mode: string
-  line: number
-  cwd: string
-  fg: string
-  bg: string
-  sp: string
-}
 
 export interface Event {
   bufAdd(cb: EventCallback): void
