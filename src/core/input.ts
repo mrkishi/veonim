@@ -2,7 +2,7 @@ import { $, Watchers, is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import { action, call } from '../core/neovim'
-import $$, { VimMode } from '../core/state'
+import { VimMode } from '../neovim/types'
 import current from '../neovim/state'
 import { remote } from 'electron'
 import { Script } from 'vm'
@@ -260,7 +260,7 @@ remote.getCurrentWindow().on('blur', async () => {
   resetInputState()
 
   const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
-  const isTerminalMode = $$.mode === VimMode.Terminal
+  const isTerminalMode = current.mode === VimMode.Terminal
   const fixTermEscape = isTerminalMode && lastEscapeFromNow < 25
   if (fixTermEscape) shouldClearEscapeOnNextAppFocus = true
 })
