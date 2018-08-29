@@ -344,7 +344,7 @@ const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => bu
   })
 })
 
-const refreshState = (event?: keyof Event) => async () => {
+const stateRefresher = (event: keyof Event) => async () => {
   const [ filetype, cwd, file, colorscheme, revision, { line, column }, buffer ] = await cc(
     expr(`&filetype`),
     call.getcwd(),
@@ -369,7 +369,7 @@ const refreshState = (event?: keyof Event) => async () => {
     absoluteFilepath: pathJoin(cwd, file),
   })
 
-  notifyEvent(event || 'bufLoad')
+  notifyEvent(event)
 }
 
 const processBufferedActions = async () => {
@@ -385,7 +385,7 @@ watch.mode(mode => {
   if (currentVim.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
 })
 
-onSwitchVim(refreshState())
+onSwitchVim(stateRefresher('bufLoad'))
 
 onCreate(() => {
   g.veonim_completing = 0
@@ -403,12 +403,12 @@ onCreate(() => {
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   processBufferedActions()
-  refreshState()()
+  stateRefresher('bufLoad')()
 })
 
-autocmd.bufAdd(refreshState('bufAdd'))
-autocmd.bufEnter(refreshState())
-autocmd.bufDelete(refreshState('bufUnload'))
+autocmd.bufAdd(stateRefresher('bufAdd'))
+autocmd.bufEnter(stateRefresher('bufLoad'))
+autocmd.bufDelete(stateRefresher('bufUnload'))
 autocmd.dirChanged(`v:event.cwd`, m => currentVim.cwd = m)
 autocmd.fileType(`expand('<amatch>')`, m => currentVim.filetype = m)
 autocmd.colorScheme(`expand('<amatch>')`, m => currentVim.colorscheme = m)
