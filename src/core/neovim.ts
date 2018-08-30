@@ -5,8 +5,8 @@ import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabp
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers,
   pascalCase, camelCase, prefixWith, uuid } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
+import { stateRefresher } from '../neovim/state-refresher'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
-import stateRefresher from '../neovim/state-refresher'
 import currentVim, { watch } from '../neovim/state'
 import { Functions } from '../core/vim-functions'
 import { Patch } from '../langserv/patch'
@@ -288,7 +288,7 @@ const registerAutocmdWithArgExpression = (event: string, argExpression: string, 
   onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
 }
 
-const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
+export const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
   const cb = args.find(a => is.function(a) || is.asyncfunction(a))
   const argExpression = args.find(is.string)
   const ev = pascalCase(name)
@@ -344,7 +344,6 @@ const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => bu
   })
 })
 
-
 const processBufferedActions = async () => {
   const bufferedActions = await g.vn_rpc_buf
   if (!bufferedActions.length) return
@@ -357,8 +356,6 @@ watch.mode(mode => {
   if (mode === VimMode.Terminal) return notifyEvent('termEnter')
   if (currentVim.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
 })
-
-onSwitchVim(stateRefresher('bufLoad'))
 
 onCreate(() => {
   g.veonim_completing = 0
@@ -379,14 +376,6 @@ onCreate(() => {
   stateRefresher('bufLoad')()
 })
 
-autocmd.bufAdd(stateRefresher('bufAdd'))
-autocmd.bufEnter(stateRefresher('bufLoad'))
-autocmd.bufDelete(stateRefresher('bufUnload'))
-autocmd.dirChanged(`v:event.cwd`, m => currentVim.cwd = m)
-autocmd.fileType(`expand('<amatch>')`, m => currentVim.filetype = m)
-autocmd.colorScheme(`expand('<amatch>')`, m => currentVim.colorscheme = m)
-autocmd.insertEnter(() => notifyEvent('insertEnter'))
-autocmd.insertLeave(() => notifyEvent('insertLeave'))
 
 autocmd.cursorMoved(async () => {
   const { line, column } = await getCurrentPosition()
