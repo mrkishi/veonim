@@ -1,4 +1,4 @@
-import { VimMode, Event, EventWait, HyperspaceCoordinates, Highlight,
+import { VimMode, VimEvent, EventWait, HyperspaceCoordinates, Highlight,
   BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage,
   Autocmd, GenericCallback, DefineFunction, KeyVal, StateChangeEvent } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
@@ -6,10 +6,10 @@ import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers,
   pascalCase, camelCase, prefixWith, uuid } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
+import stateRefresher from '../neovim/state-refresher'
 import currentVim, { watch } from '../neovim/state'
 import { Functions } from '../core/vim-functions'
 import { Patch } from '../langserv/patch'
-import { join as pathJoin } from 'path'
 import setupRPC from '../messaging/rpc'
 
 const prefix = {
@@ -31,7 +31,7 @@ const autocmdWatchers = new Watchers()
 const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
-const notifyEvent = (event: keyof Event) => events.notify(event, currentVim)
+export const notifyEvent = (event: keyof VimEvent) => events.notify(event, currentVim)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
@@ -232,7 +232,7 @@ export const current = new Proxy({
   }
 })
 
-const getCurrentPosition = async () => {
+export const getCurrentPosition = async () => {
   const win = await getCurrent.window
   // nvim_win_get_cursor returns
   // line: 1-index based
@@ -306,7 +306,7 @@ export const until: EventWait = onProp((name: PropertyKey) => {
   })
 })
 
-export const on: Event = onFnCall((name, [cb]) => events.add(name, cb))
+export const on: VimEvent = onFnCall((name, [cb]) => events.add(name, cb))
 
 export const applyPatches = async (patches: Patch[]) => {
   const buffers = await Promise.all((await list.buffers).map(async buffer => ({
@@ -344,33 +344,6 @@ const applyPatchesToBuffers = async (patches: Patch[], buffers: PathBuf[]) => bu
   })
 })
 
-const stateRefresher = (event: keyof Event) => async () => {
-  const [ filetype, cwd, file, colorscheme, revision, { line, column }, buffer ] = await cc(
-    expr(`&filetype`),
-    call.getcwd(),
-    call.expand(`%f`),
-    g.colors_name,
-    expr(`b:changedtick`),
-    getCurrentPosition(),
-    getCurrent.buffer,
-  )
-
-  const bufferType = await buffer.getOption(BufferOption.Type)
-
-  merge(currentVim, {
-    cwd,
-    file,
-    line,
-    column,
-    filetype,
-    revision,
-    bufferType,
-    colorscheme,
-    absoluteFilepath: pathJoin(cwd, file),
-  })
-
-  notifyEvent(event)
-}
 
 const processBufferedActions = async () => {
   const bufferedActions = await g.vn_rpc_buf
