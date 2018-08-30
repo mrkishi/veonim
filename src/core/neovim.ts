@@ -376,7 +376,6 @@ onCreate(() => {
   stateRefresher('bufLoad')()
 })
 
-
 autocmd.cursorMoved(async () => {
   const { line, column } = await getCurrentPosition()
   merge(currentVim, { line, column })

@@ -14,6 +14,7 @@ action('rename', async () => {
   updateService.pause()
   const editPosition = { line: vim.line, column: vim.column }
   feedkeys('ciw')
+  // TODO: maybe we can just listen to stateChange.mode -> back to 'Normal' mode?
   await until.insertLeave
   const newName = await expr('@.')
   feedkeys('u')
