@@ -31,6 +31,8 @@ const autocmdWatchers = new Watchers()
 const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
+// TODO: maybe this can be a global event system? add more than just autocmds
+// debug-start, mode-change, etc.
 export const notifyEvent = (event: keyof VimEvent) => events.notify(event, currentVim)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
