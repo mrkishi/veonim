@@ -4,17 +4,34 @@ import { EventEmitter } from 'events'
 
 type StateKeys = keyof NeovimState
 type WatchState = { [Key in StateKeys]: (fn: (value: NeovimState[Key]) => void) => void }
+type UntilStateValue = {
+  [Key in StateKeys]: {
+    is: (value: NeovimState[Key]) => Promise<NeovimState[Key]>
+  }
+}
 
 const watchers = new EventEmitter()
 const stateChangeFns = new Set<Function>()
 
-export const watch = new Proxy(Object.create(null) as WatchState, {
+export const watch: WatchState = new Proxy(Object.create(null), {
   get: (_, key: string) => (fn: (value: any) => void) => watchers.on(key, fn),
 })
 
 export const onStateChange = (fn: (nextState: NeovimState, key: string, value: any) => void) => {
   stateChangeFns.add(fn)
 }
+
+export const untilStateValue: UntilStateValue = new Proxy(Object.create(null), {
+  get: (_, key: string) => ({ is: (watchedValue: any) => new Promise(done => {
+    const callback = (newValue: any) => {
+      if (newValue === watchedValue) return
+      done(newValue)
+      watchers.removeListener(key, callback)
+    }
+
+    watchers.on(key, callback)
+  }) }),
+})
 
 const notifyStateChange = (nextState: NeovimState, key: string, value: any) => {
   stateChangeFns.forEach(fn => fn(nextState, key, value))

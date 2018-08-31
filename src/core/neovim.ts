@@ -1,9 +1,9 @@
-import { VimMode, VimEvent, EventWait, HyperspaceCoordinates, Highlight,
-  BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage,
-  Autocmd, GenericCallback } from '../neovim/types'
+import { VimMode, VimEvent, HyperspaceCoordinates, Highlight, BufferType,
+  BufferHide, BufferOption, Color, Buffer, Window, Tabpage, Autocmd,
+  GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
-import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers,
-  pascalCase, camelCase, prefixWith, uuid } from '../support/utils'
+import { asColor, ID, is, cc, merge, onFnCall, Watchers, pascalCase,
+  prefixWith, uuid } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { stateRefresher } from '../neovim/state-refresher'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
@@ -279,14 +279,6 @@ export const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
   if (argExpression) return registerAutocmdWithArgExpression(ev, argExpression, cb)
   if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
   autocmdWatchers.add(ev, cb)
-})
-
-export const until: EventWait = onProp((name: PropertyKey) => {
-  const ev = camelCase(name as string)
-  return new Promise(fin => {
-    const whenDone = () => (fin(), events.remove(ev, whenDone))
-    events.add(ev, whenDone)
-  })
 })
 
 export const on: VimEvent = onFnCall((name, [cb]) => events.add(name, cb))

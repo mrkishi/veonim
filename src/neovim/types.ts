@@ -79,22 +79,6 @@ export interface VimEvent {
   termLeave(cb: EventCallback): void
 }
 
-export interface EventWait {
-  bufAdd: Promise<any>
-  bufLoad: Promise<any>
-  bufUnload: Promise<any>
-  bufChange: Promise<any>
-  bufChangeInsert: Promise<any>
-  bufWrite: Promise<any>
-  cursorMove: Promise<any>
-  cursorMoveInsert: Promise<any>
-  insertEnter: Promise<any>
-  insertLeave: Promise<any>
-  completion: Promise<any>
-  termEnter: Promise<any>
-  termLeave: Promise<any>
-}
-
 export interface Color {
   background: number
   foreground: number

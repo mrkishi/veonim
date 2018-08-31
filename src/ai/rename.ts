@@ -1,8 +1,9 @@
-import { feedkeys, action, until, expr, applyPatches } from '../core/neovim'
+import { feedkeys, action, expr, applyPatches } from '../core/neovim'
 import { supports } from '../langserv/server-features'
+import vim, { untilStateValue } from '../neovim/state'
 import * as updateService from '../ai/update-server'
 import { rename } from '../langserv/adapter'
-import vim from '../neovim/state'
+import { VimMode } from '../neovim/types'
 
 // TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
 // or maybe figure out how to diff based on the partial modification
@@ -14,8 +15,7 @@ action('rename', async () => {
   updateService.pause()
   const editPosition = { line: vim.line, column: vim.column }
   feedkeys('ciw')
-  // TODO: maybe we can just listen to stateChange.mode -> back to 'Normal' mode?
-  await until.insertLeave
+  await untilStateValue.mode.is(VimMode.Normal)
   const newName = await expr('@.')
   feedkeys('u')
   updateService.resume()
