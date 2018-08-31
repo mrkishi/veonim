@@ -1,11 +1,12 @@
 import { merge, simplifyPath, absolutePath } from '../support/utils'
 import { sub, processAnyBuffered } from '../messaging/dispatch'
-import { onStateChange, getColor } from '../core/neovim'
 import configReader from '../config/config-service'
 import { darken, brighten, cvar } from '../ui/css'
 import { onSwitchVim } from '../core/sessions'
 import { ExtContainer } from '../core/api'
+import { getColor } from '../core/neovim'
 import * as Icon from 'hyperapp-feather'
+import { watch } from '../neovim/state'
 import current from '../neovim/state'
 import { colors } from '../ui/styles'
 import { h, app } from '../ui/uikit'
@@ -328,11 +329,11 @@ const view = ($: S) => h('div', {
 const ui = app<S, typeof actions>({ name: 'statusline', state, actions, view, element: container })
 
 sub('colorscheme.modified', refreshBaseColor)
-onStateChange.colorscheme(refreshBaseColor)
-onStateChange.filetype(ui.setFiletype)
-onStateChange.line(ui.setLine)
-onStateChange.column(ui.setColumn)
-onStateChange.cwd((cwd: string) => {
+watch.colorscheme(refreshBaseColor)
+watch.filetype(ui.setFiletype)
+watch.line(ui.setLine)
+watch.column(ui.setColumn)
+watch.cwd((cwd: string) => {
   const defaultRoot = configReader('project.root', (root: string) => {
     ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(root)) })
   })

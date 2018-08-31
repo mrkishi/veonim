@@ -1,14 +1,14 @@
 import { getDirFiles, exists, pathRelativeToHome, simplifyPath, absolutePath } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
 import { createVim, renameCurrentToCwd } from '../core/sessions'
-import { action, cmd, onStateChange } from '../core/neovim'
 import { Plugin } from '../components/plugin-container'
 import configReader from '../config/config-service'
+import current, { watch } from '../neovim/state'
 import config from '../config/config-service'
+import { action, cmd } from '../core/neovim'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import current from '../neovim/state'
 import { h, app } from '../ui/uikit'
 import { join, sep } from 'path'
 import { homedir } from 'os'
@@ -166,7 +166,7 @@ const go = async (userPath: string, create = false) => {
 action('change-dir', (path = '') => go(path, false))
 action('vim-create-dir', (path = '') => go(path, true))
 
-onStateChange.cwd((cwd: string) => {
+watch.cwd((cwd: string) => {
   const defaultRoot = configReader('project.root', (root: string) => {
     renameCurrentToCwd(simplifyPath(cwd, absolutePath(root)))
   })

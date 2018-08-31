@@ -1,8 +1,9 @@
-import { on, onStateChange, getCurrent as vim } from '../core/neovim'
 import { getSignatureHint } from '../ai/signature-hint'
+import { on, getCurrent as vim } from '../core/neovim'
 import * as updateService from '../ai/update-server'
 import { getCompletions } from '../ai/completions'
 import colorizer from '../services/colorizer'
+import { watch } from '../neovim/state'
 import '../ai/diagnostics'
 import '../ai/references'
 import '../ai/definition'
@@ -11,7 +12,7 @@ import '../ai/symbols'
 import '../ai/rename'
 import '../ai/hover'
 
-onStateChange.colorscheme((color: string) => colorizer.call.setColorScheme(color))
+watch.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
 on.bufAdd(() => updateService.update({ bufferOpened: true }))
 on.bufLoad(() => updateService.update())

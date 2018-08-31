@@ -1,16 +1,16 @@
-import { action, getCurrent, cmd, onStateChange } from '../core/neovim'
 import { highlights, references as getReferences } from '../langserv/adapter'
 import { Highlight, HighlightGroupId } from '../neovim/types'
+import { action, getCurrent, cmd } from '../core/neovim'
 import { supports } from '../langserv/server-features'
+import vim, { watch } from '../neovim/state'
 import { brighten } from '../ui/css'
-import vim from '../neovim/state'
 
 const setHighlightColor = () => {
   const highlightColor = brighten(vim.background, 25)
   cmd(`highlight ${Highlight.DocumentHighlight} guibg=${highlightColor}`)
 }
 
-onStateChange.colorscheme(setHighlightColor)
+watch.colorscheme(setHighlightColor)
 setHighlightColor()
 
 action('highlight', async () => {

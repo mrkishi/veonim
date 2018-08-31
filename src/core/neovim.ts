@@ -1,6 +1,6 @@
 import { VimMode, VimEvent, EventWait, HyperspaceCoordinates, Highlight,
   BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage,
-  Autocmd, GenericCallback, StateChangeEvent } from '../neovim/types'
+  Autocmd, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers,
   pascalCase, camelCase, prefixWith, uuid } from '../support/utils'
@@ -28,7 +28,6 @@ const uid = ID()
 const events = new Watchers()
 const actionWatchers = new Watchers()
 const autocmdWatchers = new Watchers()
-const stateChangeWatchers = new Watchers()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 // TODO: maybe this can be a global event system? add more than just autocmds
@@ -194,7 +193,7 @@ export const list = {
   get tabs() { return as.tabl(req.core.listTabpages()) },
 }
 
-export const current = new Proxy({
+export const current = {
   get buffer(): Buffer {
     const bufferPromise = as.buf(req.core.getCurrentBuf())
 
@@ -225,14 +224,7 @@ export const current = new Proxy({
       return fn(...args)
     })
   },
-}, {
-  set: (target, key, value) => {
-    const prevValue = Reflect.get(target, key)
-    Reflect.set(target, key, value)
-    if (prevValue !== value) stateChangeWatchers.notify(key as string, value)
-    return true
-  }
-})
+}
 
 export const getCurrentPosition = async () => {
   const win = await getCurrent.window
@@ -253,8 +245,6 @@ export const getCurrent = {
   get lineContent(): Promise<string> { return req.core.getCurrentLine() },
   get bufferContents(): Promise<string[]> { return call.getline(1, '$') as Promise<string[]> },
 }
-
-export const onStateChange: StateChangeEvent = onFnCall((stateKey: string, [cb]) => stateChangeWatchers.add(stateKey, cb))
 
 const emptyObject: { [index: string]: any } = Object.create(null)
 export const g = new Proxy(emptyObject, {

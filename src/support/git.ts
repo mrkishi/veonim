@@ -1,7 +1,7 @@
 import { shell, exists, watchFile } from '../support/utils'
-import { on, onStateChange } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
-import current from '../neovim/state'
+import current, { watch } from '../neovim/state'
+import { on } from '../core/neovim'
 import * as path from 'path'
 
 const watchers: { branch: any, status: any } = {
@@ -36,7 +36,7 @@ const getBranch = async (cwd: string) => {
 
 on.bufWrite(() => getStatus(current.cwd))
 
-onStateChange.cwd(async (cwd: string) => {
+watch.cwd(async (cwd: string) => {
   getBranch(cwd)
   getStatus(cwd)
 

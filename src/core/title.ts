@@ -1,8 +1,7 @@
 import * as canvasContainer from '../core/canvas-container'
 import { merge, simplifyPath } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-import { onStateChange } from '../core/neovim'
-import current from '../neovim/state'
+import current, { watch } from '../neovim/state'
 import { remote } from 'electron'
 
 const macos = process.platform === 'darwin'
@@ -47,13 +46,13 @@ if (macos) {
     dispatch.pub('window.change')
   })
 
-  onStateChange.file((file: string) => {
+  watch.file((file: string) => {
     const path = simplifyPath(file, current.cwd)
     ;(title as HTMLElement).innerText = `${path} - veonim`
   })
 }
 
-else onStateChange.file((file: string) => {
+else watch.file((file: string) => {
   const path = simplifyPath(file, current.cwd)
   remote.getCurrentWindow().setTitle(`${path} - veonim`)
 })
