@@ -60,7 +60,7 @@ export const FunctionGroup = () => {
 
   return {
     defineFunc,
-    get funcs() { return fns.join(' | ') }
+    getFunctionsAsString: () => fns.join(' | '),
   }
 }
 
