@@ -104,6 +104,7 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
 
   if (errors.length) notifyUI(errors.join('\n'), NotifyKind.Error)
 
+  // TODO: batch these?
   api.command(`let g:vn_loaded = 1`)
   api.command(`set laststatus=0`)
   api.command(`set nocursorline`)

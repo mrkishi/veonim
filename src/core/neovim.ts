@@ -172,6 +172,8 @@ export const openFile = async (fullpath: string) => {
   return fullpath !== currentVim.absoluteFilepath && openBuffer(fullpath)
 }
 
+// TODO: the new ui protocol sends along all highlight groups right? maybe we don't
+// event need this func anymore
 export const getColor = async (name: string) => {
   const { foreground: fg, background: bg } = await req.core.getHlByName(name, true) as Color
   return {
@@ -182,6 +184,7 @@ export const getColor = async (name: string) => {
 
 export const systemAction = (event: string, cb: GenericCallback) => actionWatchers.add(event, cb)
 
+// TODO: combine/collapse this with buffers.list / buffers.add / buffers.open, etc?
 export const list = {
   get buffers() { return as.bufl(req.core.listBufs()) },
   get windows() { return as.winl(req.core.listWins()) },

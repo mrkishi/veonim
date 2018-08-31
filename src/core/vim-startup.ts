@@ -47,6 +47,23 @@ startup.defineFunc.VeonimCompleteScroll`
   return a:1 ? "\\<tab>" : "\\<c-w>"
 `
 
+startup.defineFunc.VeonimState`
+  let currentBuffer = bufname('%')
+  let filetype = getbufvar(currentBuffer, '&filetype')
+  let cwd = getcwd()
+  let file = expand('%f')
+  let colorscheme = g:colors_name
+  let buftype = getbufvar(currentBuffer, '&buftype')
+  return {'filetype':filetype, 'cwd':cwd, 'file':file, 'colorscheme':colorscheme, 'revision':b:changedtick, 'bufferType':buftype}
+`
+
+startup.defineFunc.VeonimPosition`
+  let p = getcurpos()
+  let topLine = line('w0')
+  let bottomLine = line('w$')
+  return {'line':p[1]-1, 'column':p[2]-1, 'editorTopLine':topLine, 'editorBottomLine':bottomLine}
+`
+
 startup.defineFunc.VeonimTermReader`
   if has_key(g:vn_jobs_connected, a:1)
     call rpcnotify(0, 'veonim', 'job-output', [a:1, a:2])

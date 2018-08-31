@@ -19,7 +19,7 @@ export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
 
   const bufferType = await buffer.getOption(BufferOption.Type)
 
-  Object.assign(vimState, {
+  const nextState = {
     cwd,
     file,
     line,
@@ -31,17 +31,37 @@ export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
     editorTopLine,
     editorBottomLine,
     absoluteFilepath: join(cwd, file),
-  })
+  }
+
+  const [ state, position ] = await Promise.all([
+    call.VeonimState(),
+    call.VeonimPosition(),
+  ])
+
+  const betterState = {
+    ...state,
+    ...position,
+    absoluteFilepath: join(state.cwd, state.file),
+  }
+
+  console.log('betterState', betterState)
+  console.log('nextState', nextState)
+
+  Object.assign(vimState, nextState)
 
   notifyEvent(vimEvent)
 }
 
-onSwitchVim(stateRefresher('bufLoad'))
-autocmd.bufAdd(stateRefresher('bufAdd'))
-autocmd.bufEnter(stateRefresher('bufLoad'))
-autocmd.bufDelete(stateRefresher('bufUnload'))
-autocmd.dirChanged(`v:event.cwd`, m => vimState.cwd = m)
-autocmd.fileType(`expand('<amatch>')`, m => vimState.filetype = m)
-autocmd.colorScheme(`expand('<amatch>')`, m => vimState.colorscheme = m)
-autocmd.insertEnter(() => notifyEvent('insertEnter'))
-autocmd.insertLeave(() => notifyEvent('insertLeave'))
+// TODO: this does not currently work on first call (module load & parse)
+setImmediate(() => {
+  onSwitchVim(stateRefresher('bufLoad'))
+  autocmd.bufAdd(stateRefresher('bufAdd'))
+  autocmd.bufEnter(stateRefresher('bufLoad'))
+  autocmd.bufDelete(stateRefresher('bufUnload'))
+  autocmd.dirChanged(`v:event.cwd`, m => vimState.cwd = m)
+  autocmd.fileType(`expand('<amatch>')`, m => vimState.filetype = m)
+  autocmd.colorScheme(`expand('<amatch>')`, m => vimState.colorscheme = m)
+  // TODO: deprecate this and use vim mode
+  autocmd.insertEnter(() => notifyEvent('insertEnter'))
+  autocmd.insertLeave(() => notifyEvent('insertLeave'))
+})
