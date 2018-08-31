@@ -422,11 +422,6 @@ define.CompleteScroll`
   return a:1 ? "\\<tab>" : "\\<c-w>"
 `
 
-define.Commands`
-  silent! exe "norm! :''\\\\<c-a>\\\\"\\\\<home>let\\\\ cmds=\\\\"\\\\<cr>"
-  return split(cmds, '\\\\s\\\\+')
-`
-
 const HL_CLR = 'nvim_buf_clear_highlight'
 const HL_ADD = 'nvim_buf_add_highlight'
 
