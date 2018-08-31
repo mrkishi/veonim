@@ -59,7 +59,6 @@ const startupCmds = CmdGroup`
   let g:vn_loaded = 0
   let g:vn_cmd_completions = ''
   let g:vn_rpc_buf = []
-  let g:vn_platform = '${process.platform}'
   let g:vn_events = {}
   let g:vn_callbacks = {}
   let g:vn_callback_id = 0
