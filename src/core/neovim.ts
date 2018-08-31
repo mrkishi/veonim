@@ -348,7 +348,8 @@ onCreate(() => {
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   processBufferedActions()
-  stateRefresher('bufLoad')()
+  const refreshState = stateRefresher('bufLoad')
+  refreshState()
 })
 
 autocmd.cursorMoved(async () => {
