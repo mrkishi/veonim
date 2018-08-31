@@ -82,11 +82,6 @@ export const action = (event: string, cb: GenericCallback): void => {
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
 
-export const lineNumber = {
-  top: (): Promise<number> => expr(`line('w0')`),
-  bottom: (): Promise<number> => expr(`line('w$')`),
-}
-
 const getNamedBuffers = async () => {
   const buffers = await list.buffers
   return Promise.all(buffers.map(async b => ({

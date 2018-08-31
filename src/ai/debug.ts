@@ -1,8 +1,8 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { action, cmd, openFile, lineNumber } from '../core/neovim'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
+import { action, cmd, openFile } from '../core/neovim'
 import getDebugConfig from '../ai/get-debug-config'
 import { debugline, cursor } from '../core/cursor'
 import * as extensions from '../core/extensions'
@@ -82,9 +82,7 @@ const moveDebugLine = async ({ path, line, column }: Position) => {
   const canvasWindow = getWindow(cursor.row, cursor.col)
   if (!canvasWindow) return console.error('there is no current window. lolwut?')
   const specs = canvasWindow.getSpecs()
-
-  const topLine = await lineNumber.top()
-  const distanceFromTop = line - topLine + 1
+  const distanceFromTop = line - vim.editorTopLine + 1
   const relativeLine = specs.row + distanceFromTop
 
   const { x, y, width } = canvasWindow.whereLine(relativeLine)

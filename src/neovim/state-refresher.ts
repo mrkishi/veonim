@@ -5,7 +5,7 @@ import vimState from '../neovim/state'
 import { join } from 'path'
 
 export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
-  const [ filetype, cwd, file, colorscheme, revision, { line, column }, buffer ] = await Promise.all([
+  const [ filetype, cwd, file, colorscheme, revision, { line, column }, buffer, editorTopLine, editorBottomLine ] = await Promise.all([
     expr(`&filetype`),
     call.getcwd(),
     call.expand(`%f`),
@@ -13,6 +13,8 @@ export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
     expr(`b:changedtick`),
     getCurrentPosition(),
     getCurrent.buffer,
+    expr(`line('w0')`),
+    expr(`line('w$')`),
   ])
 
   const bufferType = await buffer.getOption(BufferOption.Type)
@@ -26,6 +28,8 @@ export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
     revision,
     bufferType,
     colorscheme,
+    editorTopLine,
+    editorBottomLine,
     absoluteFilepath: join(cwd, file),
   })
 

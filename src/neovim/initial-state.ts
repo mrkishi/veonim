@@ -14,6 +14,8 @@ export const state = {
   revision: -1,
   line: 0,
   column: 0,
+  editorTopLine: 0,
+  editorBottomLine: 0,
 }
 
 export type NeovimState = typeof state

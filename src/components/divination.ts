@@ -1,9 +1,10 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
-import { action, feedkeys, getColor, jumpTo, lineNumber } from '../core/neovim'
 import { currentWindowElement, activeWindow } from '../core/windows'
+import { action, feedkeys, getColor, jumpTo } from '../core/neovim'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
+import vimState from '../neovim/state'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
@@ -213,7 +214,6 @@ export const divinationSearch = async () => {
   }
 
   const joinTheDarkSide = async () => {
-    const topLineNumber = await lineNumber.top()
     const jumpLabel = grabbedKeys.join('').toUpperCase()
     const { row, col } = jumpTargets.get(jumpLabel)
 
@@ -223,7 +223,7 @@ export const divinationSearch = async () => {
     }
 
     const target = {
-      line: topLineNumber + distanceFrom.top - 1,
+      line: vimState.editorTopLine + distanceFrom.top - 1,
       column: distanceFrom.left,
     }
 
