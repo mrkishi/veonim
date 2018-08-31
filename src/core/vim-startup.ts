@@ -30,6 +30,23 @@ export const startupCmds = CmdGroup`
   call serverstart()
 `
 
+startup.defineFunc.VeonimComplete`
+  return a:1 ? g:veonim_complete_pos : g:veonim_completions
+`
+
+startup.defineFunc.VeonimCompleteScroll`
+  if len(g:veonim_completions)
+    if g:veonim_completing
+      return a:1 ? "\\<c-n>" : "\\<c-p>"
+    endif
+
+    let g:veonim_completing = 1
+    return a:1 ? "\\<c-x>\\<c-u>" : "\\<c-x>\\<c-u>\\<c-p>\\<c-p>"
+  endif
+
+  return a:1 ? "\\<tab>" : "\\<c-w>"
+`
+
 startup.defineFunc.VeonimTermReader`
   if has_key(g:vn_jobs_connected, a:1)
     call rpcnotify(0, 'veonim', 'job-output', [a:1, a:2])

@@ -368,8 +368,8 @@ onCreate(() => {
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
   cmd(`aug Veonim | au! | aug END`)
   cmd(`set completefunc=VeonimComplete`)
-  cmd(`ino <expr> <tab> CompleteScroll(1)`)
-  cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
+  cmd(`ino <expr> <tab> VeonimCompleteScroll(1)`)
+  cmd(`ino <expr> <s-tab> VeonimCompleteScroll(0)`)
   cmd(`highlight ${Highlight.Underline} gui=underline`)
   cmd(`highlight ${Highlight.Undercurl} gui=undercurl`)
 
@@ -404,23 +404,6 @@ autocmd.cursorMovedI(async () => {
   if (prevRevision !== currentVim.revision) notifyEvent('bufChangeInsert')
   events.notify('cursorMoveInsert', prevRevision !== currentVim.revision, currentVim)
 })
-
-define.VeonimComplete`
-  return a:1 ? g:veonim_complete_pos : g:veonim_completions
-`
-
-define.CompleteScroll`
-  if len(g:veonim_completions)
-    if g:veonim_completing
-      return a:1 ? "\\<c-n>" : "\\<c-p>"
-    endif
-
-    let g:veonim_completing = 1
-    return a:1 ? "\\<c-x>\\<c-u>" : "\\<c-x>\\<c-u>\\<c-p>\\<c-p>"
-  endif
-
-  return a:1 ? "\\<tab>" : "\\<c-w>"
-`
 
 const HL_CLR = 'nvim_buf_clear_highlight'
 const HL_ADD = 'nvim_buf_add_highlight'
