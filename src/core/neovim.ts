@@ -1,6 +1,6 @@
 import { VimMode, VimEvent, EventWait, HyperspaceCoordinates, Highlight,
   BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage,
-  Autocmd, GenericCallback, DefineFunction, KeyVal, StateChangeEvent } from '../neovim/types'
+  Autocmd, GenericCallback, StateChangeEvent } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
 import { asColor, ID, is, cc, merge, onFnCall, onProp, Watchers,
   pascalCase, camelCase, prefixWith, uuid } from '../support/utils'
@@ -256,22 +256,13 @@ export const getCurrent = {
 
 export const onStateChange: StateChangeEvent = onFnCall((stateKey: string, [cb]) => stateChangeWatchers.add(stateKey, cb))
 
-export const g = new Proxy({} as KeyVal, {
+const emptyObject: { [index: string]: any } = Object.create(null)
+export const g = new Proxy(emptyObject, {
   get: async (_t, name: string) => {
     const val = await req.core.getVar(name as string).catch(e => e)
     return Array.isArray(val) && /Key (.*?)not found/.test(val[1]) ? undefined : val
   },
   set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
-})
-
-export const define: DefineFunction = onProp((name: PropertyKey) => (fn: TemplateStringsArray) => {
-  const expr = fn[0]
-    .split('\n')
-    .filter(m => m)
-    .join('\\n')
-    .replace(/"/g, '\\"')
-
-  onCreate(() => cmd(`exe ":fun! ${pascalCase(name as string)}(...) range\n${expr}\nendfun"`))()
 })
 
 const registerAutocmd = (event: string) => {

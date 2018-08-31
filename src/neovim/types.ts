@@ -1,8 +1,6 @@
 import { NeovimState } from '../neovim/initial-state'
 
 export type GenericCallback = (...args: any[]) => void
-export type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray) => void }
-export type KeyVal = { [index: string]: any }
 export type StateChangeEvent = { [index: string]: (value: any) => void }
 
 export enum VimMode {
