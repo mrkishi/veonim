@@ -17,7 +17,7 @@ export const watch: WatchState = new Proxy(Object.create(null), {
   get: (_, key: string) => (fn: (value: any) => void) => watchers.on(key, fn),
 })
 
-export const onStateChange = (fn: (nextState: NeovimState, key: string, value: any) => void) => {
+export const onStateChange = (fn: (nextState: NeovimState, key: string, value: any, previousValue: any) => void) => {
   stateChangeFns.add(fn)
 }
 
@@ -33,8 +33,9 @@ export const untilStateValue: UntilStateValue = new Proxy(Object.create(null), {
   }) }),
 })
 
-const notifyStateChange = (nextState: NeovimState, key: string, value: any) => {
-  stateChangeFns.forEach(fn => fn(nextState, key, value))
+const notifyStateChange = (nextState: NeovimState, key: string, value: any, previousValue: any) => {
+  watchers.emit(key, value, previousValue)
+  stateChangeFns.forEach(fn => fn(nextState, key, value, previousValue))
 }
 
 export default new Proxy(state, {
@@ -45,8 +46,7 @@ export default new Proxy(state, {
     const nextState = { ...state, [key]: val }
 
     Reflect.set(state, key, val)
-    watchers.emit(key, val)
-    notifyStateChange(nextState, key, val)
+    notifyStateChange(nextState, key, val, currentVal)
 
     return true
   }
