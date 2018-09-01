@@ -31,15 +31,19 @@ export const startupCmds = CmdGroup`
   call VeonimRegisterAutocmds()
 `
 
-const stateEvents = ['BufAdd', 'BufEnter', 'BufDelete', 'DirChanged', 'FileType', 'ColorScheme']
+const stateEvents = ['BufAdd', 'BufEnter', 'BufDelete', 'BufUnload', 'BufWipeout', 'DirChanged', 'FileType', 'ColorScheme']
 // autocmds in a separate function because chaining autocmds with "|" is bad
 // it makes the next autocmd a continuation of the previous
 startup.defineFunc.VeonimRegisterAutocmds`
-  aug VeonimAutocmd | au! | aug END
-  au VeonimAutocmd BufEnter * call rpcnotify(0, 'veonim-autocmd', 'BufEnter')
-  au VeonimAutocmd FileType * call rpcnotify(0, 'veonim-autocmd', 'FileType')
-  au VeonimAutocmd CursorMoved * call rpcnotify(0, 'veonim-position', VeonimPosition())
-  au VeonimAutocmd ${stateEvents.join(',')} * call rpcnotify(0, 'veonim-state', VeonimState())
+  aug VeonimAU | au! | aug END
+  au VeonimAU CursorMoved * call rpcnotify(0, 'veonim-position', VeonimPosition())
+  au VeonimAU ${stateEvents.join(',')} * call rpcnotify(0, 'veonim-state', VeonimState())
+  au VeonimAU BufAdd * call rpcnotify(0, 'veonim-autocmd', 'BufAdd')
+  au VeonimAU BufEnter * call rpcnotify(0, 'veonim-autocmd', 'BufEnter')
+  au VeonimAU BufDelete * call rpcnotify(0, 'veonim-autocmd', 'BufDelete')
+  au VeonimAU BufUnload * call rpcnotify(0, 'veonim-autocmd', 'BufUnload')
+  au VeonimAU BufWipeout * call rpcnotify(0, 'veonim-autocmd', 'BufWipeout')
+  au VeonimAU FileType * call rpcnotify(0, 'veonim-autocmd', 'FileType')
 `
 
 startup.defineFunc.VeonimComplete`
