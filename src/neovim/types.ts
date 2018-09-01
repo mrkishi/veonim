@@ -1,5 +1,3 @@
-import { NeovimState } from '../neovim/initial-state'
-
 export type GenericCallback = (...args: any[]) => void
 
 export enum VimMode {
@@ -61,7 +59,7 @@ export interface HyperspaceCoordinates {
   path?: string
 }
 
-type EventCallback = (state: NeovimState) => void
+type EventCallback = () => void
 
 export interface VimEvent {
   bufAdd(cb: EventCallback): void
@@ -71,10 +69,10 @@ export interface VimEvent {
   bufChangeInsert(cb: EventCallback): void
   bufWrite(cb: EventCallback): void
   cursorMove(cb: EventCallback): void
-  cursorMoveInsert(cb: (modified: boolean, state: NeovimState) => void): void
+  cursorMoveInsert(cb: (modified: boolean) => void): void
   insertEnter(cb: EventCallback): void
   insertLeave(cb: EventCallback): void
-  completion(cb: (completedWord: string, state: NeovimState) => void): void
+  completion(cb: (completedWord: string) => void): void
   termEnter(cb: EventCallback): void
   termLeave(cb: EventCallback): void
 }
