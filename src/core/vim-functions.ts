@@ -29,6 +29,10 @@ interface State {
   colorscheme: string
   revision: number
   bufferType: string
+  line: number
+  column: number
+  editorTopLine: number
+  editorBottomLine: number
 }
 
 interface Position {

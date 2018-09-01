@@ -27,9 +27,15 @@ export const startupCmds = CmdGroup`
   set noshowmode
   set noruler
   set nocursorline
+  aug VeonimAutocmds
+    au!
+    au BufEnter * call VeonimSendPosition()
+  aug END
   call serverstart()
 `
 
+// aug VeonimAC | au! | aug END
+//   au VeonimAC CursorMoved * call VeonimSendPosition()
 startup.defineFunc.VeonimComplete`
   return a:1 ? g:veonim_complete_pos : g:veonim_completions
 `
@@ -45,6 +51,14 @@ startup.defineFunc.VeonimCompleteScroll`
   endif
 
   return a:1 ? "\\<tab>" : "\\<c-w>"
+`
+
+startup.defineFunc.VeonimSendState`
+  call rpcnotify(0, 'veonim-state', VeonimState())
+`
+
+startup.defineFunc.VeonimSendPosition`
+  call rpcnotify(0, 'veonim-position', VeonimPosition())
 `
 
 startup.defineFunc.VeonimState`

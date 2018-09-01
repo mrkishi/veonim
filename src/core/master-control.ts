@@ -50,7 +50,7 @@ const vimInstances = new Map<number, VimInstance>()
 const { encoder, decoder } = CreateTransport()
 
 const spawnVimInstance = () => Neovim.run([
-  '--cmd', `${startupCmds} | ${startupFuncs()}`,
+  '--cmd', `${startupFuncs()} | ${startupCmds}`,
   '--cmd', `com! -nargs=* Plug 1`,
   '--cmd', `com! -nargs=* VeonimExt 1`,
   '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
@@ -102,7 +102,10 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
   switchTo(id)
   const errors = await unblock()
 
-  if (errors.length) notifyUI(errors.join('\n'), NotifyKind.Error)
+  if (errors.length) {
+    notifyUI(errors.join('\n'), NotifyKind.Error)
+    if (process.env.VEONIM_DEV) errors.forEach(err => console.error(err))
+  }
 
   // TODO: batch these?
   api.command(`let g:vn_loaded = 1`)
