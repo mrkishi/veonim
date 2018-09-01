@@ -19,10 +19,6 @@ const prefix = {
   tabpage: prefixWith(Prefixes.Tabpage),
 }
 
-const onReady = new Set<Function>()
-const notifyCreated = () => onReady.forEach(cb => cb())
-export const onCreate = (fn: Function) => (onReady.add(fn), fn)
-
 const registeredEventActions = new Set<string>()
 const events = new Watchers()
 const actionWatchers = new Watchers()
@@ -37,7 +33,6 @@ io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
 onCreateVim(info => io.postMessage([65, info]))
 onSwitchVim(id => io.postMessage([66, id]))
-onCreateVim(() => notifyCreated())
 
 const req = {
   core: onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args)) as Api,
@@ -314,15 +309,9 @@ watch.mode(mode => {
   if (currentVim.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
 })
 
-onCreate(() => {
-  g.veonim_completing = 0
-  g.veonim_complete_pos = 1
-  g.veonim_completions = []
-
+onCreateVim(() => {
   const events = [...registeredEventActions.values()].join('\\n')
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
-  // TODO: why not move these to postStsartupCmds in master-control?
-  cmd(`aug Veonim | au! | aug END`)
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   console.log('Y U DO DIS')

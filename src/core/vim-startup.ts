@@ -224,6 +224,9 @@ export const postStartupCommands = CmdGroup`
   set noshowmode
   set noshowcmd
   set noruler
+  let g:veonim_completing = 0
+  let g:veonim_complete_pos = 1
+  let g:veonim_completions = []
   set completefunc=VeonimComplete
   ino <expr> <tab> VeonimCompleteScroll(1)
   ino <expr> <s-tab> VeonimCompleteScroll(0)
