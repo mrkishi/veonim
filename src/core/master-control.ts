@@ -102,8 +102,22 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
   switchTo(id)
   const errors = await unblock()
 
+  // usually vimrc parsing errors
   if (errors.length) notifyUI(errors.join('\n'), NotifyKind.Error)
 
+  // we are going to override any of these user settings, because the user is
+  // WRONG.  TODO: jk, the problem is we are hacking our own window grids, and
+  // the cmd/msgline/lastrow is not hidden from the render output. these
+  // settings fix some of those issues.  however once we get official support
+  // for external windows from nvim, we should not need these
+  //
+  // laststatus=0 ---> disable statusline
+  // nocursorline ---> we render our own cursorline based on cursor position. this is a bit
+  //                  hacky. i think we will get official support soonish™
+  // shortmess+=Ic --> disable completion "item 1 of 3" messages in message/cmdline/lastrow
+  // noshowmode -----> no "--INSERT--" bullshit in lastrow
+  // noshowcmd ------> disable the visual keybinds in lastrow, like "ciw" displays "c" in botright
+  // noruler --------> no "42,13" line,column display in lastrow
   const postStartupCommands = CmdGroup`
     let g:vn_loaded = 1
     set laststatus=0
@@ -115,13 +129,31 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
   `
 
   api.command(postStartupCommands)
+
+  // these autocmds are separated here, because i'm stupid, and batching them
+  // together with "|" does not work as intended (get multiple registrations)
   api.command(`au CursorMoved * call VeonimSendPosition()`)
   api.command(`au BufAdd,BufEnter,BufDelete,DirChanged,FileType,ColorScheme * call VeonimSendState()`)
 
-  // TODO: batch these?
-
+  // used when we create a new vim session with a predefined cwd
   dir && api.command(`cd ${dir}`)
 
+  // v:servername used to connect other clients to nvim via TCP
+  //
+  // by default we use the nvim process stdout/stdin to do core operations.
+  // things like rendering, key input, etc. these are high priority items and
+  // will live on the main thread.
+  //
+  // now, we will have a lot of async operations like reading buffers,
+  // modifying buffer text contents, setting highlight content, etc. that could
+  // potentially be slow to serialize/deserialize on the main thread (because
+  // msgpack is SLOW as a sloth). so we will move these non-essential operations
+  // to web workers.
+  //
+  // we will also need access to the nvim apis in the extension-host web worker
+  // (or process in the future?). extensions will talk to a vscode-to-nvim api
+  // bridge. there is no good reason why we should bridge the nvim api over
+  // web worker postMessages - just have the web worker talk directly to nvim
   const path = await req.eval('v:servername')
   vimInstances.get(id)!.path = path
   return { id, path }
