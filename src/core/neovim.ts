@@ -1,9 +1,8 @@
-import { VimMode, VimEvent, HyperspaceCoordinates, Highlight, BufferType,
+import { VimMode, VimEvent, HyperspaceCoordinates, BufferType,
   BufferHide, BufferOption, Color, Buffer, Window, Tabpage, Autocmd,
   GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
-import { asColor, ID, is, cc, merge, onFnCall, Watchers, pascalCase,
-  prefixWith, uuid } from '../support/utils'
+import { asColor, ID, is, cc, merge, onFnCall, Watchers, pascalCase, prefixWith, uuid } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { stateRefresher } from '../neovim/state-refresher'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
