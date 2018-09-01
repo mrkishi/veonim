@@ -44,8 +44,8 @@ export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
     absoluteFilepath: join(state.cwd, state.file),
   }
 
-  console.log('betterState', betterState)
-  console.log('nextState', nextState)
+  // console.log('betterState', betterState)
+  // console.log('nextState', nextState)
 
   Object.assign(vimState, nextState)
 

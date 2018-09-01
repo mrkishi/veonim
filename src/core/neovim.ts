@@ -337,6 +337,7 @@ onCreate(() => {
 
   const events = [...registeredEventActions.values()].join('\\n')
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
+  // TODO: why not move these to postStsartupCmds in master-control?
   cmd(`aug Veonim | au! | aug END`)
   cmd(`set completefunc=VeonimComplete`)
   cmd(`ino <expr> <tab> VeonimCompleteScroll(1)`)
@@ -345,6 +346,9 @@ onCreate(() => {
   cmd(`highlight ${Highlight.Undercurl} gui=undercurl`)
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
+  console.log('Y U DO DIS')
+  subscribe('veonim-state', ([ state ]) => console.log('VN STATE:', state))
+  subscribe('veonim-position', ([ position ]) => console.log('VN POSITION:', position))
   processBufferedActions()
   const refreshState = stateRefresher('bufLoad')
   refreshState()

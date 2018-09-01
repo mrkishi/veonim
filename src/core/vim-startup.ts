@@ -27,15 +27,9 @@ export const startupCmds = CmdGroup`
   set noshowmode
   set noruler
   set nocursorline
-  aug VeonimAutocmds
-    au!
-    au BufEnter * call VeonimSendPosition()
-  aug END
   call serverstart()
 `
 
-// aug VeonimAC | au! | aug END
-//   au VeonimAC CursorMoved * call VeonimSendPosition()
 startup.defineFunc.VeonimComplete`
   return a:1 ? g:veonim_complete_pos : g:veonim_completions
 `
@@ -68,7 +62,10 @@ startup.defineFunc.VeonimState`
   let file = expand('%f')
   let colorscheme = g:colors_name
   let buftype = getbufvar(currentBuffer, '&buftype')
-  return {'filetype':filetype, 'cwd':cwd, 'file':file, 'colorscheme':colorscheme, 'revision':b:changedtick, 'bufferType':buftype}
+  let p = getcurpos()
+  let topLine = line('w0')
+  let bottomLine = line('w$')
+  return {'filetype':filetype, 'cwd':cwd, 'file':file, 'colorscheme':colorscheme, 'revision':b:changedtick, 'bufferType':buftype, 'line':p[1]-1, 'column':p[2]-1, 'editorTopLine':topLine, 'editorBottomLine':bottomLine}
 `
 
 startup.defineFunc.VeonimPosition`
