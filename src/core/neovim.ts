@@ -151,7 +151,7 @@ export const NeovimApi = () => {
   }
 
   const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
-    const bufferLoaded = path ? path === currentVim.absoluteFilepath : true
+    const bufferLoaded = path ? path === state.absoluteFilepath : true
     jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
   }
 
@@ -159,12 +159,12 @@ export const NeovimApi = () => {
   // will have the abs path in names and buffer lists. idk, it just behaves wierdly
   // so it's much easier to open a file realtive to the current project (:cd/:pwd)
   const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordinates) => {
-    const bufferLoaded = path ? path === currentVim.file : true
+    const bufferLoaded = path ? path === state.file : true
     jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
   }
 
   const openFile = async (fullpath: string) => {
-    return fullpath !== currentVim.absoluteFilepath && openBuffer(fullpath)
+    return fullpath !== state.absoluteFilepath && openBuffer(fullpath)
   }
 
   // TODO: the new ui protocol sends along all highlight groups right? maybe we don't
@@ -287,23 +287,22 @@ export const NeovimApi = () => {
   // TODO: revisit this once we get THE-GRID. do we still have the term cursor bug?
   watchState.mode(mode => {
     if (mode === VimMode.Terminal) return notifyEvent('termEnter')
-    if (currentVim.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
+    if (state.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
   })
 
   const refreshState = async () => {
     const nextState = await call.VeonimState()
-    Object.assign(vimState, nextState)
+    Object.assign(state, nextState)
   }
 
   onCreateVim(() => {
     const events = [...registeredEventActions.values()].join('\\n')
     cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
 
-    subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
-    subscribe('veonim-state', ([ state ]) => Object.assign(vimState, state))
-    subscribe('veonim-position', ([ position ]) => Object.assign(vimState, position))
-    subscribe('veonim-autocmd', ([ autocmd, arg ]) => watchers.autocmds.emit(autocmd, arg)
-    // subscribe('veonim-autocmd', ([ autocmd, arg ]) => autocmdWatchers.emit(autocmd, arg))
+    subscribe('veonim', ([ event, args = [] ]) => watchers.actions.emit(event, ...args))
+    subscribe('veonim-state', ([ state ]) => Object.assign(state, state))
+    subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
+    subscribe('veonim-autocmd', ([ autocmd, arg ]) => watchers.autocmds.emit(autocmd, arg))
 
     processBufferedActions()
     refreshState()
@@ -315,7 +314,7 @@ export const NeovimApi = () => {
     watchers.events.emit('bufLoad')
   })
 
-  autocmd.CompleteDone(word => events.notify('completion', word, currentVim))
+  autocmd.CompleteDone(word => events.notify('completion', word))
 
   autocmd.BufAdd(() => notifyEvent('bufAdd'))
   autocmd.BufEnter(() => notifyEvent('bufLoad'))
@@ -337,7 +336,7 @@ export const NeovimApi = () => {
 
     if (prevRevision !== currentRevision) notifyEvent('bufChangeInsert')
     // TODO: do we need that last argument there???
-    events.notify('cursorMoveInsert', prevRevision !== currentVim.revision, currentVim)
+    events.notify('cursorMoveInsert', prevRevision !== state.revision)
   })
 
   const HL_CLR = 'nvim_buf_clear_highlight'
