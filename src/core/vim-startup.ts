@@ -27,6 +27,9 @@ export const startupCmds = CmdGroup`
   set noshowmode
   set noruler
   set nocursorline
+  set completefunc=VeonimComplete
+  ino <expr> <tab> VeonimCompleteScroll(1)
+  ino <expr> <s-tab> VeonimCompleteScroll(0)
   call serverstart()
   call VeonimRegisterAutocmds()
 `
@@ -171,6 +174,8 @@ startup.defineFunc.VK`
 //
 // if we cleanup any commands from here in the future, remember to clean them
 // up also from 'startupCmds' (if applicable)
+//
+// TODO: we should probably not override the completion settings and mappings
 export const postStartupCommands = CmdGroup`
   let g:vn_loaded = 1
   set laststatus=0
@@ -179,4 +184,7 @@ export const postStartupCommands = CmdGroup`
   set noshowmode
   set noshowcmd
   set noruler
+  set completefunc=VeonimComplete
+  ino <expr> <tab> VeonimCompleteScroll(1)
+  ino <expr> <s-tab> VeonimCompleteScroll(0)
 `

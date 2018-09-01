@@ -339,9 +339,6 @@ onCreate(() => {
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
   // TODO: why not move these to postStsartupCmds in master-control?
   cmd(`aug Veonim | au! | aug END`)
-  cmd(`set completefunc=VeonimComplete`)
-  cmd(`ino <expr> <tab> VeonimCompleteScroll(1)`)
-  cmd(`ino <expr> <s-tab> VeonimCompleteScroll(0)`)
   cmd(`highlight ${Highlight.Underline} gui=underline`)
   cmd(`highlight ${Highlight.Undercurl} gui=undercurl`)
 
