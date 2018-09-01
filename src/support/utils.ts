@@ -257,7 +257,8 @@ export const Watcher = <T>() => {
   // TODO: how do we make "value" arg require OR optional based on T[K]?
   type Emit1 = <K extends keyof T>(event: K) => void
   type Emit2 = <K extends keyof T>(event: K, value: T[K]) => void
-  type Emit = Emit1 & Emit2
+  type Emit3 = <K extends keyof T>(event: K, ...args: any[]) => void
+  type Emit = Emit1 & Emit2 & Emit3
 
   const emit: Emit = (event: string, value?: any) => {
     ee.emit(event, value)

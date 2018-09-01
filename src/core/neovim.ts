@@ -78,72 +78,25 @@ export const NeovimApi = () => {
   const getCurrentLine = () => req.core.getCurrentLine()
 
   const getNamedBuffers = async () => {
-    const buffers = await list.buffers
-    return Promise.all(buffers.map(async b => ({
+    const bufs = await buffers.list()
+    return Promise.all(bufs.map(async b => ({
       buffer: b,
       name: await b.name,
     })))
   }
 
-  const findBuffer = async (name: string) => {
-    const buffers = await getNamedBuffers()
-    // it appears that buffers name will have a fullpath, like
-    // `/Users/anna/${name}` so we will try to substring match 
-    // the end of the name
-    const found = buffers.find(b => b.name.endsWith(name)) || {} as any
-    return found.buffer
-  }
-
   const loadBuffer = async (file: string): Promise<boolean> => {
-    const targetBuffer = await findBuffer(file)
+    const targetBuffer = await buffers.find(file)
     if (!targetBuffer) return false
 
     api.core.setCurrentBuf(targetBuffer.id)
     return true
   }
 
-  const openBuffer = async (file: string): Promise<boolean> => {
-    const loaded = await loadBuffer(file)
-    if (loaded) return true
-
-    cmd(`badd ${file}`)
-    return loadBuffer(file)
-  }
-
-  const addBuffer = async (name: string): Promise<Buffer> => {
-    const id = uuid()
-    cmd(`badd ${id}`)
-
-    const buffer = await findBuffer(id)
-    if (!buffer) throw new Error(`addBuffer: could not find buffer '${id}' added with :badd ${name}`)
-
-    // for some reason, buf.setName creates a new buffer? lolwut?
-    // so it's probably still better to do the shenanigans above
-    // since finding the buffer by uuid is more accurate instead
-    // of trying to get a buffer handle by name only alone
-    //
-    // after a future neovim PR we might consider using 'nvim_create_buf'
-    await buffer.setName(name)
-    cmd(`bwipeout! ${id}`)
-    return buffer
-  }
-
-  const createShadowBuffer = async (name: string) => {
-    const buffer = await addBuffer(name)
-
-    buffer.setOption(BufferOption.Type, BufferType.NonFile)
-    buffer.setOption(BufferOption.Hidden, BufferHide.Hide)
-    buffer.setOption(BufferOption.Listed, false)
-    buffer.setOption(BufferOption.Modifiable, false)
-    buffer.setOption(BufferOption.Filetype, SHADOW_BUFFER_TYPE)
-
-    return buffer
-  }
-
   type JumpOpts = HyperspaceCoordinates & { openBufferFirst: boolean }
 
   const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: JumpOpts) => {
-    if (openBufferFirst && path) await openBuffer(path)
+    if (openBufferFirst && path) await buffers.open(path)
     // nvim_win_set_cursor params
     // line: 1-index based
     // column: 0-index based
@@ -164,7 +117,7 @@ export const NeovimApi = () => {
   }
 
   const openFile = async (fullpath: string) => {
-    return fullpath !== state.absoluteFilepath && openBuffer(fullpath)
+    return fullpath !== state.absoluteFilepath && buffers.open(fullpath)
   }
 
   // TODO: the new ui protocol sends along all highlight groups right? maybe we don't
@@ -179,11 +132,59 @@ export const NeovimApi = () => {
 
   const systemAction = (event: string, cb: GenericCallback) => watchers.actions.on(event, cb)
 
-  // TODO: combine/collapse this with buffers.list / buffers.add / buffers.open, etc?
-  const list = {
-    get buffers() { return as.bufl(req.core.listBufs()) },
-    get windows() { return as.winl(req.core.listWins()) },
-    get tabs() { return as.tabl(req.core.listTabpages()) },
+  const buffers = {
+    list: () => as.bufl(req.core.listBufs()),
+    open: async (file: string) => {
+      const loaded = await loadBuffer(file)
+      if (loaded) return true
+
+      cmd(`badd ${file}`)
+      return loadBuffer(file)
+    },
+    find: async (name: string) => {
+      const buffers = await getNamedBuffers()
+      // it appears that buffers name will have a fullpath, like
+      // `/Users/anna/${name}` so we will try to substring match 
+      // the end of the name
+      const found = buffers.find(b => b.name.endsWith(name)) || {} as any
+      return found.buffer
+    },
+    add: async (name: string) => {
+      const id = uuid()
+      cmd(`badd ${id}`)
+
+      const buffer = await buffers.find(id)
+      if (!buffer) throw new Error(`addBuffer: could not find buffer '${id}' added with :badd ${name}`)
+
+      // for some reason, buf.setName creates a new buffer? lolwut?
+      // so it's probably still better to do the shenanigans above
+      // since finding the buffer by uuid is more accurate instead
+      // of trying to get a buffer handle by name only alone
+      //
+      // after a future neovim PR we might consider using 'nvim_create_buf'
+      await buffer.setName(name)
+      cmd(`bwipeout! ${id}`)
+      return buffer
+    },
+    addShadow: async (name: string) => {
+      const buffer = await buffers.add(name)
+
+      buffer.setOption(BufferOption.Type, BufferType.NonFile)
+      buffer.setOption(BufferOption.Hidden, BufferHide.Hide)
+      buffer.setOption(BufferOption.Listed, false)
+      buffer.setOption(BufferOption.Modifiable, false)
+      buffer.setOption(BufferOption.Filetype, SHADOW_BUFFER_TYPE)
+
+      return buffer
+    },
+  }
+
+  const windows = {
+    list: () => as.winl(req.core.listWins()),
+  }
+
+  const tabs = {
+    list: () => as.tabl(req.core.listTabpages()),
   }
 
   const current = {
@@ -240,7 +241,7 @@ export const NeovimApi = () => {
   })
 
   const applyPatches = async (patches: Patch[]) => {
-    const buffers = await Promise.all((await list.buffers).map(async buffer => ({
+    const bufs = await Promise.all((await buffers.list()).map(async buffer => ({
       buffer,
       path: await buffer.name,
     })))
@@ -251,10 +252,10 @@ export const NeovimApi = () => {
 
     // TODO: we should notify user that other files were changed
     patches
-      .filter(p => buffers.some(b => b.path !== p.path))
+      .filter(p => bufs.some(b => b.path !== p.path))
       .forEach(b => cmd(`badd ${b.file}`))
 
-    applyPatchesToBuffers(patches, buffers)
+    applyPatchesToBuffers(patches, bufs)
   }
 
   interface PathBuf { buffer: Buffer, path: string }
@@ -418,9 +419,8 @@ export const NeovimApi = () => {
 
   return { state, watchState, onStateChange, onStateValue, untilStateValue,
     cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
-    getCurrentLine, openBuffer, addBuffer, createShadowBuffer, jumpTo,
-    jumpToProjectFile, openFile, getColor, systemAction, list, current, g, on,
-    applyPatches }
+    getCurrentLine, jumpTo, jumpToProjectFile, openFile, getColor,
+    systemAction, current, g, on, applyPatches, buffers, windows, tabs }
 }
 
 export const vim = NeovimApi()
