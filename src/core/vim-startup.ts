@@ -28,6 +28,18 @@ export const startupCmds = CmdGroup`
   set noruler
   set nocursorline
   call serverstart()
+  call VeonimRegisterAutocmds()
+`
+
+const stateEvents = ['BufAdd', 'BufEnter', 'BufDelete', 'DirChanged', 'FileType', 'ColorScheme']
+// autocmds in a separate function because chaining autocmds with "|" is bad
+// it makes the next autocmd a continuation of the previous
+startup.defineFunc.VeonimRegisterAutocmds`
+  aug VeonimAutocmd | au! | aug END
+  au VeonimAutocmd BufEnter * call rpcnotify(0, 'veonim-autocmd', 'BufEnter')
+  au VeonimAutocmd FileType * call rpcnotify(0, 'veonim-autocmd', 'FileType')
+  au VeonimAutocmd CursorMoved * call rpcnotify(0, 'veonim-position', VeonimPosition())
+  au VeonimAutocmd ${stateEvents.join(',')} * call rpcnotify(0, 'veonim-state', VeonimState())
 `
 
 startup.defineFunc.VeonimComplete`
@@ -45,14 +57,6 @@ startup.defineFunc.VeonimCompleteScroll`
   endif
 
   return a:1 ? "\\<tab>" : "\\<c-w>"
-`
-
-startup.defineFunc.VeonimSendState`
-  call rpcnotify(0, 'veonim-state', VeonimState())
-`
-
-startup.defineFunc.VeonimSendPosition`
-  call rpcnotify(0, 'veonim-position', VeonimPosition())
 `
 
 startup.defineFunc.VeonimState`

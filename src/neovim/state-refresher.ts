@@ -33,20 +33,6 @@ export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
     absoluteFilepath: join(cwd, file),
   }
 
-  const [ state, position ] = await Promise.all([
-    call.VeonimState(),
-    call.VeonimPosition(),
-  ])
-
-  const betterState = {
-    ...state,
-    ...position,
-    absoluteFilepath: join(state.cwd, state.file),
-  }
-
-  // console.log('betterState', betterState)
-  // console.log('nextState', nextState)
-
   Object.assign(vimState, nextState)
 
   notifyEvent(vimEvent)

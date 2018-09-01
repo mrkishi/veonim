@@ -118,6 +118,9 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
   // noshowmode -----> no "--INSERT--" bullshit in lastrow
   // noshowcmd ------> disable the visual keybinds in lastrow, like "ciw" displays "c" in botright
   // noruler --------> no "42,13" line,column display in lastrow
+  //
+  // if we cleanup any commands from here in the future, remember to clean them
+  // up also from 'startupCmds' (if applicable)
   const postStartupCommands = CmdGroup`
     let g:vn_loaded = 1
     set laststatus=0
@@ -129,11 +132,6 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
   `
 
   api.command(postStartupCommands)
-
-  // these autocmds are separated here, because i'm stupid, and batching them
-  // together with "|" does not work as intended (get multiple registrations)
-  api.command(`au CursorMoved * call VeonimSendPosition()`)
-  api.command(`au BufAdd,BufEnter,BufDelete,DirChanged,FileType,ColorScheme * call VeonimSendState()`)
 
   // used when we create a new vim session with a predefined cwd
   dir && api.command(`cd ${dir}`)
