@@ -3,13 +3,13 @@ import { VimMode, VimEvent, HyperspaceCoordinates, BufferType, BufferHide,
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
 import { asColor, is, onFnCall, Watchers, prefixWith, uuid } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
-import { stateRefresher } from '../neovim/state-refresher'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import currentVim, { watch } from '../neovim/state'
 import { Functions } from '../core/vim-functions'
 import { Autocmds } from '../core/vim-startup'
 import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
+import vimState from '../neovim/state'
 import { EventEmitter } from 'events'
 
 const prefix = {
@@ -309,19 +309,28 @@ watch.mode(mode => {
   if (currentVim.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
 })
 
+const refreshState = async () => {
+  const nextState = await call.VeonimState()
+  Object.assign(vimState, nextState)
+}
+
 onCreateVim(() => {
   const events = [...registeredEventActions.values()].join('\\n')
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
-  console.log('Y U DO DIS')
-  subscribe('veonim-state', ([ state ]) => console.log('VN STATE:', state))
-  subscribe('veonim-position', ([ position ]) => console.log('VN POSITION:', position))
-  // subscribe('veonim-autocmd', ([ autocmd, arg ]) => console.log('VN AUTOCMD:', autocmd, arg))
+  subscribe('veonim-state', ([ state ]) => Object.assign(vimState, state))
+  subscribe('veonim-position', ([ position ]) => Object.assign(vimState, position))
   subscribe('veonim-autocmd', ([ autocmd, arg ]) => autocmdWatchers.emit(autocmd, arg))
+
   processBufferedActions()
-  const refreshState = stateRefresher('bufLoad')
   refreshState()
+  notifyEvent('bufLoad')
+})
+
+onSwitchVim(() => {
+  refreshState()
+  notifyEvent('bufLoad')
 })
 
 autocmd.CompleteDone(word => events.notify('completion', word, currentVim))
