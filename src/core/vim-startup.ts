@@ -50,17 +50,34 @@ const stateEvents = [
   'BufDelete',
   'BufUnload',
   'BufWipeout',
+  'FileType',
+  'ColorScheme',
+  'DirChanged',
+  // TODO: can probably remove these events and the state.revision prop
+  // once we get buf notifications from nvim going
+  'TextChanged',
+  'TextChangedI'
 ]
 
+// TODO: maybe we don't care about autocmd args??
 const autocmds = {
   BufAdd: null,
   BufEnter: null,
   BufDelete: null,
   BufUnload: null,
   BufWipeout: null,
+  BufWritePost: null,
+  TextChanged: null,
+  CursorMoved: null,
+  CursorMovedI: null,
+  CompleteDone: 'v:completed_item',
+  // TODO: remooooove?
   FileType: `expand('<amatch>')`,
   ColorScheme: `expand('<amatch>')`,
   DirChanged: `v:event.cwd`,
+  // TODO: no. remove.
+  InsertEnter: null,
+  InsertLeave: null,
 }
 
 export type Autocmds = keyof typeof autocmds
