@@ -34,11 +34,6 @@ export const NeovimApi = () => {
     autocmds: Watcher<Autocmd>(),
   }
 
-  watchers.actions.emit('one', 1)
-  watchers.actions.emit('one', 1)
-  watchers.events.emit('cursorMoveInsert', true)
-  watchers.events.emit('bufAdd', undefined)
-
   const req = {
     core: onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args)) as Api,
     buf: onFnCall((name: string, args: any[] = []) => request(prefix.buffer(name), args)) as IBuffer,

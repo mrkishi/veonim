@@ -254,7 +254,12 @@ export const Watcher = <T>() => {
     return () => ee.removeListener(event, handler)
   }
 
-  const emit = <K extends keyof T>(event: K, value: T[K]) => {
+  // TODO: how do we make "value" arg require OR optional based on T[K]?
+  type Emit1 = <K extends keyof T>(event: K) => void
+  type Emit2 = <K extends keyof T>(event: K, value: T[K]) => void
+  type Emit = Emit1 & Emit2
+
+  const emit: Emit = (event: string, value?: any) => {
     ee.emit(event, value)
   }
 

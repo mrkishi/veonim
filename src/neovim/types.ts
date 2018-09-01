@@ -62,19 +62,19 @@ export interface HyperspaceCoordinates {
 type EventCallback = () => void
 
 export interface VimEvent {
-  bufAdd: undefined
-  bufLoad: undefined
-  bufUnload: undefined
-  bufChange: undefined
-  bufChangeInsert: undefined
-  bufWrite: undefined
-  cursorMove: undefined
+  bufAdd: void
+  bufLoad: void
+  bufUnload: void
+  bufChange: void
+  bufChangeInsert: void
+  bufWrite: void
+  cursorMove: void
   cursorMoveInsert: boolean
-  insertEnter: undefined
-  insertLeave: undefined
+  insertEnter: void
+  insertLeave: void
   completion: string
-  termEnter: undefined
-  termLeave: undefined
+  termEnter: void
+  termLeave: void
 }
 
 export interface Color {
