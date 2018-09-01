@@ -1,14 +1,6 @@
 import { VimMode, BufferType } from '../neovim/types'
 import { EventEmitter } from 'events'
 
-type StateKeys = keyof NeovimState
-type WatchState = { [Key in StateKeys]: (fn: (value: NeovimState[Key]) => void) => void }
-type UntilStateValue = {
-  [Key in StateKeys]: {
-    is: (value: NeovimState[Key]) => Promise<NeovimState[Key]>
-  }
-}
-
 const initialState = {
   background: '#2d2d2d',
   foreground: '#dddddd',
@@ -27,9 +19,16 @@ const initialState = {
   editorBottomLine: 0,
 }
 
-export type NeovimState = typeof state
+export type NeovimState = typeof initialState
+type StateKeys = keyof NeovimState
+type WatchState = { [Key in StateKeys]: (fn: (value: NeovimState[Key]) => void) => void }
+type UntilStateValue = {
+  [Key in StateKeys]: {
+    is: (value: NeovimState[Key]) => Promise<NeovimState[Key]>
+  }
+}
 
-export default (name: string) => {
+export default (stateName: string) => {
   const watchers = new EventEmitter()
   const stateChangeFns = new Set<Function>()
 
@@ -58,7 +57,7 @@ export default (name: string) => {
     stateChangeFns.forEach(fn => fn(nextState, key, value, previousValue))
   }
 
-  default new Proxy(state, {
+  const state = new Proxy(initialState, {
     set: (_, key: string, val: any) => {
       const currentVal = Reflect.get(state, key)
       if (currentVal === val) return true
@@ -87,4 +86,6 @@ export default (name: string) => {
       store.dispatch({ type: `SET::${key}`, payload: { [key]: val } })
     })
   }
+
+  return { state, watch, onStateChange, untilStateValue }
 }
