@@ -365,7 +365,13 @@ autocmd.textChanged(async () => {
   notifyEvent('bufChange')
 })
 
+autocmd.bufAdd(stateRefresher('bufAdd'))
+autocmd.bufEnter(stateRefresher('bufLoad'))
+autocmd.bufDelete(stateRefresher('bufUnload'))
 autocmd.bufWritePost(() => notifyEvent('bufWrite'))
+// TODO: deprecate this and use vim mode
+autocmd.insertEnter(() => notifyEvent('insertEnter'))
+autocmd.insertLeave(() => notifyEvent('insertLeave'))
 
 autocmd.cursorMovedI(async () => {
   const prevRevision = currentVim.revision

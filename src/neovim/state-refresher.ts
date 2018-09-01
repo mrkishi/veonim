@@ -1,4 +1,4 @@
-import { expr, call, g, getCurrent, getCurrentPosition, notifyEvent, autocmd } from '../core/neovim'
+import { expr, call, g, getCurrent, getCurrentPosition, notifyEvent } from '../core/neovim'
 import { BufferOption, VimEvent } from '../neovim/types'
 import { onSwitchVim } from '../core/sessions'
 import vimState from '../neovim/state'
@@ -38,16 +38,5 @@ export const stateRefresher = (vimEvent: keyof VimEvent) => async () => {
   notifyEvent(vimEvent)
 }
 
-// TODO: this does not currently work on first call (module load & parse)
-setImmediate(() => {
-  onSwitchVim(stateRefresher('bufLoad'))
-  autocmd.bufAdd(stateRefresher('bufAdd'))
-  autocmd.bufEnter(stateRefresher('bufLoad'))
-  autocmd.bufDelete(stateRefresher('bufUnload'))
-  autocmd.dirChanged(`v:event.cwd`, m => vimState.cwd = m)
-  autocmd.fileType(`expand('<amatch>')`, m => vimState.filetype = m)
-  autocmd.colorScheme(`expand('<amatch>')`, m => vimState.colorscheme = m)
-  // TODO: deprecate this and use vim mode
-  autocmd.insertEnter(() => notifyEvent('insertEnter'))
-  autocmd.insertLeave(() => notifyEvent('insertLeave'))
-})
+// TODO: state refresher should not send events. make these two separate calls pls kthx
+onSwitchVim(stateRefresher('bufLoad'))
