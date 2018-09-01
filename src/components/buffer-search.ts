@@ -1,4 +1,4 @@
-import { action, jumpTo, getCurrent, feedkeys } from '../core/neovim'
+import { action, jumpTo, current, feedkeys } from '../core/neovim'
 import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
@@ -33,13 +33,11 @@ const cursor = (() => {
   let position = [0, 0]
 
   const save = async () => {
-    const win = await getCurrent.window
-    position = await win.cursor
+    position = await current.window.cursor
   }
 
   const restore = async () => {
-    const win = await getCurrent.window
-    win.setCursor(position[0], position[1])
+    current.window.setCursor(position[0], position[1])
   }
 
   return { save, restore }

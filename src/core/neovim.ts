@@ -231,8 +231,6 @@ export const getCurrentPosition = async () => {
 export const getCurrent = {
   // TODO: merge these in 'current' api?
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
-  get window() { return as.win(req.core.getCurrentWin()) },
-  get tab() { return as.tab(req.core.getCurrentTabpage()) },
 }
 
 const emptyObject: { [index: string]: any } = Object.create(null)
