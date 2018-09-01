@@ -30,7 +30,7 @@ const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.post
 
 export const NeovimApi = () => {
   const registeredEventActions = new Set<string>()
-  const { state, watch, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
+  const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
   const watchers = {
     events: new EventEmitter(),
     actions: new EventEmitter(),
@@ -180,7 +180,7 @@ export const NeovimApi = () => {
     }
   }
 
-  export const systemAction = (event: string, cb: GenericCallback) => actionWatchers.add(event, cb)
+  export const systemAction = (event: string, cb: GenericCallback) => watchers.actions.on(event, cb)
 
   // TODO: combine/collapse this with buffers.list / buffers.add / buffers.open, etc?
   export const list = {
@@ -288,7 +288,7 @@ export const NeovimApi = () => {
 
   // nvim does not currently have TermEnter/TermLeave autocmds - it might in the future
   // TODO: revisit this once we get THE-GRID. do we still have the term cursor bug?
-  watch.mode(mode => {
+  watchState.mode(mode => {
     if (mode === VimMode.Terminal) return notifyEvent('termEnter')
     if (currentVim.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
   })
@@ -412,6 +412,8 @@ export const NeovimApi = () => {
     setVar: (name, val) => api.tab.setVar(id, name, val),
     delVar: name => api.tab.delVar(id, name),
   } as Tabpage)
+
+  return { state, watchState, onStateChange, onStateValue, untilStateValue }
 }
 
 export const vim = NeovimApi()

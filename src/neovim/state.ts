@@ -33,7 +33,7 @@ export default (stateName: string) => {
   const watchers = new EventEmitter()
   const stateChangeFns = new Set<Function>()
 
-  const watch: WatchState = new Proxy(Object.create(null), {
+  const watchState: WatchState = new Proxy(Object.create(null), {
     get: (_, key: string) => (fn: (value: any) => void) => watchers.on(key, fn),
   })
 
@@ -94,5 +94,5 @@ export default (stateName: string) => {
     })
   }
 
-  return { state, watch, onStateChange, onStateValue, untilStateValue }
+  return { state, watchState, onStateChange, onStateValue, untilStateValue }
 }
