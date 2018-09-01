@@ -1,8 +1,8 @@
+import { startupFuncs, startupCmds, postStartupCommands } from '../core/vim-startup'
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
-import { startupFuncs, startupCmds } from '../core/vim-startup'
-import NeovimUtils, { CmdGroup } from '../support/neovim-utils'
 import CreateTransport from '../messaging/transport'
+import NeovimUtils from '../support/neovim-utils'
 import { Neovim } from '../support/binaries'
 import { ChildProcess } from 'child_process'
 import { Api, Prefixes } from '../core/api'
@@ -104,32 +104,6 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
 
   // usually vimrc parsing errors
   if (errors.length) notifyUI(errors.join('\n'), NotifyKind.Error)
-
-  // we are going to override any of these user settings, because the user is
-  // WRONG.  TODO: jk, the problem is we are hacking our own window grids, and
-  // the cmd/msgline/lastrow is not hidden from the render output. these
-  // settings fix some of those issues.  however once we get official support
-  // for external windows from nvim, we should not need these
-  //
-  // laststatus=0 ---> disable statusline
-  // nocursorline ---> we render our own cursorline based on cursor position. this is a bit
-  //                  hacky. i think we will get official support soonish™
-  // shortmess+=Ic --> disable completion "item 1 of 3" messages in message/cmdline/lastrow
-  // noshowmode -----> no "--INSERT--" bullshit in lastrow
-  // noshowcmd ------> disable the visual keybinds in lastrow, like "ciw" displays "c" in botright
-  // noruler --------> no "42,13" line,column display in lastrow
-  //
-  // if we cleanup any commands from here in the future, remember to clean them
-  // up also from 'startupCmds' (if applicable)
-  const postStartupCommands = CmdGroup`
-    let g:vn_loaded = 1
-    set laststatus=0
-    set nocursorline
-    set shortmess+=Ic
-    set noshowmode
-    set noshowcmd
-    set noruler
-  `
 
   api.command(postStartupCommands)
 

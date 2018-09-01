@@ -43,7 +43,7 @@ const stateEvents = ['BufAdd', 'BufEnter', 'BufDelete', 'BufUnload', 'BufWipeout
 // it makes the next autocmd a continuation of the previous
 startup.defineFunc.VeonimRegisterAutocmds`
   aug VeonimAU | au! | aug END
-  au VeonimAU CursorMoved * call rpcnotify(0, 'veonim-position', VeonimPosition())
+  au VeonimAU CursorMoved,CursorMovedI * call rpcnotify(0, 'veonim-position', VeonimPosition())
   au VeonimAU ${stateEvents.join(',')} * call rpcnotify(0, 'veonim-state', VeonimState())
   au VeonimAU BufAdd * call rpcnotify(0, 'veonim-autocmd', 'BufAdd')
   au VeonimAU BufEnter * call rpcnotify(0, 'veonim-autocmd', 'BufEnter')
@@ -153,4 +153,30 @@ startup.defineFunc.VeonimOverlayMenu`
 startup.defineFunc.VK`
   call VeonimRegisterEvent('key:' . a:2 . ':' . a:1, a:3)
   call Veonim('register-shortcut', a:1, a:2)
+`
+
+// we are going to override any of these user settings, because the user is
+// WRONG.  TODO: jk, the problem is we are hacking our own window grids, and
+// the cmd/msgline/lastrow is not hidden from the render output. these
+// settings fix some of those issues.  however once we get official support
+// for external windows from nvim, we should not need these
+//
+// laststatus=0 ---> disable statusline
+// nocursorline ---> we render our own cursorline based on cursor position. this is a bit
+//                  hacky. i think we will get official support soonish™
+// shortmess+=Ic --> disable completion "item 1 of 3" messages in message/cmdline/lastrow
+// noshowmode -----> no "--INSERT--" bullshit in lastrow
+// noshowcmd ------> disable the visual keybinds in lastrow, like "ciw" displays "c" in botright
+// noruler --------> no "42,13" line,column display in lastrow
+//
+// if we cleanup any commands from here in the future, remember to clean them
+// up also from 'startupCmds' (if applicable)
+export const postStartupCommands = CmdGroup`
+  let g:vn_loaded = 1
+  set laststatus=0
+  set nocursorline
+  set shortmess+=Ic
+  set noshowmode
+  set noshowcmd
+  set noruler
 `
