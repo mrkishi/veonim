@@ -149,10 +149,3 @@ export interface Tabpage {
   setVar(name: string, value: any): void
   delVar(name: string): void
 }
-
-type AutocmdEvent = (callback: () => void) => void
-type AutocmdArgEvent = (argExpression: string, callback: (arg: any) => void) => void
-
-export interface Autocmd {
-  [index: string]: AutocmdEvent & AutocmdArgEvent,
-}

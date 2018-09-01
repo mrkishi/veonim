@@ -1,6 +1,5 @@
-import { VimMode, VimEvent, HyperspaceCoordinates, BufferType,
-  BufferHide, BufferOption, Color, Buffer, Window, Tabpage, Autocmd,
-  GenericCallback } from '../neovim/types'
+import { VimMode, VimEvent, HyperspaceCoordinates, BufferType, BufferHide,
+  BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
 import { asColor, ID, is, cc, merge, onFnCall, Watchers, pascalCase, prefixWith, uuid } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
@@ -8,8 +7,10 @@ import { stateRefresher } from '../neovim/state-refresher'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import currentVim, { watch } from '../neovim/state'
 import { Functions } from '../core/vim-functions'
+import { Autocmds } from '../core/vim-startup'
 import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
+import { EventEmitter } from 'events'
 
 const prefix = {
   core: prefixWith(Prefixes.Core),
@@ -26,7 +27,7 @@ const registeredEventActions = new Set<string>()
 const uid = ID()
 const events = new Watchers()
 const actionWatchers = new Watchers()
-const autocmdWatchers = new Watchers()
+const autocmdWatchers = new EventEmitter()
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 // TODO: maybe this can be a global event system? add more than just autocmds
@@ -252,30 +253,9 @@ export const g = new Proxy(emptyObject, {
   set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
 })
 
-const registerAutocmd = (event: string) => {
-  const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}')`
-
-  onCreate(() => cmd(cmdExpr))()
-  onCreate(() => subscribe(`autocmd:${event}`, () => autocmdWatchers.notify(event)))()
-}
-
-const registerAutocmdWithArgExpression = (event: string, argExpression: string, cb: Function) => {
-  const id = uid.next()
-  const argExpr = argExpression.replace(/"/g, '\\"')
-  const cmdExpr = `au Veonim ${event} * call rpcnotify(0, 'autocmd:${event}:${id}', ${argExpr})`
-
-  onCreate(() => cmd(cmdExpr))()
-  onCreate(() => subscribe(`autocmd:${event}:${id}`, (a: any[]) => cb(a[0])))()
-}
-
-export const autocmd: Autocmd = onFnCall((name: string, args: any[]) => {
-  const cb = args.find(a => is.function(a) || is.asyncfunction(a))
-  const argExpression = args.find(is.string)
-  const ev = pascalCase(name)
-
-  if (argExpression) return registerAutocmdWithArgExpression(ev, argExpression, cb)
-  if (!autocmdWatchers.has(ev)) registerAutocmd(ev)
-  autocmdWatchers.add(ev, cb)
+type Autocmd = { [Key in Autocmds]: (fn: () => void) => void }
+const autocmd: Autocmd = new Proxy(Object.create(null), {
+  get: (_, event: string) => (fn: any) => autocmdWatchers.on(event, fn)
 })
 
 export const on: VimEvent = onFnCall((name, [cb]) => events.add(name, cb))
