@@ -1,5 +1,5 @@
 import { fullBufferUpdate, partialBufferUpdate } from '../langserv/adapter'
-import { getCurrent, current } from '../core/neovim'
+import { current, getCurrentLine } from '../core/neovim'
 import Worker from '../messaging/worker'
 import vimState from '../neovim/state'
 
@@ -13,11 +13,11 @@ export const update = async ({ lineChange = false, bufferOpened = false } = {}) 
 
   if (lineChange) partialBufferUpdate({
     ...vimState,
-    bufferLines: [ await getCurrent.lineContent ]
+    bufferLines: [ await getCurrentLine() ]
   }, bufferOpened)
 
   else {
-    const buffer = await getCurrent.bufferContents
+    const buffer = await current.buffer.getAllLines()
     harvester.call.set(vimState.cwd, vimState.file, buffer)
     finder.call.set(vimState.cwd, vimState.file, buffer)
     fullBufferUpdate({ ...vimState, bufferLines: buffer }, bufferOpened)

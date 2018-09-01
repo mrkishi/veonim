@@ -1,6 +1,6 @@
 import { getSignatureHint } from '../ai/signature-hint'
-import { on, getCurrent as vim } from '../core/neovim'
 import * as updateService from '../ai/update-server'
+import { on, getCurrentLine } from '../core/neovim'
 import { getCompletions } from '../ai/completions'
 import colorizer from '../services/colorizer'
 import { watch } from '../neovim/state'
@@ -24,7 +24,7 @@ on.bufChange(() => updateService.update())
 // until textChangedI ran AND updated the server
 on.cursorMoveInsert(async (bufferModified, { line, column }) => {
   if (bufferModified) await updateService.update({ lineChange: true })
-  const lineContent = await vim.lineContent
+  const lineContent = await getCurrentLine()
   getCompletions(lineContent, line, column)
   getSignatureHint(lineContent)
 })

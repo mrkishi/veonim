@@ -100,6 +100,7 @@ export interface Buffer {
   length: Promise<number>
   changedtick: Promise<number>
   append(start: number, lines: string | string[]): void
+  getAllLines(): Promise<string[]>
   getLines(start: number, end: number): Promise<string[]>
   getLine(start: number): Promise<string>
   setLines(start: number, end: number, replacement: string[]): void

@@ -75,6 +75,7 @@ export const action = (event: string, cb: GenericCallback): void => {
   registeredEventActions.add(event)
   cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
 }
+export const getCurrentLine = () => req.core.getCurrentLine()
 
 const getNamedBuffers = async () => {
   const buffers = await list.buffers
@@ -232,10 +233,6 @@ export const getCurrent = {
   get buffer() { return as.buf(req.core.getCurrentBuf()) },
   get window() { return as.win(req.core.getCurrentWin()) },
   get tab() { return as.tab(req.core.getCurrentTabpage()) },
-  // TODO: deprecate these apis? use buffer notification PR?
-  // TODO: bufferContents: use nvim api?
-  get lineContent(): Promise<string> { return req.core.getCurrentLine() },
-  get bufferContents(): Promise<string[]> { return call.getline(1, '$') as Promise<string[]> },
 }
 
 const emptyObject: { [index: string]: any } = Object.create(null)
@@ -375,6 +372,7 @@ const Buffer = (id: any) => ({
 
     api.buf.setLines(id, start + 1, start + 1 + newLines.length, false, newLines)
   },
+  getAllLines: () => req.buf.getLines(id, 0, -1, true),
   getLines: (start, end) => req.buf.getLines(id, start, end, true),
   getLine: start => req.buf.getLines(id, start, start + 1, true).then(m => m[0]),
   setLines: (start, end, lines) => api.buf.setLines(id, start, end, true, lines),
