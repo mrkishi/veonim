@@ -22,6 +22,7 @@ const initialState = {
 export type NeovimState = typeof initialState
 type StateKeys = keyof NeovimState
 type WatchState = { [Key in StateKeys]: (fn: (value: NeovimState[Key]) => void) => void }
+type OnStateValue = { [Key in StateKeys]: (value: NeovimState[Key], fn: () => void) => void }
 type UntilStateValue = {
   [Key in StateKeys]: {
     is: (value: NeovimState[Key]) => Promise<NeovimState[Key]>
@@ -39,6 +40,12 @@ export default (stateName: string) => {
   const onStateChange = (fn: (nextState: NeovimState, key: string, value: any, previousValue: any) => void) => {
     stateChangeFns.add(fn)
   }
+
+  const onStateValue: OnStateValue = new Proxy(Object.create(null), {
+    get: (_, key: string) => (matchValue: any, fn: Function) => {
+      watchers.on(key, value => value === matchValue && fn())
+    }
+  })
 
   const untilStateValue: UntilStateValue = new Proxy(Object.create(null), {
     get: (_, key: string) => ({ is: (watchedValue: any) => new Promise(done => {
@@ -77,7 +84,7 @@ export default (stateName: string) => {
     const { createStore } = require('redux')
     const { composeWithDevTools } = require('redux-devtools-extension')
 
-    const composeEnhancers = composeWithDevTools({ name: 'neovim-state' })
+    const composeEnhancers = composeWithDevTools({ name: `neovim-state-${stateName}` })
     const reducer = (state: any, action: any) => ({ ...state, ...action.payload })
     const store = createStore(reducer, state, composeEnhancers())
 
@@ -87,5 +94,5 @@ export default (stateName: string) => {
     })
   }
 
-  return { state, watch, onStateChange, untilStateValue }
+  return { state, watch, onStateChange, onStateValue, untilStateValue }
 }
