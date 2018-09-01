@@ -1,4 +1,4 @@
-import { VimMode, VimEvent, HyperspaceCoordinates, BufferType, BufferHide,
+import { VimMode, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide,
   BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
 import { asColor, is, onFnCall, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
@@ -30,7 +30,7 @@ export const NeovimApi = () => {
   const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
   const watchers = {
     actions: Watcher<GenericEvent>(),
-    events: Watcher<VimEvent>(),
+    events: Watcher<BufferEvent>(),
     autocmds: Watcher<Autocmd>(),
   }
 
@@ -71,7 +71,7 @@ export const NeovimApi = () => {
   const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
   const callAtomic = (calls: any[]) => req.core.callAtomic(calls)
   const onAction = (event: string, cb: GenericCallback): void => {
-    actionWatchers.add(event, cb)
+    watchers.actions.on(event, cb)
     registeredEventActions.add(event)
     cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
   }
@@ -230,10 +230,14 @@ export const NeovimApi = () => {
 
   type RegisterAutocmd = { [Key in Autocmds]: (fn: (arg?: any) => void) => void }
   const autocmd: RegisterAutocmd = new Proxy(Object.create(null), {
-    get: (_, event: string) => (fn: any) => autocmdWatchers.on(event, fn)
+    get: (_, event: Autocmds) => (fn: any) => watchers.autocmds.on(event, fn)
   })
 
-  const on: VimEvent = onFnCall((name, [cb]) => events.add(name, cb))
+  type BufferEvents = keyof BufferEvent
+  type OnEvent = { [Key in BufferEvents]: (fn: () => void) => void }
+  const on: OnEvent = new Proxy(Object.create(null), {
+    get: (_, event: BufferEvents) => (fn: any) => watchers.events.on(event, fn)
+  })
 
   const applyPatches = async (patches: Patch[]) => {
     const buffers = await Promise.all((await list.buffers).map(async buffer => ({
@@ -279,15 +283,17 @@ export const NeovimApi = () => {
   const processBufferedActions = async () => {
     const bufferedActions = await g.vn_rpc_buf
     if (!bufferedActions.length) return
-    bufferedActions.forEach(([event, ...args]) => actionWatchers.notify(event, ...args))
+    bufferedActions.forEach(([event, ...args]) => watchers.actions.emit(event, ...args))
     g.vn_rpc_buf = []
   }
 
   // nvim does not currently have TermEnter/TermLeave autocmds - it might in the future
   // TODO: revisit this once we get THE-GRID. do we still have the term cursor bug?
   watchState.mode(mode => {
-    if (mode === VimMode.Terminal) return notifyEvent('termEnter')
-    if (state.bufferType === BufferType.Terminal && mode === VimMode.Normal) notifyEvent('termLeave')
+    if (mode === VimMode.Terminal) return watchers.events.emit('termEnter')
+    if (state.bufferType === BufferType.Terminal && mode === VimMode.Normal) {
+      watchers.events.emit('termLeave')
+    }
   })
 
   const refreshState = async () => {
@@ -314,29 +320,29 @@ export const NeovimApi = () => {
     watchers.events.emit('bufLoad')
   })
 
-  autocmd.CompleteDone(word => events.notify('completion', word))
+  autocmd.CompleteDone(word => watchers.events.emit('completion', word))
 
-  autocmd.BufAdd(() => notifyEvent('bufAdd'))
-  autocmd.BufEnter(() => notifyEvent('bufLoad'))
-  autocmd.BufDelete(() => notifyEvent('bufUnload'))
-  autocmd.BufWritePost(() => notifyEvent('bufWrite'))
+  autocmd.BufAdd(() => watchers.events.emit('bufAdd'))
+  autocmd.BufEnter(() => watchers.events.emit('bufLoad'))
+  autocmd.BufDelete(() => watchers.events.emit('bufUnload'))
+  autocmd.BufWritePost(() => watchers.events.emit('bufWrite'))
 
   // TODO: can we get rid of these?
-  autocmd.InsertEnter(() => notifyEvent('insertEnter'))
-  autocmd.InsertLeave(() => notifyEvent('insertLeave'))
+  autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
+  autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
 
   // TODO: would like to abstract this buffer change stuff away into a cleaner
   // solution especially since we now have buffer change notifications in nvim
-  autocmd.TextChanged(() => notifyEvent('bufChange'))
+  autocmd.TextChanged(() => watchers.events.emit('bufChange'))
   let lastRevision: number
   autocmd.CursorMovedI(async () => {
     const prevRevision = lastRevision
     const currentRevision = await expr(`b:changedtick`)
     lastRevision = currentRevision
 
-    if (prevRevision !== currentRevision) notifyEvent('bufChangeInsert')
+    if (prevRevision !== currentRevision) watchers.events.emit('bufChangeInsert')
     // TODO: do we need that last argument there???
-    events.notify('cursorMoveInsert', prevRevision !== state.revision)
+    watchers.events.emit('cursorMoveInsert', prevRevision !== state.revision)
   })
 
   const HL_CLR = 'nvim_buf_clear_highlight'

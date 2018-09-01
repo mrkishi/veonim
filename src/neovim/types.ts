@@ -61,7 +61,7 @@ export interface HyperspaceCoordinates {
 
 type EventCallback = () => void
 
-export interface VimEvent {
+export interface BufferEvent {
   bufAdd: void
   bufLoad: void
   bufUnload: void
