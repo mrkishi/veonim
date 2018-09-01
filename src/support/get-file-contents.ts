@@ -1,6 +1,6 @@
-import { getCurrent } from '../core/neovim'
+import { current } from '../core/neovim'
 import Worker from '../messaging/worker'
-import current from '../neovim/state'
+import vimState from '../neovim/state'
 
 interface LineContents {
   ix: number,
@@ -8,10 +8,10 @@ interface LineContents {
 }
 
 const worker = Worker('get-file-lines')
-const isCurrentBuffer = (path: string) => path === current.absoluteFilepath
+const isCurrentBuffer = (path: string) => path === vimState.absoluteFilepath
 
 const getFromCurrentBuffer = async (lines: number[]) => {
-  const buffer = await getCurrent.buffer
+  const buffer = current.buffer
   const getLineRequests = lines.map(async ix => ({
     ix,
     line: await buffer.getLine(ix),

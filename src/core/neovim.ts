@@ -219,11 +219,6 @@ export const current = {
   },
 }
 
-export const getCurrent = {
-  // TODO: merge these in 'current' api?
-  get buffer() { return as.buf(req.core.getCurrentBuf()) },
-}
-
 const emptyObject: { [index: string]: any } = Object.create(null)
 export const g = new Proxy(emptyObject, {
   get: async (_t, name: string) => {

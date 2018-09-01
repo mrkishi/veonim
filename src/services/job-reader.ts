@@ -1,5 +1,5 @@
-import { action, systemAction, call, cmd, getCurrent } from '../core/neovim'
 import userPicksAnOption, { MenuOption } from '../components/generic-menu'
+import { action, systemAction, call, cmd, current } from '../core/neovim'
 import { BufferVar } from '../core/vim-functions'
 import { is, debounce } from '../support/utils'
 import { sessions } from '../core/sessions'
@@ -99,7 +99,7 @@ systemAction('job-output', (jobId: number, data: string[]) => {
 })
 
 action('TermAttach', async (providedFormat?: ParserFormat) => {
-  const buffer = await getCurrent.buffer
+  const buffer = current.buffer
   const jobId = await buffer.getVar('terminal_job_id')
   if (!is.number(jobId)) return
 
@@ -118,7 +118,7 @@ action('TermAttach', async (providedFormat?: ParserFormat) => {
 })
 
 action('TermDetach', async () => {
-  const buffer = await getCurrent.buffer
+  const buffer = current.buffer
   const jobId = await buffer.getVar('terminal_job_id')
   if (!is.number(jobId)) return
 

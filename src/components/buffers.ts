@@ -1,5 +1,5 @@
 import FiletypeIcon, { Terminal } from '../components/filetype-icon'
-import { list, action, getCurrent, cmd } from '../core/neovim'
+import { list, action, current, cmd } from '../core/neovim'
 import { BufferType, BufferOption } from '../neovim/types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
@@ -8,7 +8,7 @@ import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import current from '../neovim/state'
+import vimState from '../neovim/state'
 import { h, app } from '../ui/uikit'
 
 interface BufferInfo {
@@ -22,7 +22,7 @@ interface BufferInfo {
 
 const getVimBuffers = async () => {
   const buffers = await list.buffers
-  const currentBufferId = (await getCurrent.buffer).id
+  const currentBufferId = current.buffer.id
 
   return await Promise.all(buffers.map(async b => ({
     name: await b.name,
@@ -111,4 +111,4 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 ])
 
 const ui = app({ name: 'buffers', state, actions, view })
-action('buffers', async () => ui.show(await getBuffers(current.cwd)))
+action('buffers', async () => ui.show(await getBuffers(vimState.cwd)))

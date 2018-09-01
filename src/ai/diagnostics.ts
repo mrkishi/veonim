@@ -3,9 +3,9 @@ import { LocationItem, findNext, findPrevious } from '../support/relative-finder
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { ProblemHighlight, Highlight, HighlightGroupId } from '../neovim/types'
 import { ui as problemInfoUI } from '../components/problem-info'
-import { on, action, getCurrent, jumpTo } from '../core/neovim'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
+import { on, action, current as vimCurrent, jumpTo } from '../core/neovim'
 import * as codeActionUI from '../components/code-actions'
 import { supports } from '../langserv/server-features'
 import * as problemsUI from '../components/problems'
@@ -106,7 +106,7 @@ export const addQF = (items: Map<string, Diagnostic[]>, source: string) => {
 const refreshProblemHighlights = async () => {
   const currentBufferPath = path.join(vim.cwd, vim.file)
   const diagnostics = current.diagnostics.get(currentBufferPath) || []
-  const buffer = await getCurrent.buffer
+  const buffer = vimCurrent.buffer
 
   if (!diagnostics.length) return buffer.clearHighlight(HighlightGroupId.Diagnostics, 0, -1)
 

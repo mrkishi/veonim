@@ -1,7 +1,7 @@
 import { highlights, references as getReferences } from '../langserv/adapter'
 import { Highlight, HighlightGroupId } from '../neovim/types'
-import { action, getCurrent, cmd } from '../core/neovim'
 import { supports } from '../langserv/server-features'
+import { action, current, cmd } from '../core/neovim'
 import vim, { watch } from '../neovim/state'
 import { brighten } from '../ui/css'
 
@@ -24,7 +24,7 @@ action('highlight', async () => {
     ? await highlights(vim)
     : await getReferences(vim)
 
-  const buffer = await getCurrent.buffer
+  const buffer = current.buffer
   buffer.clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
 
   if (!references.length) return
@@ -39,5 +39,5 @@ action('highlight', async () => {
 })
 
 action('highlight-clear', async () => {
-  (await getCurrent.buffer).clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
+  current.buffer.clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
 })
