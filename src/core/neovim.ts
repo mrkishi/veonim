@@ -349,7 +349,7 @@ onCreate(() => {
   console.log('Y U DO DIS')
   subscribe('veonim-state', ([ state ]) => console.log('VN STATE:', state))
   subscribe('veonim-position', ([ position ]) => console.log('VN POSITION:', position))
-  subscribe('veonim-autocmd', ([ autocmd ]) => console.log('VN AUTOCMD:', autocmd))
+  subscribe('veonim-autocmd', ([ autocmd, arg ]) => console.log('VN AUTOCMD:', autocmd, arg))
   processBufferedActions()
   const refreshState = stateRefresher('bufLoad')
   refreshState()

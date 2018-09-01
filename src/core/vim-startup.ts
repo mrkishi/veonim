@@ -31,7 +31,14 @@ export const startupCmds = CmdGroup`
   call VeonimRegisterAutocmds()
 `
 
-const stateEvents = ['BufAdd', 'BufEnter', 'BufDelete', 'BufUnload', 'BufWipeout', 'DirChanged', 'FileType', 'ColorScheme']
+// TODO: should we rename some of these "internal" functions so they
+// don't obviously show up in the command completions when looking
+// for 'Veonim' function name. something sort of prefix "_$VN_RegAutocmds"
+//
+// or maybe we move all these functions to a separate .vim script file?
+// i wonder which functions are required for init.vim
+
+const stateEvents = ['BufAdd', 'BufEnter', 'BufDelete', 'BufUnload', 'BufWipeout']
 // autocmds in a separate function because chaining autocmds with "|" is bad
 // it makes the next autocmd a continuation of the previous
 startup.defineFunc.VeonimRegisterAutocmds`
@@ -43,7 +50,9 @@ startup.defineFunc.VeonimRegisterAutocmds`
   au VeonimAU BufDelete * call rpcnotify(0, 'veonim-autocmd', 'BufDelete')
   au VeonimAU BufUnload * call rpcnotify(0, 'veonim-autocmd', 'BufUnload')
   au VeonimAU BufWipeout * call rpcnotify(0, 'veonim-autocmd', 'BufWipeout')
-  au VeonimAU FileType * call rpcnotify(0, 'veonim-autocmd', 'FileType')
+  au VeonimAU FileType * call rpcnotify(0, 'veonim-autocmd', 'FileType', expand('<amatch>'))
+  au VeonimAU ColorScheme * call rpcnotify(0, 'veonim-autocmd', 'ColorScheme', expand('<amatch>'))
+  au VeonimAU DirChanged * call rpcnotify(0, 'veonim-autocmd', 'DirChanged', v:event.cwd)
 `
 
 startup.defineFunc.VeonimComplete`
