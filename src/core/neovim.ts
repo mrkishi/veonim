@@ -147,7 +147,7 @@ const jumpToPositionInFile = async ({ line, path, column, openBufferFirst }: Jum
   // nvim_win_set_cursor params
   // line: 1-index based
   // column: 0-index based
-  ;(await getCurrent.window).setCursor(line + 1, column || 0)
+  current.window.setCursor(line + 1, column || 0)
 }
 
 export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
@@ -217,15 +217,6 @@ export const current = {
       return fn(...args)
     })
   },
-}
-
-export const getCurrentPosition = async () => {
-  const win = await getCurrent.window
-  // nvim_win_get_cursor returns
-  // line: 1-index based
-  // column: 0-index based
-  const [ line, column ] = await win.cursor
-  return { line: line - 1, column }
 }
 
 export const getCurrent = {
