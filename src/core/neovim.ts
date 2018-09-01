@@ -25,9 +25,7 @@ onCreateVim(info => io.postMessage([65, info]))
 onSwitchVim(id => io.postMessage([66, id]))
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 
-
-// instance stuff?
-
+// TODO: what are the inputs here?
 export const NeovimApi = () => {
   const registeredEventActions = new Set<string>()
   const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
@@ -66,19 +64,19 @@ export const NeovimApi = () => {
     api.core.subscribe(event)
   }
 
-  export const cmd = (command: string) => api.core.command(command)
-  export const cmdOut = (command: string) => req.core.commandOutput(command)
-  export const expr = (expression: string) => req.core.eval(expression)
-  export const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
-  export const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
-  export const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
-  export const callAtomic = (calls: any[]) => req.core.callAtomic(calls)
-  export const action = (event: string, cb: GenericCallback): void => {
+  const cmd = (command: string) => api.core.command(command)
+  const cmdOut = (command: string) => req.core.commandOutput(command)
+  const expr = (expression: string) => req.core.eval(expression)
+  const call: Functions = onFnCall((name, args) => req.core.callFunction(name, args))
+  const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
+  const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
+  const callAtomic = (calls: any[]) => req.core.callAtomic(calls)
+  const onAction = (event: string, cb: GenericCallback): void => {
     actionWatchers.add(event, cb)
     registeredEventActions.add(event)
     cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
   }
-  export const getCurrentLine = () => req.core.getCurrentLine()
+  const getCurrentLine = () => req.core.getCurrentLine()
 
   const getNamedBuffers = async () => {
     const buffers = await list.buffers
@@ -105,7 +103,7 @@ export const NeovimApi = () => {
     return true
   }
 
-  export const openBuffer = async (file: string): Promise<boolean> => {
+  const openBuffer = async (file: string): Promise<boolean> => {
     const loaded = await loadBuffer(file)
     if (loaded) return true
 
@@ -113,7 +111,7 @@ export const NeovimApi = () => {
     return loadBuffer(file)
   }
 
-  export const addBuffer = async (name: string): Promise<Buffer> => {
+  const addBuffer = async (name: string): Promise<Buffer> => {
     const id = uuid()
     cmd(`badd ${id}`)
 
@@ -131,7 +129,7 @@ export const NeovimApi = () => {
     return buffer
   }
 
-  export const createShadowBuffer = async (name: string) => {
+  const createShadowBuffer = async (name: string) => {
     const buffer = await addBuffer(name)
 
     buffer.setOption(BufferOption.Type, BufferType.NonFile)
@@ -153,7 +151,7 @@ export const NeovimApi = () => {
     current.window.setCursor(line + 1, column || 0)
   }
 
-  export const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
+  const jumpTo = async ({ line, column, path }: HyperspaceCoordinates) => {
     const bufferLoaded = path ? path === currentVim.absoluteFilepath : true
     jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
   }
@@ -161,18 +159,18 @@ export const NeovimApi = () => {
   // the reason this method exists is because opening buffers with an absolute path
   // will have the abs path in names and buffer lists. idk, it just behaves wierdly
   // so it's much easier to open a file realtive to the current project (:cd/:pwd)
-  export const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordinates) => {
+  const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordinates) => {
     const bufferLoaded = path ? path === currentVim.file : true
     jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
   }
 
-  export const openFile = async (fullpath: string) => {
+  const openFile = async (fullpath: string) => {
     return fullpath !== currentVim.absoluteFilepath && openBuffer(fullpath)
   }
 
   // TODO: the new ui protocol sends along all highlight groups right? maybe we don't
   // event need this func anymore
-  export const getColor = async (name: string) => {
+  const getColor = async (name: string) => {
     const { foreground: fg, background: bg } = await req.core.getHlByName(name, true) as Color
     return {
       foreground: asColor(fg || 0),
@@ -180,16 +178,16 @@ export const NeovimApi = () => {
     }
   }
 
-  export const systemAction = (event: string, cb: GenericCallback) => watchers.actions.on(event, cb)
+  const systemAction = (event: string, cb: GenericCallback) => watchers.actions.on(event, cb)
 
   // TODO: combine/collapse this with buffers.list / buffers.add / buffers.open, etc?
-  export const list = {
+  const list = {
     get buffers() { return as.bufl(req.core.listBufs()) },
     get windows() { return as.winl(req.core.listWins()) },
     get tabs() { return as.tabl(req.core.listTabpages()) },
   }
 
-  export const current = {
+  const current = {
     get buffer(): Buffer {
       const bufferPromise = as.buf(req.core.getCurrentBuf())
 
@@ -223,7 +221,7 @@ export const NeovimApi = () => {
   }
 
   const emptyObject: { [index: string]: any } = Object.create(null)
-  export const g = new Proxy(emptyObject, {
+  const g = new Proxy(emptyObject, {
     get: async (_t, name: string) => {
       const val = await req.core.getVar(name as string).catch(e => e)
       return Array.isArray(val) && /Key (.*?)not found/.test(val[1]) ? undefined : val
@@ -236,9 +234,9 @@ export const NeovimApi = () => {
     get: (_, event: string) => (fn: any) => autocmdWatchers.on(event, fn)
   })
 
-  export const on: VimEvent = onFnCall((name, [cb]) => events.add(name, cb))
+  const on: VimEvent = onFnCall((name, [cb]) => events.add(name, cb))
 
-  export const applyPatches = async (patches: Patch[]) => {
+  const applyPatches = async (patches: Patch[]) => {
     const buffers = await Promise.all((await list.buffers).map(async buffer => ({
       buffer,
       path: await buffer.name,
@@ -413,7 +411,11 @@ export const NeovimApi = () => {
     delVar: name => api.tab.delVar(id, name),
   } as Tabpage)
 
-  return { state, watchState, onStateChange, onStateValue, untilStateValue }
+  return { state, watchState, onStateChange, onStateValue, untilStateValue,
+    cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
+    getCurrentLine, openBuffer, addBuffer, createShadowBuffer, jumpTo,
+    jumpToProjectFile, openFile, getColor, systemAction, list, current, g, on,
+    applyPatches }
 }
 
 export const vim = NeovimApi()
