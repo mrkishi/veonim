@@ -1,5 +1,6 @@
 import { dirname, basename, join, extname, resolve, sep, parse, normalize } from 'path'
 import { promisify as P } from 'util'
+import { EventEmitter } from 'events'
 import { exec } from 'child_process'
 import { Transform } from 'stream'
 import { homedir } from 'os'
@@ -239,6 +240,29 @@ export class Watchers extends Map<string, Set<Function>> {
   remove(event: string, handler: Function) {
     this.has(event) && this.get(event)!.delete(handler)
   }
+}
+
+export type GenericEvent = { [index: string]: any }
+
+// TODO: how can we make this use GenericEvent if not type passed in?
+// i tried T extends GenericEv but it does not work. help me obi wan kenobi
+export const Watcher = <T>() => {
+  const ee = new EventEmitter()
+
+  const on = <K extends keyof T>(event: K, handler: (value: T[K]) => void) => {
+    ee.on(event, handler)
+    return () => ee.removeListener(event, handler)
+  }
+
+  const emit = <K extends keyof T>(event: K, value: T[K]) => {
+    ee.emit(event, value)
+  }
+
+  const remove = (event: keyof T) => {
+    ee.removeAllListeners(event)
+  }
+
+  return { on, emit, remove }
 }
 
 export class NewlineSplitter extends Transform {

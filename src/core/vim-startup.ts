@@ -80,7 +80,8 @@ const autocmds = {
   InsertLeave: null,
 }
 
-export type Autocmds = keyof typeof autocmds
+export type Autocmd = typeof autocmds
+export type Autocmds = keyof Autocmd
 
 const autocmdsText = Object.entries(autocmds)
   .map(([ cmd, arg ]) => {

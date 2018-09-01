@@ -1,15 +1,14 @@
 import { VimMode, VimEvent, HyperspaceCoordinates, BufferType, BufferHide,
   BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
-import { asColor, is, onFnCall, prefixWith, uuid } from '../support/utils'
+import { asColor, is, onFnCall, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
+import { Autocmd, Autocmds } from '../core/vim-startup'
 import { Functions } from '../core/vim-functions'
-import { Autocmds } from '../core/vim-startup'
 import CreateVimState from '../neovim/state'
 import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
-import { EventEmitter } from 'events'
 
 const prefix = {
   core: prefixWith(Prefixes.Core),
@@ -30,10 +29,15 @@ export const NeovimApi = () => {
   const registeredEventActions = new Set<string>()
   const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
   const watchers = {
-    events: new EventEmitter(),
-    actions: new EventEmitter(),
-    autocmds: new EventEmitter(),
+    actions: Watcher<GenericEvent>(),
+    events: Watcher<VimEvent>(),
+    autocmds: Watcher<Autocmd>(),
   }
+
+  watchers.actions.emit('one', 1)
+  watchers.actions.emit('one', 1)
+  watchers.events.emit('cursorMoveInsert', true)
+  watchers.events.emit('bufAdd', undefined)
 
   const req = {
     core: onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args)) as Api,
@@ -229,8 +233,8 @@ export const NeovimApi = () => {
     set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
   })
 
-  type Autocmd = { [Key in Autocmds]: (fn: (arg?: any) => void) => void }
-  const autocmd: Autocmd = new Proxy(Object.create(null), {
+  type RegisterAutocmd = { [Key in Autocmds]: (fn: (arg?: any) => void) => void }
+  const autocmd: RegisterAutocmd = new Proxy(Object.create(null), {
     get: (_, event: string) => (fn: any) => autocmdWatchers.on(event, fn)
   })
 
@@ -303,16 +307,17 @@ export const NeovimApi = () => {
     subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
     subscribe('veonim-state', ([ state ]) => Object.assign(vimState, state))
     subscribe('veonim-position', ([ position ]) => Object.assign(vimState, position))
-    subscribe('veonim-autocmd', ([ autocmd, arg ]) => autocmdWatchers.emit(autocmd, arg))
+    subscribe('veonim-autocmd', ([ autocmd, arg ]) => watchers.autocmds.emit(autocmd, arg)
+    // subscribe('veonim-autocmd', ([ autocmd, arg ]) => autocmdWatchers.emit(autocmd, arg))
 
     processBufferedActions()
     refreshState()
-    notifyEvent('bufLoad')
+    watchers.events.emit('bufLoad')
   })
 
   onSwitchVim(() => {
     refreshState()
-    notifyEvent('bufLoad')
+    watchers.events.emit('bufLoad')
   })
 
   autocmd.CompleteDone(word => events.notify('completion', word, currentVim))
