@@ -44,21 +44,41 @@ export const startupCmds = CmdGroup`
 // or maybe we move all these functions to a separate .vim script file?
 // i wonder which functions are required for init.vim
 
-const stateEvents = ['BufAdd', 'BufEnter', 'BufDelete', 'BufUnload', 'BufWipeout']
+const stateEvents = [
+  'BufAdd',
+  'BufEnter',
+  'BufDelete',
+  'BufUnload',
+  'BufWipeout',
+]
+
+const autocmds = {
+  BufAdd: null,
+  BufEnter: null,
+  BufDelete: null,
+  BufUnload: null,
+  BufWipeout: null,
+  FileType: `expand('<amatch>')`,
+  ColorScheme: `expand('<amatch>')`,
+  DirChanged: `v:event.cwd`,
+}
+
+export type Autocmds = keyof typeof autocmds
+
+const autocmdsText = Object.entries(autocmds)
+  .map(([ cmd, arg ]) => {
+    const argtext = arg ? `, ${arg}` : ''
+    return `au VeonimAU ${cmd} * call rpcnotify(0, 'veonim-autocmd', '${cmd}'${argtext})`
+  })
+  .join('\n')
+
 // autocmds in a separate function because chaining autocmds with "|" is bad
 // it makes the next autocmd a continuation of the previous
 startup.defineFunc.VeonimRegisterAutocmds`
   aug VeonimAU | au! | aug END
   au VeonimAU CursorMoved,CursorMovedI * call rpcnotify(0, 'veonim-position', VeonimPosition())
   au VeonimAU ${stateEvents.join(',')} * call rpcnotify(0, 'veonim-state', VeonimState())
-  au VeonimAU BufAdd * call rpcnotify(0, 'veonim-autocmd', 'BufAdd')
-  au VeonimAU BufEnter * call rpcnotify(0, 'veonim-autocmd', 'BufEnter')
-  au VeonimAU BufDelete * call rpcnotify(0, 'veonim-autocmd', 'BufDelete')
-  au VeonimAU BufUnload * call rpcnotify(0, 'veonim-autocmd', 'BufUnload')
-  au VeonimAU BufWipeout * call rpcnotify(0, 'veonim-autocmd', 'BufWipeout')
-  au VeonimAU FileType * call rpcnotify(0, 'veonim-autocmd', 'FileType', expand('<amatch>'))
-  au VeonimAU ColorScheme * call rpcnotify(0, 'veonim-autocmd', 'ColorScheme', expand('<amatch>'))
-  au VeonimAU DirChanged * call rpcnotify(0, 'veonim-autocmd', 'DirChanged', v:event.cwd)
+  ${autocmdsText}
 `
 
 startup.defineFunc.VeonimComplete`
