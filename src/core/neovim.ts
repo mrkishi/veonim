@@ -7,9 +7,9 @@ import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import currentVim, { watch } from '../neovim/state'
 import { Functions } from '../core/vim-functions'
 import { Autocmds } from '../core/vim-startup'
+import CreateVimState from '../neovim/state'
 import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
-import vimState from '../neovim/state'
 import { EventEmitter } from 'events'
 
 const prefix = {
@@ -20,6 +20,7 @@ const prefix = {
 }
 
 const registeredEventActions = new Set<string>()
+const { state, watch, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
 const events = new Watchers()
 const actionWatchers = new Watchers()
 const autocmdWatchers = new EventEmitter()
@@ -27,7 +28,7 @@ const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
 const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 // TODO: maybe this can be a global event system? add more than just autocmds
 // debug-start, mode-change, etc.
-export const notifyEvent = (event: keyof VimEvent) => events.notify(event, currentVim)
+const notifyEvent = (event: keyof VimEvent) => events.notify(event, currentVim)
 
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
