@@ -339,8 +339,6 @@ onCreate(() => {
   cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
   // TODO: why not move these to postStsartupCmds in master-control?
   cmd(`aug Veonim | au! | aug END`)
-  cmd(`highlight ${Highlight.Underline} gui=underline`)
-  cmd(`highlight ${Highlight.Undercurl} gui=undercurl`)
 
   subscribe('veonim', ([ event, args = [] ]) => actionWatchers.notify(event, ...args))
   console.log('Y U DO DIS')

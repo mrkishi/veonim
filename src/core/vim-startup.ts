@@ -1,5 +1,6 @@
 import { CmdGroup, FunctionGroup } from '../support/neovim-utils'
 import { colorscheme } from '../config/default-configs'
+import { Highlight } from '../neovim/types'
 import { resolve } from 'path'
 
 const runtimeDir = resolve(__dirname, '..', 'runtime')
@@ -30,6 +31,8 @@ export const startupCmds = CmdGroup`
   set completefunc=VeonimComplete
   ino <expr> <tab> VeonimCompleteScroll(1)
   ino <expr> <s-tab> VeonimCompleteScroll(0)
+  highlight ${Highlight.Underline} gui=underline
+  highlight ${Highlight.Undercurl} gui=undercurl
   call serverstart()
   call VeonimRegisterAutocmds()
 `
