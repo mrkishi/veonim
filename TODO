@@ -1,36 +1,36 @@
 0.9.0 observations:
 - help files missing
 
-- get rid of vn_project_root
-change-dir/vim-create-dir default dir to :pwd if not specified. should we default
+-- display version number within veonim
+
+--  get rid of vn_project_root
+  - default to last dir of the path or the name of the current session?
+(old idea) change-dir/vim-create-dir default dir to :pwd if not specified. should we default
 to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
 path displayed in "project" statusline section
 
--wtf does this mean???
-document search-fn space
+-- better visuals to indicate quickfix (instead of red cursor)
 
-better visuals to indicate quickfix (instead of red cursor)
-
-add user-guide built-in to veonim. create display window for it (with keybindings)
+-- add user-guide built-in to veonim. create display window for it (with keybindings)
 - requires markdown preview or we generate md -> html on build process
 
-bundle vim-polygot with veonim
+-- bundle vim-polygot with veonim
 
-i want to get import completions for node_modules available in 'node_modules' or package.json
+-- i want to get import completions for node_modules available in 'node_modules' or package.json
 
-if lang ext not installed suggest ext on new file type/bufload 
+-- if lang ext not installed suggest ext on new file type/bufload 
 - how does this work if we do not add it to init.vim?
 
-custom vim input modes:
+-- custom vim input modes (and guis with keybind visuals + icons):
 - window resize
 - move windows
 
-normalize-filetypes:
+-- normalize-filetypes:
 - double check that trigger chars are working correctly
   - autocomplete + signature-help
   - test in start.js - should work identical to current version with autocmd fix
 
-autocomplete:
+-- autocomplete:
 - do not hardcode 'tab' + 's-tab' keys. user config
   - at the same time, i don't want so much setup in init.vim...
   - would be nice if veonim worked "out of the box"
@@ -44,32 +44,21 @@ autocomplete:
 - the problem is that we currently do not render external popupmenu via GUI
   so if someone does not use completefun=VeonimComplete, they will get ugly
 
-vim-search:
-- dispatch callback events to vim when the vim-search window has closed
-- also pass in the type of search that happened: (forward|backward)
-- this can be used with some vimscript to call divination-search
-  after a vim search completes
-- sometimes triggering on cmdsdsdsdsd
-  - ithinkthismeans: ui sometimes shows up when cmdline is showing up
-- vim search hide action throwing error window not found. maybe redux, but
-  does it do the same in dist mode?
 
-key-transform:
+-- key-transform:
 - support different modes
+- support timeouts
 
-look into supporting more 3.6.0 lang serv features:
+-- look into supporting more 3.6.0 lang serv features:
 - for example: workspace/configuration
 - goto type definition
 - goto implementation
 - etc
 
-use user menu to create a git branch switcher. add it docs
-- no we will make it built-in to have rich integration and pretty UI
+-- fancy git-branch switcher
 
-annotate marks in buffer. experiment with drawing on top of render buffer output?
-- can get mark info via :marks?
 
-interactive lsp:rename. we know all the locations (via find references) of a
+-- interactive lsp:rename. we know all the locations (via find references) of a
 symbol, so when we hit rename, we can ciw, and as we update the changes, we
 can propagate updates to the rest of the symbols in the visible buffer. on success
 update entire buffer. use atomic to batch so no flickr. only undo if lsp rename fail
@@ -101,7 +90,7 @@ update entire buffer. use atomic to batch so no flickr. only undo if lsp rename 
   --- CODE ---
 - we should be able to implement this once we have EXTENDED MARKS feature merged
 
-constrain overlay menus to a particular window (current window)
+-- constrain overlay menus to a particular window (current window)
 - i think we should defer this until we get EXT_WINDOWS - otherwise will need
   to reimplement again
 - (if it makes sense to be local - some might be global - like user menus or project switcher)
@@ -115,9 +104,9 @@ constrain overlay menus to a particular window (current window)
   overlay menus will always live inside a specific window, and not be global
 - what if the overlay menu does not fit in the window...?
 
-tweak the colors.important to bee lesss saturated. can we derive from colorscheme?
+-- tweak the colors.important to bee lesss saturated. can we derive from colorscheme?
 
-viewport-search, make sure search only happens in visible viewport!
+-- viewport-search, make sure search only happens in visible viewport!
 - open $vimrc
 - 2 c-d (page-down scroll)
 - move cursor line like 30% down in the window
@@ -125,7 +114,7 @@ viewport-search, make sure search only happens in visible viewport!
 - as it happens, the buffer is scrolled away from the current line range. why?
   - is it because 'job' is not found in the viewport?
 
-divination:
+-- divination:
 - whatever method we use for jumping does not add jumps to jumplist
 - line jump: anchor labels to first char in the line? how to?
   - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
@@ -143,61 +132,58 @@ divination:
     key hold-down??
     - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
 
-buffer-search: spaces to further filter query (just like fuzzy file finder?)
+-- buffer-search: spaces to further filter query (just like fuzzy file finder?)
 - if only one result in list and i hit enter, jump to the first result
   - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
 - i feel like i might want this in a few different places.
   - can create generic fn to use anywhere?
 - collect & show line numbers?
 
-grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
+-- grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
-- HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
+-- HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
   - maybe we just use fillText maxWidth property?
   - otherwise we need to cliprect mask. it's the only way with fixed width
     rendering. OS gets around this because it don't do fixed width
     - or somehow dynamic determine if previous char renderd out o bounds, then redraw clipped?
 
-visual test results. at least somehow to show total number of fail/pass, last run,
+-- visual test results. at least somehow to show total number of fail/pass, last run,
 and jumplist for error files. would be nice to have desc and errors as well. maybe
 json output? maybe a common format( tap? is it machine readable, containsa ll info? )
 
-in the watch-terminal job reader thingy, i wonder if we can detect when a new output
+-- in the watch-terminal job reader thingy, i wonder if we can detect when a new output
 starts by reading for term codes for "clear screen". tsc --watch, mocha --watch,
 jest --watch all seem to clear the screen on new runs. any custom scripts i write
 could be made to also send the clear screen code. if that's the case, then this
 might make it fairly easy to pickup tests/incremental compiler output and know
 where a previous run ends and a new one begins.
 
-terminal change title to current running process
+-- terminal change title to current running process
 
-jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
+-- jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
 
-easymotion jump to highlighted word
-  - i don't remember what i meant when i wrote this... maybe when i have a
-    visual selection, have an easymotion keybinding to jump between them real
-    fast instead of n n n n n n n n n. could be useful i suppose. maybe extend
-    for problems, symbol highlights, references, etc.
+-- when i have a visual selection, have an easymotion keybinding to jump
+  between them real fast instead of n n n n n n n n n. could be useful i
+  suppose. maybe extend for problems, symbol highlights, references, etc.
 
-files not refresh after delete file (the fuzzy file find)
+-- files not refresh after delete file (the fuzzy file find)
 - what about renames?
 
-buffer-search: virtual-list
-create a simple hyperapp virtualized list component that simply renders dom nodes
-given a slice of the list. you want the top of the list, slice(0, 10)
-you want the end, slice(list.length - 10), etc. no mouse support for now.
-keep it simple and easy. make it composable (vs higher order?/wrapping?)
+-- VIRTUAL LISTS PLEASE
+  - how to specify dynamic size of list (to fit in the current window?)
+  - just make it a slice of the total list
+  - can we make a scrollbar to know the ability to scroll
 
-neovim buffer notification. now available in 0.3
+-- neovim buffer notification. now available in 0.3
 
-canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
+-- canvasWindow clearReact math.ceil instead of floor. render artifacts on left and right
 edges. use ── ──── to test
   - should use clip/rect to draw thingies? perf impact?
 
-hide overlays (problem info, hover) on bufleave
+-- hide overlays (problem info, hover) on bufleave
   - happens when switch tabs
 
-grep:
+-- grep:
   - if we start a query that results are found, but then expand the query to
   something that does not return results, we are not clearing the ui
   - i'm not sure that we load all the results (in some cases - try searching
@@ -205,26 +191,17 @@ grep:
   more results from cache once we scroll down... maybe that is not activated
   if the div container height is too high?
 
-empty state icon for empty lists [results] - buffer search, etc.
+-- empty state icon for empty lists [results] - buffer search, etc.
 
-depmgr as separate process (not even worker thread) - because of security and isolation?
-- needs access to configReader on file watch
-- can use proletariat for maximum communism
+-- shutdown+cleanup langservs on project switch/close
 
-shutdown+cleanup langservs on project switch/close
+-- change default background/statusline/windows colors to match brunswick default bg
 
-change default background/statusline/windows colors to match brunswick default bg
+-- NEW HARDER FASTER STRONGER ICON
 
-NEW HARDER FASTER STRONGER ICON
+-- visual-selection high nvim cpu usage... umm... what's going on here
 
-investigate usage of 'requestIdleCallback'
-https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
-
-see if we can collapse/merge/condense state.ts with neovim.ts:current + getCurrent
-
-visual-selection high nvim cpu usage... umm... what's going on here
-
-code-action/quickfix: does it work correctly?
+-- code-action/quickfix: does it work correctly?
 test case:
   - create multiline js obj `const one = { a\n b\n c\n }`
   - do not use anywhere in file
@@ -233,7 +210,7 @@ test case:
   - expected to remove entire object?
     - what does langserv return for workspaceedit?
 
-separate out internal object data from langserv params data?
+-- separate out internal object data from langserv params data?
 - right now in adapter we send both vim state object and params in the same
   parameter, same object. i think it might be cleaner to send them separately,
   so that we do not send internal data to the lang serv. this may have a
@@ -242,7 +219,7 @@ separate out internal object data from langserv params data?
   neovim state to every single langserv request ever. why can't adapter simply
   access the neovim state and pick out the nvim state fields it needs to know?
 
-should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
+-- should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
 esc/cmd it happens that sometimes i press cmd thinking i want to use it as cmd
 (e.g. gonna press cmd+h) but then change my mind and never press the second key
 while holding caps-lock (cmd).  in this case, the event will fire as esc, but
@@ -250,52 +227,22 @@ probably did not intend since it was such a long hold.  anyways this can be
 opt-in behavior
   - should normalize this behavior to also apply to html input key event handlers
 
-simliar to the key timeouts, maybe we can make key triggers after a certain amount
+
+-- simliar to the key timeouts, maybe we can make key triggers after a certain amount
 of key-down holding. e.g. press/release m immediatly and it takes you to a mark.
 press and hold m and a mark menu shows up
 
-ok i guess i misunderstood how keys work... or there is a bug?
+
+-- ok i guess i misunderstood how keys work... or there is a bug?
 when using keys in hyperapp lists, and clearing parts of the list,
 not all removed items are actually removed from the dom. so we end
 up with a mix of new and old items in the DOM. lolwut?
 
-should font-sizer be part of build process?
 
-STOP REQUIRING SO MUCH SHIT ON APP START LOL
-  - lazy load more shit
-  - web worker more shit (ai)
+-- should font-sizer be part of build process?
 
-- SHADOW BUFFERS -
-the problem with shadow buffers is that our current neovim window render strategy
-just picks a random html div and does its thing. we need to be semantic and render
-windwos to specific divs. we need to associate a specific div with a specific vim
-window and maintain that relationship so that shadow buffers are tied to the correct
-html element.
 
-if we assign a div to each window, how will this work with tabpage switch? right now it's
-super clean and performant as the div elements are reused/not modified
-  - what if tab switch to the exact same windows, but just swapped around in layout order
-    - file1 + file2 -> file2 + file1
-
-shadow buffers:
-cursor.ts does not recognize current window as shadow-buffer-type anymore... what changed?
-re-ordering windows fail - try creating new split when a shadow buffer already open
-
-what to do when shadow buffer component goes back to normal mode?? need to display
-some sort of visual feedback. don't move cursor around etc. maybe also disable notifications
-
-// TODO: in addition to close/rename, we also need to detect when a window gets reassigned
-// and unload/reload shadow buffer. window container elements do not follow vim windows
-
-are we still resizing inappropriately?
-try to see what happens with NERDTree when open a layout like this
-left nerd, middle two horizontal splits, right open ;ve
-| | | |
-|-|-|-|
-| | | |
-does it get resized equally?
-
-embed-explorer:
+-- embed-explorer:
 <tab> key is doing something weird. check on it
   - e.preventDefault?
 add action to open file in LAST/ALTERNATE buffer, NOT the current one!
@@ -307,14 +254,7 @@ figure out how to swap between different embed components (get buffer name?)
 can we support multiple embed components, one per each buffer instance? or shared?
 nameplate title changes on window change
 
---
-
-should probably stop auto adjusting windows with (wincmd =)
-  this is immediatly obvious now with non-equal width windows (embed explorer)
-  can we be smarter about this? maybe figure out widths before resize grid?
-  only apply wincmd = in certain conditions?
-
-check on the background of embed explorer, not sure it's the exact same bg color as vim.bg
+-- check on the background of embed explorer, not sure it's the exact same bg color as vim.bg
 - using digital color meter.app it is confirmed that the colors are slightly
   off. i checked the logic for setting background is being set correct. in
   fact, when i took the exact bg color specified in the colorscheme.vim and
@@ -322,47 +262,48 @@ check on the background of embed explorer, not sure it's the exact same bg color
   difference still persisted. i wonder if the color convert for canvas is doing
   something slightly off. or perhaps html divs have some sort of color profile
   applied but canvas do not...
+- test it with hardcoded color values in both html and canvas
 
-rpc errors send to notifications? (try calling some broken execute() vimscript from usermenu)
+-- rpc errors send to notifications? (try calling some broken execute() vimscript from usermenu)
 
-upgrade ripgrep
+-- upgrade ripgrep
 
---ideas--
 
-update user-guide to present an option for lang shortcuts as overlay user menu instead of bindings
+-- update user-guide to present an option for lang shortcuts as overlay user menu instead of bindings
+  - maybe not needed with helm-like interface
 
-mapping for send buffer text to nearby terminal window
+-- mapping for send buffer text (line | selection | word) to nearby terminal window
 
-macro recorder real-time history with edit window easily accessible after recording finished to edit
-- when starting a macro a small floating window shows up. the window updates in realtime
-  to reveal the characters typed. when editing finished, a key shortcut will change focus
-  to the floating window to be able to edit the macro.
-- where record keys from? veonim key events? what if neovim remaps?
+-- configurable mouse cursor hide enable/disable - enabled by default
+- right now the cursor is hardcoded as hidden via css, but perhaps we should
+  make visiblity controlled via option flag. the reason for this is that sometimes
+  we might want to see the cursor (gets lost in input boxes, or color picker, etc.)
 
-configurable mouse cursor hide enable/disable - enabled by default
 
-create overlay menu window with key shortcuts so users can create spacemacs-like
+-- create overlay menu window with key shortcuts so users can create spacemacs-like
 menus. e.g. (floating windows maybe?)
 - press and hold a key to open up menu. next key press while key is being held will trigger action
 - press key to bring up menu. next key selects an action from the menu
 [ a: buffer search    b: grep search    c: viewport-search ]
 [ d: file search                                           ]
 
-add documentation about guifont/size/cursor/colorscheme/roboto/etc
+-- add documentation about guifont/size/cursor/colorscheme/roboto/etc
 
-supercharge the vim command line menu. provide menu completions automatically. fuzzy find results.
+-- supercharge the vim command line menu. provide menu completions automatically. fuzzy find results.
 can we provide a snippet of documentation for the selected menu item? for vim items this can be
 the first line from :h. For Veonim we can load from custom place.
 - using the same system to make a :Veonim only menu - bind to ctrl_shift_p?
+- add code to neovim to automagically send wildmenu options without having to hit wildchar (tab)
+- then can fuzzy find vim menus hell yeaaaa
+- and show small snippet of :help information
 
-create a visual configurator for key remapings + key event viewer. it's hard to figure out otherwise
+-- create a visual configurator for key remapings + key event viewer. it's hard to figure out otherwise
 
-if language extension is not installed, provide a install suggestion like vscode
-on buffer load
+-- if language extension is not installed, provide a install suggestion like vscode
+  on buffer load
 
-yes/no popup dialog with shift_ctrl_y/n styled like messages/notifications to the bottom right
 
-readme screen showcase automation
+-- readme screen showcase automation
   create demo script to start electron at a certain size
   open various features
   use electron/spectron screenshot feature
@@ -371,38 +312,47 @@ readme screen showcase automation
 - showcase/demo fuzzy buffer find in docs
 - showcase/demo quickfix
 
-mouse support + locked insert mode = pairing support for normie pleb filthy casual philistine swine
 
-i want a go to previous buffer in the current window command. PLS
-- i thought vim could do this... but the alt buffer or :b# does not
-  work as expected. maybe need to write a plugin to track bufEnter and
-  add buffer entries to a stack (per window ofc)
+-- mouse support + locked insert mode = pairing support for normie pleb filthy casual philistine swine
 
-should there be a 'deactivated/unfocused' style of cursor? i.e. when jumping between Problems
+-- should there be a 'deactivated/unfocused' style of cursor? i.e. when jumping between Problems
 or references, instead of (right now) only showing cursorline, also show the actual cursor block
 but perhaps faded out, in such a way to indicate that there is no focus in the vim window...?
   - or like Terminal.app (prob other terms too) show a outline around the block cursor
     - only works for block cursor. we need to support everything
 
-make a different cursor for shadow buffers to signify normal mode?
 
-super cool start page with mru projects and shit
+-- make a different cursor for shadow buffers to signify normal mode?
 
-move messages to bottom | top right corners. pimp them out to loook dope & lit AF
+
+-- super cool start page with mru projects and shit
+- better start screen (as shadow buffer) so it looks like you just walked into the sistine chapel and someone handed you a delicious ice cream sandwich with frosted sprinkles on top of the mona lisa
+
+-- image preview (once we get ext windows)
+
+-- move messages to bottom | top right corners. pimp them out to loook dope & lit AF
   - need better support for macro recording
+  - yes/no popup dialog with shift_ctrl_y/n styled like messages/notifications to the bottom right
 
-image preview buffers
 
--- FLOATING WINDOW --
+-- better visual macros UI
 edit already recorded macros in a floating window
 i want the ability to be able to record multiple macros and name them. i want some sort of visual
 selector gui so i can retrieve and rerun macros without having to remember what macro register
 i saved, and what the usage for a particular macro is supposed to be. this can work similar
 to the marks popup idea below
 
+macro recorder real-time history with edit window easily accessible after recording finished to edit
+- when starting a macro a small floating window shows up. the window updates in realtime
+to reveal the characters typed. when editing finished, a key shortcut will change focus
+to the floating window to be able to edit the macro.
+- where record keys from? veonim key events? what if neovim remaps?
+
+
+-- FLOATING WINDOW --
 use floating window for terminal scratch buffer. say i want to type a super fancy and long
 git commit msg, open scratch buffer, do the edits and whatnot, then "save" buffer to terminal
-prompt
+prompt (this is like c-x, c-e, but it is sized only to fit the content of the prompt)
 
 press and hold mark ' keybind to bring up menu of current global marks
 menu lists something like
@@ -414,7 +364,13 @@ pressing one of the keys takes you to that file
 releasing mark keybind closes menu without any navigation
 (think kinda like opie addon, but hold activate)
 
-- mru file jump list
+
+i want a go to previous buffer in the current window command. PLS
+- i thought vim could do this... but the alt buffer or :b# does not
+work as expected. maybe need to write a plugin to track bufEnter and
+add buffer entries to a stack (per window ofc)
+
+-- mru file jump list
 the use case is that i may be jumping thru files either via...
   - goto definition
   - find references
@@ -440,17 +396,23 @@ having to remember exactly which terminal might be available for use? right now
 terminals are difficult to discern as they just have random numbers, but in the
 future if we can name running process in term, thennnnnnnn
 
-multi-monitor support? with shada and edge detection (when c-w l on right most
+
+-- multi-monitor support? with shada and edge detection (when c-w l on right most
 window, go to next monitor)
   - problem is how do we share veonim state between windows.
   - REAL PROBLEM is how to share low-latency functions between windows (render/input/etc)
+  - well we can connect via TCP right... i wonder if we can uiAttach from extra clients
+  - the problem would be how to maintain state between different processes. things like
+    custom input modes...
 
 
-add some sort of error checking/timeout for using lang serv actions, but if the
+-- add some sort of error checking/timeout for using lang serv actions, but if the
 lang is not loaded yet or requests are taking too long? i.e. calling typescript
 find-symbols in a large project (like veonim) after starting up veonim
 - or even if the langserv doesn't exist. show some info?
-
+- in vscode if you run a lang action that goes on for too long, it shows
+  a progress indicator right under the window tabs. the only thing i don't
+  like about it is that you can't cancel/expire lang actions
 
 -----------------------
 
@@ -478,37 +440,14 @@ https://github.com/atom/atom/blob/d9ebd7e125d5f07def1a057a0a8278d4d9d7d23a/scrip
   - goto implementation/type def/etc
     - add more SymbolKind(s) and more CompletionItemKind(s). already enabled in capabilities, just need to enable the usage
 
-    ## potential ideas
-    - self-updating? how to handle corporate firewalls?
-    - full++ veonim build that comes with all langserv extensions, vim-polygot, and other essential vim plugins + barebones vim config
-    - image preview
-    - markdown preview
-    - better start screen (as shadow buffer) so it looks like you just walked into the sistine chapel and someone handed you a delicious ice cream sandwich with frosted sprinkles on top of the mona lisa
-    - browser??????? safety????????????????? (maybe localhost only)
-    - add code to neovim to automagically send wildmenu options without having to hit wildchar (tab)
-      - then can fuzzy find vim menus hell yeaaaa
-    - symbol/tag-tree hierarchical viewer (how does atom-ide do it? or other lang serv clients?)
-      - vscode has started implementing this. i think there are corresponding LSP proposals
-    - custom renderer (like custom ui for quickfix, etc.)
-    - user configurable statusline
-    - delay cmdline show if hide really quick to prevent flash - see #203 (https://github.com/veonim/veonim/issues/230)
-    - helm discoverability menu or c-s-p fuzzy menu (i think i prefer the fuzzy, better for finding seldom used functions)
-    - snippets (with the next extended marks feature coming soonª to neovim)
-
-## grid dynamic resize (prolly not needed with fancy nvim window mgmt)
-
-TODO: what if we could calculate availableColumns BEFORE hand?  it
-should be deterministic based on the current grid size and
-canvas-window paddings (how does this help?)
-
-TODO: what if we apply a grid resize operation BEFORE the split
-window event gets sent and processed. how could we intercept and
-freeze split cmds?  api.getUserKeymap? listen for split key
-events? WinNew autocmd?  if resize before, then there won't be a
-need to wincmd = there will still be some shift, but maybe not
-so much...
-
-TODO: what if resize grid so it will always fit
-n-windows + 1 that is, if there is only 1 window, the
-grid will be resized to accomodate 2.  when 2 happen,
-they will be resized for 3.
+## potential ideas
+- self-updating? how to handle corporate firewalls?
+- full++ veonim build that comes with all langserv extensions, vim-polygot, and other essential vim plugins + barebones vim config
+- markdown preview
+- browser??????? safety????????????????? (maybe localhost only)
+- symbol/tag-tree hierarchical viewer (how does atom-ide do it? or other lang serv clients?)
+  - vscode has started implementing this. i think there are corresponding LSP proposals
+- custom renderer (like custom ui for quickfix, etc.)
+- user configurable statusline
+- delay cmdline show if hide really quick to prevent flash - see #203 (https://github.com/veonim/veonim/issues/230)
+- snippets (with the next extended marks feature coming soonª to neovim)
