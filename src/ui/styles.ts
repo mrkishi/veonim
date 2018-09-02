@@ -46,8 +46,8 @@ const refreshColors = ({ fg = nvim.state.foreground, bg = nvim.state.background 
   setVar('foreground-100', contrast(fg, bg, 100))
 }
 
-watch.background(bg => refreshColors({ bg }))
-watch.foreground(fg => refreshColors({ fg }))
+nvim.watchState.background(bg => refreshColors({ bg }))
+nvim.watchState.foreground(fg => refreshColors({ fg }))
 
 setVar('error', '#ef2f2f')
 setVar('warning', '#ffb100')

@@ -1,4 +1,3 @@
-import { action, jumpTo, current, feedkeys } from '../core/neovim'
 import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
@@ -10,7 +9,7 @@ import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
-import vim from '../neovim/state'
+import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
 
 interface FilterResult {
@@ -33,11 +32,11 @@ const cursor = (() => {
   let position = [0, 0]
 
   const save = async () => {
-    position = await current.window.cursor
+    position = await nvim.current.window.cursor
   }
 
   const restore = async () => {
-    current.window.setCursor(position[0], position[1])
+    nvim.current.window.setCursor(position[0], position[1])
   }
 
   return { save, restore }
@@ -58,7 +57,7 @@ const checkReadjustViewport = () => setTimeout(() => {
   // are about detecting elements scrolling in/out of the viewport
   const { top } = getCursorBoundingClientRect()
   const hidden = top > elPosTop
-  if (hidden) feedkeys('zz')
+  if (hidden) nvim.feedkeys('zz')
 }, 10)
 
 const state = {
@@ -77,7 +76,7 @@ const resetState = { visible: false, query: '', results: [], index: 0 }
 const jumpToResult = (state: S, index: number, { readjustViewport = false } = {}) => {
   const location = state.results[index]
   if (!location) return
-  jumpTo(location.start)
+  nvim.jumpTo(location.start)
   showCursorline()
   if (readjustViewport) checkReadjustViewport()
 }
@@ -102,7 +101,7 @@ const actions = {
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
-    finder.request.fuzzy(vim.cwd, vim.file, query).then(async (res: FilterResult[]) => {
+    finder.request.fuzzy(nvim.state.cwd, nvim.state.file, query).then(async (res: FilterResult[]) => {
       if (!res.length) return a.updateResults([])
 
       const textLines = res.map(m => m.line)
@@ -118,14 +117,14 @@ const actions = {
     return { query }
   },
   updateResults: (results: ColorizedFilterResult[]) => (s: S) => {
-    jumpToResult(s, 0, { readjustViewport: true })
+    nvim.jumpToResult(s, 0, { readjustViewport: true })
     return { results, index: 0 }
   },
   next: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
-    jumpToResult(s, index, { readjustViewport: true })
+    nvim.jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
   prev: () => (s: S) => {

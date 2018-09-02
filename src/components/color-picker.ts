@@ -1,5 +1,4 @@
 import { switchInputMode, watchInputMode, defaultInputMode, InputMode } from '../core/input'
-import { action, call, cmd } from '../core/neovim'
 import * as dispatch from '../messaging/dispatch'
 import { activeWindow } from '../core/windows'
 import ColorPicker from '../ui/color-picker'
@@ -9,7 +8,7 @@ import onLoseFocus from '../ui/lose-focus'
 import { basename, extname } from 'path'
 import { cursor } from '../core/cursor'
 import { h, app } from '../ui/uikit'
-import vim from '../neovim/state'
+import nvim from '../core/neovim'
 
 let liveMode = false
 
@@ -32,15 +31,15 @@ const colorPicker = ColorPicker()
 // specified hlgroup values
 const possiblyUpdateColorScheme = debounce(() => {
   if (!liveMode) return
-  if (!vim.file.endsWith('.vim')) return
+  if (!nvim.state.file.endsWith('.vim')) return
 
-  const colorschemeBeingEdited = basename(vim.file, extname(vim.file))
-  const currentActiveColorscheme = vim.colorscheme
+  const colorschemeBeingEdited = basename(nvim.state.file, extname(nvim.state.file))
+  const currentActiveColorscheme = nvim.state.colorscheme
 
   if (currentActiveColorscheme !== colorschemeBeingEdited) return
 
-  cmd(`write`)
-  cmd(`colorscheme ${currentActiveColorscheme}`)
+  nvim.cmd(`write`)
+  nvim.cmd(`colorscheme ${currentActiveColorscheme}`)
   dispatch.pub('colorscheme.modified')
 }, 300)
 
@@ -94,18 +93,18 @@ const show = (color: string) => {
 colorPicker.onChange(color => {
   // TODO: will also need to send what kind of color is updated, that way
   // we know which text edit to apply (rgba or hsla, etc.)
-  cmd(`exec "normal! ciw${color}"`)
+  nvim.cmd(`exec "normal! ciw${color}"`)
   possiblyUpdateColorScheme()
 })
 
-action('pick-color', async () => {
+nvim.onAction('pick-color', async () => {
   liveMode = false
-  const word = await call.expand('<cword>')
+  const word = await nvim.call.expand('<cword>')
   show(word)
 })
 
-action('modify-colorscheme-live', async () => {
+nvim.onAction('modify-colorscheme-live', async () => {
   liveMode = true
-  const word = await call.expand('<cword>')
+  const word = await nvim.call.expand('<cword>')
   show(word)
 })

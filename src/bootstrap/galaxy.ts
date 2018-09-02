@@ -5,7 +5,7 @@ import configReader from '../config/config-reader'
 import setDefaultSession from '../core/sessions'
 import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
-import { watch } from '../neovim/state'
+import nvim from '../core/neovim'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
@@ -22,7 +22,7 @@ configReader('nvim/init.vim', c => {
   loadingConfig.done('')
 })
 
-watch.background(color => {
+nvim.watchState.background(color => {
   if (document.body.style.background !== color) document.body.style.background = color
 })
 

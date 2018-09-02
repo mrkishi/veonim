@@ -1,7 +1,6 @@
 import { fullBufferUpdate, partialBufferUpdate } from '../langserv/adapter'
-import { current, getCurrentLine } from '../core/neovim'
 import Worker from '../messaging/worker'
-import vimState from '../neovim/state'
+import nvim from '../core/neovim'
 
 export const harvester = Worker('harvester')
 export const finder = Worker('buffer-search')
@@ -12,20 +11,20 @@ export const update = async ({ lineChange = false, bufferOpened = false } = {}) 
   if (pauseUpdate) return
 
   if (lineChange) partialBufferUpdate({
-    ...vimState,
-    bufferLines: [ await getCurrentLine() ]
+    ...nvim.state,
+    bufferLines: [ await nvim.getCurrentLine() ]
   }, bufferOpened)
 
   else {
-    const buffer = await current.buffer.getAllLines()
-    harvester.call.set(vimState.cwd, vimState.file, buffer)
-    finder.call.set(vimState.cwd, vimState.file, buffer)
-    fullBufferUpdate({ ...vimState, bufferLines: buffer }, bufferOpened)
+    const buffer = await nvim.current.buffer.getAllLines()
+    harvester.call.set(nvim.state.cwd, nvim.state.file, buffer)
+    finder.call.set(nvim.state.cwd, nvim.state.file, buffer)
+    fullBufferUpdate({ ...nvim.state, bufferLines: buffer }, bufferOpened)
   }
 }
 
 finder.on.getVisibleLines(async () => {
-  return current.buffer.getLines(vimState.editorTopLine, vimState.editorBottomLine)
+  return nvim.current.buffer.getLines(nvim.state.editorTopLine, nvim.state.editorBottomLine)
 })
 
 export const pause = () => pauseUpdate = true
