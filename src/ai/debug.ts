@@ -76,7 +76,7 @@ const moveDebugLine = async ({ path, line, column }: Position) => {
   // the column changed in the UI, the user does not know if their actions
   // actually worked
   console.warn('NYI: move debugline ++ show COLUMN location', column)
-  await nvim.openFile(path)
+  if (path !== nvim.state.absoluteFilepath) await nvim.buffers.open(path)
 
   const canvasWindow = getWindow(cursor.row, cursor.col)
   if (!canvasWindow) return console.error('there is no current window. lolwut?')

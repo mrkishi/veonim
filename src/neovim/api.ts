@@ -113,11 +113,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
   }
 
-  // TODO: yo why do we have this method when we already have buffers.open and buffers.add
-  const openFile = async (fullpath: string) => {
-    return fullpath !== state.absoluteFilepath && buffers.open(fullpath)
-  }
-
   // TODO: the new ui protocol sends along all highlight groups right? maybe we don't
   // event need this func anymore
   const getColor = async (name: string) => {
@@ -424,6 +419,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
 
   return { state, watchState, onStateChange, onStateValue, untilStateValue,
     cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
-    getCurrentLine, jumpTo, jumpToProjectFile, openFile, getColor,
-    systemAction, current, g, on, applyPatches, buffers, windows, tabs }
+    getCurrentLine, jumpTo, jumpToProjectFile, getColor, systemAction, current,
+    g, on, applyPatches, buffers, windows, tabs }
 }
