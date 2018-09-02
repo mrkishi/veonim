@@ -1,5 +1,5 @@
-import { list, action, current, getCurrent, cmd, BufferOption, BufferType } from '../core/neovim'
 import FiletypeIcon, { Terminal } from '../components/filetype-icon'
+import { BufferType, BufferOption } from '../neovim/types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { simplifyPath } from '../support/utils'
@@ -8,6 +8,7 @@ import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 interface BufferInfo {
   dir: string,
@@ -19,8 +20,8 @@ interface BufferInfo {
 }
 
 const getVimBuffers = async () => {
-  const buffers = await list.buffers
-  const currentBufferId = (await getCurrent.buffer).id
+  const buffers = await nvim.buffers.list()
+  const currentBufferId = nvim.current.buffer.id
 
   return await Promise.all(buffers.map(async b => ({
     name: await b.name,
@@ -64,7 +65,7 @@ const actions = {
   select: () => (s: S) => {
     if (!s.buffers.length) return resetState
     const { name } = s.buffers[s.index]
-    if (name) cmd(`b ${name}`)
+    if (name) nvim.cmd(`b ${name}`)
     return resetState
   },
 
@@ -109,4 +110,4 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 ])
 
 const ui = app({ name: 'buffers', state, actions, view })
-action('buffers', async () => ui.show(await getBuffers(current.cwd)))
+nvim.onAction('buffers', async () => ui.show(await getBuffers(nvim.state.cwd)))

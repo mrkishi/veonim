@@ -2,8 +2,8 @@ import userSelectOption from '../components/generic-menu'
 import { notify, NotifyKind } from '../ui/notifications'
 import userPrompt from '../components/generic-prompt'
 import * as storage from '../support/local-storage'
-import { action } from '../core/neovim'
 import { makel } from '../ui/vanilla'
+import nvim from '../core/neovim'
 import finder from '@medv/finder'
 
 if (process.env.VEONIM_DEV) {
@@ -55,7 +55,7 @@ let captureEvents = false
 let lastRecordedAt = Date.now()
 let recordingStartTime = Date.now()
 
-action('record-start', () => {
+nvim.onAction('record-start', () => {
   banner.HULK_SMASH('RECORDING EVENTS', '#7f0202')
 
   recordedEvents = []
@@ -64,7 +64,7 @@ action('record-start', () => {
   captureEvents = true
 })
 
-action('record-stop', async () => {
+nvim.onAction('record-stop', async () => {
   banner.heyBigGuySunsGettingRealLow()
 
   captureEvents = false
@@ -83,7 +83,7 @@ action('record-stop', async () => {
   notify(`saved "${recordingName}" to local storage`, NotifyKind.Success)
 })
 
-action('record-replay', async () => {
+nvim.onAction('record-replay', async () => {
   const recordingName = await userSelectOption<string>({
     description: 'select recording to replay',
     options: getAllRecordings(),
@@ -96,7 +96,7 @@ action('record-replay', async () => {
   recordPlayer(events, key)
 })
 
-action('record-remove', async () => {
+nvim.onAction('record-remove', async () => {
   const recording = await userSelectOption<string>({
     description: 'select recording to REMOVE',
     options: getAllRecordings(),
@@ -114,7 +114,7 @@ action('record-remove', async () => {
   notify(`removed "${key}" recording`, NotifyKind.Success)
 })
 
-action('record-remove-all', async () => {
+nvim.onAction('record-remove-all', async () => {
   const confirmation = await userPrompt('type "yes" to remove all recordings')
   if (confirmation !== 'yes') return notify('did NOT remove all recordings', NotifyKind.Error)
 
@@ -127,7 +127,7 @@ action('record-remove-all', async () => {
   notify('removed all recordings', NotifyKind.Success)
 })
 
-action('record-set-startup', async () => {
+nvim.onAction('record-set-startup', async () => {
   const recordingName = await userSelectOption<string>({
     description: 'select recording for startup',
     options: getAllRecordings(),

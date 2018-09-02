@@ -295,9 +295,9 @@ let g:destinations = {
 
 fun! OpenBrowser(url) range
   "reference: https://stackoverflow.com/questions/8708154/open-current-file-in-web-browser-in-vim
-  if g:vn_platform == 'darwin' | let cmd = 'open' | endif
-  if g:vn_platform == 'linux' | let cmd = 'xdg-open' | endif
-  if g:vn_platform == 'win32' | let cmd = 'google-chrome' | endif
+  if has('mac') | let cmd = 'open' | endif
+  if has('unix') | let cmd = 'xdg-open' | endif
+  if has('win32') | let cmd = 'google-chrome' | endif
   call jobstart(cmd . " '" . a:url . "'")
 endfun
 

@@ -22,12 +22,33 @@ export interface QuickFixList {
   valid?: boolean,
 }
 
+interface State {
+  filetype: string
+  cwd: string
+  file: string
+  colorscheme: string
+  revision: number
+  bufferType: string
+  line: number
+  column: number
+  editorTopLine: number
+  editorBottomLine: number
+}
+
+interface Position {
+  line: number
+  column: number
+  editorTopLine: number
+  editorBottomLine: number
+}
+
 type WindowPosition = [ string, number, number, number ]
 
 export interface Functions {
+  VeonimState(): Promise<State>,
+  VeonimPosition(): Promise<Position>,
   VeonimCallEvent(event: string): void,
   VeonimCallback(id: number, result: any): void,
-  Commands(): Promise<string[]>,
   Buffers(): Promise<VimBuffer[]>,
   OpenPaths(): Promise<string[]>,
   getcwd(): Promise<string>,

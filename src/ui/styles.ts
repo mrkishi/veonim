@@ -1,5 +1,5 @@
 import { setVar, paddingVH, paddingV, contrast, darken, brighten, cvar, hexToRGB } from '../ui/css'
-import $, { watch } from '../core/state'
+import nvim from '../core/neovim'
 
 // this will return a var like '244, 120, 042'
 // then we can use this var in rgba color styles
@@ -10,7 +10,7 @@ const rgb = (hexColor: string) => {
 }
 
 // TODO: investigate if css filters would be better suited for this
-const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
+const refreshColors = ({ fg = nvim.state.foreground, bg = nvim.state.background }) => {
   setVar('background-b10', brighten(bg, 10))
   setVar('background-b5', brighten(bg, 5))
   setVar('background', bg)
@@ -46,8 +46,8 @@ const refreshColors = ({ fg = $.foreground, bg = $.background }) => {
   setVar('foreground-100', contrast(fg, bg, 100))
 }
 
-watch.background(bg => refreshColors({ bg }))
-watch.foreground(fg => refreshColors({ fg }))
+nvim.watchState.background(bg => refreshColors({ bg }))
+nvim.watchState.foreground(fg => refreshColors({ fg }))
 
 setVar('error', '#ef2f2f')
 setVar('warning', '#ffb100')

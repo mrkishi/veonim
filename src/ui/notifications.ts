@@ -150,4 +150,10 @@ export const notify = (message: string, kind = NotifyKind.Info) => {
 
   ui.notify(msg)
   addMessage(msg)
+
+  if (process.env.VEONIM_DEV) {
+    if (kind === NotifyKind.Error) console.error('@VIM@', msg.message)
+    if (kind === NotifyKind.Warning) console.error('@VIM@', msg.message)
+    else console.log('@VIM@', msg.message)
+  }
 }

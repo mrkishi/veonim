@@ -1,13 +1,13 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import FiletypeIcon from '../components/filetype-icon'
-import { action, current, cmd } from '../core/neovim'
 import { basename, dirname, join } from 'path'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
+import nvim from '../core/neovim'
 
 interface FileDir {
   dir: string,
@@ -54,7 +54,7 @@ const actions = {
     if (!s.files.length) return resetState
     const { dir, file } = s.files[s.ix]
     const path = join(dir, file)
-    if (file) cmd(`e ${path}`)
+    if (file) nvim.cmd(`e ${path}`)
     return resetState
   },
 
@@ -112,7 +112,7 @@ const ui = app({ name: 'files', state, actions, view })
 worker.on.results((files: string[]) => ui.results(files))
 worker.on.done(ui.loadingDone)
 
-action('files', () => {
-  worker.call.load(current.cwd)
-  ui.show(current.file)
+nvim.onAction('files', () => {
+  worker.call.load(nvim.state.cwd)
+  ui.show(nvim.state.file)
 })

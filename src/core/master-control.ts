@@ -1,14 +1,13 @@
+import { startupFuncs, startupCmds, postStartupCommands } from '../core/vim-startup'
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
-import NeovimUtils, { CmdGroup, FunctionGroup } from '../support/neovim-utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
-import { colorscheme } from '../config/default-configs'
 import CreateTransport from '../messaging/transport'
+import { Api, Prefixes } from '../neovim/protocol'
+import NeovimUtils from '../support/neovim-utils'
 import { Neovim } from '../support/binaries'
 import { ChildProcess } from 'child_process'
-import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
-import { Color } from '../core/neovim'
-import { resolve } from 'path'
+import { Color } from '../neovim/types'
 import { homedir } from 'os'
 
 type RedrawFn = (m: any[]) => void
@@ -49,99 +48,9 @@ let onExitFn: ExitFn = () => {}
 const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
 const { encoder, decoder } = CreateTransport()
-const startup = FunctionGroup()
-const runtimeDir = resolve(__dirname, '..', 'runtime')
-
-const startupCmds = CmdGroup`
-  let $PATH .= ':${runtimeDir}/${process.platform}'
-  let &runtimepath .= ',${runtimeDir}'
-  let g:veonim = 1
-  let g:vn_loaded = 0
-  let g:vn_cmd_completions = ''
-  let g:vn_rpc_buf = []
-  let g:vn_platform = '${process.platform}'
-  let g:vn_events = {}
-  let g:vn_callbacks = {}
-  let g:vn_callback_id = 0
-  let g:vn_jobs_connected = {}
-  colorscheme ${colorscheme}
-  set guicursor=n:block-CursorNormal,i:hor10-CursorInsert,v:block-CursorVisual
-  set background=dark
-  set laststatus=0
-  set shortmess+=Ic
-  set noshowcmd
-  set noshowmode
-  set noruler
-  set nocursorline
-  call serverstart()
-`
-
-// TODO: internalize (private) these functions to plugin file?
-startup.defineFunc.VeonimTermReader`
-  if has_key(g:vn_jobs_connected, a:1)
-    call rpcnotify(0, 'veonim', 'job-output', [a:1, a:2])
-  endif
-`
-
-startup.defineFunc.VeonimTermExit`
-  call remove(g:vn_jobs_connected, a:1)
-`
-
-startup.defineFunc.Veonim`
-  if g:vn_loaded
-    call rpcnotify(0, 'veonim', a:1, a:000[1:])
-  else
-    call add(g:vn_rpc_buf, a:000)
-  endif
-`
-
-startup.defineFunc.VeonimCmdCompletions`
-  return g:vn_cmd_completions
-`
-
-// TODO: figure out how to add multiple fn lambdas but dedup'd! (as a Set)
-// index(g:vn_events[a:1], a:2) < 0 does not work
-startup.defineFunc.VeonimRegisterEvent`
-  let g:vn_events[a:1] = a:2
-`
-
-startup.defineFunc.VeonimCallEvent`
-  if has_key(g:vn_events, a:1)
-    let Func = g:vn_events[a:1]
-    call Func()
-  endif
-`
-
-startup.defineFunc.VeonimCallback`
-  if has_key(g:vn_callbacks, a:1)
-    let Funky = g:vn_callbacks[a:1]
-    call Funky(a:2)
-  endif
-`
-
-startup.defineFunc.VeonimRegisterMenuCallback`
-  let g:vn_callbacks[a:1] = a:2
-`
-
-startup.defineFunc.VeonimMenu`
-  let g:vn_callback_id += 1
-  call VeonimRegisterMenuCallback(g:vn_callback_id, a:3)
-  call Veonim('user-menu', g:vn_callback_id, a:1, a:2)
-`
-
-startup.defineFunc.VeonimOverlayMenu`
-  let g:vn_callback_id += 1
-  call VeonimRegisterMenuCallback(g:vn_callback_id, a:3)
-  call Veonim('user-overlay-menu', g:vn_callback_id, a:1, a:2)
-`
-
-startup.defineFunc.VK`
-  call VeonimRegisterEvent('key:' . a:2 . ':' . a:1, a:3)
-  call Veonim('register-shortcut', a:1, a:2)
-`
 
 const spawnVimInstance = () => Neovim.run([
-  '--cmd', `${startupCmds} | ${startup.funcs}`,
+  '--cmd', `${startupFuncs()} | ${startupCmds}`,
   '--cmd', `com! -nargs=* Plug 1`,
   '--cmd', `com! -nargs=* VeonimExt 1`,
   '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
@@ -193,18 +102,30 @@ export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimRe
   switchTo(id)
   const errors = await unblock()
 
+  // usually vimrc parsing errors
   if (errors.length) notifyUI(errors.join('\n'), NotifyKind.Error)
 
-  api.command(`let g:vn_loaded = 1`)
-  api.command(`set laststatus=0`)
-  api.command(`set nocursorline`)
-  api.command(`set shortmess+=Ic`)
-  api.command(`set noshowmode`)
-  api.command(`set noshowcmd`)
-  api.command(`set noruler`)
+  api.command(postStartupCommands)
 
+  // used when we create a new vim session with a predefined cwd
   dir && api.command(`cd ${dir}`)
 
+  // v:servername used to connect other clients to nvim via TCP
+  //
+  // by default we use the nvim process stdout/stdin to do core operations.
+  // things like rendering, key input, etc. these are high priority items and
+  // will live on the main thread.
+  //
+  // now, we will have a lot of async operations like reading buffers,
+  // modifying buffer text contents, setting highlight content, etc. that could
+  // potentially be slow to serialize/deserialize on the main thread (because
+  // msgpack is SLOW as a sloth). so we will move these non-essential operations
+  // to web workers.
+  //
+  // we will also need access to the nvim apis in the extension-host web worker
+  // (or process in the future?). extensions will talk to a vscode-to-nvim api
+  // bridge. there is no good reason why we should bridge the nvim api over
+  // web worker postMessages - just have the web worker talk directly to nvim
   const path = await req.eval('v:servername')
   vimInstances.get(id)!.path = path
   return { id, path }
@@ -218,7 +139,7 @@ export const attachTo = (id: number) => {
   vim.attached = true
 }
 
-const { notify, request, on: onEvent, onData } = SetupRPC(encoder.write)
+const { notify, request, onEvent, onData } = SetupRPC(encoder.write)
 decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix(name), args))

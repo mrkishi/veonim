@@ -6,12 +6,13 @@ import { getTriggerChars } from '../langserv/server-features'
 import * as completionUI from '../components/autocomplete'
 import toVSCodeLanguage from '../langserv/vsc-languages'
 import { harvester, update } from '../ai/update-server'
-import { g, on, current as vim } from '../core/neovim'
 import * as ai from '../langserv/server-features'
 import { sub } from '../messaging/dispatch'
+import { VimMode } from '../neovim/types'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
 import { join, dirname } from 'path'
+import nvim from '../core/neovim'
 
 interface Cache {
   semanticCompletions: Map<string, CompletionOption[]>,
@@ -77,7 +78,7 @@ const findPathPerhaps = (lineContent: string, column: number) => {
 }
 
 const reallyResolvePath = (path: string) => {
-  const filepath = join(vim.cwd, vim.file)
+  const filepath = join(nvim.state.cwd, nvim.state.file)
   const fileDir = dirname(filepath)
   return resolvePath(path, fileDir)
 }
@@ -105,10 +106,10 @@ const getSemanticCompletions = (line: number, column: number) => EarlyPromise(as
   if (cache.semanticCompletions.has(`${line}:${column}`)) 
     return done(cache.semanticCompletions.get(`${line}:${column}`)!)
 
-  const supported = ai.supports.completion(vim.cwd, vim.filetype)
+  const supported = ai.supports.completion(nvim.state.cwd, nvim.state.filetype)
   if (!supported) return done([])
 
-  const items = await completions(vim)
+  const items = await completions(nvim.state)
   if (!items) return done([])
 
   const options = items.map(m => ({
@@ -129,7 +130,7 @@ const smartCaseQuery = (query: string): string => hasUpperCase(query[0])
 
 const showCompletionsRaw = (column: number, query: string, startIndex: number, lineContent: string) =>
   (completions: CompletionOption[], completionKind: CompletionKind) => {
-    const transformedCompletions = transformCompletions(toVSCodeLanguage(vim.filetype), {
+    const transformedCompletions = transformCompletions(toVSCodeLanguage(nvim.state.filetype), {
       completionKind,
       lineContent,
       column,
@@ -137,8 +138,8 @@ const showCompletionsRaw = (column: number, query: string, startIndex: number, l
     })
 
     const options = orderCompletions(transformedCompletions, query)
-    g.veonim_completions = options.map(m => m.insertText)
-    g.veonim_complete_pos = startIndex
+    nvim.g.veonim_completions = options.map(m => m.insertText)
+    nvim.g.veonim_complete_pos = startIndex
     const { row, col } = calcMenuPosition(startIndex, column)
     completionUI.show({ row, col, options })
   }
@@ -147,7 +148,7 @@ const showCompletionsRaw = (column: number, query: string, startIndex: number, l
 const getCompletions = async (lineContent: string, line: number, column: number) => {
   const { startIndex, query, leftChar } = findQuery(lineContent, column)
   const showCompletions = showCompletionsRaw(column, query, startIndex, lineContent)
-  const triggerChars = getTriggerChars.completion(vim.cwd, vim.filetype)
+  const triggerChars = getTriggerChars.completion(nvim.state.cwd, nvim.state.filetype)
   let semanticCompletions: CompletionOption[] = []
 
   cache.activeCompletion = `${line}:${startIndex}`
@@ -190,7 +191,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const queryCased = smartCaseQuery(query)
     const pendingKeywords = harvester
       .request
-      .query(vim.cwd, vim.file, queryCased, MAX_SEARCH_RESULTS)
+      .query(nvim.state.cwd, nvim.state.file, queryCased, MAX_SEARCH_RESULTS)
       .then((res: string[]) => res.map(text => ({ text, insertText: text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
@@ -201,7 +202,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const completionOptions = resSemantic.length ? resSemantic : await pendingKeywords
 
     if (!completionOptions.length) {
-      g.veonim_completions = []
+      nvim.g.veonim_completions = []
       completionUI.hide()
       return
     }
@@ -209,26 +210,26 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     showCompletions(completionOptions, resSemantic.length ? CompletionKind.Semantic : CompletionKind.Keyword)
   } else {
     completionUI.hide()
-    g.veonim_completions = []
+    nvim.g.veonim_completions = []
   }
 }
 
 export const getCompletionDetail = (item: CompletionItem): Promise<CompletionItem> => {
-  const supported = ai.supports.completionResolve(vim.cwd, vim.filetype)
-  return supported ?  completionDetail(vim, item) : Promise.resolve({} as CompletionItem)
+  const supported = ai.supports.completionResolve(nvim.state.cwd, nvim.state.filetype)
+  return supported ?  completionDetail(nvim.state, item) : Promise.resolve({} as CompletionItem)
 }
 
-on.insertLeave(async () => {
+nvim.onStateValue.mode(VimMode.Normal, () => {
   cache.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
   update()
 })
 
-on.completion((word, { cwd, file }) => {
-  harvester.call.add(cwd, file, word)
-  g.veonim_completing = 0
-  g.veonim_completions = []
+nvim.on.completion(word => {
+  harvester.call.add(nvim.state.cwd, nvim.state.file, word)
+  nvim.g.veonim_completing = 0
+  nvim.g.veonim_completions = []
 })
 
 sub('pmenu.select', ix => completionUI.select(ix))

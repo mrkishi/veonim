@@ -1,10 +1,10 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
-import { action, call } from '../core/neovim'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 const state = {
   id: 0,
@@ -24,7 +24,7 @@ const actions = {
   select: () => (s: S) => {
     if (!s.items.length) return resetState
     const item = s.items[s.index]
-    if (item) call.VeonimCallback(s.id, item)
+    if (item) nvim.call.VeonimCallback(s.id, item)
     return resetState
   },
 
@@ -65,4 +65,4 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
 const ui = app({ name: 'user-menu', state, actions, view })
 
-action('user-menu', (id: number, desc: string, items = []) => items.length && ui.show({ id, items, desc }))
+nvim.onAction('user-menu', (id: number, desc: string, items = []) => items.length && ui.show({ id, items, desc }))

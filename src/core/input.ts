@@ -1,9 +1,9 @@
 import { $, Watchers, is, fromJSON } from '../support/utils'
-import { action, call, current } from '../core/neovim'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
-import $$, { VimMode } from '../core/state'
+import { VimMode } from '../neovim/types'
 import { remote } from 'electron'
+import nvim from '../core/neovim'
 import { Script } from 'vm'
 
 export enum InputMode {
@@ -139,7 +139,7 @@ const sendToVim = (inputKeys: string) => {
   // vim keybind. s-space was causing issues in terminal mode, sending weird
   // term esc char.
   if (inputKeys === '<S-Space>') return input('<space>')
-  if (shortcuts.has(`${current.mode}:${inputKeys}`)) return shortcuts.get(`${current.mode}:${inputKeys}`)!()
+  if (shortcuts.has(`${nvim.state.mode}:${inputKeys}`)) return shortcuts.get(`${nvim.state.mode}:${inputKeys}`)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else {
     // a fix for terminal. only happens on cmd-tab. see below for more info
@@ -220,11 +220,11 @@ window.addEventListener('keyup', e => {
 })
 
 // TODO: deprecate remapModifier and use transform instead?
-action('remap-modifier', (from, to) => remapModifier(from, to))
+nvim.onAction('remap-modifier', (from, to) => remapModifier(from, to))
 
-action('register-shortcut', (key, mode) => registerShortcut(key, mode, () => call.VeonimCallEvent(`key:${mode}:${key}`)))
+nvim.onAction('register-shortcut', (key, mode) => registerShortcut(key, mode, () => nvim.call.VeonimCallEvent(`key:${mode}:${key}`)))
 
-action('key-transform', (type, matcher, transformer) => {
+nvim.onAction('key-transform', (type, matcher, transformer) => {
   const fn = Reflect.get(transform, type)
   const transformFn = new Script(transformer).runInThisContext()
   const matchObj = is.string(matcher) ? fromJSON(matcher).or({}) : matcher
@@ -259,7 +259,7 @@ remote.getCurrentWindow().on('blur', async () => {
   resetInputState()
 
   const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
-  const isTerminalMode = $$.mode === VimMode.Terminal
+  const isTerminalMode = nvim.state.mode === VimMode.Terminal
   const fixTermEscape = isTerminalMode && lastEscapeFromNow < 25
   if (fixTermEscape) shouldClearEscapeOnNextAppFocus = true
 })

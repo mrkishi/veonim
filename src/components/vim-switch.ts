@@ -4,8 +4,8 @@ import { list, switchVim } from '../core/sessions'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { action } from '../core/neovim'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 interface Session {
   id: number,
@@ -67,4 +67,4 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 ])
 
 const ui = app({ name: 'vim-switch', state, actions, view })
-action('vim-switch', () => ui.show(list()))
+nvim.onAction('vim-switch', () => ui.show(list()))

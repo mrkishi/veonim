@@ -1,5 +1,4 @@
 import { workspaceSymbols, Symbol } from '../langserv/adapter'
-import { current as vimState, jumpTo } from '../core/neovim'
 import { SymbolKind } from 'vscode-languageserver-protocol'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
@@ -7,6 +6,7 @@ import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 import { join } from 'path'
 
 export enum SymbolMode {
@@ -115,7 +115,7 @@ const actions = {
     if (!s.symbols.length) return (symbolCache.clear(), resetState)
     const { location: { cwd, file, position } } = s.symbols[s.index]
     const path = join(cwd, file)
-    jumpTo({ ...position, path })
+    nvim.jumpTo({ ...position, path })
     return (symbolCache.clear(), resetState)
   },
 
@@ -127,7 +127,7 @@ const actions = {
     } 
 
     if (s.mode === SymbolMode.Workspace) {
-      workspaceSymbols(vimState, value).then(symbols => {
+      workspaceSymbols(nvim.state, value).then(symbols => {
         symbolCache.update(symbols)
         const results = symbols.length ? symbols : symbolCache.find(value)
         a.updateOptions(results)

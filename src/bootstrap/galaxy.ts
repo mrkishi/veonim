@@ -3,9 +3,9 @@ import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
 import setDefaultSession from '../core/sessions'
-import { sub } from '../messaging/dispatch'
 import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
+import nvim from '../core/neovim'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
@@ -22,7 +22,7 @@ configReader('nvim/init.vim', c => {
   loadingConfig.done('')
 })
 
-sub('colors.vim.bg', color => {
+nvim.watchState.background(color => {
   if (document.body.style.background !== color) document.body.style.background = color
 })
 

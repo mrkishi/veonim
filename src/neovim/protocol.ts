@@ -1,6 +1,6 @@
 // AUTO-GENERATED! This file automagically generated with gen-api.js
-// Fri, 01 Dec 2017 12:45:41 GMT
-// Neovim version: 0.2.3
+// Sun, 02 Sep 2018 18:00:34 GMT
+// Neovim version: 0.3.1
 
 export interface ExtContainer {
   extContainer: boolean,
@@ -9,7 +9,7 @@ export interface ExtContainer {
 }
 
 export interface Events {
-  resize(rows: number, columns: number): void,
+  resize(width: number, height: number): void,
   clear(): void,
   eol_clear(): void,
   cursor_goto(row: number, col: number): void,
@@ -30,9 +30,11 @@ export interface Events {
   update_fg(fg: number): void,
   update_bg(bg: number): void,
   update_sp(sp: number): void,
+  default_colors_set(rgb_fg: number, rgb_bg: number, rgb_sp: number, cterm_fg: number, cterm_bg: number): void,
   suspend(): void,
   set_title(title: string): void,
   set_icon(icon: string): void,
+  option_set(name: string, value: any): void,
   popupmenu_show(items: any[], selected: number, row: number, col: number): void,
   popupmenu_hide(): void,
   popupmenu_select(selected: number): void,
@@ -48,7 +50,7 @@ export interface Events {
   wildmenu_select(selected: number): void,
   wildmenu_hide(): void,
   msg_start_kind(kind: string): void,
-  msg_chunk(data: string, attr: object): void,
+  msg_chunk(data: string, hl_id: number): void,
   msg_end(): void,
   msg_showcmd(content: any[]): void,
 }
@@ -64,10 +66,11 @@ export interface Api {
   feedkeys(keys: string, mode: string, escape_csi: boolean): void,
   input(keys: string): Promise<number>,
   replaceTermcodes(str: string, from_part: boolean, do_lt: boolean, special: boolean): Promise<string>,
-  commandOutput(str: string): Promise<string>,
+  commandOutput(command: string): Promise<string>,
   eval(expr: string): Promise<any>,
-  callFunction(fname: string, args: any[]): Promise<any>,
   executeLua(code: string, args: any[]): Promise<any>,
+  callFunction(fn: string, args: any[]): Promise<any>,
+  callDictFunction(dict: any, fn: string, args: any[]): Promise<any>,
   strwidth(text: string): Promise<number>,
   listRuntimePaths(): Promise<string[]>,
   setCurrentDir(dir: string): void,
@@ -98,8 +101,16 @@ export interface Api {
   getColorMap(): Promise<object>,
   getMode(): Promise<object>,
   getKeymap(mode: string): Promise<object[]>,
+  getCommands(opts: object): Promise<object>,
   getApiInfo(): Promise<any[]>,
+  setClientInfo(name: string, version: object, type: string, methods: object, attributes: object): void,
+  getChanInfo(chan: number): Promise<object>,
+  listChans(): Promise<any[]>,
   callAtomic(calls: any[]): Promise<any[]>,
+  parseExpression(expr: string, flags: string, highlight: boolean): Promise<object>,
+  listUis(): Promise<any[]>,
+  getProcChildren(pid: number): Promise<any[]>,
+  getProc(pid: number): Promise<any>,
   buffer: Buffer,
   window: Window,
   tabpage: Tabpage,
@@ -107,11 +118,14 @@ export interface Api {
 
 export interface Buffer {
   lineCount(buffer: Buffer): Promise<number>,
+  attach(buffer: Buffer, send_buffer: boolean, opts: object): Promise<boolean>,
+  detach(buffer: Buffer): Promise<boolean>,
   getLines(buffer: Buffer, start: number, end: number, strict_indexing: boolean): Promise<string[]>,
   setLines(buffer: Buffer, start: number, end: number, strict_indexing: boolean, replacement: string[]): void,
   getVar(buffer: Buffer, name: string): Promise<any>,
   getChangedtick(buffer: Buffer): Promise<number>,
   getKeymap(buffer: Buffer, mode: string): Promise<object[]>,
+  getCommands(buffer: Buffer, opts: object): Promise<object>,
   setVar(buffer: Buffer, name: string, value: any): void,
   delVar(buffer: Buffer, name: string): void,
   getOption(buffer: Buffer, name: string): Promise<any>,

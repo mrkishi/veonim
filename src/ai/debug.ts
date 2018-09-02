@@ -1,4 +1,3 @@
-import { action, current as vim, cmd, openFile, lineNumber } from '../core/neovim'
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
@@ -11,6 +10,7 @@ import { getWindow } from '../core/windows'
 import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
 import { translate } from '../ui/css'
+import nvim from '../core/neovim'
 
 // TODO: move to shared place
 interface DebugConfiguration {
@@ -76,14 +76,12 @@ const moveDebugLine = async ({ path, line, column }: Position) => {
   // the column changed in the UI, the user does not know if their actions
   // actually worked
   console.warn('NYI: move debugline ++ show COLUMN location', column)
-  await openFile(path)
+  if (path !== nvim.state.absoluteFilepath) await nvim.buffers.open(path)
 
   const canvasWindow = getWindow(cursor.row, cursor.col)
   if (!canvasWindow) return console.error('there is no current window. lolwut?')
   const specs = canvasWindow.getSpecs()
-
-  const topLine = await lineNumber.top()
-  const distanceFromTop = line - topLine + 1
+  const distanceFromTop = line - nvim.state.editorTopLine + 1
   const relativeLine = specs.row + distanceFromTop
 
   const { x, y, width } = canvasWindow.whereLine(relativeLine)
@@ -141,14 +139,14 @@ const getStackFramePosition = (stackFrame: DP.StackFrame): Position => {
   // TODO: this might not be the correct property and usage.
   // refer to interface docs on the proper way to get current
   // debug line location
-  return { line, column, path: source.path || vim.absoluteFilepath }
+  return { line, column, path: source.path || nvim.state.absoluteFilepath }
 }
 
 // TODO: TEMP LOL
 const fileToID = new Map()
 setTimeout(() => {
-  cmd(`sign unplace *`)
-  cmd(`sign define vnbp text=» texthl=String`)
+  nvim.cmd(`sign unplace *`)
+  nvim.cmd(`sign define vnbp text=» texthl=String`)
 }, 1e3)
 // TODO: TEMP LOL
 
@@ -162,12 +160,12 @@ const addOrRemoveVimSign = (bp: breakpoints.Breakpoint) => {
   const signId = `${fileId}${line}`
 
   breakpoints.has(bp)
-    ? cmd(`sign unplace ${signId}`)
-    : cmd(`sign place ${signId} name=vnbp line=${line} file=${bp.path}`)
+    ? nvim.cmd(`sign unplace ${signId}`)
+    : nvim.cmd(`sign place ${signId} name=vnbp line=${line} file=${bp.path}`)
 }
 
 const toggleBreakpoint = () => {
-  const { absoluteFilepath: path, line, column } = vim
+  const { absoluteFilepath: path, line, column } = nvim.state
   const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Source }
 
   addOrRemoveVimSign(breakpoint)
@@ -180,7 +178,7 @@ const toggleBreakpoint = () => {
 }
 
 const toggleFunctionBreakpoint = () => {
-  const { absoluteFilepath: path, line, column } = vim
+  const { absoluteFilepath: path, line, column } = nvim.state
   const breakpoint = { path, line, column, kind: breakpoints.BreakpointKind.Function }
 
   addOrRemoveVimSign(breakpoint)
@@ -388,8 +386,8 @@ export const start = async (type: string) => {
   const launchConfig = {
     ...getDebugConfig(type),
     // TODO: this is the main entry point of the program. may or may not be the current file
-    program: vim.absoluteFilepath,
-    cwd: vim.cwd,
+    program: nvim.state.absoluteFilepath,
+    cwd: nvim.state.cwd,
   }
   await dbg.rpc.sendRequest('launch', launchConfig)
   const { threads } = await dbg.rpc.sendRequest<DP.ThreadsResponse>('threads')
@@ -432,12 +430,12 @@ const startWithDebugger = async () => {
     icon: Icon.Cpu,
   })
 
-  const folderUri = `file://${vim.cwd}`
+  const folderUri = `file://${nvim.state.cwd}`
   const { launchConfig, connection } = await extensions.start.debugWithType(folderUri, selectedDebuggerType)
   console.log('starting debugger wtih type:', launchConfig, connection)
 }
 
-action('debug-start', async () => {
+nvim.onAction('debug-start', async () => {
   const launchConfigs = await extensions.list.launchConfigs()
   launchConfigs.length
     ? startWithLaunchConfig(launchConfigs)
@@ -450,8 +448,8 @@ action('debug-start', async () => {
 // action('debug-breakpoints-clear-all', clearAllBreakpoints)
 // TODO: add action to remove all breakpoints in current file
 // action('debug-breakpoints-clear-file', clearFileBreakpoints)
-action('debug-stop', stop)
-action('debug-next', next)
-action('debug-continue', continuee)
-action('debug-breakpoint', toggleBreakpoint)
-action('debug-breakpoint-function', toggleFunctionBreakpoint)
+nvim.onAction('debug-stop', stop)
+nvim.onAction('debug-next', next)
+nvim.onAction('debug-continue', continuee)
+nvim.onAction('debug-breakpoint', toggleBreakpoint)
+nvim.onAction('debug-breakpoint-function', toggleFunctionBreakpoint)

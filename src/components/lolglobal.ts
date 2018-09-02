@@ -1,10 +1,10 @@
-import { cmd, action } from '../core/neovim'
 import { currentWindowElement } from '../core/windows'
 import Input from '../components/text-input'
 import { rgba, paddingV } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 const state = {
   value: '',
@@ -21,7 +21,7 @@ const actions = {
   },
   hide: () => {
     currentWindowElement.remove(containerEl)
-    cmd('undo')
+    nvim.cmd('undo')
     return { value: '', focus: false }
   },
   // TODO: only works if a search pattern exists
@@ -36,7 +36,7 @@ const actions = {
   change: (value: string) => (s: S) => {
     const preprocess = value.length ? 'undo |' : ''
     const mm = s.mode === 'v' ? `'<,'>` : ''
-    cmd(`${preprocess} ${mm}g@@norm n${value}`)
+    nvim.cmd(`${preprocess} ${mm}g@@norm n${value}`)
     return { value }
   },
   select: () => {
@@ -89,5 +89,5 @@ const containerEl = makel({
 
 const ui = app<S, A>({ name: 'll', state, actions, view, element: containerEl })
 
-action('llv', () => ui.show('v'))
-action('lln', () => ui.show('n'))
+nvim.onAction('llv', () => ui.show('v'))
+nvim.onAction('lln', () => ui.show('n'))

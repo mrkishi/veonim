@@ -3,9 +3,9 @@ import { prefixWith, onFnCall, is } from '../support/utils'
 import WorkerClient from '../messaging/worker-client'
 import { QuickFixList } from '../core/vim-functions'
 import CreateTransport from '../messaging/transport'
+import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
 import { Neovim } from '../support/binaries'
-import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 
 const { on } = WorkerClient()
