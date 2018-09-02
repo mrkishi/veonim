@@ -108,6 +108,8 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   // the reason this method exists is because opening buffers with an absolute path
   // will have the abs path in names and buffer lists. idk, it just behaves wierdly
   // so it's much easier to open a file realtive to the current project (:cd/:pwd)
+  // TODO: we should consoldiate these functions and have the function
+  // smartly determine how to open the buffer in a non-offensive way.
   const jumpToProjectFile = async ({ line, column, path }: HyperspaceCoordinates) => {
     const bufferLoaded = path ? path === state.file : true
     jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
