@@ -1,5 +1,6 @@
 import { VimMode, BufferType } from '../neovim/types'
 import { EventEmitter } from 'events'
+import { join } from 'path'
 
 const state = {
   background: '#2d2d2d',
@@ -28,6 +29,9 @@ type UntilStateValue = {
     is: (value: NeovimState[Key]) => Promise<NeovimState[Key]>
   }
 }
+
+const computedStateProperties = new Map<StateKeys, (state: NeovimState) => any>()
+computedStateProperties.set('absoluteFilepath', (s: NeovimState) => join(s.cwd, s.file))
 
 export default (stateName: string) => {
   const watchers = new EventEmitter()
@@ -65,6 +69,10 @@ export default (stateName: string) => {
   }
 
   const stateProxy = new Proxy(state, {
+    get: (_, key: StateKeys) => computedStateProperties.has(key)
+      ? computedStateProperties.get(key)!(state)
+      : Reflect.get(state, key),
+
     set: (_, key: string, val: any) => {
       const currentVal = Reflect.get(state, key)
       if (currentVal === val) return true
