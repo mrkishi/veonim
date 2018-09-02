@@ -113,7 +113,7 @@ const actions = {
     if (!name) return
 
     if (file) {
-      cmd(`e ${pathRelativeToCwd(join(s.path, name), s.cwd)}`)
+      nvim.cmd(`e ${pathRelativeToCwd(join(s.path, name), s.cwd)}`)
       return resetState
     }
 

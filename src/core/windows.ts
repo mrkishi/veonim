@@ -625,7 +625,7 @@ export const render = async () => {
     gridResizeInProgress = true
     canvasContainer.redoResize(availRows - 1, availCols + 1)
     // TODO: remove?
-    cmd(`wincmd =`)
+    nvim.cmd(`wincmd =`)
     return
   }
 
@@ -700,7 +700,7 @@ export const render = async () => {
       merge(windows[ix].element.style, { display: 'none' })
   }
 
-  setImmediate(() => moveCursor(vimState.background))
+  setImmediate(() => moveCursor(nvim.state.background))
   setImmediate(() => dispatch.pub('windows:redraw'))
 }
 

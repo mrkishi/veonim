@@ -1,11 +1,10 @@
 import { supports, getTriggerChars } from '../langserv/server-features'
 import { SignatureInformation } from 'vscode-languageserver-protocol'
 import { signatureHelp } from '../langserv/adapter'
-import { action, on } from '../core/neovim'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
-import vim from '../neovim/state'
+import nvim from '../core/neovim'
 
 const cache = {
   signatures: [] as SignatureInformation[],
@@ -74,8 +73,8 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
 }
 
 const getSignatureHint = async (lineContent: string) => {
-  const triggerChars = getTriggerChars.signatureHint(vim.cwd, vim.filetype)
-  const leftChar = lineContent[Math.max(vim.column - 1, 0)]
+  const triggerChars = getTriggerChars.signatureHint(nvim.state.cwd, nvim.state.filetype)
+  const leftChar = lineContent[Math.max(nvim.state.column - 1, 0)]
 
   // TODO: should probably also hide if we jumped to another line
   // how do we determine the difference between multiline signatures and exit signature?
@@ -84,9 +83,9 @@ const getSignatureHint = async (lineContent: string) => {
   if (closeSignatureHint) return ui.hide()
 
   if (!triggerChars.has(leftChar)) return
-  if (!supports.signatureHint(vim.cwd, vim.filetype)) return
+  if (!supports.signatureHint(nvim.state.cwd, nvim.state.filetype)) return
 
-  const hint = await signatureHelp(vim)
+  const hint = await signatureHelp(nvim.state)
   if (!hint) return
 
   const { activeParameter, activeSignature, signatures = [] } = hint
@@ -96,11 +95,11 @@ const getSignatureHint = async (lineContent: string) => {
   showSignature(signatures, activeSignature, activeParameter)
 }
 
-on.cursorMove(ui.hide)
-on.insertEnter(ui.hide)
-on.insertLeave(ui.hide)
+nvim.on.cursorMove(ui.hide)
+nvim.on.insertEnter(ui.hide)
+nvim.on.insertLeave(ui.hide)
 
-action('signature-help-next', () => {
+nvim.onAction('signature-help-next', () => {
   const next = cache.selectedSignature + 1
   cache.selectedSignature = next >= cache.signatures.length ? 0 : next
   cache.currentParam = 0
@@ -108,7 +107,7 @@ action('signature-help-next', () => {
   showSignature(cache.signatures, cache.selectedSignature)
 })
 
-action('signature-help-prev', () => {
+nvim.onAction('signature-help-prev', () => {
   const next = cache.selectedSignature - 1
   cache.selectedSignature = next < 0 ? cache.signatures.length - 1 : next
   cache.currentParam = 0

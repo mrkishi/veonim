@@ -59,8 +59,6 @@ export interface HyperspaceCoordinates {
   path?: string
 }
 
-type EventCallback = () => void
-
 export interface BufferEvent {
   bufAdd: void
   bufLoad: void
