@@ -120,6 +120,7 @@ export const NeovimApi = () => {
     jumpToPositionInFile({ line, column, path, openBufferFirst: !bufferLoaded })
   }
 
+  // TODO: yo why do we have this method when we already have buffers.open and buffers.add
   const openFile = async (fullpath: string) => {
     return fullpath !== state.absoluteFilepath && buffers.open(fullpath)
   }

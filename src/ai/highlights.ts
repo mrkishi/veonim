@@ -1,30 +1,29 @@
 import { highlights, references as getReferences } from '../langserv/adapter'
 import { Highlight, HighlightGroupId } from '../neovim/types'
 import { supports } from '../langserv/server-features'
-import { action, current, cmd } from '../core/neovim'
-import vim, { watch } from '../neovim/state'
 import { brighten } from '../ui/css'
+import nvim from '../core/neovim'
 
 const setHighlightColor = () => {
-  const highlightColor = brighten(vim.background, 25)
-  cmd(`highlight ${Highlight.DocumentHighlight} guibg=${highlightColor}`)
+  const highlightColor = brighten(nvim.state.background, 25)
+  nvim.cmd(`highlight ${Highlight.DocumentHighlight} guibg=${highlightColor}`)
 }
 
-watch.colorscheme(setHighlightColor)
+nvim.watchState.colorscheme(setHighlightColor)
 setHighlightColor()
 
-action('highlight', async () => {
-  const referencesSupported = supports.references(vim.cwd, vim.filetype)
-  const highlightsSupported = supports.highlights(vim.cwd, vim.filetype)
+nvim.onAction('highlight', async () => {
+  const referencesSupported = supports.references(nvim.state.cwd, nvim.state.filetype)
+  const highlightsSupported = supports.highlights(nvim.state.cwd, nvim.state.filetype)
   const anySupport = highlightsSupported || referencesSupported
 
   if (!anySupport) return
 
   const { references } = highlightsSupported
-    ? await highlights(vim)
-    : await getReferences(vim)
+    ? await highlights(nvim.state)
+    : await getReferences(nvim.state)
 
-  const buffer = current.buffer
+  const buffer = nvim.current.buffer
   buffer.clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
 
   if (!references.length) return
@@ -38,6 +37,6 @@ action('highlight', async () => {
   ))
 })
 
-action('highlight-clear', async () => {
-  current.buffer.clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
+nvim.onAction('highlight-clear', async () => {
+  nvim.current.buffer.clearHighlight(HighlightGroupId.DocumentHighlight, 0, -1)
 })
