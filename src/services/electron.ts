@@ -1,6 +1,7 @@
 import nvim from '../core/neovim'
 import { remote } from 'electron'
 
+nvim.onAction('version', () => nvim.cmd(`echo 'Veonim v${remote.app.getVersion()}'`))
 nvim.onAction('hide', () => remote.app.hide())
 nvim.onAction('quit', () => remote.app.quit())
 nvim.onAction('maximize', () => remote.getCurrentWindow().maximize())
