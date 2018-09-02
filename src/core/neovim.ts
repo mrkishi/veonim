@@ -61,7 +61,7 @@ export const NeovimApi = () => {
   }
 
   const subscribe = (event: string, fn: (data: any) => void) => {
-    if (!hasEvent(event)) onEvent(event, fn)
+    onEvent(event, fn)
     api.core.subscribe(event)
   }
 
