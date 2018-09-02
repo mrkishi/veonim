@@ -31,8 +31,6 @@ export const startupCmds = CmdGroup`
   set completefunc=VeonimComplete
   ino <expr> <tab> VeonimCompleteScroll(1)
   ino <expr> <s-tab> VeonimCompleteScroll(0)
-  highlight ${Highlight.Underline} gui=underline
-  highlight ${Highlight.Undercurl} gui=undercurl
   call serverstart()
   call VeonimRegisterAutocmds()
 `
@@ -230,4 +228,6 @@ export const postStartupCommands = CmdGroup`
   set completefunc=VeonimComplete
   ino <expr> <tab> VeonimCompleteScroll(1)
   ino <expr> <s-tab> VeonimCompleteScroll(0)
+  highlight ${Highlight.Underline} gui=underline
+  highlight ${Highlight.Undercurl} gui=undercurl
 `
