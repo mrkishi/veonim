@@ -1,7 +1,7 @@
 import { VimMode, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide,
   BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../core/api'
-import { asColor, is, onFnCall, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
+import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
@@ -194,33 +194,36 @@ export const NeovimApi = () => {
 
   const current = {
     get buffer(): Buffer {
-      const bufferPromise = as.buf(req.core.getCurrentBuf())
+      const promise = as.buf(req.core.getCurrentBuf())
 
-      return onFnCall<Buffer>(async (fnName: string, args: any[]) => {
-        const buf = await bufferPromise
-        const fn = Reflect.get(buf, fnName)
-        if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Buffer`)
-        return fn(...args)
+      return onProp<Buffer>(prop => {
+        const testValue = Reflect.get(dummy.buf, prop)
+        if (testValue == null) throw new TypeError(`${prop} does not exist on Neovim.Buffer`)
+        return is.function(testValue)
+          ? async (...args: any[]) => Reflect.get(await promise, prop)(...args)
+          : promise.then(m => Reflect.get(m, prop))
       })
     },
     get window(): Window {
-      const windowPromise = as.win(req.core.getCurrentWin())
+      const promise = as.win(req.core.getCurrentWin())
 
-      return onFnCall<Window>(async (fnName: string, args: any[]) => {
-        const win = await windowPromise
-        const fn = Reflect.get(win, fnName)
-        if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Window`)
-        return fn(...args)
+      return onProp<Window>(prop => {
+        const testValue = Reflect.get(dummy.win, prop)
+        if (testValue == null) throw new TypeError(`${prop} does not exist on Neovim.Window`)
+        return is.function(testValue)
+          ? async (...args: any[]) => Reflect.get(await promise, prop)(...args)
+          : promise.then(m => Reflect.get(m, prop))
       })
     },
     get tabpage(): Tabpage {
-      const tabpagePromise = as.tab(req.core.getCurrentTabpage())
+      const promise = as.tab(req.core.getCurrentTabpage())
 
-      return onFnCall<Tabpage>(async (fnName: string, args: any[]) => {
-        const tab = await tabpagePromise
-        const fn = Reflect.get(tab, fnName)
-        if (!fn) throw new TypeError(`${fnName} does not exist on Neovim.Tabpage`)
-        return fn(...args)
+      return onProp<Tabpage>(prop => {
+        const testValue = Reflect.get(dummy.tab, prop)
+        if (testValue == null) throw new TypeError(`${prop} does not exist on Neovim.Tabpage`)
+        return is.function(testValue)
+          ? async (...args: any[]) => Reflect.get(await promise, prop)(...args)
+          : promise.then(m => Reflect.get(m, prop))
       })
     },
   }
@@ -421,6 +424,12 @@ export const NeovimApi = () => {
     setVar: (name, val) => api.tab.setVar(id, name, val),
     delVar: name => api.tab.delVar(id, name),
   } as Tabpage)
+
+  const dummy = {
+    win: Window(0),
+    buf: Buffer(0),
+    tab: Tabpage(0),
+  }
 
   return { state, watchState, onStateChange, onStateValue, untilStateValue,
     cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
