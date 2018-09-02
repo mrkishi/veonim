@@ -77,6 +77,8 @@ export const NeovimApi = () => {
     registeredEventActions.add(event)
     cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
   }
+
+  // TODO: deprecate with buf notifications?
   const getCurrentLine = () => req.core.getCurrentLine()
 
   const getNamedBuffers = async () => {
@@ -237,7 +239,7 @@ export const NeovimApi = () => {
   })
 
   type BufferEvents = keyof BufferEvent
-  type OnEvent = { [Key in BufferEvents]: (fn: () => void) => void }
+  type OnEvent = { [Key in BufferEvents]: (fn: (value: BufferEvent[Key]) => void) => void }
   const on: OnEvent = new Proxy(Object.create(null), {
     get: (_, event: BufferEvents) => (fn: any) => watchers.events.on(event, fn)
   })

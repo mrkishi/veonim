@@ -2,8 +2,8 @@ import { Plugin } from '../components/plugin-container'
 import Input from '../components/text-input'
 import { createVim } from '../core/sessions'
 import * as Icon from 'hyperapp-feather'
-import { action } from '../core/neovim'
 import { app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 const state = {
   value: '',
@@ -37,4 +37,4 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 ])
 
 const ui = app({ name: 'vim-create', state, actions, view })
-action('vim-create', ui.show)
+nvim.onAction('vim-create', ui.show)
