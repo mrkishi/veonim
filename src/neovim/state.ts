@@ -96,7 +96,7 @@ export default (stateName: string) => {
     const reducer = (state: any, action: any) => ({ ...state, ...action.payload })
     const store = createStore(reducer, state, composeEnhancers())
 
-    store.subscribe(() => Object.assign(state, store.getState()))
+    store.subscribe(() => Object.assign(stateProxy, store.getState()))
     onStateChange((_, key, val) => {
       store.dispatch({ type: `SET::${key}`, payload: { [key]: val } })
     })
