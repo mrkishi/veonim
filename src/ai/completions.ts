@@ -8,6 +8,7 @@ import toVSCodeLanguage from '../langserv/vsc-languages'
 import { harvester, update } from '../ai/update-server'
 import * as ai from '../langserv/server-features'
 import { sub } from '../messaging/dispatch'
+import { VimMode } from '../neovim/types'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
 import { join, dirname } from 'path'
@@ -218,7 +219,7 @@ export const getCompletionDetail = (item: CompletionItem): Promise<CompletionIte
   return supported ?  completionDetail(nvim.state, item) : Promise.resolve({} as CompletionItem)
 }
 
-nvim.on.insertLeave(async () => {
+nvim.onStateValue.mode(VimMode.Normal, () => {
   cache.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
