@@ -1,17 +1,21 @@
 'use strict'
 
 const { encode, decode, createEncodeStream, createDecodeStream } = require('msgpack-lite')
-const { default: Neovim } = require('@veonim/neovim')
 const { createWriteStream } = require('fs')
 const { spawn } = require('child_process')
 const { join } = require('path')
 
-const out = createWriteStream(join(__dirname, '../src/core/api.ts'))
+let Neovim
+if (process.platform === 'darwin') Neovim = require('@veonim/neovim-mac').default
+if (process.platform === 'win32') Neovim = require('@veonim/neovim-win').default
+if (process.platform === 'linux') Neovim = require('@veonim/neovim-linux').default
+
+const out = createWriteStream(join(__dirname, '../src/neovim/protocol.ts'))
 const leftPad = (str, amt) => Array(amt).fill(' ').join('') + str
 const write = (m = '', pad = 0) => out.write(leftPad(`${m}\n`, pad))
 const mix = (...a) => Object.assign({}, ...a)
 
-const { stdin, stdout } = Neovim(['--embed'])
+const { stdin, stdout } = Neovim(['--embed', '-u', 'NORC'])
 const stupidEncoder = createEncodeStream()
 const encoder = stupidEncoder.pipe(stdin)
 const toVim = m => encoder.write(encode(m)) // <-- lol wtf?!
