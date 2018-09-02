@@ -139,7 +139,7 @@ export const attachTo = (id: number) => {
   vim.attached = true
 }
 
-const { notify, request, on: onEvent, onData } = SetupRPC(encoder.write)
+const { notify, request, onEvent, onData } = SetupRPC(encoder.write)
 decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix(name), args))

@@ -1,9 +1,10 @@
-import { ID, Watchers } from '../support/utils'
+import { EventEmitter } from 'events'
+import { ID } from '../support/utils'
 
 export default (send: (data: any[]) => void) => {
   const requestHandlers = new Map<string, Function>()
   const pendingRequests = new Map()
-  const watchers = new Watchers()
+  const watchers = new EventEmitter()
   const id = ID()
   let onRedrawFn = (_a: any[]) => {}
 
@@ -30,7 +31,7 @@ export default (send: (data: any[]) => void) => {
 
   const onNotification = (method: string, args: any[]) => method === 'redraw'
     ? onRedrawFn(args)
-    : watchers.notify(method, args)
+    : watchers.emit(method, args)
 
   const request = (name: string, args: any[]) => {
     const reqId = id.next()
@@ -42,11 +43,10 @@ export default (send: (data: any[]) => void) => {
 
   // why === redraw? because there will only be one redraw fn and since it's a hot
   // path for perf, there is no need to iterate through the watchers to call redraw
-  const on = (event: string, fn: (data: any) => void) => event === 'redraw'
+  const onEvent = (event: string, fn: (data: any) => void) => event === 'redraw'
     ? onRedrawFn = fn
-    : watchers.add(event, fn)
+    : watchers.on(event, fn)
 
-  const hasEvent = (event: string) => watchers.has(event)
   const handleRequest = (event: string, fn: Function) => requestHandlers.set(event, fn)
 
   const onData = (type: number, d: any) => {
@@ -55,5 +55,5 @@ export default (send: (data: any[]) => void) => {
     else if (type === 2) onNotification(d[0].toString(), d[1] as any[])
   }
 
-  return { notify, request, on, handleRequest, onData, hasEvent }
+  return { notify, request, onEvent, handleRequest, onData }
 }
