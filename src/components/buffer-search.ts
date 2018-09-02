@@ -105,7 +105,7 @@ const actions = {
       if (!res.length) return a.updateResults([])
 
       const textLines = res.map(m => m.line)
-      const coloredLines: ColorData[][] = await colorizer.request.colorizePerChar(textLines, vim.filetype)
+      const coloredLines: ColorData[][] = await colorizer.request.colorizePerChar(textLines, nvim.state.filetype)
 
       const lines = coloredLines.filter(m => m.length).map((m, ix) => ({
         colorizedLine: m,
@@ -117,14 +117,14 @@ const actions = {
     return { query }
   },
   updateResults: (results: ColorizedFilterResult[]) => (s: S) => {
-    nvim.jumpToResult(s, 0, { readjustViewport: true })
+    jumpToResult(s, 0, { readjustViewport: true })
     return { results, index: 0 }
   },
   next: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
-    nvim.jumpToResult(s, index, { readjustViewport: true })
+    jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
   prev: () => (s: S) => {
@@ -188,5 +188,5 @@ const containerEl = makel({
 
 const ui = app<S, A>({ name: 'buffer-search', state, actions, view, element: containerEl })
 
-action('buffer-search', ui.show)
-action('buffer-search-resume', () => ui.show(previousSearchCache))
+nvim.onAction('buffer-search', ui.show)
+nvim.onAction('buffer-search-resume', () => ui.show(previousSearchCache))
