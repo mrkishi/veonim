@@ -59,7 +59,6 @@ const stateEvents = [
   'TextChangedI'
 ]
 
-// TODO: maybe we don't care about autocmd args??
 const autocmds = {
   BufAdd: null,
   BufEnter: null,
@@ -71,10 +70,6 @@ const autocmds = {
   CursorMoved: null,
   CursorMovedI: null,
   CompleteDone: 'v:completed_item',
-  // TODO: remooooove?
-  FileType: `expand('<amatch>')`,
-  ColorScheme: `expand('<amatch>')`,
-  DirChanged: `v:event.cwd`,
 }
 
 export type Autocmd = typeof autocmds
