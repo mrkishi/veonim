@@ -9,8 +9,7 @@ import { getSyncKind } from '../langserv/server-features'
 import toVSCodeLangauge from '../langserv/vsc-languages'
 import { getLines } from '../support/get-file-contents'
 import { notify, request } from '../langserv/director'
-import vim, { NeovimState } from '../neovim/state'
-import { applyPatches } from '../core/neovim'
+import nvim, { NeovimState } from '../core/neovim'
 import config from '../config/config-service'
 import * as path from 'path'
 
@@ -76,7 +75,7 @@ const ignored: { dirs: string[] } = {
 }
 
 const filterWorkspaceSymbols = (symbols: Symbol[]): Symbol[] => {
-  const excluded = ignored.dirs.map(m => path.join(vim.cwd, m))
+  const excluded = ignored.dirs.map(m => path.join(nvim.state.cwd, m))
   return symbols.filter(s => !excluded.some(dir => s.location.cwd.includes(dir)))
 }
 
@@ -342,4 +341,4 @@ export const executeCommand = async (data: NeovimState, command: Command) => {
   notify('workspace/executeCommand', { ...req, ...command })
 }
 
-export const applyEdit = async (edit: WorkspaceEdit) => applyPatches(workspaceEditToPatch(edit))
+export const applyEdit = async (edit: WorkspaceEdit) => nvim.applyPatches(workspaceEditToPatch(edit))

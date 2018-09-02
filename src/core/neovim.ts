@@ -10,6 +10,8 @@ import CreateVimState from '../neovim/state'
 import { Patch } from '../langserv/patch'
 import setupRPC from '../messaging/rpc'
 
+export { NeovimState } from '../neovim/state'
+
 const prefix = {
   core: prefixWith(Prefixes.Core),
   buffer: prefixWith(Prefixes.Buffer),
@@ -423,4 +425,4 @@ export const NeovimApi = () => {
     systemAction, current, g, on, applyPatches, buffers, windows, tabs }
 }
 
-export const vim = NeovimApi()
+export default NeovimApi()

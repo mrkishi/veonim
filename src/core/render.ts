@@ -8,8 +8,8 @@ import { Events, ExtContainer } from '../core/api'
 import * as dispatch from '../messaging/dispatch'
 import fontAtlas from '../core/font-atlas'
 import { VimMode } from '../neovim/types'
-import currentVim from '../neovim/state'
 import * as grid from '../core/grid'
+import nvim from '../core/neovim'
 
 type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
@@ -236,21 +236,21 @@ r.eol_clear = () => {
 r.update_fg = fg => {
   if (fg < 0) return
   merge(colors, { fg: asColor(fg) })
-  currentVim.foreground = colors.fg
+  nvim.state.foreground = colors.fg
   grid.setForeground(colors.fg)
 }
 
 r.update_bg = bg => {
   if (bg < 0) return
   merge(colors, { bg: asColor(bg) })
-  currentVim.background = colors.bg
+  nvim.state.background = colors.bg
   grid.setBackground(colors.bg)
 }
 
 r.update_sp = sp => {
   if (sp < 0) return
   merge(colors, { sp: asColor(sp) })
-  currentVim.special = colors.sp
+  nvim.state.special = colors.sp
   grid.setSpecial(colors.sp)
 }
 
@@ -273,7 +273,7 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 })
 
 r.mode_change = async mode => {
-  currentVim.mode = normalizeVimMode(mode)
+  nvim.state.mode = normalizeVimMode(mode)
   currentMode = mode
   const info = modes.get(mode)
   if (!info) return
@@ -515,7 +515,7 @@ onRedraw((m: any[]) => {
     dispatch.pub('redraw')
     if (!initialAtlasGenerated) initalFontAtlas.done(true)
     regenerateFontAtlastIfNecessary()
-    getMode().then(m => currentVim.mode = normalizeVimMode(m.mode))
+    getMode().then(m => nvim.state.mode = normalizeVimMode(m.mode))
   })
 })
 

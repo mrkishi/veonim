@@ -1,10 +1,10 @@
 import { $, Watchers, is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
-import { action, call } from '../core/neovim'
 import { VimMode } from '../neovim/types'
 import current from '../neovim/state'
 import { remote } from 'electron'
+import nvim from '../core/neovim'
 import { Script } from 'vm'
 
 export enum InputMode {
@@ -221,11 +221,11 @@ window.addEventListener('keyup', e => {
 })
 
 // TODO: deprecate remapModifier and use transform instead?
-action('remap-modifier', (from, to) => remapModifier(from, to))
+nvim.onAction('remap-modifier', (from, to) => remapModifier(from, to))
 
-action('register-shortcut', (key, mode) => registerShortcut(key, mode, () => call.VeonimCallEvent(`key:${mode}:${key}`)))
+nvim.onAction('register-shortcut', (key, mode) => registerShortcut(key, mode, () => nvim.call.VeonimCallEvent(`key:${mode}:${key}`)))
 
-action('key-transform', (type, matcher, transformer) => {
+nvim.onAction('key-transform', (type, matcher, transformer) => {
   const fn = Reflect.get(transform, type)
   const transformFn = new Script(transformer).runInThisContext()
   const matchObj = is.string(matcher) ? fromJSON(matcher).or({}) : matcher
@@ -260,7 +260,7 @@ remote.getCurrentWindow().on('blur', async () => {
   resetInputState()
 
   const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
-  const isTerminalMode = current.mode === VimMode.Terminal
+  const isTerminalMode = nvim.state.mode === VimMode.Terminal
   const fixTermEscape = isTerminalMode && lastEscapeFromNow < 25
   if (fixTermEscape) shouldClearEscapeOnNextAppFocus = true
 })

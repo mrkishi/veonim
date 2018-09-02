@@ -1,5 +1,4 @@
 import userPicksAnOption, { MenuOption } from '../components/generic-menu'
-import { action, systemAction, call, cmd, current } from '../core/neovim'
 import { BufferVar } from '../core/vim-functions'
 import { is, debounce } from '../support/utils'
 import { sessions } from '../core/sessions'
@@ -7,6 +6,7 @@ import { addQF } from '../ai/diagnostics'
 import * as Icon from 'hyperapp-feather'
 import Worker from '../messaging/worker'
 import { promisify as P } from 'util'
+import nvim from '../core/neovim'
 import { join } from 'path'
 import * as fs from 'fs'
 
@@ -84,7 +84,7 @@ const parse = (lines: string[], format: ParserFormat, id: string) => {
   // like 'build/compile done/success/etc?'
 }
 
-systemAction('job-output', (jobId: number, data: string[]) => {
+nvim.systemAction('job-output', (jobId: number, data: string[]) => {
   const lastLine = data[data.length - 1]
 
   if (lastLine === '') {
@@ -98,8 +98,8 @@ systemAction('job-output', (jobId: number, data: string[]) => {
   else buffer(jobId, data)
 })
 
-action('TermAttach', async (providedFormat?: ParserFormat) => {
-  const buffer = current.buffer
+nvim.onAction('TermAttach', async (providedFormat?: ParserFormat) => {
+  const buffer = nvim.current.buffer
   const jobId = await buffer.getVar('terminal_job_id')
   if (!is.number(jobId)) return
 
@@ -113,22 +113,22 @@ action('TermAttach', async (providedFormat?: ParserFormat) => {
 
   buffer.setVar(BufferVar.TermAttached, true)
   buffer.setVar(BufferVar.TermFormat, getFormatValue(format))
-  cmd(`let g:vn_jobs_connected[${jobId}] = 1`)
+  nvim.cmd(`let g:vn_jobs_connected[${jobId}] = 1`)
   registerTerminal(jobId, format)
 })
 
-action('TermDetach', async () => {
-  const buffer = current.buffer
+nvim.onAction('TermDetach', async () => {
+  const buffer = nvim.current.buffer
   const jobId = await buffer.getVar('terminal_job_id')
   if (!is.number(jobId)) return
 
   buffer.setVar(BufferVar.TermAttached, false)
   buffer.setVar(BufferVar.TermFormat, undefined)
-  cmd(`call remove(g:vn_jobs_connected, ${jobId})`)
+  nvim.cmd(`call remove(g:vn_jobs_connected, ${jobId})`)
   unregisterTerminal(jobId)
 })
 
-action('TermOpen', (cmd = '/bin/bash') => call.termopen(cmd, {
+nvim.onAction('TermOpen', (cmd = '/bin/bash') => nvim.call.termopen(cmd, {
   on_stdout: 'VeonimTermReader',
   on_exit: 'VeonimTermExit',
 }))

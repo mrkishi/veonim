@@ -1,7 +1,6 @@
 import { shell, exists, watchFile } from '../support/utils'
 import * as dispatch from '../messaging/dispatch'
-import current, { watch } from '../neovim/state'
-import { on } from '../core/neovim'
+import nvim from '../core/neovim'
 import * as path from 'path'
 
 const watchers: { branch: any, status: any } = {
@@ -34,9 +33,9 @@ const getBranch = async (cwd: string) => {
   dispatch.pub('git:branch', branch)
 }
 
-on.bufWrite(() => getStatus(current.cwd))
+nvim.on.bufWrite(() => getStatus(nvim.state.cwd))
 
-watch.cwd(async (cwd: string) => {
+nvim.watchState.cwd(async (cwd: string) => {
   getBranch(cwd)
   getStatus(cwd)
 

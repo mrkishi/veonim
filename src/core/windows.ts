@@ -7,11 +7,10 @@ import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { cursor, moveCursor } from '../core/cursor'
 import * as dispatch from '../messaging/dispatch'
 import { BufferVar } from '../core/vim-functions'
-import { current, cmd } from '../core/neovim'
-import vimState from '../neovim/state'
 import { EventEmitter } from 'events'
 import { makel } from '../ui/vanilla'
 import * as grid from '../core/grid'
+import nvim from '../core/neovim'
 
 export interface VimWindow {
   x: number,
@@ -248,8 +247,8 @@ const createWindowEl = () => {
 const windows = [ createWindowEl() ]
 
 const getWindows = async (): Promise<VimWindow[]> => {
-  const activeWindow = await current.window.id
-  const wins = await current.tabpage.windows
+  const activeWindow = await nvim.current.window.id
+  const wins = await nvim.current.tabpage.windows
 
   return await Promise.all(wins.map(async w => {
     const [ [ y, x ], buffer ] = await Promise.all([
@@ -265,7 +264,7 @@ const getWindows = async (): Promise<VimWindow[]> => {
       height: await w.height,
       width: await w.width,
       filetype: await buffer.getOption(BufferOption.Filetype),
-      name: (simplifyPath(await buffer.name, vimState.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
+      name: (simplifyPath(await buffer.name, nvim.state.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
       modified: await buffer.getOption(BufferOption.Modified),
       terminal: (await buffer.getOption(BufferOption.Type)) === BufferType.Terminal,
       termAttached: await buffer.getVar(BufferVar.TermAttached).catch(() => false),
@@ -410,7 +409,7 @@ const setupWindow = ({ element, canvas, canvasBox, api }: Window, win: RenderWin
   winPos.push([win.y, win.x, win.height, win.width, canvas, win, canvasBox])
   canvas
     .setSpecs(win.y, win.x, win.height, win.width, 10, 6)
-    .resize(canvasBox, vimState.background)
+    .resize(canvasBox, nvim.state.background)
 
   fillCanvasFromGrid(win.x, win.y, win.height, win.width, canvas)
 
