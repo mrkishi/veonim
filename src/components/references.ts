@@ -1,12 +1,12 @@
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
-import { jumpToProjectFile } from '../core/neovim'
 import { Reference } from '../langserv/adapter'
 import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import * as Icon from 'hyperapp-feather'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, Reference[]]
@@ -50,7 +50,7 @@ const selectResult = (references: Result[], ix: number, subix: number) => {
   if (subix < 0) return
   const [ path, items ] = references[ix]
   const { line, column } = items[subix]
-  jumpToProjectFile({ line, column, path })
+  nvim.jumpToProjectFile({ line, column, path })
   showCursorline()
 }
 

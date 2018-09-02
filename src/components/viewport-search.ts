@@ -1,4 +1,3 @@
-import { cmd, action, expr, feedkeys } from '../core/neovim'
 import { divinationSearch } from '../components/divination'
 import { currentWindowElement } from '../core/windows'
 import { finder } from '../ai/update-server'
@@ -7,6 +6,7 @@ import { rgba, paddingV } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 interface FilterResult {
   line: string,
@@ -26,12 +26,7 @@ const state = { value: '', focus: false }
 type S = typeof state
 
 const searchInBuffer = async (results = [] as FilterResult[]) => {
-  if (!results.length) return cmd('noh')
-
-  const [ start, end ] = await Promise.all([
-    expr(`line('w0')`),
-    expr(`line('w$')`),
-  ])
+  if (!results.length) return nvim.cmd('noh')
 
   const parts = results
     .map(m => m.line.slice(m.start.column, m.end.column + 1))
@@ -40,9 +35,9 @@ const searchInBuffer = async (results = [] as FilterResult[]) => {
     .map(m => m.replace(/[\*\/\^\$\.\~\&]/g, '\\$&'))
 
   const pattern = parts.join('\\|')
-  if (!pattern) return cmd('noh')
+  if (!pattern) return nvim.cmd('noh')
 
-  cmd(`/\\%>${start - 1}l\\%<${end + 1}l${pattern}`)
+  nvim.cmd(`/\\%>${nvim.state.editorTopLine - 1}l\\%<${nvim.state.editorBottomLine + 1}l${pattern}`)
 }
 
 
@@ -66,7 +61,7 @@ const actions = {
   select: () => {
     currentWindowElement.remove(containerEl)
     if (displayTargetJumps) divinationSearch()
-    else feedkeys('n', 'n')
+    else nvim.feedkeys('n', 'n')
     return { value: '', focus: false }
   },
 }
@@ -120,4 +115,4 @@ const containerEl = makel({
 
 const ui = app<S, A>({ name: 'viewport-search', state, actions, view, element: containerEl })
 
-action('viewport-search', () => ui.show())
+nvim.onAction('viewport-search', () => ui.show())

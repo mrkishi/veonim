@@ -1,5 +1,5 @@
-import { action, on } from '../core/neovim'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 const state = {
   visible: false,
@@ -28,5 +28,5 @@ const view = ($: S) => h('div', {
 
 const ui = app<S, typeof actions>({ name: 'nc', state, actions, view })
 
-action('nc', ui.show)
-on.cursorMove(ui.hide)
+nvim.onAction('nc', ui.show)
+nvim.on.cursorMove(ui.hide)

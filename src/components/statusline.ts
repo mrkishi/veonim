@@ -4,12 +4,10 @@ import configReader from '../config/config-service'
 import { darken, brighten, cvar } from '../ui/css'
 import { onSwitchVim } from '../core/sessions'
 import { ExtContainer } from '../core/api'
-import { getColor } from '../core/neovim'
 import * as Icon from 'hyperapp-feather'
-import { watch } from '../neovim/state'
-import current from '../neovim/state'
 import { colors } from '../ui/styles'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 import '../support/git'
 
 interface Tab {
@@ -43,7 +41,7 @@ const state = {
 type S = typeof state
 
 const refreshBaseColor = async () => {
-  const { background } = await getColor('StatusLine')
+  const { background } = await nvim.getColor('StatusLine')
   if (background) ui.setColor(background)
 }
 
@@ -196,7 +194,7 @@ const view = ($: S) => h('div', {
       }, `${$.deletions}`)
     ])
 
-    ,$.runningServers.has(current.cwd + $.filetype) && h('div', {
+    ,$.runningServers.has(nvim.state.cwd + $.filetype) && h('div', {
       style: itemStyle,
     }, [
       ,h('div', [
@@ -329,11 +327,11 @@ const view = ($: S) => h('div', {
 const ui = app<S, typeof actions>({ name: 'statusline', state, actions, view, element: container })
 
 sub('colorscheme.modified', refreshBaseColor)
-watch.colorscheme(refreshBaseColor)
-watch.filetype(ui.setFiletype)
-watch.line(ui.setLine)
-watch.column(ui.setColumn)
-watch.cwd((cwd: string) => {
+nvim.watchState.colorscheme(refreshBaseColor)
+nvim.watchState.filetype(ui.setFiletype)
+nvim.watchState.line(ui.setLine)
+nvim.watchState.column(ui.setColumn)
+nvim.watchState.cwd((cwd: string) => {
   const defaultRoot = configReader('project.root', (root: string) => {
     ui.setCwd({ cwd: simplifyPath(cwd, absolutePath(root)) })
   })

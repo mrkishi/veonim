@@ -3,7 +3,6 @@ import { RowHeader, RowDesc } from '../components/row-container'
 import { PluginBottom } from '../components/plugin-container'
 import * as canvasContainer from '../core/canvas-container'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
-import { jumpToProjectFile } from '../core/neovim'
 import { badgeStyle, colors } from '../ui/styles'
 import { simplifyPath } from '../support/utils'
 import { showCursorline } from '../core/cursor'
@@ -11,8 +10,8 @@ import Input from '../components/text-input'
 import { Problem } from '../ai/diagnostics'
 import * as Icon from 'hyperapp-feather'
 import { filter } from 'fuzzaldrin-plus'
-import current from '../neovim/state'
 import { clipboard } from 'electron'
+import nvim from '../core/neovim'
 import { join } from 'path'
 
 let elref: HTMLElement
@@ -45,7 +44,7 @@ const selectResult = (results: Problem[], ix: number, subix: number) => {
   const { range: { start: { line, character } } } = items[subix]
 
   const path = join(dir, file)
-  jumpToProjectFile({ path, line, column: character })
+  nvim.jumpToProjectFile({ path, line, column: character })
   showCursorline()
 }
 
@@ -182,7 +181,7 @@ const view = ($: S, a: A) => PluginBottom($.vis, {
           marginRight: '10px',
           fontSize: `${canvasContainer.font.size} - 2px`,
         }
-      }, simplifyPath(dir, current.cwd)),
+      }, simplifyPath(dir, nvim.state.cwd)),
 
       ,h('div', {
         style: badgeStyle,
