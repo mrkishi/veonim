@@ -332,6 +332,7 @@ export const NeovimApi = () => {
   })
 
   autocmd.CompleteDone(word => watchers.events.emit('completion', word))
+  autocmd.CursorMoved(() => watchers.events.emit('cursorMove'))
 
   autocmd.BufAdd(() => watchers.events.emit('bufAdd'))
   autocmd.BufEnter(() => watchers.events.emit('bufLoad'))
