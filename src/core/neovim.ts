@@ -192,6 +192,8 @@ export const NeovimApi = () => {
     list: () => as.tabl(req.core.listTabpages()),
   }
 
+  const isFunc = (m: any) => is.function(m) || is.asyncfunction(m)
+
   const current = {
     get buffer(): Buffer {
       const promise = as.buf(req.core.getCurrentBuf())
@@ -199,7 +201,7 @@ export const NeovimApi = () => {
       return onProp<Buffer>(prop => {
         const testValue = Reflect.get(dummy.buf, prop)
         if (testValue == null) throw new TypeError(`${prop} does not exist on Neovim.Buffer`)
-        return is.function(testValue)
+        return isFunc(testValue)
           ? async (...args: any[]) => Reflect.get(await promise, prop)(...args)
           : promise.then(m => Reflect.get(m, prop))
       })
@@ -210,7 +212,7 @@ export const NeovimApi = () => {
       return onProp<Window>(prop => {
         const testValue = Reflect.get(dummy.win, prop)
         if (testValue == null) throw new TypeError(`${prop} does not exist on Neovim.Window`)
-        return is.function(testValue)
+        return isFunc(testValue)
           ? async (...args: any[]) => Reflect.get(await promise, prop)(...args)
           : promise.then(m => Reflect.get(m, prop))
       })
@@ -221,7 +223,7 @@ export const NeovimApi = () => {
       return onProp<Tabpage>(prop => {
         const testValue = Reflect.get(dummy.tab, prop)
         if (testValue == null) throw new TypeError(`${prop} does not exist on Neovim.Tabpage`)
-        return is.function(testValue)
+        return isFunc(testValue)
           ? async (...args: any[]) => Reflect.get(await promise, prop)(...args)
           : promise.then(m => Reflect.get(m, prop))
       })
