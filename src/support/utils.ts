@@ -260,8 +260,8 @@ export const Watcher = <T>() => {
   type Emit3 = <K extends keyof T>(event: K, ...args: any[]) => void
   type Emit = Emit1 & Emit2 & Emit3
 
-  const emit: Emit = (event: string, value?: any) => {
-    ee.emit(event, value)
+  const emit: Emit = (event: string, ...args: any[]) => {
+    ee.emit(event, ...args)
   }
 
   const remove = (event: keyof T) => {
