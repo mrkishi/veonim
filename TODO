@@ -1,32 +1,25 @@
 0.9.0 observations:
-- diagnostics stop showing up / error highlights not appearing after some period
-  - not observed on my main machine, only on secondary... same build version?
-- colorizer on action('hint') not coloring anymore after some period of time
-  - again, no issue on main machine...
-  - main is alpha4
-- actually i notice that problem underlines/highlights stop working after some time on
-  my main machine...
 - help files missing
-- Veonim buffers a little laggy and flickers windows???
 
+- get rid of vn_project_root
 change-dir/vim-create-dir default dir to :pwd if not specified. should we default
 to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
 path displayed in "project" statusline section
 
+-wtf does this mean???
 document search-fn space
 
 better visuals to indicate quickfix (instead of red cursor)
 
 add user-guide built-in to veonim. create display window for it (with keybindings)
+- requires markdown preview or we generate md -> html on build process
 
 bundle vim-polygot with veonim
-maybe create a veonim vimscript plugin to speed up load timem
 
-package.json node_modules import completions
-
-debug
+i want to get import completions for node_modules available in 'node_modules' or package.json
 
 if lang ext not installed suggest ext on new file type/bufload 
+- how does this work if we do not add it to init.vim?
 
 custom vim input modes:
 - window resize
@@ -39,8 +32,12 @@ normalize-filetypes:
 
 autocomplete:
 - do not hardcode 'tab' + 's-tab' keys. user config
+  - at the same time, i don't want so much setup in init.vim...
+  - would be nice if veonim worked "out of the box"
+  - maybe could check if tab/s-tab is already bound before binding
+  - and completefunc?
+  - don't override if it exists
 - allow opt-in autocomplete trigger. autocmds? -> enable/disable?
-- need to change neovim.ts -> onCreate()
   cmd(`set completefunc=VeonimComplete`)
   cmd(`ino <expr> <tab> CompleteScroll(1)`)
   cmd(`ino <expr> <s-tab> CompleteScroll(0)`)
@@ -53,6 +50,7 @@ vim-search:
 - this can be used with some vimscript to call divination-search
   after a vim search completes
 - sometimes triggering on cmdsdsdsdsd
+  - ithinkthismeans: ui sometimes shows up when cmdline is showing up
 - vim search hide action throwing error window not found. maybe redux, but
   does it do the same in dist mode?
 
@@ -64,19 +62,9 @@ look into supporting more 3.6.0 lang serv features:
 - goto type definition
 - goto implementation
 - etc
-- support extra symbol/completion icons (commented out in components)
-
-DEV_MDOE -> SPECTRON
-- the following crashes the thing:
-  - opening devtools :: win.webContents.openDevTools()
-  - installing devtools extensions :: load(REDUX_DEVTOOLS.id)
-- opening devtools from spectron crashes as well (different error though)
-   - it does open the devtools, but protocol crashes somewhere
-- i think any kind of messing around with devtools is bad because
-  devtools is probably the domain of SPECTRON (remote debugging and what not)
-  - try to do all devtools commands thru SPECTRON api
 
 use user menu to create a git branch switcher. add it docs
+- no we will make it built-in to have rich integration and pretty UI
 
 annotate marks in buffer. experiment with drawing on top of render buffer output?
 - can get mark info via :marks?
@@ -162,11 +150,6 @@ buffer-search: spaces to further filter query (just like fuzzy file finder?)
   - can create generic fn to use anywhere?
 - collect & show line numbers?
 
-figure out why jest is the worst thing ever since sliced bread
-
-replace request with native https. just need to figure out how to pipe in my fetch code
-build custom colorpicker in hyperapp
-
 grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
 - HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
@@ -174,10 +157,6 @@ grep: i don't like the large/small icon unaligned padding/margins in query/filte
   - otherwise we need to cliprect mask. it's the only way with fixed width
     rendering. OS gets around this because it don't do fixed width
     - or somehow dynamic determine if previous char renderd out o bounds, then redraw clipped?
-
-easymotion show bigger letters + show WHILE searching ooooooo
-- how label triggered?
-- is it distracting that labels covering highlights?
 
 visual test results. at least somehow to show total number of fail/pass, last run,
 and jumplist for error files. would be nice to have desc and errors as well. maybe
@@ -201,6 +180,7 @@ easymotion jump to highlighted word
     for problems, symbol highlights, references, etc.
 
 files not refresh after delete file (the fuzzy file find)
+- what about renames?
 
 buffer-search: virtual-list
 create a simple hyperapp virtualized list component that simply renders dom nodes
@@ -224,10 +204,6 @@ grep:
       for a popular keyword like 'await'). i think there is some logic to load
   more results from cache once we scroll down... maybe that is not activated
   if the div container height is too high?
-
-
-FIX INTERFACES TO NOT HAVE COMMAS LOL IM STUPID
-  - don't do it manually
 
 empty state icon for empty lists [results] - buffer search, etc.
 
