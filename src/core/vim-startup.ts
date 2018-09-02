@@ -109,23 +109,30 @@ startup.defineFunc.VeonimCompleteScroll`
 `
 
 startup.defineFunc.VeonimState`
+  let m = {}
   let currentBuffer = bufname('%')
-  let filetype = getbufvar(currentBuffer, '&filetype')
-  let cwd = getcwd()
-  let file = expand('%f')
-  let colorscheme = g:colors_name
-  let buftype = getbufvar(currentBuffer, '&buftype')
   let p = getcurpos()
-  let topLine = line('w0')
-  let bottomLine = line('w$')
-  return {'filetype':filetype, 'cwd':cwd, 'file':file, 'colorscheme':colorscheme, 'revision':b:changedtick, 'bufferType':buftype, 'line':p[1]-1, 'column':p[2]-1, 'editorTopLine':topLine, 'editorBottomLine':bottomLine}
+  let m.line = p[1]-1
+  let m.column = p[2]-1
+  let m.revision = b:changedtick
+  let m.filetype = getbufvar(currentBuffer, '&filetype')
+  let m.cwd = getcwd()
+  let m.file = expand('%f')
+  let m.colorscheme = g:colors_name
+  let m.bufferType = getbufvar(currentBuffer, '&buftype')
+  let m.editorTopLine = line('w0')
+  let m.editorBottomLine = line('w$')
+  return m
 `
 
 startup.defineFunc.VeonimPosition`
+  let m = {}
   let p = getcurpos()
-  let topLine = line('w0')
-  let bottomLine = line('w$')
-  return {'line':p[1]-1, 'column':p[2]-1, 'editorTopLine':topLine, 'editorBottomLine':bottomLine}
+  let m.line = p[1]-1
+  let m.column = p[2]-1
+  let m.editorTopLine = line('w0')
+  let m.editorBottomLine = line('w$')
+  return m
 `
 
 startup.defineFunc.VeonimTermReader`
