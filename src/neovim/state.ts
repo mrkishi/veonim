@@ -1,7 +1,7 @@
 import { VimMode, BufferType } from '../neovim/types'
 import { EventEmitter } from 'events'
 
-const initialState = {
+const state = {
   background: '#2d2d2d',
   foreground: '#dddddd',
   special: '#ef5188',
@@ -19,7 +19,7 @@ const initialState = {
   editorBottomLine: 0,
 }
 
-export type NeovimState = typeof initialState
+export type NeovimState = typeof state
 type StateKeys = keyof NeovimState
 type WatchState = { [Key in StateKeys]: (fn: (value: NeovimState[Key]) => void) => void }
 type OnStateValue = { [Key in StateKeys]: (value: NeovimState[Key], fn: () => void) => void }
@@ -64,7 +64,7 @@ export default (stateName: string) => {
     stateChangeFns.forEach(fn => fn(nextState, key, value, previousValue))
   }
 
-  const state = new Proxy(initialState, {
+  const stateProxy = new Proxy(state, {
     set: (_, key: string, val: any) => {
       const currentVal = Reflect.get(state, key)
       if (currentVal === val) return true
@@ -94,5 +94,5 @@ export default (stateName: string) => {
     })
   }
 
-  return { state, watchState, onStateChange, onStateValue, untilStateValue }
+  return { state: stateProxy, watchState, onStateChange, onStateValue, untilStateValue }
 }
