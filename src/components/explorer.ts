@@ -3,15 +3,14 @@ import { RowNormal, RowImportant } from '../components/row-container'
 import FiletypeIcon, { Folder } from '../components/filetype-icon'
 import { Plugin } from '../components/plugin-container'
 import { join, sep, basename, dirname } from 'path'
-import { action, cmd, call } from '../core/neovim'
 import config from '../config/config-service'
 import Input from '../components/text-input'
 import { BufferType } from '../neovim/types'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import current from '../neovim/state'
 import { colors } from '../ui/styles'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
 
 interface FileDir {
@@ -128,7 +127,7 @@ const actions = {
   }),
 
   ctrlH: async () => {
-    const { cwd } = current
+    const { cwd } = nvim.state
     const filedirs = await getDirFiles(cwd)
     const paths = sortDirFiles(filedirs)
     ui.show({ paths, cwd, path: cwd })
@@ -233,9 +232,9 @@ const view = ($: S, a: A) => Plugin($.vis, [
 
 const ui = app({ name: 'explorer', state, actions, view })
 
-action('explorer', async () => {
-  const { cwd, bufferType } = current
-  const dirPathOfCurrentFile = await call.expand(`%:p:h`)
+nvim.onAction('explorer', async () => {
+  const { cwd, bufferType } = nvim.state
+  const dirPathOfCurrentFile = await nvim.call.expand(`%:p:h`)
   const isTerminal = bufferType === BufferType.Terminal
   const path = isTerminal ? cwd : dirPathOfCurrentFile
 

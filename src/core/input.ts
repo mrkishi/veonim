@@ -2,7 +2,6 @@ import { $, Watchers, is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import { VimMode } from '../neovim/types'
-import current from '../neovim/state'
 import { remote } from 'electron'
 import nvim from '../core/neovim'
 import { Script } from 'vm'
@@ -140,7 +139,7 @@ const sendToVim = (inputKeys: string) => {
   // vim keybind. s-space was causing issues in terminal mode, sending weird
   // term esc char.
   if (inputKeys === '<S-Space>') return input('<space>')
-  if (shortcuts.has(`${current.mode}:${inputKeys}`)) return shortcuts.get(`${current.mode}:${inputKeys}`)!()
+  if (shortcuts.has(`${nvim.state.mode}:${inputKeys}`)) return shortcuts.get(`${nvim.state.mode}:${inputKeys}`)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else {
     // a fix for terminal. only happens on cmd-tab. see below for more info

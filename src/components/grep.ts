@@ -1,4 +1,3 @@
-import { action, call, feedkeys, expr, jumpToProjectFile } from '../core/neovim'
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
 import { showCursorline } from '../core/cursor'
@@ -6,8 +5,8 @@ import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import Worker from '../messaging/worker'
 import * as Icon from 'hyperapp-feather'
-import current from '../neovim/state'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, SearchResult[]]
@@ -64,7 +63,7 @@ const selectResult = (results: Result[], ix: number, subix: number) => {
   if (subix < 0) return
   const [ path, items ] = results[ix]
   const { line, column } = items[subix]
-  jumpToProjectFile({ path, line, column })
+  nvim.jumpToProjectFile({ path, line, column })
   showCursorline()
 }
 
@@ -262,26 +261,26 @@ worker.on.results((results: Result[]) => ui.results(results))
 worker.on.moreResults((results: Result[]) => ui.moreResults(results))
 worker.on.done(ui.loadingDone)
 
-action('grep-resume', () => ui.show({ reset: false }))
+nvim.onAction('grep-resume', () => ui.show({ reset: false }))
 
-action('grep', async (query: string) => {
-  const { cwd } = current
+nvim.onAction('grep', async (query: string) => {
+  const { cwd } = nvim.state
   ui.show({ cwd })
   query && worker.call.query({ query, cwd })
 })
 
-action('grep-word', async () => {
-  const { cwd } = current
-  const query = await call.expand('<cword>')
+nvim.onAction('grep-word', async () => {
+  const { cwd } = nvim.state
+  const query = await nvim.call.expand('<cword>')
   ui.show({ cwd, value: query })
   worker.call.query({ query, cwd })
 })
 
-action('grep-selection', async () => {
-  await feedkeys('gv"zy')
-  const selection = await expr('@z')
+nvim.onAction('grep-selection', async () => {
+  await nvim.feedkeys('gv"zy')
+  const selection = await nvim.expr('@z')
   const [ query ] = selection.split('\n')
-  const { cwd } = current
+  const { cwd } = nvim.state
   ui.show({ cwd, value: query })
   worker.call.query({ query, cwd })
 })

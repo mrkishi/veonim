@@ -1,13 +1,12 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
 import { currentWindowElement, activeWindow } from '../core/windows'
-import { action, feedkeys, getColor, jumpTo } from '../core/neovim'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
-import vimState from '../neovim/state'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
+import nvim from '../core/neovim'
 
 interface CellPosition {
   row: number
@@ -35,7 +34,7 @@ const jumpLabelsRaw = jumpKeys.split('').map(key => {
 }).reduce((res, grp) => [...res, ...grp])
 const jumpLabels = [...new Set(jumpLabelsRaw)]
 
-action('divination', () => {
+nvim.onAction('divination', () => {
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
@@ -91,7 +90,7 @@ action('divination', () => {
     const targetRow = jumpLabels.indexOf(jumpLabel)
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
-    feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
+    nvim.feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
 
     reset()
   }
@@ -137,7 +136,7 @@ export const divinationSearch = async () => {
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
-  const { foreground, background } = await getColor('Search')
+  const { foreground, background } = await nvim.getColor('Search')
   const specs = win.getSpecs()
 
   const searchPositions = findSearchPositions({
@@ -223,11 +222,11 @@ export const divinationSearch = async () => {
     }
 
     const target = {
-      line: vimState.editorTopLine + distanceFrom.top - 1,
+      line: nvim.state.editorTopLine + distanceFrom.top - 1,
       column: distanceFrom.left,
     }
 
-    jumpTo(target)
+    nvim.jumpTo(target)
     reset()
   }
 
@@ -240,4 +239,4 @@ export const divinationSearch = async () => {
   })
 }
 
-action('divination-search', divinationSearch)
+nvim.onAction('divination-search', divinationSearch)

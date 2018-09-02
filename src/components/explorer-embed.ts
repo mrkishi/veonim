@@ -9,9 +9,8 @@ import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { colors } from '../ui/styles'
-import current from '../neovim/state'
-import { cmd } from '../core/neovim'
 import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
 
 interface FileDir {
@@ -120,7 +119,7 @@ const createComponent = () => {
       if (!name) return
 
       if (file) {
-        cmd(`e ${pathRelativeToCwd(join(s.path, name), s.cwd)}`)
+        nvim.cmd(`e ${pathRelativeToCwd(join(s.path, name), s.cwd)}`)
         return resetState
       }
 
@@ -154,10 +153,10 @@ const createComponent = () => {
     },
 
     focus: () => (s: S) => {
-      const projectDirChanged = s.cwd !== current.cwd
+      const projectDirChanged = s.cwd !== nvim.state.cwd
 
-      if (projectDirChanged) getDirFiles(current.cwd).then(dirs => ui.updateCwdStuff({
-        cwd: current.cwd,
+      if (projectDirChanged) getDirFiles(nvim.state.cwd).then(dirs => ui.updateCwdStuff({
+        cwd: nvim.state.cwd,
         paths: sortDirFiles(dirs),
       }))
 
@@ -286,7 +285,7 @@ registerShadowComponent(() => {
     element,
     name: 'Explorer',
     onShow: async () => {
-      const { cwd } = current
+      const { cwd } = nvim.state
       const paths = sortDirFiles(await getDirFiles(cwd))
       ui.show({ cwd, paths, path: cwd })
     },
