@@ -20,11 +20,11 @@ const prefix = {
 }
 
 const io = new Worker(`${__dirname}/../workers/neovim-client.js`)
+const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 
 onCreateVim(info => io.postMessage([65, info]))
 onSwitchVim(id => io.postMessage([66, id]))
-const { notify, request, on: onEvent, hasEvent, onData } = setupRPC(m => io.postMessage(m))
 
 // TODO: what are the inputs here?
 export const NeovimApi = () => {
