@@ -333,15 +333,10 @@ export const NeovimApi = () => {
 
   autocmd.CompleteDone(word => watchers.events.emit('completion', word))
   autocmd.CursorMoved(() => watchers.events.emit('cursorMove'))
-
   autocmd.BufAdd(() => watchers.events.emit('bufAdd'))
   autocmd.BufEnter(() => watchers.events.emit('bufLoad'))
   autocmd.BufDelete(() => watchers.events.emit('bufUnload'))
   autocmd.BufWritePost(() => watchers.events.emit('bufWrite'))
-
-  // TODO: can we get rid of these?
-  autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
-  autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
 
   // TODO: would like to abstract this buffer change stuff away into a cleaner
   // solution especially since we now have buffer change notifications in nvim

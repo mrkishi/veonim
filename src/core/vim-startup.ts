@@ -75,9 +75,6 @@ const autocmds = {
   FileType: `expand('<amatch>')`,
   ColorScheme: `expand('<amatch>')`,
   DirChanged: `v:event.cwd`,
-  // TODO: no. remove.
-  InsertEnter: null,
-  InsertLeave: null,
 }
 
 export type Autocmd = typeof autocmds

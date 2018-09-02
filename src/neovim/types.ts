@@ -68,8 +68,6 @@ export interface BufferEvent {
   bufWrite: void
   cursorMove: void
   cursorMoveInsert: boolean
-  insertEnter: void
-  insertLeave: void
   completion: string
   termEnter: void
   termLeave: void
