@@ -1,6 +1,6 @@
 import { delay, pascalCase, onProp } from '../support/utils'
 import { Range } from 'vscode-languageserver-protocol'
-import { Api } from '../core/api'
+import { Api } from '../neovim/protocol'
 
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray, ...vars: any[]) => void }
 
