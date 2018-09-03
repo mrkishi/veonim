@@ -1,15 +1,100 @@
 0.9.0 observations:
 - help files missing
 
--- display version number within veonim
+-- add documentation about guifont/size/cursor/colorscheme/roboto/etc
 
---  get rid of vn_project_root
-  - default to last dir of the path or the name of the current session?
-(old idea) change-dir/vim-create-dir default dir to :pwd if not specified. should we default
-to g:vn_project_root if defined? it appears we use g:vn_project root to simplify
-path displayed in "project" statusline section
 
--- better visuals to indicate quickfix (instead of red cursor)
+-- viewport-search, make sure search only happens in visible viewport!
+  - open $vimrc
+- 2 c-d (page-down scroll)
+  - move cursor line like 30% down in the window
+  - search for 'job'
+  - as it happens, the buffer is scrolled away from the current line range. why?
+  - is it because 'job' is not found in the viewport?
+
+
+-- divination:
+  - whatever method we use for jumping does not add jumps to jumplist
+  - line jump: anchor labels to first char in the line? how to?
+  - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
+  return [row, col][] list map
+  - do not create label/jump coordinates for position:
+  - line -> current line
+  - search hl -> position under cursor +/- 1-2
+  - do not apply for viewport-search. only if invoked directly
+  - handle error if type bad label that does not exist. do what?
+  - escape?
+  - drop keys?
+  - create binding for divination-search and set it up to work without previous prompts.
+  - aka, do viewport search to jump to search highlight
+  - then have a binding to trigger the jump labels again. can we do something with
+  key hold-down??
+  - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
+
+
+-- buffer-search: spaces to further filter query (just like fuzzy file finder?)
+  - if only one result in list and i hit enter, jump to the first result
+  - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
+      - i feel like i might want this in a few different places.
+      - can create generic fn to use anywhere?
+      - collect & show line numbers?
+
+
+-- hide overlays (problem info, hover) on bufleave
+  - happens when switch tabs
+
+
+-- when i have a visual selection, have an easymotion keybinding to jump
+  between them real fast instead of n n n n n n n n n. could be useful i
+  suppose. maybe extend for problems, symbol highlights, references, etc.
+
+
+-- terminal change title to current running process
+
+
+-- fancy git-branch switcher
+
+
+-- create overlay menu window with key shortcuts so users can create spacemacs-like
+menus. e.g. (floating windows maybe?)
+- press and hold a key to open up menu. next key press while key is being held will trigger action
+- press key to bring up menu. next key selects an action from the menu
+  [ a: buffer search    b: grep search    c: viewport-search ]
+  [ d: file search                                           ]
+
+  press and hold mark ' keybind to bring up menu of current global marks
+  menu lists something like
+  a - support.ts
+  s - utils.ts
+  d - main.ts
+
+  pressing one of the keys takes you to that file
+  releasing mark keybind closes menu without any navigation
+    - no, i dont want to hold keybind. long keybind hold activates menu. esc closes it
+(think kinda like opie addon, but hold activate)
+
+
+-- separate out internal object data from langserv params data?
+  - right now in adapter we send both vim state object and params in the same
+  parameter, same object. i think it might be cleaner to send them separately,
+  so that we do not send internal data to the lang serv. this may have a
+neglible benefit on network (de)serializing (and xmit time?)
+  - i almost feel that there is not much of a good reason to pass in the entire
+  neovim state to every single langserv request ever. why can't adapter simply
+  access the neovim state and pick out the nvim state fields it needs to know?
+
+
+-- simliar to the key timeouts, maybe we can make key triggers after a certain amount
+  of key-down holding. e.g. press/release m immediatly and it takes you to a mark.
+  press and hold m and a mark menu shows up
+
+
+-- langserv 3.6.0+ features
+  - goto implementation
+  - goto type definitions
+  - others
+
+=============
 
 -- add user-guide built-in to veonim. create display window for it (with keybindings)
 - requires markdown preview or we generate md -> html on build process
@@ -45,17 +130,11 @@ path displayed in "project" statusline section
   so if someone does not use completefun=VeonimComplete, they will get ugly
 
 
--- key-transform:
-- support different modes
-- support timeouts
-
 -- look into supporting more 3.6.0 lang serv features:
 - for example: workspace/configuration
 - goto type definition
 - goto implementation
 - etc
-
--- fancy git-branch switcher
 
 
 -- interactive lsp:rename. we know all the locations (via find references) of a
@@ -106,39 +185,6 @@ update entire buffer. use atomic to batch so no flickr. only undo if lsp rename 
 
 -- tweak the colors.important to bee lesss saturated. can we derive from colorscheme?
 
--- viewport-search, make sure search only happens in visible viewport!
-- open $vimrc
-- 2 c-d (page-down scroll)
-- move cursor line like 30% down in the window
-- search for 'job'
-- as it happens, the buffer is scrolled away from the current line range. why?
-  - is it because 'job' is not found in the viewport?
-
--- divination:
-- whatever method we use for jumping does not add jumps to jumplist
-- line jump: anchor labels to first char in the line? how to?
-  - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
-    return [row, col][] list map
-- do not create label/jump coordinates for position:
-  - line -> current line
-  - search hl -> position under cursor +/- 1-2
-  - do not apply for viewport-search. only if invoked directly
-- handle error if type bad label that does not exist. do what?
-  - escape?
-  - drop keys?
-- create binding for divination-search and set it up to work without previous prompts.
-  - aka, do viewport search to jump to search highlight
-  - then have a binding to trigger the jump labels again. can we do something with
-    key hold-down??
-    - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
-
--- buffer-search: spaces to further filter query (just like fuzzy file finder?)
-- if only one result in list and i hit enter, jump to the first result
-  - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
-- i feel like i might want this in a few different places.
-  - can create generic fn to use anywhere?
-- collect & show line numbers?
-
 -- grep: i don't like the large/small icon unaligned padding/margins in query/filter inputs
 
 -- HOW DOES XTERM HANDLE OVERLAPPING WIDE CHARACTERS?
@@ -158,13 +204,7 @@ could be made to also send the clear screen code. if that's the case, then this
 might make it fairly easy to pickup tests/incremental compiler output and know
 where a previous run ends and a new one begins.
 
--- terminal change title to current running process
-
 -- jump to previous/next edit location g; make it repeatable with key-hold transforms pls kthx
-
--- when i have a visual selection, have an easymotion keybinding to jump
-  between them real fast instead of n n n n n n n n n. could be useful i
-  suppose. maybe extend for problems, symbol highlights, references, etc.
 
 -- files not refresh after delete file (the fuzzy file find)
 - what about renames?
@@ -180,12 +220,7 @@ where a previous run ends and a new one begins.
 edges. use ── ──── to test
   - should use clip/rect to draw thingies? perf impact?
 
--- hide overlays (problem info, hover) on bufleave
-  - happens when switch tabs
-
 -- grep:
-  - if we start a query that results are found, but then expand the query to
-  something that does not return results, we are not clearing the ui
   - i'm not sure that we load all the results (in some cases - try searching
       for a popular keyword like 'await'). i think there is some logic to load
   more results from cache once we scroll down... maybe that is not activated
@@ -210,36 +245,11 @@ test case:
   - expected to remove entire object?
     - what does langserv return for workspaceedit?
 
--- separate out internal object data from langserv params data?
-- right now in adapter we send both vim state object and params in the same
-  parameter, same object. i think it might be cleaner to send them separately,
-  so that we do not send internal data to the lang serv. this may have a
-  neglible benefit on network (de)serializing (and xmit time?)
-- i almost feel that there is not much of a good reason to pass in the entire
-  neovim state to every single langserv request ever. why can't adapter simply
-  access the neovim state and pick out the nvim state fields it needs to know?
-
--- should we add a timeout for key-hold transforms? in my mapping of caps-lock ->
-esc/cmd it happens that sometimes i press cmd thinking i want to use it as cmd
-(e.g. gonna press cmd+h) but then change my mind and never press the second key
-while holding caps-lock (cmd).  in this case, the event will fire as esc, but
-probably did not intend since it was such a long hold.  anyways this can be
-opt-in behavior
-  - should normalize this behavior to also apply to html input key event handlers
-
-
--- simliar to the key timeouts, maybe we can make key triggers after a certain amount
-of key-down holding. e.g. press/release m immediatly and it takes you to a mark.
-press and hold m and a mark menu shows up
-
 
 -- ok i guess i misunderstood how keys work... or there is a bug?
 when using keys in hyperapp lists, and clearing parts of the list,
 not all removed items are actually removed from the dom. so we end
 up with a mix of new and old items in the DOM. lolwut?
-
-
--- should font-sizer be part of build process?
 
 
 -- embed-explorer:
@@ -269,25 +279,8 @@ nameplate title changes on window change
 -- upgrade ripgrep
 
 
--- update user-guide to present an option for lang shortcuts as overlay user menu instead of bindings
-  - maybe not needed with helm-like interface
-
 -- mapping for send buffer text (line | selection | word) to nearby terminal window
 
--- configurable mouse cursor hide enable/disable - enabled by default
-- right now the cursor is hardcoded as hidden via css, but perhaps we should
-  make visiblity controlled via option flag. the reason for this is that sometimes
-  we might want to see the cursor (gets lost in input boxes, or color picker, etc.)
-
-
--- create overlay menu window with key shortcuts so users can create spacemacs-like
-menus. e.g. (floating windows maybe?)
-- press and hold a key to open up menu. next key press while key is being held will trigger action
-- press key to bring up menu. next key selects an action from the menu
-[ a: buffer search    b: grep search    c: viewport-search ]
-[ d: file search                                           ]
-
--- add documentation about guifont/size/cursor/colorscheme/roboto/etc
 
 -- supercharge the vim command line menu. provide menu completions automatically. fuzzy find results.
 can we provide a snippet of documentation for the selected menu item? for vim items this can be
@@ -353,16 +346,6 @@ to the floating window to be able to edit the macro.
 use floating window for terminal scratch buffer. say i want to type a super fancy and long
 git commit msg, open scratch buffer, do the edits and whatnot, then "save" buffer to terminal
 prompt (this is like c-x, c-e, but it is sized only to fit the content of the prompt)
-
-press and hold mark ' keybind to bring up menu of current global marks
-menu lists something like
-a - support.ts
-s - utils.ts
-d - main.ts
-
-pressing one of the keys takes you to that file
-releasing mark keybind closes menu without any navigation
-(think kinda like opie addon, but hold activate)
 
 
 i want a go to previous buffer in the current window command. PLS
@@ -435,19 +418,10 @@ https://flight-manual.atom.io/behind-atom/sections/how-atom-uses-chromium-snapsh
 https://github.com/atom/atom/blob/d9ebd7e125d5f07def1a057a0a8278d4d9d7d23a/script/lib/generate-startup-snapshot.js#L19-L65
 
 
-## near future
-- add language server protocol 3.6.0 support: 
-  - goto implementation/type def/etc
-    - add more SymbolKind(s) and more CompletionItemKind(s). already enabled in capabilities, just need to enable the usage
-
 ## potential ideas
 - self-updating? how to handle corporate firewalls?
 - full++ veonim build that comes with all langserv extensions, vim-polygot, and other essential vim plugins + barebones vim config
-- markdown preview
-- browser??????? safety????????????????? (maybe localhost only)
 - symbol/tag-tree hierarchical viewer (how does atom-ide do it? or other lang serv clients?)
   - vscode has started implementing this. i think there are corresponding LSP proposals
-- custom renderer (like custom ui for quickfix, etc.)
 - user configurable statusline
-- delay cmdline show if hide really quick to prevent flash - see #203 (https://github.com/veonim/veonim/issues/230)
 - snippets (with the next extended marks feature coming soonª to neovim)
