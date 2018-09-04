@@ -4,16 +4,10 @@
 -- add documentation about guifont/size/cursor/colorscheme/roboto/etc
 
 
--- viewport-search, make sure search only happens in visible viewport!
-  - open $vimrc
-- 2 c-d (page-down scroll)
-  - move cursor line like 30% down in the window
-  - search for 'job'
-  - as it happens, the buffer is scrolled away from the current line range. why?
-  - is it because 'job' is not found in the viewport?
-
-
 -- divination:
+  - seems shitty to have 2-char jump labels if we only have like 3 options...
+    should make 1-char jump if we have less than 26? maybe a few less to leave out
+    unergonomic keys? [x, z, symbols, etc.]
   - whatever method we use for jumping does not add jumps to jumplist
   - line jump: anchor labels to first char in the line? how to?
   - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
@@ -38,6 +32,7 @@
       - i feel like i might want this in a few different places.
       - can create generic fn to use anywhere?
       - collect & show line numbers?
+  - use current visual selection as input - see: helm-swoop
 
 
 -- hide overlays (problem info, hover) on bufleave
@@ -94,7 +89,13 @@ neglible benefit on network (de)serializing (and xmit time?)
   - goto type definitions
   - others
 
+
+-- INVENTORY
+  - also add window commands. especially ones that i can't remember (swap, maximize/zoom, etc.)
+
 =============
+
+-- divination jump labels for jumping to other windows (requires ext-windows)
 
 -- add user-guide built-in to veonim. create display window for it (with keybindings)
 - requires markdown preview or we generate md -> html on build process
