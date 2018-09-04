@@ -124,7 +124,7 @@ nvim.onAction('jump-line', () => {
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
 
-    nvim.feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
+    nvim.feedkeys(`m\`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
     reset()
   }
 
@@ -261,6 +261,7 @@ export const divinationSearch = async () => {
       column: distanceFrom.left,
     }
 
+    nvim.normal('m`')
     nvim.jumpTo(target)
     reset()
   }

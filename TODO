@@ -5,8 +5,9 @@
 
 
 -- divination:
-  - divination-search not always jumping to the correct destination... (i think this has to do with lines wrapping [word-wrap] - our visual editor line numbers do not match buffer line numbers)
-  - whatever method we use for jumping does not add jumps to jumplist
+  - make it work in visual mode - so i can do use jump-line in visual mode to make a selection
+  - jump-search not always jumping to the correct destination... (i think this has to do with lines wrapping [word-wrap] - our visual editor line numbers do not match buffer line numbers)
+  - jump-line - same as above issue. when trying to jump to a line that wraps, we can only jump to the beginning of the wrapped line. if a line wraps 5 times, and we try to jump to the last wrapped line, we will instead go to the first line (0)
   - do not create label/jump coordinates for position:
     - line -> current line
     - search hl -> position under cursor +/- 1-2 (huh?)
