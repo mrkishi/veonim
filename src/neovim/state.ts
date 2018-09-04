@@ -54,7 +54,7 @@ export default (stateName: string) => {
   const untilStateValue: UntilStateValue = new Proxy(Object.create(null), {
     get: (_, key: string) => ({ is: (watchedValue: any) => new Promise(done => {
       const callback = (newValue: any) => {
-        if (newValue === watchedValue) return
+        if (newValue !== watchedValue) return
         done(newValue)
         watchers.removeListener(key, callback)
       }
