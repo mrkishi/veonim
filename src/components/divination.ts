@@ -91,7 +91,10 @@ nvim.onAction('divination', () => {
     const label = getLabel(ix)
     // using margin-right instead of letter-spacing because letter-spacing adds space
     // to the right of the last letter - so it ends up with more padding on the right :/
-    el.innerHTML = `<span style="margin-right: 2px">${label[0]}</span><span>${label[1]}</span>`
+    el.innerHTML = `<span style="margin-right: 2px">
+      ${label.split('').map(char => `<span>${char}<span>`)}
+    </span>`
+
     return el
   })
 
@@ -194,6 +197,8 @@ export const divinationSearch = async () => {
   const labelContainer = makel({ position: 'absolute' })
   const jumpTargets = new Map()
 
+  const { labelSize, getLabel } = getLabels(searchPixelPositions.length)
+
   const labels = searchPixelPositions.map((pos, ix) => {
     // TODO: these styles should be shared. also i think we should use css translate
     // instead of top/left
@@ -212,11 +217,14 @@ export const divinationSearch = async () => {
       color: '#eee',
     })
 
-    const label = jumpLabels[ix]
+    const label = getLabel(ix)
     jumpTargets.set(label, { row: pos.row, col: pos.col })
     // using margin-right instead of letter-spacing because letter-spacing adds space
     // to the right of the last letter - so it ends up with more padding on the right :/
-    el.innerHTML = `<span style="margin-right: 2px">${label[0]}</span><span>${label[1]}</span>`
+    el.innerHTML = `<span style="margin-right: 2px">
+      ${label.split('').map(char => `<span>${char}<span>`)}
+    </span>`
+
     return el
   })
 
@@ -242,7 +250,7 @@ export const divinationSearch = async () => {
     showCursor()
   }
 
-  const joinTheDarkSide = async () => {
+  const jump = async () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
     const { row, col } = jumpTargets.get(jumpLabel)
 
@@ -264,8 +272,9 @@ export const divinationSearch = async () => {
     if (keys === '<Esc>') return reset()
 
     grabbedKeys.push(keys)
-    if (grabbedKeys.length === 1) return updateLabels(keys)
-    if (grabbedKeys.length === 2) joinTheDarkSide()
+    if (labelSize === 1 && grabbedKeys.length === 1) return jump()
+    if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
+    if (labelSize === 2 && grabbedKeys.length === 2) return jump()
   })
 }
 
