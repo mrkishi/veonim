@@ -20,41 +20,38 @@ interface FindPosOpts extends Specs {
 
 // hand crafted for maximum ergonomic comfort
 const labels = {
-  single: ['a', 's', 'd', 'f', 'j', 'k', 'l', 'g', 'h', 'w', 'e', 'r', 'i', 'o', 'q', 't', 'u', 'p', 'n', 'm', 'v', 'b', 'c'],
+  single: ['A', 'S', 'D', 'F', 'J', 'K', 'L', 'G', 'H', 'W', 'E', 'R', 'I', 'O', 'Q', 'T', 'U', 'P', 'N', 'M', 'V', 'B', 'C'],
   double: [
-    'aj', 'ak', 'al', 'ah', 'an', 'ai', 'ao', 'au', 'ap', 'am', 'as', 'ad', 'af', 'ag', 'ae', 'ar', 'aw', 'at', 'av',
-    'sj', 'sk', 'sl', 'sh', 'sn', 'si', 'so', 'su', 'sp', 'sm', 'sa', 'sd', 'sf', 'sg', 'se', 'sr',
-    'dj', 'dk', 'dl', 'dh', 'dn', 'di', 'do', 'du', 'dp', 'dm', 'da', 'ds', 'df', 'dg', 'dw', 'dq', 'de', 'dv',
-    'fj', 'fk', 'fl', 'fh', 'fn', 'fi', 'fo', 'fu', 'fp', 'fm', 'fa', 'fs', 'fd', 'fe', 'fw', 'fq',
-    'ej', 'ek', 'el', 'eh', 'en', 'ei', 'eo', 'eu', 'ep', 'em', 'ef', 'eg', 'er', 'et', 'ew', 'eq', 'ea', 'es', 'ev',
-    'rj', 'rk', 'rl', 'rh', 'rn', 'ri', 'ro', 'ru', 'rp', 'rm', 'ra', 'rs', 're', 'rw', 'rq', 'rg',
-    'wj', 'wk', 'wl', 'wh', 'wn', 'wi', 'wo', 'wu', 'wp', 'wm', 'wa', 'wd', 'wf', 'we', 'wr', 'wt', 'wg', 'wv',
-    'qj', 'qk', 'ql', 'qh', 'qn', 'qi', 'qo', 'qu', 'qp', 'qm', 'qd', 'qf', 'qw', 'qe', 'qr', 'qt', 'qg',
-    'gj', 'gk', 'gl', 'gh', 'gn', 'gi', 'go', 'gu', 'gp', 'gm', 'gd', 'gs', 'ga', 'ge', 'gw', 'gq',
-    'ja', 'js', 'jd', 'jf', 'jg', 'je', 'jr', 'jw', 'jq', 'jk', 'jl', 'ji', 'jo', 'jp', 'jv',
-    'ka', 'ks', 'kd', 'kf', 'kg', 'ke', 'kr', 'kw', 'kq', 'kj', 'kl', 'kn', 'ko', 'kp', 'kv',
-    'la', 'ls', 'ld', 'lf', 'lg', 'le', 'lr', 'lw', 'lq', 'lj', 'lk', 'ln', 'li', 'lu', 'lv',
-    'ha', 'hs', 'hd', 'hf', 'hg', 'he', 'hr', 'hw', 'hq', 'hj', 'hl', 'hi', 'ho', 'hp', 'hv',
-    'na', 'ns', 'nd', 'nf', 'ng', 'ne', 'nr', 'nw', 'nq', 'nk', 'nl', 'ni', 'no', 'np', 'nv',
-    'ia', 'is', 'id', 'if', 'ig', 'ie', 'ir', 'iw', 'iq', 'ij', 'il', 'in', 'ih', 'io', 'ip', 'iv',
-    'oa', 'os', 'od', 'of', 'og', 'oe', 'or', 'ow', 'oq', 'oj', 'ok', 'oh', 'oi', 'on', 'op', 'ov',
-    'pa', 'ps', 'pd', 'pf', 'pg', 'pe', 'pr', 'pw', 'pq', 'pj', 'pk', 'ph', 'pi', 'pn', 'po', 'pv',
-    'ma', 'ms', 'md', 'mf', 'mg', 'me', 'mr', 'mw', 'mq', 'mk', 'ml', 'mi', 'mo', 'mp', 'mv',
-    'vj', 'vk', 'vl', 'vh', 'vn', 'vi', 'vo', 'vp', 'vu', 'vm', 'va', 'vs', 'vd', 've', 'vr', 'vw', 'vq',
-    'ua', 'us', 'ud', 'uf', 'ug', 'ue', 'ur', 'uw', 'uq', 'uh', 'ul', 'ui', 'up', 'un', 'uv',
-    'tj', 'tk', 'tl', 'th', 'tn', 'ti', 'to', 'tp', 'tu', 'tm', 'ta', 'te', 'tw', 'tq', 'tr',
+    'AJ', 'AK', 'AL', 'AH', 'AN', 'AI', 'AO', 'AU', 'AP', 'AM', 'AS', 'AD', 'AF', 'AG', 'AE', 'AR', 'AW', 'AT', 'AV',
+    'SJ', 'SK', 'SL', 'SH', 'SN', 'SI', 'SO', 'SU', 'SP', 'SM', 'SA', 'SD', 'SF', 'SG', 'SE', 'SR',
+    'DJ', 'DK', 'DL', 'DH', 'DN', 'DI', 'DO', 'DU', 'DP', 'DM', 'DA', 'DS', 'DF', 'DG', 'DW', 'DQ', 'DE', 'DV',
+    'FJ', 'FK', 'FL', 'FH', 'FN', 'FI', 'FO', 'FU', 'FP', 'FM', 'FA', 'FS', 'FD', 'FE', 'FW', 'FQ',
+    'EJ', 'EK', 'EL', 'EH', 'EN', 'EI', 'EO', 'EU', 'EP', 'EM', 'EF', 'EG', 'ER', 'ET', 'EW', 'EQ', 'EA', 'ES', 'EV',
+    'RJ', 'RK', 'RL', 'RH', 'RN', 'RI', 'RO', 'RU', 'RP', 'RM', 'RA', 'RS', 'RE', 'RW', 'RQ', 'RG',
+    'WJ', 'WK', 'WL', 'WH', 'WN', 'WI', 'WO', 'WU', 'WP', 'WM', 'WA', 'WD', 'WF', 'WE', 'WR', 'WT', 'WG', 'WV',
+    'QJ', 'QK', 'QL', 'QH', 'QN', 'QI', 'QO', 'QU', 'QP', 'QM', 'QD', 'QF', 'QW', 'QE', 'QR', 'QT', 'QG',
+    'GJ', 'GK', 'GL', 'GH', 'GN', 'GI', 'GO', 'GU', 'GP', 'GM', 'GD', 'GS', 'GA', 'GE', 'GW', 'GQ',
+    'JA', 'JS', 'JD', 'JF', 'JG', 'JE', 'JR', 'JW', 'JQ', 'JK', 'JL', 'JI', 'JO', 'JP', 'JV',
+    'KA', 'KS', 'KD', 'KF', 'KG', 'KE', 'KR', 'KW', 'KQ', 'KJ', 'KL', 'KN', 'KO', 'KP', 'KV',
+    'LA', 'LS', 'LD', 'LF', 'LG', 'LE', 'LR', 'LW', 'LQ', 'LJ', 'LK', 'LN', 'LI', 'LU', 'LV',
+    'HA', 'HS', 'HD', 'HF', 'HG', 'HE', 'HR', 'HW', 'HQ', 'HJ', 'HL', 'HI', 'HO', 'HP', 'HV',
+    'NA', 'NS', 'ND', 'NF', 'NG', 'NE', 'NR', 'NW', 'NQ', 'NK', 'NL', 'NI', 'NO', 'NP', 'NV',
+    'IA', 'IS', 'ID', 'IF', 'IG', 'IE', 'IR', 'IW', 'IQ', 'IJ', 'IL', 'IN', 'IH', 'IO', 'IP', 'IV',
+    'OA', 'OS', 'OD', 'OF', 'OG', 'OE', 'OR', 'OW', 'OQ', 'OJ', 'OK', 'OH', 'OI', 'ON', 'OP', 'OV',
+    'PA', 'PS', 'PD', 'PF', 'PG', 'PE', 'PR', 'PW', 'PQ', 'PJ', 'PK', 'PH', 'PI', 'PN', 'PO', 'PV',
+    'MA', 'MS', 'MD', 'MF', 'MG', 'ME', 'MR', 'MW', 'MQ', 'MK', 'ML', 'MI', 'MO', 'MP', 'MV',
+    'VJ', 'VK', 'VL', 'VH', 'VN', 'VI', 'VO', 'VP', 'VU', 'VM', 'VA', 'VS', 'VD', 'VE', 'VR', 'VW', 'VQ',
+    'UA', 'US', 'UD', 'UF', 'UG', 'UE', 'UR', 'UW', 'UQ', 'UH', 'UL', 'UI', 'UP', 'UN', 'UV',
+    'TJ', 'TK', 'TL', 'TH', 'TN', 'TI', 'TO', 'TP', 'TU', 'TM', 'TA', 'TE', 'TW', 'TQ', 'TR',
   ],
 }
 
 const singleLabelLimit = labels.single.length
-const doubleLabelLimit = labels.double.length
 
 const getLabels = (itemCount: number) => {
   const doubleSize = itemCount > singleLabelLimit
   return {
-    labelSize: doubleSize
-      ? doubleLabelLimit
-      : singleLabelLimit,
+    labelSize: doubleSize ? 2 : 1,
     getLabel: (index: number) => doubleSize
       ? labels.double[index]
       : labels.single[index],
@@ -117,14 +114,13 @@ nvim.onAction('divination', () => {
     defaultInputMode()
   }
 
-  const joinTheDarkSide = () => {
+  const jump = () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
-
     const targetRow = indexOfLabel(jumpLabel)
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
-    nvim.feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
 
+    nvim.feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
     reset()
   }
 
@@ -132,9 +128,9 @@ nvim.onAction('divination', () => {
     if (keys === '<Esc>') return reset()
 
     grabbedKeys.push(keys)
-    if (labelSize === 1 && grabbedKeys.length === 1) joinTheDarkSide()
+    if (labelSize === 1 && grabbedKeys.length === 1) return jump()
     if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
-    if (labelSize === 2 && grabbedKeys.length === 2) joinTheDarkSide()
+    if (labelSize === 2 && grabbedKeys.length === 2) return jump()
   })
 })
 
