@@ -62,7 +62,14 @@ const getLabels = (itemCount: number) => {
   }
 }
 
-nvim.onAction('divination', () => {
+const labelHTML = (label: string) => label
+  .split('')
+  // using margin-right instead of letter-spacing because letter-spacing adds space
+  // to the right of the last letter - so it ends up with more padding on the right :/
+  .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
+  .join('')
+
+nvim.onAction('jump-line', () => {
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
@@ -88,13 +95,7 @@ nvim.onAction('divination', () => {
       color: '#eee',
     })
 
-    const label = getLabel(ix)
-    // using margin-right instead of letter-spacing because letter-spacing adds space
-    // to the right of the last letter - so it ends up with more padding on the right :/
-    el.innerHTML = `<span style="margin-right: 2px">
-      ${label.split('').map(char => `<span>${char}<span>`)}
-    </span>`
-
+    el.innerHTML = labelHTML(getLabel(ix))
     return el
   })
 
@@ -219,11 +220,7 @@ export const divinationSearch = async () => {
 
     const label = getLabel(ix)
     jumpTargets.set(label, { row: pos.row, col: pos.col })
-    // using margin-right instead of letter-spacing because letter-spacing adds space
-    // to the right of the last letter - so it ends up with more padding on the right :/
-    el.innerHTML = `<span style="margin-right: 2px">
-      ${label.split('').map(char => `<span>${char}<span>`)}
-    </span>`
+    el.innerHTML = labelHTML(label)
 
     return el
   })
@@ -278,4 +275,4 @@ export const divinationSearch = async () => {
   })
 }
 
-nvim.onAction('divination-search', divinationSearch)
+nvim.onAction('jump-search', divinationSearch)

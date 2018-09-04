@@ -5,25 +5,17 @@
 
 
 -- divination:
-  - seems shitty to have 2-char jump labels if we only have like 3 options...
-    should make 1-char jump if we have less than 26? maybe a few less to leave out
-    unergonomic keys? [x, z, symbols, etc.]
+  - divination-search not always jumping to the correct destination... (i think this has to do with lines wrapping [word-wrap] - our visual editor line numbers do not match buffer line numbers)
   - whatever method we use for jumping does not add jumps to jumplist
-  - line jump: anchor labels to first char in the line? how to?
-  - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
-  return [row, col][] list map
   - do not create label/jump coordinates for position:
-  - line -> current line
-  - search hl -> position under cursor +/- 1-2
-  - do not apply for viewport-search. only if invoked directly
+    - line -> current line
+    - search hl -> position under cursor +/- 1-2 (huh?)
   - handle error if type bad label that does not exist. do what?
-  - escape?
-  - drop keys?
-  - create binding for divination-search and set it up to work without previous prompts.
-  - aka, do viewport search to jump to search highlight
-  - then have a binding to trigger the jump labels again. can we do something with
-  key hold-down??
-  - i.e. hold down <s-space> and press two letters: 'AD' to jump to search?
+    - escape?
+    - drop keys?
+  * [maybe] line jump: anchor labels to first char in the line? how to?
+    - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
+    - return [row, col][] list map
 
 
 -- buffer-search: spaces to further filter query (just like fuzzy file finder?)
@@ -35,13 +27,15 @@
   - use current visual selection as input - see: helm-swoop
 
 
+=== 0.10.0 release here
+
+
+-- c-o/i but for files only. don't want to jump to previous location in the same file. i want to
+  go to previous file kthx
+
+
 -- hide overlays (problem info, hover) on bufleave
   - happens when switch tabs
-
-
--- when i have a visual selection, have an easymotion keybinding to jump
-  between them real fast instead of n n n n n n n n n. could be useful i
-  suppose. maybe extend for problems, symbol highlights, references, etc.
 
 
 -- terminal change title to current running process
