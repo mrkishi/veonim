@@ -88,9 +88,25 @@ neglible benefit on network (de)serializing (and xmit time?)
 -- INVENTORY
   - also add window commands. especially ones that i can't remember (swap, maximize/zoom, etc.)
 
+-- show marks visually in editor?
+  - if the current viewport has any marks, render them over the text.
+  - i'm not sure how useful this will be, as i've used marks-in-sign column plugin before and i was not impressed. usually most marks are outside of the current viewport. would need a better way to visually indicate those
+
+-- better window management
+  - divination jump labels for jumping to other windows (requires ext-windows)
+  - visual labels+mode for resizing current window (display hjkl and have an input that when pressing key does the resize operation. maybe like in chrome devtools, using modifiers speeds up the resize increment amount?)
+  - visual way to move a window around. display hjkl + input mode. pressing movement command moves window in the direction specified
+  - better way to zoom a window, and visually identify that it has been zooooomed
+  - swap contents (and size?) of current window with another window (maybe this might be better  alternative than move window (move window could be tricky with complex split trees))
+    - like jump labels for moving to window (show window border around current active window)
+    - press label and the contents of current and targeted window are swapped around. perhaps resized accordingly?
+
 =============
 
--- divination jump labels for jumping to other windows (requires ext-windows)
+- we already have the idea of creating custom inventory overlays menus (show a list of keybinds + descriptions - press one and it activates it)
+  - it would be neat to have it configurable to either accept ONE keybind or
+  - accept N-amount of keybinds until hit esc (aka custom input mode)
+  - imagine a list overlay. can press i, o, ; repeatadely to jump between jumplist or changelist
 
 -- add user-guide built-in to veonim. create display window for it (with keybindings)
 - requires markdown preview or we generate md -> html on build process
@@ -421,3 +437,39 @@ https://github.com/atom/atom/blob/d9ebd7e125d5f07def1a057a0a8278d4d9d7d23a/scrip
   - vscode has started implementing this. i think there are corresponding LSP proposals
 - user configurable statusline
 - snippets (with the next extended marks feature coming soonª to neovim)
+
+## neat ideas that i might want to steal
+
+https://github.com/ShingoFukuyama/helm-swoop
+  - i like the idea of putting all search results in a separate buffer, and then performing actions on just the search lines.
+    - i like that i can see all search results by themselves
+    - like that i can perform INTERACTIVE visually actions on the search results
+  - would be cool to have it be fuzzy search (like buffer search) or not
+  - with vim can take search results to location/quickfix list and use :cdo - not interactive or visual
+  - could use macros somehow...
+  - with neovim can use :inccommand and regex or :norm. - can't see all search results by themselves - difficult to revise search selection - not fuzzy. NOT FUZZY
+
+
+## code quality
+use native es6 imports?
+https://stackoverflow.com/questions/51113097/electron-es6-module-import
+
+```
+const { protocol } = require( 'electron' )
+const nfs = require( 'fs' )
+const npjoin = require( 'path' ).join
+const es6Path = npjoin( __dirname, 'www' )
+
+protocol.registerStandardSchemes( [ 'es6' ] )
+
+app.on( 'ready', () => {
+  protocol.registerBufferProtocol( 'es6', ( req, cb ) => {
+    nfs.readFile(
+      npjoin( es6Path, req.url.replace( 'es6://', '' ) ),
+      (e, b) => { cb( { mimeType: 'text/javascript', data: b } ) }
+    )
+  })
+})
+
+<script type="module" src="es6://main.js"></script>
+```
