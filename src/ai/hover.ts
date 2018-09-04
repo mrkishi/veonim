@@ -2,7 +2,6 @@ import colorizer, { ColorData } from '../services/colorizer'
 import { supports } from '../langserv/server-features'
 import * as markdown from '../support/markdown'
 import { hover } from '../langserv/adapter'
-import { VimMode } from '../neovim/types'
 import { ui } from '../components/hover'
 import nvim from '../core/neovim'
 
@@ -28,5 +27,5 @@ nvim.onAction('hover', async () => {
 })
 
 nvim.on.cursorMove(ui.hide)
-nvim.onStateValue.mode(VimMode.Normal, ui.hide)
-nvim.onStateValue.mode(VimMode.Insert, ui.hide)
+nvim.on.insertEnter(ui.hide)
+nvim.on.insertLeave(ui.hide)

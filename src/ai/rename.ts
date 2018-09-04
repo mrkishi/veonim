@@ -1,7 +1,6 @@
 import { supports } from '../langserv/server-features'
 import * as updateService from '../ai/update-server'
 import { rename } from '../langserv/adapter'
-import { VimMode } from '../neovim/types'
 import nvim from '../core/neovim'
 
 // TODO: anyway to improve the glitchiness of undo/apply edit? any way to also pause render in undo
@@ -14,7 +13,7 @@ nvim.onAction('rename', async () => {
   updateService.pause()
   const editPosition = { line: nvim.state.line, column: nvim.state.column }
   nvim.feedkeys('ciw')
-  await nvim.untilStateValue.mode.is(VimMode.Normal)
+  await nvim.untilEvent.insertLeave
   const newName = await nvim.expr('@.')
   nvim.feedkeys('u')
   updateService.resume()

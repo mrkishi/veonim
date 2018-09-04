@@ -68,6 +68,8 @@ const autocmds = {
   CursorMoved: null,
   CursorMovedI: null,
   CompleteDone: 'v:completed_item',
+  InsertEnter: null,
+  InsertLeave: null,
 }
 
 export type Autocmd = typeof autocmds

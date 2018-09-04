@@ -71,6 +71,8 @@ export interface BufferEvent {
   completion: string
   termEnter: void
   termLeave: void
+  insertLeave: void
+  insertEnter: void
 }
 
 export interface Color {

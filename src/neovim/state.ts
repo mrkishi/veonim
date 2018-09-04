@@ -23,12 +23,25 @@ const state = {
 export type NeovimState = typeof state
 type StateKeys = keyof NeovimState
 type WatchState = { [Key in StateKeys]: (fn: (value: NeovimState[Key]) => void) => void }
-type OnStateValue = { [Key in StateKeys]: (value: NeovimState[Key], fn: () => void) => void }
-type UntilStateValue = {
+
+type OnStateValue1 = { [Key in StateKeys]: (value: NeovimState[Key], fn: () => void) => void }
+type OnStateValue2 = { [Key in StateKeys]: (value: NeovimState[Key], previousValue: NeovimState[Key], fn: () => void) => void }
+type OnStateValue = OnStateValue1 & OnStateValue2
+
+type UntilStateValue1 = {
   [Key in StateKeys]: {
     is: (value: NeovimState[Key]) => Promise<NeovimState[Key]>
   }
 }
+
+type UntilStateValue2 = {
+  [Key in StateKeys]: {
+    is: (value: NeovimState[Key], previousValue: NeovimState[Key]) => Promise<NeovimState[Key]>
+  }
+}
+
+type UntilStateValue = UntilStateValue1 & UntilStateValue2
+
 
 const computedStateProperties = new Map<StateKeys, (state: NeovimState) => any>()
 computedStateProperties.set('absoluteFilepath', (s: NeovimState) => join(s.cwd, s.file))
@@ -46,17 +59,28 @@ export default (stateName: string) => {
   }
 
   const onStateValue: OnStateValue = new Proxy(Object.create(null), {
-    get: (_, key: string) => (matchValue: any, fn: Function) => {
-      watchers.on(key, value => value === matchValue && fn())
+    get: (_, key: string) => (matchValue: any, ...args: any[]) => {
+      const matchPreviousValue = args.find(a => typeof a === 'string')
+      const fn = args.find(a => typeof a === 'function')
+
+      watchers.on(key, (value, previousValue) => {
+        const same = value === matchValue
+        const prevSame = typeof matchPreviousValue == null ? true : previousValue === matchPreviousValue
+        if (same && prevSame) fn()
+      })
     }
   })
 
   const untilStateValue: UntilStateValue = new Proxy(Object.create(null), {
-    get: (_, key: string) => ({ is: (watchedValue: any) => new Promise(done => {
-      const callback = (newValue: any) => {
-        if (newValue !== watchedValue) return
-        done(newValue)
-        watchers.removeListener(key, callback)
+    get: (_, key: string) => ({ is: (matchValue: any, matchPreviousValue?: any) => new Promise(done => {
+      const callback = (value: any, previousValue: any) => {
+        const same = value === matchValue
+        const prevSame = typeof matchPreviousValue == null ? true : previousValue === matchPreviousValue
+
+        if (same && prevSame) {
+          done(value)
+          watchers.removeListener(key, callback)
+        }
       }
 
       watchers.on(key, callback)

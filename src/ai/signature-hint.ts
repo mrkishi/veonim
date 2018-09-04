@@ -1,7 +1,6 @@
 import { supports, getTriggerChars } from '../langserv/server-features'
 import { SignatureInformation } from 'vscode-languageserver-protocol'
 import { signatureHelp } from '../langserv/adapter'
-import { VimMode } from '../neovim/types'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
@@ -97,8 +96,8 @@ const getSignatureHint = async (lineContent: string) => {
 }
 
 nvim.on.cursorMove(ui.hide)
-nvim.onStateValue.mode(VimMode.Normal, ui.hide)
-nvim.onStateValue.mode(VimMode.Insert, ui.hide)
+nvim.on.insertEnter(ui.hide)
+nvim.on.insertLeave(ui.hide)
 
 nvim.onAction('signature-help-next', () => {
   const next = cache.selectedSignature + 1

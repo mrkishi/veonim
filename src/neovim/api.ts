@@ -240,6 +240,13 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     get: (_, event: BufferEvents) => (fn: any) => watchers.events.on(event, fn)
   })
 
+  type UntilEvent = { [Key in BufferEvents]: Promise<void> }
+  const untilEvent: UntilEvent = new Proxy(Object.create(null), {
+    get: (_, event: BufferEvents) => new Promise(done => {
+      watchers.events.once(event, done)
+    })
+  })
+
   const applyPatches = async (patches: Patch[]) => {
     const bufs = await Promise.all((await buffers.list()).map(async buffer => ({
       buffer,
@@ -327,6 +334,8 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   autocmd.BufEnter(() => watchers.events.emit('bufLoad'))
   autocmd.BufDelete(() => watchers.events.emit('bufUnload'))
   autocmd.BufWritePost(() => watchers.events.emit('bufWrite'))
+  autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
+  autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
 
   // TODO: would like to abstract this buffer change stuff away into a cleaner
   // solution especially since we now have buffer change notifications in nvim
@@ -422,5 +431,5 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   return { state, watchState, onStateChange, onStateValue, untilStateValue,
     cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
     getCurrentLine, jumpTo, jumpToProjectFile, getColor, systemAction, current,
-    g, on, applyPatches, buffers, windows, tabs }
+    g, on, untilEvent, applyPatches, buffers, windows, tabs }
 }

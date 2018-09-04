@@ -1,6 +1,6 @@
 import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-protocol'
-import { ProblemHighlight, Highlight, HighlightGroupId, VimMode } from '../neovim/types'
 import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
+import { ProblemHighlight, Highlight, HighlightGroupId } from '../neovim/types'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { ui as problemInfoUI } from '../components/problem-info'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
@@ -139,8 +139,8 @@ nvim.onAction('show-problem', async () => {
 })
 
 nvim.on.cursorMove(problemInfoUI.hide)
-nvim.onStateValue.mode(VimMode.Normal, problemInfoUI.hide)
-nvim.onStateValue.mode(VimMode.Insert, problemInfoUI.hide)
+nvim.on.insertLeave(problemInfoUI.hide)
+nvim.on.insertEnter(problemInfoUI.hide)
 
 nvim.onAction('next-problem', async () => {
   const { line, column, cwd, file } = nvim.state
