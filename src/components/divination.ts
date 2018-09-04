@@ -18,21 +18,52 @@ interface FindPosOpts extends Specs {
   bg?: string
 }
 
-const jumpKeys = 'ASDFLGHQWERTYUIOPBNMCBVJK'
+// hand crafted for maximum ergonomic comfort
+const labels = {
+  single: ['a', 's', 'd', 'f', 'j', 'k', 'l', 'g', 'h', 'w', 'e', 'r', 'i', 'o', 'q', 't', 'u', 'p', 'n', 'm', 'v', 'b', 'c'],
+  double: [
+    'aj', 'ak', 'al', 'ah', 'an', 'ai', 'ao', 'au', 'ap', 'am', 'as', 'ad', 'af', 'ag', 'ae', 'ar', 'aw', 'at', 'av',
+    'sj', 'sk', 'sl', 'sh', 'sn', 'si', 'so', 'su', 'sp', 'sm', 'sa', 'sd', 'sf', 'sg', 'se', 'sr',
+    'dj', 'dk', 'dl', 'dh', 'dn', 'di', 'do', 'du', 'dp', 'dm', 'da', 'ds', 'df', 'dg', 'dw', 'dq', 'de', 'dv',
+    'fj', 'fk', 'fl', 'fh', 'fn', 'fi', 'fo', 'fu', 'fp', 'fm', 'fa', 'fs', 'fd', 'fe', 'fw', 'fq',
+    'ej', 'ek', 'el', 'eh', 'en', 'ei', 'eo', 'eu', 'ep', 'em', 'ef', 'eg', 'er', 'et', 'ew', 'eq', 'ea', 'es', 'ev',
+    'rj', 'rk', 'rl', 'rh', 'rn', 'ri', 'ro', 'ru', 'rp', 'rm', 'ra', 'rs', 're', 'rw', 'rq', 'rg',
+    'wj', 'wk', 'wl', 'wh', 'wn', 'wi', 'wo', 'wu', 'wp', 'wm', 'wa', 'wd', 'wf', 'we', 'wr', 'wt', 'wg', 'wv',
+    'qj', 'qk', 'ql', 'qh', 'qn', 'qi', 'qo', 'qu', 'qp', 'qm', 'qd', 'qf', 'qw', 'qe', 'qr', 'qt', 'qg',
+    'gj', 'gk', 'gl', 'gh', 'gn', 'gi', 'go', 'gu', 'gp', 'gm', 'gd', 'gs', 'ga', 'ge', 'gw', 'gq',
+    'ja', 'js', 'jd', 'jf', 'jg', 'je', 'jr', 'jw', 'jq', 'jk', 'jl', 'ji', 'jo', 'jp', 'jv',
+    'ka', 'ks', 'kd', 'kf', 'kg', 'ke', 'kr', 'kw', 'kq', 'kj', 'kl', 'kn', 'ko', 'kp', 'kv',
+    'la', 'ls', 'ld', 'lf', 'lg', 'le', 'lr', 'lw', 'lq', 'lj', 'lk', 'ln', 'li', 'lu', 'lv',
+    'ha', 'hs', 'hd', 'hf', 'hg', 'he', 'hr', 'hw', 'hq', 'hj', 'hl', 'hi', 'ho', 'hp', 'hv',
+    'na', 'ns', 'nd', 'nf', 'ng', 'ne', 'nr', 'nw', 'nq', 'nk', 'nl', 'ni', 'no', 'np', 'nv',
+    'ia', 'is', 'id', 'if', 'ig', 'ie', 'ir', 'iw', 'iq', 'ij', 'il', 'in', 'ih', 'io', 'ip', 'iv',
+    'oa', 'os', 'od', 'of', 'og', 'oe', 'or', 'ow', 'oq', 'oj', 'ok', 'oh', 'oi', 'on', 'op', 'ov',
+    'pa', 'ps', 'pd', 'pf', 'pg', 'pe', 'pr', 'pw', 'pq', 'pj', 'pk', 'ph', 'pi', 'pn', 'po', 'pv',
+    'ma', 'ms', 'md', 'mf', 'mg', 'me', 'mr', 'mw', 'mq', 'mk', 'ml', 'mi', 'mo', 'mp', 'mv',
+    'vj', 'vk', 'vl', 'vh', 'vn', 'vi', 'vo', 'vp', 'vu', 'vm', 'va', 'vs', 'vd', 've', 'vr', 'vw', 'vq',
+    'ua', 'us', 'ud', 'uf', 'ug', 'ue', 'ur', 'uw', 'uq', 'uh', 'ul', 'ui', 'up', 'un', 'uv',
+    'tj', 'tk', 'tl', 'th', 'tn', 'ti', 'to', 'tp', 'tu', 'tm', 'ta', 'te', 'tw', 'tq', 'tr',
+  ],
+}
 
-// TODO: generate more ergonomic labels
-// for example, 'sw' is harder to type than 'ad'
-// also multi-hand might be better. aka 'aj' > 'ad'
-// perhaps we can also create some convention for
-// motions that go up vs down. e.g. if first label char...
-//  - starts on left hand: motion is down
-//  - starts on right hand: motion is up
-// not sure if this makes things faster?
-const jumpLabelsRaw = jumpKeys.split('').map(key => {
-  const otherKeys = jumpKeys.replace(key, '')
-  return otherKeys.split('').map(k => key + k)
-}).reduce((res, grp) => [...res, ...grp])
-const jumpLabels = [...new Set(jumpLabelsRaw)]
+const singleLabelLimit = labels.single.length
+const doubleLabelLimit = labels.double.length
+
+const getLabels = (itemCount: number) => {
+  const doubleSize = itemCount > singleLabelLimit
+  return {
+    labelSize: doubleSize
+      ? doubleLabelLimit
+      : singleLabelLimit,
+    getLabel: (index: number) => doubleSize
+      ? labels.double[index]
+      : labels.single[index],
+    // TODO: would it be faster to use a map? only lookup instead of find
+    indexOfLabel: (label: string) => doubleSize
+      ? labels.double.indexOf(label)
+      : labels.single.indexOf(label),
+  }
+}
 
 nvim.onAction('divination', () => {
   const win = activeWindow()
@@ -47,6 +78,8 @@ nvim.onAction('divination', () => {
     position: 'absolute'
   })
 
+  const { labelSize, getLabel, indexOfLabel } = getLabels(rowPositions.length)
+
   const labels = rowPositions.map((y, ix) => {
     const el = makel({
       ...paddingV(4),
@@ -58,7 +91,7 @@ nvim.onAction('divination', () => {
       color: '#eee',
     })
 
-    const label = jumpLabels[ix]
+    const label = getLabel(ix)
     // using margin-right instead of letter-spacing because letter-spacing adds space
     // to the right of the last letter - so it ends up with more padding on the right :/
     el.innerHTML = `<span style="margin-right: 2px">${label[0]}</span><span>${label[1]}</span>`
@@ -87,7 +120,7 @@ nvim.onAction('divination', () => {
   const joinTheDarkSide = () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
 
-    const targetRow = jumpLabels.indexOf(jumpLabel)
+    const targetRow = indexOfLabel(jumpLabel)
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
     nvim.feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
@@ -99,8 +132,9 @@ nvim.onAction('divination', () => {
     if (keys === '<Esc>') return reset()
 
     grabbedKeys.push(keys)
-    if (grabbedKeys.length === 1) return updateLabels(keys)
-    if (grabbedKeys.length === 2) joinTheDarkSide()
+    if (labelSize === 1 && grabbedKeys.length === 1) joinTheDarkSide()
+    if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
+    if (labelSize === 2 && grabbedKeys.length === 2) joinTheDarkSide()
   })
 })
 
