@@ -69,9 +69,19 @@ const labelHTML = (label: string) => label
   .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
   .join('')
 
-const divinationLine = ({ visual = false }) => {
+const divinationLine = async ({ visual = false }) => {
   if (visual) nvim.feedkeys('gv', 'n')
   else nvim.feedkeys('m`', 'n')
+
+  const visibleLines = await nvim.current.buffer.getVisibleLines()
+  // TODO: find out column offset of where the first non-whitespace char begins
+  // "blarg=1"
+  //  ^ -- col 0
+  // "   blarg=2"
+  //     ^ -- col 3
+  if (process.env.VEONIM_DEV) {
+    console.log('visibleLines', visibleLines)
+  }
 
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')

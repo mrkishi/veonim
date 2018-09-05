@@ -3,16 +3,14 @@
 
 -- add documentation about guifont/size/cursor/colorscheme/roboto/etc
 
-
 -- divination:
-  - do not create label/jump coordinates for position:
-    - search highlight under the cursor
   * [maybe] line jump: anchor labels to first char in the line? how to?
     - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
     - return [row, col][] list map
 
 
 -- buffer-search: spaces to further filter query (just like fuzzy file finder?)
+  - what if we are trying to search for words with spaces? how does spacemas handle it?
   - if only one result in list and i hit enter, jump to the first result
   - actually should this be behavior even if there are more than one result? if hit enter, select first and jump to it (even if not selected_
       - i feel like i might want this in a few different places.
