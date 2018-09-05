@@ -1,8 +1,6 @@
 0.9.0 observations:
 - help files missing
 
--- add documentation about guifont/size/cursor/colorscheme/roboto/etc
-
 -- divination:
   * [maybe] line jump: anchor labels to first char in the line? how to?
     - call getVisibleLines, find the first non-space char, count how many columns in the first char is in

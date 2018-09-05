@@ -377,3 +377,65 @@ Veonim key-transform hold {"key":";"} e=>({key:';'+e.key})
 - problem count / warning count
 - cursor line number / column number
 - list of vim tabs (only tab number displayed to condense space - think of it like i3 workspaces)
+
+## look & feel
+By default Veonim is bundled with its own custom vim colorscheme and the Roboto Mono font. 
+
+### colors
+Any vim colorscheme is supported. Of course since this is a GUI program, true color colorschemes are supported. See `:h colorscheme` for more info.
+
+Right now Veonim derives its colors from the colorscheme. Perhaps in the future we will allow the ability for users to customize specific parts of the UI with additional highlight groups.
+
+### fonts
+Roboto Mono is bundled and included with Veonim. This allows for a consistent out-of-the-box experience across platforms. You can of course use your own font.
+
+To customize your font, use the following global variables in `init.vim`. Please note that these variables will be deprecated soon as we receive `guifont` support from Neovim.
+
+```vim
+let g:vn_font = 'Roboto Mono'
+let g:vn_font_size = 14
+let g:vn_line_height = '1.5'
+```
+
+### cursor
+You can change the shape, size, and color of the cursor for each Vim mode. See `:h guicursor` for more info.
+
+Blinking cursor is currently not supported.
+
+This is the default cursor configuration for Veonim:
+
+```vim
+set guicursor=n:block-CursorNormal,i:hor10-CursorInsert,v:block-CursorVisual
+hi! CursorNormal guibg=#f3a082
+hi! CursorInsert guibg=#f3a082
+hi! CursorVisual guibg=#6d33ff
+```
+
+### other flags
+Some flags to further customize how Veonim behaves.
+
+## ignored dirs/files for explorer
+Ignore directories and/or files from the explorer menu
+
+Default config values are found here: [src/config/default-configs.ts]()
+
+```vim
+let g:vn_explorer_ignore_dirs = ['.git']
+let g:vn_explorer_ignore_files = ['.DS_Store']
+```
+
+Exclude language server Workspace Symbols from the specified directories.
+
+For example, in the Veonim working repo there is the `src` folder which includes Typescript files. There is also a temporary `build` folder including transpiled Javascript files. I believe by default language servers will return symbols from all folders in the current working directory. This variable flag is a way to exclude Workspace Symbols from specific directories. There might be a better way to do this...
+
+```vim
+let g:vn_workspace_ignore_dirs = ['build', 'dist']
+```
+
+### other behavior
+
+## how to ignore files and directories in the fuzzy file finder
+By default the fuzzy file finder will ignore any paths specified in `.gitignore` and `.ignore`
+
+## how to ignore files and directories in grep
+Grep is powered by Ripgrep, so ignore behavior will be deferred to Ripgrep. I believe by default it ignores any paths from `.gitignore` and `.ignore`
