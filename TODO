@@ -94,6 +94,10 @@ neglible benefit on network (de)serializing (and xmit time?)
 
 =============
 
+-- ext-windows --
+if we have ext-windows, we will have the visible lines of buffers. no need to query it from api
+make an api to get all relevant informations of current buffer viewport (top/bottom line numbers, line contents, absolute buffer line numbers, cursor absolute position, relative cursor position, etc.)
+
 - we already have the idea of creating custom inventory overlays menus (show a list of keybinds + descriptions - press one and it activates it)
   - it would be neat to have it configurable to either accept ONE keybind or
   - accept N-amount of keybinds until hit esc (aka custom input mode)
