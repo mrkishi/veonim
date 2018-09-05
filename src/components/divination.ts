@@ -70,7 +70,7 @@ const labelHTML = (label: string) => label
   .join('')
 
 const divinationLine = ({ visual = false }) => {
-  if (visual) nvim.normal('gv')
+  if (visual) nvim.feedkeys('gv', 'n')
   else nvim.feedkeys('m`', 'n')
 
   const win = activeWindow()
