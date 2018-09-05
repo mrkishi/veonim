@@ -65,20 +65,8 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
   const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
   const callAtomic = (calls: any[]) => req.core.callAtomic(calls)
-
-  type OnAction1 = (event: string, cb: GenericCallback) => void
-  type OnAction2 = (event: string, options: { firstArgVisualMode?: boolean }, cb: GenericCallback) => void
-  type OnAction = OnAction1 & OnAction2
-
-  const onAction: OnAction = (event: string, ...args: any[]) => {
-    const cb = args.find(a => typeof a === 'function')
-    const options = args.find(is.object) || {}
-
-    watchers.actions.on(event, ({ visualmode, args }) => {
-      if (options.firstArgVisualMode) cb(visualmode, ...args)
-      else cb(...args)
-    })
-
+  const onAction = (event: string, cb: GenericCallback) => {
+    watchers.actions.on(event, cb)
     registeredEventActions.add(event)
     cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
   }
@@ -303,7 +291,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   const processBufferedActions = async () => {
     const bufferedActions = await g.vn_rpc_buf
     if (!bufferedActions.length) return
-    bufferedActions.forEach(([event, ...args]) => watchers.actions.emit(event, { args }))
+    bufferedActions.forEach(([event, ...args]) => watchers.actions.emit(event, ...args))
     g.vn_rpc_buf = []
   }
 
@@ -325,7 +313,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     const events = [...registeredEventActions.values()].join('\\n')
     cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
 
-    subscribe('veonim', ([ visualmode, event, args = [] ]) => watchers.actions.emit(event, { visualmode, args }))
+    subscribe('veonim', ([ event, args = [] ]) => watchers.actions.emit(event, ...args))
     subscribe('veonim-state', ([ nextState ]) => Object.assign(state, nextState))
     subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
     subscribe('veonim-autocmd', ([ autocmd, arg ]) => watchers.autocmds.emit(autocmd, arg))

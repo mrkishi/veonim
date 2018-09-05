@@ -72,8 +72,8 @@ const labelHTML = (label: string) => label
 
 const clearStack = () => new Promise(done => setImmediate(done))
 
-nvim.onAction('jump-line', () => {
-  console.log('mode:', nvim.state.mode)
+const divinationLine = visualmode => {
+  console.log('visual??:', visualmode)
   if (nvim.state.mode === VimMode.Visual) nvim.normal('gv')
   else nvim.feedkeys('m`', 'n')
 
@@ -146,7 +146,7 @@ nvim.onAction('jump-line', () => {
     if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
     if (labelSize === 2 && grabbedKeys.length === 2) return jump()
   })
-})
+}
 
 const findSearchPositions = ({ row, col, height, width, bg }: FindPosOpts) => {
   const maxRow = row + height
@@ -287,3 +287,5 @@ export const divinationSearch = async () => {
 }
 
 nvim.onAction('jump-search', divinationSearch)
+nvim.onAction('jump-line', () => divinationLine({ visual: false }))
+nvim.onAction('jump-line-visual', () => divinationLine({ visual: true }))

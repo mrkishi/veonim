@@ -147,7 +147,7 @@ startup.defineFunc.VeonimTermExit`
 
 startup.defineFunc.Veonim`
   if g:vn_loaded
-    call rpcnotify(0, 'veonim', visualmode(), a:1, a:000[1:])
+    call rpcnotify(0, 'veonim', a:1, a:000[1:])
   else
     call add(g:vn_rpc_buf, a:000)
   endif
