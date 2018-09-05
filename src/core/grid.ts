@@ -16,6 +16,7 @@ export const setBackground = (bg: string) => defaults.bg = bg
 export const setSpecial = (sp: string) => defaults.sp = sp
 export const get = (row: number, col: number): Cell => (grid[row] || [])[col] || []
 export const getLine = (row: number, start: number, end: number): Cell[] => grid[row].slice(start, end) || []
+export const getLines = (row: number, endRow: number): Cell[][] => grid.slice(row, endRow)
 
 type RowNumber = number
 type LineData = Cell[]

@@ -3,6 +3,7 @@ import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
+import { getLines } from '../core/grid'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
@@ -69,24 +70,33 @@ const labelHTML = (label: string) => label
   .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
   .join('')
 
+// TODO: we gonna replace this with the new fancy THE GRID A DIGITAL FRONTIER apis
+const getVisibleLines = (start: number, amount: number) => {
+  const end = start + amount
+  return getLines(start, end)
+    .map(cols => cols.map(charData => charData[0]).join(''))
+}
+
+const calcWhitespaceOffsets = (lines: string[]) => lines.reduce((res, line, ix) => {
+  const [/*match*/, whitespace = ''] = line.match(/^(\s+)/) || [] as any
+  const offset = whitespace.length
+  if (offset) res.set(ix, offset)
+  return res
+}, new Map<number, number>())
+
 const divinationLine = async ({ visual = false }) => {
   if (visual) nvim.feedkeys('gv', 'n')
   else nvim.feedkeys('m`', 'n')
-
-  const visibleLines = await nvim.current.buffer.getVisibleLines()
-  // TODO: find out column offset of where the first non-whitespace char begins
-  // "blarg=1"
-  //  ^ -- col 0
-  // "   blarg=2"
-  //     ^ -- col 3
-  if (process.env.VEONIM_DEV) {
-    console.log('visibleLines', visibleLines)
-  }
 
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
   const { height: rowCount, row } = win.getSpecs()
+  const visibleLines = getVisibleLines(row, rowCount)
+  const lineWhitespaceOffsets = calcWhitespaceOffsets(visibleLines)
+
+  console.log('lineWhitespaceOffsets', lineWhitespaceOffsets)
+
   const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
   const cursorDistanceFromTopOfEditor = cursor.row - row
 

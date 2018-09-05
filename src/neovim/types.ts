@@ -97,7 +97,6 @@ export interface Buffer {
   changedtick: Promise<number>
   append(start: number, lines: string | string[]): void
   getAllLines(): Promise<string[]>
-  getVisibleLines(): Promise<string[]>
   getLines(start: number, end: number): Promise<string[]>
   getLine(start: number): Promise<string>
   setLines(start: number, end: number, replacement: string[]): void
