@@ -75,7 +75,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     const options = args.find(is.object) || {}
 
     watchers.actions.on(event, ({ visualmode, args }) => {
-      console.log('NOTIFY EVENT:', event, visualmode, args)
       if (options.firstArgVisualMode) cb(visualmode, ...args)
       else cb(...args)
     })
@@ -326,10 +325,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     const events = [...registeredEventActions.values()].join('\\n')
     cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
 
-    subscribe('veonim', ([ visualmode, event, args = [] ]) => {
-      console.log('EVENT:', event, visualmode, args)
-      watchers.actions.emit(event, { visualmode, args })
-    })
+    subscribe('veonim', ([ visualmode, event, args = [] ]) => watchers.actions.emit(event, { visualmode, args }))
     subscribe('veonim-state', ([ nextState ]) => Object.assign(state, nextState))
     subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
     subscribe('veonim-autocmd', ([ autocmd, arg ]) => watchers.autocmds.emit(autocmd, arg))
