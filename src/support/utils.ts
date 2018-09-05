@@ -1,4 +1,5 @@
 import { dirname, basename, join, extname, resolve, sep, parse, normalize } from 'path'
+import { filter as fuzzy } from 'fuzzaldrin-plus'
 import { promisify as P } from 'util'
 import { EventEmitter } from 'events'
 import { exec } from 'child_process'
@@ -156,6 +157,11 @@ export const pathParts = (path: string) => {
 export const ensureDir = (path: string) => pathParts(path).reduce((q, dir, ix, arr) => q.then(() => {
   return P(fs.mkdir)(join(...arr.slice(0, ix), dir)).catch(() => {})
 }), Promise.resolve())
+
+export const multiFuzzy = (items: any[], query: string, options?: any) => {
+  const subQueries = query.split(' ').filter(m => m)
+  return subQueries.reduce((res, qry) => fuzzy(res, qry, options), [])
+}
 
 export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
   let delayExpired = false
