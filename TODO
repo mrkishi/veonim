@@ -1,11 +1,6 @@
 0.9.0 observations:
 - help files missing
 
--- divination:
-  * [maybe] line jump: anchor labels to first char in the line? how to?
-    - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
-    - return [row, col][] list map
-
 
 -- buffer-search: spaces to further filter query (just like fuzzy file finder?)
   - what if we are trying to search for words with spaces? how does spacemas handle it?
