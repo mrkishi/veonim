@@ -3,6 +3,7 @@ import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
+import { VimMode } from '../neovim/types'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
@@ -69,7 +70,13 @@ const labelHTML = (label: string) => label
   .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
   .join('')
 
+const clearStack = () => new Promise(done => setImmediate(done))
+
 nvim.onAction('jump-line', () => {
+  console.log('mode:', nvim.state.mode)
+  if (nvim.state.mode === VimMode.Visual) nvim.normal('gv')
+  else nvim.feedkeys('m`', 'n')
+
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
