@@ -74,7 +74,6 @@ nvim.onAction('jump-line', () => {
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
   const { height: rowCount, row } = win.getSpecs()
-  // TODO: don't render on the current line. account for missing in jumpDistance calcs?
   const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
   const relativeCursorRow = cursor.row - row
 
@@ -99,7 +98,10 @@ nvim.onAction('jump-line', () => {
     return el
   })
 
-  labels.forEach(label => labelContainer.appendChild(label))
+  labels
+    .filter((_, ix) => ix !== relativeCursorRow)
+    .forEach(label => labelContainer.appendChild(label))
+
   currentWindowElement.add(labelContainer)
 
   const updateLabels = (matchChar: string) => labels
@@ -124,7 +126,8 @@ nvim.onAction('jump-line', () => {
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
 
-    nvim.feedkeys(`m\`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
+    const command = `m\`${Math.abs(jumpDistance)}g${jumpMotion}g^`
+    nvim.feedkeys(command, 'n')
     reset()
   }
 

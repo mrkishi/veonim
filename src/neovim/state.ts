@@ -8,7 +8,6 @@ const state = {
   special: '#ef5188',
   mode: VimMode.Normal,
   bufferType: BufferType.Normal,
-  absoluteFilepath: '',
   file: '',
   filetype: '',
   cwd: '',
@@ -18,6 +17,9 @@ const state = {
   column: 0,
   editorTopLine: 0,
   editorBottomLine: 0,
+  // computed props below. these will never be updated, only computed from
+  // other state values. see 'computedStateProperties' below
+  absoluteFilepath: '',
 }
 
 export type NeovimState = typeof state
@@ -41,7 +43,6 @@ type UntilStateValue2 = {
 }
 
 type UntilStateValue = UntilStateValue1 & UntilStateValue2
-
 
 const computedStateProperties = new Map<StateKeys, (state: NeovimState) => any>()
 computedStateProperties.set('absoluteFilepath', (s: NeovimState) => join(s.cwd, s.file))
