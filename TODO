@@ -1,6 +1,8 @@
 0.9.0 observations:
 - help files missing
 
+-- index.html remove temp dev debug testing styles
+
 -- add documentation about guifont/size/cursor/colorscheme/roboto/etc
 
 -- divination:
@@ -94,6 +96,9 @@ neglible benefit on network (de)serializing (and xmit time?)
 
 
 =============
+
+-- electron: is loading 'index.html' via 'file:///' the right way to do it? what about if we support es6 modules? i saw something about register protocols and intercept protocols. i also noticed index.html takes a long time to load in perf testing. what if we hardcode index.html into the JS and inject it directly from memory?
+  - faster module loading? v8 snapshots? webpack? dynamic deffered requires/imports?
 
 -- research :mksession. can we integrate with it. save/restore stuff automagically? or from welcome page. will it work with ext-windows and ext-wincmds?
 
