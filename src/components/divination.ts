@@ -70,11 +70,8 @@ const labelHTML = (label: string) => label
   .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
   .join('')
 
-const clearStack = () => new Promise(done => setImmediate(done))
-
-const divinationLine = visualmode => {
-  console.log('visual??:', visualmode)
-  if (nvim.state.mode === VimMode.Visual) nvim.normal('gv')
+const divinationLine = ({ visual }) => {
+  if (visual) nvim.normal('gv')
   else nvim.feedkeys('m`', 'n')
 
   const win = activeWindow()
@@ -132,8 +129,11 @@ const divinationLine = visualmode => {
     const targetRow = indexOfLabel(jumpLabel)
     const jumpDistance = targetRow - relativeCursorRow
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
+    const cursorAdjustment = visual
+      ? jumpDistance > 0 ? 'g$' : ''
+      : 'g^'
 
-    const command = `m\`${Math.abs(jumpDistance)}g${jumpMotion}g^`
+    const command = `${Math.abs(jumpDistance)}g${jumpMotion}${cursorAdjustment}`
     nvim.feedkeys(command, 'n')
     reset()
   }
