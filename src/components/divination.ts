@@ -3,7 +3,6 @@ import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
-import { VimMode } from '../neovim/types'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
@@ -70,7 +69,7 @@ const labelHTML = (label: string) => label
   .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
   .join('')
 
-const divinationLine = ({ visual }) => {
+const divinationLine = ({ visual = false }) => {
   if (visual) nvim.normal('gv')
   else nvim.feedkeys('m`', 'n')
 
@@ -145,6 +144,7 @@ const divinationLine = ({ visual }) => {
     if (labelSize === 1 && grabbedKeys.length === 1) return jump()
     if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
     if (labelSize === 2 && grabbedKeys.length === 2) return jump()
+    else reset()
   })
 }
 
@@ -283,6 +283,7 @@ export const divinationSearch = async () => {
     if (labelSize === 1 && grabbedKeys.length === 1) return jump()
     if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
     if (labelSize === 2 && grabbedKeys.length === 2) return jump()
+    else reset()
   })
 }
 
