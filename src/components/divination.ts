@@ -185,6 +185,7 @@ export const divinationSearch = async () => {
   const { foreground, background } = await nvim.getColor('Search')
   const specs = win.getSpecs()
   const cursorDistanceFromTopOfEditor = cursor.row - specs.row
+  const cursorDistanceFromLeftOfEditor = cursor.col - specs.col
 
   const searchPositions = findSearchPositions({
     ...specs,
@@ -214,6 +215,16 @@ export const divinationSearch = async () => {
   const { labelSize, getLabel } = getLabels(searchPixelPositions.length)
 
   const labels = searchPixelPositions.map((pos, ix) => {
+    const relativePosition = {
+      row: pos.row - specs.row,
+      col: pos.col - specs.col,
+    }
+
+    const sameRow = relativePosition.row === cursorDistanceFromTopOfEditor
+    const sameCol = relativePosition.col === cursorDistanceFromLeftOfEditor
+
+    if (sameRow && sameCol) return
+
     // TODO: these styles should be shared. also i think we should use css translate
     // instead of top/left
     const el = makel({
@@ -232,13 +243,12 @@ export const divinationSearch = async () => {
     })
 
     const label = getLabel(ix)
-    jumpTargets.set(label, { row: pos.row, col: pos.col })
+    jumpTargets.set(label, relativePosition)
     el.innerHTML = labelHTML(label)
 
     return el
-  })
+  }).filter(m => m) as HTMLElement[]
 
-  // TODO: dedup some of this code for label creation
   labels.forEach(label => labelContainer.appendChild(label))
   currentWindowElement.add(labelContainer)
 
