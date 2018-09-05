@@ -202,6 +202,8 @@ export const divinationSearch = async () => {
     bg: foreground,
   })
 
+  if (!searchPositions.length) return
+
   // TODO: again, same issue as above, remove/filter out the current line + col
   // if mouse is right on top of it
   const searchPixelPositions = searchPositions.map(m => ({
