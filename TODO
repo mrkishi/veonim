@@ -92,7 +92,10 @@ neglible benefit on network (de)serializing (and xmit time?)
     - like jump labels for moving to window (show window border around current active window)
     - press label and the contents of current and targeted window are swapped around. perhaps resized accordingly?
 
+
 =============
+
+-- research :mksession. can we integrate with it. save/restore stuff automagically? or from welcome page. will it work with ext-windows and ext-wincmds?
 
 -- ext-windows --
 if we have ext-windows, we will have the visible lines of buffers. no need to query it from api
