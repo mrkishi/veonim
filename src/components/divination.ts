@@ -78,7 +78,7 @@ const divinationLine = ({ visual = false }) => {
 
   const { height: rowCount, row } = win.getSpecs()
   const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
-  const relativeCursorRow = cursor.row - row
+  const cursorDistanceFromTopOfEditor = cursor.row - row
 
   const labelContainer = makel({
     position: 'absolute'
@@ -102,7 +102,7 @@ const divinationLine = ({ visual = false }) => {
   })
 
   labels
-    .filter((_, ix) => ix !== relativeCursorRow)
+    .filter((_, ix) => ix !== cursorDistanceFromTopOfEditor)
     .forEach(label => labelContainer.appendChild(label))
 
   currentWindowElement.add(labelContainer)
@@ -126,7 +126,9 @@ const divinationLine = ({ visual = false }) => {
   const jump = () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
     const targetRow = indexOfLabel(jumpLabel)
-    const jumpDistance = targetRow - relativeCursorRow
+    if (targetRow === -1) return reset()
+
+    const jumpDistance = targetRow - cursorDistanceFromTopOfEditor
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
     const cursorAdjustment = visual
       ? jumpDistance > 0 ? 'g$' : ''
@@ -182,6 +184,7 @@ export const divinationSearch = async () => {
 
   const { foreground, background } = await nvim.getColor('Search')
   const specs = win.getSpecs()
+  const cursorDistanceFromTopOfEditor = cursor.row - specs.row
 
   const searchPositions = findSearchPositions({
     ...specs,
@@ -259,20 +262,15 @@ export const divinationSearch = async () => {
 
   const jump = async () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
+    if (!jumpTargets.has(jumpLabel)) return reset()
+
     const { row, col } = jumpTargets.get(jumpLabel)
 
-    const distanceFrom = {
-      top: row - specs.row,
-      left: col - specs.col,
-    }
+    const jumpDistance = row - cursorDistanceFromTopOfEditor
+    const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
+    const command = `m\`${Math.abs(jumpDistance)}g${jumpMotion}${col + 1}|`
 
-    const target = {
-      line: nvim.state.editorTopLine + distanceFrom.top - 1,
-      column: distanceFrom.left,
-    }
-
-    nvim.normal('m`')
-    nvim.jumpTo(target)
+    nvim.feedkeys(command, 'n')
     reset()
   }
 

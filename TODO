@@ -5,13 +5,11 @@
 
 
 -- divination:
-  - make it work in visual mode - so i can do use jump-line in visual mode to make a selection
   - jump-search not always jumping to the correct destination... (i think this has to do with lines wrapping [word-wrap] - our visual editor line numbers do not match buffer line numbers)
   - do not create label/jump coordinates for position:
     - search hl -> position under cursor +/- 1-2 (huh?)
   - handle error if type bad label that does not exist. do what?
-    - escape?
-    - drop keys?
+    - resolved for jump-line. need to solve for jump-search
   * [maybe] line jump: anchor labels to first char in the line? how to?
     - call getVisibleLines, find the first non-space char, count how many columns in the first char is in
     - return [row, col][] list map
