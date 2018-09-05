@@ -94,25 +94,24 @@ const divinationLine = async ({ visual = false }) => {
   const { height: rowCount, row } = win.getSpecs()
   const visibleLines = getVisibleLines(row, rowCount)
   const lineWhitespaceOffsets = calcWhitespaceOffsets(visibleLines)
-
-  console.log('lineWhitespaceOffsets', lineWhitespaceOffsets)
-
-  const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
   const cursorDistanceFromTopOfEditor = cursor.row - row
 
-  const labelContainer = makel({
-    position: 'absolute'
+  const rowPositions = genList(rowCount, ix => {
+    const col = lineWhitespaceOffsets.get(ix) || 0
+    return win.relativePositionToPixels(ix, col)
   })
+
+  const labelContainer = makel({ position: 'absolute' })
 
   const { labelSize, getLabel, indexOfLabel } = getLabels(rowPositions.length)
 
-  const labels = rowPositions.map((y, ix) => {
+  const labels = rowPositions.map(({ y, x }, ix) => {
     const el = makel({
       ...paddingV(4),
       position: 'absolute',
       fontSize: '1.1rem',
       top: `${y}px`,
-      left: '8px',
+      left: `${x}px`,
       background: '#000',
       color: '#eee',
     })
@@ -228,7 +227,7 @@ export const divinationSearch = async () => {
   // if mouse is right on top of it
   const searchPixelPositions = searchPositions.map(m => ({
     ...m,
-    ...win.realtivePositionToPixels(m.row, m.col),
+    ...win.relativePositionToPixels(m.row, m.col),
   }))
 
   const labelContainer = makel({ position: 'absolute' })

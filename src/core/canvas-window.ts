@@ -32,7 +32,7 @@ export interface CanvasWindow {
   rowToY(row: number): number
   rowToTransformY(row: number): number
   relativeRowToY(row: number): number
-  realtivePositionToPixels(row: number, col: number): { x: number, y: number }
+  relativePositionToPixels(row: number, col: number): { x: number, y: number }
   cellsToPixelWidth(cells: number): number
   colToX(col: number): number
   resize(canvasBox: HTMLElement, initBackgroundColor: string): CanvasWindow
@@ -92,7 +92,7 @@ export const createWindow = (container: HTMLElement) => {
   // because i suck at css
   api.rowToTransformY = row => canvasBoxDimensions.y + px.row.y(row) - title.specs.height
   api.relativeRowToY = row => (canvasContainer.cell.height * row) + specs.paddingY + canvasContainer.cell.padding
-  api.realtivePositionToPixels = (row, col) => ({
+  api.relativePositionToPixels = (row, col) => ({
     y: px.row.y(row),
     x: px.col.x(col),
   })
