@@ -369,6 +369,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
       api.buf.setLines(id, start + 1, start + 1 + newLines.length, false, newLines)
     },
     getAllLines: () => req.buf.getLines(id, 0, -1, true),
+    getVisibleLines: () => req.buf.getLines(id, state.editorTopLine - 1, state.editorBottomLine, true),
     getLines: (start, end) => req.buf.getLines(id, start, end, true),
     getLine: start => req.buf.getLines(id, start, start + 1, true).then(m => m[0]),
     setLines: (start, end, lines) => api.buf.setLines(id, start, end, true, lines),
