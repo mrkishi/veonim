@@ -276,6 +276,8 @@ nvim.onAction('grep-word', async () => {
   worker.call.query({ query, cwd })
 })
 
+// TODO: rename to grep-visual to be consistent with other actions
+// operating from visual mode
 nvim.onAction('grep-selection', async () => {
   await nvim.feedkeys('gv"zy')
   const selection = await nvim.expr('@z')

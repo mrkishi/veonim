@@ -1,5 +1,4 @@
 import { dirname, basename, join, extname, resolve, sep, parse, normalize } from 'path'
-import { filter as fuzzy } from 'fuzzaldrin-plus'
 import { promisify as P } from 'util'
 import { EventEmitter } from 'events'
 import { exec } from 'child_process'

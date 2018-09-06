@@ -190,3 +190,11 @@ const ui = app<S, A>({ name: 'buffer-search', state, actions, view, element: con
 
 nvim.onAction('buffer-search', ui.show)
 nvim.onAction('buffer-search-resume', () => ui.show(previousSearchCache))
+// tip: use 'gn' to turn search selection into visual selection. then use this
+nvim.onAction('buffer-search-visual', async () => {
+  // TODO: any cleaner way of doing this?
+  await nvim.feedkeys('gv"zy')
+  const selection = await nvim.expr('@z')
+  ui.show()
+  ui.change(selection)
+})

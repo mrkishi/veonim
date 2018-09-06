@@ -2,10 +2,6 @@
 - help files missing
 
 
--- buffer-search
-  - use current visual selection as input - see: helm-swoop
-
-
 === 0.10.0 release here
 
 
