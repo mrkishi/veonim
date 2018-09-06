@@ -116,3 +116,9 @@ const containerEl = makel({
 const ui = app<S, A>({ name: 'viewport-search', state, actions, view, element: containerEl })
 
 nvim.onAction('viewport-search', () => ui.show())
+nvim.onAction('viewport-search-visual', async () => {
+  await nvim.feedkeys('gv"zy')
+  const selection = await nvim.expr('@z')
+  ui.show()
+  ui.change(selection)
+})
