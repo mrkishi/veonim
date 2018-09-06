@@ -84,7 +84,7 @@ const calcWhitespaceOffsets = (lines: string[]) => lines.reduce((res, line, ix) 
   return res
 }, new Map<number, number>())
 
-const divinationLine = async ({ visual = false }) => {
+const divinationLine = async ({ visual }: { visual: boolean }) => {
   if (visual) nvim.feedkeys('gv', 'n')
   else nvim.feedkeys('m`', 'n')
 
