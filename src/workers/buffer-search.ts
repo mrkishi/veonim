@@ -45,6 +45,12 @@ on.fuzzy(async (cwd: string, file: string, query: string, max?: number): Promise
   return filter(cwd, file, query, max)
 })
 
+// TODO: is it really that much work to search on a few hundred lines max
+// on the main thread? realisticly a buffer might be vertically max 100-200
+// lines (if you have high res and low font size). would it kill the main
+// thread to just do the fuzzy on main thread? also we don't need to query
+// the nvim api for visible lines. we already have them in the render-grid
+// buffer. see divination for how we get visible lines from grid.
 on.visibleFuzzy(async (query: string): Promise<FilterResult[]> => {
   // TODO: this is the inevitable result of moving neovim
   // to its own dedicated worker thread: other web workers
