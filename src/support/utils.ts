@@ -158,11 +158,6 @@ export const ensureDir = (path: string) => pathParts(path).reduce((q, dir, ix, a
   return P(fs.mkdir)(join(...arr.slice(0, ix), dir)).catch(() => {})
 }), Promise.resolve())
 
-export const multiFuzzy = (items: any[], query: string, options?: any) => {
-  const subQueries = query.split(' ').filter(m => m)
-  return subQueries.reduce((res, qry) => fuzzy(res, qry, options), [])
-}
-
 export const EarlyPromise = (init: (resolve: (resolvedValue: any) => void, reject: (error: any) => void) => void) => {
   let delayExpired = false
   const promise = new Promise(init)
