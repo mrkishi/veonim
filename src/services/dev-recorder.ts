@@ -4,9 +4,9 @@ import userPrompt from '../components/generic-prompt'
 import * as storage from '../support/local-storage'
 import { makel } from '../ui/vanilla'
 import nvim from '../core/neovim'
-import finder from '@medv/finder'
 
 if (process.env.VEONIM_DEV) {
+const finder = require('@medv/finder')
 
 interface RecordingEvent {
   kind: string
