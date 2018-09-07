@@ -19,6 +19,14 @@ export const setTitleVisibility = (visible: boolean) => {
 const typescriptSucks = (el: any, bar: any) => el.prepend(bar)
 
 if (macos) {
+  merge((title as HTMLElement).style, {
+    marginLeft: '20%',
+    marginRight: '20%',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  })
+
   merge((titleBar as HTMLElement).style, {
     height: '22px',
     color: 'var(--foreground-60)',
