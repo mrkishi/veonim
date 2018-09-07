@@ -70,6 +70,11 @@ neglible benefit on network (de)serializing (and xmit time?)
   - swap contents (and size?) of current window with another window (maybe this might be better  alternative than move window (move window could be tricky with complex split trees))
     - like jump labels for moving to window (show window border around current active window)
     - press label and the contents of current and targeted window are swapped around. perhaps resized accordingly?
+  - create UI overlay guides and keybinds for creating window splits
+    - activate the UI thingy
+    - it shows a semi-transparent overlay where the new window will be created
+    - each overlay has a keybinding
+    - pressing the keybinding creates the window split at the desired location
 
 
 =============
