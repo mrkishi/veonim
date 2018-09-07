@@ -1,9 +1,8 @@
-0.9.0 observations:
-- help files missing
-
-
-=== 0.10.0 release here
-
+-- test project + files
+  - create some test project + files used for testing and demo screenshots
+  - create a start script:
+    - to start veonim at a certain size for feature demo
+    - open test project + files
 
 -- c-o/i but for files only. don't want to jump to previous location in the same file. i want to
   go to previous file kthx
@@ -14,9 +13,6 @@
 
 
 -- terminal change title to current running process
-
-
--- fancy git-branch switcher
 
 
 -- create overlay menu window with key shortcuts so users can create spacemacs-like
@@ -77,6 +73,8 @@ neglible benefit on network (de)serializing (and xmit time?)
 
 
 =============
+
+-- fancy git-branch switcher
 
 -- electron: is loading 'index.html' via 'file:///' the right way to do it? what about if we support es6 modules? i saw something about register protocols and intercept protocols. i also noticed index.html takes a long time to load in perf testing. what if we hardcode index.html into the JS and inject it directly from memory?
   - faster module loading? v8 snapshots? webpack? dynamic deffered requires/imports?
