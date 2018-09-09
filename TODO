@@ -1,11 +1,17 @@
+-- :Veonim buffers flickers secondary window
+-- call VK() does not register keybinds
+-- :Veonim jump-line is missing ALLOTA labels
+
+-- gen-api.js get :h doc info for nvim and put into jsdoc annotations to get signature-hints?
+
 -- test project + files
   - create some test project + files used for testing and demo screenshots
   - create a start script:
     - to start veonim at a certain size for feature demo
     - open test project + files
 
--- c-o/i but for files only. don't want to jump to previous location in the same file. i want to
-  go to previous file kthx
+
+-- jump between mru buffers
 
 
 -- hide overlays (problem info, hover) on bufleave
