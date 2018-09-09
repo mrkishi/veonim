@@ -64,6 +64,22 @@ neglible benefit on network (de)serializing (and xmit time?)
 
 -- INVENTORY
   - also add window commands. especially ones that i can't remember (swap, maximize/zoom, etc.)
+  - display action keybinds in fuzzy menu
+  - fuzzy menu has descriptions as well
+  - fuzzy menu also display icons?
+  - color code layers? colors then also appear in fuzzy menu?
+  - make sure layers and actions always show up in the same oreder. visual memory is important
+  - show layer keybind in breadcrumbs. Home layer will be <space> by default (show the <space>)
+  - show <ctrl-o> to jump back to previous layer
+  - layer extra documentation at the bottom of activated/current layer
+  - determine if user keybound <space> to anything in their init.vim
+    - if <space> already bound, then don't bind inventory-layers (display a first message ONCE on first veonim load?) or show red error message in Welcome screen along with instructions on how to setup binding in init.vim
+    - else <space> not bound
+      - if inventory already bound to another key, skip
+      - else bind inventory to <space>
+  - show cancel/ESC key
+  - other invalid keys pressed, what do? nothing? show error? escape menu?
+
 
 -- show marks visually in editor?
   - if the current viewport has any marks, render them over the text.

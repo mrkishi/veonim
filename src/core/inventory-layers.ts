@@ -12,6 +12,8 @@ export enum InventoryLayerKind {
 }
 
 export interface InventoryAction {
+  /** So we don't break backwards compatibility for now */
+  legacyDeprecatedCommand: string
   /** Which layer this action belongs to */
   layer: InventoryLayerKind
   /** Key binding to activate this action */
