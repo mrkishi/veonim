@@ -1,6 +1,13 @@
 import { exec } from 'child_process'
 import { remote } from 'electron'
 
+interface Process {
+  cmd: string
+  pid: number
+  cpu: number
+  memory: number
+}
+
 interface ProcessStats {
 	cmd: string
 	pid: number
@@ -13,14 +20,14 @@ interface ProcessItem extends ProcessStats {
   children?: ProcessItem[]
 }
 
-const content = document.createElement('pre')
-document.body.appendChild(content)
+const MB = 1024 * 1024
+const container = document.getElementById('process-list') as HTMLElement
 
-const listProcesses = (rootPid: number) => new Promise(done => {
+const listProcesses = (rootPid: number): Promise<ProcessItem> => new Promise(done => {
   let rootItem: ProcessItem
   const map = new Map<number, ProcessItem>()
 
-  function addToTree({ cmd, pid, parentPid, load, memory }: ProcessStats) {
+  const addToTree = ({ cmd, pid, parentPid, load, memory }: ProcessStats) => {
     const parent = map.get(parentPid)
     const isParent = pid === rootPid || parent
     if (!isParent) return
@@ -118,7 +125,6 @@ const listProcesses = (rootPid: number) => new Promise(done => {
           memory: parseFloat(mem),
         }
 
-        console.log('stats', stats)
         addToTree(stats)
       })
 
@@ -126,7 +132,51 @@ const listProcesses = (rootPid: number) => new Promise(done => {
   })
 })
 
+const renderProcesses = (procs: Process[]) => {
+  let tableHtml = `
+    <tr>
+      <th>"CPU %"</th>
+      <th>"Memory (MB)"</th>
+      <th>"pid"</th>
+      <th>"Name"</th>
+    </tr>`
+
+  procs.forEach(p => {
+    tableHtml += `
+      <tr id=${p.pid}>
+        <td>${p.cpu}</td>
+        <td>${p.memory}</td>
+        <td>${p.pid}</td>
+        <td>${p.cmd}</td>
+      </tr>`
+  })
+
+  container.innerHTML = `<table>${tableHtml}</table>`
+}
+
+const objToItem = (process: ProcessItem, list: Process[], depth = 0) => {
+  const { cmd, pid, load, memory, children = [] } = process
+
+  const item: Process = {
+    cmd: ' '.repeat(depth * 2) + cmd,
+    cpu: Number(load.toFixed(0)),
+    pid: Number((pid).toFixed(0)),
+    memory: Number((memory / MB).toFixed(0)),
+  }
+
+  list.push(item)
+  children.forEach(pi => objToItem(pi, list, depth + 1))
+}
+
+const processTreeToList = (processes: ProcessItem): Process[] => {
+  let depth = 0
+  let list = [] as Process[]
+  objToItem(processes, list, depth)
+  return list
+}
+
 setInterval(async () => {
-  const procs = await listProcesses(remote.process.pid)
-  content.innerText = JSON.stringify(procs, null, 2)
-}, 2e3)
+  const processTree = await listProcesses(remote.process.pid)
+  const processList = processTreeToList(processTree)
+  renderProcesses(processList)
+}, 1200)
