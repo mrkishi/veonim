@@ -1,8 +1,7 @@
-import { app, BrowserWindow, Menu } from 'electron'
+import { app, BrowserWindow, Menu, shell } from 'electron'
 
 let win: Electron.BrowserWindow
 app.setName('veonim')
-Menu.setApplicationMenu(new Menu())
 
 const comscan = (() => {
   const windows = new Set()
@@ -12,6 +11,41 @@ const comscan = (() => {
 })()
 
 app.on('ready', async () => {
+  const menuTemplate = [{
+    label: 'Window',
+    submenu: [{
+      role: 'togglefullscreen',
+    }],
+  }, {
+    role: 'help',
+    submenu: [{
+      label: 'User Guide',
+      click: () => shell.openExternal('https://github.com/veonim/veonim/blob/master/docs/readme.md'),
+    }, {
+      label: 'Report Issue',
+      click: () => shell.openExternal('https://github.com/veonim/veonim/issues'),
+    }, {
+      type: 'separator',
+    }, {
+      label: 'Toggle DevTools',
+      accelerator: 'CmdOrCtrl+|',
+      click: () => win.webContents.toggleDevTools(),
+    }] as any // electron is stupid,
+  }]
+
+  if (process.platform === 'darwin') menuTemplate.unshift({
+    label: 'veonim',
+    submenu: [{
+      role: 'about',
+    }, {
+      type: 'separator',
+    }, {
+      role: 'quit',
+    }] as any // electron is stupid
+  })
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
+
   win = new BrowserWindow({
     width: 800,
     height: 600,

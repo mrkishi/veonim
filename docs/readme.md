@@ -1,6 +1,6 @@
-# docs
+# User Guide
 
-this is documentation. nobody reads documentation tho. this is so sad can we get 50 likes?
+Welcome to Veonim. The show will be starting shortly. Please remember to turn off or silence your mobile devices. Please sit back, relax, and enjoy the show. Thank you.
 
 ## quick start copypasta config
 
