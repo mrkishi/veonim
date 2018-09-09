@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, shell } from 'electron'
 
-let win: Electron.BrowserWindow
+let win: any
+let winProcessExplorer: any
 app.setName('veonim')
 
 const comscan = (() => {
@@ -29,6 +30,9 @@ app.on('ready', async () => {
       click: () => shell.openExternal('https://github.com/veonim/veonim/issues'),
     }, {
       type: 'separator',
+    }, {
+      label: 'Process Explorer',
+      click: () => openProcessExplorer(),
     }, {
       label: 'Toggle DevTools',
       accelerator: 'CmdOrCtrl+|',
@@ -114,3 +118,13 @@ app.on('ready', async () => {
     win.webContents.openDevTools()
   }
 })
+
+const openProcessExplorer = () => {
+  winProcessExplorer = new BrowserWindow({
+    width: 600,
+    height: 200,
+  })
+
+  winProcessExplorer.loadURL(`file:///${__dirname}/process-explorer.html`)
+  winProcessExplorer.openDevTools()
+}
