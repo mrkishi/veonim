@@ -34,7 +34,7 @@ app.on('ready', async () => {
       label: 'Process Explorer',
       click: () => openProcessExplorer(),
     }, {
-      label: 'Toggle DevTools',
+      label: 'Developer Tools',
       accelerator: 'CmdOrCtrl+|',
       click: () => win.webContents.toggleDevTools(),
     }] as any // electron is stupid,
@@ -120,9 +120,15 @@ app.on('ready', async () => {
 })
 
 const openProcessExplorer = () => {
+  if (winProcessExplorer) {
+    winProcessExplorer.close()
+    winProcessExplorer = null
+    return
+  }
+
   winProcessExplorer = new BrowserWindow({
     width: 750,
-    height: 450,
+    height: 600,
   })
 
   winProcessExplorer.loadURL(`file:///${__dirname}/process-explorer.html`)

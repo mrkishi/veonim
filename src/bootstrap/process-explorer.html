@@ -5,7 +5,7 @@
     <style>
 body {
   margin: 0;
-  padding: 10px;
+  padding: 0;
   background: #222;
   color: #ddd;
   height: 100vh;
@@ -18,16 +18,23 @@ body {
 th {
   color: #888;
   padding: 5px;
+  padding-top: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid #333;
 }
 
-tr:hover {
+tbody > tr:hover {
   background-color: rgba(255, 255, 255, 0.07);
 }
 
 td {
   padding: 5px;
+}
+
+table {
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 100%;
 }
     </style>
   </head>

@@ -182,9 +182,9 @@ const renderProcesses = (procs: Process[]) => {
   const body = procs.reduce((res, p) => {
     res += `
       <tr id=${p.pid}>
-        <td>${p.cpu}</td>
-        <td>${p.memory}</td>
-        <td style="color: #999">${p.pid}</td>
+        <td align="center">${p.cpu}</td>
+        <td align="center">${p.memory}</td>
+        <td align="center" style="color: #999">${p.pid}</td>
         <td>${p.cmd}</td>
       </tr>`
     return res
