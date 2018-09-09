@@ -1,5 +1,6 @@
 import { exec } from 'child_process'
 import { remote } from 'electron'
+import { totalmem } from 'os'
 
 interface Process {
   cmd: string
@@ -154,14 +155,16 @@ const renderProcesses = (procs: Process[]) => {
   container.innerHTML = `<table>${tableHtml}</table>`
 }
 
-const objToItem = (process: ProcessItem, list: Process[], depth = 0) => {
-  const { cmd, pid, load, memory, children = [] } = process
+const objToItem = ({ cmd, pid, load, memory, children = [] }: ProcessItem, list: Process[], depth = 0) => {
+  const mem = process.platform === 'win32'
+    ? memory
+    : (totalmem() * (memory / 100))
 
   const item: Process = {
     cmd: ' '.repeat(depth * 2) + cmd,
     cpu: Number(load.toFixed(0)),
     pid: Number((pid).toFixed(0)),
-    memory: Number((memory / MB).toFixed(0)),
+    memory: Number((mem / MB).toFixed(0)),
   }
 
   list.push(item)
