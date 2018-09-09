@@ -15,6 +15,9 @@ app.on('ready', async () => {
     label: 'Window',
     submenu: [{
       role: 'togglefullscreen',
+    }, {
+      label: 'Maximize',
+      click: () => win.maximize(),
     }],
   }, {
     role: 'help',
@@ -37,6 +40,12 @@ app.on('ready', async () => {
     label: 'veonim',
     submenu: [{
       role: 'about',
+    }, {
+      type: 'separator',
+    }, {
+      // using 'role: hide' adds cmd+h keybinding which overrides vim keybinds
+      label: 'Hide veonim',
+      click: () => app.hide(),
     }, {
       type: 'separator',
     }, {
