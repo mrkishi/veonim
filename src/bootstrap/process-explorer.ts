@@ -133,6 +133,42 @@ const listProcesses = (rootPid: number): Promise<ProcessItem> => new Promise(don
   })
 })
 
+const parseName = (cmd: string, pid: number): string => {
+  // browser windows (renderer processes)
+  if (pid === remote.process.pid) return 'Veonim'
+  if (pid === process.pid) return 'Process Explorer'
+
+  // neovim
+  if (cmd.includes('nvim') && cmd.includes('--cmd call rpcnotify')) return 'Neovim'
+  if (cmd.includes('nvim') && cmd.includes('--cmd colorscheme veonim')) return 'Neovim - Auxillary Syntax Highlighter'
+  if (cmd.includes('nvim') && cmd.includes('--cmd com! -nargs=+ -range Veonim 1')) return 'Neovim - "errorformat" Parser'
+
+  return cmd
+}
+
+const objToItem = ({ cmd, pid, load, memory, children = [] }: ProcessItem, list: Process[], depth = 0) => {
+  const mem = process.platform === 'win32'
+    ? memory
+    : (totalmem() * (memory / 100))
+
+  const item: Process = {
+    cmd: ' '.repeat(depth * 2) + parseName(cmd, pid),
+    cpu: Number(load.toFixed(0)),
+    pid: Number((pid).toFixed(0)),
+    memory: Number((mem / MB).toFixed(0)),
+  }
+
+  list.push(item)
+  children.forEach(pi => objToItem(pi, list, depth + 1))
+}
+
+const processTreeToList = (processes: ProcessItem): Process[] => {
+  let depth = 0
+  let list = [] as Process[]
+  objToItem(processes, list, depth)
+  return list
+}
+
 const renderProcesses = (procs: Process[]) => {
   let tableHtml = `
     <tr>
@@ -151,35 +187,16 @@ const renderProcesses = (procs: Process[]) => {
         <td>${p.cmd}</td>
       </tr>`
   })
+  // TODO: p.cmd td does not respect empty leftpadding
 
   container.innerHTML = `<table>${tableHtml}</table>`
 }
 
-const objToItem = ({ cmd, pid, load, memory, children = [] }: ProcessItem, list: Process[], depth = 0) => {
-  const mem = process.platform === 'win32'
-    ? memory
-    : (totalmem() * (memory / 100))
-
-  const item: Process = {
-    cmd: ' '.repeat(depth * 2) + cmd,
-    cpu: Number(load.toFixed(0)),
-    pid: Number((pid).toFixed(0)),
-    memory: Number((mem / MB).toFixed(0)),
-  }
-
-  list.push(item)
-  children.forEach(pi => objToItem(pi, list, depth + 1))
-}
-
-const processTreeToList = (processes: ProcessItem): Process[] => {
-  let depth = 0
-  let list = [] as Process[]
-  objToItem(processes, list, depth)
-  return list
-}
-
-setInterval(async () => {
+const refresh = async () => {
   const processTree = await listProcesses(remote.process.pid)
   const processList = processTreeToList(processTree)
   renderProcesses(processList)
-}, 1200)
+}
+
+refresh()
+// setInterval(refresh, 1200)
