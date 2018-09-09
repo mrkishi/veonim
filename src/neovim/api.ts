@@ -26,6 +26,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   const registeredEventActions = new Set<string>()
   const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
   const inventory = new Map<string, InventoryAction>()
+  console.log('NYI: inventory', inventory)
 
   const watchers = {
     actions: Watcher<GenericEvent>(),

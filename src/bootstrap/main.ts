@@ -121,10 +121,9 @@ app.on('ready', async () => {
 
 const openProcessExplorer = () => {
   winProcessExplorer = new BrowserWindow({
-    width: 800,
-    height: 400,
+    width: 750,
+    height: 450,
   })
 
   winProcessExplorer.loadURL(`file:///${__dirname}/process-explorer.html`)
-  winProcessExplorer.openDevTools()
 }

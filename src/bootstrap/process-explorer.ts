@@ -136,7 +136,8 @@ const findName = (cmd: string): string => {
 const parseName = (cmd: string, pid: number): string => {
   // browser windows (renderer processes)
   if (pid === remote.process.pid) return 'Veonim'
-  if (pid === process.pid) return 'Process Explorer'
+  if (pid === process.pid) return 'window: Process Explorer'
+  if (cmd.includes('background-color=#222')) return 'window: Main'
 
   // neovim
   if (cmd.includes('nvim') && cmd.includes('call rpcnotify')) return 'Neovim'
@@ -170,26 +171,29 @@ const processTreeToList = (processes: ProcessItem): Process[] => {
 }
 
 const renderProcesses = (procs: Process[]) => {
-  let tableHtml = `
+  const head = `
     <tr>
-      <th>"CPU %"</th>
-      <th>"Memory (MB)"</th>
-      <th>"pid"</th>
-      <th>"Name"</th>
+      <th align="left">CPU %</th>
+      <th align="left">Memory (MB)</th>
+      <th align="left">PID</th>
+      <th align="left">Name</th>
     </tr>`
 
-  procs.forEach(p => {
-    tableHtml += `
+  const body = procs.reduce((res, p) => {
+    res += `
       <tr id=${p.pid}>
         <td>${p.cpu}</td>
         <td>${p.memory}</td>
-        <td>${p.pid}</td>
+        <td style="color: #999">${p.pid}</td>
         <td>${p.cmd}</td>
       </tr>`
-  })
-  // TODO: p.cmd td does not respect empty leftpadding
+    return res
+  }, '')
 
-  container.innerHTML = `<table>${tableHtml}</table>`
+  container.innerHTML = `<table>
+    <thead>${head}</thead>
+    <tbody>${body}</tbody>
+  </table>`
 }
 
 const refresh = async () => {
@@ -199,4 +203,4 @@ const refresh = async () => {
 }
 
 refresh()
-// setInterval(refresh, 1200)
+setInterval(refresh, 1200)
