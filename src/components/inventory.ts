@@ -1,20 +1,5 @@
-import { watchConfig } from '../config/config-reader'
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
-
-// TODO: probably move to a separate module - config reader to handle vim options?
-// const vimOptions = (() => {
-//   let timeoutlen = 1000
-
-//   nvim
-//     .getOption('timeoutlen')
-//     .then(time => timeoutlen = time)
-//     .catch(() => {})
-
-//   return {
-//     get timeoutLength() { return timeoutlen }
-//   }
-// })()
 
 const state = {
   visible: false,
@@ -41,6 +26,8 @@ const view = ($: S) => h('div', {
 
 const ui = app<S, A>({ name: 'inventory', state, view, actions })
 
-nvim.onAction('inventory', () => {
+nvim.onAction('inventory', async () => {
+  const timeoutLength = await nvim.options.timeoutlen
+  console.log('timeoutLength', timeoutLength)
   ui.show()
 })

@@ -1,4 +1,5 @@
 export type GenericCallback = (...args: any[]) => void
+export type VimOption = { [index: string]: Promise<any> }
 
 export enum VimMode {
   Normal,

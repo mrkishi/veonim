@@ -1,8 +1,9 @@
-import { VimMode, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
+import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../neovim/protocol'
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
+import { watchConfig } from '../config/config-reader'
 import { Functions } from '../core/vim-functions'
 import { NeovimRPC } from '../messaging/rpc'
 import CreateVimState from '../neovim/state'
@@ -57,6 +58,24 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     onEvent(event, fn)
     api.core.subscribe(event)
   }
+
+  const options = new Map<string, any>()
+  const requestedOptions = new Set<string>()
+
+  const getOption = async (name: string) => {
+    const optionValue = await req.core.getOption(name)
+    requestedOptions.add(name)
+    options.set(name, optionValue)
+    return optionValue
+  }
+
+  const refreshOptions = () => [...requestedOptions.values()].forEach(getOption)
+
+  const readonlyOptions: VimOption = new Proxy(Object.create(null), {
+    get: (_, key: string) => options.has(key)
+    ? Promise.resolve(options.get(key))
+    : getOption(key)
+  })
 
   const cmd = (command: string) => api.core.command(command)
   const cmdOut = (command: string) => req.core.commandOutput(command)
@@ -229,7 +248,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     set: (_t, name: string, val: any) => (api.core.setVar(name, val), true),
   })
 
-  type RegisterAutocmd = { [Key in Autocmds]: (fn: (arg?: any) => void) => void }
+  type RegisterAutocmd = { [Key in Autocmds]: (fn: (...arg: any[]) => void) => void | any }
   const autocmd: RegisterAutocmd = new Proxy(Object.create(null), {
     get: (_, event: Autocmds) => (fn: any) => watchers.autocmds.on(event, fn)
   })
@@ -295,6 +314,11 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     g.vn_rpc_buf = []
   }
 
+  const refreshState = async () => {
+    const nextState = await call.VeonimState()
+    Object.assign(state, nextState)
+  }
+
   // nvim does not currently have TermEnter/TermLeave autocmds - it might in the future
   // TODO: revisit this once we get THE-GRID. do we still have the term cursor bug?
   watchState.mode(mode => {
@@ -304,10 +328,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     }
   })
 
-  const refreshState = async () => {
-    const nextState = await call.VeonimState()
-    Object.assign(state, nextState)
-  }
+  watchConfig('nvim/init.vim', refreshOptions)
 
   onCreateVim(() => {
     const events = [...registeredEventActions.values()].join('\\n')
@@ -316,7 +337,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     subscribe('veonim', ([ event, args = [] ]) => watchers.actions.emit(event, ...args))
     subscribe('veonim-state', ([ nextState ]) => Object.assign(state, nextState))
     subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
-    subscribe('veonim-autocmd', ([ autocmd, arg ]) => watchers.autocmds.emit(autocmd, arg))
+    subscribe('veonim-autocmd', ([ autocmd, ...arg ]) => watchers.autocmds.emit(autocmd, ...arg))
 
     processBufferedActions()
     refreshState()
@@ -336,6 +357,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   autocmd.BufWritePost(() => watchers.events.emit('bufWrite'))
   autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
   autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
+  autocmd.OptionSet((name: string, value: any) => options.set(name, value))
 
   // TODO: would like to abstract this buffer change stuff away into a cleaner
   // solution especially since we now have buffer change notifications in nvim
@@ -431,5 +453,5 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   return { state, watchState, onStateChange, onStateValue, untilStateValue,
     cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
     getCurrentLine, jumpTo, jumpToProjectFile, getColor, systemAction, current,
-    g, on, untilEvent, applyPatches, buffers, windows, tabs }
+    g, on, untilEvent, applyPatches, buffers, windows, tabs, options: readonlyOptions }
 }

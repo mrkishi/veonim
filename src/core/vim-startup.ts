@@ -70,6 +70,7 @@ const autocmds = {
   CompleteDone: 'v:completed_item',
   InsertEnter: null,
   InsertLeave: null,
+  OptionSet: `expand('<amatch>'), v:option_new, v:option_old`,
 }
 
 export type Autocmd = typeof autocmds
