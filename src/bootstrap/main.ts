@@ -131,5 +131,7 @@ const openProcessExplorer = () => {
     height: 600,
   })
 
+  winProcessExplorer.on('close', () => winProcessExplorer = null)
+
   winProcessExplorer.loadURL(`file:///${__dirname}/process-explorer.html`)
 }
