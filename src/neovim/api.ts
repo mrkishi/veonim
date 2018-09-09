@@ -1,6 +1,7 @@
 import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../neovim/protocol'
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
+import { InventoryAction } from '../core/inventory-layers'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
 import { watchConfig } from '../config/config-reader'
@@ -24,6 +25,8 @@ export interface Neovim extends NeovimRPC {
 export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => {
   const registeredEventActions = new Set<string>()
   const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
+  const inventory = new Map<string, InventoryAction>()
+
   const watchers = {
     actions: Watcher<GenericEvent>(),
     events: Watcher<BufferEvent>(),

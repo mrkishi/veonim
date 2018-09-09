@@ -1,6 +1,13 @@
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
+// TODO: show some layers as disabled? like the langserv layer would be disabled if there
+// are not language servers started. user can still see options and info, but visually
+// it appears non-functional
+//
+// can provide in layer description that 'this layer requires language server available'
+// the provide current status of lang serv. provide links to where to install langextensions
+
 const state = {
   visible: false,
 }

@@ -1,6 +1,7 @@
 -- :Veonim buffers flickers secondary window
 -- call VK() does not register keybinds
 -- :Veonim jump-line is missing ALLOTA labels
+-- VEONIM session management (readupon sessions and how to get a list of sessions to restore?)
 
 -- gen-api.js get :h doc info for nvim and put into jsdoc annotations to get signature-hints?
 
