@@ -1,4 +1,5 @@
 import { exec } from 'child_process'
+import { clipboard } from 'electron'
 import { remote } from 'electron'
 import { totalmem } from 'os'
 
@@ -7,6 +8,17 @@ interface Process {
   pid: number
   cpu: number
   memory: number
+}
+
+interface ProcessHistory {
+  cmd: string
+  pid: number
+  count: number
+  maxMemory: number
+  maxCPU: number
+  averageMemory: number
+  averageCPU: number
+  usages: Map<number, number>
 }
 
 interface ProcessStats {
@@ -21,8 +33,12 @@ interface ProcessItem extends ProcessStats {
   children?: ProcessItem[]
 }
 
+const usageHistory = new Map<number, ProcessHistory>()
 const MB = 1024 * 1024
 const container = document.getElementById('process-list') as HTMLElement
+const historyContainer = document.getElementById('process-history') as HTMLElement
+const copyHistoryButton = document.getElementById('copy-history') as HTMLElement
+let elapsedTime = 0
 
 const listProcesses = (rootPid: number): Promise<ProcessItem> => new Promise(done => {
   let rootItem: ProcessItem
@@ -170,6 +186,61 @@ const processTreeToList = (processes: ProcessItem): Process[] => {
   return list
 }
 
+const rollingAverage = (currentAverage: number, count: number, nextValue: number): number => {
+  let average = currentAverage
+  average -= average / count
+  average += nextValue / count
+  return Math.round(average)
+}
+
+const collectHistory = (procs: Process[]) => procs.forEach(proc => {
+  const item = usageHistory.get(proc.pid) || {
+    pid: proc.pid,
+    cmd: proc.cmd.replace('&nbsp;', ''),
+    count: 0,
+    maxMemory: proc.memory,
+    maxCPU: proc.cpu,
+    averageMemory: proc.memory,
+    averageCPU: proc.cpu,
+    usages: new Map<number, number>(),
+  }
+
+  item.count += 1
+
+  if (proc.memory > item.maxMemory) item.maxMemory = proc.memory
+  if (proc.cpu > item.maxCPU) item.maxCPU = proc.cpu
+
+  item.averageMemory = rollingAverage(item.averageMemory, item.count, proc.memory)
+  item.averageCPU = rollingAverage(item.averageCPU, item.count, proc.cpu)
+
+  const roundedUsage = Math.round(proc.cpu / 10) * 10
+  const prevUsage = item.usages.get(roundedUsage) || 0
+  item.usages.set(roundedUsage, prevUsage + 1)
+
+  usageHistory.set(proc.pid, item)
+})
+
+const renderHistory = () => {
+  const history = [...usageHistory.values()]
+
+  const html = history.map(hist => {
+    const usageValues = [...hist.usages.entries()]
+    const usages = usageValues.map(u => `<div>${u[0]}% - ${u[1]}s</div>`).join('')
+
+    // TODO: filter out ps ax process. new pid each time its spawned
+    // TODO: trim cmd whitespace
+    // TODO: sort usage percentages desc
+    return `<div>
+      <p>${hist.pid} - ${hist.cmd}</p>
+      <p>Avg/Max CPU: ${hist.averageCPU} / ${hist.maxCPU} - Avg/Max Memory (MB): ${hist.averageMemory} / ${hist.maxMemory}</p>
+      <div>${usages}</div>
+    </div>
+    <br/>`
+  }).join('')
+
+  historyContainer.innerHTML = `<div>Elapsed time: ${elapsedTime}s</div><hr/>${html}`
+}
+
 const renderProcesses = (procs: Process[]) => {
   const head = `
     <tr>
@@ -215,11 +286,28 @@ container.addEventListener('click', e => {
   process.kill(<any>id-0, kaput)
 })
 
+copyHistoryButton.addEventListener('click', () => {
+  const collected = [...usageHistory.values()].map(hist => ({
+    ...hist,
+    usages: [...hist.usages.entries()].map(m => ({
+      percentage: m[0],
+      time: m[1],
+    }))
+  }))
+
+  const data = JSON.stringify(collected)
+  clipboard.writeText(data)
+  alert('copied history JSON to clipboard')
+})
+
 const refresh = async () => {
+  elapsedTime += 1
   const processTree = await listProcesses(remote.process.pid)
   const processList = processTreeToList(processTree)
   renderProcesses(processList)
+  collectHistory(processList)
+  renderHistory()
 }
 
 refresh()
-setInterval(refresh, 1200)
+setInterval(refresh, 1000)
