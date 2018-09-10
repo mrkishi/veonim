@@ -1,7 +1,7 @@
 'use strict'
 
 const { deepStrictEqual: same } = require('assert')
-const proxyquire = require('proxyquire')
+const proxyquire = require('proxyquire').noCallThru()
 
 const relativeFakes = obj => Object.keys(obj).reduce((res, key) => {
   const val = Reflect.get(obj, key)

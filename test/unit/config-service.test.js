@@ -11,8 +11,7 @@ const setup = vimConfig => src('config/config-service', {
   'core/neovim': {
     default: {
       g: vimConfig,
-    },
-    '@noCallThru': true,
+    }
   }
 }).default
 
