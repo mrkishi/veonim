@@ -9,7 +9,9 @@ const defaultConfig = {
 const setup = vimConfig => src('config/config-service', {
   'config/default-configs': defaultConfig,
   'core/neovim': {
-    g: vimConfig,
+    default: {
+      g: vimConfig,
+    },
     '@noCallThru': true,
   }
 }).default
