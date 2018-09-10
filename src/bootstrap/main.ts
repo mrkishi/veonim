@@ -127,11 +127,12 @@ const openProcessExplorer = () => {
   }
 
   winProcessExplorer = new BrowserWindow({
-    width: 750,
+    width: 850,
     height: 600,
   })
 
   winProcessExplorer.on('close', () => winProcessExplorer = null)
-
   winProcessExplorer.loadURL(`file:///${__dirname}/process-explorer.html`)
+
+  if (process.env.VEONIM_DEV) winProcessExplorer.openDevTools()
 }

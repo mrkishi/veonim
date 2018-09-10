@@ -177,6 +177,8 @@ const renderProcesses = (procs: Process[]) => {
       <th align="left">Memory (MB)</th>
       <th align="left">PID</th>
       <th align="left">Name</th>
+      <th align="left"></th>
+      <th align="left"></th>
     </tr>`
 
   const body = procs.reduce((res, p) => {
@@ -186,6 +188,8 @@ const renderProcesses = (procs: Process[]) => {
         <td align="center">${p.memory}</td>
         <td align="center" style="color: #999">${p.pid}</td>
         <td>${p.cmd}</td>
+        <td><button id=${p.pid} action="kill">KILL</button></td>
+        <td><button id=${p.pid} action="force-kill">FORCE KILL</button></td>
       </tr>`
     return res
   }, '')
@@ -195,6 +199,21 @@ const renderProcesses = (procs: Process[]) => {
     <tbody>${body}</tbody>
   </table>`
 }
+
+container.addEventListener('click', e => {
+  const el = e.target as HTMLElement
+  const action = el.getAttribute('action')
+  const id = el.getAttribute('id')
+
+  if (!id) return alert('no PID exists for this process?? wat')
+  if (!action) return alert('no kill action exists for this process?? wat')
+
+  const kaput = action === 'force-kill'
+    ? 'SIGKILL'
+    : 'SIGTERM'
+
+  process.kill(<any>id-0, kaput)
+})
 
 const refresh = async () => {
   const processTree = await listProcesses(remote.process.pid)
