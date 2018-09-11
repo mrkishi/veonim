@@ -10,19 +10,17 @@ import nvim from '../core/neovim'
 // can provide in layer description that 'this layer requires language server available'
 // the provide current status of lang serv. provide links to where to install langextensions
 
-enum LayerMode { Main, Layer }
+enum InventoryMode { Main, Layer }
 
 interface S {
   layers: InventoryLayer[]
   visible: boolean
-  layerMode: LayerMode
   selectedLayer?: InventoryLayer
 }
 
 const state: S = {
   layers: Object.values(layers),
   visible: false,
-  layerMode: LayerMode.Main,
   selectedLayer: undefined,
 }
 
@@ -52,7 +50,7 @@ const view = ($: S) => h('div', {
   },
 }, [
   ,h('div', 'ur inventory got ninja looted luls')
-  ,$.layerMode === LayerMode.Main ? mainView($) : layerView($)
+  ,$.selectedLayer ? layerView($) : mainView($)
 ])
 
 const ui = app<S, A>({ name: 'inventory', state, view, actions })
@@ -75,11 +73,22 @@ nvim.onAction('inventory', async () => {
   // user to setup custom keybindings per mode (like vim does nativelly)
   // in the inventory we do not want any rebindings. it must be static
   switchInputMode(InputMode.Motion)
+
+  let captureMode = InventoryMode.Main
+  let activeLayer: InventoryLayer
+
   const stopWatchingInput = watchInputMode(InputMode.Motion, key => {
     if (key === '<Esc>') return reset()
 
-    if (validLayerKeybinds.has(key)) {
+    if (captureMode === InventoryMode.Main && validLayerKeybinds.has(key)) {
       console.log('switch to layer:', key)
+      activeLayer = layerList.find(m => m.keybind === key) as InventoryLayer
+      captureMode = InventoryMode.Layer
+      return
+    }
+
+    if (captureMode === InventoryMode.Layer) {
+      console.log('execute layer action:', key)
       return reset()
     }
 
