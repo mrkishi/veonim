@@ -39,6 +39,12 @@ export interface InventoryLayer {
 
 type Layers = { [key in InventoryLayerKind]: InventoryLayer }
 
+const actions = new Set<InventoryAction>()
+
+export const registerAction = (action: InventoryAction) => actions.add(action)
+export const getActionsForLayer = (layerKind: InventoryLayerKind) => [...actions]
+  .filter(ia => ia.layer === layerKind)
+
 export const layers: Layers = {
   language: {
     name: 'Language',
