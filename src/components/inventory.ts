@@ -56,6 +56,9 @@ const view = ($: S) => h('div', {
 
 const ui = app<S, A>({ name: 'inventory', state, view, actions })
 
+// TODO: this should be a separate vim command :VeonimInventory
+// we should look to see if we need to register any actions that should
+// not show up in the UI. perhaps only in the fuzzy search?
 nvim.onAction('inventory', async () => {
   const timeoutLength = await nvim.options.timeoutlen
   console.log('timeoutLength', timeoutLength)

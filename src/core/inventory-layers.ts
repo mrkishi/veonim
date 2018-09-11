@@ -12,8 +12,6 @@ export enum InventoryLayerKind {
 }
 
 export interface InventoryAction {
-  /** So we don't break backwards compatibility for now */
-  legacyDeprecatedCommand: string
   /** Which layer this action belongs to */
   layer: InventoryLayerKind
   /** Key binding to activate this action */
@@ -22,10 +20,10 @@ export interface InventoryAction {
   name: string
   /** User friendly description provided in the UI */
   description: string
+  /** Callback will be executed when this action is selected */
+  onAction: () => any
   /** Indicate to the user that this action is experimental. Default: FALSE */
   experimental?: boolean
-  /** Callback will be executed when this action is selected */
-  action: () => any
 }
 
 export interface InventoryLayer {
@@ -41,11 +39,14 @@ export interface InventoryLayer {
 
 type Layers = { [key in InventoryLayerKind]: InventoryLayer }
 
-const actions = new Set<InventoryAction>()
+const registeredActions = new Set<InventoryAction>()
 
-export const registerAction = (action: InventoryAction) => actions.add(action)
-export const getActionsForLayer = (layerKind: InventoryLayerKind) => [...actions]
-  .filter(ia => ia.layer === layerKind)
+export const actions = {
+  register: (action: InventoryAction) => registeredActions.add(action),
+  callAction: () => {},
+  getForLayer: (layerKind: InventoryLayerKind) => [...registeredActions]
+    .filter(ia => ia.layer === layerKind),
+}
 
 export const layers: Layers = {
   language: {

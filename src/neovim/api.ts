@@ -3,6 +3,7 @@ import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabp
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
+import * as inventory from '../core/inventory-layers'
 import { watchConfig } from '../config/config-reader'
 import { Functions } from '../core/vim-functions'
 import { NeovimRPC } from '../messaging/rpc'
@@ -85,10 +86,30 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
   const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
   const callAtomic = (calls: any[]) => req.core.callAtomic(calls)
+
+  const addActionToCommandCompletions = (actionName: string) => {
+    registeredEventActions.add(actionName)
+    cmd(`let g:vn_cmd_completions .= "${actionName}\\n"`)
+  }
+
+  const registerAction = (action: inventory.InventoryAction) => {
+    const actionCommand = `${action.layer}-${action.name.toLowerCase()}`
+
+
+    // TODO: testing purposes only
+    console.log('register action:', actionCommand, action)
+    // TODO: testing purposes only
+
+
+    inventory.actions.register(action)
+    watchers.actions.on(actionCommand, action.onAction)
+    addActionToCommandCompletions(actionCommand)
+  }
+
+  // TODO: DEPRECATE THIS
   const onAction = (event: string, cb: GenericCallback) => {
     watchers.actions.on(event, cb)
-    registeredEventActions.add(event)
-    cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
+    addActionToCommandCompletions(event)
   }
 
   // TODO: deprecate with buf notifications?
