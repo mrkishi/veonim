@@ -39,7 +39,7 @@ type A = typeof actions
 
 const mainView = ($: S) => h('div', $.layers.map(l => h('div', [
   ,h('hr')
-  ,h('div', l.name)
+  ,h('div', l.kind)
   ,h('div', l.keybind)
   ,h('div', l.description)
 ])))
@@ -93,7 +93,9 @@ nvim.onAction('inventory', async () => {
     if (captureMode === InventoryMode.Main && validLayerKeybinds.has(key)) {
       console.log('switch to layer:', key)
       const activeLayer = layerList.find(m => m.keybind === key) as inventory.InventoryLayer
-      const layerActions = inventory.actions.getForLayer(activeLayer.name)
+      console.log('activeLayer', activeLayer)
+      const layerActions = inventory.actions.getForLayer(activeLayer.kind)
+      console.log('layerActions', layerActions)
       captureMode = InventoryMode.Layer
       ui.setActions(layerActions)
       return

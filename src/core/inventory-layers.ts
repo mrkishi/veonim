@@ -28,7 +28,7 @@ export interface InventoryAction {
 
 export interface InventoryLayer {
   /** Layer name. Will be formatted and used for Vim command. */
-  name: InventoryLayerKind
+  kind: InventoryLayerKind
   /** Key binding to activate this action */
   keybind: string
   /** User friendly description provided in the UI */
@@ -48,39 +48,39 @@ export const actions = {
 
 // TODO: specify order or order these in desired display order?
 export const layers: InventoryLayer[] = [{
-  name: InventoryLayerKind.Language,
+  kind: InventoryLayerKind.Language,
   keybind: 'l',
   description: 'Language server features',
 }, {
-  name: InventoryLayerKind.Debug,
+  kind: InventoryLayerKind.Debug,
   keybind: 'd',
   description: 'Start debugging and debugger controls',
 }, {
-  name: InventoryLayerKind.Search,
+  kind: InventoryLayerKind.Search,
   keybind: 's',
   description: 'Various search functions like grep, etc.',
 }, {
-  name: InventoryLayerKind.Jump,
+  kind: InventoryLayerKind.Jump,
   keybind: 'j',
   description: 'Access jump shortcuts',
 }, {
-  name: InventoryLayerKind.Buffer,
+  kind: InventoryLayerKind.Buffer,
   keybind: 'b',
   description: 'List and jump between buffers',
 }, {
-  name: InventoryLayerKind.Window,
+  kind: InventoryLayerKind.Window,
   keybind: 'w',
   description: 'Resize, split, and swap windows',
 }, {
-  name: InventoryLayerKind.Project,
+  kind: InventoryLayerKind.Project,
   keybind: 'p',
   description: 'Project management',
 }, {
-  name: InventoryLayerKind.Instance,
+  kind: InventoryLayerKind.Instance,
   keybind: 'i',
   description: 'Create and switch between multiple Neovim instances',
 }, {
-  name: InventoryLayerKind.DEV,
+  kind: InventoryLayerKind.DEV,
   keybind: '\'',
   description: 'if ur seein dis ur an ub3r 1337 h4x0rz',
   devOnly: true,
