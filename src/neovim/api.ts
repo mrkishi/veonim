@@ -475,5 +475,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   return { state, watchState, onStateChange, onStateValue, untilStateValue,
     cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
     getCurrentLine, jumpTo, jumpToProjectFile, getColor, systemAction, current,
-    g, on, untilEvent, applyPatches, buffers, windows, tabs, options: readonlyOptions }
+    g, on, untilEvent, applyPatches, buffers, windows, tabs, options:
+    readonlyOptions, registerAction }
 }
