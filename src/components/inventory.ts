@@ -29,6 +29,7 @@ const resetState = { visible: false }
 const actions = {
   show: () => ({ visible: true }),
   hide: () => resetState,
+  setLayer: (layer: InventoryLayer) => ({ selectedLayer: layer }),
 }
 
 type A = typeof actions
@@ -84,6 +85,7 @@ nvim.onAction('inventory', async () => {
       console.log('switch to layer:', key)
       activeLayer = layerList.find(m => m.keybind === key) as InventoryLayer
       captureMode = InventoryMode.Layer
+      ui.setLayer(activeLayer)
       return
     }
 
@@ -93,5 +95,6 @@ nvim.onAction('inventory', async () => {
     }
 
     // TODO: else what do if we selected an invalid key?
+    console.error(key, 'does not do anything... how do we handle this for the user???')
   })
 })
