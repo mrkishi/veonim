@@ -24,6 +24,8 @@ export interface InventoryAction {
   description: string
   /** Indicate to the user that this action is experimental. Default: FALSE */
   experimental?: boolean
+  /** Callback will be executed when this action is selected */
+  action: () => any
 }
 
 export interface InventoryLayer {
