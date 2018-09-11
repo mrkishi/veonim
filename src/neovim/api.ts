@@ -93,7 +93,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   }
 
   const registerAction = (action: inventory.InventoryAction) => {
-    const actionCommand = `${action.layer}-${action.name.toLowerCase()}`
+    const actionCommand = `${action.layer.toLowerCase()}-${action.name.toLowerCase()}`
 
 
     // TODO: testing purposes only

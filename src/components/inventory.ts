@@ -1,5 +1,5 @@
-import { InventoryLayer, InventoryAction, layers, getActionsForLayer } from '../core/inventory-layers'
 import { InputMode, switchInputMode, watchInputMode } from '../core/input'
+import * as inventory from '../core/inventory-layers'
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
@@ -13,9 +13,16 @@ import nvim from '../core/neovim'
 enum InventoryMode { Main, Layer }
 
 const state = {
-  layers: Object.values(layers),
+  layers: [
+    {
+      name: 'Search all layer actions',
+      keybind: '<Space>',
+      description: 'Fuzzy search all layer actions and execute selection',
+    },
+    ...inventory.layers,
+  ],
   visible: false,
-  actions: [] as InventoryAction[],
+  actions: [] as inventory.InventoryAction[],
 }
 
 type S = typeof state
@@ -25,7 +32,7 @@ const resetState = { visible: false, selectedLayer: undefined }
 const actions = {
   show: () => ({ visible: true }),
   hide: () => resetState,
-  setLayer: (layer: InventoryLayer) => ({ selectedLayer: layer }),
+  setActions: (actions: inventory.InventoryAction[]) => ({ actions }),
 }
 
 type A = typeof actions
@@ -37,7 +44,7 @@ const mainView = ($: S) => h('div', $.layers.map(l => h('div', [
   ,h('div', l.description)
 ])))
 
-const layerView = (actions: InventoryAction[]) => h('div', actions.map(a => h('div', [
+const layerView = (actions: inventory.InventoryAction[]) => h('div', actions.map(a => h('div', [
   ,h('hr')
   ,h('div', a.name)
   ,h('div', a.keybind)
@@ -64,7 +71,7 @@ nvim.onAction('inventory', async () => {
   console.log('timeoutLength', timeoutLength)
   ui.show()
 
-  const layerList = Object.values(layers)
+  const layerList = Object.values(inventory.layers)
   const validLayerKeybinds = new Set([...layerList.map(m => m.keybind)])
 
   const reset = () => {
@@ -79,16 +86,16 @@ nvim.onAction('inventory', async () => {
   switchInputMode(InputMode.Motion)
 
   let captureMode = InventoryMode.Main
-  let activeLayer: InventoryLayer
 
   const stopWatchingInput = watchInputMode(InputMode.Motion, key => {
     if (key === '<Esc>') return reset()
 
     if (captureMode === InventoryMode.Main && validLayerKeybinds.has(key)) {
       console.log('switch to layer:', key)
-      activeLayer = layerList.find(m => m.keybind === key) as InventoryLayer
+      const activeLayer = layerList.find(m => m.keybind === key) as inventory.InventoryLayer
+      const layerActions = inventory.actions.getForLayer(activeLayer.name)
       captureMode = InventoryMode.Layer
-      ui.setLayer(activeLayer)
+      ui.setActions(layerActions)
       return
     }
 

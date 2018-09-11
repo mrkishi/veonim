@@ -1,14 +1,14 @@
 export enum InventoryLayerKind {
-  Jump = 'jump',
-  Debug = 'debug',
-  Buffer = 'buffer',
-  Search = 'search',
-  Window = 'window',
-  Project = 'project',
-  Language = 'language',
-  Instance = 'instance',
+  Jump = 'Jump',
+  Debug = 'Debug',
+  Buffer = 'Buffer',
+  Search = 'Search',
+  Window = 'Window',
+  Project = 'Project',
+  Language = 'Language',
+  Instance = 'Instance',
   /** Only available in Veonim DEV builds */
-  DEV = 'DEV',
+  DEV = 'LOLHAX',
 }
 
 export interface InventoryAction {
@@ -28,7 +28,7 @@ export interface InventoryAction {
 
 export interface InventoryLayer {
   /** Layer name. Will be formatted and used for Vim command. */
-  name: string
+  name: InventoryLayerKind
   /** Key binding to activate this action */
   keybind: string
   /** User friendly description provided in the UI */
@@ -36,8 +36,6 @@ export interface InventoryLayer {
   /** This layer is only available DEV builds. Default: FALSE */
   devOnly?: boolean
 }
-
-type Layers = { [key in InventoryLayerKind]: InventoryLayer }
 
 const registeredActions = new Set<InventoryAction>()
 
@@ -48,59 +46,42 @@ export const actions = {
     .filter(ia => ia.layer === layerKind),
 }
 
-export const layers: Layers = {
-  language: {
-    name: 'Language',
-    keybind: 'l',
-    description: 'Language server features',
-  },
-
-  debug: {
-    name: 'Debug',
-    keybind: 'd',
-    description: 'Start debugging and debugger controls',
-  },
-
-  search: {
-    name: 'Search',
-    keybind: 's',
-    description: 'Various search functions like grep, etc.',
-  },
-
-  jump: {
-    name: 'Jump',
-    keybind: 'j',
-    description: 'Access jump shortcuts',
-  },
-
-  buffer: {
-    name: 'Buffer',
-    keybind: 'b',
-    description: 'List and jump between buffers',
-  },
-
-  window: {
-    name: 'Window',
-    keybind: 'w',
-    description: 'Resize, split, and swap windows',
-  },
-
-  project: {
-    name: 'Project',
-    keybind: 'p',
-    description: 'Project management',
-  },
-
-  instance: {
-    name: 'Instance',
-    keybind: 'i',
-    description: 'Create and switch between multiple Neovim instances',
-  },
-
-  DEV: {
-    name: 'LOLHAX',
-    keybind: '\'',
-    description: 'if ur seein dis ur an ub3r 1337 h4x0rz',
-    devOnly: true,
-  },
-}
+// TODO: specify order or order these in desired display order?
+export const layers: InventoryLayer[] = [{
+  name: InventoryLayerKind.Language,
+  keybind: 'l',
+  description: 'Language server features',
+}, {
+  name: InventoryLayerKind.Debug,
+  keybind: 'd',
+  description: 'Start debugging and debugger controls',
+}, {
+  name: InventoryLayerKind.Search,
+  keybind: 's',
+  description: 'Various search functions like grep, etc.',
+}, {
+  name: InventoryLayerKind.Jump,
+  keybind: 'j',
+  description: 'Access jump shortcuts',
+}, {
+  name: InventoryLayerKind.Buffer,
+  keybind: 'b',
+  description: 'List and jump between buffers',
+}, {
+  name: InventoryLayerKind.Window,
+  keybind: 'w',
+  description: 'Resize, split, and swap windows',
+}, {
+  name: InventoryLayerKind.Project,
+  keybind: 'p',
+  description: 'Project management',
+}, {
+  name: InventoryLayerKind.Instance,
+  keybind: 'i',
+  description: 'Create and switch between multiple Neovim instances',
+}, {
+  name: InventoryLayerKind.DEV,
+  keybind: '\'',
+  description: 'if ur seein dis ur an ub3r 1337 h4x0rz',
+  devOnly: true,
+} ]
