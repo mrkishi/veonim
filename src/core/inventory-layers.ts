@@ -26,7 +26,7 @@ export interface InventoryAction {
   experimental?: boolean
 }
 
-interface InventoryLayer {
+export interface InventoryLayer {
   /** Layer name. Will be formatted and used for Vim command. */
   name: string
   /** Key binding to activate this action */

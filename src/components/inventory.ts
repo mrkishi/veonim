@@ -1,4 +1,5 @@
-import { layers } from '../core/inventory-layers'
+import { InputMode, switchInputMode, watchInputMode } from '../core/input'
+import { InventoryLayer, layers } from '../core/inventory-layers'
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
@@ -11,13 +12,19 @@ import nvim from '../core/neovim'
 
 enum LayerMode { Main, Layer }
 
-const state = {
+interface S {
+  layers: InventoryLayer[]
+  visible: boolean
+  layerMode: LayerMode
+  selectedLayer?: InventoryLayer
+}
+
+const state: S = {
   layers: Object.values(layers),
   visible: false,
   layerMode: LayerMode.Main,
+  selectedLayer: undefined,
 }
-
-type S = typeof state
 
 const resetState = { visible: false }
 
@@ -54,4 +61,28 @@ nvim.onAction('inventory', async () => {
   const timeoutLength = await nvim.options.timeoutlen
   console.log('timeoutLength', timeoutLength)
   ui.show()
+
+  const layerList = Object.values(layers)
+  const validLayerKeybinds = new Set([...layerList.map(m => m.keybind)])
+
+  const reset = () => {
+    stopWatchingInput()
+    switchInputMode(InputMode.Vim)
+    ui.hide()
+  }
+  // TODO: maybe not use InputMode.Motion?
+  // i think the idea of multiple custom input modes is to allow
+  // user to setup custom keybindings per mode (like vim does nativelly)
+  // in the inventory we do not want any rebindings. it must be static
+  switchInputMode(InputMode.Motion)
+  const stopWatchingInput = watchInputMode(InputMode.Motion, key => {
+    if (key === '<Esc>') return reset()
+
+    if (validLayerKeybinds.has(key)) {
+      console.log('switch to layer:', key)
+      return reset()
+    }
+
+    // TODO: else what do if we selected an invalid key?
+  })
 })
