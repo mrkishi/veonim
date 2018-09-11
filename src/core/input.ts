@@ -116,7 +116,22 @@ export const transform = {
   }
 }
 
+// TODO: why not combine switchInputMode + watchInputMode together in the same
+// function. when would we be switching input modes without also watching for
+// input? or switching input mode but watching another mode instead?
+// or when we would switch input mode to vim? and watch it? mehhh
+// it's either vim or custom input mode...
+// (i think the reason we have multiple modes is to allow custom bindings
+// in each specific mode)
+// perhaps we should also return the stop() method so our changing
+// custom input method entry point is only one func. i think even if we wanted
+// to switch from custom input mode to custom input mode, we should be able to
+// do it with one function
+//
+// stop() could optionally accept an INputMode to switch to. otherwise default
+// back to InputMOde.Vim
 export const switchInputMode = (mode: InputMode) => activeInputMode = mode
+// TODO: i think we should get rid of this and just use switchInputMode(InputMode.Vim)
 export const defaultInputMode = () => activeInputMode = InputMode.Vim
 
 export const watchInputMode = (mode: InputMode, fn: (inputKeys: string, inputType: InputType) => void) => {
@@ -128,6 +143,10 @@ export const watchInputMode = (mode: InputMode, fn: (inputKeys: string, inputTyp
   inputWatchers.add(eventDown, onDown)
   inputWatchers.add(eventUp, onUp)
 
+  // TODO: why not just remove this when we switch input modes back to Vim or
+  // something else?  are there use cases where we want to stop watching input
+  // but NOT switch to another mode? seems like the user would just be stuck
+  // in limbo without accepting input modes...
   return () => {
     inputWatchers.remove(eventDown, onDown)
     inputWatchers.remove(eventUp, onUp)
