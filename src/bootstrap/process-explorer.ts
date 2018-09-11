@@ -224,9 +224,10 @@ const renderHistory = () => {
 
   historyContainer.innerHTML = history.map(hist => {
     const usageValues = [...hist.usages.entries()]
-    const usages = usageValues.map(u => `<div>${u[0]}% - ${u[1]}s</div>`).join('')
+    const usages = usageValues
+      .sort((a, b) => b[0] - a[0])
+      .map(u => `<div>${u[0]}% - ${u[1]}s</div>`).join('')
 
-    // TODO: sort usage percentages desc
     return `<div>
       <div style="padding-bottom: 10px; padding-top: 40px;">
         <strong style="font-size: 20px">${hist.cmd}</strong>
