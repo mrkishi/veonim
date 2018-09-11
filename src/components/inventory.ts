@@ -1,5 +1,5 @@
+import { InventoryLayer, InventoryAction, layers, getActionsForLayer } from '../core/inventory-layers'
 import { InputMode, switchInputMode, watchInputMode } from '../core/input'
-import { InventoryLayer, layers } from '../core/inventory-layers'
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
@@ -12,19 +12,15 @@ import nvim from '../core/neovim'
 
 enum InventoryMode { Main, Layer }
 
-interface S {
-  layers: InventoryLayer[]
-  visible: boolean
-  selectedLayer?: InventoryLayer
-}
-
-const state: S = {
+const state = {
   layers: Object.values(layers),
   visible: false,
-  selectedLayer: undefined,
+  actions: [] as InventoryAction[],
 }
 
-const resetState = { visible: false }
+type S = typeof state
+
+const resetState = { visible: false, selectedLayer: undefined }
 
 const actions = {
   show: () => ({ visible: true }),
@@ -34,16 +30,20 @@ const actions = {
 
 type A = typeof actions
 
-const mainView = ($: S) => h('div', $.layers.map(m => h('div', [
+const mainView = ($: S) => h('div', $.layers.map(l => h('div', [
   ,h('hr')
-  ,h('div', m.name)
-  ,h('div', m.keybind)
-  ,h('div', m.description)
+  ,h('div', l.name)
+  ,h('div', l.keybind)
+  ,h('div', l.description)
 ])))
 
-const layerView = ($: S) => h('div', [
-  ,h('u selected...')
-])
+const layerView = (actions: InventoryAction[]) => h('div', actions.map(a => h('div', [
+  ,h('hr')
+  ,h('div', a.name)
+  ,h('div', a.keybind)
+  ,h('div', a.description)
+  ,h('div', a.experimental || false)
+])))
 
 const view = ($: S) => h('div', {
   style: {
@@ -51,7 +51,7 @@ const view = ($: S) => h('div', {
   },
 }, [
   ,h('div', 'ur inventory got ninja looted luls')
-  ,$.selectedLayer ? layerView($) : mainView($)
+  ,$.actions.length ? layerView($.actions) : mainView($)
 ])
 
 const ui = app<S, A>({ name: 'inventory', state, view, actions })
