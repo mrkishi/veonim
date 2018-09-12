@@ -27,7 +27,7 @@ const state = {
 
 type S = typeof state
 
-const resetState = { visible: false, selectedLayer: undefined }
+const resetState = { visible: false, actions: [] }
 
 const actions = {
   show: () => ({ visible: true }),
@@ -63,6 +63,13 @@ const view = ($: S) => h('div', {
 
 const ui = app<S, A>({ name: 'inventory', state, view, actions })
 
+// TODO: how do we support inventory in other modes except normal?
+// it shouldn't be that hard to support visual mode, yea?
+//
+// TODO: i think we should bind this to c-s-p by default. make c-s-p reserved
+// for inventory. we try to bind to space if possible, but if user has any
+// bindings set to <space> there will always be c-s-p as a fallback.
+
 // TODO: this should be a separate vim command :VeonimInventory
 // we should look to see if we need to register any actions that should
 // not show up in the UI. perhaps only in the fuzzy search?
@@ -74,10 +81,15 @@ nvim.onAction('inventory', async () => {
   const layerList = Object.values(inventory.layers)
   const validLayerKeybinds = new Set([...layerList.map(m => m.keybind)])
 
-  const reset = () => {
+  const reset = (actionFn?: Function) => {
     stopWatchingInput()
     switchInputMode(InputMode.Vim)
     ui.hide()
+
+    // some actions funcs will switch input modes. need to cleanup our shit
+    // and only then call the action callback function.
+    //
+    if (actionFn) setImmediate(actionFn)
   }
   // TODO: maybe not use InputMode.Motion?
   // i think the idea of multiple custom input modes is to allow
@@ -86,27 +98,27 @@ nvim.onAction('inventory', async () => {
   switchInputMode(InputMode.Motion)
 
   let captureMode = InventoryMode.Main
+  let activeLayerActions: inventory.InventoryAction[]
 
   const stopWatchingInput = watchInputMode(InputMode.Motion, key => {
     if (key === '<Esc>') return reset()
 
     if (captureMode === InventoryMode.Main && validLayerKeybinds.has(key)) {
-      console.log('switch to layer:', key)
       const activeLayer = layerList.find(m => m.keybind === key) as inventory.InventoryLayer
-      console.log('activeLayer', activeLayer)
-      const layerActions = inventory.actions.getActionsForLayer(activeLayer.kind)
-      console.log('layerActions', layerActions)
+      activeLayerActions = inventory.actions.getActionsForLayer(activeLayer.kind)
       captureMode = InventoryMode.Layer
-      ui.setActions(layerActions)
+      ui.setActions(activeLayerActions)
       return
     }
 
     if (captureMode === InventoryMode.Layer) {
-      console.log('execute layer action:', key)
-      return reset()
+      const action = activeLayerActions!.find(m => m.keybind === key)
+      // TODO: what do if we select an invalid key?
+      if (!action) return reset()
+
+      return reset(action.onAction)
     }
 
     // TODO: else what do if we selected an invalid key?
-    console.error(key, 'does not do anything... how do we handle this for the user???')
   })
 })

@@ -1,6 +1,7 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
 import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
 import { getLines } from '../core/grid'
@@ -315,6 +316,26 @@ export const divinationSearch = async () => {
     else reset()
   })
 }
+
+nvim.onAction('jump-search', divinationSearch)
+nvim.onAction('jump-line', () => divinationLine({ visual: false }))
+nvim.onAction('jump-line-visual', () => divinationLine({ visual: true }))
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Jump,
+  keybind: 's',
+  name: 'Search',
+  description: 'Jump to a Vim search result',
+  onAction: divinationSearch,
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Jump,
+  keybind: 'l',
+  name: 'Line',
+  description: 'Jump to a line',
+  onAction: () => divinationLine({ visual: false }),
+})
 
 nvim.onAction('jump-search', divinationSearch)
 nvim.onAction('jump-line', () => divinationLine({ visual: false }))
