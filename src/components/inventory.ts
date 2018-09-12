@@ -74,9 +74,10 @@ const mainView = ($: S) => h('div', {
       minWidth: '60px',
       justifyContent: 'center',
       alignItems: 'center',
-      background: 'var(--background-30)',
+      background: 'var(--background-10)',
       fontSize: '3rem',
-      color: 'var(--foreground-70)',
+      color: 'rgba(255, 255, 255, 0.1)',
+      // color: 'var(--foreground-70)',
       fontWeight: 'bold',
     }
   }, m.keybind.toUpperCase())
@@ -123,7 +124,8 @@ const view = ($: S) => h('div', {
   style: {
     display: $.visible ? 'flex' : 'none',
     height: '100%',
-    fontFamily: 'sans-serif',
+    // TODO: bundle roboto sans-serif font HWIT IT
+    fontFamily: 'Roboto',
   },
 }, [
   ,h('div', {
