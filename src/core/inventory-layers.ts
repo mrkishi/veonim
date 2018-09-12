@@ -57,11 +57,11 @@ export const layers: InventoryLayer[] = [{
 }, {
   kind: InventoryLayerKind.Debug,
   keybind: 'd',
-  description: 'Start debugging and debugger controls',
+  description: 'Debug your bugs',
 }, {
   kind: InventoryLayerKind.Search,
   keybind: 's',
-  description: 'Various search functions like grep, etc.',
+  description: 'Grep, Viewport, .etc',
 }, {
   kind: InventoryLayerKind.Jump,
   keybind: 'j',
@@ -81,7 +81,7 @@ export const layers: InventoryLayer[] = [{
 }, {
   kind: InventoryLayerKind.Instance,
   keybind: 'i',
-  description: 'Create and switch between multiple Neovim instances',
+  description: 'Control multiple Neovim instances',
 }, {
   kind: InventoryLayerKind.DEV,
   keybind: '\'',

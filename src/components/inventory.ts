@@ -67,6 +67,7 @@ const mainView = ($: S) => h('div', {
 }, [
   ,h('div', {
     style: {
+      // TODO: try angled side for teh luls
       display: 'flex',
       width: '60px',
       maxWidth: '60px',
