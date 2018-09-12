@@ -264,7 +264,7 @@ worker.on.done(ui.loadingDone)
 
 const doGrepResume = () => ui.show({ reset: false })
 
-const doGrep = async (query: string) => {
+const doGrep = async (query?: string) => {
   const { cwd } = nvim.state
   ui.show({ cwd })
   query && worker.call.query({ query, cwd })
