@@ -1,4 +1,5 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
@@ -435,11 +436,21 @@ const startWithDebugger = async () => {
   console.log('starting debugger wtih type:', launchConfig, connection)
 }
 
-nvim.onAction('debug-start', async () => {
+const doStartDebug = async () => {
   const launchConfigs = await extensions.list.launchConfigs()
   launchConfigs.length
     ? startWithLaunchConfig(launchConfigs)
     : startWithDebugger()
+}
+
+nvim.onAction('debug-start', doStartDebug)
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Debug,
+  keybind: 's',
+  name: 'Start Debugging',
+  description: 'Start a debug session',
+  onAction: doStartDebug,
 })
 
 // TODO: add action to jump cursor location to currently stopped debug location
@@ -453,3 +464,43 @@ nvim.onAction('debug-next', next)
 nvim.onAction('debug-continue', continuee)
 nvim.onAction('debug-breakpoint', toggleBreakpoint)
 nvim.onAction('debug-breakpoint-function', toggleFunctionBreakpoint)
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Debug,
+  keybind: 't',
+  name: 'Stop Debugging',
+  description: 'Stop current debug session',
+  onAction: stop,
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Debug,
+  keybind: 'n',
+  name: 'Next',
+  description: 'Debugger step next',
+  onAction: next,
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Debug,
+  keybind: 'c',
+  name: 'Continue',
+  description: 'Continue debugger',
+  onAction: continuee,
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Debug,
+  keybind: 'b',
+  name: 'Breakpoint',
+  description: 'Toggle breakpoint at current line',
+  onAction: toggleBreakpoint,
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Debug,
+  keybind: 'f',
+  name: 'Function Breakpoint',
+  description: 'Toggle function breakpoint at line',
+  onAction: toggleFunctionBreakpoint,
+})
