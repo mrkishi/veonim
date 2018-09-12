@@ -16,7 +16,7 @@ const state = {
   layers: [
     {
       kind: 'Search all layer actions',
-      keybind: '<Space>',
+      keybind: 'SPC',
       description: 'Fuzzy search all layer actions and execute selection',
     },
     ...inventory.layers,
@@ -37,28 +37,125 @@ const actions = {
 
 type A = typeof actions
 
-const mainView = ($: S) => h('div', $.layers.map(m => h('div', [
-  ,h('hr')
-  ,h('div', m.kind)
-  ,h('div', m.keybind)
-  ,h('div', m.description)
+const styles = {
+  box: {
+    display: 'flex',
+    flexFlow: 'row',
+    background: 'var(--background-b5)',
+    borderRadius: '2px',
+    margin: '10px',
+    width: '300px',
+    height: '80px',
+  },
+  grid: {
+    display: 'grid',
+    // TODO: make this dynamic to fit as many up to maybe 4 items horizontally
+    gridTemplateColumns: '1fr 1fr 1fr',
+  }
+}
+
+const box = <T>(m: T) => {
+
+}
+
+const mainView = ($: S) => h('div', {
+  style: styles.grid
+}, $.layers.map(m => h('div', {
+  style: styles.box
+}, [
+  ,h('div', {
+    style: {
+      display: 'flex',
+      width: '60px',
+      maxWidth: '60px',
+      minWidth: '60px',
+      justifyContent: 'center',
+      alignItems: 'center',
+      background: 'var(--background-30)',
+      fontSize: '1.8rem',
+      color: 'var(--foreground)',
+      fontWeight: 'bold',
+    }
+  }, m.keybind.toUpperCase())
+
+  ,h('div', {
+    style: {
+      padding: '10px',
+      display: 'flex',
+      flexFlow: 'column',
+      justifyContent: 'center',
+    }
+  }, [
+    ,h('div', {
+      style: {
+        fontSize: '1.4rem',
+        color: 'var(--foreground)',
+      }
+    }, m.kind)
+
+    ,h('div', {
+      style: {
+        color: 'var(--foreground-50)',
+      }
+    }, m.description)
+  ])
 ])))
 
-const layerView = (actions: inventory.InventoryAction[]) => h('div', actions.map(m => h('div', [
-  ,h('hr')
-  ,h('div', m.name)
+const layerView = (actions: inventory.InventoryAction[]) => h('div', {
+  style: styles.grid
+}, actions.map(m => h('div', {
+  style: styles.box
+}, [
   ,h('div', m.keybind)
+  ,h('div', {
+    style: {
+      color: m.experimental ? 'orange' : undefined,
+    }
+  }, m.name)
   ,h('div', m.description)
-  ,h('div', m.experimental || false)
 ])))
 
 const view = ($: S) => h('div', {
   style: {
     display: $.visible ? 'flex' : 'none',
+    height: '100%',
+    fontFamily: 'sans-serif',
   },
 }, [
-  ,h('div', 'ur inventory got ninja looted luls')
-  ,$.actions.length ? layerView($.actions) : mainView($)
+  ,h('div', {
+    style: {
+      display: 'flex',
+      flex: 1,
+      flexFlow: 'column',
+      marginBottom: '40px',
+    }
+  }, [
+
+    // breadcrumbs
+    ,h('div', {
+      style: {
+        display: 'flex',
+        flexFlow: 'row',
+        background: '#444',
+        borderRadius: '5px',
+      }
+    }, [
+      ,h('div', 'Home')
+      ,$.actions.length ? h('div', $.actions[0].layer) : undefined
+    ])
+
+    ,h('div', {
+      style: {
+        display: 'flex',
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+      }
+    }, [
+      ,$.actions.length ? layerView($.actions) : mainView($)
+    ])
+
+  ])
 ])
 
 const ui = app<S, A>({ name: 'inventory', state, view, actions })

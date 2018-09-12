@@ -327,6 +327,7 @@ nvim.registerAction({
   name: 'Search',
   description: 'Jump to a Vim search result',
   onAction: divinationSearch,
+  experimental: true,
 })
 
 nvim.registerAction({
@@ -335,6 +336,7 @@ nvim.registerAction({
   name: 'Line',
   description: 'Jump to a line',
   onAction: () => divinationLine({ visual: false }),
+  experimental: true,
 })
 
 nvim.onAction('jump-search', divinationSearch)
