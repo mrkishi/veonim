@@ -1,5 +1,6 @@
 import { references as getReferences, Reference } from '../langserv/adapter'
 import { findNext, findPrevious } from '../support/relative-finder'
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { supports } from '../langserv/server-features'
 import { show } from '../components/references'
 import nvim from '../core/neovim'
@@ -12,7 +13,7 @@ const groupResults = (m: Reference[]) => [...m.reduce((map, ref: Reference) => {
   return map
 }, new Map<string, Reference[]>())]
 
-nvim.onAction('references', async () => {
+const doReferences = async () => {
   if (!supports.references(nvim.state.cwd, nvim.state.filetype)) return
 
   const { keyword, references } = await getReferences(nvim.state)
@@ -20,6 +21,15 @@ nvim.onAction('references', async () => {
 
   const referencesForUI = groupResults(references)
   show(referencesForUI, keyword)
+}
+
+nvim.onAction('references', doReferences)
+nvim.registerAction({
+  layer: InventoryLayerKind.Language,
+  keybind: 'f',
+  name: 'References',
+  description: 'List symbol references',
+  onAction: doReferences,
 })
 
 nvim.onAction('next-usage', async () => {

@@ -1,5 +1,6 @@
 import { highlights, references as getReferences } from '../langserv/adapter'
 import { Highlight, HighlightGroupId } from '../neovim/types'
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { supports } from '../langserv/server-features'
 import { brighten } from '../ui/css'
 import nvim from '../core/neovim'
@@ -12,7 +13,7 @@ const setHighlightColor = () => {
 nvim.watchState.colorscheme(setHighlightColor)
 setHighlightColor()
 
-nvim.onAction('highlight', async () => {
+const doHighlight = async () => {
   const referencesSupported = supports.references(nvim.state.cwd, nvim.state.filetype)
   const highlightsSupported = supports.highlights(nvim.state.cwd, nvim.state.filetype)
   const anySupport = highlightsSupported || referencesSupported
@@ -35,6 +36,16 @@ nvim.onAction('highlight', async () => {
     hi.column,
     hi.endColumn,
   ))
+}
+
+nvim.onAction('highlight', doHighlight)
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Language,
+  keybind: 'l',
+  name: 'Highlight',
+  description: 'Highlight symbol',
+  onAction: doHighlight,
 })
 
 nvim.onAction('highlight-clear', async () => {
