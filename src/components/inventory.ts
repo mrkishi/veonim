@@ -40,15 +40,6 @@ const actions = {
 type A = typeof actions
 
 const styles = {
-  box: {
-    display: 'flex',
-    flexFlow: 'row',
-    background: 'var(--background-b5)',
-    borderRadius: '2px',
-    margin: '10px',
-    width: '350px',
-    height: '80px',
-  },
   grid: {
     display: 'grid',
     // TODO: make this dynamic to fit as many up to maybe 4 items horizontally
@@ -56,14 +47,16 @@ const styles = {
   }
 }
 
-const box = <T>(m: T) => {
-
-}
-
-const mainView = ($: S) => h('div', {
-  style: styles.grid
-}, $.layers.map(m => h('div', {
-  style: styles.box
+const box = (keybind: string, name: string, desc: string) => h('div', {
+  style: {
+    display: 'flex',
+    flexFlow: 'row',
+    background: 'var(--background-b5)',
+    borderRadius: '2px',
+    margin: '10px',
+    width: '320px',
+    height: '60px',
+  }
 }, [
   ,h('div', {
     style: {
@@ -77,15 +70,14 @@ const mainView = ($: S) => h('div', {
       background: 'var(--background-10)',
       fontSize: '3rem',
       color: 'rgba(255, 255, 255, 0.1)',
-      // color: 'var(--foreground-70)',
       fontWeight: 'bold',
     }
-  }, m.keybind.toUpperCase())
+  }, keybind.toUpperCase())
 
   ,h('div', {
     style: {
       padding: '10px',
-      paddingLeft: '20px',
+      paddingLeft: '13px',
       display: 'flex',
       flexFlow: 'column',
       justifyContent: 'center',
@@ -96,36 +88,30 @@ const mainView = ($: S) => h('div', {
         fontSize: '1.4rem',
         color: 'var(--foreground)',
       }
-    }, m.kind)
+    }, name)
 
     ,h('div', {
       style: {
         color: 'var(--foreground-50)',
       }
-    }, m.description)
+    }, desc)
   ])
-])))
+])
+
+const mainView = ($: S) => h('div', {
+  style: styles.grid
+}, $.layers.map(m => box(m.keybind, m.kind, m.description)))
 
 const layerView = (actions: inventory.InventoryAction[]) => h('div', {
   style: styles.grid
-}, actions.map(m => h('div', {
-  style: styles.box
-}, [
-  ,h('div', m.keybind)
-  ,h('div', {
-    style: {
-      color: m.experimental ? 'orange' : undefined,
-    }
-  }, m.name)
-  ,h('div', m.description)
-])))
+}, actions.map(m => box(m.keybind, m.name, m.description)))
 
 const view = ($: S) => h('div', {
   style: {
     display: $.visible ? 'flex' : 'none',
     height: '100%',
     // TODO: bundle roboto sans-serif font HWIT IT
-    fontFamily: 'Roboto',
+    fontFamily: 'sans-serif',
   },
 }, [
   ,h('div', {
