@@ -1,4 +1,5 @@
 import { RowNormal, RowHeader } from '../components/row-container'
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { PluginRight } from '../components/plugin-container'
 import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
@@ -261,28 +262,58 @@ worker.on.results((results: Result[]) => ui.results(results))
 worker.on.moreResults((results: Result[]) => ui.moreResults(results))
 worker.on.done(ui.loadingDone)
 
-nvim.onAction('grep-resume', () => ui.show({ reset: false }))
+const doGrepResume = () => ui.show({ reset: false })
 
-nvim.onAction('grep', async (query: string) => {
+const doGrep = async (query: string) => {
   const { cwd } = nvim.state
   ui.show({ cwd })
   query && worker.call.query({ query, cwd })
-})
+}
 
-nvim.onAction('grep-word', async () => {
+const doGrepWord = async () => {
   const { cwd } = nvim.state
   const query = await nvim.call.expand('<cword>')
   ui.show({ cwd, value: query })
   worker.call.query({ query, cwd })
-})
+}
 
 // TODO: rename to grep-visual to be consistent with other actions
 // operating from visual mode
-nvim.onAction('grep-selection', async () => {
+const doGrepVisual = async () => {
   await nvim.feedkeys('gv"zy')
   const selection = await nvim.expr('@z')
   const [ query ] = selection.split('\n')
   const { cwd } = nvim.state
   ui.show({ cwd, value: query })
   worker.call.query({ query, cwd })
+}
+
+nvim.onAction('grep', doGrep)
+nvim.onAction('grep-word', doGrepWord)
+nvim.onAction('grep-resume', doGrepResume)
+nvim.onAction('grep-selection', doGrepVisual)
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Search,
+  keybind: 'f',
+  name: 'Find All',
+  description: 'Find in all workspace files',
+  onAction: doGrep,
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Search,
+  keybind: 'w',
+  name: 'Find Word',
+  description: 'Find current word in all files',
+  onAction: doGrepWord,
+})
+
+// TODO: maybe wording not 'resume' but 'show'
+nvim.registerAction({
+  layer: InventoryLayerKind.Search,
+  keybind: 'r',
+  name: 'Resume Search',
+  description: 'Resume previous search query',
+  onAction: doGrepResume,
 })
