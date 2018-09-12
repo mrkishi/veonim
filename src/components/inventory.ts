@@ -15,7 +15,7 @@ enum InventoryMode { Main, Layer }
 const state = {
   layers: [
     {
-      name: 'Search all layer actions',
+      kind: 'Search all layer actions',
       keybind: '<Space>',
       description: 'Fuzzy search all layer actions and execute selection',
     },
@@ -37,19 +37,19 @@ const actions = {
 
 type A = typeof actions
 
-const mainView = ($: S) => h('div', $.layers.map(l => h('div', [
+const mainView = ($: S) => h('div', $.layers.map(m => h('div', [
   ,h('hr')
-  ,h('div', l.kind)
-  ,h('div', l.keybind)
-  ,h('div', l.description)
+  ,h('div', m.kind)
+  ,h('div', m.keybind)
+  ,h('div', m.description)
 ])))
 
-const layerView = (actions: inventory.InventoryAction[]) => h('div', actions.map(a => h('div', [
+const layerView = (actions: inventory.InventoryAction[]) => h('div', actions.map(m => h('div', [
   ,h('hr')
-  ,h('div', a.name)
-  ,h('div', a.keybind)
-  ,h('div', a.description)
-  ,h('div', a.experimental || false)
+  ,h('div', m.name)
+  ,h('div', m.keybind)
+  ,h('div', m.description)
+  ,h('div', m.experimental || false)
 ])))
 
 const view = ($: S) => h('div', {
@@ -94,7 +94,7 @@ nvim.onAction('inventory', async () => {
       console.log('switch to layer:', key)
       const activeLayer = layerList.find(m => m.keybind === key) as inventory.InventoryLayer
       console.log('activeLayer', activeLayer)
-      const layerActions = inventory.actions.getForLayer(activeLayer.kind)
+      const layerActions = inventory.actions.getActionsForLayer(activeLayer.kind)
       console.log('layerActions', layerActions)
       captureMode = InventoryMode.Layer
       ui.setActions(layerActions)

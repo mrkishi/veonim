@@ -39,11 +39,14 @@ export interface InventoryLayer {
 
 const registeredActions = new Set<InventoryAction>()
 
+// TODO: allow actions to be registered as 'hidden'. these will not be displayed
+// in the UI as options, but can be found in the fuzzy search menu. useful for
+// some less common actions
 export const actions = {
   register: (action: InventoryAction) => registeredActions.add(action),
   callAction: () => {},
-  getForLayer: (layerKind: InventoryLayerKind) => [...registeredActions]
-    .filter(ia => ia.layer === layerKind),
+  getActionsForLayer: (layerKind: InventoryLayerKind) => [...registeredActions]
+    .filter(m => m.layer === layerKind),
 }
 
 // TODO: specify order or order these in desired display order?
