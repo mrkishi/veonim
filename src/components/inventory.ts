@@ -16,12 +16,12 @@ const state = {
   // TODO: don't render this as a normal grid tile. make it separate and
   // style it a bit differently.
   layers: [
+    ...inventory.layers,
     {
       kind: 'Search all layer actions',
       keybind: 'SPC',
       description: 'Fuzzy search all layer actions and execute selection',
     },
-    ...inventory.layers,
   ],
   visible: false,
   actions: [] as inventory.InventoryAction[],
