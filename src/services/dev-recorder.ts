@@ -7,7 +7,13 @@ import { makel } from '../ui/vanilla'
 import nvim from '../core/neovim'
 
 if (process.env.VEONIM_DEV) {
-const finder = require('@medv/finder')
+const { default: finder } = require('@medv/finder')
+
+// TODO: stop recording should not be triggered via inventory or vim command
+// we should just have a 'STOP' button (easy) or bind a keybind [c-s-s] only
+// while there is a dev recording happening (hard)
+//
+// this way we don't have to do any event cleanup
 
 interface RecordingEvent {
   kind: string
