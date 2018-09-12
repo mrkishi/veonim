@@ -13,6 +13,8 @@ import nvim from '../core/neovim'
 enum InventoryMode { Main, Layer }
 
 const state = {
+  // TODO: don't render this as a normal grid tile. make it separate and
+  // style it a bit differently.
   layers: [
     {
       kind: 'Search all layer actions',
@@ -44,7 +46,7 @@ const styles = {
     background: 'var(--background-b5)',
     borderRadius: '2px',
     margin: '10px',
-    width: '300px',
+    width: '350px',
     height: '80px',
   },
   grid: {
@@ -72,8 +74,8 @@ const mainView = ($: S) => h('div', {
       justifyContent: 'center',
       alignItems: 'center',
       background: 'var(--background-30)',
-      fontSize: '1.8rem',
-      color: 'var(--foreground)',
+      fontSize: '3rem',
+      color: 'var(--foreground-70)',
       fontWeight: 'bold',
     }
   }, m.keybind.toUpperCase())
@@ -81,6 +83,7 @@ const mainView = ($: S) => h('div', {
   ,h('div', {
     style: {
       padding: '10px',
+      paddingLeft: '20px',
       display: 'flex',
       flexFlow: 'column',
       justifyContent: 'center',
