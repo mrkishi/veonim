@@ -1,3 +1,4 @@
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { list, switchVim } from '../core/sessions'
@@ -43,7 +44,9 @@ const actions = {
   prev: () => (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.list.length - 1, 9) : s.index - 1 }),
 }
 
-const view = ($: S, a: typeof actions) => Plugin($.visible, [
+type A = typeof actions
+
+const view = ($: S, a: A) => Plugin($.visible, [
 
   ,Input({
     hide: a.hide,
@@ -66,5 +69,14 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 
 ])
 
-const ui = app({ name: 'vim-switch', state, actions, view })
+const ui = app<S, A>({ name: 'vim-switch', state, actions, view })
+
 nvim.onAction('vim-switch', () => ui.show(list()))
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Instance,
+  keybind: 's',
+  name: 'Switch',
+  description: 'Switch to another Neovim instance',
+  onAction: () => ui.show(list()),
+})
