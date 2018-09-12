@@ -1,3 +1,4 @@
+import { InventoryLayerKind } from '../core/inventory-layers'
 import userSelectOption from '../components/generic-menu'
 import { notify, NotifyKind } from '../ui/notifications'
 import userPrompt from '../components/generic-prompt'
@@ -55,13 +56,21 @@ let captureEvents = false
 let lastRecordedAt = Date.now()
 let recordingStartTime = Date.now()
 
-nvim.onAction('record-start', () => {
+const doRecordStart = () => {
   banner.HULK_SMASH('RECORDING EVENTS', '#7f0202')
 
   recordedEvents = []
   lastRecordedAt = Date.now()
   recordingStartTime = Date.now()
   captureEvents = true
+}
+
+nvim.registerAction({
+  layer: InventoryLayerKind.DEV,
+  keybind: 's',
+  name: 'Record Start',
+  description: 'Start dev recorder',
+  onAction: doRecordStart,
 })
 
 nvim.onAction('record-stop', async () => {

@@ -1,4 +1,5 @@
 import FiletypeIcon, { Terminal } from '../components/filetype-icon'
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { BufferType, BufferOption } from '../neovim/types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
@@ -110,4 +111,14 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 ])
 
 const ui = app({ name: 'buffers', state, actions, view })
-nvim.onAction('buffers', async () => ui.show(await getBuffers(nvim.state.cwd)))
+const doListBuffers = async () => ui.show(await getBuffers(nvim.state.cwd))
+
+nvim.onAction('buffers', doListBuffers)
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Buffer,
+  keybind: 'l',
+  name: 'List',
+  description: 'Switch to buffer from list',
+  onAction: doListBuffers,
+})

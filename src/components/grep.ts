@@ -296,7 +296,7 @@ nvim.onAction('grep-selection', doGrepVisual)
 nvim.registerAction({
   layer: InventoryLayerKind.Search,
   keybind: 'f',
-  name: 'Find All',
+  name: 'All Files',
   description: 'Find in all workspace files',
   onAction: doGrep,
 })
@@ -304,16 +304,15 @@ nvim.registerAction({
 nvim.registerAction({
   layer: InventoryLayerKind.Search,
   keybind: 'w',
-  name: 'Find Word',
+  name: 'Word All Files',
   description: 'Find current word in all files',
   onAction: doGrepWord,
 })
 
-// TODO: maybe wording not 'resume' but 'show'
 nvim.registerAction({
   layer: InventoryLayerKind.Search,
   keybind: 'r',
-  name: 'Resume Search',
-  description: 'Resume previous search query',
+  name: 'Resume Find All',
+  description: 'Resume previous find all query',
   onAction: doGrepResume,
 })

@@ -95,12 +95,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   const registerAction = (action: inventory.InventoryAction) => {
     const actionCommand = `${action.layer.toLowerCase()}-${action.name.toLowerCase()}`
 
-
-    // TODO: testing purposes only
-    console.log('register action:', actionCommand, action)
-    // TODO: testing purposes only
-
-
     inventory.actions.register(action)
     watchers.actions.on(actionCommand, action.onAction)
     addActionToCommandCompletions(actionCommand)

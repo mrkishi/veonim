@@ -1,3 +1,4 @@
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { divinationSearch } from '../components/divination'
 import { currentWindowElement } from '../core/windows'
 import { finder } from '../ai/update-server'
@@ -121,4 +122,12 @@ nvim.onAction('viewport-search-visual', async () => {
   const selection = await nvim.expr('@z')
   ui.show()
   ui.change(selection)
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Search,
+  keybind: 'v',
+  name: 'Viewport',
+  description: 'Search visible viewport',
+  onAction: () => ui.show(),
 })
