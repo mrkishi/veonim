@@ -68,12 +68,12 @@ const doRecordStart = () => {
 nvim.registerAction({
   layer: InventoryLayerKind.DEV,
   keybind: 's',
-  name: 'Record Start',
+  name: 'Start Record',
   description: 'Start dev recorder',
   onAction: doRecordStart,
 })
 
-nvim.onAction('record-stop', async () => {
+const doRecordStop = async () => {
   banner.heyBigGuySunsGettingRealLow()
 
   captureEvents = false
@@ -90,9 +90,17 @@ nvim.onAction('record-stop', async () => {
   storage.setItem(KEY.ALL, [...uniqRecordings])
 
   notify(`saved "${recordingName}" to local storage`, NotifyKind.Success)
+}
+
+nvim.registerAction({
+  layer: InventoryLayerKind.DEV,
+  keybind: 't',
+  name: 'Stop Record',
+  description: 'Stop dev recorder',
+  onAction: doRecordStop,
 })
 
-nvim.onAction('record-replay', async () => {
+const doRecordReplay = async () => {
   const recordingName = await userSelectOption<string>({
     description: 'select recording to replay',
     options: getAllRecordings(),
@@ -103,9 +111,17 @@ nvim.onAction('record-replay', async () => {
   if (!events || !events.length) return notify(`recording "${key}" does not exist`, NotifyKind.Error)
 
   recordPlayer(events, key)
+}
+
+nvim.registerAction({
+  layer: InventoryLayerKind.DEV,
+  keybind: 'r',
+  name: 'Replay Recording',
+  description: 'Replay a dev recording',
+  onAction: doRecordReplay,
 })
 
-nvim.onAction('record-remove', async () => {
+const doRecordRemove = async () => {
   const recording = await userSelectOption<string>({
     description: 'select recording to REMOVE',
     options: getAllRecordings(),
@@ -121,9 +137,17 @@ nvim.onAction('record-remove', async () => {
   storage.removeItem(recording)
 
   notify(`removed "${key}" recording`, NotifyKind.Success)
+}
+
+nvim.registerAction({
+  layer: InventoryLayerKind.DEV,
+  keybind: 'd',
+  name: 'Delete Recording',
+  description: 'Delete a dev recording',
+  onAction: doRecordRemove,
 })
 
-nvim.onAction('record-remove-all', async () => {
+const doRecordRemoveAll = async () => {
   const confirmation = await userPrompt('type "yes" to remove all recordings')
   if (confirmation !== 'yes') return notify('did NOT remove all recordings', NotifyKind.Error)
 
@@ -134,9 +158,17 @@ nvim.onAction('record-remove-all', async () => {
   storage.removeItem(KEY.ALL)
 
   notify('removed all recordings', NotifyKind.Success)
+}
+
+nvim.registerAction({
+  layer: InventoryLayerKind.DEV,
+  keybind: 'x',
+  name: 'Remove ALL Recordings',
+  description: 'Remove all dev recordings',
+  onAction: doRecordRemoveAll,
 })
 
-nvim.onAction('record-set-startup', async () => {
+const doRecordSetStartup = async () => {
   const recordingName = await userSelectOption<string>({
     description: 'select recording for startup',
     options: getAllRecordings(),
@@ -147,6 +179,14 @@ nvim.onAction('record-set-startup', async () => {
   notify(`set "${key}" as startup replay`, NotifyKind.System)
 
   storage.setTemp(KEY.START, { events, name: key })
+}
+
+nvim.registerAction({
+  layer: InventoryLayerKind.DEV,
+  keybind: 't',
+  name: 'Startup Recording',
+  description: 'Set dev recording for app startup',
+  onAction: doRecordSetStartup,
 })
 
 const createEvent = (kind: string, event: Event) => {
