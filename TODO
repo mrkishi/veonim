@@ -1,3 +1,5 @@
+-- rename vim 'session' to vim 'instance'
+
 -- :Veonim buffers flickers secondary window
 -- call VK() does not register keybinds
 -- :Veonim jump-line is missing ALLOTA labels

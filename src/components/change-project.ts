@@ -181,3 +181,19 @@ nvim.registerAction({
   description: 'Change project directory',
   onAction: () => go('', false),
 })
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Project,
+  keybind: 's',
+  name: 'Spawn Instance',
+  description: 'Spawn Neovim instance with project',
+  onAction: () => go('', true),
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Instance,
+  keybind: 'p',
+  name: 'Create Project',
+  description: 'Create Neovim instance with project',
+  onAction: () => go('', true),
+})
