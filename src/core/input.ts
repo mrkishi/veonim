@@ -1,4 +1,5 @@
 import { $, Watchers, is, fromJSON } from '../support/utils'
+import { normalizeVimMode } from '../support/neovim-utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import { VimMode } from '../neovim/types'
@@ -71,8 +72,7 @@ const mapKey = $(bypassEmptyMod, toVimKey)
 const formatInput = $(combineModsWithKey, wrapKey)
 const shortcuts = new Map<string, Function>()
 
-// TODO: instead of 'mode' being a string, perhaps we can use the VimMode enum?
-export const registerShortcut = (keys: string, mode: string, cb: Function) =>
+export const registerShortcut = (keys: string, mode: VimMode, cb: Function) =>
   shortcuts.set(`${mode}:<${keys.toUpperCase()}>`, cb)
 
 const resetInputState = () => {
@@ -242,7 +242,10 @@ window.addEventListener('keyup', e => {
 // TODO: deprecate remapModifier and use transform instead?
 nvim.onAction('remap-modifier', (from, to) => remapModifier(from, to))
 
-nvim.onAction('register-shortcut', (key, mode) => registerShortcut(key, mode, () => nvim.call.VeonimCallEvent(`key:${mode}:${key}`)))
+nvim.onAction('register-shortcut', (key, mode) => {
+  const vimMode = normalizeVimMode(mode)
+  registerShortcut(key, vimMode, () => nvim.call.VeonimCallEvent(`key:${mode}:${key}`)))
+}
 
 nvim.onAction('key-transform', (type, matcher, transformer) => {
   const fn = Reflect.get(transform, type)
