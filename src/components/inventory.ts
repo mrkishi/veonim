@@ -152,6 +152,71 @@ const view = ($: S) => h('div', {
 
 const ui = app<S, A>({ name: 'inventory', state, view, actions })
 
+// TODO: i think we should figure out a way to map all the registered actions statically
+// that way we know all the needed action mappings at veonim startup. right now nvim.registerAction()
+// is called dynamically and asynchronously.
+//
+// we can require modules on demand for onAction param. eg
+// { 
+//  layer: Language,
+//  keybind: 'h',
+//  name: 'hover',
+//  onAction: require('../src/ai/hover').doHover,
+// }
+//
+// this solves the problem of delayed component loadings. either way after veonim startup
+// we will lazyload components, so the 'require' will be cached.
+//
+
+
+// mapping logic:
+//
+// TODO: disable VK() veonim map all modifiers. its not really useful, clunky, and its
+// currently broken anyways
+//
+// always map shift+ctrl+I to 'inventory'
+//
+// then:
+// determine if it is possible to map inventory to <space> region
+//
+// is <space> mapped?
+// is <space><space> mapped?
+//
+// if available, continue
+//
+// go thru all the layer actions and see if they have mappings available
+//
+// available: -> map inventory to <space> and everything else. no conflicts found
+// NOT available: -> go thru registeredActions and find alternative keybinds
+//    -> if alternative keybinds CANT be found, fail and dont map to <space>. default s-c-i is still bound
+//    -> if alternative keybinds SUCCESS -> map inventory to <space> + substitute keybinds.
+//       display in the UI that the regular keybinding was not able to be bound
+//       show conflicting keybinding. perhaps the user wants to fix the keybinding
+//       back to its desired veonim state. (at least its good to know the keybinding
+//       is not standard)
+//
+// - findAlternativeKeybinding() -> somehow make this deterministic so if we find alternatives
+//   those alternatives will be the same on each veonim startup.
+//
+// btw: if we don't have an action keybinding registered, perhaps we should just forward
+// the keybind combo to nvim and have it handle it. its possible that the user has mapped
+// some <space>xx combo that we do not have a registered action for
+
+
+// TODO: how do we map an internal keybinding with the input registry?
+setImmediate(async () => {
+  const keymap = await nvim.getKeymap()
+
+  const isMapped = {
+    space: keymap.has(' '),
+    spaceSpace: keymap.has('  '),
+    jump: keymap.has(' js'),
+  }
+
+  console.log('isMapped', isMapped)
+  console.log('FINAL keymap', keymap)
+})
+
 // TODO: how do we support inventory in other modes except normal?
 // it shouldn't be that hard to support visual mode, yea?
 //
