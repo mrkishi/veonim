@@ -11,21 +11,6 @@ export enum InventoryLayerKind {
   DEV = 'LOLHAX',
 }
 
-export interface InventoryAction {
-  /** Which layer this action belongs to */
-  layer: InventoryLayerKind
-  /** Key binding to activate this action */
-  keybind: string
-  /** Action name. Will be formatted and appended to layer name. Final command value would be :Veonim ${layer}-${command}*/ 
-  name: string
-  /** User friendly description provided in the UI */
-  description: string
-  /** Callback will be executed when this action is selected */
-  onAction: () => any
-  /** Indicate to the user that this action is experimental. Default: FALSE */
-  experimental?: boolean
-}
-
 export interface InventoryLayer {
   /** Layer name. Will be formatted and used for Vim command. */
   kind: InventoryLayerKind
@@ -37,21 +22,8 @@ export interface InventoryLayer {
   devOnly?: boolean
 }
 
-const registeredActions = new Set<InventoryAction>()
-
-// TODO: allow actions to be registered as 'hidden'. these will not be displayed
-// in the UI as options, but can be found in the fuzzy search menu. useful for
-// some less common actions
-export const actions = {
-  register: (action: InventoryAction) => registeredActions.add(action),
-  callAction: () => {},
-  list: () => [...registeredActions],
-  getActionsForLayer: (layerKind: InventoryLayerKind) => [...registeredActions]
-    .filter(m => m.layer === layerKind),
-}
-
 // TODO: specify order or order these in desired display order?
-export const layers: InventoryLayer[] = [{
+export default [{
   kind: InventoryLayerKind.Language,
   keybind: 'l',
   description: 'Language server features',
@@ -88,4 +60,4 @@ export const layers: InventoryLayer[] = [{
   keybind: '\'',
   description: 'if ur seein dis ur an ub3r 1337 h4x0rz',
   devOnly: true,
-} ]
+} ] as InventoryLayer[]

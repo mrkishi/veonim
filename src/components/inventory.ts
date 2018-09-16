@@ -1,5 +1,8 @@
 import { InputMode, switchInputMode, watchInputMode, registerShortcut } from '../core/input'
-import * as inventory from '../core/inventory-layers'
+import { InventoryAction } from '../core/inventory-actions'
+import { InventoryLayer } from '../core/inventory-layers'
+import inventoryActions from '../core/inventory-actions'
+import inventoryLayers from '../core/inventory-layers'
 import { VimMode } from '../neovim/types'
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
@@ -17,7 +20,7 @@ const state = {
   // TODO: don't render this as a normal grid tile. make it separate and
   // style it a bit differently.
   layers: [
-    ...inventory.layers,
+    ...inventoryLayers,
     {
       kind: 'Search all layer actions',
       keybind: 'SPC',
@@ -25,7 +28,7 @@ const state = {
     },
   ],
   visible: false,
-  actions: [] as inventory.InventoryAction[],
+  actions: [] as InventoryAction[],
 }
 
 type S = typeof state
@@ -35,7 +38,7 @@ const resetState = { visible: false, actions: [] }
 const actions = {
   show: () => ({ visible: true }),
   hide: () => resetState,
-  setActions: (actions: inventory.InventoryAction[]) => ({ actions }),
+  setActions: (actions: InventoryAction[]) => ({ actions }),
 }
 
 type A = typeof actions
@@ -103,7 +106,7 @@ const mainView = ($: S) => h('div', {
   style: styles.grid
 }, $.layers.map(m => box(m.keybind, m.kind, m.description)))
 
-const layerView = (actions: inventory.InventoryAction[]) => h('div', {
+const layerView = (actions: InventoryAction[]) => h('div', {
   style: styles.grid
 }, actions.map(m => box(m.keybind, m.name, m.description)))
 
@@ -237,8 +240,7 @@ const doIntenvory = async () => {
   console.log('timeoutLength', timeoutLength)
   ui.show()
 
-  const layerList = Object.values(inventory.layers)
-  const validLayerKeybinds = new Set([...layerList.map(m => m.keybind)])
+  const validLayerKeybinds = new Set(inventoryLayers.map(m => m.keybind))
 
   const reset = (actionFn?: Function) => {
     stopWatchingInput()
@@ -257,14 +259,14 @@ const doIntenvory = async () => {
   switchInputMode(InputMode.Motion)
 
   let captureMode = InventoryMode.Main
-  let activeLayerActions: inventory.InventoryAction[]
+  let activeLayerActions: InventoryAction[]
 
   const stopWatchingInput = watchInputMode(InputMode.Motion, key => {
     if (key === '<Esc>') return reset()
 
     if (captureMode === InventoryMode.Main && validLayerKeybinds.has(key)) {
-      const activeLayer = layerList.find(m => m.keybind === key) as inventory.InventoryLayer
-      activeLayerActions = inventory.actions.getActionsForLayer(activeLayer.kind)
+      const activeLayer = inventoryLayers.find(m => m.keybind === key) as InventoryLayer
+      activeLayerActions = inventoryActions.getActionsForLayer(activeLayer.kind)
       captureMode = InventoryMode.Layer
       ui.setActions(activeLayerActions)
       return

@@ -1,6 +1,7 @@
+import { InventoryAction } from '../core/inventory-actions'
+import inventoryActions from '../core/inventory-actions'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
-import * as inventory from '../core/inventory-layers'
 import { registerShortcut } from '../core/input'
 import Input from '../components/text-input'
 import { VimMode } from '../neovim/types'
@@ -13,8 +14,8 @@ const state = {
   index: 0,
   visible: false,
   value: '',
-  actions: [] as inventory.InventoryAction[],
-  cache: [] as inventory.InventoryAction[],
+  actions: [] as InventoryAction[],
+  cache: [] as InventoryAction[],
 }
 
 type S = typeof state
@@ -35,7 +36,7 @@ const actions = {
       ? filter(s.cache, value, { key: 'name' }).slice(0, 10)
       : s.cache.slice(0, 10),
   }),
-  show: (actions: inventory.InventoryAction[]) => ({
+  show: (actions: InventoryAction[]) => ({
     actions: actions.slice(0, 10),
     cache: actions.slice(0, 10),
     visible: true,
@@ -84,7 +85,7 @@ const ui = app<S, A>({ name: 'inventory-search', state, actions, view })
 // we should move out the register layer actions to be static
 // and only setup this view with the actions ONCE.
 const doInventorySearch = () => {
-  const actions = inventory.actions.list()
+  const actions = inventoryActions.list()
   ui.show(actions)
 }
 
