@@ -1,4 +1,5 @@
 import { InventoryLayerKind } from '../inventory/layers'
+import nvim from '../core/neovim'
 
 export interface InventoryAction {
   /** Which layer this action belongs to */
@@ -18,7 +19,11 @@ export interface InventoryAction {
 }
 
 const mod = (modulePath: string, func = 'default') => {
-  return require(`../${modulePath}`)[func]
+  try {
+    return require(`../${modulePath}`)[func]
+  } catch(e) {
+    console.error('trying to call veonim layer action with a bad modulePath. you probably mistyped the module path\n', e)
+  }
 }
 
 // TODO: allow actions to be registered as 'hidden'. these will not be displayed
@@ -30,7 +35,7 @@ const actions: InventoryAction[] = [
     keybind: 'f',
     name: 'Files',
     description: 'Find files in project',
-    onAction: mod('components/filesz'),
+    onAction: mod('components/files'),
   },
   {
     layer: InventoryLayerKind.Project,
@@ -62,11 +67,7 @@ const actions: InventoryAction[] = [
   },
 ]
 
-// TODO: register all these actions as neovim commands
-
-const wut = actions[0]
-console.log('wut', wut)
-wut.onAction()
+actions.forEach(action => nvim.registerAction(action))
 
 export default {
   list: () => actions,
