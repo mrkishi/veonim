@@ -72,11 +72,4 @@ const view = ($: S, a: A) => Plugin($.visible, [
 const ui = app<S, A>({ name: 'vim-switch', state, actions, view })
 
 nvim.onAction('vim-switch', () => ui.show(list()))
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Instance,
-  keybind: 's',
-  name: 'Switch',
-  description: 'Switch to another Neovim instance',
-  onAction: () => ui.show(list()),
-})
+export default () => ui.show(list())

@@ -26,6 +26,9 @@ const mod = (modulePath: string, func = 'default') => {
   }
 }
 
+const modc = (modulePath: string, func = 'default') => mod(`components/${modulePath}`, func)
+const moda = (modulePath: string, func = 'default') => mod(`ai/${modulePath}`, func)
+
 // TODO: allow actions to be registered as 'hidden'. these will not be displayed
 // in the UI as options, but can be found in the fuzzy search menu. useful for
 // some less common actions
@@ -35,35 +38,42 @@ const actions: InventoryAction[] = [
     keybind: 'f',
     name: 'Files',
     description: 'Find files in project',
-    onAction: mod('components/files'),
+    onAction: modc('files'),
   },
   {
     layer: InventoryLayerKind.Project,
     keybind: 's',
     name: 'Spawn Instance',
     description: 'Spawn Neovim instance with project',
-    onAction: mod('components/change-project', 'createInstanceWithDir'),
+    onAction: modc('change-project', 'createInstanceWithDir'),
   },
   {
     layer: InventoryLayerKind.Instance,
     keybind: 'p',
     name: 'Create Project',
     description: 'Create Neovim instance with project',
-    onAction: () => mod('components/change-project', 'createInstanceWithDir'),
+    onAction: modc('change-project', 'createInstanceWithDir'),
   },
   {
     layer: InventoryLayerKind.Project,
     keybind: 'c',
     name: 'Change',
     description: 'Change project directory',
-    onAction: () => mod('components/change-project', 'changeDir'),
+    onAction: modc('change-project', 'changeDir'),
   },
   {
     layer: InventoryLayerKind.Search,
     keybind: 'v',
     name: 'Viewport',
     description: 'Search visible viewport',
-    onAction: () => mod('components/viewport-search'),
+    onAction: modc('viewport-search'),
+  },
+  {
+    layer: InventoryLayerKind.Instance,
+    keybind: 's',
+    name: 'Switch',
+    description: 'Switch to another Neovim instance',
+    onAction: modc('vim-switch'),
   },
 ]
 
