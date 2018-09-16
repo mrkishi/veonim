@@ -1,4 +1,3 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import FiletypeIcon from '../components/filetype-icon'
@@ -119,11 +118,4 @@ const doFiles = () => {
 }
 
 nvim.onAction('files', doFiles)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Project,
-  keybind: 'f',
-  name: 'Files',
-  description: 'Find files in project',
-  onAction: doFiles,
-})
+export default doFiles

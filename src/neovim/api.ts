@@ -2,9 +2,9 @@ import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, Buf
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../neovim/protocol'
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
 import { normalizeVimMode } from '../support/neovim-utils'
+import { InventoryAction } from '../core/inventory-layers'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
-import * as inventory from '../core/inventory-layers'
 import { watchConfig } from '../config/config-reader'
 import { Functions } from '../core/vim-functions'
 import { NeovimRPC } from '../messaging/rpc'
@@ -116,10 +116,8 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     cmd(`let g:vn_cmd_completions .= "${actionName}\\n"`)
   }
 
-  const registerAction = (action: inventory.InventoryAction) => {
+  const registerAction = (action: InventoryAction) => {
     const actionCommand = `${action.layer.toLowerCase()}-${action.name.toLowerCase()}`
-
-    inventory.actions.register(action)
     watchers.actions.on(actionCommand, action.onAction)
     addActionToCommandCompletions(actionCommand)
   }

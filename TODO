@@ -1,4 +1,9 @@
 -- rename vim 'session' to vim 'instance'
+-- figure out how to remove onAction
+  - with register action we have a few missing features
+  - the ability to support parameters in vim commands
+  - the ability to indicate support for different vim modes (like jump actions
+    can be in either normal or visual modes)
 
 -- :Veonim buffers flickers secondary window
 -- call VK() does not register keybinds
