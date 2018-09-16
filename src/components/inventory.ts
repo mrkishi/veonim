@@ -1,4 +1,4 @@
-import { InputMode, switchInputMode, watchInputMode } from '../core/input'
+import { InputMode, switchInputMode, watchInputMode, registerShortcut } from '../core/input'
 import * as inventory from '../core/inventory-layers'
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
@@ -213,9 +213,17 @@ setImmediate(async () => {
     jump: keymap.has(' js'),
   }
 
+  if (!isMapped.space) nvim.cmd('nno <space> :Veonim inventory<cr>')
+  if (!isMapped.spaceSpace) nvim.cmd('nno <space><space> :Veonim inventory-search<cr>')
+
   console.log('isMapped', isMapped)
   console.log('FINAL keymap', keymap)
 })
+
+const doInventorySearch = () => {
+  console.warn('NYI: inventory search')
+  // TODO: ui render fuzzy menu of all layer actions kthx
+}
 
 // TODO: how do we support inventory in other modes except normal?
 // it shouldn't be that hard to support visual mode, yea?
@@ -227,7 +235,7 @@ setImmediate(async () => {
 // TODO: this should be a separate vim command :VeonimInventory
 // we should look to see if we need to register any actions that should
 // not show up in the UI. perhaps only in the fuzzy search?
-nvim.onAction('inventory', async () => {
+const doIntenvory = async () => {
   const timeoutLength = await nvim.options.timeoutlen
   console.log('timeoutLength', timeoutLength)
   ui.show()
@@ -275,4 +283,10 @@ nvim.onAction('inventory', async () => {
 
     // TODO: else what do if we selected an invalid key?
   })
-})
+}
+
+nvim.onAction('inventory', doIntenvory)
+nvim.onAction('inventory-search', doInventorySearch)
+
+registerShortcut('s-c-i', 'n', doIntenvory)
+registerShortcut('s-c-p', 'n', doInventorySearch)

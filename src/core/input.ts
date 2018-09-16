@@ -71,6 +71,7 @@ const mapKey = $(bypassEmptyMod, toVimKey)
 const formatInput = $(combineModsWithKey, wrapKey)
 const shortcuts = new Map<string, Function>()
 
+// TODO: instead of 'mode' being a string, perhaps we can use the VimMode enum?
 export const registerShortcut = (keys: string, mode: string, cb: Function) =>
   shortcuts.set(`${mode}:<${keys.toUpperCase()}>`, cb)
 
