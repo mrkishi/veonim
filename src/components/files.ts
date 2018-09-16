@@ -1,3 +1,4 @@
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import FiletypeIcon from '../components/filetype-icon'
@@ -112,7 +113,17 @@ const ui = app({ name: 'files', state, actions, view })
 worker.on.results((files: string[]) => ui.results(files))
 worker.on.done(ui.loadingDone)
 
-nvim.onAction('files', () => {
+const doFiles = () => {
   worker.call.load(nvim.state.cwd)
   ui.show(nvim.state.file)
+}
+
+nvim.onAction('files', doFiles)
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Project,
+  keybind: 'f',
+  name: 'Files',
+  description: 'Find files in project',
+  onAction: doFiles,
 })

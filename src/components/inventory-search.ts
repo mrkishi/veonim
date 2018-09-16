@@ -84,7 +84,6 @@ const ui = app<S, A>({ name: 'inventory-search', state, actions, view })
 // we should move out the register layer actions to be static
 // and only setup this view with the actions ONCE.
 const doInventorySearch = () => {
-  console.warn('NYI: inventory search')
   const actions = inventory.actions.list()
   ui.show(actions)
 }

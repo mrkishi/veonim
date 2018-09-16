@@ -1,6 +1,7 @@
 import { getDirFiles, exists, pathRelativeToHome, simplifyPath, absolutePath } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
 import { createVim, renameCurrentToCwd } from '../core/sessions'
+import { InventoryLayerKind } from '../core/inventory-layers'
 import { Plugin } from '../components/plugin-container'
 import configReader from '../config/config-service'
 import config from '../config/config-service'
@@ -171,4 +172,12 @@ nvim.watchState.cwd((cwd: string) => {
   })
 
   defaultRoot && renameCurrentToCwd(simplifyPath(cwd, absolutePath(defaultRoot)))
+})
+
+nvim.registerAction({
+  layer: InventoryLayerKind.Project,
+  keybind: 'c',
+  name: 'Change',
+  description: 'Change project directory',
+  onAction: () => go('', false),
 })
