@@ -244,8 +244,8 @@ nvim.onAction('remap-modifier', (from, to) => remapModifier(from, to))
 
 nvim.onAction('register-shortcut', (key, mode) => {
   const vimMode = normalizeVimMode(mode)
-  registerShortcut(key, vimMode, () => nvim.call.VeonimCallEvent(`key:${mode}:${key}`)))
-}
+  registerShortcut(key, vimMode, () => nvim.call.VeonimCallEvent(`key:${mode}:${key}`))
+})
 
 nvim.onAction('key-transform', (type, matcher, transformer) => {
   const fn = Reflect.get(transform, type)

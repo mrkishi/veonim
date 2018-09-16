@@ -221,10 +221,6 @@ setImmediate(async () => {
   console.log('FINAL keymap', keymap)
 })
 
-const doInventorySearch = () => {
-  console.warn('NYI: inventory search')
-  // TODO: ui render fuzzy menu of all layer actions kthx
-}
 
 // TODO: how do we support inventory in other modes except normal?
 // it shouldn't be that hard to support visual mode, yea?
@@ -287,7 +283,4 @@ const doIntenvory = async () => {
 }
 
 nvim.onAction('inventory', doIntenvory)
-nvim.onAction('inventory-search', doInventorySearch)
-
 registerShortcut('s-c-i', VimMode.Normal, doIntenvory)
-registerShortcut('s-c-p', VimMode.Normal, doInventorySearch)

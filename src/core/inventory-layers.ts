@@ -45,6 +45,7 @@ const registeredActions = new Set<InventoryAction>()
 export const actions = {
   register: (action: InventoryAction) => registeredActions.add(action),
   callAction: () => {},
+  list: () => [...registeredActions],
   getActionsForLayer: (layerKind: InventoryLayerKind) => [...registeredActions]
     .filter(m => m.layer === layerKind),
 }
