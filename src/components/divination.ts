@@ -1,7 +1,6 @@
 import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
 import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
-import { InventoryLayerKind } from '../core/inventory-layers'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
 import { getLines } from '../core/grid'
@@ -85,7 +84,7 @@ const calcWhitespaceOffsets = (lines: string[]) => lines.reduce((res, line, ix) 
   return res
 }, new Map<number, number>())
 
-const divinationLine = async ({ visual }: { visual: boolean }) => {
+export const divinationLine = async (visual = false) => {
   if (visual) nvim.feedkeys('gv', 'n')
   else nvim.feedkeys('m`', 'n')
 
@@ -318,27 +317,5 @@ export const divinationSearch = async () => {
 }
 
 nvim.onAction('jump-search', divinationSearch)
-nvim.onAction('jump-line', () => divinationLine({ visual: false }))
-nvim.onAction('jump-line-visual', () => divinationLine({ visual: true }))
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Jump,
-  keybind: 's',
-  name: 'Search',
-  description: 'Jump to a Vim search result',
-  onAction: divinationSearch,
-  experimental: true,
-})
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Jump,
-  keybind: 'l',
-  name: 'Line',
-  description: 'Jump to a line',
-  onAction: () => divinationLine({ visual: false }),
-  experimental: true,
-})
-
-nvim.onAction('jump-search', divinationSearch)
-nvim.onAction('jump-line', () => divinationLine({ visual: false }))
-nvim.onAction('jump-line-visual', () => divinationLine({ visual: true }))
+nvim.onAction('jump-line', () => divinationLine())
+nvim.onAction('jump-line-visual', () => divinationLine(true))

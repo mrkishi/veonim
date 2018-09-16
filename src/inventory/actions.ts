@@ -75,6 +75,57 @@ const actions: InventoryAction[] = [
     description: 'Switch to another Neovim instance',
     onAction: modc('vim-switch'),
   },
+  {
+    layer: InventoryLayerKind.Instance,
+    keybind: 'c',
+    name: 'Create',
+    description: 'Create new Neovim instance',
+    onAction: modc('vim-create'),
+  },
+  {
+    layer: InventoryLayerKind.Search,
+    keybind: 'r',
+    name: 'Resume Find All',
+    description: 'Resume previous find all query',
+    onAction: modc('grep', 'grepResume'),
+  },
+  {
+    layer: InventoryLayerKind.Search,
+    keybind: 'w',
+    name: 'Word All Files',
+    description: 'Find current word in all files',
+    onAction: modc('grep', 'grepWord'),
+  },
+  {
+    layer: InventoryLayerKind.Search,
+    keybind: 'f',
+    name: 'All Files',
+    description: 'Find in all workspace files',
+    onAction: modc('grep', 'grep'),
+  },
+  {
+    layer: InventoryLayerKind.Buffer,
+    keybind: 'l',
+    name: 'List',
+    description: 'Switch to buffer from list',
+    onAction: modc('buffers'),
+  },
+  {
+    layer: InventoryLayerKind.Jump,
+    keybind: 's',
+    name: 'Search',
+    description: 'Jump to a Vim search result',
+    onAction: modc('divination', 'divinationSearch'),
+    experimental: true,
+},
+  {
+    layer: InventoryLayerKind.Jump,
+    keybind: 'l',
+    name: 'Line',
+    description: 'Jump to a line',
+    onAction: modc('divination', 'divinationLine'),
+    experimental: true,
+},
 ]
 
 actions.forEach(action => nvim.registerAction(action))

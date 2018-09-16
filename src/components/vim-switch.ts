@@ -1,4 +1,3 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import { list, switchVim } from '../core/sessions'

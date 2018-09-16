@@ -1,4 +1,3 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
 import { Plugin } from '../components/plugin-container'
 import Input from '../components/text-input'
 import { createVim } from '../core/sessions'
@@ -42,11 +41,4 @@ const view = ($: S, a: A) => Plugin($.visible, [
 const ui = app<S, A>({ name: 'vim-create', state, actions, view })
 
 nvim.onAction('vim-create', ui.show)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Instance,
-  keybind: 'c',
-  name: 'Create',
-  description: 'Create new Neovim instance',
-  onAction: ui.show,
-})
+export default ui.show

@@ -1,5 +1,4 @@
 import { RowNormal, RowHeader } from '../components/row-container'
-import { InventoryLayerKind } from '../core/inventory-layers'
 import { PluginRight } from '../components/plugin-container'
 import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
@@ -262,15 +261,15 @@ worker.on.results((results: Result[]) => ui.results(results))
 worker.on.moreResults((results: Result[]) => ui.moreResults(results))
 worker.on.done(ui.loadingDone)
 
-const doGrepResume = () => ui.show({ reset: false })
+export const grepResume = () => ui.show({ reset: false })
 
-const doGrep = async (query?: string) => {
+export const grep = async (query?: string) => {
   const { cwd } = nvim.state
   ui.show({ cwd })
   query && worker.call.query({ query, cwd })
 }
 
-const doGrepWord = async () => {
+export const grepWord = async () => {
   const { cwd } = nvim.state
   const query = await nvim.call.expand('<cword>')
   ui.show({ cwd, value: query })
@@ -279,7 +278,7 @@ const doGrepWord = async () => {
 
 // TODO: rename to grep-visual to be consistent with other actions
 // operating from visual mode
-const doGrepVisual = async () => {
+export const grepVisual = async () => {
   await nvim.feedkeys('gv"zy')
   const selection = await nvim.expr('@z')
   const [ query ] = selection.split('\n')
@@ -288,31 +287,7 @@ const doGrepVisual = async () => {
   worker.call.query({ query, cwd })
 }
 
-nvim.onAction('grep', doGrep)
-nvim.onAction('grep-word', doGrepWord)
-nvim.onAction('grep-resume', doGrepResume)
-nvim.onAction('grep-selection', doGrepVisual)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Search,
-  keybind: 'f',
-  name: 'All Files',
-  description: 'Find in all workspace files',
-  onAction: doGrep,
-})
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Search,
-  keybind: 'w',
-  name: 'Word All Files',
-  description: 'Find current word in all files',
-  onAction: doGrepWord,
-})
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Search,
-  keybind: 'r',
-  name: 'Resume Find All',
-  description: 'Resume previous find all query',
-  onAction: doGrepResume,
-})
+nvim.onAction('grep', grep)
+nvim.onAction('grep-word', grepWord)
+nvim.onAction('grep-resume', grepResume)
+nvim.onAction('grep-selection', grepVisual)
