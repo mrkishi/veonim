@@ -1,4 +1,4 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
+import { InventoryLayerKind } from '../inventory/layers'
 
 export interface InventoryAction {
   /** Which layer this action belongs to */
