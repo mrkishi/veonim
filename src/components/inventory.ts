@@ -1,5 +1,6 @@
 import { InputMode, switchInputMode, watchInputMode, registerShortcut } from '../core/input'
 import * as inventory from '../core/inventory-layers'
+import { VimMode } from '../neovim/types'
 import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
@@ -288,5 +289,5 @@ const doIntenvory = async () => {
 nvim.onAction('inventory', doIntenvory)
 nvim.onAction('inventory-search', doInventorySearch)
 
-registerShortcut('s-c-i', 'n', doIntenvory)
-registerShortcut('s-c-p', 'n', doInventorySearch)
+registerShortcut('s-c-i', VimMode.Normal, doIntenvory)
+registerShortcut('s-c-p', VimMode.Normal, doInventorySearch)
