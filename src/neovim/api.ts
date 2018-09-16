@@ -1,6 +1,7 @@
-import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
+import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback, Keymap } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../neovim/protocol'
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
+import { normalizeVimMode } from '../support/neovim-utils'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
 import * as inventory from '../core/inventory-layers'
@@ -21,6 +22,25 @@ export interface Neovim extends NeovimRPC {
   onCreateVim: (fn: () => void) => void
   onSwitchVim: (fn: () => void) => void
 }
+
+const parseKeymap = (keymap: any): Keymap => keymap.reduce((res: Keymap, m: any) => {
+  const { lhs, rhs, sid, buffer, mode } = m
+
+  res.set(lhs, {
+    lhs,
+    rhs,
+    sid,
+    buffer,
+    mode: normalizeVimMode(mode),
+    // vim does not have booleans. these values are returned as either 0 or 1
+    expr: !!m.expr,
+    silent: !!m.silent,
+    nowait: !!m.nowait,
+    noremap: !!m.noremap,
+  })
+
+  return res
+}, new Map())
 
 export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => {
   const registeredEventActions = new Set<string>()
@@ -86,6 +106,10 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   const feedkeys = (keys: string, mode = 'm', escapeCSI = false) => req.core.feedkeys(keys, mode, escapeCSI)
   const normal = (keys: string) => cmd(`norm! "${keys.replace(/"/g, '\\"')}"`)
   const callAtomic = (calls: any[]) => req.core.callAtomic(calls)
+  const getKeymap = async (mode = 'n') => {
+    const map = await req.core.getKeymap(mode)
+    return parseKeymap(map)
+  }
 
   const addActionToCommandCompletions = (actionName: string) => {
     registeredEventActions.add(actionName)
@@ -470,5 +494,5 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     cmd, cmdOut, expr, call, feedkeys, normal, callAtomic, onAction,
     getCurrentLine, jumpTo, jumpToProjectFile, getColor, systemAction, current,
     g, on, untilEvent, applyPatches, buffers, windows, tabs, options:
-    readonlyOptions, registerAction }
+    readonlyOptions, registerAction, getKeymap }
 }

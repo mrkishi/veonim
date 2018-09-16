@@ -1,5 +1,18 @@
 export type GenericCallback = (...args: any[]) => void
 export type VimOption = { [index: string]: Promise<any> }
+export type Keymap = Map<string, KeymapObject>
+
+interface KeymapObject {
+  mode: VimMode,
+  lhs: string
+  rhs: string
+  sid: number
+  buffer: number
+  expr: boolean
+  silent: boolean
+  nowait: boolean
+  noremap: boolean
+}
 
 export enum VimMode {
   Normal,
