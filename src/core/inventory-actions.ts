@@ -33,6 +33,13 @@ const actions: InventoryAction[] = [
     description: 'Change project directory',
     onAction: () => mod('components/change-project', 'changeDir'),
   },
+  {
+    layer: InventoryLayerKind.Search,
+    keybind: 'v',
+    name: 'Viewport',
+    description: 'Search visible viewport',
+    onAction: () => mod('components/viewport-search'),
+  },
 ]
 
 // TODO: register all these actions as neovim commands
