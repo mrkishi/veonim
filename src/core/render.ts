@@ -1,4 +1,4 @@
-import { setWindow, removeWindow, getWindow, renderWindows, setActiveGrid, refreshWindows } from '../core/windows2'
+import { setWindow, hasWindow, removeWindow, getWindow, renderWindows, setActiveGrid, refreshWindows } from '../core/windows2'
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { onRedraw, getMode, getColor as getColorFromVim } from '../core/master-control'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
@@ -311,6 +311,9 @@ r.grid_destroy = id => {
 r.grid_resize = (id, width, height) => {
   console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
   if (checkSkipDefaultGrid(id)) return
+
+  // it seems we get grid_resize events before win_position. not sure why... but okay
+  if (!hasWindow(id)) setWindow(-1, id, 0, 0, width, height)
   getWindow(id).resizeWindow(width, height)
 }
 
@@ -562,6 +565,10 @@ onRedraw((m: any[]) => {
   ;(window as any).requestIdleCallback(() => {
     refreshWindows()
     // TODO: re-enable font atlas generation once the dust settles
+    // BY THE WAY
+    // xterm.js no longer uses bitmap for font atlas. they draw directly from
+    // atlas canvas to real canvas
+    //
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)
     // regenerateFontAtlastIfNecessary()
     getMode().then(m => $$.mode = normalizeVimMode(m.mode))

@@ -46,6 +46,8 @@ export const getWindow = (gridId: number) => {
   return win
 }
 
+export const hasWindow = (gridId: number) => windows.has(gridId)
+
 const getWindowById = (windowId: number) => {
   const win = windowsById.get(windowId)
   if (!win) throw new Error(`trying to get window that does not exist ${windowId}`)
