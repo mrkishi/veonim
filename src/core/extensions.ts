@@ -1,6 +1,9 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import Worker from '../messaging/worker'
+import trace from '../support/trace'
+
+const log = trace('langserv')
 
 // TODO: move to shared place
 interface DebugConfiguration {
@@ -38,16 +41,23 @@ const bridgeServer = (serverId: string): RPCServer => {
   const api = {} as RPCServer
 
   api.sendNotification = (method, ...params) => {
+    log('NOTIFY -->', method, ...params)
     call.server_sendNotification({ serverId, method, params })
   }
 
-  api.sendRequest = (method, ...params) => {
-    return request.server_sendRequest({ serverId, method, params })
+  api.sendRequest = async (method, ...params) => {
+    log('REQUEST -->', method, ...params)
+    const res = await request.server_sendRequest({ serverId, method, params })
+    log('<-- REQUEST', method, res)
+    return res
   }
 
   api.onNotification = (method, cb) => {
     call.server_onNotification({ serverId, method })
-    on[`${serverId}:${method}`]((args: any[]) => cb(...args))
+    on[`${serverId}:${method}`]((args: any[]) => {
+      log('<-- NOTIFY', method, args)
+      cb(...args)
+    })
   }
 
   api.onRequest = (method, cb) => {

@@ -39,6 +39,7 @@ export interface Extension extends ExtensionInfo {
 export const activateExtension = async (e: Extension): Promise<Disposable[]> => {
   const requirePath = e.requirePath
   const extName = basename(requirePath)
+  console.log('activating extension:', requirePath)
 
   const extension = require(requirePath)
   if (!extension.activate) {
