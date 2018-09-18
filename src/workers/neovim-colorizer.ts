@@ -6,6 +6,7 @@ import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
 import { Neovim } from '../support/binaries'
 import SetupRPC from '../messaging/rpc'
+import * as marked from 'marked'
 import { resolve } from 'path'
 
 interface ColorData {
@@ -150,6 +151,17 @@ const colorizeTextPerChar = async (lines: string[], filetype = ''): Promise<Colo
   })))
 }
 
+const colorizeAsHTML = async (inputText: string, filetype = ''): Promise<string> => {
+  return (await colorizeText(inputText, filetype))
+    .map(line => line.map(({ color, text }) => `<span style="color: ${color}">${text}</span>`).join(''))
+    .join('')
+}
+
+marked.setOptions({
+  highlight: async (text: string, language: string, done: Function) => done(await colorizeAsHTML(text, language)),
+})
+
 on.setColorScheme((scheme: string) => api.command(`colorscheme ${scheme}`))
 on.colorize(async (text: string, filetype: string) => await colorizeText(text, filetype))
 on.colorizePerChar(async (lines: string[], filetype: string) => await colorizeTextPerChar(lines, filetype))
+on.colorizeMarkdownToHTML(async (markdown: string) => marked(markdown))

@@ -1,7 +1,8 @@
+import { CompletionItemKind, MarkupContent, MarkupKind } from 'vscode-languageserver-protocol'
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { RowNormal, RowComplete } from '../components/row-container'
-import { CompletionItemKind } from 'vscode-languageserver-protocol'
 import * as canvasContainer from '../core/canvas-container'
+import * as markdown from '../support/markdown'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { paddingVH, cvar } from '../ui/css'
@@ -65,6 +66,15 @@ const icons = new Map([
 
 const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || h(Icon.Code)
 
+const parseDocs = (docs?: string | MarkupContent): string | undefined => {
+  if (!docs) return
+
+  if (typeof docs === 'string') return docs
+  if (docs.kind === MarkupKind.PlainText) return docs.value
+  // markdown is not really supported. idk maybe we should change that one day
+  return markdown.remove(docs.value)
+}
+
 const docs = (data: string) => h(RowNormal, {
   style: {
     ...paddingVH(6, 4),
@@ -81,7 +91,8 @@ const docs = (data: string) => h(RowNormal, {
 
 const actions = {
   hide: () => ({ visible: false, ix: 0 }),
-  showDocs: (documentation: any) => ({ documentation }),
+
+  showDocs: (docs?: any) => ({ documentation: parseDocs(docs) }),
 
   show: ({ anchorAbove, visibleOptions, options, x, y, ix = -1 }: any) => ({
     visibleOptions,

@@ -1,4 +1,4 @@
-// typescript/es-next version of stiang/remove-markdown
+export { colorizeMarkdownToHTML as markdownToHTML } from '../services/colorizer'
 
 interface MarkdownOptions {
   listUnicodeChar?: boolean,
@@ -15,6 +15,7 @@ const doGithubMarkdown = (text: string) => text
   .replace(/~~/g, '') //strikethrough
   .replace(/`{3}.*\n/g, '') // fenced codeblocks
 
+// typescript/es-next version of stiang/remove-markdown
 export const remove = (markdown = '', options = {} as MarkdownOptions) => {
   const { listUnicodeChar = false, stripListLeaders = true, githubFlavoredMarkdown = true } = options
 

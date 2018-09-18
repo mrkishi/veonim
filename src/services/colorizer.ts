@@ -6,4 +6,9 @@ export interface ColorData {
   highlight?: boolean,
 }
 
-export default Worker('neovim-colorizer')
+const api = Worker('neovim-colorizer')
+export default api
+
+export const colorizeMarkdownToHTML = (markdown: string): Promise<string> => {
+  return api.request.colorizeMarkdownToHTML(markdown)
+}
