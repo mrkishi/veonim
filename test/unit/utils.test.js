@@ -1,4 +1,4 @@
-const { src, same } = require('./util')
+const { src, same } = require('../util')
 const m = src('support/utils')
 
 const nix = process.platform === 'linux' || process.platform === 'darwin'

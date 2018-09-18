@@ -1,4 +1,4 @@
-const { src, same } = require('./util')
+const { src, same } = require('../util')
 const { findNext, findPrevious } = src('support/relative-finder')
 
 const getA = () => [{
@@ -43,7 +43,7 @@ describe('relative finder', () => {
 
     same(next, {
       path: '/main/a.ts',
-      line: 4,
+      line: 3,
       column: 7,
       endLine: 4,
       endColumn: 9,
