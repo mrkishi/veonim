@@ -1,7 +1,8 @@
+import { SignatureInformation, MarkupContent, MarkupKind } from 'vscode-languageserver-protocol'
 import { supports, getTriggerChars } from '../langserv/server-features'
-import { SignatureInformation } from 'vscode-languageserver-protocol'
 import { signatureHelp } from '../langserv/adapter'
-import { merge } from '../support/utils'
+import * as markdown from '../support/markdown'
+import { merge, is } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
 import nvim from '../core/neovim'
@@ -26,6 +27,15 @@ const shouldCloseSignatureHint = (totalParams: number, currentParam: number, tri
 
 const cursorPos = () => ({ row: cursor.row, col: cursor.col })
 
+const parseDocs = (docs?: string | MarkupContent): string | undefined => {
+  if (!docs) return
+
+  if (typeof docs === 'string') return docs
+  if (docs.kind === MarkupKind.PlainText) return docs.value
+  // markdown is not really supported. idk maybe we should change that one day
+  return markdown.remove(docs.value)
+}
+
 const showSignature = (signatures: SignatureInformation[], which?: number | null, param?: number | null) => {
   const { label = '', documentation = '', parameters = [] } = signatures[which || 0]
   const activeParameter = param || 0
@@ -36,14 +46,14 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
     const { label: currentParam = '', documentation: paramDoc } = parameters[activeParameter]
     cache.totalParams = parameters.length
 
+    if (is.string(documentation))
+
     ui.show({
       ...baseOpts,
       label,
       currentParam,
-      // TODO: support MarkupContent
-      paramDoc: paramDoc as any,
-      // TODO: support MarkupContent
-      documentation: documentation as any,
+      paramDoc: parseDocs(paramDoc),
+      documentation: parseDocs(documentation),
       selectedSignature: (which || 0) + 1,
     })
   }
@@ -65,8 +75,7 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
       ...baseOpts,
       label,
       currentParam,
-      // TODO: support MarkupContent
-      documentation: documentation as any,
+      documentation: parseDocs(documentation),
       selectedSignature: nextSignatureIndex + 1,
     })
   }
