@@ -43,7 +43,7 @@ describe('relative finder', () => {
 
     same(next, {
       path: '/main/a.ts',
-      line: 3,
+      line: 4,
       column: 7,
       endLine: 4,
       endColumn: 9,
