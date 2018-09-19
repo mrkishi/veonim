@@ -48,11 +48,16 @@ describe('markdown to HTML with syntax highlighting', () => {
 
     const res = await request('colorizeMarkdownToHTML', markdown)
 
+    // TODO: we are currently not getting colors back from nvim
+    // this could be because:
+    // - colorscheme is not loaded (checked $runtime but it seems correct)
+    // - no syntax files for filetype
+    // - wrong filetype
     const expected = [
       '<h1 id="star-wars">STAR WARS</h1>',
       '<h2 id="esb">ESB</h2>',
       '<p><em>italic</em> <strong>bold</strong> <code>code</code></p>',
-      '<pre><code class="language-javascript"><span>const generalKenobi = "hello there!"</span><span>console.log(generalKenobi)</span></code></pre>',
+      '<pre><code class="language-javascript"><span style="color: red">const generalKenobi = "hello there!"</span><span>console.log(generalKenobi)</span></code></pre>',
       '',
     ].join('\n')
 
