@@ -1,5 +1,5 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
 import userSelectOption from '../components/generic-menu'
+import { InventoryLayerKind } from '../inventory/layers'
 import { notify, NotifyKind } from '../ui/notifications'
 import userPrompt from '../components/generic-prompt'
 import * as storage from '../support/local-storage'

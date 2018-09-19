@@ -1,4 +1,4 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
+import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import { definition } from '../langserv/adapter'
 import nvim from '../core/neovim'

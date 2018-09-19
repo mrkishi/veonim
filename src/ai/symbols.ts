@@ -1,4 +1,4 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
+import { InventoryLayerKind } from '../inventory/layers'
 import { show, SymbolMode } from '../components/symbols'
 import { supports } from '../langserv/server-features'
 import { symbols } from '../langserv/adapter'

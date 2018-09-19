@@ -28,6 +28,7 @@ const mod = (modulePath: string, func = 'default') => {
 
 const modc = (modulePath: string, func = 'default') => mod(`components/${modulePath}`, func)
 const moda = (modulePath: string, func = 'default') => mod(`ai/${modulePath}`, func)
+console.warn('NYI: someone calling moda for ai', moda)
 
 // TODO: allow actions to be registered as 'hidden'. these will not be displayed
 // in the UI as options, but can be found in the fuzzy search menu. useful for

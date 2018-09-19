@@ -1,6 +1,6 @@
 import { references as getReferences, Reference } from '../langserv/adapter'
 import { findNext, findPrevious } from '../support/relative-finder'
-import { InventoryLayerKind } from '../core/inventory-layers'
+import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import { show } from '../components/references'
 import nvim from '../core/neovim'

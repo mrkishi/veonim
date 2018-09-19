@@ -1,5 +1,5 @@
-import { InventoryLayerKind } from '../core/inventory-layers'
 import colorizer, { ColorData } from '../services/colorizer'
+import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import * as markdown from '../support/markdown'
 import { hover } from '../langserv/adapter'

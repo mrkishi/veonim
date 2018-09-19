@@ -1,6 +1,6 @@
 import { highlights, references as getReferences } from '../langserv/adapter'
 import { Highlight, HighlightGroupId } from '../neovim/types'
-import { InventoryLayerKind } from '../core/inventory-layers'
+import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import { brighten } from '../ui/css'
 import nvim from '../core/neovim'
