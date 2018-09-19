@@ -1,5 +1,6 @@
 import { setVar, paddingVH, paddingV, contrast, darken, brighten, cvar, hexToRGB } from '../ui/css'
 import nvim from '../core/neovim'
+import { css } from '../ui/uikit'
 
 // this will return a var like '244, 120, 042'
 // then we can use this var in rgba color styles
@@ -79,3 +80,14 @@ export const docStyle = {
   color: cvar('foreground-40'),
   background: cvar('background-45'),
 }
+
+export const resetMarkdownHTMLStyle = css(id => [
+  `.${id} p {
+    padding: 0;
+    margin: 0;
+  }`,
+
+  `.${id} p:nth-child(n+2) {
+    margin-top: 8px;
+  }`,
+])

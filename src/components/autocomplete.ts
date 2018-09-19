@@ -2,13 +2,14 @@ import { CompletionItemKind, MarkupContent, MarkupKind } from 'vscode-languagese
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { RowNormal, RowComplete } from '../components/row-container'
 import * as canvasContainer from '../core/canvas-container'
+import { resetMarkdownHTMLStyle } from '../ui/styles'
 import { markdownToHTML } from '../support/markdown'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { paddingVH, cvar } from '../ui/css'
-import { h, app, css } from '../ui/uikit'
 import * as Icon from 'hyperapp-feather'
 import { cursor } from '../core/cursor'
+import { h, app } from '../ui/uikit'
 
 interface ShowParams {
   row: number,
@@ -66,6 +67,7 @@ const icons = new Map([
 
 const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || h(Icon.Code)
 
+// TODO: move to common place. used in other places like signature-hint
 const parseDocs = async (docs?: string | MarkupContent): Promise<string | undefined> => {
   if (!docs) return
 
@@ -73,17 +75,6 @@ const parseDocs = async (docs?: string | MarkupContent): Promise<string | undefi
   if (docs.kind === MarkupKind.PlainText) return docs.value
   return markdownToHTML(docs.value)
 }
-
-const resetMarkdownHTMLStyle = css(id => [
-  `.${id} p {
-    padding: 0;
-    margin: 0;
-  }`,
-
-  `.${id} p:nth-child(n+2) {
-    margin-top: 8px;
-  }`,
-])
 
 const docs = (data: string) => h(RowNormal, {
   style: {
