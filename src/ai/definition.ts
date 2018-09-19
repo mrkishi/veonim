@@ -1,4 +1,3 @@
-import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import { definition } from '../langserv/adapter'
 import nvim from '../core/neovim'
@@ -12,11 +11,4 @@ const doDefinition = async () => {
 }
 
 nvim.onAction('definition', doDefinition)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Language,
-  keybind: 'd',
-  name: 'Definition',
-  description: 'Go to symbol definition',
-  onAction: doDefinition,
-})
+export default doDefinition

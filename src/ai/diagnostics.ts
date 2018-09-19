@@ -6,7 +6,6 @@ import { ui as problemInfoUI } from '../components/problem-info'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
 import { positionWithinRange } from '../support/neovim-utils'
 import * as codeActionUI from '../components/code-actions'
-import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
@@ -130,7 +129,7 @@ onDiagnostics(async m => {
   refreshProblemHighlights()
 })
 
-const doShowProblem = async () => {
+export const showProblem = async () => {
   const { line, column, cwd, file } = nvim.state
   const diagnostics = current.diagnostics.get(path.join(cwd, file))
   if (!diagnostics) return
@@ -139,15 +138,7 @@ const doShowProblem = async () => {
   if (targetProblem) problemInfoUI.show(targetProblem.message)
 }
 
-nvim.onAction('show-problem', doShowProblem)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Language,
-  keybind: 'p',
-  name: 'Show Problem',
-  description: 'Show problem info at cursor',
-  onAction: doShowProblem,
-})
+nvim.onAction('show-problem', showProblem)
 
 nvim.on.cursorMove(problemInfoUI.hide)
 nvim.on.insertLeave(problemInfoUI.hide)
@@ -180,13 +171,7 @@ nvim.onAction('prev-problem', async () => {
 nvim.onAction('problems-toggle', () => problemsUI.toggle())
 nvim.onAction('problems-focus', () => problemsUI.focus())
 
-nvim.registerAction({
-  layer: InventoryLayerKind.Language,
-  keybind: 'o',
-  name: 'Open Problems',
-  description: 'Open problems window',
-  onAction: problemsUI.focus,
-})
+export const openProblems = () => problemsUI.focus()
 
 export const setProblems = (problems: Problem[]) => {
   if (!problems || !problems.length) return
@@ -213,17 +198,9 @@ nvim.on.cursorMove(async () => {
 
 export const runCodeAction = (action: Command) => executeCommand(nvim.state, action)
 
-const doCodeAction = () => codeActionUI.show(cursor.row, cursor.col, cache.actions)
+export const showCodeActions = () => codeActionUI.show(cursor.row, cursor.col, cache.actions)
 
-nvim.onAction('code-action', doCodeAction)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Language,
-  keybind: 'c',
-  name: 'Code Action',
-  description: 'Fix or refactor code',
-  onAction: doCodeAction,
-})
+nvim.onAction('code-action', showCodeActions)
 
 onSwitchVim(() => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))

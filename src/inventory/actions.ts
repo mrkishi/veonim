@@ -169,6 +169,34 @@ const actions: InventoryAction[] = [
     description: 'Start a debug session',
     onAction: moda('debug', 'start'),
   },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'd',
+    name: 'Definition',
+    description: 'Go to symbol definition',
+    onAction: moda('definition'),
+  },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'p',
+    name: 'Show Problem',
+    description: 'Show problem info at cursor',
+    onAction: moda('diagnostics', 'showProblem'),
+  },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'o',
+    name: 'Open Problems',
+    description: 'Open problems window',
+    onAction: moda('diagnostics', 'openProblems'),
+  },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'c',
+    name: 'Code Action',
+    description: 'Fix or refactor code',
+    onAction: moda('diagnostics', 'showCodeActions'),
+  },
 ]
 
 actions.forEach(action => nvim.registerAction(action))
