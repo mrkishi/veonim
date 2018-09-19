@@ -28,7 +28,6 @@ const mod = (modulePath: string, func = 'default') => {
 
 const modc = (modulePath: string, func = 'default') => mod(`components/${modulePath}`, func)
 const moda = (modulePath: string, func = 'default') => mod(`ai/${modulePath}`, func)
-console.warn('NYI: someone calling moda for ai', moda)
 
 // TODO: allow actions to be registered as 'hidden'. these will not be displayed
 // in the UI as options, but can be found in the fuzzy search menu. useful for
@@ -238,6 +237,48 @@ const actions: InventoryAction[] = [
     name: 'Workspace Symbols',
     description: 'List symbols for all files',
     onAction: moda('symbols', 'showWorkspaceSymbols'),
+  },
+  {
+    layer: InventoryLayerKind.DEV,
+    keybind: 's',
+    name: 'Start Record',
+    description: 'Start dev recorder',
+    onAction: require('../services/dev-recorder').start,
+  },
+  {
+    layer: InventoryLayerKind.DEV,
+    keybind: 't',
+    name: 'Stop Record',
+    description: 'Stop dev recorder',
+    onAction: require('../services/dev-recorder').stop,
+  },
+  {
+    layer: InventoryLayerKind.DEV,
+    keybind: 'r',
+    name: 'Replay Recording',
+    description: 'Replay a dev recording',
+    onAction: require('../services/dev-recorder').replay,
+  },
+  {
+    layer: InventoryLayerKind.DEV,
+    keybind: 'd',
+    name: 'Delete Recording',
+    description: 'Delete a dev recording',
+    onAction: require('../services/dev-recorder').remove,
+  },
+  {
+    layer: InventoryLayerKind.DEV,
+    keybind: 'x',
+    name: 'Remove ALL Recordings',
+    description: 'Remove all dev recordings',
+    onAction: require('../services/dev-recorder').removeAll,
+  },
+  {
+    layer: InventoryLayerKind.DEV,
+    keybind: 't',
+    name: 'Startup Recording',
+    description: 'Set dev recording for app startup',
+    onAction: require('../services/dev-recorder').setStartup,
   },
 ]
 

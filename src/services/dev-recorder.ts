@@ -1,10 +1,8 @@
 import userSelectOption from '../components/generic-menu'
-import { InventoryLayerKind } from '../inventory/layers'
 import { notify, NotifyKind } from '../ui/notifications'
 import userPrompt from '../components/generic-prompt'
 import * as storage from '../support/local-storage'
 import { makel } from '../ui/vanilla'
-import nvim from '../core/neovim'
 
 if (process.env.VEONIM_DEV) {
 const { default: finder } = require('@medv/finder')
@@ -62,7 +60,7 @@ let captureEvents = false
 let lastRecordedAt = Date.now()
 let recordingStartTime = Date.now()
 
-const doRecordStart = () => {
+const start = () => {
   banner.HULK_SMASH('RECORDING EVENTS', '#7f0202')
 
   recordedEvents = []
@@ -71,15 +69,7 @@ const doRecordStart = () => {
   captureEvents = true
 }
 
-nvim.registerAction({
-  layer: InventoryLayerKind.DEV,
-  keybind: 's',
-  name: 'Start Record',
-  description: 'Start dev recorder',
-  onAction: doRecordStart,
-})
-
-const doRecordStop = async () => {
+const stop = async () => {
   banner.heyBigGuySunsGettingRealLow()
 
   captureEvents = false
@@ -98,15 +88,7 @@ const doRecordStop = async () => {
   notify(`saved "${recordingName}" to local storage`, NotifyKind.Success)
 }
 
-nvim.registerAction({
-  layer: InventoryLayerKind.DEV,
-  keybind: 't',
-  name: 'Stop Record',
-  description: 'Stop dev recorder',
-  onAction: doRecordStop,
-})
-
-const doRecordReplay = async () => {
+const replay = async () => {
   const recordingName = await userSelectOption<string>({
     description: 'select recording to replay',
     options: getAllRecordings(),
@@ -119,15 +101,7 @@ const doRecordReplay = async () => {
   recordPlayer(events, key)
 }
 
-nvim.registerAction({
-  layer: InventoryLayerKind.DEV,
-  keybind: 'r',
-  name: 'Replay Recording',
-  description: 'Replay a dev recording',
-  onAction: doRecordReplay,
-})
-
-const doRecordRemove = async () => {
+const remove = async () => {
   const recording = await userSelectOption<string>({
     description: 'select recording to REMOVE',
     options: getAllRecordings(),
@@ -145,15 +119,7 @@ const doRecordRemove = async () => {
   notify(`removed "${key}" recording`, NotifyKind.Success)
 }
 
-nvim.registerAction({
-  layer: InventoryLayerKind.DEV,
-  keybind: 'd',
-  name: 'Delete Recording',
-  description: 'Delete a dev recording',
-  onAction: doRecordRemove,
-})
-
-const doRecordRemoveAll = async () => {
+const removeAll = async () => {
   const confirmation = await userPrompt('type "yes" to remove all recordings')
   if (confirmation !== 'yes') return notify('did NOT remove all recordings', NotifyKind.Error)
 
@@ -166,15 +132,7 @@ const doRecordRemoveAll = async () => {
   notify('removed all recordings', NotifyKind.Success)
 }
 
-nvim.registerAction({
-  layer: InventoryLayerKind.DEV,
-  keybind: 'x',
-  name: 'Remove ALL Recordings',
-  description: 'Remove all dev recordings',
-  onAction: doRecordRemoveAll,
-})
-
-const doRecordSetStartup = async () => {
+const setStartup = async () => {
   const recordingName = await userSelectOption<string>({
     description: 'select recording for startup',
     options: getAllRecordings(),
@@ -186,14 +144,6 @@ const doRecordSetStartup = async () => {
 
   storage.setTemp(KEY.START, { events, name: key })
 }
-
-nvim.registerAction({
-  layer: InventoryLayerKind.DEV,
-  keybind: 't',
-  name: 'Startup Recording',
-  description: 'Set dev recording for app startup',
-  onAction: doRecordSetStartup,
-})
 
 const createEvent = (kind: string, event: Event) => {
   // InputEvent is still experimental - not widely supported but used in Chrome. No typings in TS lib
@@ -289,4 +239,6 @@ setTimeout(() => {
   const { events, name } = storage.getTemp<Record>(KEY.START)
   if (events && events.length) recordPlayer(events, name)
 }, 250)
+
+module.exports = { start, stop, replay, remove, removeAll, setStartup }
 } // end of "if" block that only runs stuff in dev mode
