@@ -6,9 +6,9 @@ import { markdownToHTML } from '../support/markdown'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { paddingVH, cvar } from '../ui/css'
+import { h, app, css } from '../ui/uikit'
 import * as Icon from 'hyperapp-feather'
 import { cursor } from '../core/cursor'
-import { h, app } from '../ui/uikit'
 
 interface ShowParams {
   row: number,
@@ -74,6 +74,17 @@ const parseDocs = async (docs?: string | MarkupContent): Promise<string | undefi
   return markdownToHTML(docs.value)
 }
 
+const resetMarkdownHTMLStyle = css(id => [
+  `.${id} p {
+    padding: 0;
+    margin: 0;
+  }`,
+
+  `.${id} p:nth-child(n+2) {
+    margin-top: 8px;
+  }`,
+])
+
 const docs = (data: string) => h(RowNormal, {
   style: {
     ...paddingVH(6, 4),
@@ -87,13 +98,13 @@ const docs = (data: string) => h(RowNormal, {
     background: cvar('background-45'),
     fontSize: `${canvasContainer.font.size - 2}px`,
   },
-  oncreate: (e: HTMLElement) => e.innerHTML = data,
+  oncreate: (e: HTMLElement) => e.innerHTML = `<div class="${resetMarkdownHTMLStyle}">${data}</div>`,
 })
 
 const actions = {
   hide: () => ({ visible: false, ix: 0 }),
 
-  showDocs: (docs?: any) => ({ documentation: parseDocs(docs) }),
+  showDocs: (documentation: any) => ({ documentation }),
 
   show: ({ anchorAbove, visibleOptions, options, x, y, ix = -1 }: any) => ({
     visibleOptions,
