@@ -2,7 +2,7 @@ import { SignatureInformation, MarkupContent, MarkupKind } from 'vscode-language
 import { supports, getTriggerChars } from '../langserv/server-features'
 import { markdownToHTML } from '../support/markdown'
 import { signatureHelp } from '../langserv/adapter'
-import { merge, is } from '../support/utils'
+import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
 import nvim from '../core/neovim'
