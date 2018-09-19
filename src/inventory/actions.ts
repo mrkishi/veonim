@@ -118,7 +118,7 @@ const actions: InventoryAction[] = [
     description: 'Jump to a Vim search result',
     onAction: modc('divination', 'divinationSearch'),
     experimental: true,
-},
+  },
   {
     layer: InventoryLayerKind.Jump,
     keybind: 'l',
@@ -126,7 +126,49 @@ const actions: InventoryAction[] = [
     description: 'Jump to a line',
     onAction: modc('divination', 'divinationLine'),
     experimental: true,
-},
+  },
+  {
+    layer: InventoryLayerKind.Debug,
+    keybind: 'f',
+    name: 'Function Breakpoint',
+    description: 'Toggle function breakpoint at line',
+    onAction: moda('debug', 'toggleFunctionBreakpoint'),
+  },
+  {
+    layer: InventoryLayerKind.Debug,
+    keybind: 'b',
+    name: 'Breakpoint',
+    description: 'Toggle breakpoint at current line',
+    onAction: moda('debug', 'toggleBreakpoint'),
+  },
+  {
+    layer: InventoryLayerKind.Debug,
+    keybind: 'c',
+    name: 'Continue',
+    description: 'Continue debugger',
+    onAction: moda('debug', 'continuee'),
+  },
+  {
+    layer: InventoryLayerKind.Debug,
+    keybind: 'n',
+    name: 'Next',
+    description: 'Debugger step next',
+    onAction: moda('debug', 'next'),
+  },
+  {
+    layer: InventoryLayerKind.Debug,
+    keybind: 't',
+    name: 'Stop Debugging',
+    description: 'Stop current debug session',
+    onAction: moda('debug', 'stop'),
+  },
+  {
+    layer: InventoryLayerKind.Debug,
+    keybind: 's',
+    name: 'Start Debugging',
+    description: 'Start a debug session',
+    onAction: moda('debug', 'start'),
+  },
 ]
 
 actions.forEach(action => nvim.registerAction(action))
