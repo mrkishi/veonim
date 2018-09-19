@@ -9,8 +9,8 @@ const relativeFakes = obj => Object.keys(obj).reduce((res, key) => {
   return res
 }, {})
 
-const src = (name, fake) => fake
-  ? proxyquire(`../build/${name}`, relativeFakes(fake))
+const src = (name, fake, { noRelativeFake = false } = {}) => fake
+  ? proxyquire(`../build/${name}`, noRelativeFake ? fake : relativeFakes(fake))
   : require(`../build/${name}`)
 
 module.exports = { src, same }

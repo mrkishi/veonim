@@ -152,16 +152,23 @@ const colorizeTextPerChar = async (lines: string[], filetype = ''): Promise<Colo
 }
 
 const colorizeAsHTML = async (inputText: string, filetype = ''): Promise<string> => {
-  return (await colorizeText(inputText, filetype))
-    .map(line => line.map(({ color, text }) => `<span style="color: ${color}">${text}</span>`).join(''))
+  const colorLines = await colorizeText(inputText, filetype)
+  return colorLines
+    .filter(m => m)
+    .map(line => line.map(({ color, text }) => {
+      const style = color ? ` style="color: ${color}"` : ''
+      return `<span${style}>${text}</span>`
+    }).join(''))
     .join('')
 }
 
-marked.setOptions({
-  highlight: async (text: string, language: string, done: Function) => done(await colorizeAsHTML(text, language)),
-})
+const wrongDocumentationYouFucktards = (markdown: string): Promise<string> => new Promise(done => marked(markdown, {
+  highlight: (text: string, language: string, done: any) => {
+    colorizeAsHTML(text, language).then(res => done(null, res))
+  },
+}, (_: any, result: string) => done(result)))
 
 on.setColorScheme((scheme: string) => api.command(`colorscheme ${scheme}`))
-on.colorize(async (text: string, filetype: string) => await colorizeText(text, filetype))
-on.colorizePerChar(async (lines: string[], filetype: string) => await colorizeTextPerChar(lines, filetype))
-on.colorizeMarkdownToHTML(async (markdown: string) => marked(markdown))
+on.colorize((text: string, filetype: string) => colorizeText(text, filetype))
+on.colorizePerChar((lines: string[], filetype: string) => colorizeTextPerChar(lines, filetype))
+on.colorizeMarkdownToHTML((markdown: string) => wrongDocumentationYouFucktards(markdown))

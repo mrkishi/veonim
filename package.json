@@ -11,7 +11,7 @@
     "package": "node tools/package.js",
     "test": "mocha test/unit",
     "test:e2e": "mocha test/e2e",
-    "test:integration": "mocha test/integration",
+    "test:integration": "mocha test/integration -t 10000",
     "test:watch": "npm run test -- -w",
     "test:integration:watch": "npm run test:integration -- -w",
     "gen:api": "node tools/gen-api.js",
@@ -53,6 +53,9 @@
     "all-other-unzip-libs-suck-linux": "0.0.2"
   },
   "dependencies": {
+    "@veonim/neovim-mac": "0.0.14",
+    "@veonim/ripgrep-mac": "0.0.1",
+    "all-other-unzip-libs-suck-mac": "0.0.2",
     "fuzzaldrin-plus": "0.4.1",
     "hyperapp": "1.2.6",
     "hyperapp-feather": "0.4.0",
