@@ -1,5 +1,4 @@
 import colorizer, { ColorData } from '../services/colorizer'
-import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import * as markdown from '../support/markdown'
 import { hover } from '../langserv/adapter'
@@ -12,7 +11,7 @@ const textByWord = (data: ColorData[]): ColorData[] => data.reduce((res, item) =
   return [...res, ...items]
 }, [] as ColorData[])
 
-const doHover = async () => {
+const showHover = async () => {
   if (!supports.hover(nvim.state.cwd, nvim.state.filetype)) return
 
   const { value, doc } = await hover(nvim.state)
@@ -27,15 +26,8 @@ const doHover = async () => {
   ui.show({ data, doc })
 }
 
-nvim.onAction('hover', doHover)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Language,
-  keybind: 'h',
-  name: 'Hover',
-  description: 'Show symbol information',
-  onAction: doHover,
-})
+nvim.onAction('hover', showHover)
+export default showHover
 
 nvim.on.cursorMove(ui.hide)
 nvim.on.insertEnter(ui.hide)

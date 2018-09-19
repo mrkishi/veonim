@@ -1,4 +1,3 @@
-import { InventoryLayerKind } from '../inventory/layers'
 import { supports } from '../langserv/server-features'
 import * as updateService from '../ai/update-server'
 import { rename } from '../langserv/adapter'
@@ -23,11 +22,4 @@ const doRename = async () => {
 }
 
 nvim.onAction('rename', doRename)
-
-nvim.registerAction({
-  layer: InventoryLayerKind.Language,
-  keybind: 'r',
-  name: 'Rename',
-  description: 'Rename symbol at cursor',
-  onAction: doRename,
-})
+export default doRename

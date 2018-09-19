@@ -197,6 +197,34 @@ const actions: InventoryAction[] = [
     description: 'Fix or refactor code',
     onAction: moda('diagnostics', 'showCodeActions'),
   },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'l',
+    name: 'Highlight',
+    description: 'Highlight symbol',
+    onAction: moda('highlights', 'highlight'),
+  },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'h',
+    name: 'Hover',
+    description: 'Show symbol information',
+    onAction: moda('hover'),
+  },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'f',
+    name: 'References',
+    description: 'List symbol references',
+    onAction: moda('references', 'showReferences'),
+  },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'r',
+    name: 'Rename',
+    description: 'Rename symbol at cursor',
+    onAction: moda('rename'),
+  },
 ]
 
 actions.forEach(action => nvim.registerAction(action))
