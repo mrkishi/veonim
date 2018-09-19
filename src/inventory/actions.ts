@@ -225,6 +225,20 @@ const actions: InventoryAction[] = [
     description: 'Rename symbol at cursor',
     onAction: moda('rename'),
   },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 's',
+    name: 'Symbols',
+    description: 'List symbols for current file',
+    onAction: moda('symbols', 'showSymbols'),
+  },
+  {
+    layer: InventoryLayerKind.Language,
+    keybind: 'w',
+    name: 'Workspace Symbols',
+    description: 'List symbols for all files',
+    onAction: moda('symbols', 'showWorkspaceSymbols'),
+  },
 ]
 
 actions.forEach(action => nvim.registerAction(action))
