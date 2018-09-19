@@ -1,4 +1,4 @@
-const { src, same } = require('../util')
+const { src, same, globalProxy } = require('../util')
 const EventEmitter = require('events')
 const childProcess = require('child_process')
 
@@ -7,25 +7,34 @@ const watchers = new EventEmitter()
 global.onmessage = () => {}
 global.postMessage = ([ ev, args, id ]) => watchers.emit(id, args)
 
-src('workers/neovim-colorizer', {
-  'child_process': {
-    ...childProcess,
-    spawn: (...args) => {
-      console.log('PROXYING SPAWN LOL')
-      return childProcess.spawn(...args)
-    }
-  }
-})
-
-let id = 1
-
 const request = (method, ...data) => new Promise(done => {
-  const reqId = id++
+  const reqId = Date.now()
   global.onmessage({ data: [ method, data, reqId ] })
   watchers.once(reqId, done)
 })
 
+let undoGlobalProxy
+let nvimProc
+
 describe('markdown to HTML with syntax highlighting', () => {
+  before(() => {
+    undoGlobalProxy = globalProxy('child_process', {
+      ...childProcess,
+      spawn: (...args) => {
+        const proc = childProcess.spawn(...args)
+        if (args[0].includes('nvim')) nvimProc = proc
+        return proc
+      }
+    })
+
+    src('workers/neovim-colorizer')
+  })
+
+  after(() => {
+    nvimProc.kill('SIGKILL')
+    undoGlobalProxy()
+  })
+
   it('happy path', async () => {
     const markdown = [
       '# STAR WARS',
