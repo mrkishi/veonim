@@ -2,7 +2,7 @@ import { CompletionItemKind, MarkupContent, MarkupKind } from 'vscode-languagese
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { RowNormal, RowComplete } from '../components/row-container'
 import * as canvasContainer from '../core/canvas-container'
-import * as markdown from '../support/markdown'
+import { markdownToHTML } from '../support/markdown'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { paddingVH, cvar } from '../ui/css'
@@ -66,28 +66,29 @@ const icons = new Map([
 
 const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || h(Icon.Code)
 
-const parseDocs = (docs?: string | MarkupContent): string | undefined => {
+const parseDocs = async (docs?: string | MarkupContent): Promise<string | undefined> => {
   if (!docs) return
 
   if (typeof docs === 'string') return docs
   if (docs.kind === MarkupKind.PlainText) return docs.value
-  // markdown is not really supported. idk maybe we should change that one day
-  return markdown.remove(docs.value)
+  return markdownToHTML(docs.value)
 }
 
 const docs = (data: string) => h(RowNormal, {
   style: {
     ...paddingVH(6, 4),
+    // RowNormal gives us display: flex but this causes things
+    // to be flex-flow: row. we just want the standard no fancy pls kthx
+    display: 'block',
     paddingTop: '6px',
     overflow: 'visible',
     whiteSpace: 'normal',
     color: cvar('foreground-20'),
     background: cvar('background-45'),
     fontSize: `${canvasContainer.font.size - 2}px`,
-  }
-}, [
-  ,h('span', data)
-])
+  },
+  oncreate: (e: HTMLElement) => e.innerHTML = data,
+})
 
 const actions = {
   hide: () => ({ visible: false, ix: 0 }),
@@ -108,8 +109,12 @@ const actions = {
   select: (ix: number) => (s: S, a: typeof actions) => {
     const completionItem = (s.options[ix] || {}).raw
 
-    if (completionItem) getCompletionDetail(completionItem)
-      .then(m => m.documentation && a.showDocs(m.documentation))
+    if (completionItem) (async () => {
+      const detail = await getCompletionDetail(completionItem)
+      if (!detail.documentation) return
+      const richFormatDocs = await parseDocs(detail.documentation)
+      a.showDocs(richFormatDocs)
+    })()
 
     return { ix, documentation: undefined }
   },
@@ -168,7 +173,6 @@ const ui = app<S, typeof actions>({ name: 'autocomplete', state, actions, view }
 
 export const hide = () => ui.hide()
 export const select = (index: number) => ui.select(index)
-export const showDocs = (documentation: string) => ui.showDocs(documentation)
 export const show = ({ row, col, options }: ShowParams) => {
   const visibleOptions = Math.min(MAX_VISIBLE_OPTIONS, options.length)
   const anchorAbove = cursor.row + visibleOptions > canvasContainer.size.rows 

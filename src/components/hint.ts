@@ -26,8 +26,15 @@ const strongStyle = {
 }
 
 const docs = (data: string) => h('div', {
-  style: docStyle,
-}, [ h('div', data) ])
+  style: {
+    ...docStyle,
+    // RowNormal gives us display: flex but this causes things
+    // to be flex-flow: row. we just want the standard no fancy pls kthx
+    display: 'block',
+  },
+}, [
+  ,h('div', data),
+])
 
 const sliceAndDiceLabel = (label: string, currentParam: string) => {
   const paramStart = label.indexOf(currentParam)
