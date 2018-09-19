@@ -236,8 +236,6 @@ setImmediate(async () => {
 // we should look to see if we need to register any actions that should
 // not show up in the UI. perhaps only in the fuzzy search?
 const doIntenvory = async () => {
-  const timeoutLength = await nvim.options.timeoutlen
-  console.log('timeoutLength', timeoutLength)
   ui.show()
 
   const validLayerKeybinds = new Set(inventoryLayers.map(m => m.keybind))
