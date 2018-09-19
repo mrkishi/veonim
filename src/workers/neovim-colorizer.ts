@@ -6,8 +6,8 @@ import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
 import { Neovim } from '../support/binaries'
 import SetupRPC from '../messaging/rpc'
-import * as marked from 'marked'
 import { resolve } from 'path'
+const marked = require('marked')
 
 interface ColorData {
   color: string,
