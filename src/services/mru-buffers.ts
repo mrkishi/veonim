@@ -97,8 +97,9 @@ nvim.on.bufLoad(async () => {
   }
 
   if (jumpOffset) {
-    const endIndex = stack.length - jumpOffset - 1
+    const endIndex = stack.length - jumpOffset
     const remainBufferStack = stack.slice(0, endIndex)
+    remainBufferStack.push(bufferName)
     bufferStacks.set(activeWindow, { jumpOffset: 0, stack: remainBufferStack })
     return
   }
