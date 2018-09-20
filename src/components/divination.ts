@@ -79,17 +79,17 @@ const divinationLine = async ({ visual }: { visual: boolean }) => {
   const { height: rowCount, row } = win.getSpecs()
   const cursorDistanceFromTopOfEditor = cursor.row - row
 
-  const rowPositions = genList(rowCount, ix => win.relativePositionToPixels(ix, 0))
+  const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
   const labelContainer = makel({ position: 'absolute' })
   const { labelSize, getLabel, indexOfLabel } = getLabels(rowPositions.length)
 
-  const labels = rowPositions.map(({ y, x }, ix) => {
+  const labels = rowPositions.map((y, ix) => {
     const el = makel({
       ...paddingV(4),
       position: 'absolute',
       fontSize: '1.1rem',
       top: `${y}px`,
-      left: `${x}px`,
+      left: '8px',
       background: '#000',
       color: '#eee',
     })
