@@ -60,8 +60,8 @@ app.on('ready', async () => {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
 
   win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 950,
+    height: 700,
     minWidth: 600,
     minHeight: 400,
     frame: true,
