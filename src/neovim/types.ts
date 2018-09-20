@@ -74,6 +74,7 @@ export interface BufferEvent {
   termLeave: void
   insertLeave: void
   insertEnter: void
+  winEnter: number
 }
 
 export interface Color {
