@@ -1,25 +1,36 @@
--- :Veonim buffers flickers secondary window
--- call VK() does not register keybinds
--- :Veonim jump-line is missing ALLOTA labels
--- VEONIM session management (readupon sessions and how to get a list of sessions to restore?)
+## immediate
 
--- gen-api.js get :h doc info for nvim and put into jsdoc annotations to get signature-hints?
+- :Veonim buffers flickers secondary window
+  - *needs investigation*
 
--- test project + files
+- call VK() does not register keybinds
+  - solved on `inventory` branch
+  - tried porting fix over, but needs testing
+  - low priority because i'm thinking of deprecating this feature to reserve 3-modifier shortcuts for veonim built-ins. (c-s-p for fuzzy commands, c-s-i for inventory, c-s-y for "yes", c-s-n for "no", etc.). plus 3-modifer shortcuts are not comfortable and vim offers many ways to create mappings. alternatives:
+    - new feature described below: 1-key mode menus or n-key mode menus
+    - create a way to bind neovim features to keys in insert mode. i only c-s-n/p for signature hint next/prev. i would prefer binding this to c-n/p but i don't know how
+
+- :Veonim jump-line is missing ALLOTA labels
+  - i think this has to do with the whitespace calculations especially for empty lines
+  - i'm thinking of reverting the feature of whitespace calc and just back to 0 col. its faster and simpler anyways.
+
+
+## planned
+
+- test project + files
   - create some test project + files used for testing and demo screenshots
   - create a start script:
     - to start veonim at a certain size for feature demo
     - open test project + files
 
+## backlog stuff that i really want
 
--- jump between mru buffers
-
-
--- hide overlays (problem info, hover) on bufleave
-  - happens when switch tabs
+- jump between mru buffers
 
 
--- terminal change title to current running process
+## stuff that i maybe want (would be cool, but not high priority)
+
+- terminal change title to current running process
 
 
 -- create overlay menu window with key shortcuts so users can create spacemacs-like
@@ -102,7 +113,11 @@ neglible benefit on network (de)serializing (and xmit time?)
 
 =============
 
+-- VEONIM session management (readupon sessions and how to get a list of sessions to restore?)
+
 -- fancy git-branch switcher
+
+-- gen-api.js get :h doc info for nvim and put into jsdoc annotations to get signature-hints?
 
 -- electron: is loading 'index.html' via 'file:///' the right way to do it? what about if we support es6 modules? i saw something about register protocols and intercept protocols. i also noticed index.html takes a long time to load in perf testing. what if we hardcode index.html into the JS and inject it directly from memory?
   - faster module loading? v8 snapshots? webpack? dynamic deffered requires/imports?
