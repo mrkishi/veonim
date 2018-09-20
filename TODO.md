@@ -45,9 +45,15 @@
 
 ## backlog - stuff that i really want
 
-- shutdown + cleanup langservs on project switch/close
-
 - jump between mru buffers
+
+- improve symbols view
+  - show parent symbols if duplicate (or maybe always)
+    - i noticed the veonim/ext-typescript-javascript langserv has some of this parent symbol info
+  - show file locations if duplicate
+  - show file locations for workspace symbols
+
+- shutdown + cleanup langservs on project switch/close
 
 - VIRTUAL LISTS PLEASE
   - how to specify dynamic size of list (to fit in the current window?)
@@ -99,11 +105,6 @@ menus. e.g. (floating windows maybe?)
     - perf difference between stdio/stdout and named pipes?
     - what about all the other vim instances? created and managed in main renderer? or in browser?
 
-- improve symbols view
-  - show parent symbols if duplicate (or maybe always)
-    - i noticed the veonim/ext-typescript-javascript langserv has some of this parent symbol info
-  - show file locations if duplicate
-  - show file locations for workspace symbols
 
 - better UI for installing extensions + plugins (progress bars, details, icons, colors, etc.)
 
@@ -175,6 +176,8 @@ menus. e.g. (floating windows maybe?)
 
 - [requires: *ext-window*] add user-guide built-in to veonim. create display window for it (with keybindings)
   - requires markdown preview or we generate md -> html on build process
+
+- [requires: *ext-window*] show vim config template next to init.vim when editing. for ease of copypasta
 
 - [requires: *extended marks*] interactive LSP rename (like in XCODE)
   - starting a rename operation would realtime change all the other symbols in the current viewport
