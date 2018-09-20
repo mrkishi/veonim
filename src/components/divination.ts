@@ -3,7 +3,6 @@ import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
-import { getLines } from '../core/grid'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
@@ -70,20 +69,6 @@ const labelHTML = (label: string) => label
   .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
   .join('')
 
-// TODO: we gonna replace this with the new fancy THE GRID A DIGITAL FRONTIER apis
-const getVisibleLines = (start: number, amount: number) => {
-  const end = start + amount
-  return getLines(start, end)
-    .map(cols => cols.map(charData => charData[0]).join(''))
-}
-
-const calcWhitespaceOffsets = (lines: string[]) => lines.reduce((res, line, ix) => {
-  const [/*match*/, whitespace = ''] = line.match(/^(\s+)/) || [] as any
-  const offset = whitespace.length
-  if (offset) res.set(ix, offset)
-  return res
-}, new Map<number, number>())
-
 const divinationLine = async ({ visual }: { visual: boolean }) => {
   if (visual) nvim.feedkeys('gv', 'n')
   else nvim.feedkeys('m`', 'n')
@@ -92,17 +77,10 @@ const divinationLine = async ({ visual }: { visual: boolean }) => {
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
   const { height: rowCount, row } = win.getSpecs()
-  const visibleLines = getVisibleLines(row, rowCount)
-  const lineWhitespaceOffsets = calcWhitespaceOffsets(visibleLines)
   const cursorDistanceFromTopOfEditor = cursor.row - row
 
-  const rowPositions = genList(rowCount, ix => {
-    const col = lineWhitespaceOffsets.get(ix) || 0
-    return win.relativePositionToPixels(ix, col)
-  })
-
+  const rowPositions = genList(rowCount, ix => win.relativePositionToPixels(ix, 0))
   const labelContainer = makel({ position: 'absolute' })
-
   const { labelSize, getLabel, indexOfLabel } = getLabels(rowPositions.length)
 
   const labels = rowPositions.map(({ y, x }, ix) => {
