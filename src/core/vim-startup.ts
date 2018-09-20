@@ -71,6 +71,7 @@ const autocmds = {
   InsertEnter: null,
   InsertLeave: null,
   OptionSet: `expand('<amatch>'), v:option_new, v:option_old`,
+  WinEnter: `win_getid()`,
 }
 
 export type Autocmd = typeof autocmds

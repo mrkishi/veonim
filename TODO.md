@@ -45,8 +45,6 @@
 
 ## backlog - stuff that i really want
 
-- jump between mru buffers
-
 - improve symbols view
   - show parent symbols if duplicate (or maybe always)
     - i noticed the veonim/ext-typescript-javascript langserv has some of this parent symbol info

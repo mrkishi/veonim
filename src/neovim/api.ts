@@ -362,6 +362,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
   autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
   autocmd.OptionSet((name: string, value: any) => options.set(name, value))
+  autocmd.WinEnter((id: number) => watchers.events.emit('winEnter', id))
 
   // TODO: would like to abstract this buffer change stuff away into a cleaner
   // solution especially since we now have buffer change notifications in nvim
