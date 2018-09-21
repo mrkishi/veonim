@@ -2,7 +2,7 @@
 
 const path = require('path')
 const { Application } = require('spectron')
-const delay = time => new Promise(fin => setTimeout(fin, time))
+const { delay } = require('../util')
 
 module.exports = async () => {
   const projectPath = path.join(__dirname, '../data')
@@ -14,6 +14,7 @@ module.exports = async () => {
 
   await app.start()
   await app.client.waitUntilWindowLoaded()
+  await delay(500)
 
   const input = async m => {
     await delay(100)
@@ -21,6 +22,8 @@ module.exports = async () => {
   }
 
   input.enter = () => input('Enter')
+  input.esc = () => input('Escape')
+
   input.meta = async m => {
     await input('\uE03D')
     await input(m)
@@ -33,6 +36,7 @@ module.exports = async () => {
   }
 
   await input(`:cd ${projectPath}`)
+  await input.enter()
 
   return { app, input, delay, veonim }
 }

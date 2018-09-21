@@ -23,4 +23,6 @@ const globalProxy = (name, implementation) => {
   return () => Module._load = originalModuleLoader
 }
 
-module.exports = { src, same, globalProxy }
+const delay = time => new Promise(fin => setTimeout(fin, time))
+
+module.exports = { src, same, globalProxy, delay }

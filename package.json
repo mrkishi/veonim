@@ -10,7 +10,7 @@
     "build": "node tools/build.js",
     "package": "node tools/package.js",
     "test": "mocha test/unit",
-    "test:e2e": "mocha test/e2e",
+    "test:e2e": "mocha test/e2e -t 0",
     "test:integration": "mocha test/integration -t 10000",
     "test:watch": "npm run test -- -w",
     "test:integration:watch": "npm run test:integration -- -w",
