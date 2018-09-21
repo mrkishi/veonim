@@ -125,12 +125,14 @@ const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
 }
 
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
+  if (!params.filetype) return
   const server = await getServerForProjectAndLanguage(params)
   if (server) return server.sendRequest(method, params)
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Request, method, params })
 }
 
 export const notify = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
+  if (!params.filetype) return
   const server = await getServerForProjectAndLanguage(params)
   if (server) server.sendNotification(method, params)
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Notification, method, params })
