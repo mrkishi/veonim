@@ -11,6 +11,7 @@
     "package": "node tools/package.js",
     "test": "mocha test/unit",
     "test:e2e": "mocha test/e2e -t 0",
+    "test:e2e:snapshot": "npm run test:e2e -- --snapshot",
     "test:integration": "mocha test/integration -t 10000",
     "test:watch": "npm run test -- -w",
     "test:integration:watch": "npm run test:integration -- -w",
@@ -59,6 +60,7 @@
     "hyperapp-seti": "0.2.0",
     "marked": "0.5.0",
     "msgpack-lite": "0.1.26",
+    "resemblejs": "^2.10.3",
     "vscode-debugprotocol": "1.29.0",
     "vscode-languageserver-protocol": "3.9.0"
   },

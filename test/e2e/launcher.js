@@ -1,14 +1,21 @@
 'use strict'
 
-const path = require('path')
+const compareImages = require('resemblejs/compareImages')
 const { Application } = require('spectron')
 const { delay } = require('../util')
 const fs = require('fs-extra')
+const path = require('path')
+
+const snapshotMode = process.argv.includes('--snapshot')
+console.log('snapshotMode', snapshotMode)
 
 module.exports = async () => {
   const projectPath = path.join(__dirname, '../data')
   const resultsPath = path.join(__dirname, '../../results')
+  const snapshotsPath = path.join(__dirname, '../snapshots')
+
   fs.ensureDir(resultsPath)
+  if (snapshotMode) fs.emptyDir(snapshotsPath)
 
   const app = new Application({
     path: './node_modules/.bin/electron',
@@ -19,35 +26,50 @@ module.exports = async () => {
   await app.client.waitUntilWindowLoaded()
   await delay(500)
 
-  const input = async m => {
+  app.input = async m => {
     await delay(100)
     await app.client.keys(m)
   }
 
-  input.enter = () => input('Enter')
-  input.esc = () => input('Escape')
+  app.input.enter = () => app.input('Enter')
+  app.input.esc = () => app.input('Escape')
 
-  input.meta = async m => {
-    await input('\uE03D')
-    await input(m)
-    await input('\uE03D')
+  app.input.meta = async m => {
+    await app.input('\uE03D')
+    await app.input(m)
+    await app.input('\uE03D')
   }
 
-  const veonim = async cmd => {
-    await input(`:Veonim ${cmd}`)
-    await input.enter()
+  app.veonimAction = async cmd => {
+    await app.input(`:Veonim ${cmd}`)
+    await app.input.enter()
   }
 
-  const screencap = async name => {
+  app.screencap = async name => {
     await delay(200)
     const imageBuf = await app.browserWindow.capturePage().catch(console.error)
     if (!imageBuf) return console.error(`faild to screencap "${name}"`)
     const location = path.join(resultsPath, `${name}.png`)
     fs.writeFile(location, imageBuf)
+    return imageBuf
   }
 
-  await input(`:cd ${projectPath}`)
-  await input.enter()
+  app.snapshotTest = async name => {
+    const imageBuf = await app.screencap(name)
+    const location = path.join(snapshotsPath, `${name}.png`)
 
-  return { app, input, veonim, screencap }
+    if (snapshotMode) return fs.writeFile(location, imageBuf)
+    const diff = await compareImages(imageBuf, await fs.readFile(location))
+
+    if (diff.rawMisMatchPercentage > 0) {
+      fs.writeFile(path.join(resultsPath, `${name}-diff.png`), diff.getBuffer())
+    }
+
+    return diff.rawMisMatchPercentage
+  }
+
+  await app.input(`:cd ${projectPath}`)
+  await app.input.enter()
+
+  return app
 }

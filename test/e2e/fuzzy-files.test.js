@@ -5,29 +5,22 @@ const launch = require('./launcher')
 const { delay } = require('../util')
 
 describe('fuzzy files', () => {
-  let app, input, veonim, screencap
+  let m
 
-  before(async () => {
-    const m = await launch()
-    app = m.app
-    input = m.input
-    veonim = m.veonim
-    screencap = m.screencap
-  })
-
-  after(async () => {
-    app.stop()
-  })
+  before(async () => m = await launch())
+  after(() => m.stop())
 
   it('do the needful', async () => {
-    await veonim('files')
-    await screencap('files')
-    await input.esc()
+    await m.veonimAction('files')
+    const diffAmount = await m.snapshotTest('files')
+    eq(diffAmount, 0, `files image snapshot is different by ${diffAmount}%`)
+    await m.input.esc()
   })
 
   it('explorer', async () => {
-    await veonim('explorer')
-    await screencap('explorer')
-    await input.esc()
+    await m.veonimAction('explorer')
+    const diffAmount = await m.snapshotTest('explorer')
+    eq(diffAmount, 0, `explorer image snapshot is different by ${diffAmount}%`)
+    await m.input.esc()
   })
 })
