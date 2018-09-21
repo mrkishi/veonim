@@ -51,6 +51,7 @@ module.exports = async () => {
     if (!imageBuf) return console.error(`faild to screencap "${name}"`)
     const location = path.join(resultsPath, `${name}.png`)
     fs.writeFile(location, imageBuf)
+    await delay(100)
     return imageBuf
   }
 
