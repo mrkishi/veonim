@@ -3,9 +3,12 @@
 const path = require('path')
 const { Application } = require('spectron')
 const { delay } = require('../util')
+const fs = require('fs-extra')
 
 module.exports = async () => {
   const projectPath = path.join(__dirname, '../data')
+  const resultsPath = path.join(__dirname, '../../results')
+  fs.ensureDir(resultsPath)
 
   const app = new Application({
     path: './node_modules/.bin/electron',
@@ -35,8 +38,16 @@ module.exports = async () => {
     await input.enter()
   }
 
+  const screencap = async name => {
+    await delay(200)
+    const imageBuf = await app.browserWindow.capturePage().catch(console.error)
+    if (!imageBuf) return console.error(`faild to screencap "${name}"`)
+    const location = path.join(resultsPath, `${name}.png`)
+    fs.writeFile(location, imageBuf)
+  }
+
   await input(`:cd ${projectPath}`)
   await input.enter()
 
-  return { app, input, delay, veonim }
+  return { app, input, veonim, screencap }
 }

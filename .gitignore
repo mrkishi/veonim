@@ -6,5 +6,6 @@ build
 logs
 bin
 dist
+results
 .vscode
 .DS_Store
