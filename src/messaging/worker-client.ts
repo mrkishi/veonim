@@ -7,7 +7,7 @@ type RequestEventFn = { [index: string]: (...args: any[]) => Promise<any> }
 // is probably because the linter does not understand that we are in a web
 // worker context.  (assumes we are in the main web thread). i tried to make
 // this work with the tsconfigs, but alas: i am not clever enough
-const send = (data: any) => postMessage(data)
+const send = (data: any) => (postMessage as any)(data)
 
 export default () => {
   const watchers = new Watchers()
