@@ -7,7 +7,10 @@ interface Client {
   socket: NodeJS.Socket
 }
 
-export default (onDataSender: (...args: any[]) => void) => {
+export default (onDataSender?: (...args: any[]) => void) => {
+  let sendRecvDataFn = (..._: any[]) => {}
+  if (onDataSender) sendRecvDataFn = onDataSender
+
   const { encoder, decoder } = CreateTransport()
   const clients = new Map<number, Client>()
   const config = { current: -1 }
@@ -51,6 +54,8 @@ export default (onDataSender: (...args: any[]) => void) => {
     else encoder.write(data)
   }
 
-  decoder.on('data', ([type, ...d]: [number, any]) => onDataSender([ type, d ]))
-  return { send, connectTo, switchTo }
+  const onRecvData = (fn: (...args: any[]) => void) => sendRecvDataFn = fn
+  decoder.on('data', ([type, ...d]: [number, any]) => sendRecvDataFn([ type, d ]))
+
+  return { send, connectTo, switchTo, onRecvData }
 }
