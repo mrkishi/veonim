@@ -124,7 +124,9 @@ export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false
     contentChanges: [ { text } ]
   })
 
-  bufferOpened ? didOpen(protocolRequest) : didChange(protocolRequest)
+  bufferOpened
+    ? didOpen(protocolRequest)
+    : didChange(protocolRequest)
 }
 
 export const partialBufferUpdate = async (change: BufferChange, bufferOpened = false) => {
@@ -146,8 +148,8 @@ export const partialBufferUpdate = async (change: BufferChange, bufferOpened = f
   const req = toProtocol(change, { contentChanges: [ content ], filetype })
 
   bufferOpened
-    ? notify('textDocument/didOpen', req, { bufferCallIfServerStarting: true })
-    : notify('textDocument/didChange', req, { bufferCallIfServerStarting: true })
+    ? didOpen(req)
+    : didChange(req)
 }
 
 export const definition = async (data: NeovimState) => {
