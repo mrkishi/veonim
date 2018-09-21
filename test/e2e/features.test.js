@@ -9,7 +9,7 @@ const snapshotTester = m => async name => {
   eq(diffAmount < 1, true, `${name} image snapshot is different by ${diffAmount}% (diff of <1% is ok)`)
 }
 
-describe('fuzzy files', () => {
+describe('features', () => {
   let m
   let testSnapshot
 
@@ -20,7 +20,7 @@ describe('fuzzy files', () => {
 
   after(() => m.stop())
 
-  it('do the needful', async () => {
+  it('fuzzy file finder', async () => {
     await m.veonimAction('files')
     await testSnapshot('files')
     await m.input.esc()
