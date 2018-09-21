@@ -75,7 +75,7 @@
     "jscodeshift": "0.3.32",
     "mocha": "5.2.0",
     "proxyquire": "2.0.1",
-    "spectron": "3.8.0",
+    "spectron": "4.0.0",
     "ts-unused-exports": "2.0.5",
     "typescript": "2.8.1"
   }
