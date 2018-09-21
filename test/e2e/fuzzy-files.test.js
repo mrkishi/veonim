@@ -4,23 +4,37 @@ const { deepStrictEqual: eq } = require('assert')
 const launch = require('./launcher')
 const { delay } = require('../util')
 
+const snapshotTester = m => async name => {
+  const diffAmount = await m.snapshotTest(name)
+  eq(diffAmount < 1, true, `${name} image snapshot is different by ${diffAmount}% (diff of <1% is ok)`)
+}
+
 describe('fuzzy files', () => {
   let m
+  let testSnapshot
 
-  before(async () => m = await launch())
+  before(async () => {
+    m = await launch()
+    testSnapshot = snapshotTester(m)
+  })
+
   after(() => m.stop())
 
   it('do the needful', async () => {
     await m.veonimAction('files')
-    const diffAmount = await m.snapshotTest('files')
-    eq(diffAmount < 1, true, `files image snapshot is different by ${diffAmount}% (diff of <1% is ok)`)
+    await testSnapshot('files')
     await m.input.esc()
   })
 
   it('explorer', async () => {
     await m.veonimAction('explorer')
-    const diffAmount = await m.snapshotTest('explorer')
-    eq(diffAmount < 1, true, `explorer image snapshot is different by ${diffAmount}% (diff of <1% is ok)`)
+    await testSnapshot('explorer')
+    await m.input.esc()
+  })
+
+  it('change dir', async () => {
+    await m.veonimAction('change-dir')
+    await testSnapshot('change-dir')
     await m.input.esc()
   })
 })

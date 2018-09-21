@@ -3,6 +3,7 @@
 const { deepStrictEqual: same } = require('assert')
 const proxyquire = require('proxyquire').noCallThru()
 const Module = require('module')
+const fs = require('fs')
 const originalModuleLoader = Module._load
 
 const relativeFakes = obj => Object.keys(obj).reduce((res, key) => {
@@ -25,4 +26,6 @@ const globalProxy = (name, implementation) => {
 
 const delay = time => new Promise(fin => setTimeout(fin, time))
 
-module.exports = { src, same, globalProxy, delay }
+const pathExists = path => new Promise(m => fs.access(path, e => m(!e)))
+
+module.exports = { src, same, globalProxy, delay, pathExists }

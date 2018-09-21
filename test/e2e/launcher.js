@@ -2,7 +2,7 @@
 
 const compareImages = require('resemblejs/compareImages')
 const { Application } = require('spectron')
-const { delay } = require('../util')
+const { delay, pathExists } = require('../util')
 const fs = require('fs-extra')
 const path = require('path')
 
@@ -57,10 +57,17 @@ module.exports = async () => {
 
   app.snapshotTest = async name => {
     const imageBuf = await app.screencap(name)
-    const location = path.join(snapshotsPath, `${name}.png`)
+    const snapshotLocation = path.join(snapshotsPath, `${name}.png`)
 
-    if (snapshotMode) return fs.writeFile(location, imageBuf)
-    const diff = await compareImages(imageBuf, await fs.readFile(location))
+    if (snapshotMode) {
+      fs.writeFile(snapshotLocation, imageBuf)
+      return 0
+    }
+
+    const snapshotExists = await pathExists(snapshotLocation)
+    if (!snapshotExists) throw new Error(`snapshot "${name}" does not exist. generate snapshots with "--snapshot" flag`)
+
+    const diff = await compareImages(imageBuf, await fs.readFile(snapshotLocation))
 
     if (diff.rawMisMatchPercentage > 0) {
       fs.writeFile(path.join(resultsPath, `${name}-diff.png`), diff.getBuffer())
