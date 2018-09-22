@@ -16,7 +16,7 @@ const request = (method, ...data) => new Promise(done => {
 let undoGlobalProxy
 let nvimProc
 
-describe('markdown to HTML with syntax highlighting', () => {
+describe.skip('markdown to HTML with syntax highlighting', () => {
   before(() => {
     undoGlobalProxy = globalProxy('child_process', {
       ...childProcess,
