@@ -19,18 +19,19 @@ const binaryDependencies = async () => {
 
 const vscodeTypings = () => new Promise(async (done, fail) => {
   const vscodeApiVersion = Reflect.get(pkg, 'vscode-api-version')
-  const modulePath = 'node_modules/@veonim/vscode'
+  const modulePath = 'node_modules/@types/vscode'
 const vscodeTypingsUrl = version => `https://raw.githubusercontent.com/Microsoft/vscode/${version}/src/vs/vscode.d.ts`
 
   await fs.ensureDir(fromRoot(modulePath))
   await fs.writeFile(fromRoot(modulePath, 'package.json'), `{
-  "name": "@veonim/vscode",
+  "name": "@types/vscode",
+  "main": "",
   "version": "${vscodeApiVersion}",
-  "typings": "vscode.d.ts"
+  "typings": "index.d.ts"
 }\n`)
 
   const downloadStream = await fetch(vscodeTypingsUrl(vscodeApiVersion))
-  const fileStream = fs.createWriteStream(fromRoot(modulePath, 'vscode.d.ts'))
+  const fileStream = fs.createWriteStream(fromRoot(modulePath, 'index.d.ts'))
 
   downloadStream
     .pipe(fileStream)
