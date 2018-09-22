@@ -1,1 +1,5 @@
-import * as vsc from '@veonim/vscode'
+import env from '../vscode/env'
+
+export default {
+  env
+}
