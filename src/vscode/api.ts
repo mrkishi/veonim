@@ -8,4 +8,14 @@ import tasks from '../vscode/tasks'
 import scm from '../vscode/scm'
 import env from '../vscode/env'
 
-export default { extensions, languages, workspace, commands, window, debug, tasks, scm, env }
+export default {
+  extensions,
+  languages,
+  workspace,
+  commands,
+  window,
+  debug,
+  tasks,
+  scm,
+  env,
+}
