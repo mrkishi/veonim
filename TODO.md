@@ -277,6 +277,8 @@ menus. e.g. (floating windows maybe?)
 
 ## code refactor
 
+- move neovim api typings to @veonim/neovim repo?
+
 - separate out internal object data from langserv params data?
   - right now in adapter we send both vim state object and params in the same parameter, same object. i think it might be cleaner to send them separately, so that we do not send internal data to the lang serv. this may have a neglible benefit on network (de)serializing (and xmit time?)
   - i almost feel that there is not much of a good reason to pass in the entire neovim state to every single langserv request ever. why can't adapter simply access the neovim state and pick out the nvim state fields it needs to know?
