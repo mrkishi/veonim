@@ -11,6 +11,23 @@ describe('vscode api', () => {
     it('var: sessionId')
   })
 
+  describe('debug', () => {
+    it('var: activeDebugConsole')
+    it('var: activeDebugSession')
+    it('var: breakpoints')
+
+    it('event: onDidChangeActiveDebugSession')
+    it('event: onDidChangeBreakpoints')
+    it('event: onDidReceiveDebugSessionCustomEvent')
+    it('event: onDidStartDebugSession')
+    it('event: onDidTerminateDebugSession')
+
+    it('func: addBreakpoints')
+    it('func: registerDebugConfigurationProvider')
+    it('func: removeBreakpoints')
+    it('func: startDebugging')
+  })
+
   describe('commands', () => {
     it('func: executeCommand')
     it('func: getCommands')
