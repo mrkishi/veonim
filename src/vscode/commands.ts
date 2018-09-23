@@ -12,13 +12,11 @@ const commands: typeof vsc.commands = {
     registeredCommands.emit(command, ...args)
     return new Promise(() => {})
   },
-  getCommands: (filterInternal) => {
+  getCommands: async (filterInternal) => {
     log('getCommands:', filterInternal)
     const events = registeredCommands.eventNames().map(m => m.toString())
-    const result = filterInternal
-      ? events.filter(e => !e.startsWith('_'))
-      : events
-    return Promise.resolve(result)
+    if (filterInternal) return events.filter(e => !e.startsWith('_'))
+    return events
   },
   registerCommand: (command, callback) => {
     log('registerCommand', command, callback)
