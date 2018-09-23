@@ -1,4 +1,4 @@
-const { src, same, globalProxy } = require('../util')
+const { src, same } = require('../util')
 
 const api = src('vscode/api')
 
