@@ -28,4 +28,15 @@ const delay = time => new Promise(fin => setTimeout(fin, time))
 
 const pathExists = path => new Promise(m => fs.access(path, e => m(!e)))
 
-module.exports = { src, same, globalProxy, delay, pathExists }
+const spy = returnValue => {
+  const spyFn = (...args) => (spyFn.calls.push(args), returnValue)
+  spyFn.calls = []
+  return spyFn
+}
+
+global.localStorage = {
+  getItem: () => {},
+  setItem: () => {},
+}
+
+module.exports = { src, same, globalProxy, delay, pathExists, spy }
