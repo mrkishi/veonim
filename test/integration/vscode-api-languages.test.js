@@ -2,7 +2,7 @@ const { src, same } = require('../util')
 
 const api = src('vscode/api')
 
-describe('vscode api - debug', () => {
+describe('vscode api - languages', () => {
   describe('event', () => {
     it('onDidChangeDiagnostics')
   })
