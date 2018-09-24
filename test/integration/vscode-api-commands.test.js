@@ -6,15 +6,29 @@ describe('vscode api - commands', () => {
   describe('func', () => {
     it('registerCommand', () => {
       const callback = spy()
-      const disposeCommand = commands.registerCommand('blarg', callback)
+      const command = commands.registerCommand('blarg', callback)
       commands.executeCommand('blarg', 42)
-      disposeCommand.dispose()
+      command.dispose()
       commands.executeCommand('blarg', 22)
       same(callback.calls, [ [42] ])
     })
 
     it('getCommands', async () => {
+      const ayy = commands.registerCommand('ayy', () => {})
+      const lmao = commands.registerCommand('lmao', () => {})
+      const umad = commands.registerCommand('_umad', () => {})
 
+      const coms = await commands.getCommands()
+      const comsNoInternal = await commands.getCommands(true)
+
+      same(coms, ['ayy', 'lmao', '_umad'])
+      same(comsNoInternal, ['ayy', 'lmao'])
+
+      ayy.dispose()
+
+      const coms2 = await commands.getCommands(true)
+
+      same(coms2, ['lmao'])
     })
 
     it('executeCommand', async () => {
