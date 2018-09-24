@@ -1,16 +1,36 @@
 const { src, same } = require('../util')
 
-const api = src('vscode/api')
+const startNeovim = () => {
+  console.log('UH HELLO')
+  const { Neovim } = src('support/binaries')
+  console.log('Neovim', Neovim)
 
-describe('vscode api - workspace', () => {
+  const spawnVimInstance = () => Neovim.run([
+  '--cmd', `${startupFuncs()} | ${startupCmds}`,
+    '--cmd', `com! -nargs=* Plug 1`,
+    '--cmd', `com! -nargs=* VeonimExt 1`,
+    '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
+    '--embed'
+], {
+  ...process.env,
+  VIM: Neovim.path,
+  VIMRUNTIME: Neovim.runtime,
+})
+}
+
+describe.only('vscode api - workspace', () => {
   let workspace
 
   beforeEach(() => {
+    console.log('before each yo')
+    startNeovim()
     workspace = src('vscode/workspace').default
   })
 
   describe('var', () => {
-    it('rootPath')
+    it('rootPath', () => {
+      same(workspace.rootPath, 'lol')
+    })
     it('workspaceFolders')
     it('name')
     it('textDocuments')
