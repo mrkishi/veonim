@@ -4,9 +4,7 @@ describe('vscode api - commands', () => {
   let commands
 
   beforeEach(() => {
-    resetModule('vscode/commands')
-    const api = src('vscode/api').default
-    commands = api.commands
+    commands = src('vscode/commands').default
   })
 
   describe('func', () => {

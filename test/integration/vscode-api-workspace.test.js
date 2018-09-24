@@ -3,6 +3,12 @@ const { src, same } = require('../util')
 const api = src('vscode/api')
 
 describe('vscode api - workspace', () => {
+  let workspace
+
+  beforeEach(() => {
+    workspace = src('vscode/workspace').default
+  })
+
   describe('var', () => {
     it('rootPath')
     it('workspaceFolders')

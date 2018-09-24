@@ -1,8 +1,12 @@
 const { src, same } = require('../util')
 
-const { env } = src('vscode/api').default
-
 describe('vscode api - env', () => {
+  let env
+
+  beforeEach(() => {
+    env = src('vscode/env').default
+  })
+
   describe('var', () => {
     it('appName', () => {
       same(env.appName, 'Veonim')
