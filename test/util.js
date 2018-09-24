@@ -12,9 +12,19 @@ const relativeFakes = obj => Object.keys(obj).reduce((res, key) => {
   return res
 }, {})
 
+const requireModule = (name, freshLoad) => {
+  const modPath = require.resolve(`../build/${name}`)
+  delete require.cache[modPath]
+  return require(modPath)
+}
+
 const src = (name, fake, { noRelativeFake = false } = {}) => fake
   ? proxyquire(`../build/${name}`, noRelativeFake ? fake : relativeFakes(fake))
-  : require(`../build/${name}`)
+  : requireModule(name)
+
+const resetModule = name => {
+  delete require.cache[require.resolve(`../build/${name}`)]
+}
 
 const globalProxy = (name, implementation) => {
   Module._load = (request, ...args) => request === name
@@ -39,4 +49,4 @@ global.localStorage = {
   setItem: () => {},
 }
 
-module.exports = { src, same, globalProxy, delay, pathExists, spy }
+module.exports = { src, same, globalProxy, delay, pathExists, spy, resetModule }

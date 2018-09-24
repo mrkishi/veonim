@@ -1,16 +1,19 @@
-const { src, same, spy } = require('../util')
-
-const { commands } = src('vscode/api').default
+const { src, same, spy, resetModule } = require('../util')
 
 describe('vscode api - commands', () => {
+  let commands
+
+  beforeEach(() => {
+    resetModule('vscode/commands')
+    const api = src('vscode/api').default
+    commands = api.commands
+  })
+
   describe('func', () => {
-    it('registerCommand', () => {
-      const callback = spy()
-      const command = commands.registerCommand('blarg', callback)
-      commands.executeCommand('blarg', 42)
-      command.dispose()
-      commands.executeCommand('blarg', 22)
-      same(callback.calls, [ [42] ])
+    it('registerCommand', async () => {
+      const command = commands.registerCommand('blarg', () => {})
+      const coms = await commands.getCommands()
+      same(coms, ['blarg'])
     })
 
     it('getCommands', async () => {
@@ -32,7 +35,12 @@ describe('vscode api - commands', () => {
     })
 
     it('executeCommand', async () => {
-
+      const callback = spy()
+      const command = commands.registerCommand('blarg', callback)
+      commands.executeCommand('blarg', 42)
+      command.dispose()
+      commands.executeCommand('blarg', 22)
+      same(callback.calls, [ [42] ])
     })
 
     it('registerTextEditorCommand')
