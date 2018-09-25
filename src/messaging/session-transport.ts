@@ -20,10 +20,12 @@ export default (onDataSender?: (...args: any[]) => void) => {
   const connectTo = ({ id, path }: { id: number, path: string }) => {
     connected = false
     const socket = createConnection(path)
+
     socket.on('end', () => {
       socket.unpipe()
       clients.delete(id)
     })
+
     clients.set(id, { id, path, socket })
   }
 
@@ -31,11 +33,11 @@ export default (onDataSender?: (...args: any[]) => void) => {
     if (!clients.has(id)) return
     const { socket } = clients.get(id)!
 
-      if (config.current > -1) {
-        encoder.unpipe()
-        const socketMaybe = clients.get(config.current)
-        if (socketMaybe) socketMaybe.socket.unpipe()
-      }
+    if (config.current > -1) {
+      encoder.unpipe()
+      const socketMaybe = clients.get(config.current)
+      if (socketMaybe) socketMaybe.socket.unpipe()
+    }
 
     encoder.pipe(socket)
     socket.pipe(decoder, { end: false })
@@ -50,12 +52,16 @@ export default (onDataSender?: (...args: any[]) => void) => {
   }
 
   const send = (data: any) => {
+    console.log('send:', connected, data)
     if (!connected) buffer.push(data)
     else encoder.write(data)
   }
 
   const onRecvData = (fn: (...args: any[]) => void) => sendRecvDataFn = fn
-  decoder.on('data', ([type, ...d]: [number, any]) => sendRecvDataFn([ type, d ]))
+  decoder.on('data', ([type, ...d]: [number, any]) => {
+    console.log('recv:', type, d)
+    sendRecvDataFn([ type, d ])
+  })
 
   return { send, connectTo, switchTo, onRecvData }
 }
