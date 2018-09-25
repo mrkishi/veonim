@@ -1,6 +1,6 @@
 const { src, same } = require('../util')
 
-const api = src('vscode/api')
+const languages = src('vscode/languages').default
 
 describe('vscode api - languages', () => {
   describe('event', () => {

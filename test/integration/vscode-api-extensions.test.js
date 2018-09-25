@@ -1,6 +1,6 @@
 const { src, same } = require('../util')
 
-const api = src('vscode/api')
+const extensions = src('vscode/extensions').default
 
 describe('vscode api - extensions', () => {
   describe('var', () => {

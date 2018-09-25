@@ -1,23 +1,23 @@
 const { src, same, globalProxy } = require('../util')
-const EventEmitter = require('events')
+const { EventEmitter } = require('events')
 const childProcess = require('child_process')
 
-const watchers = new EventEmitter()
-
-global.onmessage = () => {}
-global.postMessage = ([ ev, args, id ]) => watchers.emit(id, args)
-
-const request = (method, ...data) => new Promise(done => {
-  const reqId = Date.now()
-  global.onmessage({ data: [ method, data, reqId ] })
-  watchers.once(reqId, done)
-})
-
-let undoGlobalProxy
-let nvimProc
-
 describe.skip('markdown to HTML with syntax highlighting', () => {
+  const watchers = new EventEmitter()
+
+  const request = (method, ...data) => new Promise(done => {
+    const reqId = Date.now()
+    global.onmessage({ data: [ method, data, reqId ] })
+    watchers.once(reqId, done)
+  })
+
+  let undoGlobalProxy
+  let nvimProc
+
   before(() => {
+    global.onmessage = () => {}
+    global.postMessage = ([ ev, args, id ]) => watchers.emit(id, args)
+
     undoGlobalProxy = globalProxy('child_process', {
       ...childProcess,
       spawn: (...args) => {
@@ -33,6 +33,8 @@ describe.skip('markdown to HTML with syntax highlighting', () => {
   after(() => {
     nvimProc.kill('SIGKILL')
     undoGlobalProxy()
+    delete global.onmessage
+    delete global.postMessage
   })
 
   it('happy path', async () => {

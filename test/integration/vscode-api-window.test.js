@@ -1,6 +1,6 @@
 const { src, same } = require('../util')
 
-const api = src('vscode/api')
+const window = src('vscode/window').default
 
 describe('vscode api - window', () => {
   describe('var', () => {

@@ -13,11 +13,26 @@ describe.only('vscode api - workspace', () => {
   let nvim
   let pipeName
 
+  before(() => {
+    global.onmessage = () => {}
+    global.postMessage = () => {}
+  })
+
+  after(() => {
+    delete global.onmessage
+    delete global.postMessage
+  })
+
   beforeEach(async () => {
     nvim = startNeovim()
     workspace = src('vscode/workspace').default
-    nvim.notify('command', ':cd ~/proj/veonim')
     pipeName = await nvim.request('eval', 'v:servername')
+
+    global.onmessage({ data: ['sessionCreate', [1, pipeName]] })
+    global.onmessage({ data: ['sessionSwitch', [1]] })
+
+    // TODO: relative path pls. also make it for test/data
+    nvim.notify('command', ':cd ~/proj/veonim')
   })
 
   afterEach(() => {
@@ -26,8 +41,8 @@ describe.only('vscode api - workspace', () => {
 
   describe('var', () => {
     it('rootPath', () => {
-      console.log('pipeName:', pipeName)
-      same(workspace.rootPath, 'lol')
+      console.log('rootPath:', JSON.stringify(workspace.rootPath))
+      same(workspace.rootPath, '~/proj/veonim')
     })
     it('workspaceFolders')
     it('name')
