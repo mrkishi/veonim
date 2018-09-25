@@ -52,16 +52,12 @@ export default (onDataSender?: (...args: any[]) => void) => {
   }
 
   const send = (data: any) => {
-    console.log('send:', connected, data)
     if (!connected) buffer.push(data)
     else encoder.write(data)
   }
 
   const onRecvData = (fn: (...args: any[]) => void) => sendRecvDataFn = fn
-  decoder.on('data', ([type, ...d]: [number, any]) => {
-    console.log('recv:', type, d)
-    sendRecvDataFn([ type, d ])
-  })
+  decoder.on('data', ([type, ...d]: [number, any]) => sendRecvDataFn(type, d))
 
   return { send, connectTo, switchTo, onRecvData }
 }
