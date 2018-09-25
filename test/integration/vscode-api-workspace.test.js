@@ -1,6 +1,13 @@
 const { src, same } = require('../util')
 const startNeovim = require('../nvim-for-test')
 
+// TODO: remove ONLY
+// TODO: remove ONLY
+// TODO: remove ONLY
+// TODO: remove ONLY
+// TODO: remove ONLY
+// TODO: remove ONLY
+// TODO: remove ONLY
 describe.only('vscode api - workspace', () => {
   let workspace
   let nvim

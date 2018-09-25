@@ -33,6 +33,7 @@ module.exports = () => {
   const shutdown = () => proc.kill()
 
   return {
+    proc,
     shutdown,
     notify: (name, ...args) => notify(`nvim_${name}`, args),
     request: (name, ...args) => request(`nvim_${name}`, args),
