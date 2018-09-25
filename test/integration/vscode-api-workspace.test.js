@@ -1,34 +1,45 @@
 const { src, same } = require('../util')
+const msgpack = require('msgpack-lite')
 
 const startNeovim = () => {
-  console.log('UH HELLO')
   const { Neovim } = src('support/binaries')
-  console.log('Neovim', Neovim)
 
-  const spawnVimInstance = () => Neovim.run([
-  '--cmd', `${startupFuncs()} | ${startupCmds}`,
-    '--cmd', `com! -nargs=* Plug 1`,
+  return src('support/binaries').Neovim.run([
+    '--cmd', `let g:veonim = 1 | let g:vn_loaded = 0 | let g:vn_ask_cd = 0`,
+    '--cmd', `exe ":fun! Veonim(...)\\n endfun"`,
+    '--cmd', `exe ":fun! VK(...)\\n endfun"`,
+    '--cmd', `com! -nargs=+ -range Veonim 1`,
+    '--cmd', 'com! -nargs=* Plug 1',
     '--cmd', `com! -nargs=* VeonimExt 1`,
-    '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,
     '--embed'
-], {
-  ...process.env,
-  VIM: Neovim.path,
-  VIMRUNTIME: Neovim.runtime,
-})
+  ], {
+    ...process.env,
+    VIM: Neovim.path,
+    VIMRUNTIME: Neovim.runtime,
+  })
 }
+
+const sender = pipe => data => pipe.write(msgpack.encode(data))
 
 describe.only('vscode api - workspace', () => {
   let workspace
+  let nvim
 
   beforeEach(() => {
     console.log('before each yo')
-    startNeovim()
+    nvim = startNeovim()
+    nvim.stdout.on('data', m => console.log(m+''))
     workspace = src('vscode/workspace').default
+  })
+
+  afterEach(() => {
+    nvim.kill()
   })
 
   describe('var', () => {
     it('rootPath', () => {
+      const send = sender(nvim.stdin)
+      send([2, 'nvim_command', ':cd ~/proj/veonim'])
       same(workspace.rootPath, 'lol')
     })
     it('workspaceFolders')
