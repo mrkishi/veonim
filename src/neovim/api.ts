@@ -1,7 +1,6 @@
 import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../neovim/protocol'
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
-import { InventoryAction } from '../core/inventory-layers'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
 import { watchConfig } from '../config/config-reader'

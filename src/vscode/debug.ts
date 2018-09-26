@@ -1,9 +1,10 @@
 import { DebugConfigurationProvider, registerDebugConfigProvider } from '../extensions/debuggers'
+import * as vsc from 'vscode'
 
-const debug = {
+const debug: typeof vsc.debug = {
   registerDebugConfigurationProvider: (debugType: string, provider: DebugConfigurationProvider) => {
-    registerDebugConfigProvider(debugType, provider)
-    return () => console.warn('NYI: dispoosesssese the debug provider pls kthx!')
+    const dispose = registerDebugConfigProvider(debugType, provider)
+    return { dispose }
   },
 }
 
