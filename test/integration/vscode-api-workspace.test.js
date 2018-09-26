@@ -2,14 +2,7 @@ const { src, same, testDataPath } = require('../util')
 const startNeovim = require('../nvim-for-test')
 const path = require('path')
 
-// TODO: remove ONLY
-// TODO: remove ONLY
-// TODO: remove ONLY
-// TODO: remove ONLY
-// TODO: remove ONLY
-// TODO: remove ONLY
-// TODO: remove ONLY
-describe.only('vscode api - workspace', () => {
+describe('vscode api - workspace', () => {
   let workspace
   let nvim
   let pipeName
