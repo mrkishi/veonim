@@ -16,6 +16,8 @@ export default () => {
     watchers.emit('didOpen', name)
   })
 
+  // TODO: we may not need to listen to bufAdd events anymore. in that case
+  // we can remove this autocmd from vim-startup
   nvim.on.bufAdd(async () => {
     const name = await nvim.current.buffer.name
     console.log('buffer added', name)
