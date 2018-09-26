@@ -51,6 +51,7 @@ const { encoder, decoder } = CreateTransport()
 
 const spawnVimInstance = () => Neovim.run([
   '--cmd', `${startupFuncs()} | ${startupCmds}`,
+  // noop commands. we parse plugins & extensions directly from the vimrc file text
   '--cmd', `com! -nargs=* Plug 1`,
   '--cmd', `com! -nargs=* VeonimExt 1`,
   '--cmd', `com! -nargs=+ -range -complete=custom,VeonimCmdCompletions Veonim call Veonim(<f-args>)`,

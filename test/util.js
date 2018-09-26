@@ -3,6 +3,7 @@
 const { deepStrictEqual: same } = require('assert')
 const proxyquire = require('proxyquire').noCallThru()
 const Module = require('module')
+const path = require('path')
 const fs = require('fs')
 const originalModuleLoader = Module._load
 
@@ -49,4 +50,6 @@ global.localStorage = {
   setItem: () => {},
 }
 
-module.exports = { src, same, globalProxy, delay, pathExists, spy, resetModule }
+const testDataPath = path.join(process.cwd(), 'test', 'data')
+
+module.exports = { src, same, globalProxy, delay, pathExists, spy, resetModule, testDataPath }

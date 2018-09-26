@@ -1,5 +1,6 @@
-const { src, same } = require('../util')
+const { src, same, testDataPath } = require('../util')
 const startNeovim = require('../nvim-for-test')
+const path = require('path')
 
 // TODO: remove ONLY
 // TODO: remove ONLY
@@ -31,8 +32,19 @@ describe.only('vscode api - workspace', () => {
     global.onmessage({ data: ['sessionCreate', [1, pipeName]] })
     global.onmessage({ data: ['sessionSwitch', [1]] })
 
-    // TODO: relative path pls. also make it for test/data
-    nvim.notify('command', ':cd ~/proj/veonim')
+    const nvimSRC = src('vscode/neovim').default
+
+    nvim.notify('command', `:cd ${testDataPath}`)
+
+    // wait for NeovimState to be populated
+    await new Promise(done => {
+      const timer = setInterval(() => {
+        if (nvimSRC.state.cwd === testDataPath) {
+          clearInterval(timer)
+          done()
+        }
+      }, 1)
+    })
   })
 
   afterEach(() => {
@@ -41,11 +53,18 @@ describe.only('vscode api - workspace', () => {
 
   describe('var', () => {
     it('rootPath', () => {
-      console.log('rootPath:', JSON.stringify(workspace.rootPath))
-      same(workspace.rootPath, '~/proj/veonim')
+      same(workspace.rootPath, testDataPath)
     })
-    it('workspaceFolders')
-    it('name')
+
+    it('workspaceFolders', () => {
+      same(workspace.workspaceFolders, [ testDataPath ])
+    })
+
+    it('name', () => {
+      const baseFolderName = path.basename(testDataPath)
+      same(workspace.name, baseFolderName)
+    })
+
     it('textDocuments')
   })
 
