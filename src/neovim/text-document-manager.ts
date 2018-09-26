@@ -9,12 +9,24 @@ export default () => {
 
   nvim.on.bufLoad(async () => {
     const name = await nvim.current.buffer.name
+    console.log('buffer loaded', name)
     const documentOpen = openDocuments.has(name)
-    if (!documentOpen) openDocuments.add(name)
+    if (documentOpen) return
+    openDocuments.add(name)
+    watchers.emit('didOpen', name)
+  })
+
+  nvim.on.bufAdd(async () => {
+    const name = await nvim.current.buffer.name
+    console.log('buffer added', name)
   })
 
   const on = {
-    didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn)
+    didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn),
+    didChange: (fn: (name: string, change: string[]) => void) => watchers.on('didChange', fn),
+    willSave: (fn: DocumentCallback) => watchers.on('willSave', fn),
+    didSave: (fn: DocumentCallback) => watchers.on('didSave', fn),
+    didClose: (fn: DocumentCallback) => watchers.on('didClose', fn),
   }
 
   return { on }
