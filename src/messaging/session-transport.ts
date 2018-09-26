@@ -57,7 +57,7 @@ export default (onDataSender?: (...args: any[]) => void) => {
   }
 
   const onRecvData = (fn: (...args: any[]) => void) => sendRecvDataFn = fn
-  decoder.on('data', ([type, ...d]: [number, any]) => sendRecvDataFn(type, d))
+  decoder.on('data', ([type, ...d]: [number, any]) => sendRecvDataFn([ type, d ]))
 
   return { send, connectTo, switchTo, onRecvData }
 }

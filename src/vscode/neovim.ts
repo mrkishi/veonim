@@ -7,7 +7,7 @@ const { send, connectTo, switchTo, onRecvData } = SessionTransport()
 const { onData, ...rpcAPI } = SetupRPC(send)
 const { on } = WorkerClient()
 
-onRecvData(onData)
+onRecvData(([ type, d ]) => onData(type, d))
 
 on.sessionCreate((id: number, path: string) => connectTo({ id, path }))
 on.sessionSwitch((id: number) => switchTo(id))
