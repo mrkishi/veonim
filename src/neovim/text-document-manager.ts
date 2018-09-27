@@ -9,18 +9,16 @@ export default () => {
 
   nvim.on.bufLoad(async () => {
     const name = await nvim.current.buffer.name
-    console.log('buffer loaded', name)
-    const documentOpen = openDocuments.has(name)
-    if (documentOpen) return
+    if (openDocuments.has(name)) return
     openDocuments.add(name)
     watchers.emit('didOpen', name)
   })
 
-  // TODO: we may not need to listen to bufAdd events anymore. in that case
-  // we can remove this autocmd from vim-startup
   nvim.on.bufAdd(async () => {
     const name = await nvim.current.buffer.name
-    console.log('buffer added', name)
+    if (openDocuments.has(name)) return
+    openDocuments.add(name)
+    watchers.emit('didOpen', name)
   })
 
   const on = {
