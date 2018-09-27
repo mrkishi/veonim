@@ -7,11 +7,6 @@ export default () => {
   const openDocuments = new Set<string>()
   const watchers = new EventEmitter()
 
-  const notify = (event: string) => async () => {
-    const name = await nvim.current.buffer.name
-    watchers.emit(event, name)
-  }
-
   const loadOrOpen = (name: string) => {
     if (!name || openDocuments.has(name)) return
 
