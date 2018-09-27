@@ -17,6 +17,16 @@ export default () => {
   nvim.on.bufLoad(checkIfDocumentOpened)
   nvim.on.bufAdd(checkIfDocumentOpened)
 
+  nvim.on.bufWritePre(async () => {
+    const name = await nvim.current.buffer.name
+    watchers.emit('willSave', name)
+  })
+
+  nvim.on.bufWrite(async () => {
+    const name = await nvim.current.buffer.name
+    watchers.emit('didSave', name)
+  })
+
   const on = {
     didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn),
     didChange: (fn: (name: string, change: string[]) => void) => watchers.on('didChange', fn),

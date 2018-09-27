@@ -67,6 +67,7 @@ export interface BufferEvent {
   bufChange: void
   bufChangeInsert: void
   bufWrite: void
+  bufWritePre: void
   cursorMove: void
   cursorMoveInsert: boolean
   completion: string

@@ -63,6 +63,7 @@ const autocmds = {
   BufDelete: null,
   BufUnload: null,
   BufWipeout: null,
+  BufWritePre: null,
   BufWritePost: null,
   TextChanged: null,
   CursorMoved: null,
