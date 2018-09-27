@@ -343,7 +343,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
 
     onEvent('nvim_buf_lines_event', (args: any[]) => {
       const [ extContainerData, changedTick, firstLine, lastLine, lineData, more ] = args
-      console.log('change:', extContainerData.id, changedTick, lineData)
 
       watchers.bufferEvents.emit(extContainerData.id, {
         changedTick,
@@ -389,13 +388,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     get changedtick() { return req.buf.getChangedtick(id) },
     attach: ({ sendInitialBuffer }, cb) => {
       req.buf.attach(id, sendInitialBuffer, {})
-
-      console.log('pls attach buf event:', id)
-
-      watchers.bufferEvents.on(id, (...stuff: any[]) => {
-        console.log('INSIDE THE DRAGON:', ...stuff)
-        cb(...stuff)
-      })
+      watchers.bufferEvents.on(id, cb)
     },
     detach: () => {
       req.buf.detach(id)
