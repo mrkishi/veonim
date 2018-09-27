@@ -7,19 +7,15 @@ export default () => {
   const openDocuments = new Set<string>()
   const watchers = new EventEmitter()
 
-  nvim.on.bufLoad(async () => {
+  const checkIfDocumentOpened = async () => {
     const name = await nvim.current.buffer.name
     if (openDocuments.has(name)) return
     openDocuments.add(name)
     watchers.emit('didOpen', name)
-  })
+  }
 
-  nvim.on.bufAdd(async () => {
-    const name = await nvim.current.buffer.name
-    if (openDocuments.has(name)) return
-    openDocuments.add(name)
-    watchers.emit('didOpen', name)
-  })
+  nvim.on.bufLoad(checkIfDocumentOpened)
+  nvim.on.bufAdd(checkIfDocumentOpened)
 
   const on = {
     didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn),
