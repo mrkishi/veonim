@@ -14,8 +14,11 @@ export default () => {
     watchers.emit('didOpen', name)
 
     nvim.current.buffer.attach({ sendInitialBuffer: true }, changeEvent => {
-      console.log('buffer changed:', name, changeEvent)
-      watchers.emit('didChange', changeEvent.lineData)
+      console.log('bufChangeEvent:', changeEvent)
+      // TODO: handle changeEvent.more (partial change event)
+      // what do? buffer in memory? can we send partial change events to
+      // language servers and extensions?
+      // watchers.emit('didChange', name, changeEvent.lineData)
     })
   }
 

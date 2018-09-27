@@ -90,7 +90,6 @@ export interface BufferEvent {
   bufAdd: void
   bufLoad: void
   bufUnload: void
-  bufChange: BufferChangeEvent
   bufWrite: void
   bufWritePre: void
   cursorMove: void
