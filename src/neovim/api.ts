@@ -386,6 +386,8 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     get name() { return req.buf.getName(id) },
     get length() { return req.buf.lineCount(id) },
     get changedtick() { return req.buf.getChangedtick(id) },
+    attach: ({ sendInitialBuffer }) => req.buf.attach(id, sendInitialBuffer, {}),
+    detach: () => req.buf.detach(id),
     append: async (start, lines) => {
       const replacement = is.array(lines) ? lines as string[] : [lines as string]
       const linesBelow = await req.buf.getLines(id, start + 1, -1, false)

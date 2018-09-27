@@ -98,6 +98,8 @@ export interface Buffer {
   name: Promise<string>
   length: Promise<number>
   changedtick: Promise<number>
+  attach(options: { sendInitialBuffer: boolean }): Promise<boolean>
+  detach(): Promise<boolean>
   append(start: number, lines: string | string[]): void
   getAllLines(): Promise<string[]>
   getLines(start: number, end: number): Promise<string[]>
