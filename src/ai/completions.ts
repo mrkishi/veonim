@@ -5,8 +5,8 @@ import transformCompletions from '../ai/completion-transforms'
 import { getTriggerChars } from '../langserv/server-features'
 import * as completionUI from '../components/autocomplete'
 import toVSCodeLanguage from '../langserv/vsc-languages'
-import { harvester, update } from '../ai/update-server'
 import * as ai from '../langserv/server-features'
+import { harvester } from '../ai/update-server'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
 import { cursor } from '../core/cursor'
@@ -222,7 +222,6 @@ nvim.on.insertLeave(async () => {
   cache.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
-  update()
 })
 
 nvim.on.completion(word => {

@@ -21,6 +21,10 @@ onCreateVim(() => {
     console.log('document opened:', doc)
   })
 
+  tdm.on.didClose(doc => {
+    console.log('document closed:', doc)
+  })
+
   tdm.on.didChange((doc, changes) => {
     console.log('document chagned:', doc, changes)
   })

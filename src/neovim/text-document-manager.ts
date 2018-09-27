@@ -18,6 +18,8 @@ export default () => {
       // TODO: handle changeEvent.more (partial change event)
       // what do? buffer in memory? can we send partial change events to
       // language servers and extensions?
+      console.log('changeEvent', changeEvent)
+
       watchers.emit('didChange', name, changeEvent.lineData)
     })
   }
