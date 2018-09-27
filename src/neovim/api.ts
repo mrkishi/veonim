@@ -29,6 +29,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     actions: Watcher<GenericEvent>(),
     events: Watcher<BufferEvent>(),
     autocmds: Watcher<Autocmd>(),
+    bufferEvents: Watcher<GenericEvent>(),
   }
 
   const req = {
@@ -340,6 +341,18 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
     subscribe('veonim-autocmd', ([ autocmd, ...arg ]) => watchers.autocmds.emit(autocmd, ...arg))
 
+    onEvent('nvim_buf_lines_event', (...args: any[]) => {
+      const [ bufferId, changedTick, firstLine, lastLine, lineData, more ] = args
+
+      watchers.bufferEvents.emit(bufferId, {
+        changedTick,
+        firstLine,
+        lastLine,
+        lineData,
+        more,
+      })
+    })
+
     processBufferedActions()
     refreshState()
     watchers.events.emit('bufLoad')
@@ -352,6 +365,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
 
   autocmd.CompleteDone(word => watchers.events.emit('completion', word))
   autocmd.CursorMoved(() => watchers.events.emit('cursorMove'))
+  autocmd.CursorMovedI(() => watchers.events.emit('cursorMoveInsert'))
   autocmd.BufAdd(() => watchers.events.emit('bufAdd'))
   autocmd.BufEnter(() => watchers.events.emit('bufLoad'))
   autocmd.BufDelete(() => watchers.events.emit('bufUnload'))
@@ -361,20 +375,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
   autocmd.OptionSet((name: string, value: any) => options.set(name, value))
   autocmd.WinEnter((id: number) => watchers.events.emit('winEnter', id))
-
-  // TODO: would like to abstract this buffer change stuff away into a cleaner
-  // solution especially since we now have buffer change notifications in nvim
-  autocmd.TextChanged(() => watchers.events.emit('bufChange'))
-  let lastRevision: number
-  autocmd.CursorMovedI(async () => {
-    const prevRevision = lastRevision
-    const currentRevision = await expr(`b:changedtick`)
-    lastRevision = currentRevision
-
-    if (prevRevision !== currentRevision) watchers.events.emit('bufChangeInsert')
-    // TODO: do we need that last argument there???
-    watchers.events.emit('cursorMoveInsert', prevRevision !== state.revision)
-  })
 
   const HL_CLR = 'nvim_buf_clear_highlight'
   const HL_ADD = 'nvim_buf_add_highlight'
@@ -386,8 +386,14 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     get name() { return req.buf.getName(id) },
     get length() { return req.buf.lineCount(id) },
     get changedtick() { return req.buf.getChangedtick(id) },
-    attach: ({ sendInitialBuffer }) => req.buf.attach(id, sendInitialBuffer, {}),
-    detach: () => req.buf.detach(id),
+    attach: ({ sendInitialBuffer }, cb) => {
+      req.buf.attach(id, sendInitialBuffer, {})
+      watchers.bufferEvents.on(id, cb)
+    },
+    detach: () => {
+      req.buf.detach(id)
+      watchers.bufferEvents.remove(id)
+    },
     append: async (start, lines) => {
       const replacement = is.array(lines) ? lines as string[] : [lines as string]
       const linesBelow = await req.buf.getLines(id, start + 1, -1, false)

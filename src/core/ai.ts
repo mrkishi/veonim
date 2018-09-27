@@ -13,17 +13,19 @@ import '../ai/hover'
 
 nvim.watchState.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
-nvim.on.bufAdd(() => updateService.update({ bufferOpened: true }))
-nvim.on.bufLoad(() => updateService.update())
-nvim.on.bufChange(() => updateService.update())
+// TODO: NOPE. use textDocumentManager instead
+// nvim.on.bufAdd(() => updateService.update({ bufferOpened: true }))
+// nvim.on.bufLoad(() => updateService.update())
+// nvim.on.bufChange(() => updateService.update())
 
 // using cursor move with a diff on revision number because we might need to
 // update the lang server before triggering completions/hint lookups. using
 // textChangedI + cursorMovedI would make it very difficult to wait in cursorMovedI
 // until textChangedI ran AND updated the server
-nvim.on.cursorMoveInsert(async (bufferModified) => {
-  if (bufferModified) await updateService.update({ lineChange: true })
-  const lineContent = await nvim.getCurrentLine()
-  getCompletions(lineContent, nvim.state.line, nvim.state.column)
-  getSignatureHint(lineContent)
-})
+//
+// nvim.on.cursorMoveInsert(async (bufferModified) => {
+//   if (bufferModified) await updateService.update({ lineChange: true })
+//   const lineContent = await nvim.getCurrentLine()
+//   getCompletions(lineContent, nvim.state.line, nvim.state.column)
+//   getSignatureHint(lineContent)
+// })

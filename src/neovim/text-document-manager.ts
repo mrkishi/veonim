@@ -12,6 +12,11 @@ export default () => {
     if (openDocuments.has(name)) return
     openDocuments.add(name)
     watchers.emit('didOpen', name)
+
+    nvim.current.buffer.attach({ sendInitialBuffer: true }, changeEvent => {
+      console.log('buffer changed:', name, changeEvent)
+      watchers.emit('didChange', changeEvent.lineData)
+    })
   }
 
   nvim.on.bufLoad(checkIfDocumentOpened)
@@ -29,7 +34,8 @@ export default () => {
 
   const on = {
     didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn),
-    didChange: (fn: (name: string, change: string[]) => void) => watchers.on('didChange', fn),
+    // TODO: better change event types/data - including ranges, etc.
+    didChange: (fn: (name: string, changes: string[]) => void) => watchers.on('didChange', fn),
     willSave: (fn: DocumentCallback) => watchers.on('willSave', fn),
     didSave: (fn: DocumentCallback) => watchers.on('didSave', fn),
     didClose: (fn: DocumentCallback) => watchers.on('didClose', fn),
