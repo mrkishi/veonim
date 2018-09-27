@@ -341,10 +341,14 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
     subscribe('veonim-autocmd', ([ autocmd, ...arg ]) => watchers.autocmds.emit(autocmd, ...arg))
 
+    onEvent('nvim_buf_detach_event', (args: any[]) => {
+      watchers.bufferEvents.emit(`detach:${args[0].id}`)
+    })
+
     onEvent('nvim_buf_lines_event', (args: any[]) => {
       const [ extContainerData, changedTick, firstLine, lastLine, lineData, more ] = args
 
-      watchers.bufferEvents.emit(extContainerData.id, {
+      watchers.bufferEvents.emit(`change:${extContainerData.id}`, {
         changedTick,
         firstLine,
         lastLine,
@@ -387,12 +391,19 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     get length() { return req.buf.lineCount(id) },
     get changedtick() { return req.buf.getChangedtick(id) },
     attach: ({ sendInitialBuffer }, cb) => {
-      req.buf.attach(id, sendInitialBuffer, {})
-      watchers.bufferEvents.on(id, cb)
+      watchers.bufferEvents.on(`change:${id}`, cb)
+      req.buf.attach(id, sendInitialBuffer, {}).then(attached => {
+        if (!attached) return console.error('could not attach to buffer:', id)
+      })
+    },
+    onDetach: onDetachFn => {
+      watchers.bufferEvents.once(`detach:${id}`, onDetachFn)
     },
     detach: () => {
-      req.buf.detach(id)
       watchers.bufferEvents.remove(id)
+      req.buf.detach(id).then(detached => {
+        if (!detached) console.error('could not detach from buffer:', id)
+      })
     },
     append: async (start, lines) => {
       const replacement = is.array(lines) ? lines as string[] : [lines as string]

@@ -17,10 +17,12 @@ export default () => {
       // TODO: handle changeEvent.more (partial change event)
       // what do? buffer in memory? can we send partial change events to
       // language servers and extensions?
-      console.log('changeEvent', changeEvent)
+      // console.log('changeEvent', changeEvent)
 
       watchers.emit('didChange', name, changeEvent.lineData)
     })
+
+    nvim.current.buffer.onDetach(() => watchers.emit('didClose', name))
   }
 
   nvim.on.bufAdd(async () => {
@@ -31,7 +33,6 @@ export default () => {
   nvim.on.bufLoad(() => loadOrOpen(nvim.state.absoluteFilepath))
   nvim.on.bufWritePre(() => watchers.emit('willSave', nvim.state.absoluteFilepath))
   nvim.on.bufWrite(() => watchers.emit('didSave', nvim.state.absoluteFilepath))
-  nvim.on.bufUnload(() => watchers.emit('didClose', nvim.state.absoluteFilepath))
 
   const on = {
     didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn),
