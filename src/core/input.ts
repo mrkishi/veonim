@@ -119,7 +119,7 @@ export const transform = {
 }
 
 
-export const stealInputMode = (onKeyFn: OnKeyFn) => {
+export const stealInput = (onKeyFn: OnKeyFn) => {
   sendInputToVim = false
   keyListener = onKeyFn
   return () => sendInputToVim = true
