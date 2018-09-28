@@ -1,4 +1,4 @@
-import { $, Watchers, is, fromJSON } from '../support/utils'
+import { $, is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import { VimMode } from '../neovim/types'
@@ -16,9 +16,10 @@ export enum InputType {
   Up = 'up',
 }
 
+type OnKeyFn = (inputKeys: string, inputType: InputType) => void
+
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
-const inputWatchers = new Watchers()
 let isCapturing = false
 let holding = ''
 let xformed = false
@@ -27,7 +28,8 @@ let initalVimStartupKeypress = true
 let windowHasFocus = true
 let lastEscapeTimestamp = 0
 let shouldClearEscapeOnNextAppFocus = false
-let activeInputMode = InputMode.Vim
+let keyListener: OnKeyFn = () => {}
+let sendInputToVim = true
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -116,22 +118,11 @@ export const transform = {
   }
 }
 
-export const switchInputMode = (mode: InputMode) => activeInputMode = mode
-export const defaultInputMode = () => activeInputMode = InputMode.Vim
 
-export const watchInputMode = (mode: InputMode, fn: (inputKeys: string, inputType: InputType) => void) => {
-  const onDown = (inputKeys: string) => fn(inputKeys, InputType.Down)
-  const onUp = (inputKeys: string) => fn(inputKeys, InputType.Up)
-  const eventDown = `${InputType.Down}:${mode}`
-  const eventUp = `${InputType.Up}:${mode}`
-
-  inputWatchers.add(eventDown, onDown)
-  inputWatchers.add(eventUp, onUp)
-
-  return () => {
-    inputWatchers.remove(eventDown, onDown)
-    inputWatchers.remove(eventUp, onUp)
-  }
+export const stealInputMode = (onKeyFn: OnKeyFn) => {
+  sendInputToVim = false
+  keyListener = onKeyFn
+  return () => sendInputToVim = true
 }
 
 const sendToVim = (inputKeys: string) => {
@@ -148,10 +139,6 @@ const sendToVim = (inputKeys: string) => {
   }
 }
 
-const sendToMotion = (inputKeys: string, inputType: InputType) => {
-  inputWatchers.notify(`${inputType}:${InputMode.Motion}`, inputKeys)
-}
-
 const sendKeys = async (e: KeyboardEvent, inputType: InputType) => {
   // TODO: this doesn't work anymore. something is sending a keypress
   // event on app startup. we should be using shadow buffers for this
@@ -165,8 +152,8 @@ const sendKeys = async (e: KeyboardEvent, inputType: InputType) => {
   if (!key) return
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
 
-  if (activeInputMode === InputMode.Vim) return sendToVim(inputKeys)
-  if (activeInputMode === InputMode.Motion) return sendToMotion(inputKeys, inputType)
+  if (sendInputToVim) return sendToVim(inputKeys)
+  keyListener(inputKeys, inputType)
 }
 
 window.addEventListener('keydown', e => {
