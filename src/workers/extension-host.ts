@@ -14,6 +14,7 @@ import { ChildProcess, spawn } from 'child_process'
 import LocalizeFile from '../support/localize'
 import pleaseGet from '../support/please-get'
 import { dirname, join } from 'path'
+import nvim from '../vscode/neovim'
 import '../support/vscode-shim'
 
 interface Debugger {
@@ -239,7 +240,7 @@ const updateLanguageServersWithTextDocuments = (serverId: string): void => {
   // TODO: need an nvim instance here, but we already set it up
   // on the vscode-extension-api branch, so i'd rather just merge
   // these than recreate it
-  const tdm = TextDocumentManager()
+  const tdm = TextDocumentManager(nvim)
   // TODO: need a way to dispose of the TDM when the langserv is disposed of
   const server = getServer(serverId)
 }
