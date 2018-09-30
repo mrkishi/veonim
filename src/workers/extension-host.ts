@@ -252,7 +252,9 @@ const activate = {
 
     const proc: ChildProcess = await serverActivator
     const serverId = connectRPCServer(proc)
-    updateLanguageServersWithTextDocuments(getServer(serverId))
+    // TODO: register updater dispose and call it when langserv is gone.
+    /*const updater = */updateLanguageServersWithTextDocuments(getServer(serverId))
+    /* updater.dispose() */
     return serverId
   },
 }

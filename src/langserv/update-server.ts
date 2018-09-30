@@ -2,13 +2,8 @@ import { ProtocolConnection, DidOpenTextDocumentParams, DidChangeTextDocumentPar
 import TextDocumentManager from '../neovim/text-document-manager'
 import nvim from '../vscode/neovim'
 
-export default (server: ProtocolConnection): void => {
+export default (server: ProtocolConnection) => {
   const tdm = TextDocumentManager(nvim)
-
-  // TODO: need a way to dispose of the TDM when the langserv is disposed of
-  // TODO: how to handle servers that do not accept incremental updates?
-  // buffer whole file in memory and apply patches on our end? or query
-  // from filesystem and apply changes?
 
   tdm.on.didOpen(({ uri, version, languageId, textLines }) => {
     const params: DidOpenTextDocumentParams = {
@@ -23,6 +18,9 @@ export default (server: ProtocolConnection): void => {
     server.sendNotification('textDocument/didOpen', params)
   })
 
+  // TODO: how to handle servers that do not accept incremental updates?
+  // buffer whole file in memory and apply patches on our end? or query
+  // from filesystem and apply changes?
   tdm.on.didChange(({ uri, version, textChanges }) => {
     const params: DidChangeTextDocumentParams = {
       textDocument: {
@@ -60,9 +58,11 @@ export default (server: ProtocolConnection): void => {
 
   tdm.on.didClose(({ uri }) => {
     const params: DidCloseTextDocumentParams = {
-
+      textDocument: { uri },
     }
 
     server.sendNotification('textDocument/didClose', params)
   })
+
+  return { dispose: () => tdm.dispose() }
 }
