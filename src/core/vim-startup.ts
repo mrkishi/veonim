@@ -67,6 +67,7 @@ const autocmds = {
   InsertEnter: null,
   InsertLeave: null,
   OptionSet: `expand('<amatch>'), v:option_new, v:option_old`,
+  FileType: `bufnr(expand('<afile>')), expand('<amatch>')`,
   WinEnter: `win_getid()`,
 }
 
