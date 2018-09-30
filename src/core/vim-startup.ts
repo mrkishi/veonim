@@ -54,13 +54,13 @@ const stateEvents = [
 ]
 
 const autocmds = {
-  BufAdd: null,
-  BufEnter: null,
-  BufDelete: null,
-  BufUnload: null,
-  BufWipeout: null,
-  BufWritePre: null,
-  BufWritePost: null,
+  BufAdd: `expand('<abuf>')`,
+  BufEnter: `expand('<abuf>')`,
+  BufDelete: `expand('<abuf>')`,
+  BufUnload: `expand('<abuf>')`,
+  BufWipeout: `expand('<abuf>')`,
+  BufWritePre: `expand('<abuf>')`,
+  BufWritePost: `expand('<abuf>')`,
   CursorMoved: null,
   CursorMovedI: null,
   CompleteDone: 'v:completed_item',

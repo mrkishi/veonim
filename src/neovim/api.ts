@@ -384,14 +384,15 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
   autocmd.CompleteDone(word => watchers.events.emit('completion', word))
   autocmd.CursorMoved(() => watchers.events.emit('cursorMove'))
   autocmd.CursorMovedI(() => watchers.events.emit('cursorMoveInsert'))
-  autocmd.BufAdd(() => watchers.events.emit('bufAdd'))
-  autocmd.BufEnter(() => watchers.events.emit('bufLoad'))
-  autocmd.BufDelete(() => watchers.events.emit('bufUnload'))
-  autocmd.BufWritePre(() => watchers.events.emit('bufWritePre'))
-  autocmd.BufWritePost(() => watchers.events.emit('bufWrite'))
+  autocmd.BufAdd(bufId => watchers.events.emit('bufAdd', Buffer(bufId)))
+  autocmd.BufEnter(bufId => watchers.events.emit('bufLoad', Buffer(bufId)))
+  autocmd.BufDelete(bufId => watchers.events.emit('bufUnload', Buffer(bufId)))
+  autocmd.BufWritePre(bufId => watchers.events.emit('bufWritePre', Buffer(bufId)))
+  autocmd.BufWritePost(bufId => watchers.events.emit('bufWrite', Buffer(bufId)))
   autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
   autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
   autocmd.OptionSet((name: string, value: any) => options.set(name, value))
+  // TODO: i think we should just determine this from render events
   autocmd.WinEnter((id: number) => watchers.events.emit('winEnter', id))
 
   const HL_CLR = 'nvim_buf_clear_highlight'

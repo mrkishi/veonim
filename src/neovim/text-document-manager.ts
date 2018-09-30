@@ -1,6 +1,6 @@
 import filetypeToLanguageID from '../langserv/vsc-languages'
+import { BufferChangeEvent, Buffer } from '../neovim/types'
 import { Range } from 'vscode-languageserver-protocol'
-import { BufferChangeEvent } from '../neovim/types'
 import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
 
@@ -31,7 +31,9 @@ const api = (nvim: NeovimAPI) => {
   const openDocuments = new Set<string>()
   const watchers = new EventEmitter()
 
-  const loadOrOpen = (name: string) => {
+  const loadOrOpen = (buffer: Buffer, name: string) => {
+    console.log('name', name)
+    console.log('buffer', buffer)
     if (!name || openDocuments.has(name)) return
     let sentOpenNotification = false
 
@@ -68,7 +70,7 @@ const api = (nvim: NeovimAPI) => {
       } as DidChange)
     }
 
-    nvim.current.buffer.attach({ sendInitialBuffer: true }, changeEvent => {
+    buffer.attach({ sendInitialBuffer: true }, changeEvent => {
       // TODO: handle changeEvent.more (partial change event)
       // what do? buffer in memory? can we send partial change events to
       // language servers and extensions?
@@ -79,12 +81,14 @@ const api = (nvim: NeovimAPI) => {
     nvim.current.buffer.onDetach(() => watchers.emit('didClose', name))
   }
 
-  nvim.on.bufAdd(async () => {
-    const name = await nvim.current.buffer.name
-    loadOrOpen(name)
+  nvim.on.bufAdd(async buffer => {
+    console.log('tdm.bufAdd', buffer)
+    const name = await buffer.name
+    console.log('bufadd', name)
+    loadOrOpen(buffer, name)
   })
 
-  nvim.on.bufLoad(() => loadOrOpen(nvim.state.absoluteFilepath))
+  nvim.on.bufLoad(() => loadOrOpen(nvim.current.buffer, nvim.state.absoluteFilepath))
   nvim.on.bufWritePre(() => watchers.emit('willSave', nvim.state.absoluteFilepath))
   nvim.on.bufWrite(() => watchers.emit('didSave', nvim.state.absoluteFilepath))
 

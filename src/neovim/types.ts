@@ -89,11 +89,11 @@ export interface BufferChangeEvent {
 }
 
 export interface BufferEvent {
-  bufAdd: void
-  bufLoad: void
-  bufUnload: void
-  bufWrite: void
-  bufWritePre: void
+  bufAdd: Buffer
+  bufLoad: Buffer
+  bufUnload: Buffer
+  bufWrite: Buffer
+  bufWritePre: Buffer
   cursorMove: void
   cursorMoveInsert: void
   completion: string
