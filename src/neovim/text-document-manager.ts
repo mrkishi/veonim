@@ -1,7 +1,22 @@
+import { TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
 import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
 
-type DocumentCallback = (documentName: string) => void
+interface Doc {
+  name: string
+  filetype: string
+  version: number
+}
+
+interface DidOpen extends Doc {
+  text: string[]
+}
+
+interface DidChange extends Doc {
+  textChanges: TextDocumentContentChangeEvent[]
+}
+
+type On<T> = (params: T) => void
 
 const api = (nvim: NeovimAPI) => {
   const openDocuments = new Set<string>()
@@ -35,12 +50,11 @@ const api = (nvim: NeovimAPI) => {
   nvim.on.bufWrite(() => watchers.emit('didSave', nvim.state.absoluteFilepath))
 
   const on = {
-    didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn),
-    // TODO: better change event types/data - including ranges, etc.
-    didChange: (fn: (name: string, changes: string[]) => void) => watchers.on('didChange', fn),
-    willSave: (fn: DocumentCallback) => watchers.on('willSave', fn),
-    didSave: (fn: DocumentCallback) => watchers.on('didSave', fn),
-    didClose: (fn: DocumentCallback) => watchers.on('didClose', fn),
+    didOpen: (fn: On<DidOpen>) => watchers.on('didOpen', fn),
+    didChange: (fn: On<DidChange>) => watchers.on('didChange', fn),
+    willSave: (fn: On<Doc>) => watchers.on('willSave', fn),
+    didSave: (fn: On<Doc>) => watchers.on('didSave', fn),
+    didClose: (fn: On<Doc>) => watchers.on('didClose', fn),
   }
 
   // TODO: please dispose TextDocumentManager
