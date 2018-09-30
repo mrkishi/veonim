@@ -1,10 +1,13 @@
 import { TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
+import filetypeToLanguageID from '../langserv/vsc-languages'
 import { BufferChangeEvent } from '../neovim/types'
 import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
 
 interface Doc {
   name: string
+  uri: string
+  languageId: string
   filetype: string
   version: number
 }
@@ -29,14 +32,16 @@ const api = (nvim: NeovimAPI) => {
 
     openDocuments.add(name)
 
-    const notifyOpen = (changeEvent: BufferChangeEvent) => {
+    const notifyOpen = ({ filetype, lineData, changedTick }: BufferChangeEvent) => {
       sentOpenNotification = true
-      const notification: DidOpen = {
+      watchers.emit('didOpen', {
         name,
-        text: changeEvent.lineData
-
-      }
-      watchers.emit('didOpen', notification)
+        filetype,
+        version: changedTick,
+        uri: `file://${name}`,
+        languageId: filetypeToLanguageID(filetype),
+        text: lineData
+      } as DidOpen)
     }
 
     const notifyChange = (changeEvent: BufferChangeEvent) => {
