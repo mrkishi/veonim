@@ -95,6 +95,7 @@ export default () => {
   api.updateNameplate = data => nameplate.update(data)
 
   api.destroy = () => {
+    console.warn('NYI: window.destroy()')
     // TODO: destroy elements, cleanup, destroy canvas, components, anything else thanks etc.
   }
 

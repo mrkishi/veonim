@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/veonim/veonim#readme",
   "bindeps-darwin": {
-    "@veonim/neovim-mac": "0.0.0-alpha.82",
+    "@veonim/neovim-mac": "0.0.0-alpha.84",
     "@veonim/ripgrep-mac": "0.0.1",
     "all-other-unzip-libs-suck-mac": "0.0.2"
   },
@@ -69,16 +69,16 @@
     "vscode-languageserver-types": "3.5.0"
   },
   "devDependencies": {
+    "@deomitrus/hyperapp-redux-devtools": "1.2.0",
     "@types/fs-extra": "5.0.1",
     "@types/fuzzaldrin-plus": "0.0.1",
     "@types/mock-require": "2.0.0",
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "9.4.0",
     "@types/request": "2.47.0",
-    "electron": "2.0.4",
+    "electron": "3.0.2",
     "electron-builder": "20.13.3",
     "electron-devtools-installer": "2.2.3",
-    "@deomitrus/hyperapp-redux-devtools": "1.2.0",
     "jest": "22.4.3",
     "jscodeshift": "0.3.32",
     "mocha": "5.1.1",
