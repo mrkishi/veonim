@@ -1,6 +1,6 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection,
-  ProtocolConnection, TextDocumentItem, VersionedTextDocumentIdentifier,
-  TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
+  ProtocolConnection, DidOpenTextDocumentParams, DidChangeTextDocumentParams,
+  WillSaveTextDocumentParams } from 'vscode-languageserver-protocol'
 import { DebugConfiguration, collectDebuggersFromExtensions,
   getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
   getDebuggerConfig } from '../extensions/debuggers'
@@ -238,38 +238,49 @@ const activateExtensionForLanguage = async (language: string) => {
 }
 
 const updateLanguageServersWithTextDocuments = (serverId: string): void => {
-  // TODO: need an nvim instance here, but we already set it up
-  // on the vscode-extension-api branch, so i'd rather just merge
-  // these than recreate it
   const tdm = TextDocumentManager(nvim)
-  // TODO: need a way to dispose of the TDM when the langserv is disposed of
   const server = getServer(serverId)
 
+  // TODO: need a way to dispose of the TDM when the langserv is disposed of
   // TODO: how to handle servers that do not accept incremental updates?
   // buffer whole file in memory and apply patches on our end? or query
   // from filesystem and apply changes?
 
   tdm.on.didOpen(({ uri, version, languageId, textLines }) => {
-    const textDocument: TextDocumentItem = {
-      uri: uri,
-      version: version,
-      languageId: languageId,
-      text: textLines.join('\n'),
+    const params: DidOpenTextDocumentParams = {
+      textDocument: {
+        uri,
+        version,
+        languageId,
+        text: textLines.join('\n'),
+      }
     }
 
-    server.sendNotification('textDocument/didOpen', { textDocument })
+    server.sendNotification('textDocument/didOpen', params)
   })
 
-  tdm.on.didChange(({ uri, version, languageId, textLines }) => {
-    const textDocument: VersionedTextDocumentIdentifier = {
-
+  tdm.on.didChange(({ uri, version, textChanges }) => {
+    const params: DidChangeTextDocumentParams = {
+      textDocument: {
+        uri,
+        version,
+      },
+      contentChanges: [{
+        text: textChanges.textLines.join('\n'),
+        range: textChanges.range,
+      }]
     }
 
-    const contentChanges: TextDocumentContentChangeEvent[] = [
+    server.sendNotification('textDocument/didChange', params)
+  })
 
-    ]
+  tdm.on.willSave(({ uri }) => {
+    const params: WillSaveTextDocumentParams = {
+      reason: 1,
+      textDocument: { uri },
+    }
 
-    server.sendNotification('textDocument/didChange', { textDocument, contentChanges })
+    server.sendNotification('textDocument/willSave', params)
   })
 }
 
