@@ -333,13 +333,25 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
   watchConfig('nvim/init.vim', refreshOptions)
 
   onCreateVim(() => {
+    // keeping this per instance of nvim, because i think it is reasonable to
+    // expect that the same document filepath could have different filetypes in
+    // different vim instances
+    const documentFiletypes = new Map<number, string>()
+    const registerFiletype = ((bufnr: number, filetype: string) => {
+      documentFiletypes.set(bufnr, filetype)
+    })
+
     const events = [...registeredEventActions.values()].join('\\n')
     cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
 
     subscribe('veonim', ([ event, args = [] ]) => watchers.actions.emit(event, ...args))
     subscribe('veonim-state', ([ nextState ]) => Object.assign(state, nextState))
     subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
-    subscribe('veonim-autocmd', ([ autocmd, ...arg ]) => watchers.autocmds.emit(autocmd, ...arg))
+    subscribe('veonim-autocmd', ([ autocmd, ...arg ]) => {
+      // TODO: should really provide a way to scope autocmds to the current vim instance...
+      if (autocmd === 'FileType') registerFiletype(arg[0], arg[1])
+      watchers.autocmds.emit(autocmd, ...arg)
+    })
 
     onEvent('nvim_buf_detach_event', (args: any[]) => {
       watchers.bufferEvents.emit(`detach:${args[0].id}`)
@@ -347,8 +359,10 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
 
     onEvent('nvim_buf_lines_event', (args: any[]) => {
       const [ extContainerData, changedTick, firstLine, lastLine, lineData, more ] = args
+      const bufId = extContainerData.id
 
-      watchers.bufferEvents.emit(`change:${extContainerData.id}`, {
+      watchers.bufferEvents.emit(`change:${bufId}`, {
+        filetype: documentFiletypes.get(bufId),
         changedTick,
         firstLine,
         lastLine,

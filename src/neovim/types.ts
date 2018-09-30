@@ -61,6 +61,8 @@ export interface HyperspaceCoordinates {
 }
 
 export interface BufferChangeEvent {
+  /** buffer filetype at the time of the change event */
+  filetype: string
   /** value of |b:changedtick| for the buffer. If you send an API
   command back to nvim you can check the value of |b:changedtick| as part of
   your request to ensure that no other changes have been made. */
