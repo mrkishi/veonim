@@ -7,7 +7,7 @@ import { ExtensionInfo, Extension, ActivationEventType,
   Disposable, activateExtension } from '../extensions/extensions'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
-import CreateTDM, { TextDocumentManager } from '../neovim/text-document-manager'
+import TextDocumentManager from '../neovim/text-document-manager'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
@@ -46,7 +46,6 @@ const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, Extension>()
 const runningLangServers = new Map<string, ProtocolConnection>()
 const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
-const langServerTDMs = new Map<string, TextDocumentManager>()
 
 on.sessionCreate((id: number, path: string) => {
   console.log('ext: session created:', id, path)
@@ -244,6 +243,15 @@ const activateExtensionForLanguage = async (language: string) => {
   return activateExtension(extension)
 }
 
+const updateLanguageServersWithTextDocuments = (serverId: string): void => {
+  // TODO: need an nvim instance here, but we already set it up
+  // on the vscode-extension-api branch, so i'd rather just merge
+  // these than recreate it
+  const tdm = TextDocumentManager()
+  // TODO: need a way to dispose of the TDM when the langserv is disposed of
+  const server = getServer(serverId)
+}
+
 const activate = {
   language: async (language: string) => {
     // TODO: handle extension dependencies
@@ -262,6 +270,7 @@ const activate = {
 
     const proc: ChildProcess = await serverActivator
     const serverId = connectRPCServer(proc)
+    updateLanguageServersWithTextDocuments(serverId)
     return serverId
   },
 }

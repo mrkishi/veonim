@@ -8,7 +8,7 @@ export const finder = Worker('buffer-search')
 let pauseUpdate = false
 
 // TODO: deprecated. remove
-const update = async ({ lineChange = false, bufferOpened = false } = {}) => {
+export const update = async ({ lineChange = false, bufferOpened = false } = {}) => {
   if (pauseUpdate) return
 
   if (lineChange) partialBufferUpdate({
