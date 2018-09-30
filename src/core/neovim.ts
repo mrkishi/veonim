@@ -12,10 +12,12 @@ io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 onCreateVim(info => io.postMessage([65, info]))
 onSwitchVim(id => io.postMessage([66, id]))
 
-export default Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
+// export default Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
+const api = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
+export default api
 
 onCreateVim(() => {
-  const tdm = TextDocumentManager()
+  const tdm = TextDocumentManager(api)
 
   tdm.on.didOpen(doc => {
     console.log('document opened:', doc)

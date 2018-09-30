@@ -21,7 +21,7 @@ export interface Neovim extends NeovimRPC {
   onSwitchVim: (fn: () => void) => void
 }
 
-export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => {
+const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => {
   const registeredEventActions = new Set<string>()
   const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
 
@@ -477,3 +477,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     getCurrentLine, jumpTo, jumpToProjectFile, getColor, systemAction, current,
     g, on, untilEvent, applyPatches, buffers, windows, tabs, options: readonlyOptions }
 }
+
+export default api
+export type NeovimAPI = ReturnType<typeof api>

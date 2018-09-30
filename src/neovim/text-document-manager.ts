@@ -1,5 +1,5 @@
+import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
-import nvim from '../core/neovim'
 
 type DocumentCallback = (documentName: string) => void
 
@@ -12,7 +12,7 @@ export interface TextDocumentManager {
   didClose: (fn: DocumentCallback) => void
 }
 
-export default () => {
+export default (nvim: NeovimAPI) => {
   const openDocuments = new Set<string>()
   const watchers = new EventEmitter()
 
