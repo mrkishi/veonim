@@ -311,7 +311,7 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
   // maybe any buffered notifications only needed for main thread anyways
   const processBufferedActions = async () => {
     const bufferedActions = await g.vn_rpc_buf
-    if (!bufferedActions.length) return
+    if (!bufferedActions || !bufferedActions.length) return
     bufferedActions.forEach(([event, ...args]) => watchers.actions.emit(event, ...args))
     g.vn_rpc_buf = []
   }

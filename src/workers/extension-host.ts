@@ -47,14 +47,6 @@ const languageExtensions = new Map<string, Extension>()
 const runningLangServers = new Map<string, ProtocolConnection>()
 const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
 
-on.sessionCreate((id: number, path: string) => {
-  console.log('ext: session created:', id, path)
-})
-
-on.sessionSwitch((id: number) => {
-  console.log('ext: session switch:', id)
-})
-
 on.load(() => load())
 
 on.existsForLanguage((language: string) => Promise.resolve(languageExtensions.has(language)))

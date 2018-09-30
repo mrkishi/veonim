@@ -144,4 +144,8 @@ export const registerDebugConfigProvider = (type: string, provider: DebugConfigu
 
   dbg.debugConfigProviders.add(provider)
   dbg.hasConfigurationProvider = true
+
+  return () => {
+    if (dbg.debugConfigProviders.has(provider)) dbg.debugConfigProviders.delete(provider)
+  }
 }
