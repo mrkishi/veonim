@@ -44,12 +44,17 @@ const api = (nvim: NeovimAPI) => {
       } as DidOpen)
     }
 
-    const notifyChange = (changeEvent: BufferChangeEvent) => {
-      const notification: DidChange = {
+    const notifyChange = ({ filetype, lineData, changedTick, firstLine, lastLine }: BufferChangeEvent) => {
+      const textChanges = []
 
-      }
-
-      watchers.emit('didChange', notification)
+      watchers.emit('didChange', {
+        name,
+        filetype,
+        version: changedTick,
+        uri: `file://${name}`,
+        languageId: filetypeToLanguageID(filetype),
+        textChanges: [],
+      } as DidChange)
     }
 
     nvim.current.buffer.attach({ sendInitialBuffer: true }, changeEvent => {
