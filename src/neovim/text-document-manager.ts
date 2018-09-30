@@ -3,6 +3,15 @@ import nvim from '../core/neovim'
 
 type DocumentCallback = (documentName: string) => void
 
+export interface TextDocumentManager {
+  didOpen: (fn: DocumentCallback) => void
+  // TODO: better change event types/data - including ranges, etc.
+  didChange: (fn: (name: string, changes: string[]) => void) => void
+  willSave: (fn: DocumentCallback) => void
+  didSave: (fn: DocumentCallback) => void
+  didClose: (fn: DocumentCallback) => void
+}
+
 export default () => {
   const openDocuments = new Set<string>()
   const watchers = new EventEmitter()
@@ -34,13 +43,12 @@ export default () => {
   nvim.on.bufWritePre(() => watchers.emit('willSave', nvim.state.absoluteFilepath))
   nvim.on.bufWrite(() => watchers.emit('didSave', nvim.state.absoluteFilepath))
 
-  const on = {
-    didOpen: (fn: DocumentCallback) => watchers.on('didOpen', fn),
-    // TODO: better change event types/data - including ranges, etc.
-    didChange: (fn: (name: string, changes: string[]) => void) => watchers.on('didChange', fn),
-    willSave: (fn: DocumentCallback) => watchers.on('willSave', fn),
-    didSave: (fn: DocumentCallback) => watchers.on('didSave', fn),
-    didClose: (fn: DocumentCallback) => watchers.on('didClose', fn),
+  const on: TextDocumentManager = {
+    didOpen: fn => watchers.on('didOpen', fn),
+    didChange: fn => watchers.on('didChange', fn),
+    willSave: fn => watchers.on('willSave', fn),
+    didSave: fn => watchers.on('didSave', fn),
+    didClose: fn => watchers.on('didClose', fn),
   }
 
   return { on }
