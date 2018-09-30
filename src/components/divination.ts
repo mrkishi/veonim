@@ -1,8 +1,8 @@
-import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
 import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
+import { stealInput } from '../core/input'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
@@ -111,13 +111,11 @@ const divinationLine = async ({ visual }: { visual: boolean }) => {
       color: '#ff007c'
     }))
 
-  switchInputMode(InputMode.Motion)
   const grabbedKeys: string[] = []
 
   const reset = () => {
-    stopWatchingInput()
+    restoreInput()
     currentWindowElement.remove(labelContainer)
-    defaultInputMode()
   }
 
   const jump = () => {
@@ -136,7 +134,7 @@ const divinationLine = async ({ visual }: { visual: boolean }) => {
     reset()
   }
 
-  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+  const restoreInput = stealInput(keys => {
     if (keys === '<Esc>') return reset()
 
     grabbedKeys.push(keys)
@@ -258,14 +256,12 @@ export const divinationSearch = async () => {
       color: '#ff007c'
     }))
 
-  switchInputMode(InputMode.Motion)
   hideCursor()
   const grabbedKeys: string[] = []
 
   const reset = () => {
-    stopWatchingInput()
+    restoreInput()
     currentWindowElement.remove(labelContainer)
-    defaultInputMode()
     showCursor()
   }
 
@@ -283,7 +279,7 @@ export const divinationSearch = async () => {
     reset()
   }
 
-  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+  const restoreInput = stealInput(keys => {
     if (keys === '<Esc>') return reset()
 
     grabbedKeys.push(keys)

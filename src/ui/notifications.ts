@@ -79,8 +79,7 @@ const view = ($: S) => PluginTop(true, {
   marginTop: '5px',
 }, [
 
-  ,h('div', $.notifications.map(({ id, kind, message, count }) => h('div', {
-      key: id,
+  ,h('div', $.notifications.map(({ kind, message, count }) => h('div', {
       style: {
         display: 'flex',
         padding: '10px',

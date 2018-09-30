@@ -1,9 +1,9 @@
-import { switchInputMode, watchInputMode, defaultInputMode, InputMode } from '../core/input'
 import * as dispatch from '../messaging/dispatch'
 import { activeWindow } from '../core/windows'
 import ColorPicker from '../ui/color-picker'
 import Overlay from '../components/overlay'
 import { debounce } from '../support/utils'
+import { stealInput } from '../core/input'
 import onLoseFocus from '../ui/lose-focus'
 import { basename, extname } from 'path'
 import { cursor } from '../core/cursor'
@@ -73,7 +73,6 @@ const view = ($: typeof state, a: typeof actions) => Overlay({
 const ui = app({ name: 'color-picker', state, actions, view })
 
 const show = (color: string) => {
-  switchInputMode(InputMode.Motion)
   // TODO: conditionally call setRGB or setHSL depending on input
   // this will depend on functionality to parse/edit rgba+hsla
   // colors from text.
@@ -82,10 +81,9 @@ const show = (color: string) => {
   // colorPicker.setHSL(h, s, l, a)
   ui.show()
 
-  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+  const restoreInput = stealInput(keys => {
     if (keys !== '<Esc>') return
-    stopWatchingInput()
-    defaultInputMode()
+    restoreInput()
     ui.hide()
   })
 }

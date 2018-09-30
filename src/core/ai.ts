@@ -11,6 +11,20 @@ import '../ai/symbols'
 import '../ai/rename'
 import '../ai/hover'
 
+// TODO: temp hack to fix langservers not recv didOpen events
+// when sourcing a vim session
+import { onServerStart } from '../langserv/director'
+
+onServerStart(async () => {
+  const buffers = await nvim.buffers.list()
+  const bufs = await Promise.all(buffers.map(b => ({ ...b, name: b.name })))
+
+  bufs.forEach(async b => {
+    const lines = await b.getAllLines()
+    updateService.update({ lines: lines as any })
+  })
+})
+
 nvim.watchState.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
 // TODO: NOPE. use textDocumentManager instead
