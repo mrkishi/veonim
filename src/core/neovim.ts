@@ -1,7 +1,6 @@
 import { onCreateVim, onSwitchVim } from '../core/sessions'
 import setupRPC from '../messaging/rpc'
 import Neovim from '../neovim/api'
-import TextDocumentManager from '../neovim/text-document-manager'
 
 export { NeovimState } from '../neovim/state'
 
@@ -12,30 +11,4 @@ io.onmessage = ({ data: [kind, data] }: MessageEvent) => onData(kind, data)
 onCreateVim(info => io.postMessage([65, info]))
 onSwitchVim(id => io.postMessage([66, id]))
 
-// export default Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
-const api = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
-export default api
-
-onCreateVim(() => {
-  const tdm = TextDocumentManager(api)
-
-  tdm.on.didOpen(doc => {
-    console.log('document opened:', doc)
-  })
-
-  tdm.on.didClose(doc => {
-    console.log('document closed:', doc)
-  })
-
-  tdm.on.didChange(doc => {
-    console.log('document changed:', doc)
-  })
-
-  tdm.on.willSave(doc => {
-    console.log('document will save:', doc)
-  })
-
-  tdm.on.didSave(doc => {
-    console.log('document did save:', doc)
-  })
-})
+export default Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
