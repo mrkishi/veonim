@@ -102,6 +102,7 @@ export interface BufferEvent {
   insertLeave: void
   insertEnter: void
   winEnter: number
+  filetype: string
 }
 
 export interface Color {

@@ -392,6 +392,7 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
   autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
   autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
   autocmd.OptionSet((name: string, value: any) => options.set(name, value))
+  autocmd.FileType((_, filetype: string) => watchers.events.emit('filetype', filetype))
   // TODO: i think we should just determine this from render events
   autocmd.WinEnter((id: number) => watchers.events.emit('winEnter', id))
 

@@ -88,7 +88,10 @@ const api = (nvim: NeovimAPI) => {
     loadOrOpen(buffer, name)
   })
 
-  nvim.on.bufLoad(() => loadOrOpen(nvim.current.buffer, nvim.state.absoluteFilepath))
+  nvim.on.bufLoad((buf) => {
+    console.log('tdm.bufLoad:', buf)
+    loadOrOpen(nvim.current.buffer, nvim.state.absoluteFilepath)
+  })
   nvim.on.bufWritePre(() => watchers.emit('willSave', nvim.state.absoluteFilepath))
   nvim.on.bufWrite(() => watchers.emit('didSave', nvim.state.absoluteFilepath))
 
