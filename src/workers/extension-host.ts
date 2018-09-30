@@ -243,6 +243,15 @@ const updateLanguageServersWithTextDocuments = (serverId: string): void => {
   const tdm = TextDocumentManager(nvim)
   // TODO: need a way to dispose of the TDM when the langserv is disposed of
   const server = getServer(serverId)
+
+  // TODO: how to handle servers that do not accept incremental updates?
+  // buffer whole file in memory and apply patches on our end? or query
+  // from filesystem and apply changes?
+  tdm.on.didOpen(doc => {
+    server.sendNotification('textDocument/didOpen', {
+
+    })
+  })
 }
 
 const activate = {

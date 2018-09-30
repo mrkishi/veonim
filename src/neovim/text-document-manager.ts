@@ -1,4 +1,5 @@
 import { TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
+import { BufferChangeEvent } from '../neovim/types'
 import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
 
@@ -24,17 +25,34 @@ const api = (nvim: NeovimAPI) => {
 
   const loadOrOpen = (name: string) => {
     if (!name || openDocuments.has(name)) return
+    let sentOpenNotification = false
 
     openDocuments.add(name)
-    watchers.emit('didOpen', name)
+
+    const notifyOpen = (changeEvent: BufferChangeEvent) => {
+      sentOpenNotification = true
+      const notification: DidOpen = {
+        name,
+        text: changeEvent.lineData
+
+      }
+      watchers.emit('didOpen', notification)
+    }
+
+    const notifyChange = (changeEvent: BufferChangeEvent) => {
+      const notification: DidChange = {
+
+      }
+
+      watchers.emit('didChange', notification)
+    }
 
     nvim.current.buffer.attach({ sendInitialBuffer: true }, changeEvent => {
       // TODO: handle changeEvent.more (partial change event)
       // what do? buffer in memory? can we send partial change events to
       // language servers and extensions?
-      // console.log('changeEvent', changeEvent)
-
-      watchers.emit('didChange', name, changeEvent.lineData)
+      if (!sentOpenNotification) return notifyOpen(changeEvent)
+      notifyChange(changeEvent)
     })
 
     nvim.current.buffer.onDetach(() => watchers.emit('didClose', name))
