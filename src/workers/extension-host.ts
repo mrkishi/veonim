@@ -1,5 +1,5 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection,
-  ProtocolConnection } from 'vscode-languageserver-protocol'
+  ProtocolConnection, TextDocumentItem } from 'vscode-languageserver-protocol'
 import { DebugConfiguration, collectDebuggersFromExtensions,
   getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
   getDebuggerConfig } from '../extensions/debuggers'
@@ -247,10 +247,15 @@ const updateLanguageServersWithTextDocuments = (serverId: string): void => {
   // TODO: how to handle servers that do not accept incremental updates?
   // buffer whole file in memory and apply patches on our end? or query
   // from filesystem and apply changes?
-  tdm.on.didOpen(doc => {
-    server.sendNotification('textDocument/didOpen', {
 
-    })
+  tdm.on.didOpen(m => {
+    const textDocument: TextDocumentItem = {
+      uri: m.uri,
+      version: m.version,
+      languageId: m.languageId,
+      text: m.textLines.join('\n'),
+    }
+    server.sendNotification('textDocument/didOpen', { textDocument })
   })
 }
 
