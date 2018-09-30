@@ -1,5 +1,5 @@
+import { filetypeDetectedStartServerMaybe } from '../langserv/director'
 import { getSignatureHint } from '../ai/signature-hint'
-import * as updateService from '../ai/update-server'
 import { getCompletions } from '../ai/completions'
 import colorizer from '../services/colorizer'
 import nvim from '../core/neovim'
@@ -11,26 +11,15 @@ import '../ai/symbols'
 import '../ai/rename'
 import '../ai/hover'
 
-// TODO: temp hack to fix langservers not recv didOpen events
-// when sourcing a vim session
-import { onServerStart } from '../langserv/director'
-
-onServerStart(async () => {
-  const buffers = await nvim.buffers.list()
-  const bufs = await Promise.all(buffers.map(b => ({ ...b, name: b.name })))
-
-  bufs.forEach(async b => {
-    const lines = await b.getAllLines()
-    updateService.update({ lines: lines as any })
-  })
+nvim.on.filetype(filetype => {
+  filetypeDetectedStartServerMaybe(nvim.state.cwd, filetype)
 })
 
 nvim.watchState.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
-// TODO: NOPE. use textDocumentManager instead
-// nvim.on.bufAdd(() => updateService.update({ bufferOpened: true }))
-// nvim.on.bufLoad(() => updateService.update())
-// nvim.on.bufChange(() => updateService.update())
+// TODO: re-enable getCompletions + getSignatureHint
+// how to ensure that we only call completions/signature hint after
+// the language server has been updated with the changed content?
 
 // using cursor move with a diff on revision number because we might need to
 // update the lang server before triggering completions/hint lookups. using

@@ -124,6 +124,10 @@ const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
   return startServer(cwd, language, filetype)
 }
 
+export const filetypeDetectedStartServerMaybe = (cwd: string, filetype: string) => {
+  getServerForProjectAndLanguage({ cwd, filetype })
+}
+
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
   if (!params.filetype) return
   const server = await getServerForProjectAndLanguage(params)
