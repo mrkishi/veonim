@@ -1,5 +1,6 @@
 import { StreamMessageReader, StreamMessageWriter, createProtocolConnection,
-  ProtocolConnection, TextDocumentItem } from 'vscode-languageserver-protocol'
+  ProtocolConnection, TextDocumentItem, VersionedTextDocumentIdentifier,
+  TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
 import { DebugConfiguration, collectDebuggersFromExtensions,
   getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
   getDebuggerConfig } from '../extensions/debuggers'
@@ -248,14 +249,27 @@ const updateLanguageServersWithTextDocuments = (serverId: string): void => {
   // buffer whole file in memory and apply patches on our end? or query
   // from filesystem and apply changes?
 
-  tdm.on.didOpen(m => {
+  tdm.on.didOpen(({ uri, version, languageId, textLines }) => {
     const textDocument: TextDocumentItem = {
-      uri: m.uri,
-      version: m.version,
-      languageId: m.languageId,
-      text: m.textLines.join('\n'),
+      uri: uri,
+      version: version,
+      languageId: languageId,
+      text: textLines.join('\n'),
     }
+
     server.sendNotification('textDocument/didOpen', { textDocument })
+  })
+
+  tdm.on.didChange(({ uri, version, languageId, textLines }) => {
+    const textDocument: VersionedTextDocumentIdentifier = {
+
+    }
+
+    const contentChanges: TextDocumentContentChangeEvent[] = [
+
+    ]
+
+    server.sendNotification('textDocument/didChange', { textDocument, contentChanges })
   })
 }
 
