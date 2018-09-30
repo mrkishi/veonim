@@ -1,6 +1,4 @@
-import { StreamMessageReader, StreamMessageWriter, createProtocolConnection,
-  ProtocolConnection, DidOpenTextDocumentParams, DidChangeTextDocumentParams,
-  WillSaveTextDocumentParams } from 'vscode-languageserver-protocol'
+import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import { DebugConfiguration, collectDebuggersFromExtensions,
   getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
   getDebuggerConfig } from '../extensions/debuggers'
@@ -8,14 +6,13 @@ import { ExtensionInfo, Extension, ActivationEventType,
   Disposable, activateExtension } from '../extensions/extensions'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
-import TextDocumentManager from '../neovim/text-document-manager'
+import updateLanguageServersWithTextDocuments from '../langserv/update-server'
 import WorkerClient from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
 import LocalizeFile from '../support/localize'
 import pleaseGet from '../support/please-get'
 import { dirname, join } from 'path'
-import nvim from '../vscode/neovim'
 import '../support/vscode-shim'
 
 interface Debugger {
@@ -237,53 +234,6 @@ const activateExtensionForLanguage = async (language: string) => {
   return activateExtension(extension)
 }
 
-const updateLanguageServersWithTextDocuments = (serverId: string): void => {
-  const tdm = TextDocumentManager(nvim)
-  const server = getServer(serverId)
-
-  // TODO: need a way to dispose of the TDM when the langserv is disposed of
-  // TODO: how to handle servers that do not accept incremental updates?
-  // buffer whole file in memory and apply patches on our end? or query
-  // from filesystem and apply changes?
-
-  tdm.on.didOpen(({ uri, version, languageId, textLines }) => {
-    const params: DidOpenTextDocumentParams = {
-      textDocument: {
-        uri,
-        version,
-        languageId,
-        text: textLines.join('\n'),
-      }
-    }
-
-    server.sendNotification('textDocument/didOpen', params)
-  })
-
-  tdm.on.didChange(({ uri, version, textChanges }) => {
-    const params: DidChangeTextDocumentParams = {
-      textDocument: {
-        uri,
-        version,
-      },
-      contentChanges: [{
-        text: textChanges.textLines.join('\n'),
-        range: textChanges.range,
-      }]
-    }
-
-    server.sendNotification('textDocument/didChange', params)
-  })
-
-  tdm.on.willSave(({ uri }) => {
-    const params: WillSaveTextDocumentParams = {
-      reason: 1,
-      textDocument: { uri },
-    }
-
-    server.sendNotification('textDocument/willSave', params)
-  })
-}
-
 const activate = {
   language: async (language: string) => {
     // TODO: handle extension dependencies
@@ -302,7 +252,7 @@ const activate = {
 
     const proc: ChildProcess = await serverActivator
     const serverId = connectRPCServer(proc)
-    updateLanguageServersWithTextDocuments(serverId)
+    updateLanguageServersWithTextDocuments(getServer(serverId))
     return serverId
   },
 }
