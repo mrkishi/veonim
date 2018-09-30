@@ -1,5 +1,5 @@
-import { TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
 import filetypeToLanguageID from '../langserv/vsc-languages'
+import { Range } from 'vscode-languageserver-protocol'
 import { BufferChangeEvent } from '../neovim/types'
 import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
@@ -13,11 +13,16 @@ interface Doc {
 }
 
 interface DidOpen extends Doc {
-  text: string[]
+  textLines: string[]
+}
+
+interface TextChange {
+  range: Range,
+  textLines: string[],
 }
 
 interface DidChange extends Doc {
-  textChanges: TextDocumentContentChangeEvent[]
+  textChanges: TextChange
 }
 
 type On<T> = (params: T) => void
@@ -40,12 +45,18 @@ const api = (nvim: NeovimAPI) => {
         version: changedTick,
         uri: `file://${name}`,
         languageId: filetypeToLanguageID(filetype),
-        text: lineData
+        textLines: lineData
       } as DidOpen)
     }
 
     const notifyChange = ({ filetype, lineData, changedTick, firstLine, lastLine }: BufferChangeEvent) => {
-      const textChanges = []
+      const textChanges: TextChange = {
+        textLines: lineData,
+        range: {
+          start: { line: firstLine, character: 0 },
+          end: { line: lastLine, character: firstLine === lastLine ? lineData[0].length : 0 }
+        }
+      }
 
       watchers.emit('didChange', {
         name,
@@ -53,7 +64,7 @@ const api = (nvim: NeovimAPI) => {
         version: changedTick,
         uri: `file://${name}`,
         languageId: filetypeToLanguageID(filetype),
-        textChanges: [],
+        textChanges,
       } as DidChange)
     }
 
