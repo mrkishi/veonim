@@ -1,6 +1,24 @@
+import { on, onCreateVim, onSwitchVim } from '../messaging/worker-client'
+import SessionTransport from '../messaging/session-transport'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
-import { on } from '../messaging/worker-client'
+import SetupRPC from '../messaging/rpc'
+import Neovim from '../neovim/api'
 import { join } from 'path'
+
+const { send, connectTo, switchTo, onRecvData } = SessionTransport()
+const { onData, ...rpcAPI } = SetupRPC(send)
+
+onRecvData(([ type, d ]) => onData(type, d))
+onCreateVim(connectTo)
+onSwitchVim(switchTo)
+
+const nvim = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
+
+// TODO: do something useful
+setInterval(async () => {
+  const bufname = await nvim.current.buffer.name
+  console.log('bufname', bufname)
+}, 3e3)
 
 const keywords = (() => {
   const m = new Map<string, string[]>()
