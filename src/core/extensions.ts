@@ -1,5 +1,4 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { onCreateVim, onSwitchVim } from '../core/sessions'
 import { traceLANGSERV as log } from '../support/trace'
 import Worker from '../messaging/worker'
 
@@ -32,9 +31,6 @@ export interface DebugStarterPack {
 }
 
 const { on, call, request } = Worker('extension-host')
-
-onCreateVim(call.sessionCreate)
-onSwitchVim(call.sessionSwitch)
 
 const bridgeServer = (serverId: string): RPCServer => {
   const api = {} as RPCServer

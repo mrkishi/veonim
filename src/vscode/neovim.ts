@@ -1,5 +1,5 @@
 import SessionTransport from '../messaging/session-transport'
-import { on } from '../messaging/worker-client'
+import { on, onCreateVim, onSwitchVim } from '../messaging/worker-client'
 import SetupRPC from '../messaging/rpc'
 import Neovim from '../neovim/api'
 
@@ -8,8 +8,8 @@ const { onData, ...rpcAPI } = SetupRPC(send)
 
 onRecvData(([ type, d ]) => onData(type, d))
 
-on.sessionCreate((m: any) => connectTo(m))
-on.sessionSwitch((m: any) => switchTo(m))
+onCreateVim(connectTo)
+onSwitchVim(switchTo)
 
 export default Neovim({
   ...rpcAPI,

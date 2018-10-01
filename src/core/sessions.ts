@@ -16,6 +16,7 @@ interface VimInfo {
 }
 
 const watchers = new EventEmitter()
+watchers.setMaxListeners(200)
 const vims = new Map<number, Vim>()
 let currentVimID = -1
 
