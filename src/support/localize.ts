@@ -9,11 +9,7 @@ const localize = (lang: any) => (value: string) => {
 
 export default async (languageFilePath: string) => {
   const languageFileExists = await exists(languageFilePath)
-
-  if (!languageFileExists) {
-    console.log('i18n localize package.nls.json not found:', languageFilePath)
-    return (value: string) => value
-  }
+  if (!languageFileExists) return (value: string) => value
 
   const languageRaw = await readFile(languageFilePath)
   const languageData = fromJSON(languageRaw).or({})
