@@ -27,14 +27,6 @@ export default (server: LanguageServer) => {
     log(`NOTIFY --> textDocument/${method}`, params)
   }
 
-  // TODO: need to send didOpen on the current buffer after server has started...
-  // (because didOpen was called long ago before the server started - to start
-  // the server actually)
-  //
-  // we could probably wait and listen for 'initalize' response?
-  // that's a request, so i think we would need to have the main thread notify... shit...
-  // or we could move the server start and buffer things at the extension-host layer...
-
   tdm.on.didOpen(({ uri, version, languageId, textLines }) => send('didOpen', {
     textDocument: {
       uri,
