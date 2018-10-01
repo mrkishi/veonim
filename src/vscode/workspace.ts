@@ -1,8 +1,9 @@
 import nvim from '../vscode/neovim'
 import { basename } from 'path'
-import * as vsc from 'vscode'
+// import * as vsc from 'vscode'
 
-const workspace: typeof vsc.workspace = {
+// const workspace: typeof vsc.workspace = {
+const workspace: any = {
   get rootPath() { return nvim.state.cwd },
   get workspaceFolders() { return [ nvim.state.cwd ] },
   get name() { return basename(nvim.state.cwd) },
