@@ -40,7 +40,7 @@ const codemod = {
 
 require.main === module && go(async () => {
   $`cleaning build folder`
-  await fs.remove(fromRoot('build'))
+  await fs.emptyDir(fromRoot('build'))
 
   const tscMain = run('tsc -p tsconfig.json')
   const tscWorkers = run('tsc -p src/workers/tsconfig.json')
