@@ -6,9 +6,9 @@ import { getTriggerChars } from '../langserv/server-features'
 import * as completionUI from '../components/autocomplete'
 import toVSCodeLanguage from '../langserv/vsc-languages'
 import * as ai from '../langserv/server-features'
-import { harvester } from '../ai/update-server'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
+import Worker from '../messaging/worker'
 import { cursor } from '../core/cursor'
 import { join, dirname } from 'path'
 import nvim from '../core/neovim'
@@ -33,6 +33,7 @@ export interface CompletionOption {
   raw?: CompletionItem,
 }
 
+const harvester = Worker('harvester')
 const MAX_SEARCH_RESULTS = 50
 const cache: Cache = {
   semanticCompletions: new Map(),

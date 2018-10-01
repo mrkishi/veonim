@@ -3,14 +3,15 @@ import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
 import { currentWindowElement } from '../core/windows'
 import { showCursorline } from '../core/cursor'
-import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
+import Worker from '../messaging/worker'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
 import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
+
 
 interface FilterResult {
   line: string,
@@ -27,6 +28,12 @@ interface FilterResult {
 interface ColorizedFilterResult extends FilterResult {
   colorizedLine: ColorData[]
 }
+
+export const finder = Worker('buffer-search')
+// TODO: workers can now query nvim. dont do this here
+finder.on.getVisibleLines(async () => {
+  return nvim.current.buffer.getLines(nvim.state.editorTopLine, nvim.state.editorBottomLine)
+})
 
 const cursor = (() => {
   let position = [0, 0]
