@@ -7,11 +7,22 @@ export const finder = Worker('buffer-search')
 
 let pauseUpdate = false
 
-export const update = async ({ lineChange = false, bufferOpened = false, lines = [] } = {}) => {
+export const update = async ({
+  lineChange = false,
+  bufferOpened = false,
+  lines = [],
+  name = '',
+  filetype = '',
+} = {}) => {
   if (pauseUpdate) return
 
   // TODO: temp hack for fixing vim sessions
-  if (lines.length) return fullBufferUpdate({ ...nvim.state, bufferLines: lines }, bufferOpened)
+  if (lines.length) return fullBufferUpdate({
+    filetype,
+    cwd: nvim.state.cwd,
+    file: name,
+    bufferLines: lines,
+  } as any, true)
 
   if (lineChange) partialBufferUpdate({
     ...nvim.state,

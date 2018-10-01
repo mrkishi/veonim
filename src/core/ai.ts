@@ -17,11 +17,19 @@ import { onServerStart } from '../langserv/director'
 
 onServerStart(async () => {
   const buffers = await nvim.buffers.list()
-  const bufs = await Promise.all(buffers.map(b => ({ ...b, name: b.name })))
+  const bufs = await Promise.all(buffers.map(async b => ({
+    ...b,
+    name: await b.name,
+    filetype: await b.getOption('filetype'),
+  })))
 
   bufs.forEach(async b => {
     const lines = await b.getAllLines()
-    updateService.update({ lines: lines as any })
+    updateService.update({
+      lines: lines as any,
+      name: b.name,
+      filetype: b.filetype,
+    })
   })
 })
 
