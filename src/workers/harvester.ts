@@ -1,9 +1,9 @@
 import { on, onCreateVim, onSwitchVim } from '../messaging/worker-client'
+import TextDocumentManager from '../neovim/text-document-manager'
 import SessionTransport from '../messaging/session-transport'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
 import SetupRPC from '../messaging/rpc'
 import Neovim from '../neovim/api'
-import { join } from 'path'
 
 const { send, connectTo, switchTo, onRecvData } = SessionTransport()
 const { onData, ...rpcAPI } = SetupRPC(send)
@@ -13,23 +13,18 @@ onCreateVim(connectTo)
 onSwitchVim(switchTo)
 
 const nvim = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
-
-// TODO: do something useful
-setInterval(async () => {
-  const bufname = await nvim.current.buffer.name
-  console.log('bufname', bufname)
-}, 3e3)
+const tdm = TextDocumentManager(nvim)
 
 const keywords = (() => {
   const m = new Map<string, string[]>()
 
   return {
-    set: (cwd: string, file: string, words: string[]) => m.set(join(cwd, file), words),
-    get: (cwd: string, file: string) => m.get(join(cwd, file)),
-    add: (cwd: string, file: string, word: string) => {
-      const e = m.get(join(cwd, file)) || []
+    set: (file: string, words: string[]) => m.set(file, words),
+    get: (file: string) => m.get(file),
+    add: (file: string, word: string) => {
+      const e = m.get(file) || []
       if (e.includes(word)) return
-      m.set(join(cwd, file), (e.push(word), e))
+      m.set(file, (e.push(word), e))
     }
   }
 })()
@@ -51,10 +46,16 @@ const harvest = (buffer: string[]) => {
   return [...keywords]
 }
 
-const filter = (cwd: string, file: string, query: string, maxResults = 20): string[] =>
-  fuzzy(keywords.get(cwd, file) || [], query, { maxResults })
+const harvestKeywords = (file: string, buffer: string[]): void => {
+  const words = harvest(buffer)
+  keywords.set(file, words)
+}
 
-on.set((cwd: string, file: string, buffer: string[]) => keywords.set(cwd, file, harvest(buffer)))
-on.add((cwd: string, file: string, word: string) => keywords.add(cwd, file, word))
-on.query(async (cwd: string, file: string, query: string, max?: number) => await filter(cwd, file, query, max))
-on.get(async (cwd: string, file: string) => await keywords.get(cwd, file))
+const filter = (file: string, query: string, maxResults = 20): string[] =>
+  fuzzy(keywords.get(file) || [], query, { maxResults })
+
+on.query(async (file: string, query: string, max?: number) => await filter(file, query, max))
+on.add((file: string, word: string) => keywords.add(file, word))
+
+tdm.on.didOpen(({ name, textLines }) => harvestKeywords(name, textLines))
+tdm.on.didChange(({ name, textChanges }) => harvestKeywords(name, textChanges.textLines))
