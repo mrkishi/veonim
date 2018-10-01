@@ -191,7 +191,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const queryCased = smartCaseQuery(query)
     const pendingKeywords = harvester
       .request
-      .query(nvim.state.cwd, nvim.state.file, queryCased, MAX_SEARCH_RESULTS)
+      .query(nvim.state.absoluteFilepath, queryCased, MAX_SEARCH_RESULTS)
       .then((res: string[]) => res.map(text => ({ text, insertText: text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
@@ -226,7 +226,7 @@ nvim.on.insertLeave(async () => {
 })
 
 nvim.on.completion(word => {
-  harvester.call.add(nvim.state.cwd, nvim.state.file, word)
+  harvester.call.add(nvim.state.filetype, word)
   nvim.g.veonim_completing = 0
   nvim.g.veonim_completions = []
 })
