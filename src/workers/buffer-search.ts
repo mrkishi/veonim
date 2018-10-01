@@ -45,13 +45,13 @@ const asFilterResults = (results: string[], lines: string[], query: string): Fil
     ...getLocations(m, query, lines),
   }))
 
-tdm.on.didOpen(({ name, textLines }) => buffers.set(name, textLines))
-tdm.on.didClose(({ name }) => buffers.delete(name))
-tdm.on.didChange(({ name, textChanges: { range: { start, end }, textLines } }) => {
-  const buf = buffers.get(name) || []
-  const affectAmount = end.line - start.line
-  buf.splice(start.line, affectAmount, ...textLines)
-})
+// tdm.on.didOpen(({ name, textLines }) => buffers.set(name, textLines))
+// tdm.on.didClose(({ name }) => buffers.delete(name))
+// tdm.on.didChange(({ name, textChanges: { range: { start, end }, textLines } }) => {
+//   const buf = buffers.get(name) || []
+//   const affectAmount = end.line - start.line
+//   buf.splice(start.line, affectAmount, ...textLines)
+// })
 
 on.fuzzy(async (file: string, query: string, maxResults = 20): Promise<FilterResult[]> => {
   const bufferData = buffers.get(file) || []

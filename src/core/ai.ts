@@ -11,24 +11,15 @@ import '../ai/symbols'
 import '../ai/rename'
 import '../ai/hover'
 
-nvim.on.filetype(filetype => {
-  filetypeDetectedStartServerMaybe(nvim.state.cwd, filetype)
-})
-
+nvim.on.filetype(filetype => filetypeDetectedStartServerMaybe(nvim.state.cwd, filetype))
 nvim.watchState.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
-// TODO: re-enable getCompletions + getSignatureHint
-// how to ensure that we only call completions/signature hint after
-// the language server has been updated with the changed content?
-
-// using cursor move with a diff on revision number because we might need to
-// update the lang server before triggering completions/hint lookups. using
-// textChangedI + cursorMovedI would make it very difficult to wait in cursorMovedI
-// until textChangedI ran AND updated the server
-//
-// nvim.on.cursorMoveInsert(async (bufferModified) => {
-//   if (bufferModified) await updateService.update({ lineChange: true })
+// nvim.on.cursorMoveInsert(async () => {
+//   // TODO: can't we get this from buffer notification events
+//   // TODO: or can't we get this from screen rendered lines
+//   console.time('getCurrentLine')
 //   const lineContent = await nvim.getCurrentLine()
+//   console.timeEnd('getCurrentLine')
 //   getCompletions(lineContent, nvim.state.line, nvim.state.column)
 //   getSignatureHint(lineContent)
 // })
