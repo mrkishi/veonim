@@ -1,5 +1,19 @@
+import { on, onCreateVim, onSwitchVim } from '../messaging/worker-client'
+import TextDocumentManager from '../neovim/text-document-manager'
+import SessionTransport from '../messaging/session-transport'
 import { filter as fuzzy, match } from 'fuzzaldrin-plus'
-import { on, request } from '../messaging/worker-client'
+import SetupRPC from '../messaging/rpc'
+import Neovim from '../neovim/api'
+
+const { send, connectTo, switchTo, onRecvData } = SessionTransport()
+const { onData, ...rpcAPI } = SetupRPC(send)
+
+onRecvData(([ type, d ]) => onData(type, d))
+onCreateVim(connectTo)
+onSwitchVim(switchTo)
+
+const nvim = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
+const tdm = TextDocumentManager(nvim)
 
 interface FilterResult {
   line: string,
@@ -31,27 +45,20 @@ const asFilterResults = (results: string[], lines: string[], query: string): Fil
     ...getLocations(m, query, lines),
   }))
 
-// TODO: deprecate
-// on.set((file: string, buffer: string[]) => buffers.set(file, buffer))
+tdm.on.didOpen(({ name, textLines }) => buffers.set(name, textLines))
+// TODO: ummm we need to patch this here...
+// tdm.on.didChange(({ name, textChanges }) => buffers.set(name, textChanges.textLines))
+tdm.on.didClose(({ name }) => buffers.delete(name))
 
-on.fuzzy(async (file: string, query: string, max?: number): Promise<FilterResult[]> => {
+on.fuzzy(async (file: string, query: string, maxResults = 20): Promise<FilterResult[]> => {
   const bufferData = buffers.get(file) || []
   const results = fuzzy(bufferData, query, { maxResults })
   return asFilterResults(results, bufferData, query)
 })
 
-// TODO: is it really that much work to search on a few hundred lines max
-// on the main thread? realisticly a buffer might be vertically max 100-200
-// lines (if you have high res and low font size). would it kill the main
-// thread to just do the fuzzy on main thread? also we don't need to query
-// the nvim api for visible lines. we already have them in the render-grid
-// buffer. see divination for how we get visible lines from grid.
 on.visibleFuzzy(async (query: string): Promise<FilterResult[]> => {
-  // TODO: this is the inevitable result of moving neovim
-  // to its own dedicated worker thread: other web workers
-  // can't use the neovim api.
-  return nvim.current.buffer.getLines(nvim.state.editorTopLine, nvim.state.editorBottomLine)
-  const visibleLines = await request.getVisibleLines() as string[]
+  const { editorTopLine: start, editorBottomLine: end } = nvim.state
+  const visibleLines = await nvim.current.buffer.getLines(start, end)
   const results = fuzzy(visibleLines, query)
   return asFilterResults(results, visibleLines, query)
 })

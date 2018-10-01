@@ -39,11 +39,11 @@ const harvest = (file: string, buffer: string[]) => {
   keywords.set(file, [...harvested])
 }
 
+tdm.on.didOpen(({ name, textLines }) => harvest(name, textLines))
+tdm.on.didChange(({ name, textChanges }) => harvest(name, textChanges.textLines))
+tdm.on.didClose(({ name }) => keywords.delete(name))
+
 on.add((file: string, word: string) => addKeyword(file, word))
 on.query(async (file: string, query: string, maxResults = 20) => {
   return fuzzy(keywords.get(file) || [], query, { maxResults })
 })
-
-tdm.on.didOpen(({ name, textLines }) => harvest(name, textLines))
-tdm.on.didChange(({ name, textChanges }) => harvest(name, textChanges.textLines))
-tdm.on.didClose(({ name }) => keywords.delete(name))
