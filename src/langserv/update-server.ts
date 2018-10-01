@@ -24,7 +24,6 @@ export default (server: LanguageServer) => {
 
   const send = (method: string, params: any) => {
     if (!initialized) return buffer.push([ method, params ])
-    console.log('textSyncState:', server.pauseTextSync)
     server.sendNotification(method, params)
     log(`NOTIFY --> textDocument/${method}`, params)
   }
@@ -41,7 +40,7 @@ export default (server: LanguageServer) => {
   // TODO: how to handle servers that do not accept incremental updates?
   // buffer whole file in memory and apply patches on our end? or query
   // from filesystem and apply changes?
-  tdm.on.didChange(({ uri, version, textChanges }) => send('didChange', {
+  tdm.on.didChange(({ uri, version, textChanges }) => !server.pauseTextSync && send('didChange', {
     textDocument: {
       uri,
       version,
