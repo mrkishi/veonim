@@ -1,16 +1,15 @@
 import SessionTransport from '../messaging/session-transport'
-import WorkerClient from '../messaging/worker-client'
+import { on } from '../messaging/worker-client'
 import SetupRPC from '../messaging/rpc'
 import Neovim from '../neovim/api'
 
 const { send, connectTo, switchTo, onRecvData } = SessionTransport()
 const { onData, ...rpcAPI } = SetupRPC(send)
-const { on } = WorkerClient()
 
 onRecvData(([ type, d ]) => onData(type, d))
 
-on.sessionCreate((id: number, path: string) => connectTo({ id, path }))
-on.sessionSwitch((id: number) => switchTo(id))
+on.sessionCreate((m: any) => connectTo(m))
+on.sessionSwitch((m: any) => switchTo(m))
 
 export default Neovim({
   ...rpcAPI,

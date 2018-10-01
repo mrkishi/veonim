@@ -120,6 +120,49 @@ const refreshProblemHighlights = async () => {
   buffer.highlightProblems(problems)
 }
 
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
+// TODO: sometimes we are getting onDiagnostics is not a function... WTF???
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.currentBuffer = path

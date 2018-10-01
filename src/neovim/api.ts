@@ -386,6 +386,9 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
   autocmd.CursorMovedI(() => watchers.events.emit('cursorMoveInsert'))
   autocmd.BufAdd(bufId => watchers.events.emit('bufAdd', Buffer(bufId)))
   autocmd.BufEnter(bufId => watchers.events.emit('bufLoad', Buffer(bufId)))
+  autocmd.BufEnter(bufId => {
+    console.warn('bufEnter:', bufId)
+  })
   autocmd.BufDelete(bufId => watchers.events.emit('bufUnload', Buffer(bufId)))
   autocmd.BufWritePre(bufId => watchers.events.emit('bufWritePre', Buffer(bufId)))
   autocmd.BufWritePost(bufId => watchers.events.emit('bufWrite', Buffer(bufId)))

@@ -7,7 +7,7 @@ import { ExtensionInfo, Extension, ActivationEventType,
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
 import updateLanguageServersWithTextDocuments from '../langserv/update-server'
-import WorkerClient from '../messaging/worker-client'
+import { on, call, request } from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
 import LocalizeFile from '../support/localize'
@@ -40,7 +40,6 @@ interface ServerBridgeParams {
   params: any[]
 }
 
-const { on, call, request } = WorkerClient()
 const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, Extension>()
 const runningLangServers = new Map<string, ProtocolConnection>()
@@ -253,8 +252,8 @@ const activate = {
     const proc: ChildProcess = await serverActivator
     const serverId = connectRPCServer(proc)
     // TODO: register updater dispose and call it when langserv is gone.
-    /*const updater = */updateLanguageServersWithTextDocuments(getServer(serverId))
-    /* updater.dispose() */
+    console.log('activate language:', language)
+    updateLanguageServersWithTextDocuments(getServer(serverId))
     return serverId
   },
 }

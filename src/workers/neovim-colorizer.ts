@@ -1,9 +1,9 @@
 import { prefixWith, onFnCall, pascalCase } from '../support/utils'
 import { colorscheme } from '../config/default-configs'
-import WorkerClient from '../messaging/worker-client'
 import CreateTransport from '../messaging/transport'
 import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
+import { on } from '../messaging/worker-client'
 import { Neovim } from '../support/binaries'
 import SetupRPC from '../messaging/rpc'
 import { resolve } from 'path'
@@ -14,7 +14,6 @@ interface ColorData {
   text: string,
 }
 
-const { on } = WorkerClient()
 const prefix = { core: prefixWith(Prefixes.Core) }
 const vimOptions = {
   rgb: true,

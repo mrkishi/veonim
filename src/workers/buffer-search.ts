@@ -1,5 +1,5 @@
 import { filter as fuzzy, match } from 'fuzzaldrin-plus'
-import WorkerClient from '../messaging/worker-client'
+import { on, request } from '../messaging/worker-client'
 import { join } from 'path'
 
 interface FilterResult {
@@ -14,7 +14,6 @@ interface FilterResult {
   }
 }
 
-const { on, request } = WorkerClient()
 const buffers = new Map<string, string[]>()
 
 const getLocations = (str: string, query: string, buffer: string[]) => {

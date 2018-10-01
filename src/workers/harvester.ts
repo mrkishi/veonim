@@ -1,8 +1,6 @@
-import WorkerClient from '../messaging/worker-client'
 import { filter as fuzzy } from 'fuzzaldrin-plus'
+import { on } from '../messaging/worker-client'
 import { join } from 'path'
-
-const { on } = WorkerClient()
 
 const keywords = (() => {
   const m = new Map<string, string[]>()

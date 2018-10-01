@@ -3,6 +3,7 @@ import TextDocumentManager from '../neovim/text-document-manager'
 import nvim from '../vscode/neovim'
 
 export default (server: ProtocolConnection) => {
+  console.log('update server tdm thingy magigy', server, nvim)
   const tdm = TextDocumentManager(nvim)
 
   tdm.on.didOpen(({ uri, version, languageId, textLines }) => {

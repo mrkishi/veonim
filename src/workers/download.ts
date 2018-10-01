@@ -1,10 +1,8 @@
-import WorkerClient from '../messaging/worker-client'
 import { ensureDir, remove } from '../support/utils'
+import { on } from '../messaging/worker-client'
 import { Archiver } from '../support/binaries'
 import { fetchStream } from '../support/fetch'
 import { createWriteStream } from 'fs'
-
-const { on } = WorkerClient()
 
 const downloadZip = (url: string, path: string) => new Promise(async done => {
   const downloadStream = await fetchStream(url)
