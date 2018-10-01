@@ -1,9 +1,7 @@
 import { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { onCreateVim, onSwitchVim } from '../core/sessions'
+import { traceLANGSERV as log } from '../support/trace'
 import Worker from '../messaging/worker'
-import trace from '../support/trace'
-
-const log = trace('langserv')
 
 // TODO: move to shared place
 interface DebugConfiguration {

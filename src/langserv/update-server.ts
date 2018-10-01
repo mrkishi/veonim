@@ -1,5 +1,6 @@
 import { ProtocolConnection, DidOpenTextDocumentParams, DidChangeTextDocumentParams, WillSaveTextDocumentParams, DidSaveTextDocumentParams, DidCloseTextDocumentParams } from 'vscode-languageserver-protocol'
 import TextDocumentManager from '../neovim/text-document-manager'
+import { traceLANGSERV as log } from '../support/trace'
 import nvim from '../vscode/neovim'
 
 interface LanguageServer extends ProtocolConnection {
@@ -13,8 +14,8 @@ export default (server: LanguageServer) => {
 
   server.untilInitialized.then(() => {
     buffer.forEach(([ method, params ]) => {
-      console.debug(`NOTIFY --> textDocument/${method}`, params)
       server.sendNotification(method, params)
+      log(`NOTIFY --> textDocument/${method}`, params)
     })
     buffer = []
     initialized = true
@@ -23,7 +24,7 @@ export default (server: LanguageServer) => {
   const send = (method: string, params: any) => {
     if (!initialized) return buffer.push([ method, params ])
     server.sendNotification(method, params)
-    console.debug(`NOTIFY --> textDocument/${method}`, params)
+    log(`NOTIFY --> textDocument/${method}`, params)
   }
 
   // TODO: need to send didOpen on the current buffer after server has started...

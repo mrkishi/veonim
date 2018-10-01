@@ -1,3 +1,12 @@
+// setup trace
+console.time('trace')
+;(localStorage.getItem('veonim-trace-flags') || '')
+  .split(',')
+  .filter(m => m)
+  .forEach(m => Reflect.set(process.env, `VEONIM_TRACE_${m.toUpperCase()}`, 1))
+console.timeEnd('trace')
+// end setup trace
+
 import { CreateTask, log, delay as timeout, requireDir } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
