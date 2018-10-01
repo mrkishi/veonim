@@ -1,6 +1,5 @@
 import { filter as fuzzy, match } from 'fuzzaldrin-plus'
 import { on, request } from '../messaging/worker-client'
-import { join } from 'path'
 
 interface FilterResult {
   line: string,
@@ -32,16 +31,13 @@ const asFilterResults = (results: string[], lines: string[], query: string): Fil
     ...getLocations(m, query, lines),
   }))
 
-const filter = (cwd: string, file: string, query: string, maxResults = 20): FilterResult[] => {
-  const bufferData = buffers.get(join(cwd, file)) || []
+// TODO: deprecate
+// on.set((file: string, buffer: string[]) => buffers.set(file, buffer))
+
+on.fuzzy(async (file: string, query: string, max?: number): Promise<FilterResult[]> => {
+  const bufferData = buffers.get(file) || []
   const results = fuzzy(bufferData, query, { maxResults })
   return asFilterResults(results, bufferData, query)
-}
-
-on.set((cwd: string, file: string, buffer: string[]) => buffers.set(join(cwd, file), buffer))
-
-on.fuzzy(async (cwd: string, file: string, query: string, max?: number): Promise<FilterResult[]> => {
-  return filter(cwd, file, query, max)
 })
 
 // TODO: is it really that much work to search on a few hundred lines max
@@ -54,6 +50,7 @@ on.visibleFuzzy(async (query: string): Promise<FilterResult[]> => {
   // TODO: this is the inevitable result of moving neovim
   // to its own dedicated worker thread: other web workers
   // can't use the neovim api.
+  return nvim.current.buffer.getLines(nvim.state.editorTopLine, nvim.state.editorBottomLine)
   const visibleLines = await request.getVisibleLines() as string[]
   const results = fuzzy(visibleLines, query)
   return asFilterResults(results, visibleLines, query)

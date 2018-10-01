@@ -30,10 +30,6 @@ interface ColorizedFilterResult extends FilterResult {
 }
 
 export const finder = Worker('buffer-search')
-// TODO: workers can now query nvim. dont do this here
-finder.on.getVisibleLines(async () => {
-  return nvim.current.buffer.getLines(nvim.state.editorTopLine, nvim.state.editorBottomLine)
-})
 
 const cursor = (() => {
   let position = [0, 0]
@@ -108,7 +104,7 @@ const actions = {
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
-    finder.request.fuzzy(nvim.state.cwd, nvim.state.file, query).then(async (res: FilterResult[]) => {
+    finder.request.fuzzy(nvim.state.absoluteFilepath, query).then(async (res: FilterResult[]) => {
       if (!res.length) return a.updateResults([])
 
       const textLines = res.map(m => m.line)
