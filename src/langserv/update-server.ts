@@ -3,8 +3,15 @@ import TextDocumentManager from '../neovim/text-document-manager'
 import nvim from '../vscode/neovim'
 
 export default (server: ProtocolConnection) => {
-  console.log('update server tdm thingy magigy', server, nvim)
   const tdm = TextDocumentManager(nvim)
+
+  // TODO: need to send didOpen on the current buffer after server has started...
+  // (because didOpen was called long ago before the server started - to start
+  // the server actually)
+  //
+  // we could probably wait and listen for 'initalize' response?
+  // that's a request, so i think we would need to have the main thread notify... shit...
+  // or we could move the server start and buffer things at the extension-host layer...
 
   tdm.on.didOpen(({ uri, version, languageId, textLines }) => {
     const params: DidOpenTextDocumentParams = {
@@ -17,6 +24,7 @@ export default (server: ProtocolConnection) => {
     }
 
     server.sendNotification('textDocument/didOpen', params)
+    console.debug('NOTIFY --> textDocument/didOpen', params)
   })
 
   // TODO: how to handle servers that do not accept incremental updates?
@@ -35,6 +43,7 @@ export default (server: ProtocolConnection) => {
     }
 
     server.sendNotification('textDocument/didChange', params)
+    console.debug('NOTIFY --> textDocument/didChange', params)
   })
 
   tdm.on.willSave(({ uri }) => {
@@ -44,6 +53,7 @@ export default (server: ProtocolConnection) => {
     }
 
     server.sendNotification('textDocument/willSave', params)
+    console.debug('NOTIFY --> textDocument/willSave', params)
   })
 
   tdm.on.didSave(({ uri, version }) => {
@@ -55,6 +65,7 @@ export default (server: ProtocolConnection) => {
     }
 
     server.sendNotification('textDocument/didSave', params)
+    console.debug('NOTIFY --> textDocument/didSave', params)
   })
 
   tdm.on.didClose(({ uri }) => {
@@ -63,6 +74,7 @@ export default (server: ProtocolConnection) => {
     }
 
     server.sendNotification('textDocument/didClose', params)
+    console.debug('NOTIFY --> textDocument/didClose', params)
   })
 
   return { dispose: () => tdm.dispose() }

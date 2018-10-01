@@ -32,8 +32,6 @@ const api = (nvim: NeovimAPI) => {
   const watchers = new EventEmitter()
 
   const loadOrOpen = (buffer: Buffer, name: string) => {
-    console.log('name', name)
-    console.log('buffer', buffer)
     if (!name || openDocuments.has(name)) return
     let sentOpenNotification = false
 
@@ -82,16 +80,14 @@ const api = (nvim: NeovimAPI) => {
   }
 
   nvim.on.bufAdd(async buffer => {
-    console.log('tdm.bufAdd', buffer)
     const name = await buffer.name
-    console.log('bufadd', name)
     loadOrOpen(buffer, name)
   })
 
-  nvim.on.bufLoad((buf) => {
-    console.log('tdm.bufLoad:', buf)
+  nvim.on.bufLoad(() => {
     loadOrOpen(nvim.current.buffer, nvim.state.absoluteFilepath)
   })
+
   nvim.on.bufWritePre(() => watchers.emit('willSave', nvim.state.absoluteFilepath))
   nvim.on.bufWrite(() => watchers.emit('didSave', nvim.state.absoluteFilepath))
 
