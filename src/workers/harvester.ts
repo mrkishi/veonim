@@ -14,23 +14,16 @@ onSwitchVim(switchTo)
 
 const nvim = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
 const tdm = TextDocumentManager(nvim)
+const keywords = new Map<string, string[]>()
 
-const keywords = (() => {
-  const m = new Map<string, string[]>()
+const addKeyword = (file: string, word: string) => {
+  const e = keywords.get(file) || []
+  if (e.includes(word)) return
+  keywords.set(file, (e.push(word), e))
+}
 
-  return {
-    set: (file: string, words: string[]) => m.set(file, words),
-    get: (file: string) => m.get(file),
-    add: (file: string, word: string) => {
-      const e = m.get(file) || []
-      if (e.includes(word)) return
-      m.set(file, (e.push(word), e))
-    }
-  }
-})()
-
-const harvest = (buffer: string[]) => {
-  const keywords = new Set<string>()
+const harvest = (file: string, buffer: string[]) => {
+  const harvested = new Set<string>()
   const totalol = buffer.length
 
   for (let ix = 0; ix < totalol; ix++) {
@@ -39,23 +32,18 @@ const harvest = (buffer: string[]) => {
 
     for (let wix = 0; wix < wordsTotal; wix++) {
       const word = words[wix]
-      if (word.length > 2) keywords.add(word)
+      if (word.length > 2) harvested.add(word)
     }
   }
 
-  return [...keywords]
+  keywords.set(file, [...harvested])
 }
 
-const harvestKeywords = (file: string, buffer: string[]): void => {
-  const words = harvest(buffer)
-  keywords.set(file, words)
-}
+on.add((file: string, word: string) => addKeyword(file, word))
+on.query(async (file: string, query: string, maxResults = 20) => {
+  return fuzzy(keywords.get(file) || [], query, { maxResults })
+})
 
-const filter = (file: string, query: string, maxResults = 20): string[] =>
-  fuzzy(keywords.get(file) || [], query, { maxResults })
-
-on.query(async (file: string, query: string, max?: number) => await filter(file, query, max))
-on.add((file: string, word: string) => keywords.add(file, word))
-
-tdm.on.didOpen(({ name, textLines }) => harvestKeywords(name, textLines))
-tdm.on.didChange(({ name, textChanges }) => harvestKeywords(name, textChanges.textLines))
+tdm.on.didOpen(({ name, textLines }) => harvest(name, textLines))
+tdm.on.didChange(({ name, textChanges }) => harvest(name, textChanges.textLines))
+tdm.on.didClose(({ name }) => keywords.delete(name))
