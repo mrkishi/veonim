@@ -40,7 +40,8 @@ interface ServerBridgeParams {
   params: any[]
 }
 
-export interface LanguageServer extends ProtocolConnection {
+interface LanguageServer extends ProtocolConnection {
+  pauseTextSync: boolean
   initializeTask: Task<void>
   untilInitialized: Promise<void>
 }
@@ -84,6 +85,10 @@ const getDebugAdapter = (id: string) => {
   if (!server) throw new Error(`fail to get debug adapter ${id}. this should not happen... ever.`)
   return server
 }
+
+on.server_setTextSyncState((serverId: string, syncState: boolean) => {
+  getServer(serverId).pauseTextSync = syncState
+})
 
 on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
   const server = getServer(serverId)
@@ -230,6 +235,7 @@ const connectRPCServer = (proc: ChildProcess): string => {
 
   Object.assign(conn, {
     initializeTask,
+    pauseTextSync: false,
     untilInitialized: initializeTask.promise,
   })
 

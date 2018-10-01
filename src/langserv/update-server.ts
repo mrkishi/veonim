@@ -5,6 +5,7 @@ import nvim from '../vscode/neovim'
 
 interface LanguageServer extends ProtocolConnection {
   untilInitialized: Promise<void>
+  pauseTextSync: boolean
 }
 
 export default (server: LanguageServer) => {
@@ -23,6 +24,7 @@ export default (server: LanguageServer) => {
 
   const send = (method: string, params: any) => {
     if (!initialized) return buffer.push([ method, params ])
+    console.log('textSyncState:', server.pauseTextSync)
     server.sendNotification(method, params)
     log(`NOTIFY --> textDocument/${method}`, params)
   }

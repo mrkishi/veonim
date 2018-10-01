@@ -12,6 +12,7 @@ interface DebugConfiguration {
 }
 
 export interface RPCServer {
+  setTextSyncState: (pauseTextSync: boolean) => void
   sendNotification: (method: string, ...params: any[]) => void
   sendRequest: (method: string, ...params: any[]) => Promise<any>
   onNotification: (method: string, cb: (...args: any[]) => void) => void
@@ -39,8 +40,8 @@ const bridgeServer = (serverId: string): RPCServer => {
   const api = {} as RPCServer
 
   api.sendNotification = (method, ...params) => {
-    log('NOTIFY -->', method, ...params)
     call.server_sendNotification({ serverId, method, params })
+    log('NOTIFY -->', method, ...params)
   }
 
   api.sendRequest = async (method, ...params) => {
@@ -53,8 +54,8 @@ const bridgeServer = (serverId: string): RPCServer => {
   api.onNotification = (method, cb) => {
     call.server_onNotification({ serverId, method })
     on[`${serverId}:${method}`]((args: any[]) => {
-      log('<-- NOTIFY', method, args)
       cb(...args)
+      log('<-- NOTIFY', method, args)
     })
   }
 
@@ -72,6 +73,8 @@ const bridgeServer = (serverId: string): RPCServer => {
     call.server_onExit({ serverId })
     on[`${serverId}:onClose`]((err: any) => cb(err))
   }
+
+  api.setTextSyncState = pauseTextSync => call.server_setTextSyncState(serverId, pauseTextSync)
 
   return api
 }

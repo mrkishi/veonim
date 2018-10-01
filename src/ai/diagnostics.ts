@@ -187,15 +187,16 @@ export const runCodeAction = (action: Command) => executeCommand(nvim.state, act
 
 nvim.onAction('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
 
-// wrapped in setImmediate because sometimes randomly was getting onDiagnostics is not a func
-setImmediate(() => onDiagnostics(async m => {
+// TODO: this is still broken. WHAT IN THE ACTUAL FUCK
+console.log('onDiagnostics:', onDiagnostics, require('../langserv/adapter'))
+onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.currentBuffer = path
   updateDiagnostics(path, m.diagnostics)
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   if (cache.diagnostics.size) updateUI()
   refreshProblemHighlights()
-}))
+})
 
 onSwitchVim(() => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))

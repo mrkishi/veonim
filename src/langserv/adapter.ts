@@ -3,12 +3,12 @@ import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   DocumentHighlight, DidOpenTextDocumentParams, DidChangeTextDocumentParams }
 from 'vscode-languageserver-protocol'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
+import { notify, request, setTextSyncState } from '../langserv/director'
 import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
 import { getSyncKind } from '../langserv/server-features'
 import toVSCodeLangauge from '../langserv/vsc-languages'
 import { getLines } from '../support/get-file-contents'
-import { notify, request } from '../langserv/director'
 import nvim, { NeovimState } from '../core/neovim'
 import config from '../config/config-service'
 import * as path from 'path'
@@ -150,6 +150,16 @@ export const partialBufferUpdate = async (change: BufferChange, bufferOpened = f
   bufferOpened
     ? didOpen(req)
     : didChange(req)
+}
+
+const pauseTextSync = (pauseState: boolean) => {
+  const { cwd, filetype } = nvim.state
+  setTextSyncState(pauseState, { cwd, filetype })
+}
+
+export const textSync = {
+  pause: () => pauseTextSync(true),
+  resume: () => pauseTextSync(false),
 }
 
 export const definition = async (data: NeovimState) => {
