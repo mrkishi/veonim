@@ -5,7 +5,7 @@ import { DebugConfiguration, collectDebuggersFromExtensions,
 import { ExtensionInfo, Extension, ActivationEventType,
   Disposable, activateExtension } from '../extensions/extensions'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
+import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge, CreateTask, Task } from '../support/utils'
 import updateLanguageServersWithTextDocuments from '../langserv/update-server'
 import { on, call, request } from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
@@ -40,9 +40,14 @@ interface ServerBridgeParams {
   params: any[]
 }
 
+export interface LanguageServer extends ProtocolConnection {
+  initializeTask: Task<void>
+  untilInitialized: Promise<void>
+}
+
 const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, Extension>()
-const runningLangServers = new Map<string, ProtocolConnection>()
+const runningLangServers = new Map<string, LanguageServer>()
 const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
 
 on.load(() => load())
@@ -81,7 +86,9 @@ const getDebugAdapter = (id: string) => {
 }
 
 on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
-  getServer(serverId).sendNotification(method as any, ...params)
+  const server = getServer(serverId)
+  if (method === 'initialized') server.initializeTask.done(undefined)
+  server.sendNotification(method as any, ...params)
 })
 
 on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
@@ -219,7 +226,14 @@ const connectRPCServer = (proc: ChildProcess): string => {
 
   conn.listen()
 
-  runningLangServers.set(serverId, conn)
+  const initializeTask = CreateTask()
+
+  Object.assign(conn, {
+    initializeTask,
+    untilInitialized: initializeTask.promise,
+  })
+
+  runningLangServers.set(serverId, conn as LanguageServer)
   return serverId
 }
 
