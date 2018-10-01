@@ -3,7 +3,7 @@ import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   DocumentHighlight, DidOpenTextDocumentParams, DidChangeTextDocumentParams }
 from 'vscode-languageserver-protocol'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
-import { notify, request, setTextSyncState } from '../langserv/director'
+import { notify, request, setTextSyncState, onDiagnostics as onDiags } from '../langserv/director'
 import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
 import { getSyncKind } from '../langserv/server-features'
@@ -12,8 +12,6 @@ import { getLines } from '../support/get-file-contents'
 import nvim, { NeovimState } from '../core/neovim'
 import config from '../config/config-service'
 import * as path from 'path'
-
-export { onDiagnostics } from '../langserv/director'
 
 export interface Reference {
   path: string,
@@ -161,6 +159,9 @@ export const textSync = {
   pause: () => pauseTextSync(true),
   resume: () => pauseTextSync(false),
 }
+
+// this trickery is because sometimes (randomly) director.onDiagnostics was undefined?!
+export const onDiagnostics: typeof onDiags = (a: any) => onDiags(a)
 
 export const definition = async (data: NeovimState) => {
   const req = toProtocol(data)

@@ -187,8 +187,6 @@ export const runCodeAction = (action: Command) => executeCommand(nvim.state, act
 
 nvim.onAction('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
 
-// TODO: this is still broken. WHAT IN THE ACTUAL FUCK
-console.log('onDiagnostics:', onDiagnostics, require('../langserv/adapter'))
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.currentBuffer = path
