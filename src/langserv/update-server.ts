@@ -1,15 +1,16 @@
-import { ProtocolConnection, DidOpenTextDocumentParams, DidChangeTextDocumentParams, WillSaveTextDocumentParams, DidSaveTextDocumentParams, DidCloseTextDocumentParams } from 'vscode-languageserver-protocol'
+import { ProtocolConnection, DidOpenTextDocumentParams, DidChangeTextDocumentParams, WillSaveTextDocumentParams, DidSaveTextDocumentParams, DidCloseTextDocumentParams, TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import { vscLanguageToFiletypes } from '../langserv/vsc-languages'
 import TextDocumentManager from '../neovim/text-document-manager'
 import { traceLANGSERV as log } from '../support/trace'
 import nvim from '../vscode/neovim'
 
 interface LanguageServer extends ProtocolConnection {
+  textSyncKind: TextDocumentSyncKind
   untilInitialized: Promise<void>
   pauseTextSync: boolean
 }
 
-export default (server: LanguageServer, languageId: string) => {
+const incrementalUpdater = (server: LanguageServer, languageId: string) => {
   const limitedFiletypes = vscLanguageToFiletypes(languageId)
   const tdm = TextDocumentManager(nvim, limitedFiletypes)
   let initialized = false
@@ -70,4 +71,23 @@ export default (server: LanguageServer, languageId: string) => {
   } as DidCloseTextDocumentParams))
 
   return { dispose: () => tdm.dispose() }
+}
+
+const fullUpdater = (server: LanguageServer, languageId: string) => {
+  console.warn(`Warning: Language server for ${languageId} does not support incremental text synchronization. This means a negative performance impact - especially on large buffers`)
+
+  // TODO: do the needful
+  // should we just bundle this functionality with TDM?
+  return { dispose: () => {} }
+}
+
+const noneUpdater = (languageId: string) => {
+  console.warn(`Warning: Language server for ${languageId} does not support any kind of text synchronization. This seems strange to me, but hey, maybe it works anyways.`)
+  return { dispose: () => {} }
+}
+
+export default (server: LanguageServer, languageId: string) => {
+  if (server.textSyncKind === TextDocumentSyncKind.Incremental) return  incrementalUpdater(server, languageId)
+  if (server.textSyncKind === TextDocumentSyncKind.Full) return fullUpdater(server, languageId)
+  return noneUpdater(languageId)
 }

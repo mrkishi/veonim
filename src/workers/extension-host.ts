@@ -41,7 +41,6 @@ interface ServerBridgeParams {
 }
 
 interface LanguageServer extends ProtocolConnection {
-  language: string
   textSyncKind: TextDocumentSyncKind
   pauseTextSync: boolean
   initializeTask: Task<void>
@@ -234,7 +233,7 @@ const load = async () => {
   collectDebuggersFromExtensions(extensionsWithConfig)
 }
 
-const connectRPCServer = (proc: ChildProcess, language: string): string => {
+const connectRPCServer = (proc: ChildProcess): string => {
   const serverId = uuid()
 
   const reader = new StreamMessageReader(proc.stdout)
@@ -246,7 +245,6 @@ const connectRPCServer = (proc: ChildProcess, language: string): string => {
   const initializeTask = CreateTask()
 
   Object.assign(conn, {
-    language,
     initializeTask,
     pauseTextSync: false,
     untilInitialized: initializeTask.promise,
@@ -283,7 +281,7 @@ const activate = {
     }
 
     const proc: ChildProcess = await serverActivator
-    const serverId = connectRPCServer(proc, language)
+    const serverId = connectRPCServer(proc)
     // TODO: register updater dispose and call it when langserv is gone.
     console.log('activate language:', language)
     updateLanguageServersWithTextDocuments(getServer(serverId), language)
