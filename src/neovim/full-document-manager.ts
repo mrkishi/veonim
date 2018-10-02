@@ -1,6 +1,7 @@
 import filetypeToLanguageID from '../langserv/vsc-languages'
-import { Buffer } from '../neovim/types'
+import { Range } from 'vscode-languageserver-protocol'
 import { NeovimAPI } from '../neovim/api'
+import { Buffer } from '../neovim/types'
 import { EventEmitter } from 'events'
 
 interface Doc {
@@ -11,8 +12,17 @@ interface Doc {
   version: number
 }
 
-interface DocChange extends Doc {
+interface DidOpen extends Doc {
   textLines: string[]
+}
+
+interface TextChange {
+  range: Range,
+  textLines: string[],
+}
+
+interface DidChange extends Doc {
+  textChanges: TextChange
 }
 
 interface NotifyParams {
@@ -20,7 +30,6 @@ interface NotifyParams {
   name: string
   filetype: string
   revision: number
-  event: 'didOpen' | 'didChange'
 }
 
 type On<T> = (params: T) => void
@@ -31,19 +40,39 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
 
-  const notify = async ({ name, filetype, revision, buffer, event }: NotifyParams) => {
+  const notifyOpen = async ({ name, filetype, revision, buffer }: NotifyParams) => {
     const textLines = await buffer.getAllLines()
 
-    watchers.emit(event, {
+    watchers.emit('didOpen', {
       name,
       filetype,
       textLines,
       version: revision,
       uri: `file://${name}`,
       languageId: filetypeToLanguageID(filetype),
-    } as DocChange)
+    } as DidOpen)
   }
 
+  const notifyChange = async ({ name, filetype, revision, buffer }: NotifyParams) => {
+    const textLines = await buffer.getAllLines()
+
+    const textChanges: TextChange = {
+      textLines,
+      range: {
+        start: { line: 0, character: 0 },
+        end: { line: textLines.length, character: 0 }
+      }
+    }
+
+    watchers.emit('didChange', {
+      name,
+      filetype,
+      textChanges,
+      version: revision,
+      uri: `file://${name}`,
+      languageId: filetypeToLanguageID(filetype),
+    } as DidChange)
+  }
 
   nvim.on.bufOpen(async buffer => {
     const filetype = await buffer.getOption('filetype')
@@ -56,7 +85,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
 
     if (!name) return
 
-    notify({ event: 'didOpen',  buffer, name, filetype, revision })
+    notifyOpen({ buffer, name, filetype, revision })
   })
 
   nvim.on.bufLoad(() => {
@@ -64,13 +93,16 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     const name = nvim.state.absoluteFilepath
     if (!name) return
 
-    return notify({
+    const params: NotifyParams = ({
       name,
       buffer: nvim.current.buffer,
       revision: nvim.state.revision,
       filetype: nvim.state.filetype,
-      event: openDocuments.has(name) ? 'didChange' : 'didOpen',
     })
+
+    openDocuments.has(name)
+      ? notifyChange(params)
+      : notifyOpen(params)
   })
 
   nvim.on.bufWritePre(() => {
@@ -91,8 +123,8 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   })
 
   const on = {
-    didOpen: (fn: On<DocChange>) => watchers.on('didOpen', fn),
-    didChange: (fn: On<DocChange>) => watchers.on('didChange', fn),
+    didOpen: (fn: On<DidOpen>) => watchers.on('didOpen', fn),
+    didChange: (fn: On<DidChange>) => watchers.on('didChange', fn),
     willSave: (fn: On<Doc>) => watchers.on('willSave', fn),
     didSave: (fn: On<Doc>) => watchers.on('didSave', fn),
     didClose: (fn: On<Doc>) => watchers.on('didClose', fn),
