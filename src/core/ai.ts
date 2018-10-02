@@ -14,12 +14,10 @@ import '../ai/hover'
 nvim.on.filetype(filetype => filetypeDetectedStartServerMaybe(nvim.state.cwd, filetype))
 nvim.watchState.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
-// nvim.on.cursorMoveInsert(async () => {
-//   // TODO: can't we get this from buffer notification events
-//   // TODO: or can't we get this from screen rendered lines
-//   console.time('getCurrentLine')
-//   const lineContent = await nvim.getCurrentLine()
-//   console.timeEnd('getCurrentLine')
-//   getCompletions(lineContent, nvim.state.line, nvim.state.column)
-//   getSignatureHint(lineContent)
-// })
+nvim.on.cursorMoveInsert(async () => {
+  // TODO: can't we get this from buffer notification events
+  // TODO: or can't we get this from screen rendered lines
+  const lineContent = await nvim.getCurrentLine()
+  getCompletions(lineContent, nvim.state.line, nvim.state.column)
+  getSignatureHint(lineContent)
+})
