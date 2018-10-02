@@ -15,7 +15,7 @@ const updater = (server: LanguageServer, languageId: string, incremental = true)
   const limitedFiletypes = vscLanguageToFiletypes(languageId)
   let initialized = false
   let buffer: any[] = []
-  const m = incremental
+  const { on, dispose } = incremental
     ? TextDocumentManager(nvim, limitedFiletypes)
     : FullDocumentManager(nvim, limitedFiletypes)
 
@@ -34,7 +34,7 @@ const updater = (server: LanguageServer, languageId: string, incremental = true)
     log(`NOTIFY --> textDocument/${method}`, params)
   }
 
-  m.on.didOpen(({ uri, version, languageId, textLines }) => send('didOpen', {
+  on.didOpen(({ uri, version, languageId, textLines }) => send('didOpen', {
     textDocument: {
       uri,
       version,
@@ -43,7 +43,7 @@ const updater = (server: LanguageServer, languageId: string, incremental = true)
     },
   } as DidOpenTextDocumentParams))
 
-  m.on.didChange(({ uri, version, textChanges }) => !server.pauseTextSync && send('didChange', {
+  on.didChange(({ uri, version, textChanges }) => !server.pauseTextSync && send('didChange', {
     textDocument: {
       uri,
       version,
@@ -54,23 +54,23 @@ const updater = (server: LanguageServer, languageId: string, incremental = true)
     }],
   } as DidChangeTextDocumentParams))
 
-  m.on.willSave(({ uri }) => send('willSave', {
+  on.willSave(({ uri }) => send('willSave', {
     reason: 1,
     textDocument: { uri },
   } as WillSaveTextDocumentParams))
 
-  m.on.didSave(({ uri, version }) => send('didSave', {
+  on.didSave(({ uri, version }) => send('didSave', {
     textDocument: {
       uri,
       version,
     },
   } as DidSaveTextDocumentParams))
 
-  m.on.didClose(({ uri }) => send('didClose', {
+  on.didClose(({ uri }) => send('didClose', {
     textDocument: { uri },
   } as DidCloseTextDocumentParams))
 
-  return { dispose: () => m.dispose() }
+  return { dispose }
 }
 
 export default (server: LanguageServer, languageId: string) => {
