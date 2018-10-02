@@ -33,7 +33,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
 
-  const loadOrOpen = (buffer: Buffer, name: string) => {
+  const subscribeToBufferChanges = (buffer: Buffer, name: string) => {
     if (!name || openDocuments.has(name)) return
     let sentOpenNotification = false
 
@@ -85,12 +85,12 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
     const name = await buffer.name
-    loadOrOpen(buffer, name)
+    subscribeToBufferChanges(buffer, name)
   })
 
   nvim.on.bufLoad(() => {
     if (invalidFiletype(nvim.state.filetype)) return
-    loadOrOpen(nvim.current.buffer, nvim.state.absoluteFilepath)
+    subscribeToBufferChanges(nvim.current.buffer, nvim.state.absoluteFilepath)
   })
 
   nvim.on.bufWritePre(() => {
