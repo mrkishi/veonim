@@ -27,9 +27,11 @@ interface DidChange extends Doc {
 
 type On<T> = (params: T) => void
 
-const api = (nvim: NeovimAPI) => {
+const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const openDocuments = new Set<string>()
   const watchers = new EventEmitter()
+  const filetypes = new Set(onlyFiletypeBuffers)
+  const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
 
   const loadOrOpen = (buffer: Buffer, name: string) => {
     if (!name || openDocuments.has(name)) return
@@ -80,16 +82,25 @@ const api = (nvim: NeovimAPI) => {
   }
 
   nvim.on.bufAdd(async buffer => {
+    const filetype = await buffer.getOption('filetype')
+    if (invalidFiletype(filetype)) return
     const name = await buffer.name
     loadOrOpen(buffer, name)
   })
 
   nvim.on.bufLoad(() => {
+    if (invalidFiletype(nvim.state.filetype)) return
     loadOrOpen(nvim.current.buffer, nvim.state.absoluteFilepath)
   })
 
-  nvim.on.bufWritePre(() => watchers.emit('willSave', nvim.state.absoluteFilepath))
-  nvim.on.bufWrite(() => watchers.emit('didSave', nvim.state.absoluteFilepath))
+  nvim.on.bufWritePre(() => {
+    if (invalidFiletype(nvim.state.filetype)) return
+    watchers.emit('willSave', nvim.state.absoluteFilepath)
+  })
+  nvim.on.bufWrite(() => {
+    if (invalidFiletype(nvim.state.filetype)) return
+    watchers.emit('didSave', nvim.state.absoluteFilepath)
+  })
 
   const on = {
     didOpen: (fn: On<DidOpen>) => watchers.on('didOpen', fn),
