@@ -1,4 +1,5 @@
 import { ProtocolConnection, DidOpenTextDocumentParams, DidChangeTextDocumentParams, WillSaveTextDocumentParams, DidSaveTextDocumentParams, DidCloseTextDocumentParams } from 'vscode-languageserver-protocol'
+import { vscLanguageToFiletypes } from '../langserv/vsc-languages'
 import TextDocumentManager from '../neovim/text-document-manager'
 import { traceLANGSERV as log } from '../support/trace'
 import nvim from '../vscode/neovim'
@@ -8,8 +9,9 @@ interface LanguageServer extends ProtocolConnection {
   pauseTextSync: boolean
 }
 
-export default (server: LanguageServer) => {
-  const tdm = TextDocumentManager(nvim)
+export default (server: LanguageServer, languageId: string) => {
+  const limitedFiletypes = vscLanguageToFiletypes(languageId)
+  const tdm = TextDocumentManager(nvim, limitedFiletypes)
   let initialized = false
   let buffer: any[] = []
 

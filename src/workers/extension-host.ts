@@ -273,7 +273,7 @@ const activate = {
     const serverId = connectRPCServer(proc)
     // TODO: register updater dispose and call it when langserv is gone.
     console.log('activate language:', language)
-    updateLanguageServersWithTextDocuments(getServer(serverId))
+    updateLanguageServersWithTextDocuments(getServer(serverId), language)
     return serverId
   },
 }
