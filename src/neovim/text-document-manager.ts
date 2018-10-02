@@ -81,7 +81,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     nvim.current.buffer.onDetach(() => watchers.emit('didClose', name))
   }
 
-  nvim.on.bufAdd(async buffer => {
+  nvim.on.bufOpen(async buffer => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
     const name = await buffer.name

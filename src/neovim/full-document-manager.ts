@@ -44,7 +44,12 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     } as DocChange)
   }
 
-  nvim.on.bufAdd(async buffer => {
+  const notifyClosed = (name: string) => {
+    openDocuments.delete(name)
+    watchers.emit('didClose', name)
+  }
+
+  nvim.on.bufOpen(async buffer => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
 

@@ -24,7 +24,7 @@ nvim.on.bufLoad(async () => {
   watchers.set(filepath, w)
 })
 
-nvim.on.bufUnload(() => {
+nvim.on.bufClose(() => {
   const filepath = join(nvim.state.cwd, nvim.state.file)
   if (!filepath) return
   currentSession.delete(filepath)
