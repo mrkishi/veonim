@@ -13,5 +13,7 @@ const filetypes = new Map<string, string>([
 
 export default (filetype: string) => filetypes.get(filetype) || filetype
 export const vscLanguageToFiletypes = (languageId: string): string[] => [...filetypes]
-  .filter(([ _, id ]) => id === languageId)
-  .map(([ ft ]) => ft)
+  .reduce((res, [ ft, id ]) => {
+    if (id === languageId) res.push(ft)
+    return res
+  }, [ languageId ])
