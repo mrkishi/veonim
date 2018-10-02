@@ -1,4 +1,4 @@
-import { StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
+import { TextDocumentSyncKind, StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import { DebugConfiguration, collectDebuggersFromExtensions,
   getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
   getDebuggerConfig } from '../extensions/debuggers'
@@ -41,6 +41,7 @@ interface ServerBridgeParams {
 }
 
 interface LanguageServer extends ProtocolConnection {
+  textSyncKind: TextDocumentSyncKind
   pauseTextSync: boolean
   initializeTask: Task<void>
   untilInitialized: Promise<void>
@@ -86,6 +87,13 @@ const getDebugAdapter = (id: string) => {
   return server
 }
 
+const getTextSyncKind = (response: any): TextDocumentSyncKind => {
+  const syncKind = pleaseGet(response).textDocumentSync()
+  if (syncKind == null) return TextDocumentSyncKind.None
+  if (is.number(syncKind)) return syncKind
+  return pleaseGet(response).textDocumentSync.change(TextDocumentSyncKind.None)
+}
+
 on.server_setTextSyncState((serverId: string, syncState: boolean) => {
   getServer(serverId).pauseTextSync = syncState
 })
@@ -96,8 +104,11 @@ on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) =>
   server.sendNotification(method as any, ...params)
 })
 
-on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
-  return getServer(serverId).sendRequest(method, ...params)
+on.server_sendRequest(async ({ serverId, method, params }: ServerBridgeParams) => {
+  const server = getServer(serverId)
+  const response = await server.sendRequest(method, ...params)
+  if (method === 'initialize') server.textSyncKind = getTextSyncKind(response)
+  return response
 })
 
 on.server_onNotification(({ serverId, method }: ServerBridgeParams) => {
