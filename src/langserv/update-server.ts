@@ -17,7 +17,7 @@ export default (server: LanguageServer, languageId: string) => {
 
   server.untilInitialized.then(() => {
     buffer.forEach(([ method, params ]) => {
-      server.sendNotification(method, params)
+      server.sendNotification(`textDocument/${method}`, params)
       log(`NOTIFY --> textDocument/${method}`, params)
     })
     buffer = []
@@ -26,7 +26,7 @@ export default (server: LanguageServer, languageId: string) => {
 
   const send = (method: string, params: any) => {
     if (!initialized) return buffer.push([ method, params ])
-    server.sendNotification(method, params)
+    server.sendNotification(`textDocument/${method}`, params)
     log(`NOTIFY --> textDocument/${method}`, params)
   }
 
