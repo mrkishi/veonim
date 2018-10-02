@@ -80,7 +80,6 @@ const api = (nvim: NeovimAPI) => {
   }
 
   nvim.on.bufAdd(async buffer => {
-    console.log('bufAdd', buffer)
     const name = await buffer.name
     loadOrOpen(buffer, name)
   })
