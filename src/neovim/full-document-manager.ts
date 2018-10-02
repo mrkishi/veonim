@@ -15,6 +15,14 @@ interface DocChange extends Doc {
   textLines: string[]
 }
 
+interface NotifyParams {
+  buffer: Buffer
+  name: string
+  filetype: string
+  revision: number
+  event: 'didOpen' | 'didChange'
+}
+
 type On<T> = (params: T) => void
 
 const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
@@ -23,46 +31,58 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
 
-  const notifyOpen = (buffer: Buffer, name: string) => {
+  const notify = async ({ name, filetype, revision, buffer, event }: NotifyParams) => {
+    const textLines = await buffer.getAllLines()
 
-    watchers.emit('didOpen', {
+    watchers.emit(event, {
       name,
       filetype,
-      version: changedTick,
+      textLines,
+      version: revision,
       uri: `file://${name}`,
       languageId: filetypeToLanguageID(filetype),
-      textLines: lineData
-    } as DidOpen)
-  }
-
-  const notifyChange = (buffer: Buffer, name: string) => {
-
+    } as DocChange)
   }
 
   nvim.on.bufAdd(async buffer => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
-    const name = await buffer.name
+
+    const [ name, revision ] = await Promise.all([
+      buffer.name,
+      buffer.changedtick,
+    ])
+
     if (!name) return
-    notifyOpen(buffer, name)
+
+    notify({ event: 'didOpen',  buffer, name, filetype, revision })
   })
 
   nvim.on.bufLoad(() => {
     if (invalidFiletype(nvim.state.filetype)) return
     const name = nvim.state.absoluteFilepath
     if (!name) return
-    if (!openDocuments.has(name)) return notifyOpen(nvim.current.buffer, name)
-    return notifyChange(nvim.current.buffer, name)
+
+    return notify({
+      name,
+      buffer: nvim.current.buffer,
+      revision: nvim.state.revision,
+      filetype: nvim.state.filetype,
+      event: openDocuments.has(name) ? 'didChange' : 'didOpen',
+    })
   })
 
   nvim.on.bufWritePre(() => {
     if (invalidFiletype(nvim.state.filetype)) return
     watchers.emit('willSave', nvim.state.absoluteFilepath)
   })
+
   nvim.on.bufWrite(() => {
     if (invalidFiletype(nvim.state.filetype)) return
     watchers.emit('didSave', nvim.state.absoluteFilepath)
   })
+
+  // TODO: need autocmds for buffer destroy and all other combinations
 
   const on = {
     didOpen: (fn: On<DocChange>) => watchers.on('didOpen', fn),

@@ -97,6 +97,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     if (invalidFiletype(nvim.state.filetype)) return
     watchers.emit('willSave', nvim.state.absoluteFilepath)
   })
+
   nvim.on.bufWrite(() => {
     if (invalidFiletype(nvim.state.filetype)) return
     watchers.emit('didSave', nvim.state.absoluteFilepath)
