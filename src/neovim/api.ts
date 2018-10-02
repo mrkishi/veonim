@@ -393,8 +393,17 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
   autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
   autocmd.OptionSet((name: string, value: any) => options.set(name, value))
   autocmd.FileType((_, filetype: string) => watchers.events.emit('filetype', filetype))
-  autocmd.TextChanged(revision => state.revision = revision-0)
-  autocmd.TextChangedI(revision => state.revision = revision-0)
+
+  autocmd.TextChanged(revision => {
+    state.revision = revision-0
+    watchers.events.emit('bufChange', current.buffer)
+  })
+
+  autocmd.TextChangedI(revision => {
+    state.revision = revision-0
+    watchers.events.emit('bufChange', current.buffer)
+  })
+
   // TODO: i think we should just determine this from render events
   autocmd.WinEnter((id: number) => watchers.events.emit('winEnter', id))
 
