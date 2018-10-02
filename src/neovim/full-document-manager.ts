@@ -44,10 +44,6 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     } as DocChange)
   }
 
-  const notifyClosed = (name: string) => {
-    openDocuments.delete(name)
-    watchers.emit('didClose', name)
-  }
 
   nvim.on.bufOpen(async buffer => {
     const filetype = await buffer.getOption('filetype')
@@ -87,7 +83,12 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     watchers.emit('didSave', nvim.state.absoluteFilepath)
   })
 
-  // TODO: need autocmds for buffer destroy and all other combinations
+  nvim.on.bufClose(async buffer => {
+    const name = await buffer.name
+    if (!name) return
+    openDocuments.delete(name)
+    watchers.emit('didClose', name)
+  })
 
   const on = {
     didOpen: (fn: On<DocChange>) => watchers.on('didOpen', fn),
