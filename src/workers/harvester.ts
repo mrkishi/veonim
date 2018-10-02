@@ -36,7 +36,8 @@ const harvest = (file: string, buffer: string[]) => {
     }
   }
 
-  keywords.set(file, [...harvested])
+  const nextKeywords = new Set([...keywords.get(file) || [], ...harvested])
+  keywords.set(file, [...nextKeywords])
 }
 
 tdm.on.didOpen(({ name, textLines }) => harvest(name, textLines))
