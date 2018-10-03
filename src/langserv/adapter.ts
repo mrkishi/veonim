@@ -1,13 +1,9 @@
 import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
-  DocumentHighlight, DidOpenTextDocumentParams, DidChangeTextDocumentParams }
-from 'vscode-languageserver-protocol'
+  DocumentHighlight } from 'vscode-languageserver-protocol'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
 import { notify, request, setTextSyncState, onDiagnostics as onDiags } from '../langserv/director'
-import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
-import { getSyncKind } from '../langserv/server-features'
-import toVSCodeLangauge from '../langserv/vsc-languages'
 import { getLines } from '../support/get-file-contents'
 import nvim, { NeovimState } from '../core/neovim'
 import config from '../config/config-service'
@@ -40,10 +36,6 @@ interface VimLocation {
   position: VimPosition,
 }
 
-interface BufferChange extends NeovimState {
-  bufferLines: string[],
-}
-
 interface MarkedStringPart {
   language: string,
   value: string,
@@ -52,20 +44,6 @@ interface MarkedStringPart {
 interface VimPosition {
   line: number,
   column: number,
-}
-
-interface CurrentBuffer {
-  cwd: string,
-  file: string,
-  contents: string[],
-}
-
-// TODO: i wonder if we can rid of currentBuffer.contents once we get
-// the fancy neovim PR for partial buffer update notifications...
-const currentBuffer: CurrentBuffer = {
-  cwd: '',
-  file: '',
-  contents: [],
 }
 
 const ignored: { dirs: string[] } = {
@@ -94,60 +72,6 @@ const toProtocol = (data: NeovimState, more?: any) => {
   const positionExists = is.number(line) && is.number(character)
   if (positionExists) merge(base, { position: { line, character } })
   return more ? merge(base, more) : base
-}
-
-const didOpen = (m: DidOpenTextDocumentParams) => notify('textDocument/didOpen', m, { bufferCallIfServerStarting: true })
-const didChange = (m: DidChangeTextDocumentParams) => notify('textDocument/didChange', m, { bufferCallIfServerStarting: true })
-
-const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
-  if (currentBuffer.cwd !== cwd && currentBuffer.file !== file)
-    return console.error('trying to do a partial update before a full update has been done. normally before doing a partial update a bufEnter event happens which triggers a full update.', currentBuffer, cwd, file)
-  Reflect.set(currentBuffer.contents, line, change)
-}
-
-export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false) => {
-  const { cwd, file, bufferLines: contents, filetype } = bufferState
-
-  merge(currentBuffer, { cwd, file, contents })
-
-  const text = contents.join('\n')
-  const protocolRequest = toProtocol(bufferState, { filetype })
-
-  if (bufferOpened) merge(protocolRequest.textDocument, {
-    text,
-    languageId: toVSCodeLangauge(filetype),
-  })
-
-  if (!bufferOpened) merge(protocolRequest, {
-    contentChanges: [ { text } ]
-  })
-
-  bufferOpened
-    ? didOpen(protocolRequest)
-    : didChange(protocolRequest)
-}
-
-export const partialBufferUpdate = async (change: BufferChange, bufferOpened = false) => {
-  const { cwd, file, bufferLines, line, filetype } = change
-  const syncKind = getSyncKind(cwd, filetype)
-
-  await patchBufferCacheWithPartial(cwd, file, bufferLines[0], line)
-
-  if (syncKind !== TextDocumentSyncKind.Incremental) return fullBufferUpdate({ ...change, bufferLines: currentBuffer.contents })
-
-  const content = {
-    text: bufferLines[0],
-    range: {
-      start: { line, character: 0 },
-      end: { line, character: bufferLines.length - 1 }
-    }
-  }
-
-  const req = toProtocol(change, { contentChanges: [ content ], filetype })
-
-  bufferOpened
-    ? didOpen(req)
-    : didChange(req)
 }
 
 const pauseTextSync = (pauseState: boolean) => {
