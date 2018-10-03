@@ -81,12 +81,14 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     nvim.current.buffer.onDetach(() => watchers.emit('didClose', name))
   }
 
-  nvim.on.bufOpen(async buffer => {
+  const openBuffer = async buffer => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
     const name = await buffer.name
     subscribeToBufferChanges(buffer, name)
-  })
+  }
+
+  nvim.on.bufOpen(openBuffer)
 
   nvim.on.bufLoad(() => {
     if (invalidFiletype(nvim.state.filetype)) return
@@ -117,7 +119,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     console.warn('NYI: dipose TextDocumentManager')
   }
 
-  return { on, dispose }
+  return { on, dispose, manualBindBuffer: openBuffer }
 }
 
 export default api

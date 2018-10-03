@@ -3,6 +3,7 @@ import { vscLanguageToFiletypes } from '../langserv/vsc-languages'
 import TextDocumentManager from '../neovim/text-document-manager'
 import FullDocumentManager from '../neovim/full-document-manager'
 import { traceLANGSERV as log } from '../support/trace'
+import { Buffer } from '../neovim/types'
 import nvim from '../vscode/neovim'
 
 interface LanguageServer extends ProtocolConnection {
@@ -11,28 +12,26 @@ interface LanguageServer extends ProtocolConnection {
   pauseTextSync: boolean
 }
 
-const updater = (server: LanguageServer, languageId: string, incremental = true) => {
-  const limitedFiletypes = vscLanguageToFiletypes(languageId)
-  let initialized = false
-  let buffer: any[] = []
-  const { on, dispose } = incremental
-    ? TextDocumentManager(nvim, limitedFiletypes)
-    : FullDocumentManager(nvim, limitedFiletypes)
+interface UpdaterParams {
+  server: LanguageServer
+  languageId: string
+  incremental: boolean
+  initialBuffer: Buffer
+}
 
-  server.untilInitialized.then(() => {
-    buffer.forEach(([ method, params ]) => {
-      server.sendNotification(`textDocument/${method}`, params)
-      log(`NOTIFY --> textDocument/${method}`, params)
-    })
-    buffer = []
-    initialized = true
-  })
+const updater = ({ server, languageId, initialBuffer, incremental }: UpdaterParams) => {
+  const limitedFiletypes = vscLanguageToFiletypes(languageId)
 
   const send = (method: string, params: any) => {
-    if (!initialized) return buffer.push([ method, params ])
     server.sendNotification(`textDocument/${method}`, params)
     log(`NOTIFY --> textDocument/${method}`, params)
   }
+
+  const { on, dispose, manualBindBuffer } = incremental
+    ? TextDocumentManager(nvim, limitedFiletypes)
+    : FullDocumentManager(nvim, limitedFiletypes)
+
+  manualBindBuffer(initialBuffer)
 
   on.didOpen(({ uri, version, languageId, textLines }) => send('didOpen', {
     textDocument: {
@@ -73,14 +72,19 @@ const updater = (server: LanguageServer, languageId: string, incremental = true)
   return { dispose }
 }
 
-export default (server: LanguageServer, languageId: string) => {
+export default async (server: LanguageServer, languageId: string) => {
+  await server.untilInitialized
+  console.log('textSyncKind:', server.textSyncKind)
+
+  const params = { server, languageId, initialBuffer: nvim.current.buffer }
+
   if (server.textSyncKind === TextDocumentSyncKind.Incremental) {
-    return updater(server, languageId, true)
+    return updater(Object.assign(params, { incremental: true }))
   }
 
   if (server.textSyncKind === TextDocumentSyncKind.Full) {
-    console.warn(`Warning: Language server for ${languageId} does not support any kind of text synchronization. This seems strange to me, but hey, maybe it works anyways.`)
-    return updater(server, languageId, false)
+    console.warn(`Warning: Language server for ${languageId} does not support incremental text synchronization. This is a negative performance impact - especially on large files.`)
+    return updater(Object.assign(params, { incremental: false }))
   }
 
   return { dispose: () => {} }
