@@ -87,11 +87,11 @@ const getDebugAdapter = (id: string) => {
   return server
 }
 
-const getTextSyncKind = (response: any): TextDocumentSyncKind => {
-  const syncKind = pleaseGet(response).textDocumentSync()
+const getTextSyncKind = ({ capabilities: c }: any): TextDocumentSyncKind => {
+  const syncKind = pleaseGet(c).textDocumentSync()
   if (syncKind == null) return TextDocumentSyncKind.None
   if (is.number(syncKind)) return syncKind
-  return pleaseGet(response).textDocumentSync.change(TextDocumentSyncKind.None)
+  return pleaseGet(c).textDocumentSync.change(TextDocumentSyncKind.None)
 }
 
 on.server_setTextSyncState((serverId: string, syncState: boolean) => {
