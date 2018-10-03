@@ -92,6 +92,7 @@ export interface BufferEvent {
   bufOpen: Buffer
   bufLoad: Buffer
   bufChange: Buffer
+  bufChangeInsert: Buffer
   bufWrite: Buffer
   bufWritePre: Buffer
   bufClose: Buffer

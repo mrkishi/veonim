@@ -401,7 +401,7 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
 
   autocmd.TextChangedI(revision => {
     state.revision = revision-0
-    watchers.events.emit('bufChange', current.buffer)
+    watchers.events.emit('bufChangeInsert', current.buffer)
   })
 
   // TODO: i think we should just determine this from render events
