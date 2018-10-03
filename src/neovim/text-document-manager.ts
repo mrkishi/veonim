@@ -77,7 +77,10 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       notifyChange(changeEvent)
     })
 
-    nvim.current.buffer.onDetach(() => watchers.emit('didClose', name))
+    nvim.current.buffer.onDetach(() => {
+      openDocuments.delete(name)
+      watchers.emit('didClose', name)
+    })
   }
 
   const openBuffer = async (buffer: Buffer) => {
