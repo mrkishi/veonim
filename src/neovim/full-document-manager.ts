@@ -43,31 +43,37 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const watchers = new EventEmitter()
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
+  let currentBufferLines: string[] = []
 
   const notifyOpen = async ({ name, filetype, revision, buffer }: NotifyParams) => {
     openDocuments.add(name)
-    const textLines = await buffer.getAllLines()
+    currentBufferLines = await buffer.getAllLines()
 
     watchers.emit('didOpen', {
       name,
       filetype,
-      textLines,
       version: revision,
       uri: `file://${name}`,
+      textLines: currentBufferLines,
       languageId: filetypeToLanguageID(filetype),
     } as DidOpen)
   }
 
+  const patchCurrentBufferLines = async (buffer: Buffer) => {
+    // only the current buffer should change in insert mode, but maybe not
+    const changedLine = await buffer.getLine(nvim.state.line)
+    Reflect.set(currentBufferLines, nvim.state.line, changedLine)
+  }
+
   const notifyChange = async ({ name, filetype, revision, buffer, insertMode }: NotifyParams) => {
-    if (insertMode) console.log('insert change: patch line:', nvim.state.line)
-    // TODO: if insert mode, get current line and patch it against current buffer
-    const textLines = await buffer.getAllLines()
+    if (insertMode) await patchCurrentBufferLines(buffer)
+    else currentBufferLines = await buffer.getAllLines()
 
     const textChanges: TextChange = {
-      textLines,
+      textLines: currentBufferLines,
       range: {
         start: { line: 0, character: 0 },
-        end: { line: textLines.length, character: 0 }
+        end: { line: currentBufferLines.length, character: 0 }
       }
     }
 
