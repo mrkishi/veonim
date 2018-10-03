@@ -32,18 +32,17 @@ type On<T> = (params: T) => void
 
 const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const openDocuments = new Set<string>()
+  const sentDidOpen = new Set<string>()
   const watchers = new EventEmitter()
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
 
   const subscribeToBufferChanges = (buffer: Buffer, name: string) => {
     if (!name || openDocuments.has(name)) return
-    let sentOpenNotification = false
-
     openDocuments.add(name)
 
     const notifyOpen = ({ filetype, lineData, changedTick }: BufferChangeEvent) => {
-      sentOpenNotification = true
+      sentDidOpen.add(name)
       watchers.emit('didOpen', {
         name,
         filetype,
@@ -76,12 +75,13 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       // TODO: handle changeEvent.more (partial change event)
       // what do? buffer in memory? can we send partial change events to
       // language servers and extensions?
-      if (!sentOpenNotification) return notifyOpen(changeEvent)
+      if (!sentDidOpen.has(name)) return notifyOpen(changeEvent)
       notifyChange(changeEvent)
     })
 
     nvim.current.buffer.onDetach(() => {
       openDocuments.delete(name)
+      sentDidOpen.delete(name)
       watchers.emit('didClose', {
         name,
         uri: `file://${name}`,

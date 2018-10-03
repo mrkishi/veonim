@@ -74,7 +74,6 @@ const updater = ({ server, languageId, initialBuffer, incremental }: UpdaterPara
 
 export default async (server: LanguageServer, languageId: string) => {
   await server.untilInitialized
-  console.log('textSyncKind:', server.textSyncKind)
 
   const params = { server, languageId, initialBuffer: nvim.current.buffer }
 
