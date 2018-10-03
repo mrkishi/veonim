@@ -42,16 +42,20 @@ const updater = ({ server, languageId, initialBuffer, incremental }: UpdaterPara
     },
   } as DidOpenTextDocumentParams))
 
-  on.didChange(({ uri, version, textChanges }) => !server.pauseTextSync && send('didChange', {
-    textDocument: {
-      uri,
-      version,
-    },
-    contentChanges: [{
-      text: textChanges.textLines.join('\n'),
-      range: textChanges.range,
-    }],
-  } as DidChangeTextDocumentParams))
+  on.didChange(({ uri, version, textChanges }) => {
+    if (server.pauseTextSync) return
+
+    const change = { text: textChanges.textLines.join('\n') }
+    if (incremental) Object.assign(change, { range: textChanges.range })
+
+    send('didChange', {
+      textDocument: {
+        uri,
+        version,
+      },
+      contentChanges: [ change ],
+    } as DidChangeTextDocumentParams)
+  })
 
   on.willSave(({ uri }) => send('willSave', {
     reason: 1,
