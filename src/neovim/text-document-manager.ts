@@ -5,14 +5,17 @@ import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
 
 interface Doc {
-  name: string
   uri: string
+  name: string
+}
+
+interface DocInfo extends Doc {
   languageId: string
   filetype: string
   version: number
 }
 
-interface DidOpen extends Doc {
+interface DidOpen extends DocInfo {
   textLines: string[]
 }
 
@@ -21,7 +24,7 @@ interface TextChange {
   textLines: string[],
 }
 
-interface DidChange extends Doc {
+interface DidChange extends DocInfo {
   textChanges: TextChange
 }
 
@@ -79,7 +82,10 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
 
     nvim.current.buffer.onDetach(() => {
       openDocuments.delete(name)
-      watchers.emit('didClose', name)
+      watchers.emit('didClose', {
+        name,
+        uri: `file://${name}`,
+      } as Doc)
     })
   }
 
@@ -99,12 +105,18 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
 
   nvim.on.bufWritePre(() => {
     if (invalidFiletype(nvim.state.filetype)) return
-    watchers.emit('willSave', nvim.state.absoluteFilepath)
+    watchers.emit('willSave', {
+      name: nvim.state.absoluteFilepath,
+      uri: `file://${nvim.state.absoluteFilepath}`,
+    } as Doc)
   })
 
   nvim.on.bufWrite(() => {
     if (invalidFiletype(nvim.state.filetype)) return
-    watchers.emit('didSave', nvim.state.absoluteFilepath)
+    watchers.emit('didSave', {
+      name: nvim.state.absoluteFilepath,
+      uri: `file://${nvim.state.absoluteFilepath}`,
+    } as Doc)
   })
 
   const on = {
