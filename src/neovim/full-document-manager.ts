@@ -74,7 +74,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     } as DidChange)
   }
 
-  const openBuffer = async buffer => {
+  const openBuffer = async (buffer: Buffer) => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
 

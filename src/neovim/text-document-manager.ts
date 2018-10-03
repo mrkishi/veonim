@@ -52,13 +52,12 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     }
 
     const notifyChange = ({ filetype, lineData, changedTick, firstLine, lastLine }: BufferChangeEvent) => {
-      const textChanges: TextChange = {
-        textLines: lineData,
-        range: {
-          start: { line: firstLine, character: 0 },
-          end: { line: lastLine, character: firstLine === lastLine ? lineData[0].length : 0 }
-        }
+      const range = {
+        start: { line: firstLine, character: 0 },
+        end: { line: lastLine, character: 0 },
       }
+
+      const textChanges: TextChange = { textLines: lineData, range }
 
       watchers.emit('didChange', {
         name,
@@ -81,7 +80,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     nvim.current.buffer.onDetach(() => watchers.emit('didClose', name))
   }
 
-  const openBuffer = async buffer => {
+  const openBuffer = async (buffer: Buffer) => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
     const name = await buffer.name
