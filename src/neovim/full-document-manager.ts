@@ -41,6 +41,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
 
   const notifyOpen = async ({ name, filetype, revision, buffer }: NotifyParams) => {
+    openDocuments.add(name)
     const textLines = await buffer.getAllLines()
 
     watchers.emit('didOpen', {
