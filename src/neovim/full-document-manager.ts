@@ -33,6 +33,7 @@ interface NotifyParams {
   name: string
   filetype: string
   revision: number
+  insertMode?: boolean
 }
 
 type On<T> = (params: T) => void
@@ -57,7 +58,9 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     } as DidOpen)
   }
 
-  const notifyChange = async ({ name, filetype, revision, buffer }: NotifyParams) => {
+  const notifyChange = async ({ name, filetype, revision, buffer, insertMode }: NotifyParams) => {
+    if (insertMode) console.log('insert change: patch line:', nvim.state.line)
+    // TODO: if insert mode, get current line and patch it against current buffer
     const textLines = await buffer.getAllLines()
 
     const textChanges: TextChange = {
@@ -92,14 +95,15 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     notifyOpen({ buffer, name, filetype, revision })
   }
 
-  const changeBuffer = () => {
+  const changeBuffer = (buffer: Buffer, insertMode = false) => {
     if (invalidFiletype(nvim.state.filetype)) return
     const name = nvim.state.absoluteFilepath
     if (!name) return
 
     const params: NotifyParams = ({
       name,
-      buffer: nvim.current.buffer,
+      buffer,
+      insertMode,
       revision: nvim.state.revision,
       filetype: nvim.state.filetype,
     })
@@ -112,6 +116,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   nvim.on.bufOpen(openBuffer)
   nvim.on.bufLoad(changeBuffer)
   nvim.on.bufChange(changeBuffer)
+  nvim.on.bufChangeInsert(buf => changeBuffer(buf, true))
 
   nvim.on.bufWritePre(() => {
     if (invalidFiletype(nvim.state.filetype)) return
