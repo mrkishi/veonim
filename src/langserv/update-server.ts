@@ -58,11 +58,8 @@ const updater = ({ server, languageId, initialBuffer, incremental }: UpdaterPara
     textDocument: { uri },
   } as WillSaveTextDocumentParams))
 
-  on.didSave(({ uri, version }) => send('didSave', {
-    textDocument: {
-      uri,
-      version,
-    },
+  on.didSave(({ uri }) => send('didSave', {
+    textDocument: { uri },
   } as DidSaveTextDocumentParams))
 
   on.didClose(({ uri }) => send('didClose', {
