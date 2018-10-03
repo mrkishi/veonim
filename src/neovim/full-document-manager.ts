@@ -119,10 +119,12 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       : notifyOpen(params)
   }
 
-  nvim.on.bufOpen(openBuffer)
-  nvim.on.bufLoad(changeBuffer)
-  nvim.on.bufChange(changeBuffer)
-  nvim.on.bufChangeInsert(buf => changeBuffer(buf, true))
+  const bufEventsDisposables = new Set([
+    nvim.on.bufOpen(openBuffer),
+    nvim.on.bufLoad(changeBuffer),
+    nvim.on.bufChange(changeBuffer),
+    nvim.on.bufChangeInsert(buf => changeBuffer(buf, true)),
+  ])
 
   nvim.on.bufWritePre(() => {
     if (invalidFiletype(nvim.state.filetype)) return
@@ -158,11 +160,10 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     didClose: (fn: On<Doc>) => watchers.on('didClose', fn),
   }
 
-  // TODO: please dispose
-  // detach from buffers and cleanup
   const dispose = () => {
-    console.warn('NYI: dipose FullDocumentManager')
     watchers.removeAllListeners()
+    bufEventsDisposables.forEach(dispose => dispose())
+    bufEventsDisposables.clear()
     openDocuments.clear()
     filetypes.clear()
     currentBufferLines = []

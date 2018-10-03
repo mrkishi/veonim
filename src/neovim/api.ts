@@ -256,7 +256,8 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
   })
 
   type BufferEvents = keyof BufferEvent
-  type OnEvent = { [Key in BufferEvents]: (fn: (value: BufferEvent[Key]) => void) => void }
+  type RemoveListener = () => void
+  type OnEvent = { [Key in BufferEvents]: (fn: (value: BufferEvent[Key]) => void) => RemoveListener }
   const on: OnEvent = new Proxy(Object.create(null), {
     get: (_, event: BufferEvents) => (fn: any) => watchers.events.on(event, fn)
   })
