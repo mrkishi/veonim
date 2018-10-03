@@ -162,6 +162,10 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   // detach from buffers and cleanup
   const dispose = () => {
     console.warn('NYI: dipose FullDocumentManager')
+    watchers.removeAllListeners()
+    openDocuments.clear()
+    filetypes.clear()
+    currentBufferLines = []
   }
 
   return { on, dispose, manualBindBuffer: openBuffer }
