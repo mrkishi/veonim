@@ -225,8 +225,7 @@ nvim.on.insertLeave(async () => {
   completionUI.hide()
 })
 
-nvim.on.completion(word => {
-  harvester.call.add(nvim.state.filetype, word)
+nvim.on.completion(() => {
   nvim.g.veonim_completing = 0
   nvim.g.veonim_completions = []
 })
