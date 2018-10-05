@@ -100,6 +100,19 @@ export const definition = async (data: NeovimState) => {
   }
 }
 
+export const implementation = async (data: NeovimState) => {
+  const req = toProtocol(data)
+  const result = await request('textDocument/implementation', req)
+  if (!result) return {}
+  const { uri, range } = is.array(result) ? result[0] : result
+
+  return {
+    path: uriToPath(uri),
+    line: range.start.line,
+    column: range.start.character,
+  }
+}
+
 const getLocationContentsMap = async (locations: Location[]) => {
   const locationsGroupedByPath = locations.reduce((group, ref) => {
     const path = uriToPath(ref.uri)
