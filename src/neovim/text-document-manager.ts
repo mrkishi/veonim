@@ -106,7 +106,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       notifyChange(changeEvent)
     })
 
-    nvim.current.buffer.onDetach(() => {
+    buffer.onDetach(() => {
       openDocuments.delete(name)
       sentDidOpen.delete(name)
       watchers.emit('didClose', {
