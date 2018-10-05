@@ -60,21 +60,51 @@ export interface HyperspaceCoordinates {
   path?: string
 }
 
+export interface BufferChangeEvent {
+  /** buffer filetype at the time of the change event */
+  filetype: string
+  /** value of |b:changedtick| for the buffer. If you send an API
+  command back to nvim you can check the value of |b:changedtick| as part of
+  your request to ensure that no other changes have been made. */
+  changedTick: number
+  /** integer line number of the first line that was replaced.
+  Zero-indexed: if line 1 was replaced then {firstline} will be 0, not 1.
+  {firstline} is always less than or equal to the number of lines that were in
+  the buffer before the lines were replaced. */
+  firstLine: number
+  /** integer line number of the first line that was not replaced
+  (i.e. the range {firstline}, {lastline} is end-exclusive).  Zero-indexed: if
+  line numbers 2 to 5 were replaced, this will be 5 instead of 6. lastLine is
+  always be less than or equal to the number of lines that were in the buffer
+  before the lines were replaced. {lastline} will be -1 if the event is part of
+  the initial update after attaching. */
+  lastLine: number
+  /** list of strings containing the contents of the new buffer
+  lines. Newline characters are omitted; empty lines are sent as empty strings. */
+  lineData: string[]
+  /** {more} boolean, true for a "multipart" change notification: the current
+  change was chunked into multiple |nvim_buf_lines_event| notifications (e.g.
+  because it was too big). */
+  more: boolean
+}
+
 export interface BufferEvent {
-  bufAdd: void
-  bufLoad: void
-  bufUnload: void
-  bufChange: void
-  bufChangeInsert: void
-  bufWrite: void
+  bufOpen: Buffer
+  bufLoad: Buffer
+  bufChange: Buffer
+  bufChangeInsert: Buffer
+  bufWrite: Buffer
+  bufWritePre: Buffer
+  bufClose: Buffer
   cursorMove: void
-  cursorMoveInsert: boolean
+  cursorMoveInsert: void
   completion: string
   termEnter: void
   termLeave: void
   insertLeave: void
   insertEnter: void
   winEnter: number
+  filetype: string
 }
 
 export interface Color {
@@ -97,6 +127,9 @@ export interface Buffer {
   name: Promise<string>
   length: Promise<number>
   changedtick: Promise<number>
+  attach(options: { sendInitialBuffer: boolean }, onEventFn: (event: BufferChangeEvent) => void): void
+  detach(): void
+  onDetach(onDetachFn: () => void): void
   append(start: number, lines: string | string[]): void
   getAllLines(): Promise<string[]>
   getLines(start: number, end: number): Promise<string[]>

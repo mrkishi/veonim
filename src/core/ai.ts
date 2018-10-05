@@ -1,5 +1,5 @@
+import { filetypeDetectedStartServerMaybe } from '../langserv/director'
 import { getSignatureHint } from '../ai/signature-hint'
-import * as updateService from '../ai/update-server'
 import { getCompletions } from '../ai/completions'
 import colorizer from '../services/colorizer'
 import nvim from '../core/neovim'
@@ -11,40 +11,19 @@ import '../ai/symbols'
 import '../ai/rename'
 import '../ai/hover'
 
-// TODO: temp hack to fix langservers not recv didOpen events
-// when sourcing a vim session
-import { onServerStart } from '../langserv/director'
-
-onServerStart(async () => {
-  const buffers = await nvim.buffers.list()
-  const bufs = await Promise.all(buffers.map(async b => ({
-    ...b,
-    name: await b.name,
-    filetype: await b.getOption('filetype'),
-  })))
-
-  bufs.forEach(async b => {
-    const lines = await b.getAllLines()
-    updateService.update({
-      lines: lines as any,
-      name: b.name,
-      filetype: b.filetype,
-    })
-  })
-})
-
+nvim.on.filetype(filetype => filetypeDetectedStartServerMaybe(nvim.state.cwd, filetype))
 nvim.watchState.colorscheme((color: string) => colorizer.call.setColorScheme(color))
 
-nvim.on.bufAdd(() => updateService.update({ bufferOpened: true }))
-nvim.on.bufLoad(() => updateService.update())
-nvim.on.bufChange(() => updateService.update())
-
-// using cursor move with a diff on revision number because we might need to
-// update the lang server before triggering completions/hint lookups. using
-// textChangedI + cursorMovedI would make it very difficult to wait in cursorMovedI
-// until textChangedI ran AND updated the server
-nvim.on.cursorMoveInsert(async (bufferModified) => {
-  if (bufferModified) await updateService.update({ lineChange: true })
+nvim.on.cursorMoveInsert(async () => {
+  // tried to get the line contents from the render grid buffer, but it appears
+  // this autocmd gets fired before the grid gets updated from the render event.
+  // once we add a setImmediate to wait for render pass, we're back to the same
+  // amount of time it took to simply query nvim with 'get_current_line'
+  //
+  // if we had a nvim notification for mode change, we could send events after
+  // a render pass. this event would then contain both the current window grid
+  // contents + current vim mode. we could then easily improve this action here
+  // and perhaps others in the app
   const lineContent = await nvim.getCurrentLine()
   getCompletions(lineContent, nvim.state.line, nvim.state.column)
   getSignatureHint(lineContent)

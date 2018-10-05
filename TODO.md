@@ -21,6 +21,8 @@
 
 ## planned - upcoming
 
+- investigate if we can get a nvim event indicating mode change (this is kind of an annoying pain right now to determine current nvim mode)
+
 - test project + files
   - create some test project + files used for testing and demo screenshots
   - create a start script:
@@ -242,6 +244,8 @@ menus. e.g. (floating windows maybe?)
   - new alternate TS langserv seems to have parent symbol info...
 
 ## crazy experimental ideas
+
+- i wonder how much overhead the vim-startup stuff adds to the render loop. i.e. is neovim's pipeline affected by all our autocmds and other garbage we have setup? would have to benchmark an empty nvim vs veonim scripts. now that we have the ability to have neovim api multithreaded, can we somehow keep the main stdout connection clean of events?
 
 - interactive `:norm` or `:g//norm` (:inccommand but for normal commands)
   - make a selection (like inside an object) then run a series of normal commands on that selection. interactive because actions happen on all applicable lines. same idea as multiple cursor, but without the suck. macros can do this, but are clunky, non-interactive, and error prone. personally i feel macros are more useful for a large amount of complex changes. regex is slow and it sucks

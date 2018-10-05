@@ -3,14 +3,15 @@ import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
 import { currentWindowElement } from '../core/windows'
 import { showCursorline } from '../core/cursor'
-import { finder } from '../ai/update-server'
 import Input from '../components/text-input'
 import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
+import Worker from '../messaging/worker'
 import { makel } from '../ui/vanilla'
 import { app, h } from '../ui/uikit'
 import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
+
 
 interface FilterResult {
   line: string,
@@ -27,6 +28,8 @@ interface FilterResult {
 interface ColorizedFilterResult extends FilterResult {
   colorizedLine: ColorData[]
 }
+
+export const finder = Worker('buffer-search')
 
 const cursor = (() => {
   let position = [0, 0]
@@ -101,7 +104,7 @@ const actions = {
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
-    finder.request.fuzzy(nvim.state.cwd, nvim.state.file, query).then(async (res: FilterResult[]) => {
+    finder.request.fuzzy(nvim.state.absoluteFilepath, query).then(async (res: FilterResult[]) => {
       if (!res.length) return a.updateResults([])
 
       const textLines = res.map(m => m.line)

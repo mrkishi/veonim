@@ -1,13 +1,13 @@
-import { StreamMessageReader, StreamMessageWriter, createProtocolConnection,
-  ProtocolConnection } from 'vscode-languageserver-protocol'
+import { TextDocumentSyncKind, StreamMessageReader, StreamMessageWriter, createProtocolConnection, ProtocolConnection } from 'vscode-languageserver-protocol'
 import { DebugConfiguration, collectDebuggersFromExtensions,
   getAvailableDebuggers, getLaunchConfigs, resolveConfigurationByProviders,
   getDebuggerConfig } from '../extensions/debuggers'
 import { ExtensionInfo, Extension, ActivationEventType,
   Disposable, activateExtension } from '../extensions/extensions'
 import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/debug-protocol'
-import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge } from '../support/utils'
-import WorkerClient from '../messaging/worker-client'
+import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge, CreateTask, Task } from '../support/utils'
+import updateLanguageServersWithTextDocuments from '../langserv/update-server'
+import { on, call, request } from '../messaging/worker-client'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
 import LocalizeFile from '../support/localize'
@@ -40,19 +40,17 @@ interface ServerBridgeParams {
   params: any[]
 }
 
-const { on, call, request } = WorkerClient()
+interface LanguageServer extends ProtocolConnection {
+  textSyncKind: TextDocumentSyncKind
+  pauseTextSync: boolean
+  initializeTask: Task<void>
+  untilInitialized: Promise<void>
+}
+
 const extensions = new Set<Extension>()
 const languageExtensions = new Map<string, Extension>()
-const runningLangServers = new Map<string, ProtocolConnection>()
+const runningLangServers = new Map<string, LanguageServer>()
 const runningDebugAdapters = new Map<string, DebugAdapterConnection>()
-
-on.sessionCreate((id: number, path: string) => {
-  console.log('ext: session created:', id, path)
-})
-
-on.sessionSwitch((id: number) => {
-  console.log('ext: session switch:', id)
-})
 
 on.load(() => load())
 
@@ -89,12 +87,28 @@ const getDebugAdapter = (id: string) => {
   return server
 }
 
-on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
-  getServer(serverId).sendNotification(method as any, ...params)
+const getTextSyncKind = ({ capabilities: c }: any): TextDocumentSyncKind => {
+  const syncKind = pleaseGet(c).textDocumentSync()
+  if (syncKind == null) return TextDocumentSyncKind.None
+  if (is.number(syncKind)) return syncKind
+  return pleaseGet(c).textDocumentSync.change(TextDocumentSyncKind.None)
+}
+
+on.server_setTextSyncState((serverId: string, syncState: boolean) => {
+  getServer(serverId).pauseTextSync = syncState
 })
 
-on.server_sendRequest(({ serverId, method, params }: ServerBridgeParams) => {
-  return getServer(serverId).sendRequest(method, ...params)
+on.server_sendNotification(({ serverId, method, params }: ServerBridgeParams) => {
+  const server = getServer(serverId)
+  if (method === 'initialized') server.initializeTask.done(undefined)
+  server.sendNotification(method as any, ...params)
+})
+
+on.server_sendRequest(async ({ serverId, method, params }: ServerBridgeParams) => {
+  const server = getServer(serverId)
+  const response = await server.sendRequest(method, ...params)
+  if (method === 'initialize') server.textSyncKind = getTextSyncKind(response)
+  return response
 })
 
 on.server_onNotification(({ serverId, method }: ServerBridgeParams) => {
@@ -228,7 +242,15 @@ const connectRPCServer = (proc: ChildProcess): string => {
 
   conn.listen()
 
-  runningLangServers.set(serverId, conn)
+  const initializeTask = CreateTask()
+
+  Object.assign(conn, {
+    initializeTask,
+    pauseTextSync: false,
+    untilInitialized: initializeTask.promise,
+  })
+
+  runningLangServers.set(serverId, conn as LanguageServer)
   return serverId
 }
 
@@ -259,7 +281,11 @@ const activate = {
     }
 
     const proc: ChildProcess = await serverActivator
-    return connectRPCServer(proc)
+    const serverId = connectRPCServer(proc)
+    // TODO: register updater dispose and call it when langserv is gone.
+    console.log('activate language:', language)
+    updateLanguageServersWithTextDocuments(getServer(serverId), language)
+    return serverId
   },
 }
 

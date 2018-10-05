@@ -1,5 +1,5 @@
-import { DebugConfigurationProvider, registerDebugConfigProvider } from '../extensions/debuggers'
 import fakeModule from '../support/fake-module'
+import vscode from '../vscode/api'
 
 type LogMissingModuleApi = (moduleName: string, apiPath: string) => void
   let logMissingModuleApiDuringDevelopment: LogMissingModuleApi = () => {}
@@ -27,64 +27,7 @@ const LanguageClient = class LanguageClient {
   }
 }
 
-const commands = {
-  registerCommand: (command: string, callback: (args: any[]) => any, thisArg?: any) => {
-    console.log('pls register cmd:', command, callback, thisArg)
-    // TODO: i'm guessing we just register this as a Veonim action?
-    // we will need to pass this back to main thread to talk with neovim
-    // if we are within the context of a web worker (right now this is YES)
-    // action(command, callback)
-    return () => console.warn('NYI: this is a NYI Disposable that is supposed to unregister the command:', command)
-  }
-}
-
-const debug = {
-  registerDebugConfigurationProvider: (debugType: string, provider: DebugConfigurationProvider) => {
-    registerDebugConfigProvider(debugType, provider)
-    return () => console.warn('NYI: dispoosesssese the debug provider pls kthx!')
-  },
-  // TODO: type these functions as 'DebugSession'. see api
-  // https://code.visualstudio.com/docs/extensionAPI/vscode-api#_debug
-  onDidStartDebugSession: (fn: Function) => {
-    console.warn('NYI: onDidStartDebugSession register event callback', fn)
-  },
-  onDidTerminateDebugSession: (fn: Function) => {
-    console.warn('NYI: onDidTerminateDebugSession register event callback', fn)
-  },
-}
-
-const window = {
-  // TODO: implement these
-  activeTextEditor: {
-    document: {
-      languageId: 'javascript'
-    }
-
-  },
-  showErrorMessage: () => {
-
-  },
-}
-
-const workspace = {
-  // TODO: implement these
-  textDocuments: [],
-  getWorkspaceFolder: (uri: string) => {
-    console.warn('NYI: vscode.workspace.getWorkspaceFolder for uri', uri)
-    return '/Users/a/proj/veonim'
-  },
-  asRelativePath: (uri: string) => {
-    console.warn('NYI: vscode.workspace.asRelativePath for uri:', uri)
-    return './'
-  },
-}
-
-fakeModule('vscode', {
-  debug,
-  commands,
-  workspace,
-  window,
-}, logMissingModuleApiDuringDevelopment)
+fakeModule('vscode', vscode, logMissingModuleApiDuringDevelopment)
 
 fakeModule('vscode-languageclient', {
   LanguageClient,

@@ -5,10 +5,10 @@ import transformCompletions from '../ai/completion-transforms'
 import { getTriggerChars } from '../langserv/server-features'
 import * as completionUI from '../components/autocomplete'
 import toVSCodeLanguage from '../langserv/vsc-languages'
-import { harvester, update } from '../ai/update-server'
 import * as ai from '../langserv/server-features'
 import { sub } from '../messaging/dispatch'
 import { filter } from 'fuzzaldrin-plus'
+import Worker from '../messaging/worker'
 import { cursor } from '../core/cursor'
 import { join, dirname } from 'path'
 import nvim from '../core/neovim'
@@ -33,6 +33,7 @@ export interface CompletionOption {
   raw?: CompletionItem,
 }
 
+const harvester = Worker('harvester')
 const MAX_SEARCH_RESULTS = 50
 const cache: Cache = {
   semanticCompletions: new Map(),
@@ -190,7 +191,7 @@ const getCompletions = async (lineContent: string, line: number, column: number)
     const queryCased = smartCaseQuery(query)
     const pendingKeywords = harvester
       .request
-      .query(nvim.state.cwd, nvim.state.file, queryCased, MAX_SEARCH_RESULTS)
+      .query(nvim.state.absoluteFilepath, queryCased, MAX_SEARCH_RESULTS)
       .then((res: string[]) => res.map(text => ({ text, insertText: text, kind: CompletionItemKind.Text })))
 
     // TODO: does it make sense to combine keywords with semantic completions? - right now it's either or...
@@ -222,11 +223,9 @@ nvim.on.insertLeave(async () => {
   cache.activeCompletion = ''
   cache.semanticCompletions.clear()
   completionUI.hide()
-  update()
 })
 
-nvim.on.completion(word => {
-  harvester.call.add(nvim.state.cwd, nvim.state.file, word)
+nvim.on.completion(() => {
   nvim.g.veonim_completing = 0
   nvim.g.veonim_completions = []
 })

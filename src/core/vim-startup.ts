@@ -51,26 +51,25 @@ const stateEvents = [
   'FileType',
   'ColorScheme',
   'DirChanged',
-  // TODO: can probably remove these events and the state.revision prop
-  // once we get buf notifications from nvim going
-  'TextChanged',
-  'TextChangedI'
 ]
 
 const autocmds = {
-  BufAdd: null,
-  BufEnter: null,
-  BufDelete: null,
-  BufUnload: null,
-  BufWipeout: null,
-  BufWritePost: null,
-  TextChanged: null,
+  BufAdd: `expand('<abuf>')`,
+  BufEnter: `expand('<abuf>')`,
+  BufDelete: `expand('<abuf>')`,
+  BufUnload: `expand('<abuf>')`,
+  BufWipeout: `expand('<abuf>')`,
+  BufWritePre: `expand('<abuf>')`,
+  BufWritePost: `expand('<abuf>')`,
   CursorMoved: null,
   CursorMovedI: null,
-  CompleteDone: 'v:completed_item',
+  CompleteDone: `v:completed_item`,
   InsertEnter: null,
   InsertLeave: null,
+  TextChanged: `b:changedtick`,
+  TextChangedI: `b:changedtick`,
   OptionSet: `expand('<amatch>'), v:option_new, v:option_old`,
+  FileType: `bufnr(expand('<afile>')), expand('<amatch>')`,
   WinEnter: `win_getid()`,
 }
 
@@ -124,6 +123,7 @@ startup.defineFunc.VeonimState`
   let m.bufferType = getbufvar(currentBuffer, '&buftype')
   let m.editorTopLine = line('w0')
   let m.editorBottomLine = line('w$')
+  let m.absoluteFilepath = expand('%:p')
   return m
 `
 

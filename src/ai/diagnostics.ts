@@ -120,15 +120,6 @@ const refreshProblemHighlights = async () => {
   buffer.highlightProblems(problems)
 }
 
-onDiagnostics(async m => {
-  const path = uriToPath(m.uri)
-  cache.currentBuffer = path
-  updateDiagnostics(path, m.diagnostics)
-  dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
-  if (cache.diagnostics.size) updateUI()
-  refreshProblemHighlights()
-})
-
 nvim.onAction('show-problem', async () => {
   const { line, column, cwd, file } = nvim.state
   const diagnostics = current.diagnostics.get(path.join(cwd, file))
@@ -195,6 +186,15 @@ nvim.on.cursorMove(async () => {
 export const runCodeAction = (action: Command) => executeCommand(nvim.state, action)
 
 nvim.onAction('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
+
+onDiagnostics(async m => {
+  const path = uriToPath(m.uri)
+  cache.currentBuffer = path
+  updateDiagnostics(path, m.diagnostics)
+  dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
+  if (cache.diagnostics.size) updateUI()
+  refreshProblemHighlights()
+})
 
 onSwitchVim(() => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))

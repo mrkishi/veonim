@@ -1,7 +1,6 @@
 import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../neovim/protocol'
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
-import { InventoryAction } from '../core/inventory-layers'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { Autocmd, Autocmds } from '../core/vim-startup'
 import { watchConfig } from '../config/config-reader'
@@ -22,16 +21,15 @@ export interface Neovim extends NeovimRPC {
   onSwitchVim: (fn: () => void) => void
 }
 
-export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => {
+const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => {
   const registeredEventActions = new Set<string>()
   const { state, watchState, onStateChange, onStateValue, untilStateValue } = CreateVimState('main')
-  const inventory = new Map<string, InventoryAction>()
-  console.log('NYI: inventory', inventory)
 
   const watchers = {
     actions: Watcher<GenericEvent>(),
     events: Watcher<BufferEvent>(),
     autocmds: Watcher<Autocmd>(),
+    bufferEvents: Watcher<GenericEvent>(),
   }
 
   const req = {
@@ -94,7 +92,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
   }
 
-  // TODO: deprecate with buf notifications?
   const getCurrentLine = () => req.core.getCurrentLine()
 
   const getNamedBuffers = async () => {
@@ -258,7 +255,8 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   })
 
   type BufferEvents = keyof BufferEvent
-  type OnEvent = { [Key in BufferEvents]: (fn: (value: BufferEvent[Key]) => void) => void }
+  type RemoveListener = () => void
+  type OnEvent = { [Key in BufferEvents]: (fn: (value: BufferEvent[Key]) => void) => RemoveListener }
   const on: OnEvent = new Proxy(Object.create(null), {
     get: (_, event: BufferEvents) => (fn: any) => watchers.events.on(event, fn)
   })
@@ -313,7 +311,7 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   // maybe any buffered notifications only needed for main thread anyways
   const processBufferedActions = async () => {
     const bufferedActions = await g.vn_rpc_buf
-    if (!bufferedActions.length) return
+    if (!bufferedActions || !bufferedActions.length) return
     bufferedActions.forEach(([event, ...args]) => watchers.actions.emit(event, ...args))
     g.vn_rpc_buf = []
   }
@@ -335,13 +333,43 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
   watchConfig('nvim/init.vim', refreshOptions)
 
   onCreateVim(() => {
+    // keeping this per instance of nvim, because i think it is reasonable to
+    // expect that the same document filepath could have different filetypes in
+    // different vim instances
+    const documentFiletypes = new Map<number, string>()
+    const registerFiletype = ((bufnr: number, filetype: string) => {
+      documentFiletypes.set(bufnr, filetype)
+    })
+
     const events = [...registeredEventActions.values()].join('\\n')
     cmd(`let g:vn_cmd_completions .= "${events}\\n"`)
 
     subscribe('veonim', ([ event, args = [] ]) => watchers.actions.emit(event, ...args))
     subscribe('veonim-state', ([ nextState ]) => Object.assign(state, nextState))
     subscribe('veonim-position', ([ position ]) => Object.assign(state, position))
-    subscribe('veonim-autocmd', ([ autocmd, ...arg ]) => watchers.autocmds.emit(autocmd, ...arg))
+    subscribe('veonim-autocmd', ([ autocmd, ...arg ]) => {
+      // TODO: should really provide a way to scope autocmds to the current vim instance...
+      if (autocmd === 'FileType') registerFiletype(arg[0], arg[1])
+      watchers.autocmds.emit(autocmd, ...arg)
+    })
+
+    onEvent('nvim_buf_detach_event', (args: any[]) => {
+      watchers.bufferEvents.emit(`detach:${args[0].id}`)
+    })
+
+    onEvent('nvim_buf_lines_event', (args: any[]) => {
+      const [ extContainerData, changedTick, firstLine, lastLine, lineData, more ] = args
+      const bufId = extContainerData.id
+
+      watchers.bufferEvents.emit(`change:${bufId}`, {
+        filetype: documentFiletypes.get(bufId),
+        changedTick,
+        firstLine,
+        lastLine,
+        lineData,
+        more,
+      })
+    })
 
     processBufferedActions()
     refreshState()
@@ -355,28 +383,29 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
 
   autocmd.CompleteDone(word => watchers.events.emit('completion', word))
   autocmd.CursorMoved(() => watchers.events.emit('cursorMove'))
-  autocmd.BufAdd(() => watchers.events.emit('bufAdd'))
-  autocmd.BufEnter(() => watchers.events.emit('bufLoad'))
-  autocmd.BufDelete(() => watchers.events.emit('bufUnload'))
-  autocmd.BufWritePost(() => watchers.events.emit('bufWrite'))
+  autocmd.CursorMovedI(() => watchers.events.emit('cursorMoveInsert'))
+  autocmd.BufAdd(bufId => watchers.events.emit('bufOpen', Buffer(bufId-0)))
+  autocmd.BufEnter(bufId => watchers.events.emit('bufLoad', Buffer(bufId-0)))
+  autocmd.BufWritePre(bufId => watchers.events.emit('bufWritePre', Buffer(bufId-0)))
+  autocmd.BufWritePost(bufId => watchers.events.emit('bufWrite', Buffer(bufId-0)))
+  autocmd.BufWipeout(bufId => watchers.events.emit('bufClose', Buffer(bufId-0)))
   autocmd.InsertEnter(() => watchers.events.emit('insertEnter'))
   autocmd.InsertLeave(() => watchers.events.emit('insertLeave'))
   autocmd.OptionSet((name: string, value: any) => options.set(name, value))
-  autocmd.WinEnter((id: number) => watchers.events.emit('winEnter', id))
+  autocmd.FileType((_, filetype: string) => watchers.events.emit('filetype', filetype))
 
-  // TODO: would like to abstract this buffer change stuff away into a cleaner
-  // solution especially since we now have buffer change notifications in nvim
-  autocmd.TextChanged(() => watchers.events.emit('bufChange'))
-  let lastRevision: number
-  autocmd.CursorMovedI(async () => {
-    const prevRevision = lastRevision
-    const currentRevision = await expr(`b:changedtick`)
-    lastRevision = currentRevision
-
-    if (prevRevision !== currentRevision) watchers.events.emit('bufChangeInsert')
-    // TODO: do we need that last argument there???
-    watchers.events.emit('cursorMoveInsert', prevRevision !== state.revision)
+  autocmd.TextChanged(revision => {
+    state.revision = revision-0
+    watchers.events.emit('bufChange', current.buffer)
   })
+
+  autocmd.TextChangedI(revision => {
+    state.revision = revision-0
+    watchers.events.emit('bufChangeInsert', current.buffer)
+  })
+
+  // TODO: i think we should just determine this from render events
+  autocmd.WinEnter((id: number) => watchers.events.emit('winEnter', id))
 
   const HL_CLR = 'nvim_buf_clear_highlight'
   const HL_ADD = 'nvim_buf_add_highlight'
@@ -388,6 +417,22 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     get name() { return req.buf.getName(id) },
     get length() { return req.buf.lineCount(id) },
     get changedtick() { return req.buf.getChangedtick(id) },
+    attach: ({ sendInitialBuffer }, cb) => {
+      const removeChangeListener = watchers.bufferEvents.on(`change:${id}`, cb)
+      req.buf.attach(id, sendInitialBuffer, {}).then(attached => {
+        if (!attached) return console.error('could not attach to buffer:', id)
+      })
+      watchers.bufferEvents.once(`detach:${id}`, removeChangeListener)
+    },
+    onDetach: onDetachFn => {
+      watchers.bufferEvents.once(`detach:${id}`, onDetachFn)
+    },
+    detach: () => {
+      watchers.bufferEvents.remove(`change:${id}`)
+      req.buf.detach(id).then(detached => {
+        if (!detached) console.error('could not detach from buffer:', id)
+      })
+    },
     append: async (start, lines) => {
       const replacement = is.array(lines) ? lines as string[] : [lines as string]
       const linesBelow = await req.buf.getLines(id, start + 1, -1, false)
@@ -460,3 +505,6 @@ export default ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) 
     getCurrentLine, jumpTo, jumpToProjectFile, getColor, systemAction, current,
     g, on, untilEvent, applyPatches, buffers, windows, tabs, options: readonlyOptions }
 }
+
+export default api
+export type NeovimAPI = ReturnType<typeof api>

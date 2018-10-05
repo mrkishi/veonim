@@ -124,6 +124,10 @@ const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
   return startServer(cwd, language, filetype)
 }
 
+export const filetypeDetectedStartServerMaybe = (cwd: string, filetype: string) => {
+  getServerForProjectAndLanguage({ cwd, filetype })
+}
+
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
   if (!params.filetype) return
   const server = await getServerForProjectAndLanguage(params)
@@ -136,6 +140,15 @@ export const notify = async (method: string, params: any, { bufferCallIfServerSt
   const server = await getServerForProjectAndLanguage(params)
   if (server) server.sendNotification(method, params)
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Notification, method, params })
+}
+
+export const setTextSyncState = (pauseTextSync: boolean, params: ServKey) => {
+  if (!params.filetype) return
+  const language = toVSCodeLanguage(params.filetype)
+  const server = servers.get(params.cwd + language)
+  if (!server) return console.error('failed to setTextSyncState because langserver does not exist')
+
+  server.setTextSyncState(pauseTextSync)
 }
 
 export const onServerStart = (fn: (server: extensions.RPCServer, language: string) => void) => {

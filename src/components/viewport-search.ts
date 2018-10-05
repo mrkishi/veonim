@@ -1,6 +1,6 @@
 import { divinationSearch } from '../components/divination'
 import { currentWindowElement } from '../core/windows'
-import { finder } from '../ai/update-server'
+import { finder } from '../components/buffer-search'
 import Input from '../components/text-input'
 import { rgba, paddingV } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
