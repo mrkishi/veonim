@@ -15,6 +15,7 @@ onSwitchVim(switchTo)
 const nvim = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
 const tdm = TextDocumentManager(nvim)
 const keywords = new Map<string, string[]>()
+let isInsertMode = false
 
 const addKeyword = (file: string, word: string) => {
   const e = keywords.get(file) || []
@@ -23,6 +24,8 @@ const addKeyword = (file: string, word: string) => {
 }
 
 const harvest = (file: string, buffer: string[]) => {
+  if (isInsertMode) return
+
   const harvested = new Set<string>()
   const totalol = buffer.length
 
@@ -39,6 +42,9 @@ const harvest = (file: string, buffer: string[]) => {
   const nextKeywords = new Set([...keywords.get(file) || [], ...harvested])
   keywords.set(file, [...nextKeywords])
 }
+
+nvim.on.insertEnter(() => isInsertMode = true)
+nvim.on.insertLeave(() => isInsertMode = false)
 
 tdm.on.didOpen(({ name, textLines }) => harvest(name, textLines))
 tdm.on.didChange(({ name, textLines }) => harvest(name, textLines))
