@@ -63,6 +63,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const watchers = new EventEmitter()
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
+  const dsp = new Set()
 
   const subscribeToBufferChanges = (buffer: Buffer, name: string) => {
     if (!name || openDocuments.has(name)) return
@@ -122,28 +123,28 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     subscribeToBufferChanges(buffer, name)
   }
 
-  nvim.on.bufOpen(openBuffer)
+  dsp.add(nvim.on.bufOpen(openBuffer))
 
-  nvim.on.bufLoad(() => {
+  dsp.add(nvim.on.bufLoad(() => {
     if (invalidFiletype(nvim.state.filetype)) return
     subscribeToBufferChanges(nvim.current.buffer, nvim.state.absoluteFilepath)
-  })
+  }))
 
-  nvim.on.bufWritePre(() => {
+  dsp.add(nvim.on.bufWritePre(() => {
     if (invalidFiletype(nvim.state.filetype)) return
     watchers.emit('willSave', {
       name: nvim.state.absoluteFilepath,
       uri: `file://${nvim.state.absoluteFilepath}`,
     } as Doc)
-  })
+  }))
 
-  nvim.on.bufWrite(() => {
+  dsp.add(nvim.on.bufWrite(() => {
     if (invalidFiletype(nvim.state.filetype)) return
     watchers.emit('didSave', {
       name: nvim.state.absoluteFilepath,
       uri: `file://${nvim.state.absoluteFilepath}`,
     } as Doc)
-  })
+  }))
 
   const on = {
     didOpen: (fn: On<DidOpen>) => watchers.on('didOpen', fn),
@@ -153,10 +154,13 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     didClose: (fn: On<Doc>) => watchers.on('didClose', fn),
   }
 
-  // TODO: please dispose TextDocumentManager
-  // detach from buffers and cleanup
   const dispose = () => {
-    console.warn('NYI: dipose TextDocumentManager')
+    watchers.removeAllListeners()
+    dsp.forEach(dispose => dispose())
+    dsp.clear()
+    filetypes.clear()
+    openDocuments.clear()
+    sentDidOpen.clear()
   }
 
   return { on, dispose, manualBindBuffer: openBuffer }
