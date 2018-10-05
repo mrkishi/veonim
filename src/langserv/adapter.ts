@@ -57,8 +57,8 @@ const filterWorkspaceSymbols = (symbols: Symbol[]): Symbol[] => {
 
 // TODO: get typings for valid requests?
 const toProtocol = (data: NeovimState, more?: any) => {
-  const { cwd, filetype, file, line, column: character, revision } = data
-  const uri = `file://${path.resolve(cwd, file)}`
+  const { cwd, filetype, absoluteFilepath, line, column: character, revision } = data
+  const uri = `file://${absoluteFilepath}`
 
   const base = {
     cwd,
