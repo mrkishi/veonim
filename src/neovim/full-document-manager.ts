@@ -70,13 +70,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       version: revision,
       uri: `file://${name}`,
       languageId: filetypeToLanguageID(filetype),
-      contentChanges: [{
-        range: {
-          start: { line: 0, character: 0 },
-          end: { line: currentBufferLines.length, character: 0 }
-        },
-        text: currentBufferLines.join('\n'),
-      }],
+      contentChanges: [{ text: currentBufferLines.join('\n') }],
     } as DidChange)
   }
 

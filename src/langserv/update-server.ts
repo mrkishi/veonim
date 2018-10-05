@@ -33,27 +33,16 @@ const updater = ({ server, languageId, initialBuffer, incremental }: UpdaterPara
 
   manualBindBuffer(initialBuffer)
 
-  on.didOpen(({ uri, version, languageId, textLines }) => send('didOpen', {
-    textDocument: {
-      uri,
-      version,
-      languageId,
-      text: textLines.join('\n'),
-    },
+  on.didOpen(({ uri, version, languageId, text }) => send('didOpen', {
+    textDocument: { uri, version, languageId, text },
   } as DidOpenTextDocumentParams))
 
-  on.didChange(({ uri, version, textChanges }) => {
+  on.didChange(({ uri, version, contentChanges }) => {
     if (server.pauseTextSync) return
 
-    const change = { text: textChanges.textLines.join('\n') }
-    if (incremental) Object.assign(change, { range: textChanges.range })
-
     send('didChange', {
-      textDocument: {
-        uri,
-        version,
-      },
-      contentChanges: [ change ],
+      textDocument: { uri, version },
+      contentChanges,
     } as DidChangeTextDocumentParams)
   })
 
