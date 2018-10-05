@@ -60,6 +60,7 @@ const nvimChangeToLSPChange = ({ firstLine, lastLine, lineData }: BufferChangeEv
 const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const openDocuments = new Set<string>()
   const sentDidOpen = new Set<string>()
+  const attachedBuffers = new Set<Buffer>()
   const watchers = new EventEmitter()
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
@@ -109,11 +110,14 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     buffer.onDetach(() => {
       openDocuments.delete(name)
       sentDidOpen.delete(name)
+      attachedBuffers.delete(buffer)
       watchers.emit('didClose', {
         name,
         uri: `file://${name}`,
       } as Doc)
     })
+
+    attachedBuffers.add(buffer)
   }
 
   const openBuffer = async (buffer: Buffer) => {
@@ -155,6 +159,8 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   }
 
   const dispose = () => {
+    attachedBuffers.forEach(buffer => buffer.detach())
+    attachedBuffers.clear()
     watchers.removeAllListeners()
     dsp.forEach(dispose => dispose())
     dsp.clear()
