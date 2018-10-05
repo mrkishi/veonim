@@ -1,6 +1,6 @@
+import { TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
 import filetypeToLanguageID from '../langserv/vsc-languages'
 import { BufferChangeEvent, Buffer } from '../neovim/types'
-import { Range } from 'vscode-languageserver-protocol'
 import { NeovimAPI } from '../neovim/api'
 import { EventEmitter } from 'events'
 
@@ -16,19 +16,42 @@ interface DocInfo extends Doc {
 }
 
 interface DidOpen extends DocInfo {
-  textLines: string[]
-}
-
-interface TextChange {
-  range: Range,
-  textLines: string[],
+  text: string
 }
 
 interface DidChange extends DocInfo {
-  textChanges: TextChange
+  contentChanges: TextDocumentContentChangeEvent[]
 }
 
 type On<T> = (params: T) => void
+
+const nvimChangeToLSPChange = ({ firstLine, lastLine, lineData }: BufferChangeEvent): TextDocumentContentChangeEvent[] => {
+  const isEmpty = !lineData.length
+  const range = {
+    start: { line: firstLine, character: 0 },
+    end: { line: lastLine, character: 0 },
+  }
+
+  if (isEmpty) return [{ range, text: '' }]
+
+  const replaceOP = !isEmpty && lastLine - firstLine === 1
+
+  if (replaceOP) return [{
+    range,
+    text: '',
+  }, {
+    range: {
+      start: { line: firstLine, character: 0 },
+      end: { line: firstLine, character: 0 },
+    },
+    text: `${lineData[0]}\n`
+  }]
+
+  return [{
+    range,
+    text: lineData.map(line => `${line}\n`).join(''),
+  }]
+}
 
 const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const openDocuments = new Set<string>()
@@ -49,25 +72,20 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
         version: changedTick,
         uri: `file://${name}`,
         languageId: filetypeToLanguageID(filetype),
-        textLines: lineData
+        text: lineData.join('\n'),
       } as DidOpen)
     }
 
-    const notifyChange = ({ filetype, lineData, changedTick, firstLine, lastLine }: BufferChangeEvent) => {
-      const range = {
-        start: { line: firstLine, character: 0 },
-        end: { line: lastLine, character: 0 },
-      }
-
-      const textChanges: TextChange = { textLines: lineData, range }
+    const notifyChange = (change: BufferChangeEvent) => {
+      const { filetype, changedTick: version } = change
 
       watchers.emit('didChange', {
         name,
+        version,
         filetype,
-        version: changedTick,
         uri: `file://${name}`,
         languageId: filetypeToLanguageID(filetype),
-        textChanges,
+        contentChanges: nvimChangeToLSPChange(change),
       } as DidChange)
     }
 
