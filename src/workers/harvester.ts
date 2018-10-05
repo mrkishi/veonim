@@ -41,7 +41,7 @@ const harvest = (file: string, buffer: string[]) => {
 }
 
 tdm.on.didOpen(({ name, textLines }) => harvest(name, textLines))
-tdm.on.didChange(({ name, textChanges }) => harvest(name, textChanges.textLines))
+tdm.on.didChange(({ name, textLines }) => harvest(name, textLines))
 tdm.on.didClose(({ name }) => keywords.delete(name))
 
 on.add((file: string, word: string) => addKeyword(file, word))

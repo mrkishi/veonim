@@ -17,10 +17,12 @@ interface DocInfo extends Doc {
 
 interface DidOpen extends DocInfo {
   text: string
+  textLines: string[]
 }
 
 interface DidChange extends DocInfo {
   contentChanges: TextDocumentContentChangeEvent[]
+  textLines: string[]
 }
 
 interface NotifyParams {
@@ -49,6 +51,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       filetype,
       version: revision,
       uri: `file://${name}`,
+      textLines: currentBufferLines,
       text: currentBufferLines.join('\n'),
       languageId: filetypeToLanguageID(filetype),
     } as DidOpen)
@@ -69,6 +72,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       filetype,
       version: revision,
       uri: `file://${name}`,
+      textLines: currentBufferLines,
       languageId: filetypeToLanguageID(filetype),
       contentChanges: [{ text: currentBufferLines.join('\n') }],
     } as DidChange)
@@ -115,6 +119,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
 
   nvim.on.bufWritePre(() => {
     if (invalidFiletype(nvim.state.filetype)) return
+
     watchers.emit('willSave', {
       name: nvim.state.absoluteFilepath,
       uri: `file://${nvim.state.absoluteFilepath}`,
@@ -123,6 +128,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
 
   nvim.on.bufWrite(() => {
     if (invalidFiletype(nvim.state.filetype)) return
+
     watchers.emit('didSave', {
       name: nvim.state.absoluteFilepath,
       uri: `file://${nvim.state.absoluteFilepath}`,
@@ -133,6 +139,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     const name = await buffer.name
     if (!name) return
     openDocuments.delete(name)
+
     watchers.emit('didClose', {
       name,
       uri: `file://${name}`,

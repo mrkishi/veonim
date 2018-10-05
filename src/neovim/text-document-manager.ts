@@ -17,10 +17,14 @@ interface DocInfo extends Doc {
 
 interface DidOpen extends DocInfo {
   text: string
+  textLines: string[]
 }
 
 interface DidChange extends DocInfo {
   contentChanges: TextDocumentContentChangeEvent[]
+  firstLine: number
+  lastLine: number
+  textLines: string[]
 }
 
 type On<T> = (params: T) => void
@@ -72,17 +76,21 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
         version: changedTick,
         uri: `file://${name}`,
         languageId: filetypeToLanguageID(filetype),
+        textLines: lineData,
         text: lineData.join('\n'),
       } as DidOpen)
     }
 
     const notifyChange = (change: BufferChangeEvent) => {
-      const { filetype, changedTick: version } = change
+      const { filetype, firstLine, lastLine, lineData: textLines, changedTick: version } = change
 
       watchers.emit('didChange', {
         name,
         version,
         filetype,
+        firstLine,
+        lastLine,
+        textLines,
         uri: `file://${name}`,
         languageId: filetypeToLanguageID(filetype),
         contentChanges: nvimChangeToLSPChange(change),
