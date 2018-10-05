@@ -1,5 +1,5 @@
+import { TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol'
 import filetypeToLanguageID from '../langserv/vsc-languages'
-import { Range } from 'vscode-languageserver-protocol'
 import { NeovimAPI } from '../neovim/api'
 import { Buffer } from '../neovim/types'
 import { EventEmitter } from 'events'
@@ -16,16 +16,11 @@ interface DocInfo extends Doc {
 }
 
 interface DidOpen extends DocInfo {
-  textLines: string[]
-}
-
-interface TextChange {
-  range: Range,
-  textLines: string[],
+  text: string
 }
 
 interface DidChange extends DocInfo {
-  textChanges: TextChange
+  contentChanges: TextDocumentContentChangeEvent[]
 }
 
 interface NotifyParams {
@@ -54,7 +49,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       filetype,
       version: revision,
       uri: `file://${name}`,
-      textLines: currentBufferLines,
+      text: currentBufferLines.join('\n'),
       languageId: filetypeToLanguageID(filetype),
     } as DidOpen)
   }
@@ -69,21 +64,19 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
     if (insertMode) await patchCurrentBufferLines(buffer)
     else currentBufferLines = await buffer.getAllLines()
 
-    const textChanges: TextChange = {
-      textLines: currentBufferLines,
-      range: {
-        start: { line: 0, character: 0 },
-        end: { line: currentBufferLines.length, character: 0 }
-      }
-    }
-
     watchers.emit('didChange', {
       name,
       filetype,
-      textChanges,
       version: revision,
       uri: `file://${name}`,
       languageId: filetypeToLanguageID(filetype),
+      contentChanges: [{
+        range: {
+          start: { line: 0, character: 0 },
+          end: { line: currentBufferLines.length, character: 0 }
+        },
+        text: currentBufferLines.join('\n'),
+      }],
     } as DidChange)
   }
 
