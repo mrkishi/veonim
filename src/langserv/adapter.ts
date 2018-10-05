@@ -18,6 +18,12 @@ export interface Reference {
   lineContents: string,
 }
 
+export interface EditorLocation {
+  path?: string
+  line?: number
+  column?: number
+}
+
 export interface Symbol {
   name: string,
   kind: SymbolKind,
@@ -87,7 +93,7 @@ export const textSync = {
 // this trickery is because sometimes (randomly) director.onDiagnostics was undefined?!
 export const onDiagnostics: typeof onDiags = (a: any) => onDiags(a)
 
-export const definition = async (data: NeovimState) => {
+export const definition = async (data: NeovimState): Promise<EditorLocation> => {
   const req = toProtocol(data)
   const result = await request('textDocument/definition', req)
   if (!result) return {}
@@ -100,7 +106,7 @@ export const definition = async (data: NeovimState) => {
   }
 }
 
-export const implementation = async (data: NeovimState) => {
+export const implementation = async (data: NeovimState): Promise<EditorLocation> => {
   const req = toProtocol(data)
   const result = await request('textDocument/implementation', req)
   if (!result) return {}
