@@ -15,22 +15,43 @@ onSwitchVim(switchTo)
 const nvim = Neovim({ ...rpcAPI, onCreateVim, onSwitchVim })
 const tdm = TextDocumentManager(nvim)
 const keywords = new Map<string, string[]>()
+const last = { file: '', changedLine: '' }
 let isInsertMode = false
 
-const addKeyword = (file: string, word: string) => {
+const addKeywords = (file: string, words: string[]) => {
   const e = keywords.get(file) || []
-  if (e.includes(word)) return
-  keywords.set(file, (e.push(word), e))
+  words.forEach(word => {
+    if (e.includes(word)) return
+    keywords.set(file, (e.push(word), e))
+  })
 }
 
-const harvest = (file: string, buffer: string[]) => {
-  if (isInsertMode) return
+const harvestInsertMode = (file: string, textLines: string[]) => {
+  const lastLine = textLines[textLines.length - 1]
+  const lastChar = lastLine[lastLine.length - 1]
+  Object.assign(last, { file, changedLine: lastLine })
+
+  const lastCharIsWord = /\w/.test(lastChar)
+  const linesWithWords = textLines.map(line => line.match(/\w+/g) || [])
+
+  const lastLineWithWords = linesWithWords[linesWithWords.length - 1]
+
+  if (lastCharIsWord) lastLineWithWords.pop()
+
+  const words = [...new Set(...linesWithWords)]
+  const sizeableWords = words.filter(w => w.length > 2)
+
+  addKeywords(file, sizeableWords)
+}
+
+const harvest = (file: string, textLines: string[]) => {
+  if (isInsertMode) return harvestInsertMode(file, textLines)
 
   const harvested = new Set<string>()
-  const totalol = buffer.length
+  const totalol = textLines.length
 
   for (let ix = 0; ix < totalol; ix++) {
-    const words = buffer[ix].match(/[A-Za-z]\w+/g) || []
+    const words = textLines[ix].match(/\w+/g) || []
     const wordsTotal = words.length
 
     for (let wix = 0; wix < wordsTotal; wix++) {
@@ -44,13 +65,16 @@ const harvest = (file: string, buffer: string[]) => {
 }
 
 nvim.on.insertEnter(() => isInsertMode = true)
-nvim.on.insertLeave(() => isInsertMode = false)
+nvim.on.insertLeave(async () => {
+  isInsertMode = false
+  const words = last.changedLine.match(/\w+/g) || []
+  addKeywords(last.file, words)
+})
 
 tdm.on.didOpen(({ name, textLines }) => harvest(name, textLines))
 tdm.on.didChange(({ name, textLines }) => harvest(name, textLines))
 tdm.on.didClose(({ name }) => keywords.delete(name))
 
-on.add((file: string, word: string) => addKeyword(file, word))
 on.query(async (file: string, query: string, maxResults = 20) => {
   return fuzzy(keywords.get(file) || [], query, { maxResults })
 })

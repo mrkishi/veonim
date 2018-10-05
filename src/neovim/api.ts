@@ -92,7 +92,6 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
     cmd(`let g:vn_cmd_completions .= "${event}\\n"`)
   }
 
-  // TODO: deprecate with buf notifications?
   const getCurrentLine = () => req.core.getCurrentLine()
 
   const getNamedBuffers = async () => {
