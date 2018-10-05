@@ -21,6 +21,8 @@
 
 ## planned - upcoming
 
+- investigate if we can get a nvim event indicating mode change (this is kind of an annoying pain right now to determine current nvim mode)
+
 - test project + files
   - create some test project + files used for testing and demo screenshots
   - create a start script:
