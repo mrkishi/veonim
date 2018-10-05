@@ -40,6 +40,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const watchers = new EventEmitter()
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
+  const dsp = new Set()
   let currentBufferLines: string[] = []
 
   const notifyOpen = async ({ name, filetype, revision, buffer }: NotifyParams) => {
@@ -110,32 +111,30 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       : notifyOpen(params)
   }
 
-  const bufEventsDisposables = new Set([
-    nvim.on.bufOpen(openBuffer),
-    nvim.on.bufLoad(changeBuffer),
-    nvim.on.bufChange(changeBuffer),
-    nvim.on.bufChangeInsert(buf => changeBuffer(buf, true)),
-  ])
+  dsp.add(nvim.on.bufOpen(openBuffer))
+  dsp.add(nvim.on.bufLoad(changeBuffer))
+  dsp.add(nvim.on.bufChange(changeBuffer))
+  dsp.add(nvim.on.bufChangeInsert(buf => changeBuffer(buf, true)))
 
-  nvim.on.bufWritePre(() => {
+  dsp.add(nvim.on.bufWritePre(() => {
     if (invalidFiletype(nvim.state.filetype)) return
 
     watchers.emit('willSave', {
       name: nvim.state.absoluteFilepath,
       uri: `file://${nvim.state.absoluteFilepath}`,
     } as Doc)
-  })
+  }))
 
-  nvim.on.bufWrite(() => {
+  dsp.add(nvim.on.bufWrite(() => {
     if (invalidFiletype(nvim.state.filetype)) return
 
     watchers.emit('didSave', {
       name: nvim.state.absoluteFilepath,
       uri: `file://${nvim.state.absoluteFilepath}`,
     } as Doc)
-  })
+  }))
 
-  nvim.on.bufClose(async buffer => {
+  dsp.add(nvim.on.bufClose(async buffer => {
     const name = await buffer.name
     if (!name) return
     openDocuments.delete(name)
@@ -144,7 +143,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       name,
       uri: `file://${name}`,
     } as Doc)
-  })
+  }))
 
   const on = {
     didOpen: (fn: On<DidOpen>) => watchers.on('didOpen', fn),
@@ -156,8 +155,8 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
 
   const dispose = () => {
     watchers.removeAllListeners()
-    bufEventsDisposables.forEach(dispose => dispose())
-    bufEventsDisposables.clear()
+    dsp.forEach(dispose => dispose())
+    dsp.clear()
     openDocuments.clear()
     filetypes.clear()
     currentBufferLines = []
