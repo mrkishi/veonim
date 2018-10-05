@@ -419,16 +419,17 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
     get length() { return req.buf.lineCount(id) },
     get changedtick() { return req.buf.getChangedtick(id) },
     attach: ({ sendInitialBuffer }, cb) => {
-      watchers.bufferEvents.on(`change:${id}`, cb)
+      const removeChangeListener = watchers.bufferEvents.on(`change:${id}`, cb)
       req.buf.attach(id, sendInitialBuffer, {}).then(attached => {
         if (!attached) return console.error('could not attach to buffer:', id)
       })
+      watchers.bufferEvents.once(`detach:${id}`, removeChangeListener)
     },
     onDetach: onDetachFn => {
       watchers.bufferEvents.once(`detach:${id}`, onDetachFn)
     },
     detach: () => {
-      watchers.bufferEvents.remove(id)
+      watchers.bufferEvents.remove(`change:${id}`)
       req.buf.detach(id).then(detached => {
         if (!detached) console.error('could not detach from buffer:', id)
       })
