@@ -23,26 +23,10 @@
 
 - investigate if we can get a nvim event indicating mode change (this is kind of an annoying pain right now to determine current nvim mode)
 
-- test project + files
-  - create some test project + files used for testing and demo screenshots
-  - create a start script:
-    - to start veonim at a certain size for feature demo
-    - open test project + files
-
 - langserv 3.6.0+ features
   - goto implementation
   - goto type definitions
   - others
-
-- neovim buffer notification. now available in 0.3
-  - we have a few issues regarding buffer updates. i think the best way to fix those might be to use `buf_attach`
-
-- vscode api <-> nvim api bridge
-  - implement small subset needed for debug extensions
-  - eventually implement more of the API
-  - this effort should be well tested
-  - would be good to load the official vscode api typings in the mix somehow
-  - would be neat to have a way to track api implementation status: aka "45% of vscode api has been implemented"
 
 
 ## backlog - stuff that i really want
