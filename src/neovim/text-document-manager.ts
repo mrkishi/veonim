@@ -61,6 +61,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const openDocuments = new Set<string>()
   const sentDidOpen = new Set<string>()
   const attachedBuffers = new Set<Buffer>()
+  const buffersLastRevisionSent = new Map<string, number>()
   const watchers = new EventEmitter()
   const filetypes = new Set(onlyFiletypeBuffers)
   const invalidFiletype = (ft: string) => filetypes.size && !filetypes.has(ft)
@@ -85,6 +86,7 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
 
     const notifyChange = (change: BufferChangeEvent) => {
       const { filetype, firstLine, lastLine, lineData: textLines, changedTick: version } = change
+      buffersLastRevisionSent.set(name, version)
 
       watchers.emit('didChange', {
         name,
@@ -107,6 +109,10 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
       notifyChange(changeEvent)
     })
 
+    dsp.add(buffer.onChangedTick(revision => {
+      buffersLastRevisionSent.set(name, revision)
+    }))
+
     buffer.onDetach(() => {
       openDocuments.delete(name)
       sentDidOpen.delete(name)
@@ -123,9 +129,28 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   const openBuffer = async (buffer: Buffer) => {
     const filetype = await buffer.getOption('filetype')
     if (invalidFiletype(filetype)) return
-    const name = await buffer.name
+
+    const [ name, revision ] = await Promise.all([
+      buffer.name,
+      buffer.changedtick,
+    ])
+
+    buffersLastRevisionSent.set(name, revision)
     subscribeToBufferChanges(buffer, name)
   }
+
+  dsp.add(nvim.on.bufChange(async buffer => {
+    const [ name, revision ] = await Promise.all([
+      buffer.name,
+      buffer.changedtick,
+    ])
+
+    if (!openDocuments.has(name)) return
+    const lastRevisionSent = buffersLastRevisionSent.get(name) || 0
+    if (lastRevisionSent >= revision) return
+
+    console.log('BUFFER CHANGED SOMEHOW!!!', name, lastRevisionSent, revision)
+  }))
 
   dsp.add(nvim.on.bufOpen(openBuffer))
 
