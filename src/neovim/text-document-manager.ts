@@ -140,16 +140,32 @@ const api = (nvim: NeovimAPI, onlyFiletypeBuffers?: string[]) => {
   }
 
   dsp.add(nvim.on.bufChange(async buffer => {
-    const [ name, revision ] = await Promise.all([
+    const [ name, revision, filetype ] = await Promise.all([
       buffer.name,
       buffer.changedtick,
+      buffer.getOption('filetype'),
     ])
 
     if (!openDocuments.has(name)) return
     const lastRevisionSent = buffersLastRevisionSent.get(name) || 0
     if (lastRevisionSent >= revision) return
 
-    console.log('BUFFER CHANGED SOMEHOW!!!', name, lastRevisionSent, revision)
+    const fullBufferContents = await buffer.getAllLines()
+
+    watchers.emit('didClose', {
+      name,
+      uri: `file://${name}`,
+    } as Doc)
+
+    watchers.emit('didOpen', {
+      name,
+      filetype,
+      version: revision,
+      uri: `file://${name}`,
+      languageId: filetypeToLanguageID(filetype),
+      textLines: fullBufferContents,
+      text: fullBufferContents.join('\n')
+    } as DidOpen)
   }))
 
   dsp.add(nvim.on.bufOpen(openBuffer))
