@@ -106,6 +106,19 @@ export const definition = async (data: NeovimState): Promise<EditorLocation> => 
   }
 }
 
+export const typeDefinition = async (data: NeovimState): Promise<EditorLocation> => {
+  const req = toProtocol(data)
+  const result = await request('textDocument/typeDefinition', req)
+  if (!result) return {}
+  const { uri, range } = is.array(result) ? result[0] : result
+
+  return {
+    path: uriToPath(uri),
+    line: range.start.line,
+    column: range.start.character,
+  }
+}
+
 export const implementation = async (data: NeovimState): Promise<EditorLocation> => {
   const req = toProtocol(data)
   const result = await request('textDocument/implementation', req)

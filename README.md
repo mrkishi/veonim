@@ -21,6 +21,8 @@ if you are feeling brave, maybe checkout the [User Guide](docs/readme.md)
 - rich language integration built on language servers (any language supporting LSP can work - see http://langserver.org)
     - auto completion
     - go to definition
+    - go to type definition
+    - go to implementation
     - find references
     - symbol search
     - show hover information
