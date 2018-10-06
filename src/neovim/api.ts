@@ -430,7 +430,10 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
       })
       watchers.bufferEvents.once(`detach:${id}`, removeChangeListener)
     },
-    onChangedTick: onChangedTickFn => watchers.bufferEvents.on(`changedtick:${id}`, onChangedTickFn),
+    onChangedTick: onChangedTickFn => {
+      const removeListener = watchers.bufferEvents.on(`changedtick:${id}`, onChangedTickFn)
+      watchers.bufferEvents.once(`detach:${id}`, removeListener)
+    },
     onDetach: onDetachFn => {
       watchers.bufferEvents.once(`detach:${id}`, onDetachFn)
     },

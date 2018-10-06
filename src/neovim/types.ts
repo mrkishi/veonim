@@ -130,7 +130,7 @@ export interface Buffer {
   attach(options: { sendInitialBuffer: boolean }, onEventFn: (event: BufferChangeEvent) => void): void
   detach(): void
   onDetach(onDetachFn: () => void): void
-  onChangedTick(onChangedTickFn: (changedTick: number) => void): () => void
+  onChangedTick(onChangedTickFn: (changedTick: number) => void): void
   append(start: number, lines: string | string[]): void
   getAllLines(): Promise<string[]>
   getLines(start: number, end: number): Promise<string[]>
