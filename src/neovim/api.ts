@@ -357,6 +357,12 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
       watchers.bufferEvents.emit(`detach:${args[0].id}`)
     })
 
+    onEvent('nvim_buf_changedtick_event', (args: any[]) => {
+      const [ extContainerData, changedTick ] = args
+      const bufId = extContainerData.id
+      watchers.bufferEvents.emit(`changedtick:${bufId}`, changedTick)
+    })
+
     onEvent('nvim_buf_lines_event', (args: any[]) => {
       const [ extContainerData, changedTick, firstLine, lastLine, lineData, more ] = args
       const bufId = extContainerData.id
@@ -424,6 +430,7 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
       })
       watchers.bufferEvents.once(`detach:${id}`, removeChangeListener)
     },
+    onChangedTick: onChangedTickFn => watchers.bufferEvents.on(`changedtick:${id}`, onChangedTickFn),
     onDetach: onDetachFn => {
       watchers.bufferEvents.once(`detach:${id}`, onDetachFn)
     },
