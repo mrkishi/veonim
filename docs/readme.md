@@ -65,8 +65,8 @@ nno <silent> ,n :Veonim next-usage<cr>
 nno <silent> ,p :Veonim prev-usage<cr>
 nno <silent> <space>pt :Veonim problems-toggle<cr>
 nno <silent> <space>pf :Veonim problems-focus<cr>
-call VK('s-c-n', 'insert', {->execute('Veonim signature-help-next')})
-call VK('s-c-p', 'insert', {->execute('Veonim signature-help-prev')})
+nno <silent> <d-o> :Veonim buffer-prev<cr>
+nno <silent> <d-i> :Veonim buffer-next<cr>
 
 endif
 ```
@@ -194,6 +194,12 @@ Realtime fuzzy search in the current project workspace using Ripgrep
 - `grep-selection` - grep search the current visual selection
 - `grep-resume` - open up grep search menu with the previous search query
 - `buffer-search` - fuzzy search lines in the current buffer
+
+### buffer features
+- `buffer-search` - fuzzy search lines in the current buffer
+- `viewport-search` - fuzzy search lines in the current buffer viewport
+- `buffer-prev` - jump to previous visited buffer. this is similar to `<C-O>` except it does not include any intermediary jumps
+- `buffer-next` - jump to next visited buffer. this is similar to `<C-I>` except it does not include any intermediary jumps
 
 ### language features
 The following features require a language server extension to be installed and activated for the current filetype.
