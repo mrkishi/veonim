@@ -49,6 +49,8 @@ nno <silent> sc :Veonim pick-color<cr>
 " language server functions
 nno <silent> sr :Veonim rename<cr>
 nno <silent> sd :Veonim definition<cr>
+nno <silent> st :Veonim type-definition<cr>
+nno <silent> si :Veonim implementation<cr>
 nno <silent> sf :Veonim references<cr>
 nno <silent> sh :Veonim hover<cr>
 nno <silent> sl :Veonim symbols<cr>
@@ -205,6 +207,8 @@ Autocompletion has two data sources for completion candidates:
 Signature help (provides an overlay tooltip for function parameters and documentation) is triggered automatically (if supported)
 
 - `definition` - jump to definition
+- `type definition` - jump to type definition
+- `implementation` - jump to implementation
 - `references` - find references
   - opens up side menu similar to the grep menu. see [fuzzy menu keybindings](#fuzzy-menu-keybindings)
 - `rename` - rename current symbol under cursor

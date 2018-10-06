@@ -23,11 +23,6 @@
 
 - investigate if we can get a nvim event indicating mode change (this is kind of an annoying pain right now to determine current nvim mode)
 
-- langserv 3.6.0+ features
-  - goto implementation
-  - goto type definitions
-  - others
-
 
 ## backlog - stuff that i really want
 
