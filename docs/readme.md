@@ -74,9 +74,9 @@ endif
 ## design philosophy
 
 The design goal of Veonim is to not replace Vim but extend it. Veonim also tries to leverage existing technologies. Some key points:
-- do not replace core vim functinality unless we can greatly improve on it (e.g. statusline)
+- do not replace core vim functionality unless we can greatly improve on it (e.g. statusline)
 - Veonim is keyboard driven only. there is no mouse support, but that can change
-- configuration is done the vim way: this means all user config happens in the `init.vim` with vimscript/lua, remote plugins (any language), or msgpack-rpc api
+- configuration is done the vim way: this means all user config happens in the `init.vim` with vimscript/lua or neovim remote plugins (any language)
 - Veonim provides a few set of primitives (commands/functions) and it is up to the user to construct their ideal workflow
 - extending Veonim can either be done "the vim way" with plugins and remote-plugins, or with the vscode extension api. the primary reason for the vscode extension api is to leverage the existing catalog of language server and debugger extensions
 - language support is provided via language-servers (https://langserver.org) loaded via vscode extensions
@@ -213,7 +213,7 @@ Autocompletion has two data sources for completion candidates:
 Signature help (provides an overlay tooltip for function parameters and documentation) is triggered automatically (if supported)
 
 - `definition` - jump to definition
-- `type definition` - jump to type definition
+- `type-definition` - jump to type definition
 - `implementation` - jump to implementation
 - `references` - find references
   - opens up side menu similar to the grep menu. see [fuzzy menu keybindings](#fuzzy-menu-keybindings)
