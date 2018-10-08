@@ -222,6 +222,9 @@ menus. e.g. (floating windows maybe?)
   - i think they proposed an extension to LSP for this
   - new alternate TS langserv seems to have parent symbol info...
 
+- text annotations (like git blame stuff, etc.)
+  - https://github.com/neovim/neovim/pull/8180
+
 ## crazy experimental ideas
 
 - investigate if we can get a nvim event indicating mode change (this is kind of an annoying pain right now to determine current nvim mode)

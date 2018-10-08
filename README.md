@@ -110,7 +110,7 @@ if you are feeling brave, maybe checkout the [User Guide](docs/readme.md)
 the great neovim team have allowed the community to build some kick-ass projects. some of the more interesting ones that i'm excited about are:
 
 - [oni](https://github.com/onivim/oni)
-- [gonvim](https://github.com/dzhou121/gonvim)
+- [gonvim](https://github.com/akiyosi/gonvim)
 
 ## development
 
