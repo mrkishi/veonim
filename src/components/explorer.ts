@@ -1,6 +1,7 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
 import FiletypeIcon, { Folder } from '../components/filetype-icon'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { Plugin } from '../components/plugin-container'
 import { join, sep, basename, dirname } from 'path'
 import config from '../config/config-service'
@@ -9,7 +10,6 @@ import { BufferType } from '../neovim/types'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { colors } from '../ui/styles'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
 
@@ -107,6 +107,7 @@ const actions = {
   },
 
   select: () => (s: S) => {
+    vimFocus()
     if (!s.paths.length) return resetState
 
     const { name, file } = s.paths[s.ix]
