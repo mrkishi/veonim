@@ -1,6 +1,7 @@
 const { src, same, testDataPath } = require('../util')
 const startNeovim = require('../nvim-for-test')
 const path = require('path')
+const { EV_CREATE_VIM, EV_SWITCH_VIM } = src('support/constants')
 
 describe('vscode api - workspace', () => {
   let workspace
@@ -21,10 +22,9 @@ describe('vscode api - workspace', () => {
     nvim = startNeovim()
     workspace = src('vscode/workspace').default
     pipeName = await nvim.request('eval', 'v:servername')
-    console.log('pipeName', pipeName)
 
-    global.onmessage({ data: ['sessionCreate', [1, pipeName]] })
-    global.onmessage({ data: ['sessionSwitch', [1]] })
+    global.onmessage({ data: [EV_CREATE_VIM, [{ id: 1, path: pipeName }]] })
+    global.onmessage({ data: [EV_SWITCH_VIM, [1]] })
 
     const nvimSRC = src('vscode/neovim').default
 
@@ -33,7 +33,6 @@ describe('vscode api - workspace', () => {
     // wait for NeovimState to be populated
     await new Promise((done, fail) => {
       const timer = setInterval(() => {
-        console.log('nvimSRC.state.cwd', JSON.stringify(nvimSRC.state.cwd))
         if (nvimSRC.state.cwd === testDataPath) {
           clearInterval(timer)
           done()
@@ -42,7 +41,7 @@ describe('vscode api - workspace', () => {
 
       setTimeout(() => {
         clearInterval(timer)
-        fail(`nvim state cwd was never === ${testDataPath}`)
+        fail(`nvim cwd was never === ${testDataPath}`)
       }, 8e3)
     })
   })
@@ -51,7 +50,7 @@ describe('vscode api - workspace', () => {
     nvim.shutdown()
   })
 
-  describe.only('var', () => {
+  describe('var', () => {
     it('rootPath', () => {
       same(workspace.rootPath, testDataPath)
     })
