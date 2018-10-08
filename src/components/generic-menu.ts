@@ -1,10 +1,10 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { CreateTask } from '../support/utils'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import { Component } from 'hyperapp'
 
 export interface MenuOption {
@@ -37,6 +37,7 @@ const actions = {
   select: () => (s: S) => {
     if (!s.options.length) return resetState
     s.task.done((s.options[s.ix] || {}).key)
+    vimFocus()
     return resetState
   },
 
@@ -46,7 +47,7 @@ const actions = {
     : s.cache.slice(0, 14)
   }),
 
-  show: ({ options, description, icon, task }: any) => ({
+  show: ({ options, description, icon, task }: any) => (vimBlur(), {
     description,
     options,
     task,
@@ -55,7 +56,7 @@ const actions = {
     visible: true
   }),
 
-  hide: () => resetState,
+  hide: () => (vimFocus(), resetState),
   next: () => (s: S) => ({ ix: s.ix + 1 > Math.min(s.options.length - 1, 13) ? 0 : s.ix + 1 }),
   prev: () => (s: S) => ({ ix: s.ix - 1 < 0 ? Math.min(s.options.length - 1, 13) : s.ix - 1 }),
 }
