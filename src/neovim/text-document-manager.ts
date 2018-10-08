@@ -48,7 +48,7 @@ const nvimChangeToLSPChange = ({ firstLine, lastLine, lineData }: BufferChangeEv
       start: { line: firstLine, character: 0 },
       end: { line: firstLine, character: 0 },
     },
-    text: `${lineData[0]}\n`
+    text: lineData.map(line => `${line}\n`).join(''),
   }]
 
   return [{
