@@ -1,4 +1,4 @@
-import { VimMode, VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
+import { VimOption, BufferEvent, HyperspaceCoordinates, BufferType, BufferHide, BufferOption, Color, Buffer, Window, Tabpage, GenericCallback } from '../neovim/types'
 import { Api, ExtContainer, Prefixes, Buffer as IBuffer, Window as IWindow, Tabpage as ITabpage } from '../neovim/protocol'
 import { asColor, is, onFnCall, onProp, prefixWith, uuid, Watcher, GenericEvent } from '../support/utils'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
@@ -320,15 +320,6 @@ const api = ({ notify, request, onEvent, onCreateVim, onSwitchVim }: Neovim) => 
     const nextState = await call.VeonimState()
     Object.assign(state, nextState)
   }
-
-  // nvim does not currently have TermEnter/TermLeave autocmds - it might in the future
-  // TODO: revisit this once we get THE-GRID. do we still have the term cursor bug?
-  watchState.mode(mode => {
-    if (mode === VimMode.Terminal) return watchers.events.emit('termEnter')
-    if (state.bufferType === BufferType.Terminal && mode === VimMode.Normal) {
-      watchers.events.emit('termLeave')
-    }
-  })
 
   watchConfig('nvim/init.vim', refreshOptions)
 
