@@ -1,13 +1,13 @@
 import { getDirFiles, exists, pathRelativeToHome, simplifyPath, absolutePath } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
 import { createVim, renameCurrentToCwd } from '../core/sessions'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { Plugin } from '../components/plugin-container'
 import configReader from '../config/config-service'
 import config from '../config/config-service'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 import { join, sep } from 'path'
 import { homedir } from 'os'
@@ -54,6 +54,7 @@ const actions = {
     if (!name) return
     const dirpath = join(s.path, name)
     s.create ? createVim(name, dirpath) : nvim.cmd(`cd ${dirpath}`)
+    vimFocus()
     return resetState
   },
 
@@ -84,7 +85,7 @@ const actions = {
     getDirFiles(path).then(paths => ui.show({ path, paths: filterDirs(paths) }))
   },
 
-  show: ({ paths, path, cwd, create }: any) => (s: S) => ({
+  show: ({ paths, path, cwd, create }: any) => (s: S) => (vimBlur(), {
     path, paths, create,
     cwd: cwd || s.cwd,
     index: 0,
@@ -106,7 +107,7 @@ const actions = {
 
   top: () => { listElRef.scrollTop = 0 },
   bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
-  hide: () => resetState,
+  hide: () => (vimFocus(), resetState),
   next: () => (s: S) => ({ index: s.index + 1 >= s.paths.length ? 0 : s.index + 1 }),
   prev: () => (s: S) => ({ index: s.index - 1 < 0 ? s.paths.length - 1 : s.index - 1 }),
 }
