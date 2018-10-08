@@ -141,7 +141,7 @@ const actions = {
     getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
   },
 
-  show: ({ paths, path, cwd }: any) => (s: S) => ({
+  show: ({ paths, path, cwd }: any) => (s: S) => (vimBlur(), {
     ...resetState,
     path,
     paths,
@@ -163,7 +163,7 @@ const actions = {
 
   top: () => { listElRef.scrollTop = 0 },
   bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
-  hide: () => resetState,
+  hide: () => (vimFocus(), resetState),
   next: () => (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
   prev: () => (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
 }
