@@ -88,9 +88,9 @@ const actions =  {
   }),
 
   select: () => (s: S) => {
+    vimFocus()
     if (!s.references.length) return resetState
     selectResult(s.references, s.ix, s.subix)
-    vimFocus()
     return resetState
   },
 

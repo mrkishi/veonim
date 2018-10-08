@@ -32,10 +32,10 @@ const actions = {
   }),
 
   select: () =>  (s: S) => {
+    vimFocus()
     if (!s.actions.length) return resetState
     const action = s.actions[s.index]
     if (action) runCodeAction(action)
-    vimFocus()
     return resetState
   },
 

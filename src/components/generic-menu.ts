@@ -35,9 +35,9 @@ const resetState = { value: '', visible: false, ix: 0 }
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.options.length) return resetState
     s.task.done((s.options[s.ix] || {}).key)
-    vimFocus()
     return resetState
   },
 

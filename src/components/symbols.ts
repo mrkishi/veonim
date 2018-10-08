@@ -112,11 +112,11 @@ const resetState = { value: '', visible: false, index: 0, loading: false }
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.symbols.length) return (symbolCache.clear(), resetState)
     const { location: { cwd, file, position } } = s.symbols[s.index]
     const path = join(cwd, file)
     nvim.jumpTo({ ...position, path })
-    vimFocus()
     return (symbolCache.clear(), resetState)
   },
 

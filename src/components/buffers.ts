@@ -63,10 +63,10 @@ const resetState = { value: '', visible: false, index: 0 }
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.buffers.length) return resetState
     const { name } = s.buffers[s.index]
     if (name) nvim.cmd(`b ${name}`)
-    vimFocus()
     return resetState
   },
 
