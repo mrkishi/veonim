@@ -49,12 +49,12 @@ const resetState = { value: '', path: '', visible: false, index: 0 }
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.paths.length) return resetState
     const { name } = s.paths[s.index]
     if (!name) return
     const dirpath = join(s.path, name)
     s.create ? createVim(name, dirpath) : nvim.cmd(`cd ${dirpath}`)
-    vimFocus()
     return resetState
   },
 

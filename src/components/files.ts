@@ -52,11 +52,11 @@ const actions = {
   },
 
   select: () => (s: S) => {
+    vimFocus()
     if (!s.files.length) return resetState
     const { dir, file } = s.files[s.ix]
     const path = join(dir, file)
     if (file) nvim.cmd(`e ${path}`)
-    vimFocus()
     return resetState
   },
 
