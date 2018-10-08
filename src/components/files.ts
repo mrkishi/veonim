@@ -1,11 +1,11 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
 import FiletypeIcon from '../components/filetype-icon'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { basename, dirname, join } from 'path'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 import nvim from '../core/neovim'
 
@@ -38,7 +38,7 @@ type S = typeof state
 const resetState = { val: '', vis: false, ix: 0, loading: false, cache: [], files: [] }
 
 const actions = {
-  show: (currentFile: string) => (s: S) => ({
+  show: (currentFile: string) => (s: S) => (vimBlur(), {
     vis: true,
     currentFile,
     files: s.cache,
@@ -47,6 +47,7 @@ const actions = {
 
   hide: () => {
     worker.call.stop()
+    vimFocus()
     return resetState
   },
 
@@ -55,6 +56,7 @@ const actions = {
     const { dir, file } = s.files[s.ix]
     const path = join(dir, file)
     if (file) nvim.cmd(`e ${path}`)
+    vimFocus()
     return resetState
   },
 
