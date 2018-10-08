@@ -2,10 +2,10 @@ import { workspaceSymbols, Symbol } from '../langserv/adapter'
 import { SymbolKind } from 'vscode-languageserver-protocol'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 import { join } from 'path'
 
@@ -116,6 +116,7 @@ const actions = {
     const { location: { cwd, file, position } } = s.symbols[s.index]
     const path = join(cwd, file)
     nvim.jumpTo({ ...position, path })
+    vimFocus()
     return (symbolCache.clear(), resetState)
   },
 
@@ -139,9 +140,10 @@ const actions = {
 
   updateOptions: (symbols: Symbol[]) => ({ symbols, loading: false, index: 0 }),
 
-  show: ({ symbols, mode }: any) => ({ mode, symbols, cache: symbols, visible: true, index: 0 }),
+  show: ({ symbols, mode }: any) => (vimBlur(), { mode, symbols, cache: symbols, visible: true, index: 0 }),
   hide: () => {
     symbolCache.clear()
+    vimFocus()
     return resetState
   },
   // TODO: DON'T TRUNCATE!
