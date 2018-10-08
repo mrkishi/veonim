@@ -116,7 +116,7 @@ const actions = {
     }
   },
 
-  changeFilter: (filterVal: string) => {
+  changeFilter: (filterVal: string) => (s: S) => {
     worker.call.filter(filterVal)
     return { filterVal }
   },

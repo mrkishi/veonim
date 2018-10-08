@@ -188,7 +188,8 @@ const view = ({
         if (cm && e.shiftKey && key === 'D') return $.bottom()
         if (cm && e.shiftKey && key === 'U') return $.top()
 
-        $.change(value + (key.length > 1 ? '' : key))
+        const nextVal = value + (key.length > 1 ? '' : key)
+        if (nextVal !== value) $.change(nextVal)
       },
     })
 
