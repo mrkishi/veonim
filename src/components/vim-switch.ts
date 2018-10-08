@@ -1,10 +1,10 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { list, switchVim } from '../core/sessions'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
 interface Session {
@@ -23,8 +23,8 @@ const state = {
 type S = typeof state
 
 const actions = {
-  show: (d: Session[]) => ({ list: d, cache: d, visible: true }),
-  hide: () => ({ value: '', visible: false, index: 0 }),
+  show: (d: Session[]) => (vimBlur(), { list: d, cache: d, visible: true }),
+  hide: () => (vimFocus(), { value: '', visible: false, index: 0 }),
   change: (value: string) => (s: S) => ({ value, index: 0, list: value
     ? filter(s.list, value, { key: 'name' }).slice(0, 10)
     : s.cache.slice(0, 10)
@@ -32,6 +32,7 @@ const actions = {
   
 
   select: () => (s: S) => {
+    vimFocus()
     if (!s.list.length) return { value: '', visible: false, index: 0 }
     const { id } = s.list[s.index]
     if (id) switchVim(id)
