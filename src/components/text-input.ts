@@ -1,9 +1,8 @@
-import { hideCursor, showCursor } from '../core/cursor'
-import { h, vimBlur, vimFocus } from '../ui/uikit'
 import Loading from '../components/loading'
 import { paddingVH, cvar } from '../ui/css'
 import { xfrmUp } from '../core/input'
 import { Component } from 'hyperapp'
+import { h } from '../ui/uikit'
 
 interface Props {
   value: string,
@@ -14,7 +13,6 @@ interface Props {
   desc: string,
   focus: boolean,
   position: number,
-  useVimInput: boolean,
   change: (val: string) => void,
   select: (val: string) => void,
   hide: () => void,
@@ -91,7 +89,6 @@ const view = ({
   focus = false,
   loading = false,
   pathMode = false,
-  useVimInput = false,
 }: TextInputProps, $: Props) => h('div', {
   style: {
     background,
@@ -143,8 +140,7 @@ const view = ({
         setPosition(e, position)
       },
       placeholder: desc,
-      onfocus: () => useVimInput ? hideCursor() : vimBlur(),
-      onblur: () => useVimInput ? showCursor() : vimFocus(),
+      onblur: (e: KeyboardEvent) => focus && (e.target as HTMLInputElement).focus() ,
       onkeyup: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
 
