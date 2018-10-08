@@ -1,5 +1,9 @@
 ## in progress
 
+- mru buffer navigation
+
+- more vscode api
+
 - INVENTORY
   - also add window commands. especially ones that i can't remember (swap, maximize/zoom, etc.)
   - display action keybinds in fuzzy menu
@@ -21,7 +25,9 @@
 
 ## planned - upcoming
 
-- investigate if we can get a nvim event indicating mode change (this is kind of an annoying pain right now to determine current nvim mode)
+- webgl renderer
+
+- optimized msgpack parser for redraw output + maybe input serializer?
 
 
 ## backlog - stuff that i really want
@@ -69,21 +75,15 @@ menus. e.g. (floating windows maybe?)
 - redo/restyle notifications
   - move to bottom right corenr
   - improve styling
-  - fix bugs of not being removed
   - perhaps merge with :Veonim messages and add some way of focusing
   - provide j/k for selecting messages
   - provide keybinds c-s-y/n for "yes"/"no" option buttons in PROMPTS
-
-- webgl renderer
-
-- optimized msgpack parser for redraw output + maybe input serializer?
 
 - improve startup performance
   - welcome screen static html render. should load up asap
   - start first veonim instance in main renderer. can connect later via named pipes
     - perf difference between stdio/stdout and named pipes?
     - what about all the other vim instances? created and managed in main renderer? or in browser?
-
 
 - better UI for installing extensions + plugins (progress bars, details, icons, colors, etc.)
 
@@ -223,6 +223,8 @@ menus. e.g. (floating windows maybe?)
   - new alternate TS langserv seems to have parent symbol info...
 
 ## crazy experimental ideas
+
+- investigate if we can get a nvim event indicating mode change (this is kind of an annoying pain right now to determine current nvim mode)
 
 - i wonder how much overhead the vim-startup stuff adds to the render loop. i.e. is neovim's pipeline affected by all our autocmds and other garbage we have setup? would have to benchmark an empty nvim vs veonim scripts. now that we have the ability to have neovim api multithreaded, can we somehow keep the main stdout connection clean of events?
 
