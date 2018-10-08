@@ -1,6 +1,7 @@
 import { getDirFiles, pathRelativeToHome, pathRelativeToCwd, getDirs, $HOME } from '../support/utils'
 import { RowNormal, RowImportant } from '../components/row-container'
 import FiletypeIcon, { Folder } from '../components/filetype-icon'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { Plugin } from '../components/plugin-container'
 import { join, sep, basename, dirname } from 'path'
 import config from '../config/config-service'
@@ -9,7 +10,6 @@ import { BufferType } from '../neovim/types'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { colors } from '../ui/styles'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
 
@@ -107,6 +107,7 @@ const actions = {
   },
 
   select: () => (s: S) => {
+    vimFocus()
     if (!s.paths.length) return resetState
 
     const { name, file } = s.paths[s.ix]
@@ -140,7 +141,7 @@ const actions = {
     getDirFiles(path).then(paths => ui.show({ path, paths: sortDirFiles(paths) }))
   },
 
-  show: ({ paths, path, cwd }: any) => (s: S) => ({
+  show: ({ paths, path, cwd }: any) => (s: S) => (vimBlur(), {
     ...resetState,
     path,
     paths,
@@ -162,7 +163,7 @@ const actions = {
 
   top: () => { listElRef.scrollTop = 0 },
   bottom: () => { listElRef.scrollTop = listElRef.scrollHeight },
-  hide: () => resetState,
+  hide: () => (vimFocus(), resetState),
   next: () => (s: S) => ({ ix: s.ix + 1 >= s.paths.length ? 0 : s.ix + 1 }),
   prev: () => (s: S) => ({ ix: s.ix - 1 < 0 ? s.paths.length - 1 : s.ix - 1 }),
 }

@@ -1,11 +1,11 @@
 import { divinationSearch } from '../components/divination'
+import { app, h, vimBlur, vimFocus } from '../ui/uikit'
 import { currentWindowElement } from '../core/windows'
 import { finder } from '../components/buffer-search'
 import Input from '../components/text-input'
 import { rgba, paddingV } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
 import { makel } from '../ui/vanilla'
-import { app, h } from '../ui/uikit'
 import nvim from '../core/neovim'
 
 interface FilterResult {
@@ -43,10 +43,12 @@ const searchInBuffer = async (results = [] as FilterResult[]) => {
 
 const actions = {
   show: () => {
+    vimBlur()
     currentWindowElement.add(containerEl)
     return { focus: true }
   },
   hide: () => {
+    vimFocus()
     currentWindowElement.remove(containerEl)
     return { value: '', focus: false }
   },
@@ -59,6 +61,7 @@ const actions = {
     return { value }
   },
   select: () => {
+    vimFocus()
     currentWindowElement.remove(containerEl)
     if (displayTargetJumps) divinationSearch()
     else nvim.feedkeys('n', 'n')

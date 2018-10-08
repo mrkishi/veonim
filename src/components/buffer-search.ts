@@ -1,6 +1,7 @@
 import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
+import { app, h, vimBlur, vimFocus } from '../ui/uikit'
 import { currentWindowElement } from '../core/windows'
 import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
@@ -8,7 +9,6 @@ import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
 import Worker from '../messaging/worker'
 import { makel } from '../ui/vanilla'
-import { app, h } from '../ui/uikit'
 import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
 
@@ -89,18 +89,21 @@ const actions = {
     cursor.restore()
     currentWindowElement.remove(containerEl)
     merge(previousSearchCache, s)
+    vimFocus()
     return resetState
   },
   show: (resumeState?: S) => {
     currentWindowElement.add(containerEl)
     cursor.save()
     captureOverlayPosition()
+    vimBlur()
     return resumeState || { visible: true }
   },
   select: () => (s: S) => {
     jumpToResult(s, s.index)
     currentWindowElement.remove(containerEl)
     merge(previousSearchCache, s)
+    vimFocus()
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
@@ -156,7 +159,7 @@ const view = ($: S, a: A) => h('div', {
     change: a.change,
     select: a.select,
     value: $.query,
-    focus: true,
+    focus: $.visible,
     small: true,
     icon: Icon.Search,
     desc: 'find in buffer',

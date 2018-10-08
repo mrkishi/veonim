@@ -1,9 +1,9 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
 const state = {
@@ -22,6 +22,7 @@ const resetState = { value: '', visible: false, index: 0 }
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.items.length) return resetState
     const item = s.items[s.index]
     if (item) nvim.call.VeonimCallback(s.id, item)
@@ -34,8 +35,8 @@ const actions = {
     : s.cache.slice(0, 14)
   }),
 
-  hide: () => resetState,
-  show: ({ id, items, desc }: any) => ({ id, desc, items, cache: items, visible: true }),
+  hide: () => (vimFocus(), resetState),
+  show: ({ id, items, desc }: any) => (vimBlur(), { id, desc, items, cache: items, visible: true }),
   next: () => (s: S) => ({ index: s.index + 1 > Math.min(s.items.length - 1, 13) ? 0 : s.index + 1 }),
   prev: () => (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.items.length - 1, 13) : s.index - 1 }),
 }

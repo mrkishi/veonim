@@ -1,8 +1,8 @@
 import { Plugin } from '../components/plugin-container'
+import { app, vimBlur, vimFocus } from '../ui/uikit'
 import { CreateTask } from '../support/utils'
 import Input from '../components/text-input'
 import * as Icon from 'hyperapp-feather'
-import { app } from '../ui/uikit'
 
 const state = {
   value: '',
@@ -16,16 +16,17 @@ type S = typeof state
 const resetState = { value: '', visible: false, desc: '' } 
 
 const actions = {
-  show: ({ desc, task }: any) => ({
+  show: ({ desc, task }: any) => (vimBlur(), {
     desc,
     task,
     value: '',
     visible: true,
   }),
-  hide: () => resetState,
+  hide: () => (vimFocus(), resetState),
   change: (value: string) => ({ value }),
   select: () => (s: S) => {
     s.value && s.task.done(s.value)
+    vimFocus()
     return resetState
   },
 }

@@ -2,12 +2,12 @@ import FiletypeIcon, { Terminal } from '../components/filetype-icon'
 import { BufferType, BufferOption } from '../neovim/types'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { simplifyPath } from '../support/utils'
 import Input from '../components/text-input'
 import { basename, dirname } from 'path'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
 interface BufferInfo {
@@ -63,6 +63,7 @@ const resetState = { value: '', visible: false, index: 0 }
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.buffers.length) return resetState
     const { name } = s.buffers[s.index]
     if (name) nvim.cmd(`b ${name}`)
@@ -74,8 +75,8 @@ const actions = {
     : s.cache.slice(0, 10)
   }),
 
-  hide: () => resetState,
-  show: (buffers: BufferInfo[]) => ({ buffers, cache: buffers, visible: true }),
+  hide: () => (vimFocus(), resetState),
+  show: (buffers: BufferInfo[]) => (vimBlur(), { buffers, cache: buffers, visible: true }),
   next: () => (s: S) => ({ index: s.index + 1 > Math.min(s.buffers.length - 1, 9) ? 0 : s.index + 1 }),
   prev: () => (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.buffers.length - 1, 9) : s.index - 1 }),
 }
