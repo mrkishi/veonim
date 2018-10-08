@@ -1,7 +1,7 @@
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
-import FiletypeIcon from '../components/filetype-icon'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
+import FiletypeIcon from '../components/filetype-icon'
 import { basename, dirname, join } from 'path'
 import Input from '../components/text-input'
 import Worker from '../messaging/worker'
