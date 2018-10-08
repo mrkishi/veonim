@@ -65,7 +65,6 @@ const view = ($: S) => Plugin($.visible, [
   ,Input({
     focus: true,
     value: $.value,
-    useVimInput: true,
     desc: 'command line',
     position: $.position,
     icon: modeSwitch.get($.kind) || Icon.Command,
