@@ -102,7 +102,7 @@ const actions = {
     return resetState
   },
 
-  change: (value: string) => {
+  change: (value: string) => (s: S) => {
     value && worker.call.query({ query: value, cwd: s.cwd })
     return value ? {
       value,
@@ -116,7 +116,7 @@ const actions = {
     }
   },
 
-  changeFilter: (filterVal: string) => (s: S) => {
+  changeFilter: (filterVal: string) => {
     worker.call.filter(filterVal)
     return { filterVal }
   },
