@@ -164,7 +164,11 @@ const view = ({
 
         lastDown = keToStr(e)
 
-        if (key === 'Tab') return $.tab()
+        if (key === 'Tab') {
+          e.preventDefault()
+          return $.tab()
+        }
+
         if (key === 'Escape') return $.hide()
         if (key === 'Enter') return $.select(value)
         if (key === 'Backspace') return $.change(value.slice(0, -1))
