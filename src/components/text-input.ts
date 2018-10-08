@@ -140,7 +140,6 @@ const view = ({
         setPosition(e, position)
       },
       placeholder: desc,
-      onblur: (e: KeyboardEvent) => focus && (e.target as HTMLInputElement).focus() ,
       onkeyup: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
 

@@ -159,7 +159,7 @@ const view = ($: S, a: A) => h('div', {
     change: a.change,
     select: a.select,
     value: $.query,
-    focus: true,
+    focus: $.visible,
     small: true,
     icon: Icon.Search,
     desc: 'find in buffer',
