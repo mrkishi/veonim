@@ -1,11 +1,11 @@
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import Worker from '../messaging/worker'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 import nvim from '../core/neovim'
 
 type TextTransformer = (text: string, last?: boolean) => string
@@ -90,12 +90,13 @@ const actions = {
   focusSearch: () => ({ focused: FocusedElement.Search }),
   focusFilter: () => ({ focused: FocusedElement.Filter }),
 
-  hide: () => resetState,
+  hide: () => (vimFocus(), resetState),
   show: ({ cwd, value, reset = true }: any) => reset
-  ? ({ visible: true, cwd, value, ix: 0, subix: -1, results: [], loading: !!value })
-  : ({ visible: true }),
+    ? (vimBlur(), { visible: true, cwd, value, ix: 0, subix: -1, results: [], loading: !!value })
+    : (vimBlur(), { visible: true }),
 
   select: () => (s: S) => {
+    vimFocus()
     if (!s.results.length) return resetState
     selectResult(s.results, s.ix, s.subix)
     return resetState
