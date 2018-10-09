@@ -1,4 +1,5 @@
 import fakeModule from '../support/fake-module'
+import vscode from '../vscode/api'
 
 type LogMissingModuleApi = (moduleName: string, apiPath: string) => void
   let logMissingModuleApiDuringDevelopment: LogMissingModuleApi = () => {}
@@ -26,7 +27,8 @@ const LanguageClient = class LanguageClient {
   }
 }
 
-fakeModule('vscode', {}, logMissingModuleApiDuringDevelopment)
+fakeModule('vscode', vscode, logMissingModuleApiDuringDevelopment)
+
 fakeModule('vscode-languageclient', {
   LanguageClient,
 }, logMissingModuleApiDuringDevelopment)

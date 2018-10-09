@@ -12,6 +12,7 @@ go(async () => {
 
   await Promise.all([
     copy.index(),
+    copy.processExplorer(),
     copy.assets(),
     copy.runtime(),
   ])
@@ -40,4 +41,5 @@ go(async () => {
 
   $`watching index.html for changes...`
   fs.watch(fromRoot(paths.index), copy.index)
+  fs.watch(fromRoot(paths.processExplorer), copy.processExplorer)
 })

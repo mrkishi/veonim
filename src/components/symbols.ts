@@ -1,12 +1,12 @@
 import { workspaceSymbols, Symbol } from '../langserv/adapter'
-import { current as vimState, jumpTo } from '../core/neovim'
-import { SymbolKind } from 'vscode-languageserver-types'
+import { SymbolKind } from 'vscode-languageserver-protocol'
 import { Plugin } from '../components/plugin-container'
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import Input from '../components/text-input'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 import { join } from 'path'
 
 export enum SymbolMode {
@@ -49,15 +49,15 @@ const icons = new Map([
   [ SymbolKind.Number, h(Icon.Hash, { color: '#ff0c53' }) ],
   [ SymbolKind.Boolean, h(Icon.Flag, { color: '#0c2dff' }) ],
   [ SymbolKind.Array, h(Icon.Film, { color: '#0cffff' }) ],
-  // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ SymbolKind.Object, h('copy', { color: '#' }) ],
-  //[ SymbolKind.Key, h('tag', { color: '#' }) ],
-  //[ SymbolKind.Null, h('x-square', { color: '#' }) ],
-  //[ SymbolKind.EnumMember, h('menu', { color: '#' }) ],
-  //[ SymbolKind.Struct, h('layers', { color: '#' }) ],
-  //[ SymbolKind.Event, h('video', { color: '#' }) ],
-  //[ SymbolKind.Operator, h('anchor', { color: '#' }) ],
-  //[ SymbolKind.TypeParameter, h('type', { color: '#' }) ],
+  // TODO: we need some colors pls
+  [ SymbolKind.Object, h(Icon.Copy, { color: '#ccc' }) ],
+  [ SymbolKind.Key, h(Icon.Tag, { color: '#ccc' }) ],
+  [ SymbolKind.Null, h(Icon.XSquare, { color: '#ccc' }) ],
+  [ SymbolKind.EnumMember, h(Icon.Menu, { color: '#ccc' }) ],
+  [ SymbolKind.Struct, h(Icon.Layers, { color: '#ccc' }) ],
+  [ SymbolKind.Event, h(Icon.Video, { color: '#ccc' }) ],
+  [ SymbolKind.Operator, h(Icon.Anchor, { color: '#ccc' }) ],
+  [ SymbolKind.TypeParameter, h(Icon.Type, { color: '#ccc' }) ],
 ])
 
 const symbolDescription = new Map([
@@ -79,15 +79,14 @@ const symbolDescription = new Map([
   [ SymbolKind.Number, 'Number' ],
   [ SymbolKind.Boolean, 'Boolean' ],
   [ SymbolKind.Array, 'Array' ],
-  // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ SymbolKind.Object, 'Object' ],
-  //[ SymbolKind.Key, 'Key' ],
-  //[ SymbolKind.Null, 'Null' ],
-  //[ SymbolKind.EnumMember, 'EnumMember' ],
-  //[ SymbolKind.Struct, 'Struct' ],
-  //[ SymbolKind.Event, 'Event' ],
-  //[ SymbolKind.Operator, 'Operator' ],
-  //[ SymbolKind.TypeParameter, 'TypeParameter' ],
+  [ SymbolKind.Object, 'Object' ],
+  [ SymbolKind.Key, 'Key' ],
+  [ SymbolKind.Null, 'Null' ],
+  [ SymbolKind.EnumMember, 'EnumMember' ],
+  [ SymbolKind.Struct, 'Struct' ],
+  [ SymbolKind.Event, 'Event' ],
+  [ SymbolKind.Operator, 'Operator' ],
+  [ SymbolKind.TypeParameter, 'TypeParameter' ],
 ])
 
 const getSymbolIcon = (kind: SymbolKind) => icons.get(kind) || h(Icon.Code)
@@ -113,10 +112,11 @@ const resetState = { value: '', visible: false, index: 0, loading: false }
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.symbols.length) return (symbolCache.clear(), resetState)
     const { location: { cwd, file, position } } = s.symbols[s.index]
     const path = join(cwd, file)
-    jumpTo({ ...position, path })
+    nvim.jumpTo({ ...position, path })
     return (symbolCache.clear(), resetState)
   },
 
@@ -128,7 +128,7 @@ const actions = {
     } 
 
     if (s.mode === SymbolMode.Workspace) {
-      workspaceSymbols(vimState, value).then(symbols => {
+      workspaceSymbols(nvim.state, value).then(symbols => {
         symbolCache.update(symbols)
         const results = symbols.length ? symbols : symbolCache.find(value)
         a.updateOptions(results)
@@ -140,9 +140,10 @@ const actions = {
 
   updateOptions: (symbols: Symbol[]) => ({ symbols, loading: false, index: 0 }),
 
-  show: ({ symbols, mode }: any) => ({ mode, symbols, cache: symbols, visible: true, index: 0 }),
+  show: ({ symbols, mode }: any) => (vimBlur(), { mode, symbols, cache: symbols, visible: true, index: 0 }),
   hide: () => {
     symbolCache.clear()
+    vimFocus()
     return resetState
   },
   // TODO: DON'T TRUNCATE!

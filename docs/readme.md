@@ -1,6 +1,6 @@
-# docs
+# User Guide
 
-this is documentation. nobody reads documentation tho. this is so sad can we get 50 likes?
+Welcome to Veonim. The show will be starting shortly. Please remember to turn off or silence your mobile devices. Please sit back, relax, and enjoy the show. Thank you.
 
 ## quick start copypasta config
 
@@ -49,6 +49,8 @@ nno <silent> sc :Veonim pick-color<cr>
 " language server functions
 nno <silent> sr :Veonim rename<cr>
 nno <silent> sd :Veonim definition<cr>
+nno <silent> st :Veonim type-definition<cr>
+nno <silent> si :Veonim implementation<cr>
 nno <silent> sf :Veonim references<cr>
 nno <silent> sh :Veonim hover<cr>
 nno <silent> sl :Veonim symbols<cr>
@@ -63,8 +65,8 @@ nno <silent> ,n :Veonim next-usage<cr>
 nno <silent> ,p :Veonim prev-usage<cr>
 nno <silent> <space>pt :Veonim problems-toggle<cr>
 nno <silent> <space>pf :Veonim problems-focus<cr>
-call VK('s-c-n', 'insert', {->execute('Veonim signature-help-next')})
-call VK('s-c-p', 'insert', {->execute('Veonim signature-help-prev')})
+nno <silent> <d-o> :Veonim buffer-prev<cr>
+nno <silent> <d-i> :Veonim buffer-next<cr>
 
 endif
 ```
@@ -72,9 +74,9 @@ endif
 ## design philosophy
 
 The design goal of Veonim is to not replace Vim but extend it. Veonim also tries to leverage existing technologies. Some key points:
-- do not replace core vim functinality unless we can greatly improve on it (e.g. statusline)
+- do not replace core vim functionality unless we can greatly improve on it (e.g. statusline)
 - Veonim is keyboard driven only. there is no mouse support, but that can change
-- configuration is done the vim way: this means all user config happens in the `init.vim` with vimscript/lua, remote plugins (any language), or msgpack-rpc api
+- configuration is done the vim way: this means all user config happens in the `init.vim` with vimscript/lua or neovim remote plugins (any language)
 - Veonim provides a few set of primitives (commands/functions) and it is up to the user to construct their ideal workflow
 - extending Veonim can either be done "the vim way" with plugins and remote-plugins, or with the vscode extension api. the primary reason for the vscode extension api is to leverage the existing catalog of language server and debugger extensions
 - language support is provided via language-servers (https://langserver.org) loaded via vscode extensions
@@ -109,7 +111,7 @@ Example of a VSCode extension:
 VeonimExt 'vscode:extension/sourcegraph.javascript-typescript'
 ```
 
-VSCode extensions can be found on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode). The extension URI can be found grabbing the link from the "Install" button of an extension page in the marketplace.
+VSCode extensions can be found on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode). The extension URI can be found by grabbing the link from the "Install" button of an extension page in the marketplace.
 
 The vscode extension API is not yet 100% compatible with Veonim. It may never be 100% as some features do not make sense in Veonim. Compatibility will be improved as needed. Right now the focus is on supporting language server extensions and debugger extensions.
 
@@ -176,7 +178,7 @@ Veonim supports the ability to run multiple instances of neovim at a time. In my
 
 When switching between instances the "background" instances are still running, but they are not wired up the user interface.
 
-This feature is like going to a multiplex movie theater, where there are multiple cinema theaters under a single roof. It is the same idea as tmux sessions, i3 workspaces, mac os spaces, etc.
+This feature is like going to a multiplex movie theater, where there are multiple cinema theaters under a single roof - but you can only be in one theater at a time. It is the same idea as tmux sessions, i3 workspaces, mac os spaces, etc.
 
 - `vim-create` - create a new vim instance with the given name
 - `vim-rename` - rename the current vim instance
@@ -193,6 +195,12 @@ Realtime fuzzy search in the current project workspace using Ripgrep
 - `grep-resume` - open up grep search menu with the previous search query
 - `buffer-search` - fuzzy search lines in the current buffer
 
+### buffer features
+- `buffer-search` - fuzzy search lines in the current buffer
+- `viewport-search` - fuzzy search lines in the current buffer viewport
+- `buffer-prev` - jump to previous visited buffer. this is similar to `<C-O>` except it does not include any intermediary jumps
+- `buffer-next` - jump to next visited buffer. this is similar to `<C-I>` except it does not include any intermediary jumps
+
 ### language features
 The following features require a language server extension to be installed and activated for the current filetype.
 
@@ -205,6 +213,8 @@ Autocompletion has two data sources for completion candidates:
 Signature help (provides an overlay tooltip for function parameters and documentation) is triggered automatically (if supported)
 
 - `definition` - jump to definition
+- `type-definition` - jump to type definition
+- `implementation` - jump to implementation
 - `references` - find references
   - opens up side menu similar to the grep menu. see [fuzzy menu keybindings](#fuzzy-menu-keybindings)
 - `rename` - rename current symbol under cursor
@@ -295,9 +305,9 @@ let g:destinations = {
 
 fun! OpenBrowser(url) range
   "reference: https://stackoverflow.com/questions/8708154/open-current-file-in-web-browser-in-vim
-  if g:vn_platform == 'darwin' | let cmd = 'open' | endif
-  if g:vn_platform == 'linux' | let cmd = 'xdg-open' | endif
-  if g:vn_platform == 'win32' | let cmd = 'google-chrome' | endif
+  if has('mac') | let cmd = 'open' | endif
+  if has('unix') | let cmd = 'xdg-open' | endif
+  if has('win32') | let cmd = 'google-chrome' | endif
   call jobstart(cmd . " '" . a:url . "'")
 endfun
 
@@ -377,3 +387,65 @@ Veonim key-transform hold {"key":";"} e=>({key:';'+e.key})
 - problem count / warning count
 - cursor line number / column number
 - list of vim tabs (only tab number displayed to condense space - think of it like i3 workspaces)
+
+## look & feel
+By default Veonim is bundled with its own custom vim colorscheme and the Roboto Mono font. 
+
+### colors
+Any vim colorscheme is supported. Of course since this is a GUI program, true color colorschemes are supported. See `:h colorscheme` for more info.
+
+Right now Veonim derives its colors from the colorscheme. Perhaps in the future we will allow the ability for users to customize specific parts of the UI with additional highlight groups.
+
+### fonts
+Roboto Mono is bundled and included with Veonim. This allows for a consistent out-of-the-box experience across platforms. You can of course use your own font.
+
+To customize your font, use the following global variables in `init.vim`. Please note that these variables will be deprecated soon as we receive `guifont` support from Neovim.
+
+```vim
+let g:vn_font = 'Roboto Mono'
+let g:vn_font_size = 14
+let g:vn_line_height = '1.5'
+```
+
+### cursor
+You can change the shape, size, and color of the cursor for each Vim mode. See `:h guicursor` for more info.
+
+Blinking cursor is currently not supported.
+
+This is the default cursor configuration for Veonim:
+
+```vim
+set guicursor=n:block-CursorNormal,i:hor10-CursorInsert,v:block-CursorVisual
+hi! CursorNormal guibg=#f3a082
+hi! CursorInsert guibg=#f3a082
+hi! CursorVisual guibg=#6d33ff
+```
+
+### other flags
+Some flags to further customize how Veonim behaves.
+
+## ignored dirs/files for explorer
+Ignore directories and/or files from the explorer menu
+
+Default config values are found here: [src/config/default-configs.ts]()
+
+```vim
+let g:vn_explorer_ignore_dirs = ['.git']
+let g:vn_explorer_ignore_files = ['.DS_Store']
+```
+
+Exclude language server Workspace Symbols from the specified directories.
+
+For example, in the Veonim working repo there is the `src` folder which includes Typescript files. There is also a temporary `build` folder including transpiled Javascript files. I believe by default language servers will return symbols from all folders in the current working directory. This variable flag is a way to exclude Workspace Symbols from specific directories. There might be a better way to do this...
+
+```vim
+let g:vn_workspace_ignore_dirs = ['build', 'dist']
+```
+
+### other behavior
+
+## how to ignore files and directories in the fuzzy file finder
+By default the fuzzy file finder will ignore any paths specified in `.gitignore` and `.ignore`
+
+## how to ignore files and directories in grep
+Grep is powered by Ripgrep, so ignore behavior will be deferred to Ripgrep. I believe by default it ignores any paths from `.gitignore` and `.ignore`

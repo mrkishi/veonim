@@ -1,9 +1,9 @@
 import colorizer, { ColorData } from '../services/colorizer'
-import { action, current as vim, on } from '../core/neovim'
 import { supports } from '../langserv/server-features'
 import * as markdown from '../support/markdown'
 import { hover } from '../langserv/adapter'
 import { ui } from '../components/hover'
+import nvim from '../core/neovim'
 
 const textByWord = (data: ColorData[]): ColorData[] => data.reduce((res, item) => {
   const words = item.text.split(/(\s+)/)
@@ -11,14 +11,14 @@ const textByWord = (data: ColorData[]): ColorData[] => data.reduce((res, item) =
   return [...res, ...items]
 }, [] as ColorData[])
 
-action('hover', async () => {
-  if (!supports.hover(vim.cwd, vim.filetype)) return
+nvim.onAction('hover', async () => {
+  if (!supports.hover(nvim.state.cwd, nvim.state.filetype)) return
 
-  const { value, doc } = await hover(vim)
+  const { value, doc } = await hover(nvim.state)
   if (!value) return
 
   const cleanData = markdown.remove(value)
-  const coloredLines: ColorData[][] = await colorizer.request.colorize(cleanData, vim.filetype)
+  const coloredLines: ColorData[][] = await colorizer.request.colorize(cleanData, nvim.state.filetype)
   const data = coloredLines
     .map(m => textByWord(m))
     .map(m => m.filter(m => m.text.length))
@@ -26,6 +26,6 @@ action('hover', async () => {
   ui.show({ data, doc })
 })
 
-on.cursorMove(ui.hide)
-on.insertEnter(ui.hide)
-on.insertLeave(ui.hide)
+nvim.on.cursorMove(ui.hide)
+nvim.on.insertEnter(ui.hide)
+nvim.on.insertLeave(ui.hide)

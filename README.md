@@ -1,15 +1,28 @@
 ![](https://veonim.github.io/veonim/header.png)
 
-veonim is a modern lightweight modal IDE built on neovim. my goal is to create my ideal programming environment
+veonim is a simple modal IDE built on neovim. the goal is to create my ideal programming environment
 
 ![](https://veonim.github.io/veonim/smart.png)
 
+## project status
+
+veonim is still very early alpha and experimental. nothing is guaranteed.
+
+if you are feeling brave, maybe checkout the [User Guide](docs/readme.md)
+
+## coming soon
+- built-in debugger via debug adapter protocol & vscode extensions
+- advanced neovim-native window management
+- more language support + features
+- vscode extension api <-> neovim/veonim api bridge
+
 ## features
 
-- cross platform (and no external dependencies needed)
 - rich language integration built on language servers (any language supporting LSP can work - see http://langserver.org)
     - auto completion
     - go to definition
+    - go to type definition
+    - go to implementation
     - find references
     - symbol search
     - show hover information
@@ -26,9 +39,13 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
   - swap modifiers -> switch command and control
   - create additional modifiers with custom key transforms (e.g. create layers: mappings like `<c-s>` `<c-m>` but with another key `;s` `;m`)
 - project find based on ripgrep
-- high performance optimized GPU rendering
 - fuzzy find for files and buffers
-- keyboard driven fuzzy file + directory explorer
+- fuzzy viewport search
+- fuzzy buffer search
+- improved vim search UI
+- high performance optimized GPU rendering
+- keyboard driven fuzzy file/directory explorer
+- built-in "easymotion-style" jump to labels and jump to search results
 - graphical neovim ui including windows, tabs, command line, status line, messages, cursor, cursorline, colorscheme adaptable interface etc.
 - project/workspace/cd management
 - reload vim buffers when modified (e.g. when edited in another program)
@@ -93,7 +110,7 @@ veonim is a modern lightweight modal IDE built on neovim. my goal is to create m
 the great neovim team have allowed the community to build some kick-ass projects. some of the more interesting ones that i'm excited about are:
 
 - [oni](https://github.com/onivim/oni)
-- [gonvim](https://github.com/dzhou121/gonvim)
+- [gonvim](https://github.com/akiyosi/gonvim)
 
 ## development
 

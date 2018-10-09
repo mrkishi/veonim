@@ -1,14 +1,17 @@
-import { action, current as vim, jumpTo, getCurrent, feedkeys } from '../core/neovim'
 import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
+import { app, h, vimBlur, vimFocus } from '../ui/uikit'
 import { currentWindowElement } from '../core/windows'
-import { finder } from '../ai/update-server'
+import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
+import { merge } from '../support/utils'
 import * as Icon from 'hyperapp-feather'
+import Worker from '../messaging/worker'
 import { makel } from '../ui/vanilla'
-import { app, h } from '../ui/uikit'
+import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
+
 
 interface FilterResult {
   line: string,
@@ -26,17 +29,17 @@ interface ColorizedFilterResult extends FilterResult {
   colorizedLine: ColorData[]
 }
 
+export const finder = Worker('buffer-search')
+
 const cursor = (() => {
   let position = [0, 0]
 
   const save = async () => {
-    const win = await getCurrent.window
-    position = await win.cursor
+    position = await nvim.current.window.cursor
   }
 
   const restore = async () => {
-    const win = await getCurrent.window
-    win.setCursor(position[0], position[1])
+    nvim.current.window.setCursor(position[0], position[1])
   }
 
   return { save, restore }
@@ -57,43 +60,58 @@ const checkReadjustViewport = () => setTimeout(() => {
   // are about detecting elements scrolling in/out of the viewport
   const { top } = getCursorBoundingClientRect()
   const hidden = top > elPosTop
-  if (hidden) feedkeys('zz')
+  if (hidden) nvim.feedkeys('zz')
 }, 10)
 
 const state = {
   results: [] as ColorizedFilterResult[],
-  highlightColor: 'pink',
   visible: false,
   query: '',
-  index: -1,
+  index: 0,
 }
+
+const previousSearchCache = state
 
 type S = typeof state
 
-const resetState = { visible: false, query: '', results: [], index: -1 }
+const resetState = { visible: false, query: '', results: [], index: 0 }
+
+const jumpToResult = (state: S, index: number, { readjustViewport = false } = {}) => {
+  const location = state.results[index]
+  if (!location) return
+  nvim.jumpTo(location.start)
+  showCursorline()
+  if (readjustViewport) checkReadjustViewport()
+}
 
 const actions = {
-  hide: () => {
+  hide: () => (s: S) => {
     cursor.restore()
     currentWindowElement.remove(containerEl)
+    merge(previousSearchCache, s)
+    vimFocus()
     return resetState
   },
-  show: () => {
+  show: (resumeState?: S) => {
     currentWindowElement.add(containerEl)
     cursor.save()
     captureOverlayPosition()
-    return { visible: true }
+    vimBlur()
+    return resumeState || { visible: true }
   },
   select: () => (s: S) => {
-    jumpTo(s.results[s.index].start)
+    jumpToResult(s, s.index)
+    currentWindowElement.remove(containerEl)
+    merge(previousSearchCache, s)
+    vimFocus()
     return resetState
   },
   change: (query: string) => (_: S, a: A) => {
-    finder.request.fuzzy(vim.cwd, vim.file, query).then(async (res: FilterResult[]) => {
+    finder.request.fuzzy(nvim.state.absoluteFilepath, query).then(async (res: FilterResult[]) => {
       if (!res.length) return a.updateResults([])
 
       const textLines = res.map(m => m.line)
-      const coloredLines: ColorData[][] = await colorizer.request.colorizePerChar(textLines, vim.filetype)
+      const coloredLines: ColorData[][] = await colorizer.request.colorizePerChar(textLines, nvim.state.filetype)
 
       const lines = coloredLines.filter(m => m.length).map((m, ix) => ({
         colorizedLine: m,
@@ -104,25 +122,22 @@ const actions = {
     })
     return { query }
   },
-  updateResults: (results: ColorizedFilterResult[]) => ({ results }),
+  updateResults: (results: ColorizedFilterResult[]) => (s: S) => {
+    jumpToResult(s, 0, { readjustViewport: true })
+    return { results, index: 0 }
+  },
   next: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index + 1 > s.results.length - 1 ? 0 : s.index + 1
-
-    jumpTo(s.results[index].start)
-    checkReadjustViewport()
-
+    jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
   prev: () => (s: S) => {
     if (!s.results.length) return
 
     const index = s.index - 1 < 0 ? s.results.length - 1 : s.index - 1
-
-    jumpTo(s.results[index].start)
-    checkReadjustViewport()
-
+    jumpToResult(s, index, { readjustViewport: true })
     return { index }
   },
 }
@@ -144,7 +159,7 @@ const view = ($: S, a: A) => h('div', {
     change: a.change,
     select: a.select,
     value: $.query,
-    focus: true,
+    focus: $.visible,
     small: true,
     icon: Icon.Search,
     desc: 'find in buffer',
@@ -165,7 +180,6 @@ const view = ($: S, a: A) => h('div', {
   }, text)))))
 ])
 
-
 const containerEl = makel({
   position: 'absolute',
   display: 'flex',
@@ -178,6 +192,15 @@ const containerEl = makel({
   width: '100%',
 })
 
-const ui = app({ name: 'buffer-search', state, actions, view, element: containerEl })
+const ui = app<S, A>({ name: 'buffer-search', state, actions, view, element: containerEl })
 
-action('buffer-search', ui.show)
+nvim.onAction('buffer-search', ui.show)
+nvim.onAction('buffer-search-resume', () => ui.show(previousSearchCache))
+// tip: use 'gn' to turn search selection into visual selection. then use this
+nvim.onAction('buffer-search-visual', async () => {
+  // TODO: any cleaner way of doing this?
+  await nvim.feedkeys('gv"zy')
+  const selection = await nvim.expr('@z')
+  ui.show()
+  ui.change(selection)
+})

@@ -1,7 +1,9 @@
+import { CompletionItemKind, MarkupContent, MarkupKind } from 'vscode-languageserver-protocol'
 import { CompletionOption, getCompletionDetail } from '../ai/completions'
 import { RowNormal, RowComplete } from '../components/row-container'
-import { CompletionItemKind } from 'vscode-languageserver-types'
 import * as canvasContainer from '../core/canvas-container'
+import { resetMarkdownHTMLStyle } from '../ui/styles'
+import { markdownToHTML } from '../support/markdown'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
 import { paddingVH, cvar } from '../ui/css'
@@ -53,34 +55,46 @@ const icons = new Map([
   [ CompletionItemKind.Color, h(Icon.Eye, { color: '#54ffe5' }) ],
   [ CompletionItemKind.File, h(Icon.File, { color: '#a5c3ff' }) ],
   [ CompletionItemKind.Reference, h(Icon.Link, { color: '#ffdca3' }) ],
-  // TODO: enable when protocol upgrade to 3.6.0 in npm
-  //[ CompletionItemKind.Folder, h('folder', { color: '#' }) ],
-  //[ CompletionItemKind.EnumMember, h('menu', { color: '#' }) ],
-  //[ CompletionItemKind.Constant, h('save', { color: '#' }) ],
-  //[ CompletionItemKind.Struct, h('layers', { color: '#' }) ],
-  //[ CompletionItemKind.Event, h('video', { color: '#' }) ],
-  //[ CompletionItemKind.Operator, h('anchor', { color: '#' }) ],
-  //[ CompletionItemKind.TypeParameter, h('type', { color: '#' }) ],
+  // TODO: we need some colors pls
+  [ CompletionItemKind.Folder, h(Icon.Folder, { color: '#ccc' }) ],
+  [ CompletionItemKind.EnumMember, h(Icon.Menu, { color: '#ccc' }) ],
+  [ CompletionItemKind.Constant, h(Icon.Save, { color: '#ccc' }) ],
+  [ CompletionItemKind.Struct, h(Icon.Layers, { color: '#ccc' }) ],
+  [ CompletionItemKind.Event, h(Icon.Video, { color: '#ccc' }) ],
+  [ CompletionItemKind.Operator, h(Icon.Anchor, { color: '#ccc' }) ],
+  [ CompletionItemKind.TypeParameter, h(Icon.Type, { color: '#ccc' }) ],
 ])
 
 const getCompletionIcon = (kind: CompletionItemKind) => icons.get(kind) || h(Icon.Code)
 
+// TODO: move to common place. used in other places like signature-hint
+const parseDocs = async (docs?: string | MarkupContent): Promise<string | undefined> => {
+  if (!docs) return
+
+  if (typeof docs === 'string') return docs
+  if (docs.kind === MarkupKind.PlainText) return docs.value
+  return markdownToHTML(docs.value)
+}
+
 const docs = (data: string) => h(RowNormal, {
   style: {
     ...paddingVH(6, 4),
+    // RowNormal gives us display: flex but this causes things
+    // to be flex-flow: row. we just want the standard no fancy pls kthx
+    display: 'block',
     paddingTop: '6px',
     overflow: 'visible',
     whiteSpace: 'normal',
     color: cvar('foreground-20'),
     background: cvar('background-45'),
     fontSize: `${canvasContainer.font.size - 2}px`,
-  }
-}, [
-  ,h('span', data)
-])
+  },
+  oncreate: (e: HTMLElement) => e.innerHTML = `<div class="${resetMarkdownHTMLStyle}">${data}</div>`,
+})
 
 const actions = {
   hide: () => ({ visible: false, ix: 0 }),
+
   showDocs: (documentation: any) => ({ documentation }),
 
   show: ({ anchorAbove, visibleOptions, options, x, y, ix = -1 }: any) => ({
@@ -97,8 +111,12 @@ const actions = {
   select: (ix: number) => (s: S, a: typeof actions) => {
     const completionItem = (s.options[ix] || {}).raw
 
-    if (completionItem) getCompletionDetail(completionItem)
-      .then(m => m.documentation && a.showDocs(m.documentation))
+    if (completionItem) (async () => {
+      const detail = await getCompletionDetail(completionItem)
+      if (!detail.documentation) return
+      const richFormatDocs = await parseDocs(detail.documentation)
+      a.showDocs(richFormatDocs)
+    })()
 
     return { ix, documentation: undefined }
   },
@@ -157,7 +175,6 @@ const ui = app<S, typeof actions>({ name: 'autocomplete', state, actions, view }
 
 export const hide = () => ui.hide()
 export const select = (index: number) => ui.select(index)
-export const showDocs = (documentation: string) => ui.showDocs(documentation)
 export const show = ({ row, col, options }: ShowParams) => {
   const visibleOptions = Math.min(MAX_VISIBLE_OPTIONS, options.length)
   const anchorAbove = cursor.row + visibleOptions > canvasContainer.size.rows 

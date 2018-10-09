@@ -1,4 +1,4 @@
-import WorkerClient from '../messaging/worker-client'
+import { on } from '../messaging/worker-client'
 import { exists } from '../support/utils'
 import { createReadStream } from 'fs'
 
@@ -33,8 +33,6 @@ const fileReader = (path: string, targetLines: number[]) => new Promise(done => 
 
   readStream.on('close', () => done(collectedLines))
 })
-
-const { on } = WorkerClient()
 
 on.getLines(async (path: string, lines: number[]) => {
   const fileExists = await exists(path)

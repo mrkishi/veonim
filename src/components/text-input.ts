@@ -1,9 +1,8 @@
-import { hideCursor, showCursor } from '../core/cursor'
-import { h, vimBlur, vimFocus } from '../ui/uikit'
 import Loading from '../components/loading'
 import { paddingVH, cvar } from '../ui/css'
 import { xfrmUp } from '../core/input'
 import { Component } from 'hyperapp'
+import { h } from '../ui/uikit'
 
 interface Props {
   value: string,
@@ -14,7 +13,6 @@ interface Props {
   desc: string,
   focus: boolean,
   position: number,
-  useVimInput: boolean,
   change: (val: string) => void,
   select: (val: string) => void,
   hide: () => void,
@@ -91,7 +89,6 @@ const view = ({
   focus = false,
   loading = false,
   pathMode = false,
-  useVimInput = false,
 }: TextInputProps, $: Props) => h('div', {
   style: {
     background,
@@ -143,8 +140,6 @@ const view = ({
         setPosition(e, position)
       },
       placeholder: desc,
-      onfocus: () => useVimInput ? hideCursor() : vimBlur(),
-      onblur: () => useVimInput ? showCursor() : vimFocus(),
       onkeyup: (e: KeyboardEvent) => {
         const prevKeyAndThisOne = lastDown + keToStr(e)
 
@@ -164,7 +159,11 @@ const view = ({
 
         lastDown = keToStr(e)
 
-        if (key === 'Tab') return $.tab()
+        if (key === 'Tab') {
+          e.preventDefault()
+          return $.tab()
+        }
+
         if (key === 'Escape') return $.hide()
         if (key === 'Enter') return $.select(value)
         if (key === 'Backspace') return $.change(value.slice(0, -1))
@@ -189,7 +188,8 @@ const view = ({
         if (cm && e.shiftKey && key === 'D') return $.bottom()
         if (cm && e.shiftKey && key === 'U') return $.top()
 
-        $.change(value + (key.length > 1 ? '' : key))
+        const nextVal = value + (key.length > 1 ? '' : key)
+        if (nextVal !== value) $.change(nextVal)
       },
     })
 

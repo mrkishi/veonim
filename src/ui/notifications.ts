@@ -79,8 +79,7 @@ const view = ($: S) => PluginTop(true, {
   marginTop: '5px',
 }, [
 
-  ,h('div', $.notifications.map(({ id, kind, message, count }) => h('div', {
-      key: id,
+  ,h('div', $.notifications.map(({ kind, message, count }) => h('div', {
       style: {
         display: 'flex',
         padding: '10px',
@@ -150,4 +149,10 @@ export const notify = (message: string, kind = NotifyKind.Info) => {
 
   ui.notify(msg)
   addMessage(msg)
+
+  if (process.env.VEONIM_DEV) {
+    if (kind === NotifyKind.Error) console.error('@VIM@', msg.message)
+    if (kind === NotifyKind.Warning) console.error('@VIM@', msg.message)
+    else console.log('@VIM@', msg.message)
+  }
 }

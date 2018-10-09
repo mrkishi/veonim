@@ -1,4 +1,4 @@
-import WorkerClient from '../messaging/worker-client'
+import { on, call } from '../messaging/worker-client'
 import { NewlineSplitter } from '../support/utils'
 import { Ripgrep } from '../support/binaries'
 
@@ -23,7 +23,6 @@ interface ResultPart {
 const INCREMENT_AMOUNT = 50
 const INTERVAL = 250
 const TIMEOUT = 10e3
-const { on, call } = WorkerClient()
 const range = { start: 0, end: INCREMENT_AMOUNT * 2 }
 let results: Result[] = []
 let stopSearch = () => {}

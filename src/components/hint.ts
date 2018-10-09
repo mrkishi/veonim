@@ -1,6 +1,6 @@
+import { docStyle, resetMarkdownHTMLStyle } from '../ui/styles'
 import { activeWindow } from '../core/windows'
 import Overlay from '../components/overlay'
-import { docStyle } from '../ui/styles'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
@@ -26,8 +26,14 @@ const strongStyle = {
 }
 
 const docs = (data: string) => h('div', {
-  style: docStyle,
-}, [ h('div', data) ])
+  style: {
+    ...docStyle,
+    // RowNormal gives us display: flex but this causes things
+    // to be flex-flow: row. we just want the standard no fancy pls kthx
+    display: 'block',
+  },
+  oncreate: (e: HTMLElement) => e.innerHTML = `<div class="${resetMarkdownHTMLStyle}">${data}</div>`,
+})
 
 const sliceAndDiceLabel = (label: string, currentParam: string) => {
   const paramStart = label.indexOf(currentParam)

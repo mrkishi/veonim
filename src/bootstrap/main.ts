@@ -1,8 +1,8 @@
-import { app, BrowserWindow, Menu } from 'electron'
+import { app, BrowserWindow, Menu, shell } from 'electron'
 
-let win: Electron.BrowserWindow
+let win: any
+let winProcessExplorer: any
 app.setName('veonim')
-Menu.setApplicationMenu(new Menu())
 
 const comscan = (() => {
   const windows = new Set()
@@ -12,9 +12,56 @@ const comscan = (() => {
 })()
 
 app.on('ready', async () => {
+  const menuTemplate = [{
+    label: 'Window',
+    submenu: [{
+      role: 'togglefullscreen',
+    }, {
+      label: 'Maximize',
+      click: () => win.maximize(),
+    }],
+  }, {
+    role: 'help',
+    submenu: [{
+      label: 'User Guide',
+      click: () => shell.openExternal('https://github.com/veonim/veonim/blob/master/docs/readme.md'),
+    }, {
+      label: 'Report Issue',
+      click: () => shell.openExternal('https://github.com/veonim/veonim/issues'),
+    }, {
+      type: 'separator',
+    }, {
+      label: 'Process Explorer',
+      click: () => openProcessExplorer(),
+    }, {
+      label: 'Developer Tools',
+      accelerator: 'CmdOrCtrl+|',
+      click: () => win.webContents.toggleDevTools(),
+    }] as any // electron is stupid,
+  }]
+
+  if (process.platform === 'darwin') menuTemplate.unshift({
+    label: 'veonim',
+    submenu: [{
+      role: 'about',
+    }, {
+      type: 'separator',
+    }, {
+      // using 'role: hide' adds cmd+h keybinding which overrides vim keybinds
+      label: 'Hide veonim',
+      click: () => app.hide(),
+    }, {
+      type: 'separator',
+    }, {
+      role: 'quit',
+    }] as any // electron is stupid
+  })
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
+
   win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 950,
+    height: 700,
     minWidth: 600,
     minHeight: 400,
     frame: true,
@@ -71,3 +118,21 @@ app.on('ready', async () => {
     win.webContents.openDevTools()
   }
 })
+
+const openProcessExplorer = () => {
+  if (winProcessExplorer) {
+    winProcessExplorer.close()
+    winProcessExplorer = null
+    return
+  }
+
+  winProcessExplorer = new BrowserWindow({
+    width: 850,
+    height: 600,
+  })
+
+  winProcessExplorer.on('close', () => winProcessExplorer = null)
+  winProcessExplorer.loadURL(`file:///${__dirname}/process-explorer.html`)
+
+  if (process.env.VEONIM_DEV) winProcessExplorer.openDevTools()
+}

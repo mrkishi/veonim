@@ -1,11 +1,12 @@
 import { RowNormal, RowHeader } from '../components/row-container'
 import { PluginRight } from '../components/plugin-container'
-import { jumpToProjectFile } from '../core/neovim'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { Reference } from '../langserv/adapter'
+import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
 import { badgeStyle } from '../ui/styles'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 type TextTransformer = (text: string, last?: boolean) => string
 type Result = [string, Reference[]]
@@ -49,7 +50,8 @@ const selectResult = (references: Result[], ix: number, subix: number) => {
   if (subix < 0) return
   const [ path, items ] = references[ix]
   const { line, column } = items[subix]
-  jumpToProjectFile({ line, column, path })
+  nvim.jumpToProjectFile({ line, column, path })
+  showCursorline()
 }
 
 const highlightPattern = (text: string, pattern: string, { normal, special }: {
@@ -72,9 +74,9 @@ const highlightPattern = (text: string, pattern: string, { normal, special }: {
 const resetState = { vis: false, references: [] } 
 
 const actions =  {
-  hide: () => resetState,
+  hide: () => (vimFocus(), resetState),
 
-  show: ({ references, referencedSymbol }: any) => ({
+  show: ({ references, referencedSymbol }: any) => (vimBlur(), {
     references,
     referencedSymbol,
     cache: references,
@@ -86,6 +88,7 @@ const actions =  {
   }),
 
   select: () => (s: S) => {
+    vimFocus()
     if (!s.references.length) return resetState
     selectResult(s.references, s.ix, s.subix)
     return resetState

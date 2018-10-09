@@ -1,11 +1,18 @@
+// setup trace
+;(localStorage.getItem('veonim-trace-flags') || '')
+  .split(',')
+  .filter(m => m)
+  .forEach(m => Reflect.set(process.env, `VEONIM_TRACE_${m.toUpperCase()}`, 1))
+// end setup trace
+
 import { CreateTask, log, delay as timeout, requireDir } from '../support/utils'
 import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
 import setDefaultSession from '../core/sessions'
-import { sub } from '../messaging/dispatch'
 import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
+import nvim from '../core/neovim'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
@@ -22,7 +29,7 @@ configReader('nvim/init.vim', c => {
   loadingConfig.done('')
 })
 
-sub('colors.vim.bg', color => {
+nvim.watchState.background(color => {
   if (document.body.style.background !== color) document.body.style.background = color
 })
 
@@ -42,6 +49,9 @@ const main = async () => {
   setTimeout(() => {
     // TODO: can we load copmonents on demand?
     // aka, either load when user requests, or after 10 sec of app startup shit
+    // in the inventory PR, layer actions are now setup to require the componet.
+    // this could be a way to lazy load components (or maybe some of the
+    // non-important ones - color-picker, etc.)
     requireDir(`${__dirname}/../services`)
     requireDir(`${__dirname}/../components`)
     setTimeout(() => require('../core/ai'))

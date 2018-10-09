@@ -1,12 +1,12 @@
 import { RowNormal } from '../components/row-container'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { activeWindow } from '../core/windows'
-import { action, call } from '../core/neovim'
 import Input from '../components/text-input'
 import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
 import { cursor } from '../core/cursor'
-import { h, app } from '../ui/uikit'
+import nvim from '../core/neovim'
 import { cvar } from '../ui/css'
 
 const state = {
@@ -25,9 +25,10 @@ type S = typeof state
 
 const actions = {
   select: () => (s: S) => {
+    vimFocus()
     if (!s.items.length) return { value: '', visible: false, index: 0 }
     const item = s.items[s.index]
-    if (item) call.VeonimCallback(s.id, item)
+    if (item) nvim.call.VeonimCallback(s.id, item)
     return { value: '', visible: false, index: 0 }
   },
 
@@ -37,8 +38,8 @@ const actions = {
     : s.cache.slice(0, 14)
   }),
 
-  show: ({ x, y, id, items, desc }: any) => ({ x, y, id, desc, items, cache: items, visible: true }),
-  hide: () => ({ value: '', visible: false, index: 0 }),
+  show: ({ x, y, id, items, desc }: any) => (vimBlur(), { x, y, id, desc, items, cache: items, visible: true }),
+  hide: () => (vimFocus(), { value: '', visible: false, index: 0 }),
   // TODO: not hardcoded to 14
   next: () => (s: S) => ({ index: s.index + 1 > Math.min(s.items.length - 1, 13) ? 0 : s.index + 1 }),
   prev: () => (s: S) => ({ index: s.index - 1 < 0 ? Math.min(s.items.length - 1, 13) : s.index - 1 }),
@@ -85,7 +86,7 @@ const view = ($: S, a: typeof actions) => Overlay({
 
 const ui = app({ name: 'user-overlay-menu', state, actions, view })
 
-action('user-overlay-menu', (id: number, desc: string, items = []) => {
+nvim.onAction('user-overlay-menu', (id: number, desc: string, items = []) => {
   if (!items.length) return
   const x = activeWindow() ? activeWindow()!.colToX(cursor.col) : 0
   // TODO: anchorBottom maybe?

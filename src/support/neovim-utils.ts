@@ -1,6 +1,6 @@
 import { delay, pascalCase, onProp } from '../support/utils'
-import { Range } from 'vscode-languageserver-types'
-import { Api } from '../core/api'
+import { Range } from 'vscode-languageserver-protocol'
+import { Api } from '../neovim/protocol'
 
 type DefineFunction = { [index: string]: (fnBody: TemplateStringsArray, ...vars: any[]) => void }
 
@@ -60,7 +60,7 @@ export const FunctionGroup = () => {
 
   return {
     defineFunc,
-    get funcs() { return fns.join(' | ') }
+    getFunctionsAsString: () => fns.join(' | '),
   }
 }
 

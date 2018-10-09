@@ -1,9 +1,9 @@
-import { $, Watchers, is, fromJSON } from '../support/utils'
-import { action, call, current } from '../core/neovim'
+import { $, is, fromJSON } from '../support/utils'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
-import $$, { VimMode } from '../core/state'
+import { VimMode } from '../neovim/types'
 import { remote } from 'electron'
+import nvim from '../core/neovim'
 import { Script } from 'vm'
 
 export enum InputMode {
@@ -16,9 +16,10 @@ export enum InputType {
   Up = 'up',
 }
 
+type OnKeyFn = (inputKeys: string, inputType: InputType) => void
+
 const modifiers = ['Alt', 'Shift', 'Meta', 'Control']
 const remaps = new Map<string, string>()
-const inputWatchers = new Watchers()
 let isCapturing = false
 let holding = ''
 let xformed = false
@@ -27,7 +28,8 @@ let initalVimStartupKeypress = true
 let windowHasFocus = true
 let lastEscapeTimestamp = 0
 let shouldClearEscapeOnNextAppFocus = false
-let activeInputMode = InputMode.Vim
+let keyListener: OnKeyFn = () => {}
+let sendInputToVim = true
 
 const isStandardAscii = (key: string) => key.charCodeAt(0) > 32 && key.charCodeAt(0) < 127
 const handleMods = ({ ctrlKey, shiftKey, metaKey, altKey, key }: KeyboardEvent) => {
@@ -116,22 +118,10 @@ export const transform = {
   }
 }
 
-export const switchInputMode = (mode: InputMode) => activeInputMode = mode
-export const defaultInputMode = () => activeInputMode = InputMode.Vim
-
-export const watchInputMode = (mode: InputMode, fn: (inputKeys: string, inputType: InputType) => void) => {
-  const onDown = (inputKeys: string) => fn(inputKeys, InputType.Down)
-  const onUp = (inputKeys: string) => fn(inputKeys, InputType.Up)
-  const eventDown = `${InputType.Down}:${mode}`
-  const eventUp = `${InputType.Up}:${mode}`
-
-  inputWatchers.add(eventDown, onDown)
-  inputWatchers.add(eventUp, onUp)
-
-  return () => {
-    inputWatchers.remove(eventDown, onDown)
-    inputWatchers.remove(eventUp, onUp)
-  }
+export const stealInput = (onKeyFn: OnKeyFn) => {
+  sendInputToVim = false
+  keyListener = onKeyFn
+  return () => sendInputToVim = true
 }
 
 const sendToVim = (inputKeys: string) => {
@@ -139,17 +129,13 @@ const sendToVim = (inputKeys: string) => {
   // vim keybind. s-space was causing issues in terminal mode, sending weird
   // term esc char.
   if (inputKeys === '<S-Space>') return input('<space>')
-  if (shortcuts.has(`${current.mode}:${inputKeys}`)) return shortcuts.get(`${current.mode}:${inputKeys}`)!()
+  if (shortcuts.has(`${nvim.state.mode}:${inputKeys}`)) return shortcuts.get(`${nvim.state.mode}:${inputKeys}`)!()
   if (inputKeys.length > 1 && !inputKeys.startsWith('<')) inputKeys.split('').forEach((k: string) => input(k))
   else {
     // a fix for terminal. only happens on cmd-tab. see below for more info
     if (inputKeys.toLowerCase() === '<esc>') lastEscapeTimestamp = Date.now()
     input(inputKeys)
   }
-}
-
-const sendToMotion = (inputKeys: string, inputType: InputType) => {
-  inputWatchers.notify(`${inputType}:${InputMode.Motion}`, inputKeys)
 }
 
 const sendKeys = async (e: KeyboardEvent, inputType: InputType) => {
@@ -165,8 +151,8 @@ const sendKeys = async (e: KeyboardEvent, inputType: InputType) => {
   if (!key) return
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
 
-  if (activeInputMode === InputMode.Vim) return sendToVim(inputKeys)
-  if (activeInputMode === InputMode.Motion) return sendToMotion(inputKeys, inputType)
+  if (sendInputToVim) return sendToVim(inputKeys)
+  keyListener(inputKeys, inputType)
 }
 
 window.addEventListener('keydown', e => {
@@ -220,11 +206,11 @@ window.addEventListener('keyup', e => {
 })
 
 // TODO: deprecate remapModifier and use transform instead?
-action('remap-modifier', (from, to) => remapModifier(from, to))
+nvim.onAction('remap-modifier', (from, to) => remapModifier(from, to))
 
-action('register-shortcut', (key, mode) => registerShortcut(key, mode, () => call.VeonimCallEvent(`key:${mode}:${key}`)))
+nvim.onAction('register-shortcut', (key, mode) => registerShortcut(key, mode, () => nvim.call.VeonimCallEvent(`key:${mode}:${key}`)))
 
-action('key-transform', (type, matcher, transformer) => {
+nvim.onAction('key-transform', (type, matcher, transformer) => {
   const fn = Reflect.get(transform, type)
   const transformFn = new Script(transformer).runInThisContext()
   const matchObj = is.string(matcher) ? fromJSON(matcher).or({}) : matcher
@@ -259,7 +245,7 @@ remote.getCurrentWindow().on('blur', async () => {
   resetInputState()
 
   const lastEscapeFromNow = Date.now() - lastEscapeTimestamp
-  const isTerminalMode = $$.mode === VimMode.Terminal
+  const isTerminalMode = nvim.state.mode === VimMode.Terminal
   const fixTermEscape = isTerminalMode && lastEscapeFromNow < 25
   if (fixTermEscape) shouldClearEscapeOnNextAppFocus = true
 })

@@ -1,12 +1,13 @@
-import { dirname, basename, join, extname, resolve, sep } from 'path'
+import { dirname, basename, join, extname, resolve, sep, parse, normalize } from 'path'
 import { promisify as P } from 'util'
+import { EventEmitter } from 'events'
 import { exec } from 'child_process'
 import { Transform } from 'stream'
 import { homedir } from 'os'
 import * as fs from 'fs'
-const watch = require('node-watch')
+export { watchFile } from '../support/fs-watch'
 
-interface Task<T> {
+export interface Task<T> {
   done: (value: T) => void,
   promise: Promise<T>,
 }
@@ -31,7 +32,7 @@ const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + 
 const type = (m: any) => (Object.prototype.toString.call(m).match(/^\[object (\w+)\]/) || [])[1].toLowerCase()
 
 export const within = (target: number, tolerance: number) => (candidate: number) => Math.abs(target - candidate) <= tolerance
-// TODO: get rid of this shit
+export const objToMap = (obj: object, map: Map<any, any>) => Object.entries(obj).forEach(([k, v]) => map.set(k, v))
 export const listof = (count: number, fn: () => any) => [...Array(count)].map(fn)
 export const fromJSON = (m: string) => ({ or: (defaultVal: any) => { try { return JSON.parse(m) } catch(_) { return defaultVal } }})
 export const prefixWith = (prefix: string) => (m: string) => `${prefix}${snakeCase(m)}`
@@ -92,13 +93,6 @@ export const pathReducer = (p = '') => ((p, levels = 0) => ({ reduce: () =>
   levels ? basename(join(p, '../'.repeat(levels++))) : (levels++, basename(p))
 }))(p)
 
-export const watchPath = (path: string, callback: () => void) => watch(path, callback)
-
-export const watchPathSymlink = (path: string, callback: () => void) => {
-  const throttledCallback = throttle(callback, 15)
-  return fs.watch(path, () => throttledCallback())
-}
-
 export const matchOn = (val: any) => (opts: object): any => (Reflect.get(opts, val) || (() => {}))()
 
 export const isOnline = (host = 'google.com') => new Promise(fin => {
@@ -120,7 +114,13 @@ export const asColor = (color?: number) => color ? '#' + [16, 8, 0].map(shift =>
 export const readFile = (path: string, encoding = 'utf8') => P(fs.readFile)(path, encoding)
 export const exists = (path: string): Promise<boolean> => new Promise(fin => fs.access(path, e => fin(!e)))
 
-const emptyStat = { isDirectory: () => false, isFile: () => false }
+const emptyStat = {
+  isDirectory: () => false,
+  isFile: () => false,
+  isSymbolicLink: () => false,
+}
+
+const getFSStat = async (path: string) => P(fs.stat)(path).catch((_) => emptyStat)
 
 export const getDirFiles = async (path: string) => {
   const paths = await P(fs.readdir)(path).catch((_e: string) => []) as string[]
@@ -128,7 +128,7 @@ export const getDirFiles = async (path: string) => {
   const filesreq = await Promise.all(filepaths.map(async f => ({
     path: f.path,
     name: f.name,
-    stats: await P(fs.stat)(f.path).catch((_e: string) => emptyStat)
+    stats: await getFSStat(f.path),
   })))
   return filesreq
     .map(({ name, path, stats }) => ({ name, path, dir: stats.isDirectory(), file: stats.isFile() }))
@@ -147,7 +147,14 @@ export const remove = async (path: string) => {
   P(fs.rmdir)(path)
 }
 
-export const ensureDir = (path: string) => path.split(sep).reduce((q, dir, ix, arr) => q.then(() => {
+export const pathParts = (path: string) => {
+  const properPath = normalize(path)
+  const parts = properPath.split(sep)
+  const { root } = parse(properPath)
+  return [ root, ...parts ].filter(m => m)
+}
+
+export const ensureDir = (path: string) => pathParts(path).reduce((q, dir, ix, arr) => q.then(() => {
   return P(fs.mkdir)(join(...arr.slice(0, ix), dir)).catch(() => {})
 }), Promise.resolve())
 
@@ -234,6 +241,39 @@ export class Watchers extends Map<string, Set<Function>> {
   remove(event: string, handler: Function) {
     this.has(event) && this.get(event)!.delete(handler)
   }
+}
+
+export type GenericEvent = { [index: string]: any }
+
+// TODO: how can we make this use GenericEvent if not type passed in?
+// i tried T extends GenericEv but it does not work. help me obi wan kenobi
+export const Watcher = <T>() => {
+  const ee = new EventEmitter()
+
+  const on = <K extends keyof T>(event: K, handler: (value: T[K]) => void) => {
+    ee.on(event, handler)
+    return () => ee.removeListener(event, handler)
+  }
+
+  const once = <K extends keyof T>(event: K, handler: (...args: any[]) => void) => {
+    ee.once(event, handler)
+  }
+
+  // TODO: how do we make "value" arg require OR optional based on T[K]?
+  type Emit1 = <K extends keyof T>(event: K) => void
+  type Emit2 = <K extends keyof T>(event: K, value: T[K]) => void
+  type Emit3 = <K extends keyof T>(event: K, ...args: any[]) => void
+  type Emit = Emit1 & Emit2 & Emit3
+
+  const emit: Emit = (event: string, ...args: any[]) => {
+    ee.emit(event, ...args)
+  }
+
+  const remove = (event: keyof T) => {
+    ee.removeAllListeners(event)
+  }
+
+  return { on, once, emit, remove }
 }
 
 export class NewlineSplitter extends Transform {

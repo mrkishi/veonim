@@ -1,11 +1,11 @@
-import { action, current as vim, jumpTo } from '../core/neovim'
-import { definition } from '../langserv/adapter'
 import { supports } from '../langserv/server-features'
+import { definition } from '../langserv/adapter'
+import nvim from '../core/neovim'
 
-action('definition', async () => {
-  if (!supports.definition(vim.cwd, vim.filetype)) return
+nvim.onAction('definition', async () => {
+  if (!supports.definition(nvim.state.cwd, nvim.state.filetype)) return
 
-  const { path, line, column } = await definition(vim)
+  const { path, line, column } = await definition(nvim.state)
   if (!line || !column) return
-  jumpTo({ path, line, column })
+  nvim.jumpTo({ path, line, column })
 })

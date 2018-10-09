@@ -1,12 +1,12 @@
-import { InputMode, switchInputMode, watchInputMode, defaultInputMode } from '../core/input'
-import { action, feedkeys, getColor, jumpTo, lineNumber } from '../core/neovim'
 import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
 import { Specs } from '../core/canvas-window'
+import { stealInput } from '../core/input'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
 import * as grid from '../core/grid'
+import nvim from '../core/neovim'
 
 interface CellPosition {
   row: number
@@ -18,34 +18,70 @@ interface FindPosOpts extends Specs {
   bg?: string
 }
 
-const jumpKeys = 'ASDFLGHQWERTYUIOPBNMCBVJK'
+// hand crafted for maximum ergonomic comfort
+const labels = {
+  single: ['A', 'S', 'D', 'F', 'J', 'K', 'L', 'G', 'H', 'W', 'E', 'R', 'I', 'O', 'Q', 'T', 'U', 'P', 'N', 'M', 'V', 'B', 'C'],
+  double: [
+    'AJ', 'AK', 'AL', 'AH', 'AN', 'AI', 'AO', 'AU', 'AP', 'AM', 'AS', 'AD', 'AF', 'AG', 'AE', 'AR', 'AW', 'AT', 'AV',
+    'SJ', 'SK', 'SL', 'SH', 'SN', 'SI', 'SO', 'SU', 'SP', 'SM', 'SA', 'SD', 'SF', 'SG', 'SE', 'SR',
+    'DJ', 'DK', 'DL', 'DH', 'DN', 'DI', 'DO', 'DU', 'DP', 'DM', 'DA', 'DS', 'DF', 'DG', 'DW', 'DQ', 'DE', 'DV',
+    'FJ', 'FK', 'FL', 'FH', 'FN', 'FI', 'FO', 'FU', 'FP', 'FM', 'FA', 'FS', 'FD', 'FE', 'FW', 'FQ',
+    'EJ', 'EK', 'EL', 'EH', 'EN', 'EI', 'EO', 'EU', 'EP', 'EM', 'EF', 'EG', 'ER', 'ET', 'EW', 'EQ', 'EA', 'ES', 'EV',
+    'RJ', 'RK', 'RL', 'RH', 'RN', 'RI', 'RO', 'RU', 'RP', 'RM', 'RA', 'RS', 'RE', 'RW', 'RQ', 'RG',
+    'WJ', 'WK', 'WL', 'WH', 'WN', 'WI', 'WO', 'WU', 'WP', 'WM', 'WA', 'WD', 'WF', 'WE', 'WR', 'WT', 'WG', 'WV',
+    'QJ', 'QK', 'QL', 'QH', 'QN', 'QI', 'QO', 'QU', 'QP', 'QM', 'QD', 'QF', 'QW', 'QE', 'QR', 'QT', 'QG',
+    'GJ', 'GK', 'GL', 'GH', 'GN', 'GI', 'GO', 'GU', 'GP', 'GM', 'GD', 'GS', 'GA', 'GE', 'GW', 'GQ',
+    'JA', 'JS', 'JD', 'JF', 'JG', 'JE', 'JR', 'JW', 'JQ', 'JK', 'JL', 'JI', 'JO', 'JP', 'JV',
+    'KA', 'KS', 'KD', 'KF', 'KG', 'KE', 'KR', 'KW', 'KQ', 'KJ', 'KL', 'KN', 'KO', 'KP', 'KV',
+    'LA', 'LS', 'LD', 'LF', 'LG', 'LE', 'LR', 'LW', 'LQ', 'LJ', 'LK', 'LN', 'LI', 'LU', 'LV',
+    'HA', 'HS', 'HD', 'HF', 'HG', 'HE', 'HR', 'HW', 'HQ', 'HJ', 'HL', 'HI', 'HO', 'HP', 'HV',
+    'NA', 'NS', 'ND', 'NF', 'NG', 'NE', 'NR', 'NW', 'NQ', 'NK', 'NL', 'NI', 'NO', 'NP', 'NV',
+    'IA', 'IS', 'ID', 'IF', 'IG', 'IE', 'IR', 'IW', 'IQ', 'IJ', 'IL', 'IN', 'IH', 'IO', 'IP', 'IV',
+    'OA', 'OS', 'OD', 'OF', 'OG', 'OE', 'OR', 'OW', 'OQ', 'OJ', 'OK', 'OH', 'OI', 'ON', 'OP', 'OV',
+    'PA', 'PS', 'PD', 'PF', 'PG', 'PE', 'PR', 'PW', 'PQ', 'PJ', 'PK', 'PH', 'PI', 'PN', 'PO', 'PV',
+    'MA', 'MS', 'MD', 'MF', 'MG', 'ME', 'MR', 'MW', 'MQ', 'MK', 'ML', 'MI', 'MO', 'MP', 'MV',
+    'VJ', 'VK', 'VL', 'VH', 'VN', 'VI', 'VO', 'VP', 'VU', 'VM', 'VA', 'VS', 'VD', 'VE', 'VR', 'VW', 'VQ',
+    'UA', 'US', 'UD', 'UF', 'UG', 'UE', 'UR', 'UW', 'UQ', 'UH', 'UL', 'UI', 'UP', 'UN', 'UV',
+    'TJ', 'TK', 'TL', 'TH', 'TN', 'TI', 'TO', 'TP', 'TU', 'TM', 'TA', 'TE', 'TW', 'TQ', 'TR',
+  ],
+}
 
-// TODO: generate more ergonomic labels
-// for example, 'sw' is harder to type than 'ad'
-// also multi-hand might be better. aka 'aj' > 'ad'
-// perhaps we can also create some convention for
-// motions that go up vs down. e.g. if first label char...
-//  - starts on left hand: motion is down
-//  - starts on right hand: motion is up
-// not sure if this makes things faster?
-const jumpLabelsRaw = jumpKeys.split('').map(key => {
-  const otherKeys = jumpKeys.replace(key, '')
-  return otherKeys.split('').map(k => key + k)
-}).reduce((res, grp) => [...res, ...grp])
-const jumpLabels = [...new Set(jumpLabelsRaw)]
+const singleLabelLimit = labels.single.length
 
-action('divination', () => {
+const getLabels = (itemCount: number) => {
+  const doubleSize = itemCount > singleLabelLimit
+  return {
+    labelSize: doubleSize ? 2 : 1,
+    getLabel: (index: number) => doubleSize
+      ? labels.double[index]
+      : labels.single[index],
+    // TODO: would it be faster to use a map? only lookup instead of find
+    indexOfLabel: (label: string) => doubleSize
+      ? labels.double.indexOf(label)
+      : labels.single.indexOf(label),
+  }
+}
+
+const labelHTML = (label: string) => label
+  .split('')
+  // using margin-right instead of letter-spacing because letter-spacing adds space
+  // to the right of the last letter - so it ends up with more padding on the right :/
+  .map((char, ix) => `<span${!ix ? ' style="margin-right: 2px"': ''}>${char}</span>`)
+  .join('')
+
+const divinationLine = async ({ visual }: { visual: boolean }) => {
+  if (visual) nvim.feedkeys('gv', 'n')
+  else nvim.feedkeys('m`', 'n')
+
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
   const { height: rowCount, row } = win.getSpecs()
-  // TODO: don't render on the current line. account for missing in jumpDistance calcs?
-  const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
-  const relativeCursorRow = cursor.row - row
+  const cursorDistanceFromTopOfEditor = cursor.row - row
 
-  const labelContainer = makel({
-    position: 'absolute'
-  })
+  const rowPositions = genList(rowCount, ix => win.relativeRowToY(ix))
+  const labelContainer = makel({ position: 'absolute' })
+  const { labelSize, getLabel, indexOfLabel } = getLabels(rowPositions.length)
 
   const labels = rowPositions.map((y, ix) => {
     const el = makel({
@@ -58,14 +94,14 @@ action('divination', () => {
       color: '#eee',
     })
 
-    const label = jumpLabels[ix]
-    // using margin-right instead of letter-spacing because letter-spacing adds space
-    // to the right of the last letter - so it ends up with more padding on the right :/
-    el.innerHTML = `<span style="margin-right: 2px">${label[0]}</span><span>${label[1]}</span>`
+    el.innerHTML = labelHTML(getLabel(ix))
     return el
   })
 
-  labels.forEach(label => labelContainer.appendChild(label))
+  labels
+    .filter((_, ix) => ix !== cursorDistanceFromTopOfEditor)
+    .forEach(label => labelContainer.appendChild(label))
+
   currentWindowElement.add(labelContainer)
 
   const updateLabels = (matchChar: string) => labels
@@ -75,34 +111,39 @@ action('divination', () => {
       color: '#ff007c'
     }))
 
-  switchInputMode(InputMode.Motion)
   const grabbedKeys: string[] = []
 
   const reset = () => {
-    stopWatchingInput()
+    restoreInput()
     currentWindowElement.remove(labelContainer)
-    defaultInputMode()
   }
 
-  const joinTheDarkSide = () => {
+  const jump = () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
+    const targetRow = indexOfLabel(jumpLabel)
+    if (targetRow === -1) return reset()
 
-    const targetRow = jumpLabels.indexOf(jumpLabel)
-    const jumpDistance = targetRow - relativeCursorRow
+    const jumpDistance = targetRow - cursorDistanceFromTopOfEditor
     const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
-    feedkeys(`${Math.abs(jumpDistance)}g${jumpMotion}^`, 'n')
+    const cursorAdjustment = visual
+      ? jumpDistance > 0 ? 'g$' : ''
+      : 'g^'
 
+    const command = `${Math.abs(jumpDistance)}g${jumpMotion}${cursorAdjustment}`
+    nvim.feedkeys(command, 'n')
     reset()
   }
 
-  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+  const restoreInput = stealInput(keys => {
     if (keys === '<Esc>') return reset()
 
     grabbedKeys.push(keys)
-    if (grabbedKeys.length === 1) return updateLabels(keys)
-    if (grabbedKeys.length === 2) joinTheDarkSide()
+    if (labelSize === 1 && grabbedKeys.length === 1) return jump()
+    if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
+    if (labelSize === 2 && grabbedKeys.length === 2) return jump()
+    else reset()
   })
-})
+}
 
 const findSearchPositions = ({ row, col, height, width, bg }: FindPosOpts) => {
   const maxRow = row + height
@@ -136,8 +177,10 @@ export const divinationSearch = async () => {
   const win = activeWindow()
   if (!win) throw new Error('no window found for divination purposes lol wtf')
 
-  const { foreground, background } = await getColor('Search')
+  const { foreground, background } = await nvim.getColor('Search')
   const specs = win.getSpecs()
+  const cursorDistanceFromTopOfEditor = cursor.row - specs.row
+  const cursorDistanceFromLeftOfEditor = cursor.col - specs.col
 
   const searchPositions = findSearchPositions({
     ...specs,
@@ -154,17 +197,31 @@ export const divinationSearch = async () => {
     bg: foreground,
   })
 
+  if (!searchPositions.length) return
+
   // TODO: again, same issue as above, remove/filter out the current line + col
   // if mouse is right on top of it
   const searchPixelPositions = searchPositions.map(m => ({
     ...m,
-    ...win.realtivePositionToPixels(m.row, m.col),
+    ...win.relativePositionToPixels(m.row, m.col),
   }))
 
   const labelContainer = makel({ position: 'absolute' })
   const jumpTargets = new Map()
 
+  const { labelSize, getLabel } = getLabels(searchPixelPositions.length)
+
   const labels = searchPixelPositions.map((pos, ix) => {
+    const relativePosition = {
+      row: pos.row - specs.row,
+      col: pos.col - specs.col,
+    }
+
+    const sameRow = relativePosition.row === cursorDistanceFromTopOfEditor
+    const sameCol = relativePosition.col === cursorDistanceFromLeftOfEditor
+
+    if (sameRow && sameCol) return
+
     // TODO: these styles should be shared. also i think we should use css translate
     // instead of top/left
     const el = makel({
@@ -182,15 +239,13 @@ export const divinationSearch = async () => {
       color: '#eee',
     })
 
-    const label = jumpLabels[ix]
-    jumpTargets.set(label, { row: pos.row, col: pos.col })
-    // using margin-right instead of letter-spacing because letter-spacing adds space
-    // to the right of the last letter - so it ends up with more padding on the right :/
-    el.innerHTML = `<span style="margin-right: 2px">${label[0]}</span><span>${label[1]}</span>`
-    return el
-  })
+    const label = getLabel(ix)
+    jumpTargets.set(label, relativePosition)
+    el.innerHTML = labelHTML(label)
 
-  // TODO: dedup some of this code for label creation
+    return el
+  }).filter(m => m) as HTMLElement[]
+
   labels.forEach(label => labelContainer.appendChild(label))
   currentWindowElement.add(labelContainer)
 
@@ -201,43 +256,40 @@ export const divinationSearch = async () => {
       color: '#ff007c'
     }))
 
-  switchInputMode(InputMode.Motion)
   hideCursor()
   const grabbedKeys: string[] = []
 
   const reset = () => {
-    stopWatchingInput()
+    restoreInput()
     currentWindowElement.remove(labelContainer)
-    defaultInputMode()
     showCursor()
   }
 
-  const joinTheDarkSide = async () => {
-    const topLineNumber = await lineNumber.top()
+  const jump = async () => {
     const jumpLabel = grabbedKeys.join('').toUpperCase()
+    if (!jumpTargets.has(jumpLabel)) return reset()
+
     const { row, col } = jumpTargets.get(jumpLabel)
 
-    const distanceFrom = {
-      top: row - specs.row,
-      left: col - specs.col,
-    }
+    const jumpDistance = row - cursorDistanceFromTopOfEditor
+    const jumpMotion = jumpDistance > 0 ? 'j' : 'k'
+    const command = `m\`${Math.abs(jumpDistance)}g${jumpMotion}${col + 1}|`
 
-    const target = {
-      line: topLineNumber + distanceFrom.top - 1,
-      column: distanceFrom.left,
-    }
-
-    jumpTo(target)
+    nvim.feedkeys(command, 'n')
     reset()
   }
 
-  const stopWatchingInput = watchInputMode(InputMode.Motion, keys => {
+  const restoreInput = stealInput(keys => {
     if (keys === '<Esc>') return reset()
 
     grabbedKeys.push(keys)
-    if (grabbedKeys.length === 1) return updateLabels(keys)
-    if (grabbedKeys.length === 2) joinTheDarkSide()
+    if (labelSize === 1 && grabbedKeys.length === 1) return jump()
+    if (labelSize === 2 && grabbedKeys.length === 1) return updateLabels(keys)
+    if (labelSize === 2 && grabbedKeys.length === 2) return jump()
+    else reset()
   })
 }
 
-action('divination-search', divinationSearch)
+nvim.onAction('jump-search', divinationSearch)
+nvim.onAction('jump-line', () => divinationLine({ visual: false }))
+nvim.onAction('jump-line-visual', () => divinationLine({ visual: true }))

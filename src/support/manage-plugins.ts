@@ -1,7 +1,7 @@
 import { exists, getDirs, is, configPath, remove as removePath } from '../support/utils'
 import { NotifyKind, notify } from '../ui/notifications'
 import { url, download } from '../support/download'
-import { cmd } from '../core/neovim'
+import nvim from '../core/neovim'
 import { join } from 'path'
 
 interface Plugin {
@@ -58,5 +58,5 @@ export default async (configLines: string[]) => {
   if (installedFail) notify(`Failed to install ${installedFail} plugins. See devtools console for more info.`, NotifyKind.Error)
 
   removeExtraneous(plugins)
-  cmd(`packloadall!`)
+  nvim.cmd(`packloadall!`)
 }

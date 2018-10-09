@@ -1,19 +1,13 @@
 import { CodeLens, Diagnostic, Command, Location, WorkspaceEdit, Hover,
   SignatureHelp, SymbolInformation, SymbolKind, CompletionItem,
-  DocumentHighlight } from 'vscode-languageserver-types'
-import { DidOpenTextDocumentParams, DidChangeTextDocumentParams } from 'vscode-languageserver-protocol'
+  DocumentHighlight } from 'vscode-languageserver-protocol'
 import { is, merge, uriToPath, uriAsCwd, uriAsFile } from '../support/utils'
-import { NeovimState, applyPatches, current as vim } from '../core/neovim'
-import { TextDocumentSyncKind } from 'vscode-languageserver-protocol'
+import { notify, request, setTextSyncState, onDiagnostics as onDiags } from '../langserv/director'
 import { Patch, workspaceEditToPatch } from '../langserv/patch'
-import { getSyncKind } from '../langserv/server-features'
-import toVSCodeLangauge from '../langserv/vsc-languages'
 import { getLines } from '../support/get-file-contents'
-import { notify, request } from '../langserv/director'
+import nvim, { NeovimState } from '../core/neovim'
 import config from '../config/config-service'
 import * as path from 'path'
-
-export { onDiagnostics } from '../langserv/director'
 
 export interface Reference {
   path: string,
@@ -22,6 +16,12 @@ export interface Reference {
   endLine: number,
   endColumn: number,
   lineContents: string,
+}
+
+export interface EditorLocation {
+  path?: string
+  line?: number
+  column?: number
 }
 
 export interface Symbol {
@@ -42,10 +42,6 @@ interface VimLocation {
   position: VimPosition,
 }
 
-interface BufferChange extends NeovimState {
-  bufferLines: string[],
-}
-
 interface MarkedStringPart {
   language: string,
   value: string,
@@ -56,33 +52,19 @@ interface VimPosition {
   column: number,
 }
 
-interface CurrentBuffer {
-  cwd: string,
-  file: string,
-  contents: string[],
-}
-
-// TODO: i wonder if we can rid of currentBuffer.contents once we get
-// the fancy neovim PR for partial buffer update notifications...
-const currentBuffer: CurrentBuffer = {
-  cwd: '',
-  file: '',
-  contents: [],
-}
-
 const ignored: { dirs: string[] } = {
   dirs: config('workspace.ignore.dirs', m => ignored.dirs = m),
 }
 
 const filterWorkspaceSymbols = (symbols: Symbol[]): Symbol[] => {
-  const excluded = ignored.dirs.map(m => path.join(vim.cwd, m))
+  const excluded = ignored.dirs.map(m => path.join(nvim.state.cwd, m))
   return symbols.filter(s => !excluded.some(dir => s.location.cwd.includes(dir)))
 }
 
 // TODO: get typings for valid requests?
 const toProtocol = (data: NeovimState, more?: any) => {
-  const { cwd, filetype, file, line, column: character, revision } = data
-  const uri = `file://${path.resolve(cwd, file)}`
+  const { cwd, filetype, absoluteFilepath, line, column: character, revision } = data
+  const uri = `file://${absoluteFilepath}`
 
   const base = {
     cwd,
@@ -98,62 +80,49 @@ const toProtocol = (data: NeovimState, more?: any) => {
   return more ? merge(base, more) : base
 }
 
-const didOpen = (m: DidOpenTextDocumentParams) => notify('textDocument/didOpen', m, { bufferCallIfServerStarting: true })
-const didChange = (m: DidChangeTextDocumentParams) => notify('textDocument/didChange', m, { bufferCallIfServerStarting: true })
-
-const patchBufferCacheWithPartial = async (cwd: string, file: string, change: string, line: number): Promise<void> => {
-  if (currentBuffer.cwd !== cwd && currentBuffer.file !== file)
-    return console.error('trying to do a partial update before a full update has been done. normally before doing a partial update a bufEnter event happens which triggers a full update.', currentBuffer, cwd, file)
-  Reflect.set(currentBuffer.contents, line, change)
+const pauseTextSync = (pauseState: boolean) => {
+  const { cwd, filetype } = nvim.state
+  setTextSyncState(pauseState, { cwd, filetype })
 }
 
-export const fullBufferUpdate = (bufferState: BufferChange, bufferOpened = false) => {
-  const { cwd, file, bufferLines: contents, filetype } = bufferState
-
-  merge(currentBuffer, { cwd, file, contents })
-
-  const text = contents.join('\n')
-  const protocolRequest = toProtocol(bufferState, { filetype })
-
-  if (bufferOpened) merge(protocolRequest.textDocument, {
-    text,
-    languageId: toVSCodeLangauge(filetype),
-  })
-
-  if (!bufferOpened) merge(protocolRequest, {
-    contentChanges: [ { text } ]
-  })
-
-  bufferOpened ? didOpen(protocolRequest) : didChange(protocolRequest)
+export const textSync = {
+  pause: () => pauseTextSync(true),
+  resume: () => pauseTextSync(false),
 }
 
-export const partialBufferUpdate = async (change: BufferChange, bufferOpened = false) => {
-  const { cwd, file, bufferLines, line, filetype } = change
-  const syncKind = getSyncKind(cwd, filetype)
+// this trickery is because sometimes (randomly) director.onDiagnostics was undefined?!
+export const onDiagnostics: typeof onDiags = (a: any) => onDiags(a)
 
-  await patchBufferCacheWithPartial(cwd, file, bufferLines[0], line)
-
-  if (syncKind !== TextDocumentSyncKind.Incremental) return fullBufferUpdate({ ...change, bufferLines: currentBuffer.contents })
-
-  const content = {
-    text: bufferLines[0],
-    range: {
-      start: { line, character: 0 },
-      end: { line, character: bufferLines.length - 1 }
-    }
-  }
-
-  const req = toProtocol(change, { contentChanges: [ content ], filetype })
-
-  bufferOpened
-    ? notify('textDocument/didOpen', req, { bufferCallIfServerStarting: true })
-    : notify('textDocument/didChange', req, { bufferCallIfServerStarting: true })
-}
-
-export const definition = async (data: NeovimState) => {
+export const definition = async (data: NeovimState): Promise<EditorLocation> => {
   const req = toProtocol(data)
   const result = await request('textDocument/definition', req)
-  if (!result) return {}
+  if (!result || !result.length) return {}
+  const { uri, range } = is.array(result) ? result[0] : result
+
+  return {
+    path: uriToPath(uri),
+    line: range.start.line,
+    column: range.start.character,
+  }
+}
+
+export const typeDefinition = async (data: NeovimState): Promise<EditorLocation> => {
+  const req = toProtocol(data)
+  const result = await request('textDocument/typeDefinition', req)
+  if (!result || !result.length) return {}
+  const { uri, range } = is.array(result) ? result[0] : result
+
+  return {
+    path: uriToPath(uri),
+    line: range.start.line,
+    column: range.start.character,
+  }
+}
+
+export const implementation = async (data: NeovimState): Promise<EditorLocation> => {
+  const req = toProtocol(data)
+  const result = await request('textDocument/implementation', req)
+  if (!result || !result.length) return {}
   const { uri, range } = is.array(result) ? result[0] : result
 
   return {
@@ -341,4 +310,4 @@ export const executeCommand = async (data: NeovimState, command: Command) => {
   notify('workspace/executeCommand', { ...req, ...command })
 }
 
-export const applyEdit = async (edit: WorkspaceEdit) => applyPatches(workspaceEditToPatch(edit))
+export const applyEdit = async (edit: WorkspaceEdit) => nvim.applyPatches(workspaceEditToPatch(edit))

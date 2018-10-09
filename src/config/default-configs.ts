@@ -17,7 +17,7 @@ export const explorer = {
 
 export const workspace = {
   ignore: {
-    dirs: ['build', 'dist'],
+    dirs: [],
   }
 }
 

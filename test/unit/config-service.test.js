@@ -1,4 +1,4 @@
-const { src, same } = require('./util')
+const { src, same } = require('../util')
 
 const defaultConfig = {
   project: {
@@ -9,8 +9,9 @@ const defaultConfig = {
 const setup = vimConfig => src('config/config-service', {
   'config/default-configs': defaultConfig,
   'core/neovim': {
-    g: vimConfig,
-    '@noCallThru': true,
+    default: {
+      g: vimConfig,
+    }
   }
 }).default
 

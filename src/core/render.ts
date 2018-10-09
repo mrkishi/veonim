@@ -4,11 +4,12 @@ import { onRedraw, getMode, getColor as getColorFromVim } from '../core/master-c
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
 // import * as canvasContainer from '../core/canvas-container'
 // import { NotifyKind, notify } from '../ui/notifications'
-import { Events, ExtContainer } from '../core/api'
+import { Events, ExtContainer } from '../neovim/protocol'
 import { EMPTY_CHAR } from '../support/constants'
 import * as dispatch from '../messaging/dispatch'
-import $$, { VimMode } from '../core/state'
 // import fontAtlas from '../core/font-atlas'
+import { VimMode } from '../neovim/types'
+import nvim from '../core/neovim'
 
 // type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
@@ -235,9 +236,9 @@ r.default_colors_set = (fg, bg, sp) => {
   dispatch.pub('colors.vim.bg', defaultColors.background)
   dispatch.pub('colors.vim.sp', defaultColors.special)
 
-  $$.foreground = defaultColors.foreground
-  $$.background = defaultColors.background
-  $$.special = defaultColors.special
+  nvim.state.foreground = defaultColors.foreground
+  nvim.state.background = defaultColors.background
+  nvim.state.special = defaultColors.special
 
   // hlid 0 -> default highlight group
   highlights.set(0, {
@@ -270,8 +271,7 @@ r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
 })
 
 r.mode_change = async mode => {
-  dispatch.pub('vim:mode', mode)
-  $$.mode = normalizeVimMode(mode)
+  nvim.state.mode = normalizeVimMode(mode)
   currentMode = mode
   const info = modes.get(mode)
   if (!info) return
@@ -572,7 +572,7 @@ onRedraw((m: any[]) => {
     //
     // if (!initialAtlasGenerated) initalFontAtlas.done(true)
     // regenerateFontAtlastIfNecessary()
-    getMode().then(m => $$.mode = normalizeVimMode(m.mode))
+    getMode().then(m => nvim.state.mode = normalizeVimMode(m.mode))
   })
 })
 

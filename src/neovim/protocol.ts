@@ -1,5 +1,5 @@
 // AUTO-GENERATED! This file automagically generated with gen-api.js
-// Tue, 03 Jul 2018 22:09:49 GMT
+// Sun, 02 Sep 2018 18:00:34 GMT
 // Neovim version: 0.3.1
 
 export interface ExtContainer {
@@ -9,6 +9,10 @@ export interface ExtContainer {
 }
 
 export interface Events {
+  resize(width: number, height: number): void,
+  clear(): void,
+  eol_clear(): void,
+  cursor_goto(row: number, col: number): void,
   mode_info_set(enabled: boolean, cursor_styles: any[]): void,
   update_menu(): void,
   busy_start(): void,
@@ -19,6 +23,10 @@ export interface Events {
   bell(): void,
   visual_bell(): void,
   flush(): void,
+  update_fg(fg: number): void,
+  update_bg(bg: number): void,
+  update_sp(sp: number): void,
+  default_colors_set(rgb_fg: number, rgb_bg: number, rgb_sp: number, cterm_fg: number, cterm_bg: number): void,
   suspend(): void,
   set_title(title: string): void,
   set_icon(icon: string): void,
@@ -57,6 +65,10 @@ export interface Events {
   wildmenu_show(items: any[]): void,
   wildmenu_select(selected: number): void,
   wildmenu_hide(): void,
+  msg_start_kind(kind: string): void,
+  msg_chunk(data: string, hl_id: number): void,
+  msg_end(): void,
+  msg_showcmd(content: any[]): void,
 }
 
 export interface Api {

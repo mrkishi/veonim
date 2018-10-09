@@ -1,6 +1,6 @@
-import { exists, watchPath } from '../support/utils'
-import { sub } from '../messaging/dispatch'
-import { cmd, on } from '../core/neovim'
+import { exists, watchFile } from '../support/utils'
+import { onSwitchVim } from '../core/sessions'
+import nvim from '../core/neovim'
 import { join } from 'path'
 
 const sessions = new Map<number, Set<string>>()
@@ -9,23 +9,23 @@ let currentSession = new Set<string>()
 
 const anySessionsHaveFile = (file: string) => [...sessions.values()].some(s => s.has(file))
 
-sub('session:switch', (id: number) => {
+onSwitchVim(id => {
   if (sessions.has(id)) currentSession = sessions.get(id)!
   else sessions.set(id, currentSession = new Set<string>())
-  cmd(`checktime`)
+  nvim.cmd(`checktime`)
 })
 
-on.bufLoad(async ({ cwd, file }) => {
-  const filepath = join(cwd, file)
+nvim.on.bufLoad(async () => {
+  const filepath = join(nvim.state.cwd, nvim.state.file)
   if (!filepath) return
   if (!await exists(filepath)) return
   currentSession.add(filepath)
-  const w = watchPath(filepath, () => currentSession.has(filepath) && cmd(`checktime ${filepath}`))
+  const w = await watchFile(filepath, () => currentSession.has(filepath) && nvim.cmd(`checktime ${filepath}`))
   watchers.set(filepath, w)
 })
 
-on.bufUnload(({ cwd, file }) => {
-  const filepath = join(cwd, file)
+nvim.on.bufClose(() => {
+  const filepath = join(nvim.state.cwd, nvim.state.file)
   if (!filepath) return
   currentSession.delete(filepath)
   if (anySessionsHaveFile(filepath)) return

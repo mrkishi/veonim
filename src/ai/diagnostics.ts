@@ -1,7 +1,6 @@
-import { ProblemHighlight, Highlight, HighlightGroupId, on, action, getCurrent,
-  current as vim, jumpTo } from '../core/neovim'
-import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types'
+import { Command, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-protocol'
 import { LocationItem, findNext, findPrevious } from '../support/relative-finder'
+import { ProblemHighlight, Highlight, HighlightGroupId } from '../neovim/types'
 import { codeAction, onDiagnostics, executeCommand } from '../langserv/adapter'
 import { ui as problemInfoUI } from '../components/problem-info'
 import { uriToPath, pathRelativeToCwd } from '../support/utils'
@@ -11,8 +10,10 @@ import { supports } from '../langserv/server-features'
 import * as problemsUI from '../components/problems'
 import * as dispatch from '../messaging/dispatch'
 import { setCursorColor } from '../core/cursor'
+import { onSwitchVim } from '../core/sessions'
 import { sessions } from '../core/sessions'
 import { cursor } from '../core/cursor'
+import nvim from '../core/neovim'
 import '../ai/remote-problems'
 import * as path from 'path'
 
@@ -66,8 +67,8 @@ const mapAsProblems = (diagsMap: Map<string, Diagnostic[]>): Problem[] =>
   [...diagsMap.entries()]
   .map(([ filepath, diagnostics ]) => ({
     items: diagnostics,
-    file: path.basename(pathRelativeToCwd(filepath, vim.cwd)),
-    dir: path.dirname(pathRelativeToCwd(filepath, vim.cwd)),
+    file: path.basename(pathRelativeToCwd(filepath, nvim.state.cwd)),
+    dir: path.dirname(pathRelativeToCwd(filepath, nvim.state.cwd)),
   }))
   .filter(m => m.items.length)
 
@@ -102,9 +103,9 @@ export const addQF = (items: Map<string, Diagnostic[]>, source: string) => {
 }
 
 const refreshProblemHighlights = async () => {
-  const currentBufferPath = path.join(vim.cwd, vim.file)
+  const currentBufferPath = path.join(nvim.state.cwd, nvim.state.file)
   const diagnostics = current.diagnostics.get(currentBufferPath) || []
-  const buffer = await getCurrent.buffer
+  const buffer = nvim.current.buffer
 
   if (!diagnostics.length) return buffer.clearHighlight(HighlightGroupId.Diagnostics, 0, -1)
 
@@ -119,6 +120,73 @@ const refreshProblemHighlights = async () => {
   buffer.highlightProblems(problems)
 }
 
+nvim.onAction('show-problem', async () => {
+  const { line, column, cwd, file } = nvim.state
+  const diagnostics = current.diagnostics.get(path.join(cwd, file))
+  if (!diagnostics) return
+
+  const targetProblem = diagnostics.find(d => positionWithinRange(line, column, d.range))
+  if (targetProblem) problemInfoUI.show(targetProblem.message)
+})
+
+nvim.on.cursorMove(problemInfoUI.hide)
+nvim.on.insertLeave(problemInfoUI.hide)
+nvim.on.insertEnter(problemInfoUI.hide)
+
+nvim.onAction('next-problem', async () => {
+  const { line, column, cwd, file } = nvim.state
+  const currentPath = path.join(cwd, file)
+  const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
+  if (!diagnosticLocations) return
+
+  const problem = findNext(diagnosticLocations, currentPath, line, column)
+  if (!problem) return
+
+  nvim.jumpTo(problem)
+})
+
+nvim.onAction('prev-problem', async () => {
+  const { line, column, cwd, file } = nvim.state
+  const currentPath = path.join(cwd, file)
+  const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
+  if (!diagnosticLocations) return
+
+  const problem = findPrevious(diagnosticLocations, currentPath, line, column)
+  if (!problem) return
+
+  nvim.jumpTo(problem)
+})
+
+nvim.onAction('problems-toggle', () => problemsUI.toggle())
+nvim.onAction('problems-focus', () => problemsUI.focus())
+
+export const setProblems = (problems: Problem[]) => {
+  if (!problems || !problems.length) return
+  cache.problems.set(sessions.current, problems)
+  updateUI()
+}
+
+nvim.on.cursorMove(async () => {
+  const { line, column, cwd, file, filetype } = nvim.state
+  const diagnostics = current.diagnostics.get(path.join(cwd, file))
+  if (!diagnostics) return
+
+  const relevantDiagnostics = diagnostics
+    .filter(d => positionWithinRange(line, column, d.range))
+
+  if (!supports.codeActions(cwd, filetype)) return
+  const actions = await codeAction(nvim.state, relevantDiagnostics)
+
+  if (actions && actions.length) {
+    cache.actions = actions
+    setCursorColor('red')
+  }
+})
+
+export const runCodeAction = (action: Command) => executeCommand(nvim.state, action)
+
+nvim.onAction('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
+
 onDiagnostics(async m => {
   const path = uriToPath(m.uri)
   cache.currentBuffer = path
@@ -128,74 +196,7 @@ onDiagnostics(async m => {
   refreshProblemHighlights()
 })
 
-action('show-problem', async () => {
-  const { line, column, cwd, file } = vim
-  const diagnostics = current.diagnostics.get(path.join(cwd, file))
-  if (!diagnostics) return
-
-  const targetProblem = diagnostics.find(d => positionWithinRange(line, column, d.range))
-  if (targetProblem) problemInfoUI.show(targetProblem.message)
-})
-
-on.cursorMove(problemInfoUI.hide)
-on.insertEnter(problemInfoUI.hide)
-on.insertLeave(problemInfoUI.hide)
-
-action('next-problem', async () => {
-  const { line, column, cwd, file } = vim
-  const currentPath = path.join(cwd, file)
-  const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
-  if (!diagnosticLocations) return
-
-  const problem = findNext(diagnosticLocations, currentPath, line, column)
-  if (!problem) return
-
-  jumpTo(problem)
-})
-
-action('prev-problem', async () => {
-  const { line, column, cwd, file } = vim
-  const currentPath = path.join(cwd, file)
-  const diagnosticLocations = getDiagnosticLocations(current.diagnostics)
-  if (!diagnosticLocations) return
-
-  const problem = findPrevious(diagnosticLocations, currentPath, line, column)
-  if (!problem) return
-
-  jumpTo(problem)
-})
-
-action('problems-toggle', () => problemsUI.toggle())
-action('problems-focus', () => problemsUI.focus())
-
-export const setProblems = (problems: Problem[]) => {
-  if (!problems || !problems.length) return
-  cache.problems.set(sessions.current, problems)
-  updateUI()
-}
-
-on.cursorMove(async state => {
-  const { line, column, cwd, file, filetype } = state
-  const diagnostics = current.diagnostics.get(path.join(cwd, file))
-  if (!diagnostics) return
-
-  const relevantDiagnostics = diagnostics
-    .filter(d => positionWithinRange(line, column, d.range))
-
-  if (!supports.codeActions(cwd, filetype)) return
-  const actions = await codeAction(state, relevantDiagnostics)
-
-  if (actions && actions.length) {
-    cache.actions = actions
-    setCursorColor('red')
-  }
-})
-
-export const runCodeAction = (action: Command) => executeCommand(vim, action)
-
-action('code-action', () => codeActionUI.show(cursor.row, cursor.col, cache.actions))
-
-dispatch.sub('session:switch', () => {
+onSwitchVim(() => {
   dispatch.pub('ai:diagnostics.count', getProblemCount(current.diagnostics))
   updateUI()
   refreshProblemHighlights()

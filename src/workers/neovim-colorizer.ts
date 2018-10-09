@@ -1,19 +1,19 @@
 import { prefixWith, onFnCall, pascalCase } from '../support/utils'
 import { colorscheme } from '../config/default-configs'
-import WorkerClient from '../messaging/worker-client'
 import CreateTransport from '../messaging/transport'
+import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
+import { on } from '../messaging/worker-client'
 import { Neovim } from '../support/binaries'
-import { Api, Prefixes } from '../core/api'
 import SetupRPC from '../messaging/rpc'
 import { resolve } from 'path'
+const marked = require('marked')
 
 interface ColorData {
   color: string,
   text: string,
 }
 
-const { on } = WorkerClient()
 const prefix = { core: prefixWith(Prefixes.Core) }
 const vimOptions = {
   rgb: true,
@@ -150,6 +150,24 @@ const colorizeTextPerChar = async (lines: string[], filetype = ''): Promise<Colo
   })))
 }
 
+const colorizeAsHTML = async (inputText: string, filetype = ''): Promise<string> => {
+  const colorLines = await colorizeText(inputText, filetype)
+  return colorLines
+    .filter(m => m)
+    .map(line => line.map(({ color, text }) => {
+      const style = color ? ` style="color: ${color}"` : ''
+      return `<span${style}>${text}</span>`
+    }).join(''))
+    .join('')
+}
+
+const wrongDocumentationYouFucktards = (markdown: string): Promise<string> => new Promise(done => marked(markdown, {
+  highlight: (text: string, language: string, done: any) => {
+    colorizeAsHTML(text, language).then(res => done(null, res))
+  },
+}, (_: any, result: string) => done(result)))
+
 on.setColorScheme((scheme: string) => api.command(`colorscheme ${scheme}`))
-on.colorize(async (text: string, filetype: string) => await colorizeText(text, filetype))
-on.colorizePerChar(async (lines: string[], filetype: string) => await colorizeTextPerChar(lines, filetype))
+on.colorize((text: string, filetype: string) => colorizeText(text, filetype))
+on.colorizePerChar((lines: string[], filetype: string) => colorizeTextPerChar(lines, filetype))
+on.colorizeMarkdownToHTML((markdown: string) => wrongDocumentationYouFucktards(markdown))

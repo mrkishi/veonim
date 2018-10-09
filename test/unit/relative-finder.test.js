@@ -1,4 +1,4 @@
-const { src, same } = require('./util')
+const { src, same } = require('../util')
 const { findNext, findPrevious } = src('support/relative-finder')
 
 const getA = () => [{

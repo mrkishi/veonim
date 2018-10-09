@@ -1,12 +1,12 @@
+import { Command } from 'vscode-languageserver-protocol'
 import { RowNormal } from '../components/row-container'
-import { Command } from 'vscode-languageserver-types'
+import { h, app, vimBlur, vimFocus } from '../ui/uikit'
 import { runCodeAction } from '../ai/diagnostics'
 import { activeWindow } from '../core/windows'
 import Input from '../components/text-input'
 import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
 import * as Icon from 'hyperapp-feather'
-import { h, app } from '../ui/uikit'
 
 const state = {
   x: 0,
@@ -23,8 +23,8 @@ type S = typeof state
 const resetState = { value: '', visible: false } 
 
 const actions = {
-  show: ({ x, y, actions }: any) => ({ x, y, actions, cache: actions, visible: true }),
-  hide: () => resetState,
+  show: ({ x, y, actions }: any) => (vimBlur(), { x, y, actions, cache: actions, visible: true }),
+  hide: () => (vimFocus(), resetState),
 
   change: (value: string) => (s: S) => ({ value, index: 0, actions: value
     ? filter(s.actions, value, { key: 'title' })
@@ -32,6 +32,7 @@ const actions = {
   }),
 
   select: () =>  (s: S) => {
+    vimFocus()
     if (!s.actions.length) return resetState
     const action = s.actions[s.index]
     if (action) runCodeAction(action)

@@ -1,9 +1,9 @@
 import { Plugin } from '../components/plugin-container'
+import { app, vimBlur, vimFocus } from '../ui/uikit'
 import Input from '../components/text-input'
 import { createVim } from '../core/sessions'
 import * as Icon from 'hyperapp-feather'
-import { action } from '../core/neovim'
-import { app } from '../ui/uikit'
+import nvim from '../core/neovim'
 
 const state = {
   value: '',
@@ -13,10 +13,11 @@ const state = {
 type S = typeof state
 
 const actions = {
-  show: () => ({ visible: true }),
-  hide: () => ({ value: '', visible: false }),
+  show: () => (vimBlur(), { visible: true }),
+  hide: () => (vimFocus(), { value: '', visible: false }),
   change: (value: string) => ({ value }),
   select: () => (s: S) => {
+    vimFocus()
     s.value && createVim(s.value)
     return { value: '', visible: false }
   },
@@ -37,4 +38,4 @@ const view = ($: S, a: typeof actions) => Plugin($.visible, [
 ])
 
 const ui = app({ name: 'vim-create', state, actions, view })
-action('vim-create', ui.show)
+nvim.onAction('vim-create', ui.show)

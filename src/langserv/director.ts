@@ -1,4 +1,4 @@
-import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-types'
+import { Diagnostic, WorkspaceEdit } from 'vscode-languageserver-protocol'
 import { registerServer } from '../langserv/server-features'
 import toVSCodeLanguage from '../langserv/vsc-languages'
 import defaultCapabs from '../langserv/capabilities'
@@ -23,13 +23,15 @@ interface BufferedCall {
   params: any,
 }
 
-const servers = new Map<string, extensions.LanguageServer>()
+export enum SyncKind { None, Full, Incremental }
+
+const servers = new Map<string, extensions.RPCServer>()
 const serverStartCallbacks = new Set<Function>()
 const startingServers = new Set<string>()
 const bufferedServerCalls = new Map<string, BufferedCall[]>()
 const watchers = new Watchers()
 
-const processBufferedServerCalls = (key: string, server: extensions.LanguageServer) => {
+const processBufferedServerCalls = (key: string, server: extensions.RPCServer) => {
   const calls = bufferedServerCalls.get(key)
   if (!calls) return
 
@@ -41,7 +43,7 @@ const processBufferedServerCalls = (key: string, server: extensions.LanguageServ
   bufferedServerCalls.delete(key)
 }
 
-const initServer = async (server: extensions.LanguageServer, cwd: string, language: string) => {
+const initServer = async (server: extensions.RPCServer, cwd: string, language: string) => {
   const { error, capabilities } = await server
     .sendRequest('initialize', defaultCapabs(cwd))
     .catch(console.error)
@@ -122,19 +124,34 @@ const getServerForProjectAndLanguage = async ({ cwd, filetype }: ServKey) => {
   return startServer(cwd, language, filetype)
 }
 
+export const filetypeDetectedStartServerMaybe = (cwd: string, filetype: string) => {
+  getServerForProjectAndLanguage({ cwd, filetype })
+}
+
 export const request = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
+  if (!params.filetype) return
   const server = await getServerForProjectAndLanguage(params)
   if (server) return server.sendRequest(method, params)
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Request, method, params })
 }
 
 export const notify = async (method: string, params: any, { bufferCallIfServerStarting = false } = {}) => {
+  if (!params.filetype) return
   const server = await getServerForProjectAndLanguage(params)
   if (server) server.sendNotification(method, params)
   else bufferCallIfServerStarting && bufferCallUntilServerStart({ kind: CallKind.Notification, method, params })
 }
 
-export const onServerStart = (fn: (server: extensions.LanguageServer, language: string) => void) => {
+export const setTextSyncState = (pauseTextSync: boolean, params: ServKey) => {
+  if (!params.filetype) return
+  const language = toVSCodeLanguage(params.filetype)
+  const server = servers.get(params.cwd + language)
+  if (!server) return console.error('failed to setTextSyncState because langserver does not exist')
+
+  server.setTextSyncState(pauseTextSync)
+}
+
+export const onServerStart = (fn: (server: extensions.RPCServer, language: string) => void) => {
   serverStartCallbacks.add(fn)
   return () => serverStartCallbacks.delete(fn)
 }

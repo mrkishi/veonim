@@ -1,10 +1,11 @@
+import { SignatureInformation, MarkupContent, MarkupKind } from 'vscode-languageserver-protocol'
 import { supports, getTriggerChars } from '../langserv/server-features'
-import { SignatureInformation } from 'vscode-languageserver-protocol'
-import { action, current as vim, on } from '../core/neovim'
+import { markdownToHTML } from '../support/markdown'
 import { signatureHelp } from '../langserv/adapter'
 import { merge } from '../support/utils'
 import { cursor } from '../core/cursor'
 import { ui } from '../components/hint'
+import nvim from '../core/neovim'
 
 const cache = {
   signatures: [] as SignatureInformation[],
@@ -26,7 +27,15 @@ const shouldCloseSignatureHint = (totalParams: number, currentParam: number, tri
 
 const cursorPos = () => ({ row: cursor.row, col: cursor.col })
 
-const showSignature = (signatures: SignatureInformation[], which?: number | null, param?: number | null) => {
+const parseDocs = async (docs?: string | MarkupContent): Promise<string | undefined> => {
+  if (!docs) return
+
+  if (typeof docs === 'string') return docs
+  if (docs.kind === MarkupKind.PlainText) return docs.value
+  return markdownToHTML(docs.value)
+}
+
+const showSignature = async (signatures: SignatureInformation[], which?: number | null, param?: number | null) => {
   const { label = '', documentation = '', parameters = [] } = signatures[which || 0]
   const activeParameter = param || 0
 
@@ -36,14 +45,17 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
     const { label: currentParam = '', documentation: paramDoc } = parameters[activeParameter]
     cache.totalParams = parameters.length
 
+    const [ parsedParamDoc, parsedDocumentation ] = await Promise.all([
+      parseDocs(paramDoc),
+      parseDocs(documentation),
+    ])
+
     ui.show({
       ...baseOpts,
       label,
       currentParam,
-      // TODO: support MarkupContent
-      paramDoc: paramDoc as any,
-      // TODO: support MarkupContent
-      documentation: documentation as any,
+      paramDoc: parsedParamDoc,
+      documentation: parsedDocumentation,
       selectedSignature: (which || 0) + 1,
     })
   }
@@ -65,16 +77,15 @@ const showSignature = (signatures: SignatureInformation[], which?: number | null
       ...baseOpts,
       label,
       currentParam,
-      // TODO: support MarkupContent
-      documentation: documentation as any,
+      documentation: await parseDocs(documentation),
       selectedSignature: nextSignatureIndex + 1,
     })
   }
 }
 
 const getSignatureHint = async (lineContent: string) => {
-  const triggerChars = getTriggerChars.signatureHint(vim.cwd, vim.filetype)
-  const leftChar = lineContent[Math.max(vim.column - 1, 0)]
+  const triggerChars = getTriggerChars.signatureHint(nvim.state.cwd, nvim.state.filetype)
+  const leftChar = lineContent[Math.max(nvim.state.column - 1, 0)]
 
   // TODO: should probably also hide if we jumped to another line
   // how do we determine the difference between multiline signatures and exit signature?
@@ -83,9 +94,9 @@ const getSignatureHint = async (lineContent: string) => {
   if (closeSignatureHint) return ui.hide()
 
   if (!triggerChars.has(leftChar)) return
-  if (!supports.signatureHint(vim.cwd, vim.filetype)) return
+  if (!supports.signatureHint(nvim.state.cwd, nvim.state.filetype)) return
 
-  const hint = await signatureHelp(vim)
+  const hint = await signatureHelp(nvim.state)
   if (!hint) return
 
   const { activeParameter, activeSignature, signatures = [] } = hint
@@ -95,11 +106,11 @@ const getSignatureHint = async (lineContent: string) => {
   showSignature(signatures, activeSignature, activeParameter)
 }
 
-on.cursorMove(ui.hide)
-on.insertEnter(ui.hide)
-on.insertLeave(ui.hide)
+nvim.on.cursorMove(ui.hide)
+nvim.on.insertEnter(ui.hide)
+nvim.on.insertLeave(ui.hide)
 
-action('signature-help-next', () => {
+nvim.onAction('signature-help-next', () => {
   const next = cache.selectedSignature + 1
   cache.selectedSignature = next >= cache.signatures.length ? 0 : next
   cache.currentParam = 0
@@ -107,7 +118,7 @@ action('signature-help-next', () => {
   showSignature(cache.signatures, cache.selectedSignature)
 })
 
-action('signature-help-prev', () => {
+nvim.onAction('signature-help-prev', () => {
   const next = cache.selectedSignature - 1
   cache.selectedSignature = next < 0 ? cache.signatures.length - 1 : next
   cache.currentParam = 0

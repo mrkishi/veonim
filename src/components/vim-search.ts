@@ -84,7 +84,6 @@ const view = ($: S, a: A) => h('div', {
   ,Input({
     small: true,
     focus: $.visible,
-    useVimInput: true,
     desc: 'search query',
     value: $.value,
     icon: Icon.Search,

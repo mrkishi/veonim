@@ -1,4 +1,4 @@
-import { createShadowBuffer } from '../core/neovim'
+import nvim from '../core/neovim'
 
 type Callback = () => void
 
@@ -22,7 +22,7 @@ const shadowBuffers = new Map<string, ShadowBuffer>()
 export const registerShadowComponent = (initFn: () => ShadowBuffer) => {
   const shadowComponent =  initFn()
   shadowBuffers.set(shadowComponent.name, shadowComponent)
-  createShadowBuffer(shadowComponent.name)
+  nvim.buffers.addShadow(shadowComponent.name)
 }
 
 export const getShadowBuffer = (name: string) => shadowBuffers.get(name)

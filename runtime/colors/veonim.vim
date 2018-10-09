@@ -39,11 +39,6 @@ hi! CursorNormal guibg=#f3a082
 hi! CursorInsert guibg=#f3a082
 hi! CursorVisual guibg=#6d33ff
 
-hi! link EasyMotionTarget HardContrast
-hi! link EasyMotionTarget2First HardContrast
-hi! link EasyMotionTarget2Second HardContrast
-hi! link EasyMotionIncSearch HardContrast
-
 hi! link EndOfBuffer         NormalInverted
 hi! link Visual              Selection
 hi! link WildMenu            Selection

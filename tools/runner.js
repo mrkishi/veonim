@@ -4,7 +4,7 @@ const { spawn } = require('child_process')
 const { join } = require('path')
 
 const root = join(__dirname, '..')
-const fromRoot = path => join(root, path)
+const fromRoot = (...paths) => join(root, ...paths)
 
 const run = (cmd, opts = {}) => new Promise(done => {
   console.log(cmd)
@@ -35,4 +35,21 @@ const $ = (s, ...v) => Array.isArray(s) ? console.log(s.map((s, ix) => s + (v[ix
 const go = fn => fn().catch(e => (console.error(e), process.exit(1)))
 const createTask = () => ( (done = () => {}, promise = new Promise(m => done = m)) => ({ done, promise }) )()
 
-module.exports = { $, go, run, root, fromRoot, createTask }
+const fetch = (url, options = { method: 'GET' }) => new Promise((done, fail) => {
+  const { data, ...requestOptions } = options
+  const opts = { ...require('url').parse(url), ...requestOptions }
+
+  const { request } = url.startsWith('https://')
+    ? require('https')
+    : require('http')
+
+  const req = request(opts, res => done(res.statusCode >= 300 && res.statusCode < 400
+    ? fetchStream(res.headers.location, options)
+    : res))
+
+  req.on('error', fail)
+  if (data) req.write(data)
+  req.end()
+})
+
+module.exports = { $, go, run, root, fromRoot, createTask, fetch }

@@ -1,5 +1,5 @@
 import { encode, decode, createEncodeStream, createDecodeStream, createCodec } from 'msgpack-lite'
-import { ExtType } from '../core/api'
+import { ExtType } from '../neovim/protocol'
 
 const ExtContainer = (kind: number, id: any) => ({ kind, id, extContainer: true })
 

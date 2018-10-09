@@ -3,7 +3,7 @@
 const { $, go, run, fromRoot } = require('./runner')
 const { copy, remove, ensureDir } = require('fs-extra')
 const { build } = require('electron-builder')
-const { deps } = require('./install-bins.js')
+const { deps } = require('./postinstall')
 
 const config = {
   productName: 'veonim',

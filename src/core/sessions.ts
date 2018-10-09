@@ -1,5 +1,5 @@
 import { onExit, attachTo, switchTo, create } from '../core/master-control'
-import { pub } from '../messaging/dispatch'
+import { EventEmitter } from 'events'
 import { remote } from 'electron'
 
 interface Vim {
@@ -10,32 +10,39 @@ interface Vim {
   nameFollowsCwd: boolean,
 }
 
+interface VimInfo {
+  id: number
+  path: string
+}
+
+const watchers = new EventEmitter()
+watchers.setMaxListeners(200)
 const vims = new Map<number, Vim>()
-const cache = { id: -1 }
+let currentVimID = -1
 
 export default (id: number, path: string) => {
   vims.set(id, { id, path, name: 'main', active: true, nameFollowsCwd: true })
-  cache.id = id
-  pub('session:create', { id, path })
-  pub('session:switch', id)
+  currentVimID = id
+  watchers.emit('create', { id, path })
+  watchers.emit('switch', id)
 }
 
 export const createVim = async (name: string, dir?: string) => {
   const { id, path } = await create({ dir })
-  cache.id = id
-  pub('session:create', { id, path })
+  currentVimID = id
+  watchers.emit('create', { id, path })
   attachTo(id)
   switchTo(id)
-  pub('session:switch', id)
+  watchers.emit('switch', id)
   vims.forEach(v => v.active = false)
   vims.set(id, { id, path, name, active: true, nameFollowsCwd: !!dir })
 }
 
 export const switchVim = async (id: number) => {
   if (!vims.has(id)) return
-  cache.id = id
+  currentVimID = id
   switchTo(id)
-  pub('session:switch', id)
+  watchers.emit('switch', id)
   vims.forEach(v => v.active = false)
   vims.get(id)!.active = true
 }
@@ -67,10 +74,23 @@ export const renameCurrentToCwd = (cwd: string) => {
 export const list = () => [...vims.values()].filter(v => !v.active).map(v => ({ id: v.id, name: v.name }))
 
 export const sessions = {
-  get current() { return cache.id }
+  get current() { return currentVimID }
 }
 
-onExit((id: number) => {
+export const onCreateVim = (fn: (info: VimInfo) => void) => {
+  watchers.on('create', (info: VimInfo) => fn(info))
+  ;[...vims.entries()].forEach(([ id, vim ]) => fn({ id, path: vim.path }))
+}
+
+export const onSwitchVim = (fn: (id: number) => void) => {
+  watchers.on('switch', id => fn(id))
+  fn(currentVimID)
+}
+
+// because of circular dependency chain. master-control exports onExit.
+// master-control imports a series of dependencies which eventually
+// import this module. thus onExit will not be exported yet.
+setImmediate(() => onExit((id: number) => {
   if (!vims.has(id)) return
   vims.delete(id)
 
@@ -78,4 +98,4 @@ onExit((id: number) => {
 
   const next = Math.max(...vims.keys())
   switchVim(next)
-})
+}))
