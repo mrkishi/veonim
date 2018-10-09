@@ -8,12 +8,14 @@ import DebugProtocolConnection, { DebugAdapterConnection } from '../messaging/de
 import { readFile, fromJSON, is, uuid, getDirs, getFiles, merge, CreateTask, Task } from '../support/utils'
 import updateLanguageServersWithTextDocuments from '../langserv/update-server'
 import { on, call, request } from '../messaging/worker-client'
+import { registerExtension } from '../vscode/extensions'
 import { EXT_PATH } from '../config/default-configs'
 import { ChildProcess, spawn } from 'child_process'
 import LocalizeFile from '../support/localize'
 import pleaseGet from '../support/please-get'
 import { dirname, join } from 'path'
 import '../support/vscode-shim'
+import * as vsc from 'vscode'
 
 interface Debugger {
   type: string
@@ -222,6 +224,7 @@ const load = async () => {
 
   extensionsWithConfig.forEach(ext => {
     extensions.add(ext)
+    registerExtension(ext)
 
     if (ext.extensionDependencies.length) installExtensionsIfNeeded(ext.extensionDependencies)
 
