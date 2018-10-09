@@ -15,7 +15,6 @@ import LocalizeFile from '../support/localize'
 import pleaseGet from '../support/please-get'
 import { dirname, join } from 'path'
 import '../support/vscode-shim'
-import * as vsc from 'vscode'
 
 interface Debugger {
   type: string
