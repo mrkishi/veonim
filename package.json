@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/veonim/veonim#readme",
   "bindeps-darwin": {
-    "@veonim/neovim-mac": "0.0.0-alpha.73",
+    "@veonim/neovim-mac": "0.0.0-alpha.84",
     "@veonim/ripgrep-mac": "0.0.1",
     "all-other-unzip-libs-suck-mac": "0.0.2"
   },
@@ -72,7 +72,7 @@
     "@types/msgpack-lite": "0.1.4",
     "@types/node": "9.4.0",
     "@types/request": "2.47.0",
-    "electron": "2.0.4",
+    "electron": "3.0.2",
     "electron-builder": "20.13.3",
     "electron-devtools-installer": "2.2.3",
     "fs-extra": "5.0.0",
