@@ -21,6 +21,23 @@ const provideTasksAndRegister = async (type: string, provider: vsc.TaskProvider)
   providedTasks.forEach(task => registeredTasks.add(Object.assign(task, { type })))
 }
 
+const runTask = (task: vsc.Task): vsc.TaskExecution => {
+  const terminate = () => {
+    console.warn('NYI: terminate running task')
+    watchers.emit('didEndTask', { execution: taskExec })
+    activeTasks.delete(taskExec)
+  }
+
+  // TODO: actually start the task
+  // start the task process and shit
+
+  const taskExec = { task, terminate }
+  activeTasks.add(taskExec)
+  watchers.emit('didStartTask', { execution: taskExec })
+
+  return taskExec
+}
+
 const tasks: typeof vsc.tasks = {
   get taskExecutions() { return [...activeTasks] },
 
@@ -42,9 +59,7 @@ const tasks: typeof vsc.tasks = {
     return [...registeredTasks, ...tasksFromJson].filter(mt => mt.type === filterQuery)
   },
 
-  executeTask: async task => {
-
-  },
+  executeTask: async task => runTask(task),
 }
 
 export default tasks
