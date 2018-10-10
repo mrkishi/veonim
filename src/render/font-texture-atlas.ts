@@ -8,14 +8,16 @@ interface CharPosition {
 interface FontAtlas {
   getCharPosition(char: string, color: string): CharPosition | undefined
   canvas: CanvasRenderingContext2D
+  element: HTMLElement
 }
 
 const CHAR_START = 32
 const CHAR_END = 127
-const canvas = document.createElement('canvas')
-const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 
-export const generate = async (): Promise<FontAtlas> => {
+export const generateStandardSet = (): FontAtlas => {
+  const canvas = document.createElement('canvas')
+  const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+
   const drawChar = (col: number, y: number, char: string) => {
     const { height, width } = canvasContainer.cell
 
@@ -47,7 +49,7 @@ export const generate = async (): Promise<FontAtlas> => {
     column++
   }
 
-  const getCharPosition = (char: string, color: string) => {
+  const getCharPosition = (char: string) => {
     const code = char.charCodeAt(0)
     if (code < CHAR_START || code > CHAR_END) return
     const x = (code - CHAR_START) * canvasContainer.cell.width * window.devicePixelRatio
@@ -55,5 +57,9 @@ export const generate = async (): Promise<FontAtlas> => {
     return { x, y }
   }
 
-  return { canvas: ui, getCharPosition }
+  return {
+    canvas: ui,
+    element: canvas,
+    getCharPosition,
+  }
 }
