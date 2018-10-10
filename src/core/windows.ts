@@ -610,11 +610,13 @@ const controlShadowBuffer = (id: number, name: string, active: boolean, containe
 }
 
 export const render = async () => {
-  console.log('WRENDER WINDOWS')
-  const ws = await getWindows()
-  console.log('ws', ...ws.map(w => w.id))
-  return
+  if (true) {
+    console.log('WRENDER WINDOWS')
+    const ws = await getWindows()
+    console.log('ws', ...ws.map(w => w.id))
+  }
 
+  // TODO: this shit is no longer used
   const closedWindows = getClosedWindows(ws)
   closedWindows.forEach(id => watchers.emit(`${id}`))
 

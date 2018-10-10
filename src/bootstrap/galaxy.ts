@@ -10,7 +10,7 @@ import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
 import setDefaultSession from '../core/sessions'
-import * as windows from '../core/windows'
+// import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
 import nvim from '../core/neovim'
 import '../ui/notifications'
@@ -33,10 +33,10 @@ nvim.watchState.background(color => {
   if (document.body.style.background !== color) document.body.style.background = color
 })
 
-canvasContainer.on('resize', ({ rows, cols }) => {
-  // resize(cols, rows)
-  // setImmediate(() => windows.render())
-})
+// canvasContainer.on('resize', ({ rows, cols }) => {
+//   // resize(cols, rows)
+//   // setImmediate(() => windows.render())
+// })
 
 const main = async () => {
   const { id, path } = await create()

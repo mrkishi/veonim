@@ -225,7 +225,12 @@ const checkSkipDefaultGrid = (id: number) => id === 1
 
 r.option_set = (key, value) => options.set(key, value)
 
-r.default_colors_set = (fg, bg, sp) => {
+
+// default_colors_set(rgb_fg: number, rgb_bg: number, rgb_sp: number, cterm_fg: number, cterm_bg: number): void,
+// TODO: WHY THE FUCK ARE THESE ARGUMENTS TYPES NOT BEING INFERRED?! FUCK YOU.
+// r.default_colors_set = (fg, bg, sp) => {
+type FUCKYOUTYPESCRIPT = any
+r.default_colors_set = (fg: FUCKYOUTYPESCRIPT, bg: FUCKYOUTYPESCRIPT, sp: FUCKYOUTYPESCRIPT) => {
   merge(defaultColors, {
     foreground: asColor(fg),
     background: asColor(bg),
