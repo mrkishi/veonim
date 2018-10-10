@@ -73,8 +73,9 @@ const updateWindowNameplates = async () => {
   windowsWithMetadata.forEach(w => {
     const localWin = getWindowById(w.id)
     const r = localWin.getWindowInfo()
+    const { id, filetype, ...winInfo } = w
     localWin.updateNameplate({
-      ...w,
+      ...winInfo,
       name: `GRID:${r.gridId} T:${r.row} L:${r.col} W:${r.width} H:${r.height} - ${w.name}`,
     })
   })
