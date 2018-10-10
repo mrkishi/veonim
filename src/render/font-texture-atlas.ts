@@ -33,11 +33,17 @@ export const generateStandardSet = (): FontAtlas => {
   const height = canvasContainer.cell.height
   const width = (CHAR_END - CHAR_START) * canvasContainer.cell.width
 
-  canvas.height = height * window.devicePixelRatio
-  canvas.width = width * window.devicePixelRatio
+  canvas.height = Math.round(height * window.devicePixelRatio)
+  canvas.width = Math.round(width * window.devicePixelRatio)
+
+  // TODO: this only matters for testing display
+  canvas.style.height = `${height}px`
+  canvas.style.width = `${width}px`
+  // TODO: this only matters for testing display
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
+  console.log('font:', ui.font)
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
   ui.textBaseline = 'top'
 

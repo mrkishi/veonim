@@ -1,16 +1,22 @@
 import * as fontTextureAtlas from '../render/font-texture-atlas'
 
-const container = document.createElement('div')
+const main = () => {
+  const container = document.createElement('div')
 
-Object.assign(container.style, {
-  top: '50px',
-  position: 'absolute',
-  width: '100%',
-  height: '100%',
-})
+  Object.assign(container.style, {
+    top: '50px',
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  })
 
-const { element } = fontTextureAtlas.generateStandardSet()
-element.style.border = '1px solid yellow'
-container.appendChild(element)
+  const { element } = fontTextureAtlas.generateStandardSet()
+  element.style.border = '1px solid yellow'
+  container.appendChild(element)
 
-document.body.appendChild(container)
+  document.body.appendChild(container)
+
+}
+
+type FUCKTYPESCRIPT = any
+(document as FUCKTYPESCRIPT).fonts.onloadingdone = main
