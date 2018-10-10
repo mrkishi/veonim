@@ -1,4 +1,26 @@
 import * as fontTextureAtlas from '../render/font-texture-atlas'
+import { WebGL2 } from '../render/webgl-utils'
+
+const dothewebglthing = () => {
+  const { canvas, createVertexShader, createFragmentShader } = WebGL2()
+
+  createVertexShader(`
+    void main()
+  `)
+
+  createFragmentShader(`
+    void main()
+  `)
+
+  Object.assign(canvas.style, {
+    top: '100px',
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  })
+
+  document.body.appendChild(canvas)
+}
 
 const main = () => {
   const container = document.createElement('div')
@@ -15,7 +37,7 @@ const main = () => {
   container.appendChild(element)
 
   document.body.appendChild(container)
-
+  dothewebglthing()
 }
 
 type FUCKTYPESCRIPT = any

@@ -3,9 +3,10 @@ export const WebGL2 = () => {
   const gl = canvas.getContext('webgl2') as WebGLRenderingContext
 
   const createShader = (type: number, source: string) => {
+    const shaderSource = '#version 300 es\n' + source
     const shader = gl.createShader(type)
 
-    gl.shaderSource(shader, source)
+    gl.shaderSource(shader, shaderSource)
     gl.compileShader(shader)
 
     const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
@@ -32,5 +33,5 @@ export const WebGL2 = () => {
     gl.deleteProgram(program)
   }
 
-  return { createVertexShader, createFragmentShader, createProgram }
+  return { createVertexShader, createFragmentShader, createProgram, canvas, gl }
 }
