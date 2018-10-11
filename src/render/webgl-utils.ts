@@ -58,7 +58,7 @@ export const WebGL2 = () => {
   }
 
   const setupVertexArray = (attribPos: number) => {
-    gl.bindVertexArray(gl.createVertexArray)
+    gl.bindVertexArray(gl.createVertexArray())
     gl.enableVertexAttribArray(attribPos)
   }
 

@@ -8,7 +8,7 @@ interface CharPosition {
 interface FontAtlas {
   getCharPosition(char: string, color: string): CharPosition | undefined
   canvas: CanvasRenderingContext2D
-  element: HTMLElement
+  element: HTMLCanvasElement
 }
 
 const CHAR_START = 32

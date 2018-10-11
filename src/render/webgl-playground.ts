@@ -1,7 +1,7 @@
 import * as fontTextureAtlas from '../render/font-texture-atlas'
 import { WebGL2 } from '../render/webgl-utils'
 
-const dothewebglthing = () => {
+const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const { gl, canvas, createProgram, setupArrayBuffer, setupCanvasTexture, setupVertexArray } = WebGL2()
 
   const vertexShader = `
@@ -28,6 +28,8 @@ const dothewebglthing = () => {
   const attribLocs = {
     aPosition: gl.getAttribLocation(program, 'aPosition'),
   }
+
+  setupCanvasTexture(canvasElement)
 
   const positions = [
     0, 0,
@@ -58,12 +60,12 @@ const main = () => {
     height: '100%',
   })
 
-  const { element, canvas } = fontTextureAtlas.generateStandardSet()
+  const { element } = fontTextureAtlas.generateStandardSet()
   element.style.border = '1px solid yellow'
   container.appendChild(element)
 
   document.body.appendChild(container)
-  dothewebglthing()
+  dothewebglthing(element)
 }
 
 type FUCKTYPESCRIPT = any
