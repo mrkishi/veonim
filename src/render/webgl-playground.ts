@@ -2,15 +2,22 @@ import * as fontTextureAtlas from '../render/font-texture-atlas'
 import { WebGL2 } from '../render/webgl-utils'
 
 const dothewebglthing = () => {
-  const { canvas, createVertexShader, createFragmentShader } = WebGL2()
+  const { canvas, createProgram } = WebGL2()
 
-  createVertexShader(`
-    void main()
-  `)
+  const vertexShader = `
+    void main() {
 
-  createFragmentShader(`
-    void main()
-  `)
+    }
+  `
+
+  const fragmentShader = `
+    void main() {
+
+    }
+  `
+
+  const program = createProgram(vertexShader, fragmentShader)
+  if (!program) return console.error('webgl failed big time')
 
   Object.assign(canvas.style, {
     top: '100px',

@@ -1,3 +1,8 @@
+// understanding webgl state
+// https://stackoverflow.com/a/28641368
+// https://stackoverflow.com/a/39972830
+// https://stackoverflow.com/a/27164577
+
 export const WebGL2 = () => {
   const canvas = document.createElement('canvas')
   const gl = canvas.getContext('webgl2') as WebGLRenderingContext
@@ -16,10 +21,8 @@ export const WebGL2 = () => {
     gl.deleteShader(shader)
   }
 
-  const createVertexShader = (source: string) => createShader(gl.VERTEX_SHADER, source)
-  const createFragmentShader = (source: string) => createShader(gl.FRAGMENT_SHADER, source)
 
-  const createProgram = (vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
+  const createProgramWithShaders = (vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
     const program = gl.createProgram()
 
     gl.attachShader(program, vertexShader)
@@ -33,5 +36,12 @@ export const WebGL2 = () => {
     gl.deleteProgram(program)
   }
 
-  return { createVertexShader, createFragmentShader, createProgram, canvas, gl }
+  const createProgram = (vertexShader: string, fragmentShader: string) => {
+    const vshader = createShader(gl.VERTEX_SHADER, vertexShader)
+    const fshader = createShader(gl.FRAGMENT_SHADER, fragmentShader)
+    if (!vshader || !fshader) return console.error('failed to create shaders - cant create program. sorry bout that')
+    return createProgramWithShaders(vshader, fshader)
+  }
+
+  return { createProgram, canvas, gl }
 }

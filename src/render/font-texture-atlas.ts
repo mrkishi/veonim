@@ -43,7 +43,6 @@ export const generateStandardSet = (): FontAtlas => {
 
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
-  console.log('font:', ui.font)
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
   ui.textBaseline = 'top'
 
