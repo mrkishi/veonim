@@ -5,9 +5,7 @@
 
 export const WebGL2 = () => {
   const canvas = document.createElement('canvas')
-  // TODO: need webgl2 typings
-  // possibly: https://github.com/MaxGraey/WebGL2-TypeScript
-  const gl = canvas.getContext('webgl2') as WebGLRenderingContext
+  const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
 
   const createShader = (type: number, source: string) => {
     const shaderSource = '#version 300 es\n' + source
