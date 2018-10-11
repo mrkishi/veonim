@@ -2,22 +2,41 @@ import * as fontTextureAtlas from '../render/font-texture-atlas'
 import { WebGL2 } from '../render/webgl-utils'
 
 const dothewebglthing = () => {
-  const { canvas, createProgram } = WebGL2()
+  const { gl, canvas, createProgram, setupArrayBuffer, setupCanvasTexture, setupVertexArray } = WebGL2()
 
   const vertexShader = `
-    void main() {
+    in vec4 aPosition;
 
+    void main() {
+      gl_Position = aPosition;
     }
   `
 
   const fragmentShader = `
-    void main() {
+    precision highp float;
 
+    out vec4 outColor;
+
+    void main() {
+      outColor = vec4(1, 0, 0.5, 1);
     }
   `
 
   const program = createProgram(vertexShader, fragmentShader)
   if (!program) return console.error('webgl failed big time')
+
+  const attribLocs = {
+    aPosition: gl.getAttribLocation(program, 'aPosition'),
+  }
+
+  const positions = [
+    0, 0,
+    0, 0.5,
+    0.7, 0,
+  ]
+
+  setupArrayBuffer(new Float32Array(positions))
+  setupVertexArray(attribLocs.aPosition)
 
   Object.assign(canvas.style, {
     top: '100px',
@@ -39,7 +58,7 @@ const main = () => {
     height: '100%',
   })
 
-  const { element } = fontTextureAtlas.generateStandardSet()
+  const { element, canvas } = fontTextureAtlas.generateStandardSet()
   element.style.border = '1px solid yellow'
   container.appendChild(element)
 
