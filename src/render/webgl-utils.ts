@@ -3,13 +3,67 @@
 // https://stackoverflow.com/a/39972830
 // https://stackoverflow.com/a/27164577
 
+// -- one time setup
+// create shaders
+// create program
+// create textures
+//
+// getAttribLocation (attributes are arguments to shader programs)
+// getUniformLocation (uniforms are global vars in shader programs)
+
+// -- changes on data change
+//
+// setup buffers
+// - createBuffer
+// - bindBuffer
+// - bufferData
+//
+// THEN
+//
+// setup vertex arrays
+// - createVertexArray
+// - bindVertexArray
+// - enabledVertexAttribArray
+// - vertexAttribPointer
+//
+// -- render loop
+// if needed -> resize canvas
+// if needed -> gl.viewport()
+// if needed -> gl.clearColor()
+// if needed -> gl.clear()
+// if program changed -> gl.useProgram()
+// if uniforms changed -> gl.uniform[1/2/3/4](i - int/ui - unsigned int/f - float)(v - vector)
+// gl.drawArrays -OR- gl.drawElements
+
+interface VertexArrayPointer {
+  size: number
+  type: number
+  normalize?: boolean
+  stride?: number
+  offset?: number
+}
+
 export const WebGL2 = () => {
   const canvas = document.createElement('canvas')
   const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
 
+  const resize = (width = canvas.clientWidth, height = canvas.clientHeight) => {
+    const w = Math.floor(width * window.devicePixelRatio)
+    const h = Math.floor(height * window.devicePixelRatio)
+
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w
+      canvas.height = h
+      canvas.style.width = `${w}px`
+      canvas.style.height = `${h}px`
+      gl.viewport(0, 0, w, h)
+    }
+  }
+
   const createShader = (type: number, source: string) => {
     const shaderSource = '#version 300 es\n' + source
     const shader = gl.createShader(type)
+    if (!shader) return console.error('failed to create gl shader. oops.')
 
     gl.shaderSource(shader, shaderSource)
     gl.compileShader(shader)
@@ -17,12 +71,13 @@ export const WebGL2 = () => {
     const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
     if (success) return shader
 
-    console.log(gl.getShaderInfoLog(shader), source)
+    console.error(gl.getShaderInfoLog(shader), source)
     gl.deleteShader(shader)
   }
 
   const createProgramWithShaders = (vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
     const program = gl.createProgram()
+    if (!program) return console.error('failed to create gl program. oops.')
 
     gl.attachShader(program, vertexShader)
     gl.attachShader(program, fragmentShader)
@@ -31,7 +86,7 @@ export const WebGL2 = () => {
     const success = gl.getProgramParameter(program, gl.LINK_STATUS)
     if (success) return program
 
-    console.log(gl.getProgramInfoLog(program))
+    console.error(gl.getProgramInfoLog(program))
     gl.deleteProgram(program)
   }
 
@@ -55,10 +110,12 @@ export const WebGL2 = () => {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
   }
 
-  const setupVertexArray = (attribPos: number) => {
+  const setupVertexArray = (attribPos: number, options: VertexArrayPointer) => {
+    const { size, type, normalize = false, stride = 0, offset = 0 } = options
     gl.bindVertexArray(gl.createVertexArray())
     gl.enableVertexAttribArray(attribPos)
+    gl.vertexAttribPointer(attribPos, size, type, normalize, stride, offset)
   }
 
-  return { createProgram, canvas, gl, setupCanvasTexture, setupArrayBuffer, setupVertexArray }
+  return { createProgram, canvas, gl, setupCanvasTexture, setupArrayBuffer, setupVertexArray, resize }
 }
