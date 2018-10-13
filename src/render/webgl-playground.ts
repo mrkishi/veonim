@@ -7,30 +7,30 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   document.body.appendChild(canvas)
 
   const vertexShader = `
-    in vec2 aPosition;
+    in vec2 a_position;
 
     void main() {
-      gl_Position = vec4(aPosition, 0.0, 1.0);
+      gl_Position = vec4(a_position, 0.0, 1.0);
     }
   `
 
   const fragmentShader = `
     precision highp float;
 
-    uniform vec4 aColor;
+    uniform vec4 u_color;
     out vec4 outColor;
 
     void main() {
-      outColor = aColor;
+      outColor = u_color;
     }
   `
 
   const program = createProgram(vertexShader, fragmentShader)
   if (!program) return console.error('webgl failed big time')
 
-  const locs = {
-    aPosition: gl.getAttribLocation(program, 'aPosition'),
-    aColor: gl.getUniformLocation(program, 'aColor'),
+  const loc = {
+    a_position: gl.getAttribLocation(program, 'a_position'),
+    u_color: gl.getUniformLocation(program, 'u_color'),
   }
 
   setupCanvasTexture(canvasElement)
@@ -41,7 +41,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     0.7, 0,
   ]))
 
-  setupVertexArray(locs.aPosition, {
+  setupVertexArray(loc.a_position, {
     size: 2,
     type: gl.FLOAT,
   })
@@ -69,7 +69,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
     // gl.clearColor(0.0, 0.1, 0.1, 1.0)
     // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    gl.uniform4fv(locs.aColor, new Float32Array(colors))
+    gl.uniform4fv(loc.u_color, new Float32Array(colors))
     gl.drawArrays(gl.TRIANGLES, 0, 3)
     requestAnimationFrame(wrender)
   }

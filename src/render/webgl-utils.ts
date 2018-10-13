@@ -10,21 +10,26 @@
 //
 // getAttribLocation (attributes are arguments to shader programs)
 // getUniformLocation (uniforms are global vars in shader programs)
-
+//
 // -- changes on data change
 //
-// setup buffers
+// sending data to the GPU:
+//
+// buffers (the raw data on the gpu)
 // - createBuffer
 // - bindBuffer
 // - bufferData
 //
 // THEN
 //
-// setup vertex arrays
+// vertex arrays (which attribute to bind the buffer data to, how to read the data, etc.)
 // - createVertexArray
 // - bindVertexArray
 // - enabledVertexAttribArray
 // - vertexAttribPointer
+
+// uniforms (global variables)
+// -> gl.uniform[1/2/3/4](i - int/ui - unsigned int/f - float)(v - vector)
 //
 // -- render loop
 // if needed -> resize canvas
@@ -32,7 +37,7 @@
 // if needed -> gl.clearColor()
 // if needed -> gl.clear()
 // if program changed -> gl.useProgram()
-// if uniforms changed -> gl.uniform[1/2/3/4](i - int/ui - unsigned int/f - float)(v - vector)
+//
 // gl.drawArrays -OR- gl.drawElements
 
 interface VertexArrayPointer {
