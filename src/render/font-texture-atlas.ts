@@ -45,7 +45,6 @@ export const generateStandardSet = (): FontAtlas => {
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
   ui.textBaseline = 'top'
-
   ui.fillStyle = 'white'
 
   let column = 0

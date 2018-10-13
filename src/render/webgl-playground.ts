@@ -3,7 +3,12 @@ import { WebGL2 } from '../render/webgl-utils'
 
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const { gl, canvas, resize, createProgram, setupArrayBuffer, setupCanvasTexture, setupVertexArray } = WebGL2()
-  Object.assign(canvas.style, { top: '100px', position: 'absolute' })
+  Object.assign(canvas.style, {
+    top: '100px',
+    position: 'absolute',
+    border: '1px solid red',
+  })
+
   document.body.appendChild(canvas)
 
   const vertexShader = `
@@ -19,12 +24,14 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const fragmentShader = `
     precision highp float;
 
+    uniform vec4 u_color;
     in vec2 v_texCoord;
     uniform sampler2D u_image;
     out vec4 outColor;
 
     void main() {
-      outColor = texture(u_image, v_texCoord);
+      vec4 texColor = texture(u_image, v_texCoord);
+      outColor = texColor * vec4(1.0, 1.0, 0.0, 1.0);
     }
   `
 
@@ -36,22 +43,23 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     u_color: gl.getUniformLocation(program, 'u_color'),
   }
 
-  setupCanvasTexture(canvasElement)
+  setupCanvasTexture(canvasElement, gl.TEXTURE0, 400, 40)
 
   setupArrayBuffer(new Float32Array([
-    0.0,  0.0,
-    1.0,  0.0,
-    0.0,  1.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
+    -1.0, -1.0,
+    1.0, 1.0,
+    -1.0, 1.0,
+    1.0, -1.0,
+    1.0, 1.0,
+    -1.0, -1.0,
   ]))
 
   setupVertexArray(loc.a_position, { size: 2, type: gl.FLOAT })
 
-  resize(300, 100)
+  resize(400, 40)
 
   gl.useProgram(program)
+  gl.uniform4fv(loc.u_color, new Float32Array([1.0, 0.2, 0.1, 1.0]))
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.drawArrays(gl.TRIANGLES, 0, 6)
