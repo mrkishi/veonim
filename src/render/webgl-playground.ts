@@ -8,8 +8,10 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   const vertexShader = `
     in vec2 a_position;
+    out vec2 v_texCoord;
 
     void main() {
+      v_texCoord = a_position;
       gl_Position = vec4(a_position, 0.0, 1.0);
     }
   `
@@ -17,11 +19,12 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const fragmentShader = `
     precision highp float;
 
-    uniform vec4 u_color;
+    in vec2 v_texCoord;
+    uniform sampler2D u_image;
     out vec4 outColor;
 
     void main() {
-      outColor = u_color;
+      outColor = texture(u_image, v_texCoord);
     }
   `
 
@@ -36,45 +39,22 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   setupCanvasTexture(canvasElement)
 
   setupArrayBuffer(new Float32Array([
-    0, 0,
-    0, 0.5,
-    0.7, 0,
+    0.0,  0.0,
+    1.0,  0.0,
+    0.0,  1.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
   ]))
 
-  setupVertexArray(loc.a_position, {
-    size: 2,
-    type: gl.FLOAT,
-  })
+  setupVertexArray(loc.a_position, { size: 2, type: gl.FLOAT })
 
-  resize(300, 300)
+  resize(300, 100)
 
   gl.useProgram(program)
-
-  const colors = [0.0, 0.0, 0.0, 1.0]
-  let fwd = true
-
-  const wrender = () => {
-    if (colors[0] > 0.99) fwd = false
-    if (colors[0] < 0.01) fwd = true
-
-    if (fwd) {
-      colors[0] += 0.01
-      colors[1] += 0.01
-      colors[2] += 0.01
-    } else {
-      colors[0] -= 0.01
-      colors[1] -= 0.01
-      colors[2] -= 0.01
-    }
-
-    // gl.clearColor(0.0, 0.1, 0.1, 1.0)
-    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    gl.uniform4fv(loc.u_color, new Float32Array(colors))
-    gl.drawArrays(gl.TRIANGLES, 0, 3)
-    requestAnimationFrame(wrender)
-  }
-
-  requestAnimationFrame(wrender)
+  // gl.clearColor(0.0, 0.1, 0.1, 1.0)
+  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.drawArrays(gl.TRIANGLES, 0, 6)
 }
 
 const main = () => {
