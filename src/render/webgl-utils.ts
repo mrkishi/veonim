@@ -104,7 +104,7 @@ export const WebGL2 = () => {
     return createProgramWithShaders(vshader, fshader)
   }
 
-  const setupCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0, width: number, height: number) => {
+  const setupCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {
     gl.activeTexture(textureUnit)
     gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
     // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
@@ -112,9 +112,7 @@ export const WebGL2 = () => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
-    // const { width, height } = canvas
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
   }
 
   const setupArrayBuffer = (data: Float32Array) => {
@@ -122,12 +120,15 @@ export const WebGL2 = () => {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
   }
 
+  const createVertexArray = () => {
+    gl.bindVertexArray(gl.createVertexArray())
+  }
+
   const setupVertexArray = (attribPos: number, options: VertexArrayPointer) => {
     const { size, type, normalize = false, stride = 0, offset = 0 } = options
-    gl.bindVertexArray(gl.createVertexArray())
     gl.enableVertexAttribArray(attribPos)
     gl.vertexAttribPointer(attribPos, size, type, normalize, stride, offset)
   }
 
-  return { createProgram, canvas, gl, setupCanvasTexture, setupArrayBuffer, setupVertexArray, resize }
+  return { createProgram, canvas, gl, setupCanvasTexture, setupArrayBuffer, setupVertexArray, resize, createVertexArray }
 }
