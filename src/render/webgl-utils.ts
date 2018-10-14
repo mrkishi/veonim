@@ -121,7 +121,9 @@ export const WebGL2 = () => {
   }
 
   const createVertexArray = () => {
-    gl.bindVertexArray(gl.createVertexArray())
+    const vao = gl.createVertexArray()
+    gl.bindVertexArray(vao)
+    return vao
   }
 
   const setupVertexArray = (attribPos: number, options: VertexArrayPointer) => {
