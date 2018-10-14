@@ -64,24 +64,12 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   // TEXTURE COORDS
   setupArrayBuffer(new Float32Array([
-    // x, y
-    // textures are upside down, so we need to flip y axis
-    // x axis is the same
-    // so look at the position vertices and do the following transformations:
-    //
-    // x
-    // -1.0 -> 0.0
-    // 1.0 -> 1.0
-    //
-    // y
-    // -1.0 -> 1.0
-    // 1.0 -> 0.0
-    0.0, 1.0,
-    1.0, 0.0,
     0.0, 0.0,
     1.0, 1.0,
-    1.0, 0.0,
     0.0, 1.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 0.0,
   ]))
   setupVertexArray(loc.a_texCoord, { size: 2, type: gl.FLOAT })
 
