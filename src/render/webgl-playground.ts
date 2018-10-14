@@ -11,6 +11,17 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   document.body.appendChild(canvas)
 
+  const tester = document.createElement('div')
+  Object.assign(tester.style, {
+    top: '150px',
+    position: 'absolute',
+    color: 'rgb(255, 221, 0)',
+    fontSize: '14px',
+    width: '200%',
+  })
+  tester.innerText = '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUV'
+  document.body.appendChild(tester)
+
   const vertexShader = `
     in vec2 a_position;
     in vec2 a_texCoord;
@@ -48,6 +59,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     u_image: gl.getUniformLocation(program, 'u_image'),
   }
 
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
   createVertexArray()
 
   // TEXTURE COORDS
@@ -84,12 +96,11 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   ]))
   setupVertexArray(loc.a_position, { size: 2, type: gl.FLOAT })
 
-  setupCanvasTexture(canvasElement, gl.TEXTURE0)
-  resize(canvasElement.width / 2, canvasElement.height / 2)
-  // resize(400, 40)
+  setupCanvasTexture(canvasElement)
+  resize(canvasElement.width / 4, canvasElement.height / 4)
 
   gl.useProgram(program)
-  gl.uniform4fv(loc.u_color, new Float32Array([0.0, 0.5, 1.0, 1.0]))
+  gl.uniform4fv(loc.u_color, new Float32Array([1.0, 0.86, 0.0, 1.0]))
   gl.uniform1i(loc.u_image, 0)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

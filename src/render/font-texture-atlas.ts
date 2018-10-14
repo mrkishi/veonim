@@ -29,7 +29,6 @@ export const generateStandardSet = (): FontAtlas => {
     ui.restore()
   }
 
-
   const height = canvasContainer.cell.height
   const width = (CHAR_END - CHAR_START) * canvasContainer.cell.width
 

@@ -52,6 +52,11 @@ export const WebGL2 = () => {
   const canvas = document.createElement('canvas')
   // TODO: perf improvement with no alpha? can we blend another canvas on top of this one then?
   // const gl = canvas.getContext('webgl2', { alpha: false }) as WebGL2RenderingContext
+  // premultiplied solves the issue of jagged edges in textures loaded from canvas.
+  // still... i thought there was a way to specify loading textures with premultipliedAlpha false
+  // TODO: what about antialias: false??
+  // const gl = canvas.getContext('webgl2', { premultipliedAlpha: false }) as WebGL2RenderingContext
+  // const gl = canvas.getContext('webgl2', { antialias: false }) as WebGL2RenderingContext
   const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
 
   const resize = (width = canvas.clientWidth, height = canvas.clientHeight) => {
