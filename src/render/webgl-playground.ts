@@ -34,8 +34,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
       vec2 zeroToOne = a_position / u_resolution;
       vec2 zeroToTwo = zeroToOne * 2.0;
       vec2 clipSpace = zeroToTwo - 1.0;
+      v_texCoord = a_texCoord / u_resolution;
       gl_Position = vec4(clipSpace, 0, 1);
-      v_texCoord = a_texCoord;
     }
   `
 
@@ -67,20 +67,22 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
   createVertexArray()
 
+  console.log('cell shit:', cc.cell)
+  const w = Math.round(canvasElement.width / 2)
+  const h = Math.round(canvasElement.height / 2)
+
   // TEXTURE COORDS
   setupArrayBuffer(new Float32Array([
-    0.0, 0.0,
-    1.0, 1.0,
-    0.0, 1.0,
-    1.0, 0.0,
-    1.0, 1.0,
-    0.0, 0.0,
+    0, 0,
+    w, h,
+    0, h,
+    w, 0,
+    w, h,
+    0, 0,
   ]))
   setupVertexArray(loc.a_texCoord, { size: 2, type: gl.FLOAT })
 
   // POSITION COORDS
-  const w = Math.round(canvasElement.width / 2)
-  const h = Math.round(canvasElement.height / 2)
   setupArrayBuffer(new Float32Array([
     0, 0,
     w, h,
