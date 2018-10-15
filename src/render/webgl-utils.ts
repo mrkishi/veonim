@@ -3,43 +3,6 @@
 // https://stackoverflow.com/a/39972830
 // https://stackoverflow.com/a/27164577
 
-// -- one time setup
-// create shaders
-// create program
-// create textures
-//
-// getAttribLocation (attributes are arguments to shader programs)
-// getUniformLocation (uniforms are global vars in shader programs)
-//
-// -- changes on data change
-//
-// sending data to the GPU:
-//
-// buffers (the raw data on the gpu)
-// - createBuffer
-// - bindBuffer
-// - bufferData
-//
-// THEN
-//
-// vertex arrays (which attribute to bind the buffer data to, how to read the data, etc.)
-// - createVertexArray
-// - bindVertexArray
-// - enabledVertexAttribArray
-// - vertexAttribPointer
-
-// uniforms (global variables)
-// -> gl.uniform[1/2/3/4](i - int/ui - unsigned int/f - float)(v - vector)
-//
-// -- render loop
-// if needed -> resize canvas
-// if needed -> gl.viewport()
-// if needed -> gl.clearColor()
-// if needed -> gl.clear()
-// if program changed -> gl.useProgram()
-//
-// gl.drawArrays -OR- gl.drawElements
-
 interface VertexArrayPointer {
   size: number
   type: number
@@ -52,11 +15,6 @@ export const WebGL2 = () => {
   const canvas = document.createElement('canvas')
   // TODO: perf improvement with no alpha? can we blend another canvas on top of this one then?
   // const gl = canvas.getContext('webgl2', { alpha: false }) as WebGL2RenderingContext
-  // premultiplied solves the issue of jagged edges in textures loaded from canvas.
-  // still... i thought there was a way to specify loading textures with premultipliedAlpha false
-  // TODO: what about antialias: false??
-  // const gl = canvas.getContext('webgl2', { premultipliedAlpha: false }) as WebGL2RenderingContext
-  // const gl = canvas.getContext('webgl2', { antialias: false }) as WebGL2RenderingContext
   const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
 
   const resize = (width: number, height: number) => {
@@ -112,7 +70,6 @@ export const WebGL2 = () => {
   const setupCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {
     gl.activeTexture(textureUnit)
     gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
@@ -121,13 +78,12 @@ export const WebGL2 = () => {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
   }
 
   const setupArrayBuffer = (data: Float32Array) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
-    // TODO: static_draw vs dynamic_draw vs stream_draw? what is most appropriate
-    // for reusing arrays?
+    // TODO: static_draw vs dynamic_draw vs stream_draw? what is most
+    // appropriate for reusing arrays?
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
   }
 
