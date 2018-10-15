@@ -35,13 +35,12 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   const tester = document.createElement('div')
   Object.assign(tester.style, {
-    top: '150px',
+    top: '130px',
     position: 'absolute',
     color: 'rgb(255, 221, 0)',
     fontSize: '14px',
     width: '200%',
   })
-  tester.innerText = '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUV'
   document.body.appendChild(tester)
 
   const vertexShader = `
@@ -85,15 +84,15 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     u_image: gl.getUniformLocation(program, 'u_image'),
   }
 
-  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
   createVertexArray()
 
   // TODO: TODO TODO TODO TODO LOL TODO
   // support rendering on multiple lines
-  // why is it fuzzy
+  // why is it fuzzy - still fucked up if no alpha. help pls
   // how much shit can we move to shaders for calc
   // change the arrays to not be float32
   // yo can we combine the arrays for position + texture into one?
+  // support char color thanks
 
   const goasijoibbb = positionVerticiezeisfaerffrrzz(cc.cell.width, cc.cell.height)
   const qqqqbrbr = boqibcszzxpp(goasijoibbb)
@@ -104,10 +103,12 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   }, [])
 
   const urMomInsult = 'ur mom so fat got hit by PARKED CAR!'
+  tester.innerText = urMomInsult
   const poo = mindedMusicSessions(urMomInsult)
 
   // TEXTURE COORDS
   // TODO: probably not use Float32Array for simple small ints
+  // TODO: look into the unsigned_byte, normalize shit. make this EFFICIENT SON
   setupArrayBuffer(new Float32Array(poo))
   setupVertexArray(loc.a_texCoord, { size: 2, type: gl.FLOAT })
 
