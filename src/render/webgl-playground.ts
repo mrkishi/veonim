@@ -2,6 +2,27 @@ import * as fontTextureAtlas from '../render/font-texture-atlas'
 import { WebGL2 } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
+const positionVerticiezeisfaerffrrzz = (cellWidth: number, cellHeight: number) => (col: number) => {
+  // TODO: accept row to row row row your boat gently down the stream
+  const wStart = cellWidth * col
+  const wEnd = wStart + cellWidth
+
+  return [
+    wStart, 0,
+    wEnd, cellHeight,
+    wStart, cellHeight,
+    wEnd, 0,
+    wEnd, cellHeight,
+    wStart, 0,
+  ]
+}
+
+const boqibcszzxpp = (fuckYou: Function) => (count: number) => {
+  let res: any[] = []
+  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(ix)]
+  return res
+}
+
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const { gl, canvas, resize, createProgram, createVertexArray, setupArrayBuffer, setupCanvasTexture, setupVertexArray } = WebGL2()
   Object.assign(canvas.style, {
@@ -67,30 +88,26 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
   createVertexArray()
 
-  console.log('cell shit:', cc.cell)
-  const w = Math.round(canvasElement.width / 2)
-  const h = Math.round(canvasElement.height / 2)
+  const goasijoibbb = positionVerticiezeisfaerffrrzz(cc.cell.width, cc.cell.height)
+  const qqqqbrbr = boqibcszzxpp(goasijoibbb)
+
+  const gimmeCookie = (char: string) => goasijoibbb(char.charCodeAt(0) - 32)
+  const mindedMusicSessions = (phrase: string) => phrase.split('').reduce((res, m) => {
+    return [...res, ...gimmeCookie(m)]
+  }, [])
+
+  const poo = mindedMusicSessions('ASS')
 
   // TEXTURE COORDS
-  setupArrayBuffer(new Float32Array([
-    0, 0,
-    w, h,
-    0, h,
-    w, 0,
-    w, h,
-    0, 0,
-  ]))
+  // TODO: probably not use Float32Array for simple small ints
+  setupArrayBuffer(new Float32Array(poo))
   setupVertexArray(loc.a_texCoord, { size: 2, type: gl.FLOAT })
 
+  const shit = qqqqbrbr(3)
+
   // POSITION COORDS
-  setupArrayBuffer(new Float32Array([
-    0, 0,
-    w, h,
-    0, h,
-    w, 0,
-    w, h,
-    0, 0,
-  ]))
+  // TODO: probably not use Float32Array for simple small ints
+  setupArrayBuffer(new Float32Array(shit))
   setupVertexArray(loc.a_position, { size: 2, type: gl.FLOAT })
 
   setupCanvasTexture(canvasElement)
@@ -100,10 +117,9 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.uniform4fv(loc.u_color, new Float32Array([1.0, 0.86, 0.0, 1.0]))
   gl.uniform1i(loc.u_image, 0)
   gl.uniform2f(loc.u_resolution, gl.canvas.width, gl.canvas.height)
-  console.log(gl.canvas.width, gl.canvas.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  gl.drawArrays(gl.TRIANGLES, 0, 6)
+  gl.drawArrays(gl.TRIANGLES, 0, shit.length / 2)
 }
 
 const main = () => {
