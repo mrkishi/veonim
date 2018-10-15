@@ -59,7 +59,7 @@ export const WebGL2 = () => {
   // const gl = canvas.getContext('webgl2', { antialias: false }) as WebGL2RenderingContext
   const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
 
-  const resize = (width, height) => {
+  const resize = (width: number, height: number) => {
     const w = Math.round(width * window.devicePixelRatio)
     const h = Math.round(height * window.devicePixelRatio)
 

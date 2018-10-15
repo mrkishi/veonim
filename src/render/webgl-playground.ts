@@ -103,7 +103,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     return [...res, ...gimmeCookie(m)]
   }, [])
 
-  const urMomInsult = '@'.repeat(50)
+  const urMomInsult = 'hello WORLD!!'
   tester.innerText = urMomInsult
   const poo = mindedMusicSessions(urMomInsult)
 
@@ -126,11 +126,16 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     height: cc.cell.height * 1,
   }
 
-  resize(thingSize.width, thingSize.height)
+  resize(canvasElement.width / 2, canvasElement.height / 2)
+  console.log('cwh', gl.canvas.width, gl.canvas.height)
+  console.log('twh', canvasElement.width, canvasElement.height)
+  // resize(thingSize.width, thingSize.height)
   gl.useProgram(program)
   gl.uniform4fv(loc.u_color, new Float32Array([1.0, 0.86, 0.0, 1.0]))
   gl.uniform1i(loc.u_image, 0)
-  gl.uniform2f(loc.u_resolution, thingSize.width, thingSize.height)
+  // gl.uniform2f(loc.u_resolution, thingSize.width, thingSize.height)
+  gl.uniform2f(loc.u_resolution, canvasElement.width /2, canvasElement.height /2)
+  // gl.uniform2f(loc.u_resolution, gl.canvas.width, gl.canvas.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.drawArrays(gl.TRIANGLES, 0, urMomInsult.length * 6)
