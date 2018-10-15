@@ -133,6 +133,9 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.useProgram(program)
   gl.uniform4fv(loc.u_color, new Float32Array([1.0, 0.86, 0.0, 1.0]))
   gl.uniform1i(loc.u_image, 0)
+  // TODO: we need to set a resolution of the TEXTURE SIZE
+  // and we need another resolution of the webgl canvas size
+  // TWO DIFFERENT!!!
   // gl.uniform2f(loc.u_resolution, thingSize.width, thingSize.height)
   gl.uniform2f(loc.u_resolution, canvasElement.width /2, canvasElement.height /2)
   // gl.uniform2f(loc.u_resolution, gl.canvas.width, gl.canvas.height)
