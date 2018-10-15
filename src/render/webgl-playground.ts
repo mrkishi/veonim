@@ -88,6 +88,13 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
   createVertexArray()
 
+  // TODO: TODO TODO TODO TODO LOL TODO
+  // support rendering on multiple lines
+  // why is it fuzzy
+  // how much shit can we move to shaders for calc
+  // change the arrays to not be float32
+  // yo can we combine the arrays for position + texture into one?
+
   const goasijoibbb = positionVerticiezeisfaerffrrzz(cc.cell.width, cc.cell.height)
   const qqqqbrbr = boqibcszzxpp(goasijoibbb)
 
@@ -96,14 +103,15 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     return [...res, ...gimmeCookie(m)]
   }, [])
 
-  const poo = mindedMusicSessions('ASS')
+  const urMomInsult = 'ur mom so fat got hit by PARKED CAR!'
+  const poo = mindedMusicSessions(urMomInsult)
 
   // TEXTURE COORDS
   // TODO: probably not use Float32Array for simple small ints
   setupArrayBuffer(new Float32Array(poo))
   setupVertexArray(loc.a_texCoord, { size: 2, type: gl.FLOAT })
 
-  const shit = qqqqbrbr(3)
+  const shit = qqqqbrbr(urMomInsult.length)
 
   // POSITION COORDS
   // TODO: probably not use Float32Array for simple small ints
@@ -119,7 +127,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.uniform2f(loc.u_resolution, gl.canvas.width, gl.canvas.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  gl.drawArrays(gl.TRIANGLES, 0, shit.length / 2)
+  gl.drawArrays(gl.TRIANGLES, 0, urMomInsult.length * 6)
 }
 
 const main = () => {
