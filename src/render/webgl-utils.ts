@@ -125,6 +125,8 @@ export const WebGL2 = () => {
 
   const setupArrayBuffer = (data: Float32Array) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+    // TODO: static_draw vs dynamic_draw vs stream_draw? what is most appropriate
+    // for reusing arrays?
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
   }
 
