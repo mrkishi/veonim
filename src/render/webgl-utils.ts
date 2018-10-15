@@ -59,15 +59,15 @@ export const WebGL2 = () => {
   // const gl = canvas.getContext('webgl2', { antialias: false }) as WebGL2RenderingContext
   const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
 
-  const resize = (width = canvas.clientWidth, height = canvas.clientHeight) => {
-    const w = Math.floor(width * window.devicePixelRatio)
-    const h = Math.floor(height * window.devicePixelRatio)
+  const resize = (width, height) => {
+    const w = Math.round(width * window.devicePixelRatio)
+    const h = Math.round(height * window.devicePixelRatio)
 
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w
       canvas.height = h
-      canvas.style.width = `${w}px`
-      canvas.style.height = `${h}px`
+      canvas.style.width = `${width}px`
+      canvas.style.height = `${height}px`
       gl.viewport(0, 0, w, h)
     }
   }
@@ -112,15 +112,16 @@ export const WebGL2 = () => {
   const setupCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {
     gl.activeTexture(textureUnit)
     gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     // canvas textures are upside down yo
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
   }
 
   const setupArrayBuffer = (data: Float32Array) => {

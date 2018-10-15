@@ -89,6 +89,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // TODO: TODO TODO TODO TODO LOL TODO
   // support rendering on multiple lines
   // why is it fuzzy - still fucked up if no alpha. help pls
+  //    THE SIZE OF SOMETHING IS NOT GOOD MAN
   // how much shit can we move to shaders for calc
   // change the arrays to not be float32
   // yo can we combine the arrays for position + texture into one?
@@ -102,7 +103,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     return [...res, ...gimmeCookie(m)]
   }, [])
 
-  const urMomInsult = 'ur mom so fat got hit by PARKED CAR!'
+  const urMomInsult = '@'.repeat(50)
   tester.innerText = urMomInsult
   const poo = mindedMusicSessions(urMomInsult)
 
@@ -120,12 +121,16 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   setupVertexArray(loc.a_position, { size: 2, type: gl.FLOAT })
 
   setupCanvasTexture(canvasElement)
-  resize(canvasElement.width / 4, canvasElement.height / 4)
+  const thingSize = {
+    width: cc.cell.width * 50,
+    height: cc.cell.height * 1,
+  }
 
+  resize(thingSize.width, thingSize.height)
   gl.useProgram(program)
   gl.uniform4fv(loc.u_color, new Float32Array([1.0, 0.86, 0.0, 1.0]))
   gl.uniform1i(loc.u_image, 0)
-  gl.uniform2f(loc.u_resolution, gl.canvas.width, gl.canvas.height)
+  gl.uniform2f(loc.u_resolution, thingSize.width, thingSize.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.drawArrays(gl.TRIANGLES, 0, urMomInsult.length * 6)
@@ -137,8 +142,6 @@ const main = () => {
   Object.assign(container.style, {
     top: '50px',
     position: 'absolute',
-    width: '100%',
-    height: '100%',
   })
 
   const { element } = fontTextureAtlas.generateStandardSet()
