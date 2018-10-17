@@ -98,6 +98,11 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // more than once (instanced drawing with drawArraysInstanced)
   // see cheat codes here: https://stackoverflow.com/a/46068799
   // yo can we combine the arrays for position + texture into one?
+  // cell background solid color rendering - do we send vertices
+  // for each cell and draw them all? or try to combine in JS
+  // before wrendering? we will probably have many dupes
+  // actually we should check with the new UI protocol. we may
+  // get them batched already.
 
   const positionToQuad = quadVertexGen(cc.cell.width, cc.cell.height)
   const qqqqbrbr = boqibcszzxpp(positionToQuad)
