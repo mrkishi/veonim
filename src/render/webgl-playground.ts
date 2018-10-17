@@ -21,7 +21,7 @@ const quadVertexGen = (cellWidth: number, cellHeight: number) => (row: number, c
 
 const boqibcszzxpp = (fuckYou: Function) => (count: number) => {
   let res: any[] = []
-  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(0, ix)]
+  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(2, ix)]
   return res
 }
 
@@ -37,7 +37,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   const tester = document.createElement('div')
   Object.assign(tester.style, {
-    top: '130px',
+    top: '200px',
     position: 'absolute',
     color: 'rgb(255, 221, 0)',
     fontSize: '14px',
@@ -54,11 +54,11 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     out vec2 v_texCoord;
 
     void main() {
-      vec2 zeroToOne = a_position / u_canvas_res;
-      vec2 zeroToTwo = zeroToOne * 2.0;
-      vec2 clipSpace = zeroToTwo - 1.0;
+      vec2 relativePosition = a_position / u_canvas_res;
+      float posx = relativePosition.x * 2.0 - 1.0;
+      float posy = relativePosition.y * -2.0 + 1.0;
       v_texCoord = a_texCoord / u_texture_res;
-      gl_Position = vec4(clipSpace, 0, 1);
+      gl_Position = vec4(posx, posy, 0, 1);
     }
   `
 
@@ -129,7 +129,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const res = {
     canvas: {
       width: cc.cell.width * 50,
-      height: cc.cell.height * 1,
+      height: cc.cell.height * 3,
     },
     texture: {
       width: Math.round(canvasElement.width / 2),
