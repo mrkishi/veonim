@@ -2,24 +2,26 @@ import * as fontTextureAtlas from '../render/font-texture-atlas'
 import { WebGL2 } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
-const positionVerticiezeisfaerffrrzz = (cellWidth: number, cellHeight: number) => (col: number) => {
+const quadVertexGen = (cellWidth: number, cellHeight: number) => (row: number, col: number) => {
   // TODO: accept row to row row row your boat gently down the stream
-  const wStart = cellWidth * col
-  const wEnd = wStart + cellWidth
+  const xleft = cellWidth * col
+  const xright = xleft + cellWidth
+  const ytop = cellHeight * row
+  const ybottom = ytop + cellHeight
 
   return [
-    wStart, 0,
-    wEnd, cellHeight,
-    wStart, cellHeight,
-    wEnd, 0,
-    wEnd, cellHeight,
-    wStart, 0,
+    xleft, ytop,
+    xright, ybottom,
+    xleft, ybottom,
+    xright, ytop,
+    xright, ybottom,
+    xleft, ytop,
   ]
 }
 
 const boqibcszzxpp = (fuckYou: Function) => (count: number) => {
   let res: any[] = []
-  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(ix)]
+  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(0, ix)]
   return res
 }
 
@@ -89,7 +91,6 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   createVertexArray()
 
   // TODO: TODO TODO TODO TODO LOL TODO
-  // support rendering on multiple lines
   // how much shit can we move to shaders for calc
   // change the arrays to not be float32
   // support char color thanks
@@ -98,10 +99,10 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // see cheat codes here: https://stackoverflow.com/a/46068799
   // yo can we combine the arrays for position + texture into one?
 
-  const goasijoibbb = positionVerticiezeisfaerffrrzz(cc.cell.width, cc.cell.height)
-  const qqqqbrbr = boqibcszzxpp(goasijoibbb)
+  const positionToQuad = quadVertexGen(cc.cell.width, cc.cell.height)
+  const qqqqbrbr = boqibcszzxpp(positionToQuad)
 
-  const gimmeCookie = (char: string) => goasijoibbb(char.charCodeAt(0) - 32)
+  const gimmeCookie = (char: string) => positionToQuad(0, char.charCodeAt(0) - 32)
   const mindedMusicSessions = (phrase: string) => phrase.split('').reduce((res, m) => {
     return [...res, ...gimmeCookie(m)]
   }, [] as number[])
