@@ -26,7 +26,7 @@ const boqibcszzxpp = (fuckYou: Function) => (count: number) => {
 }
 
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
-  const { gl, canvas, resize, createProgram, createVertexArray, setupArrayBuffer, setupCanvasTexture, setupVertexArray } = WebGL2()
+  const { gl, canvas, resize, setupProgram, createVertexArray, setupArrayBuffer, setupCanvasTexture, setupVertexArray } = WebGL2()
   Object.assign(canvas.style, {
     top: '100px',
     position: 'absolute',
@@ -44,6 +44,17 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     width: '200%',
   })
   document.body.appendChild(tester)
+
+  const program = setupProgram({
+    position: 'a',
+    texturePosition: 'a',
+    canvasResolution: 'u',
+    textureResolution: 'u',
+  })
+
+  program.setVertexShader(v => `
+    in vec2 ${v.position}
+    `)
 
   const vertexShader = `
     in vec2 a_position;
@@ -76,17 +87,17 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     }
   `
 
-  const program = createProgram(vertexShader, fragmentShader)
-  if (!program) return console.error('webgl failed big time')
+  // const program = createProgram(vertexShader, fragmentShader)
+  // if (!program) return console.error('webgl failed big time')
 
-  const loc = {
-    a_position: gl.getAttribLocation(program, 'a_position'),
-    a_texCoord: gl.getAttribLocation(program, 'a_texCoord'),
-    u_canvas_res: gl.getUniformLocation(program, 'u_canvas_res'),
-    u_texture_res: gl.getUniformLocation(program, 'u_texture_res'),
-    u_color: gl.getUniformLocation(program, 'u_color'),
-    u_image: gl.getUniformLocation(program, 'u_image'),
-  }
+  // const loc = {
+  //   a_position: gl.getAttribLocation(program, 'a_position'),
+  //   a_texCoord: gl.getAttribLocation(program, 'a_texCoord'),
+  //   u_canvas_res: gl.getUniformLocation(program, 'u_canvas_res'),
+  //   u_texture_res: gl.getUniformLocation(program, 'u_texture_res'),
+  //   u_color: gl.getUniformLocation(program, 'u_color'),
+  //   u_image: gl.getUniformLocation(program, 'u_image'),
+  // }
 
   createVertexArray()
 

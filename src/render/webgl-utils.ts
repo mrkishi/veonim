@@ -11,6 +11,11 @@ interface VertexArrayPointer {
   offset?: number
 }
 
+// TODO: lolwutname pls
+export enum VarKindzzzz {
+
+}
+
 export const WebGL2 = () => {
   const canvas = document.createElement('canvas')
   // TODO: perf improvement with no alpha? can we blend another canvas on top of this one then?
@@ -45,11 +50,15 @@ export const WebGL2 = () => {
     gl.deleteShader(shader)
   }
 
-  const createProgramWithShaders = (vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
+  const createProgramWithShaders = (vertexShader: string, fragmentShader: string) => {
     const program = gl.createProgram()
     if (!program) return console.error('failed to create gl program. oops.')
 
-    gl.attachShader(program, vertexShader)
+    const vshader = createShader(gl.VERTEX_SHADER, vertexShader)
+    const fshader = createShader(gl.FRAGMENT_SHADER, fragmentShader)
+    if (!vshader || !fshader) return console.error('failed to create shaders - cant create program. sorry bout that')
+
+    gl.attachShader(program, vshader)
     gl.attachShader(program, fragmentShader)
     gl.linkProgram(program)
 
@@ -60,11 +69,45 @@ export const WebGL2 = () => {
     gl.deleteProgram(program)
   }
 
-  const createProgram = (vertexShader: string, fragmentShader: string) => {
-    const vshader = createShader(gl.VERTEX_SHADER, vertexShader)
-    const fshader = createShader(gl.FRAGMENT_SHADER, fragmentShader)
-    if (!vshader || !fshader) return console.error('failed to create shaders - cant create program. sorry bout that')
-    return createProgramWithShaders(vshader, fshader)
+  type VarKind = { [index: string]: 'a' | 'u' }
+
+  const setupProgram = <T extends VarKind>(incomingVars: T) => {
+    let vertexShader: string
+    let fragmentShader: string
+    let program: WebGLProgram
+    const varLocations = new Map<string, any>()
+    type VarGet = { [Key in keyof T]: any }
+
+    const varToString: VarGet = new Proxy(Object.create(null), {
+      get: (_: any, key: string) => key,
+    })
+
+    const vars: VarGet = new Proxy(Object.create(null), {
+      get: (_, key: string) => varLocations.get(key)
+    })
+
+    const setVertexShader = (fn: (incomingVars: VarGet) => string) => {
+      vertexShader = fn(varToString)
+    }
+
+    const setFragmentShader = (fn: (incomingVars: VarGet) => string) => {
+      fragmentShader = fn(varToString)
+    }
+
+    const create = () => {
+      program = createProgramWithShaders(vertexShader, fragmentShader)
+      Object
+        .entries(incomingVars)
+        .forEach(([ key, kind ]) => {
+          const location = kind === 'u'
+            ? gl.getUniformLocation(program, key)
+            : gl.getAttribLocation(program, key)
+
+          varLocations.set(key, location)
+        })
+    }
+
+    return { create, vars, setVertexShader, setFragmentShader }
   }
 
   const setupCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {
@@ -97,5 +140,5 @@ export const WebGL2 = () => {
     gl.vertexAttribPointer(attribPos, size, type, normalize, stride, offset)
   }
 
-  return { createProgram, canvas, gl, setupCanvasTexture, setupArrayBuffer, setupVertexArray, resize, createVertexArray }
+  return { setupProgram, canvas, gl, setupCanvasTexture, setupArrayBuffer, setupVertexArray, resize, createVertexArray }
 }
