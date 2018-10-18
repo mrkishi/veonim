@@ -2,28 +2,20 @@ import * as fontTextureAtlas from '../render/font-texture-atlas'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
-const quadVertexGen = (cellWidth: number, cellHeight: number) => (row: number, col: number) => {
-  // TODO: accept row to row row row your boat gently down the stream
-  const xleft = cellWidth * col
-  const xright = xleft + cellWidth
-  const ytop = cellHeight * row
-  const ybottom = ytop + cellHeight
+// TODO: goodbye.
+// const xleft = cellWidth * col
+// const xright = xleft + cellWidth
+// const ytop = cellHeight * row
+// const ybottom = ytop + cellHeight
 
-  return [
-    xleft, ytop,
-    xright, ybottom,
-    xleft, ybottom,
-    xright, ytop,
-    xright, ybottom,
-    xleft, ytop,
-  ]
-}
-
-const boqibcszzxpp = (fuckYou: Function) => (count: number) => {
-  let res: any[] = []
-  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(1, ix)]
-  return res
-}
+// return [
+//   xleft, ytop,
+//   xright, ybottom,
+//   xleft, ybottom,
+//   xright, ytop,
+//   xright, ybottom,
+//   xleft, ytop,
+// ]
 
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const { gl, canvas, resize, setupProgram, createVertexArray, addData, setupCanvasTexture } = WebGL2()
@@ -35,19 +27,9 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   document.body.appendChild(canvas)
 
-  const tester = document.createElement('div')
-  Object.assign(tester.style, {
-    top: '200px',
-    position: 'absolute',
-    color: 'rgb(255, 221, 0)',
-    fontSize: '14px',
-    width: '200%',
-  })
-  document.body.appendChild(tester)
-
   const program = setupProgram({
-    position: VarKind.Attribute,
-    texturePosition: VarKind.Attribute,
+    quadVertex: VarKind.Attribute,
+    wrenderData: VarKind.Attribute,
     canvasResolution: VarKind.Uniform,
     textureResolution: VarKind.Uniform,
     globalColor: VarKind.Uniform,
@@ -56,8 +38,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   })
 
   program.setVertexShader(v => `
-    in vec2 ${v.position};
-    in vec2 ${v.texturePosition};
+    in vec2 ${v.quadVertex};
+    in vec2 ${v.wrenderData};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.textureResolution};
     uniform vec2 ${v.cellSize};
@@ -106,34 +88,45 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // actually we should check with the new UI protocol. we may
   // get them batched already.
 
-  const positionToQuad = quadVertexGen(cc.cell.width, cc.cell.height)
-  const qqqqbrbr = boqibcszzxpp(positionToQuad)
-
-  const gimmeCookie = (char: string) => positionToQuad(0, char.charCodeAt(0) - 32)
-  const mindedMusicSessions = (phrase: string) => phrase.split('').reduce((res, m) => {
-    return [...res, ...gimmeCookie(m)]
-  }, [] as number[])
-
-  const urMomInsult = 'whatever you mean'
-  tester.innerText = urMomInsult
-  const poo = mindedMusicSessions(urMomInsult)
-
+  const { width: w, height: h } = cc.cell
+  const quad = [
+    0, 0,
+    w, h,
+    0, h,
+    w, 0,
+    w, h,
+    0, 0,
+  ]
   // TEXTURE COORDS
   // TODO: probably not use Float32Array for simple small ints
   // TODO: look into the unsigned_byte, normalize shit. make this EFFICIENT SON
-  addData(new Float32Array(poo), {
-    pointer: program.vars.texturePosition,
+  addData(new Float32Array(quad), {
+    pointer: program.vars.quadVertex,
     size: 2,
   })
 
-  const shit = qqqqbrbr(urMomInsult.length)
+  // our texture atlas starts with 32 which is the first usable ascii character. most before are 32 are control chars
+  const charCode = (char: string): number => char.codePointAt(0) || 32
+
+  const wrenderData = [
+    // char code, row, col
+    charCode('a'), 1, 1,
+    charCode('S'), 1, 2,
+    charCode('s'), 1, 3,
+  ]
+
+  addData(new Float32Array(wrenderData), {
+    pointer: program.vars.wrenderData,
+    size: 3,
+    divisor: 1,
+  })
 
   // POSITION COORDS
   // TODO: probably not use Float32Array for simple small ints
-  addData(new Float32Array(shit), {
-    pointer: program.vars.position,
-    size: 2,
-  })
+  // addData(new Float32Array(shit), {
+  //   pointer: program.vars.position,
+  //   size: 2,
+  // })
 
   setupCanvasTexture(canvasElement)
 
@@ -157,7 +150,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  gl.drawArrays(gl.TRIANGLES, 0, urMomInsult.length * 6)
+  gl.drawArrays(gl.TRIANGLES, 0, wrenderData.length / 3)
 }
 
 const main = () => {
