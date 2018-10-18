@@ -29,8 +29,7 @@ export const configPath = process.env.XDG_CONFIG_HOME || (process.platform === '
   : `${$HOME}/.config`)
 
 const snakeCase = (m: string) => m.split('').map(ch => /[A-Z]/.test(ch) ? '_' + ch.toLowerCase(): ch).join('')
-const type = (m: any) => (Object.prototype.toString.call(m).match(/^\[object (\w+)\]/) || [])[1].toLowerCase()
-
+export const type = (m: any) => (Object.prototype.toString.call(m).match(/^\[object (\w+)\]/) || [])[1].toLowerCase()
 export const within = (target: number, tolerance: number) => (candidate: number) => Math.abs(target - candidate) <= tolerance
 export const objToMap = (obj: object, map: Map<any, any>) => Object.entries(obj).forEach(([k, v]) => map.set(k, v))
 export const listof = (count: number, fn: () => any) => [...Array(count)].map(fn)

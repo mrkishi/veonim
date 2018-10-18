@@ -1,3 +1,4 @@
+import { type as getTypeOf } from '../support/utils'
 // understanding webgl state
 // https://stackoverflow.com/a/28641368
 // https://stackoverflow.com/a/39972830
@@ -5,7 +6,7 @@
 
 interface VertexArrayPointer {
   size: number
-  type: number
+  type?: number
   normalize?: boolean
   stride?: number
   offset?: number
@@ -155,6 +156,17 @@ export const WebGL2 = () => {
     gl.vertexAttribPointer(pointer, size, type, normalize, stride, offset)
   }
 
+  const guessDataType = (data: any, type: any) => {
+    if (type) return type
+
+    const dataType = getTypeOf(data).toLowerCase()
+    if (dataType.startsWith('float')) return gl.FLOAT
+    if (dataType.startsWith('uint8')) return gl.BYTE
+    if (dataType.startsWith('uint16')) return gl.SHORT
+    // TODO: should we parse the list and check for negative values to set UNSIGNED_*
+    return type
+  }
+
   type DrawKind = typeof gl.STATIC_DRAW
   type AD1 = (data: any, pointers: AttribPointer, drawKind?: DrawKind) => void
   type AD2 = (data: any, pointers: AttribPointer[], drawKind?: DrawKind) => void
@@ -163,8 +175,10 @@ export const WebGL2 = () => {
   const addData: AddData = (data: any, pointers: any, drawKind: any) => {
     setupArrayBuffer(data, drawKind)
     const isList = (pointers.length)
-    if (!isList) return setupVertexArray(pointers)
-    pointers.forEach((p: any) => setupVertexArray(p))
+    const dataType = guessDataType(data, pointers.type)
+
+    if (!isList) return setupVertexArray({ ...dataType, ...pointers })
+    pointers.forEach((pointer: any) => setupVertexArray({ ...dataType, ...pointer }))
   }
 
   return { setupProgram, canvas, gl, addData, setupCanvasTexture, resize, createVertexArray }
