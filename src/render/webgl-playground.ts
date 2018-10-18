@@ -52,6 +52,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     textureResolution: VarKind.Uniform,
     globalColor: VarKind.Uniform,
     textureImage: VarKind.Uniform,
+    cellSize: VarKind.Uniform,
   })
 
   program.setVertexShader(v => `
@@ -59,11 +60,12 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     in vec2 ${v.texturePosition};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.textureResolution};
+    uniform vec2 ${v.cellSize};
 
     out vec2 o_textureResolution;
 
     void main() {
-    vec2 relativePosition = ${v.position} / ${v.canvasResolution};
+      vec2 relativePosition = ${v.position} / ${v.canvasResolution};
       float posx = relativePosition.x * 2.0 - 1.0;
       float posy = relativePosition.y * -2.0 + 1.0;
       o_textureResolution = ${v.texturePosition} / ${v.textureResolution};
@@ -152,6 +154,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.uniform1i(program.vars.textureImage, 0)
   gl.uniform2f(program.vars.canvasResolution, res.canvas.width, res.canvas.height)
   gl.uniform2f(program.vars.textureResolution, res.texture.width, res.texture.height)
+  gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.drawArrays(gl.TRIANGLES, 0, urMomInsult.length * 6)
