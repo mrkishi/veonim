@@ -11,9 +11,9 @@ interface VertexArrayPointer {
   offset?: number
 }
 
-// TODO: lolwutname pls
-export enum VarKindzzzz {
-
+export enum VarKind {
+  Attribute,
+  Uniform,
 }
 
 export const WebGL2 = () => {
@@ -59,7 +59,7 @@ export const WebGL2 = () => {
     if (!vshader || !fshader) return console.error('failed to create shaders - cant create program. sorry bout that')
 
     gl.attachShader(program, vshader)
-    gl.attachShader(program, fragmentShader)
+    gl.attachShader(program, fshader)
     gl.linkProgram(program)
 
     const success = gl.getProgramParameter(program, gl.LINK_STATUS)
@@ -69,9 +69,9 @@ export const WebGL2 = () => {
     gl.deleteProgram(program)
   }
 
-  type VarKind = { [index: string]: 'a' | 'u' }
+  type VK = { [index: string]: VarKind }
 
-  const setupProgram = <T extends VarKind>(incomingVars: T) => {
+  const setupProgram = <T extends VK>(incomingVars: T) => {
     let vertexShader: string
     let fragmentShader: string
     let program: WebGLProgram
@@ -95,11 +95,14 @@ export const WebGL2 = () => {
     }
 
     const create = () => {
-      program = createProgramWithShaders(vertexShader, fragmentShader)
+      const res = createProgramWithShaders(vertexShader, fragmentShader)
+      if (!res) throw new Error('catastrophic failure of the third kind to create webgl program')
+      program = res
+
       Object
         .entries(incomingVars)
         .forEach(([ key, kind ]) => {
-          const location = kind === 'u'
+          const location = kind === VarKind.Uniform
             ? gl.getUniformLocation(program, key)
             : gl.getAttribLocation(program, key)
 
@@ -107,7 +110,9 @@ export const WebGL2 = () => {
         })
     }
 
-    return { create, vars, setVertexShader, setFragmentShader }
+    const use = () => gl.useProgram(program)
+
+    return { create, vars, use, setVertexShader, setFragmentShader }
   }
 
   const setupCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {

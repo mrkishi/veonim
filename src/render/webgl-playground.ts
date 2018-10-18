@@ -1,5 +1,5 @@
 import * as fontTextureAtlas from '../render/font-texture-atlas'
-import { WebGL2 } from '../render/webgl-utils'
+import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 const quadVertexGen = (cellWidth: number, cellHeight: number) => (row: number, col: number) => {
@@ -21,7 +21,7 @@ const quadVertexGen = (cellWidth: number, cellHeight: number) => (row: number, c
 
 const boqibcszzxpp = (fuckYou: Function) => (count: number) => {
   let res: any[] = []
-  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(2, ix)]
+  for (let ix = 1; ix <= count; ix++) res = [...res, ...fuckYou(1, ix)]
   return res
 }
 
@@ -46,58 +46,47 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   document.body.appendChild(tester)
 
   const program = setupProgram({
-    position: 'a',
-    texturePosition: 'a',
-    canvasResolution: 'u',
-    textureResolution: 'u',
+    position: VarKind.Attribute,
+    texturePosition: VarKind.Attribute,
+    canvasResolution: VarKind.Uniform,
+    textureResolution: VarKind.Uniform,
+    globalColor: VarKind.Uniform,
+    textureImage: VarKind.Uniform,
   })
 
   program.setVertexShader(v => `
-    in vec2 ${v.position}
-    `)
+    in vec2 ${v.position};
+    in vec2 ${v.texturePosition};
+    uniform vec2 ${v.canvasResolution};
+    uniform vec2 ${v.textureResolution};
 
-  const vertexShader = `
-    in vec2 a_position;
-    in vec2 a_texCoord;
-    uniform vec2 u_canvas_res;
-    uniform vec2 u_texture_res;
-
-    out vec2 v_texCoord;
+    out vec2 o_textureResolution;
 
     void main() {
-      vec2 relativePosition = a_position / u_canvas_res;
+    vec2 relativePosition = ${v.position} / ${v.canvasResolution};
       float posx = relativePosition.x * 2.0 - 1.0;
       float posy = relativePosition.y * -2.0 + 1.0;
-      v_texCoord = a_texCoord / u_texture_res;
+      o_textureResolution = ${v.texturePosition} / ${v.textureResolution};
       gl_Position = vec4(posx, posy, 0, 1);
     }
-  `
+  `)
 
-  const fragmentShader = `
+  program.setFragmentShader(v => `
     precision highp float;
 
-    uniform vec4 u_color;
-    in vec2 v_texCoord;
-    uniform sampler2D u_image;
+    in vec2 o_textureResolution;
+    uniform vec4 ${v.globalColor};
+    uniform sampler2D ${v.textureImage};
+
     out vec4 outColor;
 
     void main() {
-      vec4 texColor = texture(u_image, v_texCoord);
-      outColor = texColor * u_color;
+      vec4 color = texture(${v.textureImage}, o_textureResolution);
+      outColor = color * ${v.globalColor};
     }
-  `
+  `)
 
-  // const program = createProgram(vertexShader, fragmentShader)
-  // if (!program) return console.error('webgl failed big time')
-
-  // const loc = {
-  //   a_position: gl.getAttribLocation(program, 'a_position'),
-  //   a_texCoord: gl.getAttribLocation(program, 'a_texCoord'),
-  //   u_canvas_res: gl.getUniformLocation(program, 'u_canvas_res'),
-  //   u_texture_res: gl.getUniformLocation(program, 'u_texture_res'),
-  //   u_color: gl.getUniformLocation(program, 'u_color'),
-  //   u_image: gl.getUniformLocation(program, 'u_image'),
-  // }
+  program.create()
 
   createVertexArray()
 
@@ -131,14 +120,14 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // TODO: probably not use Float32Array for simple small ints
   // TODO: look into the unsigned_byte, normalize shit. make this EFFICIENT SON
   setupArrayBuffer(new Float32Array(poo))
-  setupVertexArray(loc.a_texCoord, { size: 2, type: gl.FLOAT })
+  setupVertexArray(program.vars.texturePosition, { size: 2, type: gl.FLOAT })
 
   const shit = qqqqbrbr(urMomInsult.length)
 
   // POSITION COORDS
   // TODO: probably not use Float32Array for simple small ints
   setupArrayBuffer(new Float32Array(shit))
-  setupVertexArray(loc.a_position, { size: 2, type: gl.FLOAT })
+  setupVertexArray(program.vars.position, { size: 2, type: gl.FLOAT })
 
   setupCanvasTexture(canvasElement)
 
@@ -154,11 +143,11 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   }
 
   resize(res.canvas.width, res.canvas.height)
-  gl.useProgram(program)
-  gl.uniform4fv(loc.u_color, new Float32Array([1.0, 0.86, 0.0, 1.0]))
-  gl.uniform1i(loc.u_image, 0)
-  gl.uniform2f(loc.u_canvas_res, res.canvas.width, res.canvas.height)
-  gl.uniform2f(loc.u_texture_res, res.texture.width, res.texture.height)
+  program.use()
+  gl.uniform4fv(program.vars.globalColor, new Float32Array([1.0, 0.86, 0.0, 1.0]))
+  gl.uniform1i(program.vars.textureImage, 0)
+  gl.uniform2f(program.vars.canvasResolution, res.canvas.width, res.canvas.height)
+  gl.uniform2f(program.vars.textureResolution, res.texture.width, res.texture.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.drawArrays(gl.TRIANGLES, 0, urMomInsult.length * 6)
