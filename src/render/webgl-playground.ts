@@ -122,8 +122,6 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   addData(new Float32Array(poo), {
     pointer: program.vars.texturePosition,
     size: 2,
-    // TODO: can we dynamically figure this out?
-    type: gl.FLOAT,
   })
 
   const shit = qqqqbrbr(urMomInsult.length)
@@ -133,7 +131,6 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   addData(new Float32Array(shit), {
     pointer: program.vars.position,
     size: 2,
-    type: gl.FLOAT,
   })
 
   setupCanvasTexture(canvasElement)
