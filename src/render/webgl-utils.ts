@@ -10,6 +10,7 @@ interface VertexArrayPointer {
   normalize?: boolean
   stride?: number
   offset?: number
+  divisor?: number
 }
 
 interface AttribPointer extends VertexArrayPointer {
@@ -151,10 +152,12 @@ export const WebGL2 = () => {
     normalize = false,
     stride = 0,
     offset = 0,
+    divisor = 0,
   }: AttribPointer) => {
     gl.enableVertexAttribArray(pointer)
     if (!type) throw new Error(`need vertex array type. we try to guess the type based on the bufferData type, but this logic is not very smart.`)
     gl.vertexAttribPointer(pointer, size, type, normalize, stride, offset)
+    if (divisor > 0) gl.vertexAttribDivisor(pointer, divisor)
   }
 
   const guessDataType = (data: any, type: number): number => {
