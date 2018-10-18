@@ -29,7 +29,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   const program = setupProgram({
     quadVertex: VarKind.Attribute,
-    wrenderData: VarKind.Attribute,
+    charCode: VarKind.Attribute,
+    cellPosition: VarKind.Attribute,
     canvasResolution: VarKind.Uniform,
     textureResolution: VarKind.Uniform,
     globalColor: VarKind.Uniform,
@@ -47,6 +48,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     out vec2 o_textureResolution;
 
     void main() {
+      float x = 
       vec2 relativePosition = ${v.position} / ${v.canvasResolution};
       float posx = relativePosition.x * 2.0 - 1.0;
       float posy = relativePosition.y * -2.0 + 1.0;
@@ -115,11 +117,18 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     charCode('s'), 1, 3,
   ]
 
-  addData(new Float32Array(wrenderData), {
-    pointer: program.vars.wrenderData,
-    size: 3,
+  addData(new Float32Array(wrenderData), [{
+    pointer: program.vars.charCode,
+    type: gl.UINT,
+    size: 1,
     divisor: 1,
-  })
+  }, {
+    pointer: program.vars.cellPosition,
+    type: gl.UINT,
+    size: 2,
+    offset: 1 * Float32Array.BYTES_PER_ELEMENT,
+    divisor: 1,
+  }])
 
   // POSITION COORDS
   // TODO: probably not use Float32Array for simple small ints
@@ -150,7 +159,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  gl.drawArrays(gl.TRIANGLES, 0, wrenderData.length / 3)
+  // gl.drawArrays(gl.TRIANGLES, 0, wrenderData.length / 3)
+  gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, wrenderData.length / 3)
 }
 
 const main = () => {
