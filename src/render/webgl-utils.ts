@@ -11,6 +11,10 @@ interface VertexArrayPointer {
   offset?: number
 }
 
+interface AttribPointer extends VertexArrayPointer {
+  pointer: number,
+}
+
 export enum VarKind {
   Attribute,
   Uniform,
@@ -76,7 +80,7 @@ export const WebGL2 = () => {
     let fragmentShader: string
     let program: WebGLProgram
     const varLocations = new Map<string, any>()
-    type VarGet = { [Key in keyof T]: any }
+    type VarGet = { [Key in keyof T]: number }
 
     const varToString: VarGet = new Proxy(Object.create(null), {
       get: (_: any, key: string) => key,
@@ -126,11 +130,11 @@ export const WebGL2 = () => {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
   }
 
-  const setupArrayBuffer = (data: Float32Array) => {
+  // TODO: static_draw vs dynamic_draw vs stream_draw? what is most
+  // appropriate for reusing arrays?
+  const setupArrayBuffer = (data: any, drawKind = gl.STATIC_DRAW) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
-    // TODO: static_draw vs dynamic_draw vs stream_draw? what is most
-    // appropriate for reusing arrays?
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, data, drawKind)
   }
 
   const createVertexArray = () => {
@@ -139,11 +143,29 @@ export const WebGL2 = () => {
     return vao
   }
 
-  const setupVertexArray = (attribPos: number, options: VertexArrayPointer) => {
-    const { size, type, normalize = false, stride = 0, offset = 0 } = options
-    gl.enableVertexAttribArray(attribPos)
-    gl.vertexAttribPointer(attribPos, size, type, normalize, stride, offset)
+  const setupVertexArray = ({
+    size,
+    type,
+    pointer,
+    normalize = false,
+    stride = 0,
+    offset = 0,
+  }: AttribPointer) => {
+    gl.enableVertexAttribArray(pointer)
+    gl.vertexAttribPointer(pointer, size, type, normalize, stride, offset)
   }
 
-  return { setupProgram, canvas, gl, setupCanvasTexture, setupArrayBuffer, setupVertexArray, resize, createVertexArray }
+  type DrawKind = typeof gl.STATIC_DRAW
+  type AD1 = (data: any, pointers: AttribPointer, drawKind?: DrawKind) => void
+  type AD2 = (data: any, pointers: AttribPointer[], drawKind?: DrawKind) => void
+  type AddData = AD1 & AD2
+
+  const addData: AddData = (data: any, pointers: any, drawKind: any) => {
+    setupArrayBuffer(data, drawKind)
+    const isList = (pointers.length)
+    if (!isList) return setupVertexArray(pointers)
+    pointers.forEach((p: any) => setupVertexArray(p))
+  }
+
+  return { setupProgram, canvas, gl, addData, setupCanvasTexture, resize, createVertexArray }
 }

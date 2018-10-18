@@ -26,7 +26,7 @@ const boqibcszzxpp = (fuckYou: Function) => (count: number) => {
 }
 
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
-  const { gl, canvas, resize, setupProgram, createVertexArray, setupArrayBuffer, setupCanvasTexture, setupVertexArray } = WebGL2()
+  const { gl, canvas, resize, setupProgram, createVertexArray, addData, setupCanvasTexture } = WebGL2()
   Object.assign(canvas.style, {
     top: '100px',
     position: 'absolute',
@@ -119,15 +119,21 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // TEXTURE COORDS
   // TODO: probably not use Float32Array for simple small ints
   // TODO: look into the unsigned_byte, normalize shit. make this EFFICIENT SON
-  setupArrayBuffer(new Float32Array(poo))
-  setupVertexArray(program.vars.texturePosition, { size: 2, type: gl.FLOAT })
+  addData(new Float32Array(poo), {
+    pointer: program.vars.texturePosition,
+    size: 2,
+    type: gl.FLOAT,
+  })
 
   const shit = qqqqbrbr(urMomInsult.length)
 
   // POSITION COORDS
   // TODO: probably not use Float32Array for simple small ints
-  setupArrayBuffer(new Float32Array(shit))
-  setupVertexArray(program.vars.position, { size: 2, type: gl.FLOAT })
+  addData(new Float32Array(shit), {
+    pointer: program.vars.position,
+    size: 2,
+    type: gl.FLOAT,
+  })
 
   setupCanvasTexture(canvasElement)
 
