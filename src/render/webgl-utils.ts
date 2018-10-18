@@ -13,7 +13,7 @@ interface VertexArrayPointer {
 }
 
 interface AttribPointer extends VertexArrayPointer {
-  pointer: number,
+  pointer: number
 }
 
 export enum VarKind {
@@ -153,17 +153,17 @@ export const WebGL2 = () => {
     offset = 0,
   }: AttribPointer) => {
     gl.enableVertexAttribArray(pointer)
+    if (!type) throw new Error(`need vertex array type. we try to guess the type based on the bufferData type, but this logic is not very smart.`)
     gl.vertexAttribPointer(pointer, size, type, normalize, stride, offset)
   }
 
-  const guessDataType = (data: any, type: any) => {
+  const guessDataType = (data: any, type: number): number => {
     if (type) return type
 
     const dataType = getTypeOf(data).toLowerCase()
     if (dataType.startsWith('float')) return gl.FLOAT
     if (dataType.startsWith('uint8')) return gl.BYTE
     if (dataType.startsWith('uint16')) return gl.SHORT
-    // TODO: should we parse the list and check for negative values to set UNSIGNED_*
     return type
   }
 
@@ -175,10 +175,10 @@ export const WebGL2 = () => {
   const addData: AddData = (data: any, pointers: any, drawKind: any) => {
     setupArrayBuffer(data, drawKind)
     const isList = (pointers.length)
-    const dataType = guessDataType(data, pointers.type)
+    const type = guessDataType(data, pointers.type)
 
-    if (!isList) return setupVertexArray({ ...dataType, ...pointers })
-    pointers.forEach((pointer: any) => setupVertexArray({ ...dataType, ...pointer }))
+    if (!isList) return setupVertexArray({ type, ...pointers })
+    pointers.forEach((pointer: any) => setupVertexArray({ type, ...pointer }))
   }
 
   return { setupProgram, canvas, gl, addData, setupCanvasTexture, resize, createVertexArray }
