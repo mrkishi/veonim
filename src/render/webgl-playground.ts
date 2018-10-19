@@ -66,10 +66,10 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      float charIndex = ${v.charCode} - 33.0;
-      vec2 glyphPixelPosition = vec2(0, charIndex) * ${v.cellSize};
-      vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
-      o_glyphPosition = glyphVertex / ${v.textureResolution};
+      // float charIndex = ${v.charCode} - 33.0;
+      // vec2 glyphPixelPosition = vec2(0, charIndex) * ${v.cellSize};
+      // vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
+      // o_glyphPosition = glyphVertex / ${v.textureResolution};
     }
   `)
 
@@ -128,25 +128,51 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // our texture atlas starts with 32 which is the first usable ascii character. most before are 32 are control chars
   const charCode = (char: string): number => char.codePointAt(0) || 32
 
+  // const wrenderData = [
+  //   // col, row, charcode
+  //   0, 1, charCode('a'),
+  //   // 2, 1, charCode('S'),
+  //   3, 1, charCode('s'),
+  // ]
+
   const wrenderData = [
-    // col, row, charcode
-    1, 1, charCode('a'),
-    // 2, 1, charCode('S'),
-    3, 1, charCode('s'),
+    9, 0, 1,
+    9, 3, 1,
   ]
 
+  // total size of all pointers. chunk size that goes to shader
+  const wrenderStride = 3 * Float32Array.BYTES_PER_ELEMENT
+
+  // TODO: INDEX OUT OF RANGE LOLWUT
   addData(new Float32Array(wrenderData), [{
+  // addData(new Float32Array(wrenderData), [{
+  //   pointer: program.vars.charCode,
+  //   type: gl.FLOAT,
+  //   size: 1,
+  //   offset: 0,
+  //   stride: wrenderStride,
+  //   divisor: 1,
+  // }, {
     pointer: program.vars.cellPosition,
     type: gl.FLOAT,
     size: 2,
-    divisor: 1,
-  }, {
-    pointer: program.vars.charCode,
-    type: gl.FLOAT,
-    size: 1,
-    offset: 2 * Float32Array.BYTES_PER_ELEMENT,
+    offset: Float32Array.BYTES_PER_ELEMENT,
+    stride: wrenderStride,
     divisor: 1,
   }])
+
+  // addData(new Float32Array(wrenderData), [{
+  //   pointer: program.vars.cellPosition,
+  //   type: gl.FLOAT,
+  //   size: 2,
+  //   divisor: 1,
+  // }, {
+  //   pointer: program.vars.charCode,
+  //   type: gl.FLOAT,
+  //   size: 1,
+  //   offset: 2 * Float32Array.BYTES_PER_ELEMENT,
+  //   divisor: 1,
+  // }])
 
   setupCanvasTexture(canvasElement)
 
