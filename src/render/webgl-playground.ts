@@ -17,6 +17,16 @@ import * as cc from '../core/canvas-container'
 //   xleft, ytop,
 // ]
 
+// position transforms
+//
+//
+// col * cell.width
+// row * cell.height
+// -> absolute pixel location
+//
+// absPixelLoc * quadVertex[0] -> vertex position
+//
+
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const { gl, canvas, resize, setupProgram, createVertexArray, addData, setupCanvasTexture } = WebGL2()
   Object.assign(canvas.style, {
@@ -40,19 +50,26 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   program.setVertexShader(v => `
     in vec2 ${v.quadVertex};
-    in vec2 ${v.wrenderData};
+    in vec2 ${v.cellPosition};
+    in float ${v.charCode};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.textureResolution};
     uniform vec2 ${v.cellSize};
 
-    out vec2 o_textureResolution;
+    out vec2 o_glyphPosition;
 
     void main() {
-      float x = 
-      vec2 relativePosition = ${v.position} / ${v.canvasResolution};
-      float posx = relativePosition.x * 2.0 - 1.0;
-      float posy = relativePosition.y * -2.0 + 1.0;
-      o_textureResolution = ${v.texturePosition} / ${v.textureResolution};
+      vec2 absolutePixelPosition = ${v.cellPosition} * ${v.cellSize};
+      vec2 vertexPosition = absolutePixelPosition * ${v.quadVertex};
+      vec2 posFloat = vertexPosition / ${v.canvasResolution};
+      float posx = posFloat.x * 2.0 - 1.0;
+      float posy = posFloat.y * -2.0 + 1.0;
+
+      float charIndex = ${v.charCode} - 33.0;
+      vec2 glyphPixelPosition = vec2(0, charIndex) * ${v.cellSize};
+      vec2 glyphVertex = glyphPixelPosition * ${v.quadVertex};
+      o_glyphPosition = glyphVertex / ${v.textureResolution};
+
       gl_Position = vec4(posx, posy, 0, 1);
     }
   `)
@@ -60,14 +77,14 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   program.setFragmentShader(v => `
     precision highp float;
 
-    in vec2 o_textureResolution;
+    in vec2 o_glyphPosition;
     uniform vec4 ${v.globalColor};
     uniform sampler2D ${v.textureImage};
 
     out vec4 outColor;
 
     void main() {
-      vec4 color = texture(${v.textureImage}, o_textureResolution);
+      vec4 color = texture(${v.textureImage}, o_glyphPosition);
       outColor = color * ${v.globalColor};
     }
   `)
@@ -77,8 +94,10 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   createVertexArray()
 
   // TODO: TODO TODO TODO TODO LOL TODO
+  // atlas should start at 33??? 32 is invis
   // how much shit can we move to shaders for calc
   // change the arrays to not be float32
+  // no alpha. maybe faster?
   // support char color thanks
   // use vertexAttribDivisor to run the vertex position attributes
   // more than once (instanced drawing with drawArraysInstanced)
@@ -99,11 +118,10 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     w, h,
     0, 0,
   ]
-  // TEXTURE COORDS
-  // TODO: probably not use Float32Array for simple small ints
-  // TODO: look into the unsigned_byte, normalize shit. make this EFFICIENT SON
+
   addData(new Float32Array(quad), {
     pointer: program.vars.quadVertex,
+    type: gl.FLOAT,
     size: 2,
   })
 
@@ -119,23 +137,16 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   addData(new Float32Array(wrenderData), [{
     pointer: program.vars.charCode,
-    type: gl.UINT,
+    type: gl.FLOAT,
     size: 1,
     divisor: 1,
   }, {
     pointer: program.vars.cellPosition,
-    type: gl.UINT,
+    type: gl.FLOAT,
     size: 2,
     offset: 1 * Float32Array.BYTES_PER_ELEMENT,
     divisor: 1,
   }])
-
-  // POSITION COORDS
-  // TODO: probably not use Float32Array for simple small ints
-  // addData(new Float32Array(shit), {
-  //   pointer: program.vars.position,
-  //   size: 2,
-  // })
 
   setupCanvasTexture(canvasElement)
 
