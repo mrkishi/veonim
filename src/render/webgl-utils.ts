@@ -112,6 +112,11 @@ export const WebGL2 = () => {
             ? gl.getUniformLocation(program, key)
             : gl.getAttribLocation(program, key)
 
+          if (typeof location === 'number' && location < 0) {
+            const kindText = kind === VarKind.Uniform ? 'uniform' : 'attribute'
+            console.warn(`${kindText} ${key} is not used in any shader. this will cause "index out of range warnings" if you try to use the pointer (like vertexAttribPointer)`)
+          }
+
           varLocations.set(key, location)
         })
     }
@@ -181,7 +186,7 @@ export const WebGL2 = () => {
     const type = guessDataType(data, pointers.type)
 
     if (!isList) return setupVertexArray({ type, ...pointers })
-    pointers.forEach((pointer: any) => setupVertexArray({ type, ...pointer }))
+    pointers.forEach((pointer: AttribPointer) => setupVertexArray({ type, ...pointer }))
   }
 
   return { setupProgram, canvas, gl, addData, setupCanvasTexture, resize, createVertexArray }
