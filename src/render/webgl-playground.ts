@@ -60,17 +60,16 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
     void main() {
       vec2 absolutePixelPosition = ${v.cellPosition} * ${v.cellSize};
-      vec2 vertexPosition = absolutePixelPosition * ${v.quadVertex};
+      vec2 vertexPosition = absolutePixelPosition + ${v.quadVertex};
       vec2 posFloat = vertexPosition / ${v.canvasResolution};
       float posx = posFloat.x * 2.0 - 1.0;
       float posy = posFloat.y * -2.0 + 1.0;
+      gl_Position = vec4(posx, posy, 0, 1);
 
       float charIndex = ${v.charCode} - 33.0;
       vec2 glyphPixelPosition = vec2(0, charIndex) * ${v.cellSize};
-      vec2 glyphVertex = glyphPixelPosition * ${v.quadVertex};
+      vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.textureResolution};
-
-      gl_Position = vec4(posx, posy, 0, 1);
     }
   `)
 
@@ -84,8 +83,9 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     out vec4 outColor;
 
     void main() {
-      vec4 color = texture(${v.textureImage}, o_glyphPosition);
-      outColor = color * ${v.globalColor};
+      outColor = ${v.globalColor};
+      // vec4 color = texture(${v.textureImage}, o_glyphPosition);
+      // outColor = color * ${v.globalColor};
     }
   `)
 
@@ -129,22 +129,22 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const charCode = (char: string): number => char.codePointAt(0) || 32
 
   const wrenderData = [
-    // char code, row, col
-    charCode('a'), 1, 1,
-    charCode('S'), 1, 2,
-    charCode('s'), 1, 3,
+    // col, row, charcode
+    1, 1, charCode('a'),
+    // 2, 1, charCode('S'),
+    3, 1, charCode('s'),
   ]
 
   addData(new Float32Array(wrenderData), [{
-    pointer: program.vars.charCode,
-    type: gl.FLOAT,
-    size: 1,
-    divisor: 1,
-  }, {
     pointer: program.vars.cellPosition,
     type: gl.FLOAT,
     size: 2,
-    offset: 1 * Float32Array.BYTES_PER_ELEMENT,
+    divisor: 1,
+  }, {
+    pointer: program.vars.charCode,
+    type: gl.FLOAT,
+    size: 1,
+    offset: 2 * Float32Array.BYTES_PER_ELEMENT,
     divisor: 1,
   }])
 
