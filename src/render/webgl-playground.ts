@@ -41,9 +41,9 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     quadVertex: VarKind.Attribute,
     charCode: VarKind.Attribute,
     cellPosition: VarKind.Attribute,
+    charColor: VarKind.Attribute,
     canvasResolution: VarKind.Uniform,
     textureResolution: VarKind.Uniform,
-    globalColor: VarKind.Uniform,
     textureImage: VarKind.Uniform,
     cellSize: VarKind.Uniform,
   })
@@ -51,11 +51,13 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   program.setVertexShader(v => `
     in vec2 ${v.quadVertex};
     in vec2 ${v.cellPosition};
+    in vec3 ${v.charColor};
     in float ${v.charCode};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.textureResolution};
     uniform vec2 ${v.cellSize};
 
+    out vec4 o_glyphColor;
     out vec2 o_glyphPosition;
 
     void main() {
@@ -70,6 +72,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
       vec2 glyphPixelPosition = vec2(charIndex, 0) * ${v.cellSize};
       vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.textureResolution};
+
+      o_glyphColor = vec4(${v.charColor}, 1);
     }
   `)
 
@@ -77,14 +81,14 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     precision highp float;
 
     in vec2 o_glyphPosition;
-    uniform vec4 ${v.globalColor};
+    in vec4 o_glyphColor;
     uniform sampler2D ${v.textureImage};
 
     out vec4 outColor;
 
     void main() {
       vec4 color = texture(${v.textureImage}, o_glyphPosition);
-      outColor = color * ${v.globalColor};
+      outColor = color * o_glyphColor;
     }
   `)
 
@@ -93,8 +97,11 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   createVertexArray()
 
   // TODO: TODO TODO TODO TODO LOL TODO
+  // addData: need to separate setup and adding data.
+  // i.e. we setup the vertex arrays once, but we will bufferData()
+  // on render loops. so we should change the api to support that. thanks
+
   // no alpha. maybe faster?
-  // support char color thanks
   // cell background solid color rendering - do we send vertices
   // for each cell and draw them all? or try to combine in JS
   // before wrendering? we will probably have many dupes
@@ -120,19 +127,21 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtlas.CHAR_START
 
   const wrenderData = [
-    // char code, col, row
-    charCode('f'), 2, 2,
-    charCode('u'), 3, 2,
-    charCode('c'), 4, 2,
-    charCode('k'), 5, 2,
+    // char code, col, row, red, green, blue
+    charCode('f'), 2, 2, 1, 0, 0,
+    charCode('u'), 3, 2, 0, 1, 0,
+    charCode('c'), 4, 2, 0, 0, 1,
+    charCode('k'), 5, 2, 0, 1, 1,
 
-    charCode('a'), 0, 1,
-    charCode('s'), 1, 1,
-    charCode('s'), 2, 1,
+    charCode('a'), 0, 1, 1, 1, 0,
+    charCode('s'), 1, 1, 1, 1, 1,
+    charCode('s'), 2, 1, 1, 0, 1,
   ]
 
   // total size of all pointers. chunk size that goes to shader
-  const wrenderStride = 3 * Float32Array.BYTES_PER_ELEMENT
+  const wrenderElements = 6
+  const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
+  const colorOffset = 3 * Float32Array.BYTES_PER_ELEMENT
 
   addData(new Float32Array(wrenderData), [{
     pointer: program.vars.charCode,
@@ -146,6 +155,13 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     type: gl.FLOAT,
     size: 2,
     offset: Float32Array.BYTES_PER_ELEMENT,
+    stride: wrenderStride,
+    divisor: 1,
+  }, {
+    pointer: program.vars.charColor,
+    type: gl.FLOAT,
+    size: 3,
+    offset: colorOffset,
     stride: wrenderStride,
     divisor: 1,
   }])
@@ -165,14 +181,13 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   resize(res.canvas.width, res.canvas.height)
   program.use()
-  gl.uniform4fv(program.vars.globalColor, new Float32Array([1.0, 0.86, 0.0, 1.0]))
   gl.uniform1i(program.vars.textureImage, 0)
   gl.uniform2f(program.vars.canvasResolution, res.canvas.width, res.canvas.height)
   gl.uniform2f(program.vars.textureResolution, res.texture.width, res.texture.height)
   gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, wrenderData.length / 3)
+  gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, wrenderData.length / wrenderElements)
 }
 
 const main = () => {
