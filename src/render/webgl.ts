@@ -7,6 +7,7 @@ export default () => {
   const webgl = CreateWebGL({ alpha: false })
   const textFGRenderer = TextFG(webgl)
   const textBGRenderer = TextBG(webgl)
+  const color = { r: 0, g: 0, b: 0 }
 
   const resize = (rows: number, cols: number) => {
     const width = cols * cc.cell.width
@@ -16,8 +17,12 @@ export default () => {
     textBGRenderer.resize(width, height)
 
     webgl.resize(width, height)
-    webgl.gl.clearColor(0.0, 0.1, 0.1, 1.0)
+    webgl.gl.clearColor(color.r, color.g, color.b, 1)
     webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT | webgl.gl.DEPTH_BUFFER_BIT)
+  }
+
+  const changeBackgroundColor = (color: string) => {
+
   }
 
   const render = (data: number[]) => {
@@ -25,5 +30,5 @@ export default () => {
     textFGRenderer.render(data)
   }
 
-  return { render, resize, element: webgl.canvasElement }
+  return { changeBackgroundColor, render, resize, element: webgl.canvasElement }
 }
