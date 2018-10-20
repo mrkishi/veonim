@@ -9,8 +9,15 @@ export default () => {
   const textBGRenderer = TextBG(webgl)
 
   const resize = (rows: number, cols: number) => {
-    webgl.resize(cols * cc.cell.width, rows * cc.cell.height)
-    // TODO: update all uniforms in all programs
+    const width = cols * cc.cell.width
+    const height = rows * cc.cell.height
+
+    textFGRenderer.resize(width, height)
+    textBGRenderer.resize(width, height)
+
+    webgl.resize(width, height)
+    webgl.gl.clearColor(0.0, 0.1, 0.1, 1.0)
+    webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT | webgl.gl.DEPTH_BUFFER_BIT)
   }
 
   return {

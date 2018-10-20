@@ -3,6 +3,11 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
+  const res = {
+    texture: { width: 0, height: 0 },
+    canvas: { width: 0, height: 0 },
+  }
+
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
     charCode: VarKind.Attribute,
@@ -64,10 +69,9 @@ export default (webgl: WebGL2) => {
   const fontAtlas = fontTextureAtlas.generateStandardSet()
   webgl.loadCanvasTexture(fontAtlas.element)
 
-  const quadBuffer = program.setupData({
-    pointer: program.vars.quadVertex,
-    type: webgl.gl.FLOAT,
-    size: 2,
+  Object.assign(state.textureRes, {
+    width: Math.round(fontAtlas.element.width / 2),
+    height: Math.round(fontAtlas.element.height / 2),
   })
 
   // total size of all pointers. chunk size that goes to shader
@@ -97,4 +101,39 @@ export default (webgl: WebGL2) => {
     stride: wrenderStride,
     divisor: 1,
   }])
+
+  const quadBuffer = program.setupData({
+    pointer: program.vars.quadVertex,
+    type: webgl.gl.FLOAT,
+    size: 2,
+  })
+
+  const resize = (width: number, height: number) => {
+    Object.assign(state.canvasResolution, { width, height })
+  }
+
+  const activate = () => {
+    program.use()
+
+    quadBuffer.setData(new Float32Array([
+      0, 0,
+      cc.cell.width, cc.cell.height,
+      0, cc.cell.height,
+      cc.cell.width, 0,
+      cc.cell.width, cc.cell.height,
+      0, 0,
+    ]))
+
+    webgl.gl.uniform1i(program.vars.textureImage, 0)
+    webgl.gl.uniform2f(program.vars.canvasResolution, state.canvasRes.width, state.canvasRes.height)
+    webgl.gl.uniform2f(program.vars.textureResolution, state.textureRes.width, state.textureRes.height)
+    webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
+  }
+
+  const render = (data: number[]) => {
+    wrenderBuffer.setData(new Float32Array(data))
+    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, data.length / wrenderElements)
+  }
+
+  return { activate, render, resize }
 }

@@ -143,9 +143,6 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     0, 0,
   ]))
 
-  // gl.clearColor(0.0, 0.1, 0.1, 1.0)
-  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
   // WRENDER LOOP
   const wrenderData = [
     // char code, col, row, red, green, blue
