@@ -30,11 +30,9 @@ type SD1 = (pointers: AttribPointer) => SetupData
 type SD2 = (pointers: AttribPointer[]) => SetupData
 type SetupDataFunc = SD1 & SD2
 
-const create = () => {
+const create = (options?: WebGLContextAttributes) => {
   const canvas = document.createElement('canvas')
-  // TODO: perf improvement with no alpha? can we blend another canvas on top of this one then?
-  // const gl = canvas.getContext('webgl2', { alpha: false }) as WebGL2RenderingContext
-  const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
+  const gl = canvas.getContext('webgl2', options) as WebGL2RenderingContext
 
   const resize = (width: number, height: number) => {
     const w = Math.round(width * window.devicePixelRatio)

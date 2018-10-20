@@ -35,11 +35,6 @@ export const generateStandardSet = (): FontAtlas => {
   canvas.height = Math.round(height * window.devicePixelRatio)
   canvas.width = Math.round(width * window.devicePixelRatio)
 
-  // TODO: this only matters for testing display
-  canvas.style.height = `${height}px`
-  canvas.style.width = `${width}px`
-  // TODO: this only matters for testing display
-
   ui.imageSmoothingEnabled = false
   ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
@@ -60,9 +55,5 @@ export const generateStandardSet = (): FontAtlas => {
     return { x, y }
   }
 
-  return {
-    canvas: ui,
-    element: canvas,
-    getCharPosition,
-  }
+  return { canvas: ui, element: canvas, getCharPosition }
 }

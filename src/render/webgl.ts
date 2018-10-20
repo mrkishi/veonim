@@ -4,7 +4,7 @@ import TextFG from '../render/webgl-text-fg'
 import TextBG from '../render/webgl-text-fg'
 
 export default () => {
-  const webgl = CreateWebGL()
+  const webgl = CreateWebGL({ alpha: false })
   const textFGRenderer = TextFG(webgl)
   const textBGRenderer = TextBG(webgl)
 
@@ -20,8 +20,10 @@ export default () => {
     webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT | webgl.gl.DEPTH_BUFFER_BIT)
   }
 
-  return {
-    resize,
-    element: webgl.canvasElement,
+  const render = (data: number[]) => {
+    textFGRenderer.activate()
+    textFGRenderer.render(data)
   }
+
+  return { render, resize, element: webgl.canvasElement }
 }
