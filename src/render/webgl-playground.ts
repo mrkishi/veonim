@@ -1,6 +1,5 @@
 import * as fontTextureAtlas from '../render/font-texture-atlas'
 import WebGLWrenderer from '../render/webgl'
-import nvim from '../core/neovim'
 
 const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtlas.CHAR_START
 
@@ -13,8 +12,6 @@ const main = () => {
   })
   document.body.appendChild(webgl.element)
 
-  webgl.changeBackgroundColor(nvim.state.background)
-  nvim.watchState.background(color => webgl.changeBackgroundColor(color))
   webgl.resize(10, 80)
 
   // wrender loop
