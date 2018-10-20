@@ -66,8 +66,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      float charIndex = ${v.charCode} - 33.0;
-      vec2 glyphPixelPosition = vec2(0, charIndex) * ${v.cellSize};
+      float charIndex = ${v.charCode} - 32.0;
+      vec2 glyphPixelPosition = vec2(charIndex, 0) * ${v.cellSize};
       vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.textureResolution};
     }
@@ -83,9 +83,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     out vec4 outColor;
 
     void main() {
-      outColor = ${v.globalColor};
-      // vec4 color = texture(${v.textureImage}, o_glyphPosition);
-      // outColor = color * ${v.globalColor};
+      vec4 color = texture(${v.textureImage}, o_glyphPosition);
+      outColor = color * ${v.globalColor};
     }
   `)
 
@@ -96,7 +95,6 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // TODO: TODO TODO TODO TODO LOL TODO
   // atlas should start at 33??? 32 is invis
   // how much shit can we move to shaders for calc
-  // change the arrays to not be float32
   // no alpha. maybe faster?
   // support char color thanks
   // use vertexAttribDivisor to run the vertex position attributes
@@ -131,7 +129,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const wrenderData = [
     // char code, col, row
     charCode('a'), 0, 1,
-    charCode('S'), 3, 1,
+    charCode('S'), 1, 1,
+    charCode('s'), 2, 1,
   ]
 
   // total size of all pointers. chunk size that goes to shader
