@@ -23,13 +23,15 @@ export default () => {
   }
 
   /** Change background color using a hex color code */
-  const changeBackgroundColor = (color: string) => {
-    const [ r, g, b ] = hexToRGB(color)
+  const changeBackgroundColor = (hexColor: string) => {
+    const [ r, g, b ] = hexToRGB(hexColor)
     Object.assign(color, {
-      r: r / 1,
-      g: g / 1,
-      b: b / 1,
+      r: r / 255,
+      g: g / 255,
+      b: b / 255,
     })
+    webgl.gl.clearColor(color.r, color.g, color.b, 1)
+    webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT | webgl.gl.DEPTH_BUFFER_BIT)
   }
 
   /** Wrender data where each element is [ charCode, col, row, red, green, blue ] */
