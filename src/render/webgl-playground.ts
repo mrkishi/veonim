@@ -2,33 +2,8 @@ import * as fontTextureAtlas from '../render/font-texture-atlas'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
-// TODO: goodbye.
-// const xleft = cellWidth * col
-// const xright = xleft + cellWidth
-// const ytop = cellHeight * row
-// const ybottom = ytop + cellHeight
-
-// return [
-//   xleft, ytop,
-//   xright, ybottom,
-//   xleft, ybottom,
-//   xright, ytop,
-//   xright, ybottom,
-//   xleft, ytop,
-// ]
-
-// position transforms
-//
-//
-// col * cell.width
-// row * cell.height
-// -> absolute pixel location
-//
-// absPixelLoc * quadVertex[0] -> vertex position
-//
-
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
-  const { gl, canvas, resize, setupProgram, createVertexArray, addData, setupCanvasTexture } = WebGL2()
+  const { gl, canvas, resize, setupProgram, createVertexArray, setupData, setupCanvasTexture } = WebGL2()
   Object.assign(canvas.style, {
     top: '100px',
     position: 'absolute',
@@ -93,14 +68,10 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   `)
 
   program.create()
-
-  createVertexArray()
+  const vao = createVertexArray()
+  vao.bind()
 
   // TODO: TODO TODO TODO TODO LOL TODO
-  // addData: need to separate setup and adding data.
-  // i.e. we setup the vertex arrays once, but we will bufferData()
-  // on render loops. so we should change the api to support that. thanks
-
   // no alpha. maybe faster?
   // cell background solid color rendering - do we send vertices
   // for each cell and draw them all? or try to combine in JS
@@ -108,42 +79,18 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // actually we should check with the new UI protocol. we may
   // get them batched already.
 
-  const { width: w, height: h } = cc.cell
-  const quad = [
-    0, 0,
-    w, h,
-    0, h,
-    w, 0,
-    w, h,
-    0, 0,
-  ]
-
-  addData(new Float32Array(quad), {
+  const quadBuffer = setupData({
     pointer: program.vars.quadVertex,
     type: gl.FLOAT,
     size: 2,
   })
-
-  const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtlas.CHAR_START
-
-  const wrenderData = [
-    // char code, col, row, red, green, blue
-    charCode('f'), 2, 2, 1, 0, 0,
-    charCode('u'), 3, 2, 0, 1, 0,
-    charCode('c'), 4, 2, 0, 0, 1,
-    charCode('k'), 5, 2, 0, 1, 1,
-
-    charCode('a'), 0, 1, 1, 1, 0,
-    charCode('s'), 1, 1, 1, 1, 1,
-    charCode('s'), 2, 1, 1, 0, 1,
-  ]
 
   // total size of all pointers. chunk size that goes to shader
   const wrenderElements = 6
   const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
   const colorOffset = 3 * Float32Array.BYTES_PER_ELEMENT
 
-  addData(new Float32Array(wrenderData), [{
+  const wrenderBuffer = setupData([{
     pointer: program.vars.charCode,
     type: gl.FLOAT,
     size: 1,
@@ -166,6 +113,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     divisor: 1,
   }])
 
+  const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtlas.CHAR_START
+
   setupCanvasTexture(canvasElement)
 
   const res = {
@@ -185,8 +134,35 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.uniform2f(program.vars.canvasResolution, res.canvas.width, res.canvas.height)
   gl.uniform2f(program.vars.textureResolution, res.texture.width, res.texture.height)
   gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
+
+  // TODO: static_draw vs dynamic_draw vs stream_draw? what use
+  quadBuffer.setData(new Float32Array([
+    0, 0,
+    cc.cell.width, cc.cell.height,
+    0, cc.cell.height,
+    cc.cell.width, 0,
+    cc.cell.width, cc.cell.height,
+    0, 0,
+  ]))
+
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+  // WRENDER LOOP
+  const wrenderData = [
+    // char code, col, row, red, green, blue
+    charCode('f'), 2, 2, 1, 0, 0,
+    charCode('u'), 3, 2, 0, 1, 0,
+    charCode('c'), 4, 2, 0, 0, 1,
+    charCode('k'), 5, 2, 0, 1, 1,
+
+    charCode('a'), 0, 1, 1, 1, 0,
+    charCode('s'), 1, 1, 1, 1, 1,
+    charCode('s'), 2, 1, 1, 0, 1,
+  ]
+
+  // TODO: static_draw vs dynamic_draw vs stream_draw? what use
+  wrenderBuffer.setData(new Float32Array(wrenderData))
   gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, wrenderData.length / wrenderElements)
 }
 

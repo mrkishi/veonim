@@ -1,4 +1,3 @@
-import { type as getTypeOf } from '../support/utils'
 // understanding webgl state
 // https://stackoverflow.com/a/28641368
 // https://stackoverflow.com/a/39972830
@@ -6,7 +5,7 @@ import { type as getTypeOf } from '../support/utils'
 
 interface VertexArrayPointer {
   size: number
-  type?: number
+  type: number
   normalize?: boolean
   stride?: number
   offset?: number
@@ -21,6 +20,14 @@ export enum VarKind {
   Attribute,
   Uniform,
 }
+
+interface SetupData {
+  setData: (data: ArrayBufferView, drawKind?: typeof WebGL2RenderingContext.STATIC_DRAW) => void
+}
+
+type SD1 = (pointers: AttribPointer) => SetupData
+type SD2 = (pointers: AttribPointer[]) => SetupData
+type SetupDataFunc = SD1 & SD2
 
 export const WebGL2 = () => {
   const canvas = document.createElement('canvas')
@@ -137,17 +144,11 @@ export const WebGL2 = () => {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
   }
 
-  // TODO: static_draw vs dynamic_draw vs stream_draw? what is most
-  // appropriate for reusing arrays?
-  const setupArrayBuffer = (data: any, drawKind = gl.STATIC_DRAW) => {
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
-    gl.bufferData(gl.ARRAY_BUFFER, data, drawKind)
-  }
-
   const createVertexArray = () => {
     const vao = gl.createVertexArray()
-    gl.bindVertexArray(vao)
-    return vao
+    return {
+      bind: () => gl.bindVertexArray(vao),
+    }
   }
 
   const setupVertexArray = ({
@@ -165,29 +166,21 @@ export const WebGL2 = () => {
     if (divisor > 0) gl.vertexAttribDivisor(pointer, divisor)
   }
 
-  const guessDataType = (data: any, type: number): number => {
-    if (type) return type
+  const setupData: SetupDataFunc = (pointers: any) => {
+    const buffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
 
-    const dataType = getTypeOf(data).toLowerCase()
-    if (dataType.startsWith('float')) return gl.FLOAT
-    if (dataType.startsWith('uint8')) return gl.BYTE
-    if (dataType.startsWith('uint16')) return gl.SHORT
-    return type
+    pointers.length
+      ?  pointers.forEach((pointer: AttribPointer) => setupVertexArray(pointer))
+      : setupVertexArray(pointers)
+
+    return {
+      setData: (data: any, drawKind = gl.STATIC_DRAW) => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+        gl.bufferData(gl.ARRAY_BUFFER, data, drawKind)
+      }
+    }
   }
 
-  type DrawKind = typeof gl.STATIC_DRAW
-  type AD1 = (data: any, pointers: AttribPointer, drawKind?: DrawKind) => void
-  type AD2 = (data: any, pointers: AttribPointer[], drawKind?: DrawKind) => void
-  type AddData = AD1 & AD2
-
-  const addData: AddData = (data: any, pointers: any, drawKind: any) => {
-    setupArrayBuffer(data, drawKind)
-    const isList = (pointers.length)
-    const type = guessDataType(data, pointers.type)
-
-    if (!isList) return setupVertexArray({ type, ...pointers })
-    pointers.forEach((pointer: AttribPointer) => setupVertexArray({ type, ...pointer }))
-  }
-
-  return { setupProgram, canvas, gl, addData, setupCanvasTexture, resize, createVertexArray }
+  return { setupProgram, canvas, gl, setupData, setupCanvasTexture, resize, createVertexArray }
 }
