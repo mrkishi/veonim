@@ -14,7 +14,7 @@ const main = () => {
   document.body.appendChild(webgl.element)
 
   webgl.changeBackgroundColor(nvim.state.background)
-  nvim.watchState.background(color => webgl.changeBackgroundColor(color))
+  // nvim.watchState.background(color => webgl.changeBackgroundColor(color))
   webgl.resize(10, 80)
 
   // wrender loop

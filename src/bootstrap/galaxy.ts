@@ -5,19 +5,19 @@
   .forEach(m => Reflect.set(process.env, `VEONIM_TRACE_${m.toUpperCase()}`, 1))
 // end setup trace
 
-import '../render/webgl-playground'
 
-// import { CreateTask, log, delay as timeout, requireDir } from '../support/utils'
-// import { resize, attachTo, create } from '../core/master-control'
-// import * as canvasContainer from '../core/canvas-container'
-// import configReader from '../config/config-reader'
-// import setDefaultSession from '../core/sessions'
-// // import * as windows from '../core/windows'
-// import * as uiInput from '../core/input'
-// import nvim from '../core/neovim'
-// import '../ui/notifications'
-// import '../core/render'
-// import '../core/title'
+import { CreateTask, log, delay as timeout, requireDir } from '../support/utils'
+import { resize, attachTo, create } from '../core/master-control'
+import * as canvasContainer from '../core/canvas-container'
+import configReader from '../config/config-reader'
+import setDefaultSession from '../core/sessions'
+// import * as windows from '../core/windows'
+import * as uiInput from '../core/input'
+import nvim from '../core/neovim'
+import '../ui/notifications'
+import '../core/render'
+import '../core/title'
+import '../render/webgl-playground'
 
 // const loadingConfig = CreateTask()
 
