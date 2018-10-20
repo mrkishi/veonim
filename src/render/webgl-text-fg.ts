@@ -3,7 +3,7 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
-  const res = {
+  const rez = {
     texture: { width: 0, height: 0 },
     canvas: { width: 0, height: 0 },
   }
@@ -69,7 +69,7 @@ export default (webgl: WebGL2) => {
   const fontAtlas = fontTextureAtlas.generateStandardSet()
   webgl.loadCanvasTexture(fontAtlas.element)
 
-  Object.assign(state.textureRes, {
+  Object.assign(rez.texture, {
     width: Math.round(fontAtlas.element.width / 2),
     height: Math.round(fontAtlas.element.height / 2),
   })
@@ -109,7 +109,7 @@ export default (webgl: WebGL2) => {
   })
 
   const resize = (width: number, height: number) => {
-    Object.assign(state.canvasResolution, { width, height })
+    Object.assign(rez.canvas, { width, height })
   }
 
   const activate = () => {
@@ -125,8 +125,8 @@ export default (webgl: WebGL2) => {
     ]))
 
     webgl.gl.uniform1i(program.vars.textureImage, 0)
-    webgl.gl.uniform2f(program.vars.canvasResolution, state.canvasRes.width, state.canvasRes.height)
-    webgl.gl.uniform2f(program.vars.textureResolution, state.textureRes.width, state.textureRes.height)
+    webgl.gl.uniform2f(program.vars.canvasResolution, rez.canvas.width, rez.canvas.height)
+    webgl.gl.uniform2f(program.vars.textureResolution, rez.texture.width, rez.texture.height)
     webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   }
 
