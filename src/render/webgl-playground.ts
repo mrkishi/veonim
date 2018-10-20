@@ -3,7 +3,7 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
-  const { gl, canvas, resize, setupProgram, createVertexArray, setupData, setupCanvasTexture } = WebGL2()
+  const { gl, canvas, resize, setupProgram, loadCanvasTexture } = WebGL2()
   Object.assign(canvas.style, {
     top: '100px',
     position: 'absolute',
@@ -68,8 +68,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   `)
 
   program.create()
-  const vao = createVertexArray()
-  vao.bind()
+  program.use()
 
   // TODO: TODO TODO TODO TODO LOL TODO
   // no alpha. maybe faster?
@@ -79,7 +78,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   // actually we should check with the new UI protocol. we may
   // get them batched already.
 
-  const quadBuffer = setupData({
+  const quadBuffer = program.setupData({
     pointer: program.vars.quadVertex,
     type: gl.FLOAT,
     size: 2,
@@ -90,7 +89,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
   const colorOffset = 3 * Float32Array.BYTES_PER_ELEMENT
 
-  const wrenderBuffer = setupData([{
+  const wrenderBuffer = program.setupData([{
     pointer: program.vars.charCode,
     type: gl.FLOAT,
     size: 1,
@@ -115,7 +114,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
 
   const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtlas.CHAR_START
 
-  setupCanvasTexture(canvasElement)
+  loadCanvasTexture(canvasElement)
 
   const res = {
     canvas: {
@@ -129,7 +128,6 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   }
 
   resize(res.canvas.width, res.canvas.height)
-  program.use()
   gl.uniform1i(program.vars.textureImage, 0)
   gl.uniform2f(program.vars.canvasResolution, res.canvas.width, res.canvas.height)
   gl.uniform2f(program.vars.textureResolution, res.texture.width, res.texture.height)

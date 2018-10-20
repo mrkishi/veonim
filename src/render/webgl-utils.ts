@@ -25,6 +25,7 @@ interface SetupData {
   setData: (data: ArrayBufferView, drawKind?: typeof WebGL2RenderingContext.STATIC_DRAW) => void
 }
 
+type VK = { [index: string]: VarKind }
 type SD1 = (pointers: AttribPointer) => SetupData
 type SD2 = (pointers: AttribPointer[]) => SetupData
 type SetupDataFunc = SD1 & SD2
@@ -82,12 +83,37 @@ export const WebGL2 = () => {
     gl.deleteProgram(program)
   }
 
-  type VK = { [index: string]: VarKind }
+  const loadCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {
+    gl.activeTexture(textureUnit)
+    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
+  }
+
+  const setupVertexArray = ({
+    size,
+    type,
+    pointer,
+    normalize = false,
+    stride = 0,
+    offset = 0,
+    divisor = 0,
+  }: AttribPointer) => {
+    gl.enableVertexAttribArray(pointer)
+    if (!type) throw new Error(`need vertex array type. we try to guess the type based on the bufferData type, but this logic is not very smart.`)
+    gl.vertexAttribPointer(pointer, size, type, normalize, stride, offset)
+    if (divisor > 0) gl.vertexAttribDivisor(pointer, divisor)
+  }
 
   const setupProgram = <T extends VK>(incomingVars: T) => {
     let vertexShader: string
     let fragmentShader: string
     let program: WebGLProgram
+    let vao: WebGLVertexArrayObject
     const varLocations = new Map<string, any>()
     type VarGet = { [Key in keyof T]: number }
 
@@ -111,6 +137,9 @@ export const WebGL2 = () => {
       const res = createProgramWithShaders(vertexShader, fragmentShader)
       if (!res) throw new Error('catastrophic failure of the third kind to create webgl program')
       program = res
+      const createdVao = gl.createVertexArray()
+      if (!createdVao) throw new Error(`failed to create vertex array object... hmmm`)
+      vao = createdVao
 
       Object
         .entries(incomingVars)
@@ -128,59 +157,29 @@ export const WebGL2 = () => {
         })
     }
 
-    const use = () => gl.useProgram(program)
-
-    return { create, vars, use, setVertexShader, setFragmentShader }
-  }
-
-  const setupCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {
-    gl.activeTexture(textureUnit)
-    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
-  }
-
-  const createVertexArray = () => {
-    const vao = gl.createVertexArray()
-    return {
-      bind: () => gl.bindVertexArray(vao),
+    const use = () => {
+      gl.useProgram(program)
+      gl.bindVertexArray(vao)
     }
-  }
 
-  const setupVertexArray = ({
-    size,
-    type,
-    pointer,
-    normalize = false,
-    stride = 0,
-    offset = 0,
-    divisor = 0,
-  }: AttribPointer) => {
-    gl.enableVertexAttribArray(pointer)
-    if (!type) throw new Error(`need vertex array type. we try to guess the type based on the bufferData type, but this logic is not very smart.`)
-    gl.vertexAttribPointer(pointer, size, type, normalize, stride, offset)
-    if (divisor > 0) gl.vertexAttribDivisor(pointer, divisor)
-  }
+    const setupData: SetupDataFunc = (pointers: any) => {
+      const buffer = gl.createBuffer()
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
 
-  const setupData: SetupDataFunc = (pointers: any) => {
-    const buffer = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+      pointers.length
+        ?  pointers.forEach((pointer: AttribPointer) => setupVertexArray(pointer))
+        : setupVertexArray(pointers)
 
-    pointers.length
-      ?  pointers.forEach((pointer: AttribPointer) => setupVertexArray(pointer))
-      : setupVertexArray(pointers)
-
-    return {
-      setData: (data: any, drawKind = gl.STATIC_DRAW) => {
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-        gl.bufferData(gl.ARRAY_BUFFER, data, drawKind)
+      return {
+        setData: (data: any, drawKind = gl.STATIC_DRAW) => {
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+          gl.bufferData(gl.ARRAY_BUFFER, data, drawKind)
+        }
       }
     }
+
+    return { create, vars, use, setVertexShader, setFragmentShader, setupData }
   }
 
-  return { setupProgram, canvas, gl, setupData, setupCanvasTexture, resize, createVertexArray }
+  return { setupProgram, canvas, gl, loadCanvasTexture, resize }
 }
