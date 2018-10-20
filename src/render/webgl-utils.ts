@@ -30,7 +30,7 @@ type SD1 = (pointers: AttribPointer) => SetupData
 type SD2 = (pointers: AttribPointer[]) => SetupData
 type SetupDataFunc = SD1 & SD2
 
-export const WebGL2 = () => {
+const create = () => {
   const canvas = document.createElement('canvas')
   // TODO: perf improvement with no alpha? can we blend another canvas on top of this one then?
   // const gl = canvas.getContext('webgl2', { alpha: false }) as WebGL2RenderingContext
@@ -181,5 +181,8 @@ export const WebGL2 = () => {
     return { create, vars, use, setVertexShader, setFragmentShader, setupData }
   }
 
-  return { setupProgram, canvas, gl, loadCanvasTexture, resize }
+  return { canvasElement: canvas, setupProgram, gl, loadCanvasTexture, resize }
 }
+
+export type WebGL2 = ReturnType<typeof create>
+export default create
