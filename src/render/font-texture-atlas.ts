@@ -11,8 +11,8 @@ interface FontAtlas {
   element: HTMLCanvasElement
 }
 
-const CHAR_START = 32
-const CHAR_END = 127
+export const CHAR_START = 33
+export const CHAR_END = 127
 
 export const generateStandardSet = (): FontAtlas => {
   const canvas = document.createElement('canvas')

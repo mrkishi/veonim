@@ -66,7 +66,7 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      float charIndex = ${v.charCode} - 32.0;
+      float charIndex = ${v.charCode} - ${fontTextureAtlas.CHAR_START}.0;
       vec2 glyphPixelPosition = vec2(charIndex, 0) * ${v.cellSize};
       vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.textureResolution};
@@ -93,14 +93,8 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   createVertexArray()
 
   // TODO: TODO TODO TODO TODO LOL TODO
-  // atlas should start at 33??? 32 is invis
-  // how much shit can we move to shaders for calc
   // no alpha. maybe faster?
   // support char color thanks
-  // use vertexAttribDivisor to run the vertex position attributes
-  // more than once (instanced drawing with drawArraysInstanced)
-  // see cheat codes here: https://stackoverflow.com/a/46068799
-  // yo can we combine the arrays for position + texture into one?
   // cell background solid color rendering - do we send vertices
   // for each cell and draw them all? or try to combine in JS
   // before wrendering? we will probably have many dupes
@@ -123,13 +117,17 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
     size: 2,
   })
 
-  // our texture atlas starts with 32 which is the first usable ascii character. most before are 32 are control chars
-  const charCode = (char: string): number => char.codePointAt(0) || 32
+  const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtlas.CHAR_START
 
   const wrenderData = [
     // char code, col, row
+    charCode('f'), 2, 2,
+    charCode('u'), 3, 2,
+    charCode('c'), 4, 2,
+    charCode('k'), 5, 2,
+
     charCode('a'), 0, 1,
-    charCode('S'), 1, 1,
+    charCode('s'), 1, 1,
     charCode('s'), 2, 1,
   ]
 
@@ -174,7 +172,6 @@ const dothewebglthing = (canvasElement: HTMLCanvasElement) => {
   gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   // gl.clearColor(0.0, 0.1, 0.1, 1.0)
   // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  // gl.drawArrays(gl.TRIANGLES, 0, wrenderData.length / 3)
   gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, wrenderData.length / 3)
 }
 
