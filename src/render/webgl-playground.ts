@@ -5,11 +5,19 @@ const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtl
 
 const main = () => {
   const webgl = WebGLWrenderer()
+  Object.assign(webgl.element2.style, {
+    position: 'absolute',
+    top: '50px',
+    border: '1px solid cyan',
+    zIndex: 10,
+  })
   Object.assign(webgl.element.style, {
     position: 'absolute',
     top: '50px',
     border: '1px solid yellow',
+    zIndex: 20,
   })
+  document.body.appendChild(webgl.element2)
   document.body.appendChild(webgl.element)
 
   webgl.resize(10, 80)
@@ -29,10 +37,10 @@ const main = () => {
 
   const bgData = [
     // col, row, red, green, blue
-    2, 2, 1, 0.1, 0.4,
-    3, 2, 1, 0.1, 0.4,
-    4, 2, 1, 0.1, 0.4,
-    5, 2, 1, 0.1, 0.4,
+    2, 2, 0, 0.1, 0.4,
+    3, 2, 0, 0.1, 0.4,
+    4, 2, 0, 0.1, 0.4,
+    5, 2, 0, 0.1, 0.4,
 
     0, 1, 0.1, 0.2, 0,
     1, 1, 0.1, 0.2, 0,
@@ -40,6 +48,10 @@ const main = () => {
   ]
 
   webgl.render(fgData, bgData)
+
+  setTimeout(() => {
+    webgl.render(fgData, bgData)
+  }, 1e3)
 }
 
 type FUCKTYPESCRIPT = any

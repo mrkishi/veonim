@@ -5,8 +5,9 @@ import TextBG from '../render/webgl-text-bg'
 
 export default () => {
   const webgl = CreateWebGL()
+  const webgl2 = CreateWebGL()
   const textFGRenderer = TextFG(webgl)
-  const textBGRenderer = TextBG(webgl)
+  const textBGRenderer = TextBG(webgl2)
 
   const resize = (rows: number, cols: number) => {
     const width = cols * cc.cell.width
@@ -16,18 +17,24 @@ export default () => {
     textBGRenderer.resize(width, height)
 
     webgl.resize(width, height)
+    webgl2.resize(width, height)
   }
+
+  let activated = false
 
   /** Wrender data where each element is [ charCode, col, row, red, green, blue ] */
   const render = (fgData: number[], bgData: number[]) => {
+    if (!activated) {
+      activated = true
+      textBGRenderer.activate()
+      textFGRenderer.activate()
+    }
     // TODO: if we let chrome do the alpha rendering, then maybe we can stack
     // webgl canvases? i wonder if the perf is better if we let chrome
     // do the compositing versus constantly switching programs
-    textBGRenderer.activate()
     textBGRenderer.render(bgData)
-    // textFGRenderer.activate()
-    // textFGRenderer.render(fgData)
+    textFGRenderer.render(fgData)
   }
 
-  return { render, resize, element: webgl.canvasElement }
+  return { render, resize, element: webgl.canvasElement, element2: webgl2.canvasElement }
 }
