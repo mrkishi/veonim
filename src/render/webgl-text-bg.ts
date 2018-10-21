@@ -17,7 +17,7 @@ export default (webgl: WebGL2) => {
   program.setVertexShader(v => `
     in vec2 ${v.quadVertex};
     in vec2 ${v.cellPosition};
-    in vec2 ${v.cellColor};
+    in vec3 ${v.cellColor};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.cellSize};
 
@@ -38,7 +38,7 @@ export default (webgl: WebGL2) => {
   program.setFragmentShader(() => `
     precision highp float;
 
-    in vec2 o_cellColor;
+    in vec4 o_cellColor;
     out vec4 outColor;
 
     void main() {
@@ -57,7 +57,7 @@ export default (webgl: WebGL2) => {
   const wrenderBuffer = program.setupData([{
     pointer: program.vars.cellPosition,
     type: webgl.gl.FLOAT,
-    size: 1,
+    size: 2,
     offset: 0,
     stride: wrenderStride,
     divisor: 1,

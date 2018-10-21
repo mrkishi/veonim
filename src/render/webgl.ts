@@ -1,7 +1,7 @@
 import CreateWebGL from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 import TextFG from '../render/webgl-text-fg'
-import TextBG from '../render/webgl-text-fg'
+import TextBG from '../render/webgl-text-bg'
 
 export default () => {
   const webgl = CreateWebGL()
