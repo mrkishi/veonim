@@ -15,7 +15,7 @@ const main = () => {
   webgl.resize(10, 80)
 
   // wrender loop
-  const wrenderData = [
+  const fgData = [
     // char code, col, row, red, green, blue
     charCode('f'), 2, 2, 1, 0, 0,
     charCode('u'), 3, 2, 0, 1, 0,
@@ -27,7 +27,19 @@ const main = () => {
     charCode('s'), 2, 1, 1, 0, 1,
   ]
 
-  webgl.render(wrenderData)
+  const bgData = [
+    // col, row, red, green, blue
+    2, 2, 0, 0.1, 0.4,
+    3, 2, 0, 0.1, 0.4,
+    4, 2, 0, 0.1, 0.4,
+    5, 2, 0, 0.1, 0.4,
+
+    0, 1, 0.1, 0.2, 0,
+    1, 1, 0.1, 0.2, 0,
+    2, 1, 0.1, 0.2, 0,
+  ]
+
+  webgl.render(fgData, bgData)
 }
 
 type FUCKTYPESCRIPT = any

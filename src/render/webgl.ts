@@ -19,12 +19,14 @@ export default () => {
   }
 
   /** Wrender data where each element is [ charCode, col, row, red, green, blue ] */
-  const render = (data: number[]) => {
+  const render = (fgData: number[], bgData: number[]) => {
     // TODO: if we let chrome do the alpha rendering, then maybe we can stack
     // webgl canvases? i wonder if the perf is better if we let chrome
     // do the compositing versus constantly switching programs
-    textFGRenderer.activate()
-    textFGRenderer.render(data)
+    textBGRenderer.activate()
+    textBGRenderer.render(bgData)
+    // textFGRenderer.activate()
+    // textFGRenderer.render(fgData)
   }
 
   return { render, resize, element: webgl.canvasElement }
