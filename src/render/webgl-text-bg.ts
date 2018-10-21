@@ -49,6 +49,27 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
+  // total size of all pointers. chunk size that goes to shader
+  const wrenderElements = 5
+  const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
+  const colorOffset = 2 * Float32Array.BYTES_PER_ELEMENT
+
+  const wrenderBuffer = program.setupData([{
+    pointer: program.vars.cellPosition,
+    type: webgl.gl.FLOAT,
+    size: 1,
+    offset: 0,
+    stride: wrenderStride,
+    divisor: 1,
+  }, {
+    pointer: program.vars.cellColor,
+    type: webgl.gl.FLOAT,
+    size: 3,
+    offset: colorOffset,
+    stride: wrenderStride,
+    divisor: 1,
+  }])
+
   const quadBuffer = program.setupData({
     pointer: program.vars.quadVertex,
     type: webgl.gl.FLOAT,
@@ -76,6 +97,8 @@ export default (webgl: WebGL2) => {
   }
 
   const render = (data: number[]) => {
+    wrenderBuffer.setData(new Float32Array(data))
+    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, data.length / wrenderElements)
   }
 
   return { activate, render, resize }
