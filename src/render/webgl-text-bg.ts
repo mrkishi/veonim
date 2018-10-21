@@ -49,9 +49,34 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
+  const quadBuffer = program.setupData({
+    pointer: program.vars.quadVertex,
+    type: webgl.gl.FLOAT,
+    size: 2,
+  })
+
   const resize = (width: number, height: number) => {
     Object.assign(rez.canvas, { width, height })
   }
 
-  return { resize }
+  const activate = () => {
+    program.use()
+
+    quadBuffer.setData(new Float32Array([
+      0, 0,
+      cc.cell.width, cc.cell.height,
+      0, cc.cell.height,
+      cc.cell.width, 0,
+      cc.cell.width, cc.cell.height,
+      0, 0,
+    ]))
+
+    webgl.gl.uniform2f(program.vars.canvasResolution, rez.canvas.width, rez.canvas.height)
+    webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
+  }
+
+  const render = (data: number[]) => {
+  }
+
+  return { activate, render, resize }
 }
