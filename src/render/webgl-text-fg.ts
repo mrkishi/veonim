@@ -70,14 +70,13 @@ export default (webgl: WebGL2) => {
   webgl.loadCanvasTexture(fontAtlas.element)
 
   Object.assign(rez.texture, {
-    width: Math.round(fontAtlas.element.width / 2),
-    height: Math.round(fontAtlas.element.height / 2),
+    width: Math.round(fontAtlas.element.width / window.devicePixelRatio),
+    height: Math.round(fontAtlas.element.height / window.devicePixelRatio),
   })
 
   // total size of all pointers. chunk size that goes to shader
   const wrenderElements = 6
   const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
-  const colorOffset = 3 * Float32Array.BYTES_PER_ELEMENT
 
   const wrenderBuffer = program.setupData([{
     pointer: program.vars.charCode,
@@ -97,7 +96,7 @@ export default (webgl: WebGL2) => {
     pointer: program.vars.charColor,
     type: webgl.gl.FLOAT,
     size: 3,
-    offset: colorOffset,
+    offset: 3 * Float32Array.BYTES_PER_ELEMENT,
     stride: wrenderStride,
     divisor: 1,
   }])
