@@ -35,6 +35,20 @@ export default (webgl: WebGL2) => {
     }
   `)
 
+  program.setFragmentShader(() => `
+    precision highp float;
+
+    in vec2 o_cellColor;
+    out vec4 outColor;
+
+    void main() {
+      outColor = o_cellColor;
+    }
+  `)
+
+  program.create()
+  program.use()
+
   const resize = (width: number, height: number) => {
     Object.assign(rez.canvas, { width, height })
   }
