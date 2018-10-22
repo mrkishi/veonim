@@ -96,8 +96,8 @@ export default (webgl: WebGL2) => {
     webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   }
 
-  const render = (data: number[]) => {
-    wrenderBuffer.setData(new Float32Array(data))
+  const render = (data: Float32Array) => {
+    wrenderBuffer.setData(data)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, data.length / wrenderElements)
   }
 

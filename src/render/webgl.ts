@@ -23,15 +23,17 @@ export default () => {
   let activated = false
 
   /** Wrender data where each element is [ charCode, col, row, red, green, blue ] */
-  const render = (fgData: number[], bgData: number[]) => {
+  const render = (fgData: Float32Array, bgData: Float32Array) => {
     if (!activated) {
       activated = true
+      // TODO: since webgl canvases are single purpose use, we can get rid of
+      // the activate methods and just have them bound to init
       textBGRenderer.activate()
       textFGRenderer.activate()
     }
-    // TODO: if we let chrome do the alpha rendering, then maybe we can stack
-    // webgl canvases? i wonder if the perf is better if we let chrome
-    // do the compositing versus constantly switching programs
+    // i'm not seeing any tangible difference in browser compositing between 
+    // alpha and disabled alpha. am i doing something wrong? (probably)
+    // shouldn't alpha: false be faster somehow?
     textBGRenderer.render(bgData)
     textFGRenderer.render(fgData)
   }
