@@ -1,6 +1,7 @@
-import { current, BufferOption, BufferType } from '../core/neovim'
+import { BufferOption, BufferType } from '../neovim/types'
 import { simplifyPath, pathReducer } from '../support/utils'
 import { BufferVar } from '../core/vim-functions'
+import nvim from '../core/neovim'
 
 export interface WindowMetadata {
   id: number
@@ -34,8 +35,8 @@ const betterTitles = (windows: any[]): WindowMetadata[] => {
 }
 
 export default async (): Promise<WindowMetadata[]> => {
-  const activeWindow = await current.window.id
-  const wins = await current.tabpage.windows
+  const activeWindow = await nvim.current.window.id
+  const wins = await nvim.current.tabpage.windows
 
   const windowsWithApiData = await Promise.all(wins.map(async w => {
     const buffer = await w.buffer
@@ -44,7 +45,7 @@ export default async (): Promise<WindowMetadata[]> => {
       id: w.id,
       active: w.id === activeWindow,
       filetype: await buffer.getOption(BufferOption.Filetype),
-      name: (simplifyPath(await buffer.name, current.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
+      name: (simplifyPath(await buffer.name, nvim.state.cwd) || '').replace(/^term:\/\/\.\/\/\w+:/, ''),
       modified: await buffer.getOption(BufferOption.Modified),
       terminal: (await buffer.getOption(BufferOption.Type)) === BufferType.Terminal,
       termAttached: await buffer.getVar(BufferVar.TermAttached).catch(() => false),

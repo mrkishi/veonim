@@ -1,5 +1,5 @@
 import { throttle, merge, listof, simplifyPath, pathReducer } from '../support/utils'
-import { ShadowBuffer, getShadowBuffer } from '../core/shadow-buffers'
+import { ShadowBuffer, /*getShadowBuffer*/ } from '../core/shadow-buffers'
 import { CanvasWindow, createWindow } from '../core/canvas-window'
 import * as canvasContainer from '../core/canvas-container'
 import { BufferType, BufferOption } from '../neovim/types'
@@ -585,36 +585,38 @@ const activeShadowBuffers = new Map<string, ShadowBuffer>()
 
 // TODO: in addition to close/rename, we also need to detect when a window gets reassigned
 // and unload/reload shadow buffer. window container elements do not follow vim windows
-const controlShadowBuffer = (id: number, name: string, active: boolean, containerApi: ShadowBufferApi) => {
-  const loaded = activeShadowBuffers.has(name)
-  const shadowBuffer = getShadowBuffer(name)
-  if (!shadowBuffer) return console.warn(`unable to find shadow buffer: ${name}`)
+// const controlShadowBuffer = (id: number, name: string, active: boolean, containerApi: ShadowBufferApi) => {
+//   const loaded = activeShadowBuffers.has(name)
+//   const shadowBuffer = getShadowBuffer(name)
+//   if (!shadowBuffer) return console.warn(`unable to find shadow buffer: ${name}`)
 
-  // TODO: the cursor focus glitch is back. check cursor again
-  // TODO: is this a problem that onFocus will get called before onShow?
-  if (active && shadowBuffer.onFocus) shadowBuffer.onFocus()
-  if (!active && shadowBuffer.onBlur) shadowBuffer.onBlur()
+//   // TODO: the cursor focus glitch is back. check cursor again
+//   // TODO: is this a problem that onFocus will get called before onShow?
+//   if (active && shadowBuffer.onFocus) shadowBuffer.onFocus()
+//   if (!active && shadowBuffer.onBlur) shadowBuffer.onBlur()
 
-  if (loaded) return
+//   if (loaded) return
 
-  activeShadowBuffers.set(name, shadowBuffer)
-  containerApi.show(shadowBuffer.element)
+//   activeShadowBuffers.set(name, shadowBuffer)
+//   containerApi.show(shadowBuffer.element)
 
-  if (shadowBuffer.onShow) shadowBuffer.onShow()
+//   if (shadowBuffer.onShow) shadowBuffer.onShow()
 
-  watchers.once(`${id}`, () => {
-    activeShadowBuffers.delete(name)
-    containerApi.hide()
-    if (shadowBuffer.onHide) shadowBuffer.onHide()
-  })
-}
+//   watchers.once(`${id}`, () => {
+//     activeShadowBuffers.delete(name)
+//     containerApi.hide()
+//     if (shadowBuffer.onHide) shadowBuffer.onHide()
+//   })
+// }
 
 export const render = async () => {
   console.log('WRENDER WINDOWS')
   const ws = await getWindows()
-  console.log('ws', ...ws.map(w => w.id))
-  return
+  if (true) {
+    console.log('ws', ...ws.map(w => w.id))
+  }
 
+  // TODO: this shit is no longer used
   const closedWindows = getClosedWindows(ws)
   closedWindows.forEach(id => watchers.emit(`${id}`))
 
@@ -653,7 +655,8 @@ export const render = async () => {
 
       const isShadowBuffer = vw.filetype === SHADOW_BUFFER_TYPE
 
-      if (isShadowBuffer) controlShadowBuffer(vw.id, vw.name, vw.active, win.shadowBufferApi)
+      if (isShadowBuffer) console.log('shadow-buffers not supported right nau')
+      // if (isShadowBuffer) controlShadowBuffer(vw.id, vw.name, vw.active, win.shadowBufferApi)
       else watchers.emit(`${vw.id}`)
 
       const prevWin = cache.windows.find(w => w.x === vw.x && w.y === vw.y)
@@ -678,7 +681,7 @@ export const render = async () => {
     // TODO: this is mega dirty hack...
     // because a html div window does not necessarily associate with a vim window.
     // they will be recycled if needed.
-    windows.forEach(win => win.shadowBufferApi.hide())
+    // windows.forEach(win => win.shadowBufferApi.hide())
     activeShadowBuffers.clear()
     // TODO: reactivate shadow buffers...
     // the code below restores it in the wrong window

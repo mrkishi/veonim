@@ -2,7 +2,7 @@ import { cell, font, pad } from '../core/canvas-container'
 import fontAtlas from '../core/font-atlas'
 import { merge } from '../support/utils'
 import { makel } from '../ui/vanilla'
-import $$ from '../core/state'
+import nvim from '../core/neovim'
 
 export interface TransferRegion {
   width: number
@@ -122,7 +122,7 @@ export default () => {
     ui.font = `${font.size}px ${font.face}`
     ui.textBaseline = 'top'
     ui.scale(window.devicePixelRatio, window.devicePixelRatio)
-    ui.fillStyle = $$.background
+    ui.fillStyle = nvim.state.background
     ui.fillRect(0, 0, canvas.width, canvas.height)
 
     canvasDimensions.height = height
