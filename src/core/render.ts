@@ -333,6 +333,7 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   : moveRegionDown(id, -amount, { top, bottom, left, right })
 
 r.grid_line = (id, row, startCol, charData: any[]) => {
+  console.log(`grid_line(id: ${id}, row: ${row}, startCol: ${startCol}, chars: ${charData.length})`)
   if (checkSkipDefaultGrid(id)) return
 
   const { canvas, grid } = getWindow(id)

@@ -74,6 +74,15 @@ const main = () => {
   }
 
   // TODO: how to clear characters FG & BG
+  // TODO: is there a perf improvement in using typearray.copyWithin()?
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray/copyWithin
+  // TODO: any perf improvement in sending uint8 arrays to the GPU?
+  // i would assume that it would be less bytes to copy, but then
+  // we have to convert ints to floats in the shaders
+  // TODO: how do we send colors from render pipeline?
+  // perhaps it is most efficient to send the hlid and use texture lookup
+  // to get the actual color value in the shader. otherwise we might need
+  // to do costly lookups in JS
 
   setTimeout(() => {
     webgl.render(storage, bgData)
