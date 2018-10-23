@@ -1,7 +1,7 @@
 import { setWindow, hasWindow, removeWindow, getWindow, renderWindows, setActiveGrid, refreshWindows } from '../core/windows2'
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
-import { onRedraw, getMode, getColor as getColorFromVim } from '../core/master-control'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
+import { onRedraw, getColor as getColorFromVim } from '../core/master-control'
 // import * as canvasContainer from '../core/canvas-container'
 // import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../neovim/protocol'
