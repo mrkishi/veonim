@@ -2,12 +2,46 @@ import { decode } from 'msgpack-lite'
 
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
-const typ = (m: any) => {
-  if (m >= 0x90 && m <= 0x9f) return { kind: 'fixarr', length: m - 0x90 }
-  if (m >= 0x80 && m <= 0x8f) return { kind: 'fixmap', length: m - 0x80 }
-  if (m >= 0x00 && m <= 0x7f) return { kind: '+fixint', val: m - 0x00 }
-  if (m >= 0xa0 && m <= 0xbf) return { kind: 'fixstr', length: m - 0xa0 }
-  else return { kind: m.toString(16).padStart(2, '0'), length: 0 }
+const typ = (raw: any, ix: number) => {
+  const m = raw[ix]
+  if (m == 0xc0) return { val: null }
+  if (m == 0xc2) return { val: false }
+  if (m == 0xc3) return { val: true }
+
+  if (m >= 0x00 && m <= 0x7f) return {
+    kind: '+fixint',
+    val: m - 0x00,
+  }
+
+  // fixarr
+  if (m >= 0x90 && m <= 0x9f) return {
+    kind: 'arr',
+    length: m - 0x90,
+    start: ix + 1,
+  }
+
+  // fixmap
+  if (m >= 0x80 && m <= 0x8f) return {
+    kind: 'map',
+    length: m - 0x80,
+    start: ix + 1,
+  }
+
+  // fixstr
+  if (m >= 0xa0 && m <= 0xbf) return {
+    kind: 'str',
+    length: m - 0xa0,
+    start: ix + 1,
+  }
+
+  // arr16
+  if (m == 0xdc) return {
+    kind: 'arr',
+    length: raw[ix + 1] + raw[ix + 2],
+    start: ix + 3,
+  }
+
+  return { kind: m.toString(16).padStart(2, '0'), length: 0 }
 }
 
 
@@ -18,39 +52,35 @@ export default (data: any) => {
   let ix = 0
 
   const toStr = (raw: any, start: number, length: number) => {
-    console.log('toStr:', start, length)
     const end = start + length
     const str = raw.toString('utf8', start, end)
-    console.log('str res:', str)
-    console.log('str ix:', end)
     return [ end, str ]
   }
 
-  const toArr = (raw: any, start: number, length: number) => {
-    console.log('toArr:', start, length)
+  const toArr = (raw: any, start: number, length: number): [ number, any[] ] => {
     let it = 0
     let ix = start
     const arr = []
 
     while (it < length) {
-      const wut = typ(raw[ix])
+      const wut = typ(raw, ix)
       console.log('wut', wut)
 
-      if (wut.kind === '+fixint') {
+      if (wut.val) {
         arr.push(wut.val)
         ix++
         it++
       }
 
-      else if (wut.kind === 'fixarr') {
-        const [ nextIx, stuff ] = toArr(raw, ix + 1, wut.length)
+      else if (wut.kind === 'arr') {
+        const [ nextIx, stuff ] = toArr(raw, wut.start, wut.length)
         ix = nextIx
         arr.push(stuff)
         it++
       }
 
-      else if (wut.kind === 'fixstr') {
-        const [ nextIx, stuff ] = toStr(raw, ix + 1, wut.length)
+      else if (wut.kind === 'str') {
+        const [ nextIx, stuff ] = toStr(raw, wut.start, wut.length)
         ix = nextIx
         arr.push(stuff)
         it++
@@ -62,8 +92,6 @@ export default (data: any) => {
       }
     }
 
-    console.log('arr res:', arr)
-    console.log('arr ix:', ix)
     return [ ix, arr ]
   }
 
@@ -71,23 +99,15 @@ export default (data: any) => {
 
   console.log('---------------')
 
-  const { kind, length, val } = typ(raw[0])
+  const { kind, length, start } = typ(raw, 0)
+  console.log('init:', kind, start, length)
   let res
-  if (kind === 'fixarr') res = toArr(raw, 1, length)
-  console.log('res:', res)
+  if (kind === 'arr') res = toArr(raw, start, length)
 
-  // while (ix < 5) {
-  //   const kind = typ(raw[ix])
-
-
-  //   ix++
-  // }
-
-  console.log('kind', kind)
-
-  console.log('raw:', raw)
-  console.log('hex:', hex)
   console.log('parsed:', parsed)
+  // TODO: where does the [23, [2, 'redraw', []]] come from?
+  console.log('res:', res)
+  console.log('hex:', hex)
   console.log('---------------')
 }
 
