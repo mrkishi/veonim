@@ -1,4 +1,4 @@
-import { encode, decode } from 'msgpack-lite'
+import { decode } from 'msgpack-lite'
 
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
@@ -12,7 +12,7 @@ const typ = (m: any) => {
 export default (data: any) => {
   const raw = data
   const parsed = decode(raw)
-  const hex = Array.from(raw).map(buf => buf.toString(16).padStart(2, '0'))
+  const hex = Array.from(raw).map((buf: any) => buf.toString(16).padStart(2, '0'))
 
   if (parsed[1] !== 'redraw') return
 
