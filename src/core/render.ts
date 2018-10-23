@@ -11,6 +11,8 @@ import * as dispatch from '../messaging/dispatch'
 import { VimMode } from '../neovim/types'
 import nvim from '../core/neovim'
 
+const $$$ = false
+
 // type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
 interface DefaultColors {
@@ -299,7 +301,7 @@ r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
 
 
 r.grid_clear = id => {
-  console.log('clear', id)
+  $$$&&console.log('clear', id)
   if (checkSkipDefaultGrid(id)) return
   const { grid, canvas } = getWindow(id)
   grid.clear()
@@ -307,14 +309,14 @@ r.grid_clear = id => {
 }
 
 r.grid_destroy = id => {
-  console.log('destroy', id)
+  $$$&&console.log('destroy', id)
   if (checkSkipDefaultGrid(id)) return
   removeWindow(id)
 }
 
 // TODO: do we need to reset cursor position after resizing?
 r.grid_resize = (id, width, height) => {
-  console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
+  $$$&&console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
   if (checkSkipDefaultGrid(id)) return
 
   // it seems we get grid_resize events before win_position. not sure why... but okay
@@ -323,7 +325,7 @@ r.grid_resize = (id, width, height) => {
 }
 
 r.grid_cursor_goto = (id, row, col) => {
-  console.log(`grid_cursor_goto(id: ${id}, row: ${row}, col: ${col})`)
+  $$$&&console.log(`grid_cursor_goto(id: ${id}, row: ${row}, col: ${col})`)
   setActiveGrid(id, row, col)
   merge(cursor, { row, col })
 }
@@ -333,7 +335,7 @@ r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
   : moveRegionDown(id, -amount, { top, bottom, left, right })
 
 r.grid_line = (id, row, startCol, charData: any[]) => {
-  console.log(`grid_line(id: ${id}, row: ${row}, startCol: ${startCol}, chars: ${charData.length})`)
+  $$$&&console.log(`grid_line(id: ${id}, row: ${row}, startCol: ${startCol}, chars: ${charData.length})`)
   if (checkSkipDefaultGrid(id)) return
 
   const { canvas, grid } = getWindow(id)
@@ -386,7 +388,7 @@ r.grid_line = (id, row, startCol, charData: any[]) => {
 }
 
 r.win_position = (windowId, gridId, row, col, width, height) => {
-  console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
+  $$$&&console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
   setWindow(windowId, gridId, row, col, width, height)
 }
 
@@ -571,15 +573,9 @@ onRedraw((m: any[]) => {
 
   ;(window as any).requestIdleCallback(() => {
     refreshWindows()
-    // TODO: re-enable font atlas generation once the dust settles
-    // BY THE WAY
-    // xterm.js no longer uses bitmap for font atlas. they draw directly from
-    // atlas canvas to real canvas
-    //
-    // if (!initialAtlasGenerated) initalFontAtlas.done(true)
-    // regenerateFontAtlastIfNecessary()
-    getMode().then(m => nvim.state.mode = normalizeVimMode(m.mode))
   })
 })
 
+// TODO: we should hookup webgl to regen font atlas if monitor changes
+// or font size changes. thank you for your consideration during these difficult times
 // canvasContainer.on('device-pixel-ratio-changed', generateFontAtlas)
