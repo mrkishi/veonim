@@ -7,6 +7,7 @@ const typ = (m: any) => {
   if (m >= 0x80 && m <= 0x8f) return { kind: 'fixmap', length: m - 0x80 }
   if (m >= 0x00 && m <= 0x7f) return { kind: '+fixint', val: m - 0x00 }
   if (m >= 0xa0 && m <= 0xbf) return { kind: 'fixstr', length: m - 0xa0 }
+  else return { kind: m.toString(16).padStart(2, '0'), length: 0 }
 }
 
 
@@ -20,6 +21,8 @@ export default (data: any) => {
     console.log('toStr:', start, length)
     const end = start + length
     const str = raw.toString('utf8', start, end)
+    console.log('str res:', str)
+    console.log('str ix:', end)
     return [ end, str ]
   }
 
@@ -40,22 +43,27 @@ export default (data: any) => {
       }
 
       else if (wut.kind === 'fixarr') {
-        const [ nextIx, stuff ] = toArr(raw, ix, wut.length)
+        const [ nextIx, stuff ] = toArr(raw, ix + 1, wut.length)
         ix = nextIx
         arr.push(stuff)
         it++
       }
 
       else if (wut.kind === 'fixstr') {
-        const [ nextIx, stuff ] = toStr(raw, ix, wut.length)
+        const [ nextIx, stuff ] = toStr(raw, ix + 1, wut.length)
         ix = nextIx
         arr.push(stuff)
         it++
       }
 
-      else it++
+      else {
+        console.warn('no idea how to handle element:', wut.kind)
+        it++
+      }
     }
 
+    console.log('arr res:', arr)
+    console.log('arr ix:', ix)
     return [ ix, arr ]
   }
 
