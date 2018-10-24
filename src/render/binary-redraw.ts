@@ -117,14 +117,18 @@ type ParseResult = [ number, any ]
 
 const toMap = (raw: any, start: number, length: number): ParseResult => {
   console.log('toMap:', start, length)
+  let it = 0
   let ix = start
   const res = {}
 
-  while (ix < length) {
+  while (it < length) {
     const keywut = typ(raw, ix)
-    const valwut = typ(raw, ix + 1)
-    console.log('OBJ! wut', wut)
-    ix += 2
+    const [ valIx, key ] = parse(raw, keywut)
+    const valwut = typ(raw, valIx)
+    const [ nextIx, val ] = parse(raw, valwut)
+    Reflect.set(res, key, val)
+    ix = nextIx
+    it++
   }
 
   return [ ix, res ]
@@ -147,38 +151,6 @@ const toArr = (raw: any, start: number, length: number): ParseResult => {
     res.push(stuff)
     ix = nextIx
     it++
-
-    // if (wut.val) {
-    //   res.push(wut.val)
-    //   ix++
-    //   it++
-    // }
-
-    // else if (wut.kind === MPKind.Arr) {
-    //   const [ nextIx, stuff ] = toArr(raw, wut.start, wut.length)
-    //   ix = nextIx
-    //   res.push(stuff)
-    //   it++
-    // }
-
-    // else if (wut.kind === MPKind.Str) {
-    //   const [ nextIx, stuff ] = toStr(raw, wut.start, wut.length)
-    //   ix = nextIx
-    //   res.push(stuff)
-    //   it++
-    // }
-
-    // else if (wut.kind === MPKind.Map) {
-    //   const [ nextIx, stuff ] = toMap(raw, wut.start, wut.length)
-    //   ix = nextIx
-    //   res.push(stuff)
-    //   it++
-    // }
-
-    // else {
-    //   console.warn('no idea how to handle element:', wut.kind)
-    //   it++
-    // }
   }
 
   return [ ix, res ]
@@ -199,8 +171,6 @@ export default (data: any) => {
   const parsed = decode(raw)
   const hex = Array.from(raw).map((buf: any) => buf.toString(16).padStart(2, '0'))
   let ix = 0
-
-
 
   if (parsed[1] !== 'redraw') return
 
