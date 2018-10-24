@@ -41,6 +41,13 @@ const typ = (raw: any, ix: number) => {
     start: ix + 3,
   }
 
+  // arr32
+  if (m == 0xdd) return {
+    kind: 'arr',
+    length: raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
+    start: ix + 5,
+  }
+
   return { kind: m.toString(16).padStart(2, '0'), length: 0 }
 }
 
@@ -105,8 +112,7 @@ export default (data: any) => {
   if (kind === 'arr') res = toArr(raw, start, length)
 
   console.log('parsed:', parsed)
-  // TODO: where does the [23, [2, 'redraw', []]] come from?
-  console.log('res:', res)
+  console.log('res:', res[1])
   console.log('hex:', hex)
   console.log('---------------')
 }
