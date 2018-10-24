@@ -70,6 +70,21 @@ const typ = (raw: any, ix: number) => {
   return { kind: m.toString(16).padStart(2, '0'), length: 0 }
 }
 
+type ParseResult = [ number, any ]
+
+const toMap = (raw: any, start: number, length: number): ParseResult => {
+  console.log('toMap:', start, length)
+  let ix = start
+  const res = {}
+
+  while (ix < length) {
+    const wut = typ(raw, ix)
+    console.log('OBJ! wut', wut)
+    ix++
+  }
+
+  return [ ix, res ]
+}
 
 export default (data: any) => {
   const raw = data
@@ -77,20 +92,19 @@ export default (data: any) => {
   const hex = Array.from(raw).map((buf: any) => buf.toString(16).padStart(2, '0'))
   let ix = 0
 
-  const toStr = (raw: any, start: number, length: number) => {
+  const toStr = (raw: any, start: number, length: number): ParseResult => {
     const end = start + length
     const str = raw.toString('utf8', start, end)
     return [ end, str ]
   }
 
-  const toArr = (raw: any, start: number, length: number): [ number, any[] ] => {
+  const toArr = (raw: any, start: number, length: number): ParseResult => {
     let it = 0
     let ix = start
     const arr = []
 
     while (it < length) {
       const wut = typ(raw, ix)
-      console.log('wut', wut)
 
       if (wut.val) {
         arr.push(wut.val)
@@ -107,6 +121,13 @@ export default (data: any) => {
 
       else if (wut.kind === MPKind.Str) {
         const [ nextIx, stuff ] = toStr(raw, wut.start, wut.length)
+        ix = nextIx
+        arr.push(stuff)
+        it++
+      }
+
+      else if (wut.kind === MPKind.Map) {
+        const [ nextIx, stuff ] = toMap(raw, wut.start, wut.length)
         ix = nextIx
         arr.push(stuff)
         it++
