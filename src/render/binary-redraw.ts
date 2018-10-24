@@ -1,4 +1,4 @@
-import { decode } from 'msgpack-lite'
+import { encode, decode } from 'msgpack-lite'
 
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
@@ -27,6 +27,7 @@ const typ = (raw: any, ix: number): TypKind => {
   if (m >= 0x00 && m <= 0x7f) return { ...def, val: m - 0x00 }
 
   // negative fixint
+  // TODO: correct or not?
   if (m >= 0xe0 && m <= 0xff) return { ...def, val: -(m - 0xe0) }
 
   // TODO: verify how we parse unsigned ints??
@@ -38,10 +39,21 @@ const typ = (raw: any, ix: number): TypKind => {
     length: 1,
   }
 
+  // int8
+  if (m == 0xd0) {
+    const val = raw[ix + 1]
+    return {
+      kind: MPKind.Val,
+      val: [val & 0x80] ? val - 0x100 : val,
+      start: ix + 1,
+      length: 1,
+    }
+  }
+
   // uint16
   if (m == 0xcd) return {
     kind: MPKind.Val,
-    val: raw[ix + 1] + raw[ix + 2],
+    val: (raw[ix + 1] << 8) + raw[ix + 2],
     start: ix + 1,
     length: 2,
   }
@@ -168,10 +180,21 @@ const parse = (raw: Buffer, { val, kind, start, length }: TypKind): ParseResult 
 }
 
 export default (data: any) => {
+  const test = 123123123
+  const encoded = encode(test)
+  const hexy = encoded.reduce((res: string[], buf: any) => {
+    res.push(buf.toString(16).padStart(2, '0'))
+    return res
+  }, [])
+
+  const undo = encoded[1] + encoded[2]
+
+  console.log('encoded', encoded)
+  console.log('hex', hexy)
+  console.log('undo', undo, test)
+
   const raw = data
   const parsed = decode(raw)
-  const hex = Array.from(raw).map((buf: any) => buf.toString(16).padStart(2, '0'))
-  let ix = 0
 
   if (parsed[1] !== 'redraw') return
 
