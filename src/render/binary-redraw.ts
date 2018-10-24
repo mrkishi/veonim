@@ -26,6 +26,9 @@ const typ = (raw: any, ix: number): TypKind => {
   // fixint
   if (m >= 0x00 && m <= 0x7f) return { ...def, val: m - 0x00 }
 
+  // negative fixint
+  if (m >= 0xe0 && m <= 0xff) return { ...def, val: -(m - 0xe0) }
+
   // TODO: verify how we parse unsigned ints??
   // uint8
   if (m == 0xcc) return {
@@ -109,14 +112,14 @@ const typ = (raw: any, ix: number): TypKind => {
     start: 5,
   }
 
-  // TODO: only for dev.
-  return { ...def, kind: m.toString(16).padStart(2, '0') }
+  const byte = m.toString(16).padStart(2, '0')
+  console.warn('not sure how to parse:', byte, def.start)
+  return def
 }
 
 type ParseResult = [ number, any ]
 
 const toMap = (raw: any, start: number, length: number): ParseResult => {
-  console.log('toMap:', start, length)
   let it = 0
   let ix = start
   const res = {}
@@ -161,8 +164,6 @@ const parse = (raw: Buffer, { val, kind, start, length }: TypKind): ParseResult 
   if (kind === MPKind.Arr) return toArr(raw, start, length)
   if (kind === MPKind.Str) return toStr(raw, start, length)
   if (kind === MPKind.Map) return toMap(raw, start, length)
-
-  console.warn('no idea how to parse element:', kind)
   return [ start + length, undefined ]
 }
 
@@ -177,13 +178,11 @@ export default (data: any) => {
   console.log('---------------')
 
   const { kind, length, start } = typ(raw, 0)
-  console.log('init:', kind, start, length)
-  let res
-  if (kind === MPKind.Arr) res = toArr(raw, start, length)
+  if (kind !== MPKind.Arr) return console.error('this message is not an array - not msgpack-rpc?', kind)
+  const [ /*nextIx*/, res ] = toArr(raw, start, length)
 
-  console.log('parsed:', parsed)
-  console.log('res:', res[1])
-  console.log('hex:', hex)
+  console.log('msgpack-lite:', parsed)
+  console.log('my-little-ghetto:', res)
   console.log('---------------')
 }
 
