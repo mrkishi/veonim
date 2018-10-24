@@ -9,6 +9,8 @@ enum MPK {
   Unknown,
 }
 
+// TODO: use typed arrays maybe?
+
 // return type --> [MPK, start, length, value?]
 const typ = (raw: Buffer, ix: number) => {
   const m = raw[ix]
@@ -149,6 +151,27 @@ const typ = (raw: Buffer, ix: number) => {
   // map32
   if (m == 0xdf) return [
     MPK.Map,
+    ix + 5,
+    raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
+  ]
+
+  // str8
+  if (m === 0xd9) return [
+    MPK.Str,
+    ix + 2,
+    raw[ix + 1],
+  ]
+
+  // str16
+  if (m === 0xda) return [
+    MPK.Str,
+    ix + 3,
+    raw[ix + 1] + raw[ix + 2],
+  ]
+
+  // str32
+  if (m === 0xdb) return [
+    MPK.Str,
     ix + 5,
     raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
   ]
