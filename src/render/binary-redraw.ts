@@ -14,8 +14,25 @@ const typ = (raw: any, ix: number) => {
   if (m == 0xc2) return { val: false }
   if (m == 0xc3) return { val: true }
 
-  if (m >= 0x00 && m <= 0x7f) return {
-    val: m - 0x00,
+  // fixint
+  if (m >= 0x00 && m <= 0x7f) return { val: m - 0x00 }
+
+  // TODO: verify how we parse unsigned ints??
+  // uint8
+  if (m == 0xcc) return { val: raw[ix + 1] }
+
+  // uint16
+  if (m == 0xcd) return { val: raw[ix + 1] + raw[ix + 2] }
+
+  // uint32
+  if (m == 0xce) return {
+    val: raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
+  }
+
+  // uint64
+  if (m == 0xcf) return {
+    val: raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4]
+       + raw[ix + 5] + raw[ix + 6] + raw[ix + 7] + raw[ix + 8],
   }
 
   // fixarr
