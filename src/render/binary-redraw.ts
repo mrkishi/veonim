@@ -194,7 +194,7 @@ const toArr = (raw: any, start: number, length: number): ParseResult => {
 }
 
 const parse = (raw: Buffer, { val, kind, start, length }: TypKind): ParseResult => {
-  if (val) return [ start + length, val ]
+  if (val !== undefined) return [ start + length, val ]
   if (kind === MPKind.Arr) return toArr(raw, start, length)
   if (kind === MPKind.Str) return toStr(raw, start, length)
   if (kind === MPKind.Map) return toMap(raw, start, length)
@@ -202,20 +202,25 @@ const parse = (raw: Buffer, { val, kind, start, length }: TypKind): ParseResult 
 }
 
 export default (raw: any) => {
-  const parsed = decode(raw)
 
-  if (parsed[1] !== 'redraw') return
 
   console.log('---------------')
+  console.time('msgpack')
+  const parsed = decode(raw)
+  console.timeEnd('msgpack')
 
-  const { kind, length, start } = typ(raw, 0)
-  if (kind !== MPKind.Arr) return console.error('this message is not an array - not msgpack-rpc?', kind)
-  const [ /*nextIx*/, res ] = toArr(raw, start, length)
-
-  require('assert').strict.deepEqual(parsed, res)
+  console.time('my-little-ghetto')
+  const res = parse(raw, typ(raw, 0))
+  console.timeEnd('my-little-ghetto')
 
   console.log('msgpack-lite:', parsed)
-  console.log('my-little-ghetto:', res)
+  console.log('my-little-ghetto:', res[1])
+
+  try {
+    require('assert').strict.deepEqual(parsed, res[1])
+  } catch(e) {
+    console.warn(e.message)
+  }
   console.log('---------------')
 }
 
