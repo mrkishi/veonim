@@ -1,4 +1,4 @@
-import { encode, decode } from 'msgpack-lite'
+import { decode } from 'msgpack-lite'
 
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
@@ -29,8 +29,7 @@ const typ = (raw: any, ix: number): TypKind => {
   if (m >= 0x00 && m <= 0x7f) return { ...def, val: m - 0x00 }
 
   // negative fixint
-  // TODO: correct or not?
-  if (m >= 0xe0 && m <= 0xff) return { ...def, val: -(m - 0xe0) }
+  if (m >= 0xe0 && m <= 0xff) return { ...def, val: (m - 0x100) }
 
   // uint8
   if (m == 0xcc) return {
@@ -79,12 +78,12 @@ const typ = (raw: any, ix: number): TypKind => {
   }
 
   // int32
-  if (m == 0xd2) {
-    const val = 1
-    return {}
+  if (m == 0xd2) return {
+    kind: MPKind.Val,
+    val: (raw[ix + 1] << 24) | (raw[ix + 2] << 16) | (raw[ix + 3] << 8) | raw[ix + 4],
+    start: ix + 1,
+    length: 4,
   }
-
-  // TODO: int32
 
   // uint64
   if (m == 0xcf) {
@@ -202,22 +201,7 @@ const parse = (raw: Buffer, { val, kind, start, length }: TypKind): ParseResult 
   return [ start + length, undefined ]
 }
 
-export default (data: any) => {
-  const test = 123123123
-  const encoded = encode(test)
-  const hexy = encoded.reduce((res: string[], buf: any) => {
-    res.push(buf.toString(16).padStart(2, '0'))
-    return res
-  }, [])
-
-  let lol = 1
-  const undo = (encoded[lol++] * 16777216) + (encoded[lol++] << 16) + (encoded[lol++] << 8) + encoded[lol]
-
-  console.log('encoded', encoded)
-  console.log('hex', hexy)
-  console.log('undo', undo, test)
-
-  const raw = data
+export default (raw: any) => {
   const parsed = decode(raw)
 
   if (parsed[1] !== 'redraw') return
@@ -227,6 +211,8 @@ export default (data: any) => {
   const { kind, length, start } = typ(raw, 0)
   if (kind !== MPKind.Arr) return console.error('this message is not an array - not msgpack-rpc?', kind)
   const [ /*nextIx*/, res ] = toArr(raw, start, length)
+
+  require('assert').strict.deepEqual(parsed, res)
 
   console.log('msgpack-lite:', parsed)
   console.log('my-little-ghetto:', res)
