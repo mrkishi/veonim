@@ -15,21 +15,21 @@ enum MPK {
 const typ = (raw: Buffer, ix: number) => {
   const m = raw[ix]
 
-  if (m == 0xc0) return [
+  if (m === 0xc0) return [
     MPK.Val,
     ix,
     1,
     null,
   ]
 
-  if (m == 0xc2) return [
+  if (m === 0xc2) return [
     MPK.Val,
     ix,
     1,
     false,
   ]
 
-  if (m == 0xc3) return [
+  if (m === 0xc3) return [
     MPK.Val,
     ix,
     1,
@@ -53,7 +53,7 @@ const typ = (raw: Buffer, ix: number) => {
   ]
 
   // uint8
-  if (m == 0xcc) return [
+  if (m === 0xcc) return [
     MPK.Val,
     ix + 1,
     1,
@@ -61,7 +61,7 @@ const typ = (raw: Buffer, ix: number) => {
   ]
 
   // int8
-  if (m == 0xd0) {
+  if (m === 0xd0) {
     const val = raw[ix + 1]
     return [
       MPK.Val,
@@ -72,7 +72,7 @@ const typ = (raw: Buffer, ix: number) => {
   }
 
   // uint16
-  if (m == 0xcd) return [
+  if (m === 0xcd) return [
     MPK.Val,
     ix + 1,
     2,
@@ -91,7 +91,7 @@ const typ = (raw: Buffer, ix: number) => {
   }
 
   // uint32
-  if (m == 0xce) return [
+  if (m === 0xce) return [
     MPK.Val,
     ix + 1,
     4,
@@ -99,7 +99,7 @@ const typ = (raw: Buffer, ix: number) => {
   ]
 
   // int32
-  if (m == 0xd2) return [
+  if (m === 0xd2) return [
     MPK.Val,
     ix + 1,
     4,
@@ -128,28 +128,28 @@ const typ = (raw: Buffer, ix: number) => {
   ]
 
   // arr16
-  if (m == 0xdc) return [
+  if (m === 0xdc) return [
     MPK.Arr,
     ix + 3,
     raw[ix + 1] + raw[ix + 2],
   ]
 
   // arr32
-  if (m == 0xdd) return [
+  if (m === 0xdd) return [
     MPK.Arr,
     ix + 5,
     raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
   ]
 
   // map16
-  if (m == 0xde) return [
+  if (m === 0xde) return [
     MPK.Map,
     ix + 3,
     raw[ix + 1] + raw[ix + 2],
   ]
 
   // map32
-  if (m == 0xdf) return [
+  if (m === 0xdf) return [
     MPK.Map,
     ix + 5,
     raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
@@ -177,13 +177,13 @@ const typ = (raw: Buffer, ix: number) => {
   ]
 
   // uint64
-  if (m == 0xcf) {
+  if (m === 0xcf) {
     console.warn('uint64 not supported')
     return [MPK.Unknown, ix, 0]
   }
 
   // int64
-  if (m == 0xd3) {
+  if (m === 0xd3) {
     console.warn('int64 not supported')
     return [MPK.Unknown, ix, 0]
   }
