@@ -139,49 +139,59 @@ const toStr = (raw: any, start: number, length: number): ParseResult => {
 const toArr = (raw: any, start: number, length: number): ParseResult => {
   let it = 0
   let ix = start
-  const arr = []
+  const res = []
 
   while (it < length) {
     const wut = typ(raw, ix)
+    const [ nextIx, stuff ] = parse(raw, wut)
+    res.push(stuff)
+    ix = nextIx
+    it++
 
-    if (wut.val) {
-      arr.push(wut.val)
-      ix++
-      it++
-    }
+    // if (wut.val) {
+    //   res.push(wut.val)
+    //   ix++
+    //   it++
+    // }
 
-    else if (wut.kind === MPKind.Arr) {
-      const [ nextIx, stuff ] = toArr(raw, wut.start, wut.length)
-      ix = nextIx
-      arr.push(stuff)
-      it++
-    }
+    // else if (wut.kind === MPKind.Arr) {
+    //   const [ nextIx, stuff ] = toArr(raw, wut.start, wut.length)
+    //   ix = nextIx
+    //   res.push(stuff)
+    //   it++
+    // }
 
-    else if (wut.kind === MPKind.Str) {
-      const [ nextIx, stuff ] = toStr(raw, wut.start, wut.length)
-      ix = nextIx
-      arr.push(stuff)
-      it++
-    }
+    // else if (wut.kind === MPKind.Str) {
+    //   const [ nextIx, stuff ] = toStr(raw, wut.start, wut.length)
+    //   ix = nextIx
+    //   res.push(stuff)
+    //   it++
+    // }
 
-    else if (wut.kind === MPKind.Map) {
-      const [ nextIx, stuff ] = toMap(raw, wut.start, wut.length)
-      ix = nextIx
-      arr.push(stuff)
-      it++
-    }
+    // else if (wut.kind === MPKind.Map) {
+    //   const [ nextIx, stuff ] = toMap(raw, wut.start, wut.length)
+    //   ix = nextIx
+    //   res.push(stuff)
+    //   it++
+    // }
 
-    else {
-      console.warn('no idea how to handle element:', wut.kind)
-      it++
-    }
+    // else {
+    //   console.warn('no idea how to handle element:', wut.kind)
+    //   it++
+    // }
   }
 
-  return [ ix, arr ]
+  return [ ix, res ]
 }
 
-const parse = ({ val, kind, start, length }: TypKind): ParseResult => {
-  // if (val) return [ start,  ]
+const parse = (raw: Buffer, { val, kind, start, length }: TypKind): ParseResult => {
+  if (val) return [ start + length, val ]
+  if (kind === MPKind.Arr) return toArr(raw, start, length)
+  if (kind === MPKind.Str) return toStr(raw, start, length)
+  if (kind === MPKind.Map) return toMap(raw, start, length)
+
+  console.warn('no idea how to parse element:', kind)
+  return [ start + length, undefined ]
 }
 
 export default (data: any) => {
