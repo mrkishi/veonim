@@ -7,6 +7,7 @@ enum MPKind {
   Arr,
   Map,
   Str,
+  Unknown,
 }
 
 interface TypKind {
@@ -19,6 +20,7 @@ interface TypKind {
 const typ = (raw: any, ix: number): TypKind => {
   const m = raw[ix]
   const def = { kind: MPKind.Val, start: ix, length: 1 }
+  const unknown =  { kind: MPKind.Unknown, start: ix, length: 0 }
   if (m == 0xc0) return { ...def, val: null }
   if (m == 0xc2) return { ...def, val: false }
   if (m == 0xc3) return { ...def, val: true }
@@ -30,7 +32,6 @@ const typ = (raw: any, ix: number): TypKind => {
   // TODO: correct or not?
   if (m >= 0xe0 && m <= 0xff) return { ...def, val: -(m - 0xe0) }
 
-  // TODO: verify how we parse unsigned ints??
   // uint8
   if (m == 0xcc) return {
     kind: MPKind.Val,
@@ -58,21 +59,43 @@ const typ = (raw: any, ix: number): TypKind => {
     length: 2,
   }
 
+  // int16
+  if (m === 0xd1) {
+    const val = (raw[ix + 1] << 8) + raw[ix + 2]
+    return {
+      kind: MPKind.Val,
+      val: (val & 0x8000) ? val - 0x10000 : val,
+      start: ix + 1,
+      length: 2,
+    }
+  }
+
   // uint32
   if (m == 0xce) return {
     kind: MPKind.Val,
-    val: raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
+    val: (raw[ix + 1] * 16777216) + (raw[ix + 2] << 16) + (raw[ix + 3] << 8) + raw[ix + 4],
     start: ix + 1,
     length: 4,
   }
 
+  // int32
+  if (m == 0xd2) {
+    const val = 1
+    return {}
+  }
+
+  // TODO: int32
+
   // uint64
-  if (m == 0xcf) return {
-    kind: MPKind.Val,
-    val: raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4]
-       + raw[ix + 5] + raw[ix + 6] + raw[ix + 7] + raw[ix + 8],
-    start: ix + 1,
-    length: 8,
+  if (m == 0xcf) {
+    console.warn('uint64 not supported')
+    return unknown
+  }
+
+  // int64
+  if (m == 0xd3) {
+    console.warn('int64 not supported')
+    return unknown
   }
 
   // fixarr
@@ -126,7 +149,7 @@ const typ = (raw: any, ix: number): TypKind => {
 
   const byte = m.toString(16).padStart(2, '0')
   console.warn('not sure how to parse:', byte, def.start)
-  return def
+  return { kind: MPKind.Unknown, start: ix, length: 0 }
 }
 
 type ParseResult = [ number, any ]
@@ -187,7 +210,8 @@ export default (data: any) => {
     return res
   }, [])
 
-  const undo = encoded[1] + encoded[2]
+  let lol = 1
+  const undo = (encoded[lol++] * 16777216) + (encoded[lol++] << 16) + (encoded[lol++] << 8) + encoded[lol]
 
   console.log('encoded', encoded)
   console.log('hex', hexy)
