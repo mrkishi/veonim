@@ -48,6 +48,20 @@ const typ = (raw: any, ix: number) => {
     start: ix + 5,
   }
 
+  // map16
+  if (m == 0xde) return {
+    kind: 'map',
+    length: raw[ix + 1] + raw[ix + 2],
+    start: 3,
+  }
+
+  // map32
+  if (m == 0xdf) return {
+    kind: 'map',
+    length: raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
+    start: 5,
+  }
+
   return { kind: m.toString(16).padStart(2, '0'), length: 0 }
 }
 
