@@ -1,5 +1,5 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
-import { encode, decode } from 'msgpack-lite'
+import { decode } from 'msgpack-lite'
 
 enum MPK { Val, Arr, Map, Str, Unknown }
 
@@ -363,22 +363,24 @@ const FIXEXT16 = Symbol('FIXEXT16')
 // func needs to somehow parse thru the the binary slice and
 // return back the end index for the next segment
 
-const hex = (zz: Buffer) => zz.reduce((res, m) => {
-  res.push(m.toString(16).padStart(2, '0'))
-  return res
-}, [] as string[])
+// const hex = (zz: Buffer) => zz.reduce((res, m) => {
+//   res.push(m.toString(16).padStart(2, '0'))
+//   return res
+// }, [] as string[])
 
 const b_grid_clear = Buffer.from('grid_clear')
-const b_option_set = Buffer.from('option_set')
+const b_grid_line = Buffer.from('grid_line')
 
 const doGridClear = (buf: Buffer, ix: number) => {
-  console.warn('grid_clear()')
-  return ix
+  const [ nextIx, out ] = superparse(buf, ix)
+  console.warn('grid_clear()', out)
+  return nextIx
 }
 
-const doOptionSet = (buf: Buffer, ix: number) => {
-  console.warn('option_set()')
-  return ix
+const doGridLine = (buf: Buffer, ix: number) => {
+  const [ nextIx, out ] = superparse(buf, ix)
+  console.warn('grid_line()', out)
+  return nextIx
 }
 
 // this is just a tad bit faster than buf.slice().equals()
@@ -412,6 +414,7 @@ export default (raw: any) => {
   //   ['grid_clear', [], []],
   //   ['grid_line', [], [], [], [], [], []],
   // ]]
+  console.time('binary-redraw')
   if (isRedrawBuf(raw, 0, 8)) {
     // this is the redraw event list. we need this
     // to get the startIndex of where the first item
@@ -425,11 +428,12 @@ export default (raw: any) => {
     const [,s3,l3] = typ(raw, s2)
     const rawstr = raw.slice(s3, s3 + l3)
 
-    // TODO: put grid_line and other most used funcs
-    // up towards the top of these if checks
-    if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
-    else if (rawstr.equals(b_option_set)) doOptionSet(raw, s3 + l3)
+    // sorted in order of importance
+    if (rawstr.equals(b_grid_line)) doGridLine(raw, s3 + l3)
+    else if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
+    else superparse(raw, s3 + l3)
   }
+  console.timeEnd('binary-redraw')
 
 
   // // try {
