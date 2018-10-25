@@ -410,6 +410,9 @@ const bufEquals = (compareBuf: Buffer) => (buf: Buffer, start: number, end: numb
   return allEqual
 }
 
+// buf version of [2, 'redraw'
+// will attempt to check if current buffer starts with
+// the "redraw" msgpack rpc notification event
 const redrawMatchBuf = Buffer.from([0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77])
 const isRedrawBuf = bufEquals(redrawMatchBuf)
 
@@ -423,15 +426,28 @@ export default (raw: any) => {
   const res = superparse(raw)
   console.timeEnd('my-little-ghetto')
 
+  // structure looks like
+  // [2, 'redraw', [
+  //   ['grid_clear', [], []],
+  //   ['grid_line', [], [], [], [], [], []],
+  // ]]
   if (isRedrawBuf(raw, 0, 8)) {
-    const [ , s1, l1 ] = typ(raw, 9)
-    const [ k2, s2, l2 ] = typ(raw, s1)
-    if (k2 === MPK.Arr) console.log('good, first item is an arr')
-    const [ k3, s3, l3 ] = typ(raw, s2)
-    if (k3 === MPK.Str) console.log('we have a string of length:', l3)
+    // this is the redraw event list. we need this
+    // to get the startIndex of where the first item
+    // starts (after arr type + length)
+    const [,s1] = typ(raw, 9)
+
+    // get start index of the first item: str (event name)
+    const [,s2] = typ(raw, s1)
+
+    // get first str in arr -> this is the event name
+    const [,s3,l3] = typ(raw, s2)
     const rawstr = raw.slice(s3, s3 + l3)
+
+    // TODO: put grid_line and other most used funcs
+    // up towards the top of these if checks
     if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
-    if (rawstr.equals(b_option_set)) doOptionSet(raw, s3 + l3)
+    else if (rawstr.equals(b_option_set)) doOptionSet(raw, s3 + l3)
   }
 
   console.log('msgpack-lite:', parsed)
