@@ -403,6 +403,16 @@ const doOptionSet = (buf: Buffer, ix: number) => {
   return ix
 }
 
+// this is just a tad bit faster than buf.slice().equals()
+const bufEquals = (compareBuf: Buffer) => (buf: Buffer, start: number, end: number) => {
+  let allEqual = true
+  for (let ix = start; ix <= end; ix++) allEqual = buf[ix] === compareBuf[ix]
+  return allEqual
+}
+
+const redrawMatchBuf = Buffer.from([0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77])
+const isRedrawBuf = bufEquals(redrawMatchBuf)
+
 export default (raw: any) => {
   console.log('---------------')
   console.time('msgpack')
@@ -413,25 +423,7 @@ export default (raw: any) => {
   const res = superparse(raw)
   console.timeEnd('my-little-ghetto')
 
-  console.time('hardcode')
-  // hardcode is faster than buffer.equals(buf)
-  const isMatch = raw[0] === 0x93
-    && raw[1] === 0x02
-    && raw[2] === 0xa6
-    && raw[3] === 0x72
-    && raw[4] === 0x65
-    && raw[5] === 0x64
-    && raw[6] === 0x72
-    && raw[7] === 0x61
-    && raw[8] === 0x77
-  console.timeEnd('hardcode')
-
-  // const ass = Buffer.from([0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77])
-  // console.time('dynamic')
-  // const mm = raw.slice(0, 9).equals(ass)
-  // console.timeEnd('dynamic')
-
-  if (isMatch) {
+  if (isRedrawBuf(raw, 0, 8)) {
     const [ , s1, l1 ] = typ(raw, 9)
     const [ k2, s2, l2 ] = typ(raw, s1)
     if (k2 === MPK.Arr) console.log('good, first item is an arr')
