@@ -12,7 +12,7 @@ enum MPK {
 // TODO: use typed arrays maybe?
 
 // return type --> [MPK, start, length, value?]
-const typ = (raw: Buffer, ix: number) => {
+const typ = (raw: Buffer, ix: number): any[] => {
   const m = raw[ix]
 
   if (m === 0xc0) return [
@@ -385,28 +385,23 @@ const goGridLine = (raw: Buffer, start: number, length: number): ParseResult => 
 // func needs to somehow parse thru the the binary slice and
 // return back the end index for the next segment
 
-const piece = encode([2, 'redraw', [1, 2, 3]])
 const hex = (zz: Buffer) => zz.reduce((res, m) => {
   res.push(m.toString(16).padStart(2, '0'))
   return res
 }, [] as string[])
 
-console.log('piece', hex(piece))
-
 const b_grid_clear = Buffer.from('grid_clear')
 const b_option_set = Buffer.from('option_set')
 
-const doGridClear = (buf, ix) => {
+const doGridClear = (buf: Buffer, ix: number) => {
   console.warn('grid_clear()')
   return ix
 }
 
-const doOptionSet = (buf, ix) => {
+const doOptionSet = (buf: Buffer, ix: number) => {
   console.warn('option_set()')
   return ix
 }
-
-console.log(funcs)
 
 export default (raw: any) => {
   console.log('---------------')
@@ -415,7 +410,6 @@ export default (raw: any) => {
   console.timeEnd('msgpack')
 
   console.time('my-little-ghetto')
-  // const res = parse(raw, typ(raw, 0))
   const res = superparse(raw)
   console.timeEnd('my-little-ghetto')
 
@@ -432,11 +426,10 @@ export default (raw: any) => {
     && raw[8] === 0x77
   console.timeEnd('hardcode')
 
-
-  const ass = Buffer.from([0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77])
-  console.time('dynamic')
-  const mm = raw.slice(0, 9).equals(ass)
-  console.timeEnd('dynamic')
+  // const ass = Buffer.from([0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77])
+  // console.time('dynamic')
+  // const mm = raw.slice(0, 9).equals(ass)
+  // console.timeEnd('dynamic')
 
   if (isMatch) {
     const [ , s1, l1 ] = typ(raw, 9)
@@ -447,34 +440,15 @@ export default (raw: any) => {
     const rawstr = raw.slice(s3, s3 + l3)
     if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
     if (rawstr.equals(b_option_set)) doOptionSet(raw, s3 + l3)
-    // const str = rawstr.toString('utf8')
-    // console.log('rawstr', rawstr)
   }
 
   console.log('msgpack-lite:', parsed)
   console.log('my-little-ghetto:', res[1])
 
-  // try {
-  //   require('assert').strict.deepEqual(parsed, res[1])
-  // } catch(e) {
-    // console.warn(e.message)
-  // }
-  console.log('---------------')
+  // // try {
+  // //   require('assert').strict.deepEqual(parsed, res[1])
+  // // } catch(e) {
+  //   // console.warn(e.message)
+  // // }
+  // console.log('---------------')
 }
-
-/*
-[
- 2,
- redraw,
- [
-   [grid_clear, [ ...args ]]
-   [grid_line,
-    [ args ]
-    [ args ]
-    [ args ]
-    [ args ]
-    [ args ]
-   ]
- ]
-]
- */
