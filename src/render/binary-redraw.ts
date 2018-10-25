@@ -1,5 +1,5 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
-import { decode } from 'msgpack-lite'
+import { encode, decode } from 'msgpack-lite'
 
 enum MPK {
   Val,
@@ -266,6 +266,20 @@ const superparse = (raw: Buffer, ix = 0): ParseResult => {
   // negative fixint
   else if (m >= 0xe0 && m <= 0xff) return [ix + 1, m - 0x100]
 
+  // fixext1
+  else if (m === 0xd4) return [ix + 3, FIXEXT1]
+
+  // fixext2
+  else if (m === 0xd5) return [ix + 4, FIXEXT2]
+
+  // fixext4
+  else if (m === 0xd6) return [ix + 6, FIXEXT4]
+
+  // fixext8
+  else if (m === 0xd7) return [ix + 10, FIXEXT8]
+
+  // fixext16
+  else if (m === 0xd8) return [ix + 18, FIXEXT16]
 
   // uint64
   else if (m === 0xcf) {
@@ -318,6 +332,8 @@ const toStr = (raw: any, start: number, length: number): ParseResult => {
 
 const toArr = (raw: any, start: number, length: number): ParseResult => {
   if (length === 0) return [start, emptyArr]
+  const isGridLine = GRID_LINE.equals(raw.slice(start, start + GRID_LINE_SIZE))
+  if (isGridLine) console.warn('SHIT YO WE GOT GRID_LINE!')
 
   let it = 0
   let ix = start
@@ -341,6 +357,16 @@ const toArr = (raw: any, start: number, length: number): ParseResult => {
 //   return [ start + length, undefined ]
 // }
 
+const GRID_LINE = encode('grid_line')
+const GRID_LINE_SIZE = GRID_LINE.length
+console.log('GRID_LINE', GRID_LINE, GRID_LINE_SIZE)
+
+const FIXEXT1 = Symbol('FIXEXT1')
+const FIXEXT2 = Symbol('FIXEXT2')
+const FIXEXT4 = Symbol('FIXEXT4')
+const FIXEXT8 = Symbol('FIXEXT8')
+const FIXEXT16 = Symbol('FIXEXT16')
+
 export default (raw: any) => {
   console.log('---------------')
   console.time('msgpack')
@@ -355,11 +381,11 @@ export default (raw: any) => {
   console.log('msgpack-lite:', parsed)
   console.log('my-little-ghetto:', res[1])
 
-  try {
-    require('assert').strict.deepEqual(parsed, res[1])
-  } catch(e) {
-    console.warn(e.message)
-  }
+  // try {
+  //   require('assert').strict.deepEqual(parsed, res[1])
+  // } catch(e) {
+    // console.warn(e.message)
+  // }
   console.log('---------------')
 }
 
