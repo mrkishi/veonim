@@ -332,7 +332,7 @@ const toStr = (raw: any, start: number, length: number): ParseResult => {
 
 const toArr = (raw: any, start: number, length: number): ParseResult => {
   if (length === 0) return [start, emptyArr]
-  const isGridLine = GRID_LINE.equals(raw.slice(start, start + GRID_LINE_SIZE))
+  const isGridLine = raw.slice(start, start + GRID_LINE_SIZE).equals(GRID_LINE)
   if (isGridLine) {
     goGridLine(raw, start, length)
     // TODO: we need to return the end index to continue the decode chain...
