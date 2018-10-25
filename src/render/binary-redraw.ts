@@ -1,17 +1,8 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 import { encode, decode } from 'msgpack-lite'
 
-enum MPK {
-  Val,
-  Arr,
-  Map,
-  Str,
-  Unknown,
-}
+enum MPK { Val, Arr, Map, Str, Unknown }
 
-// TODO: use typed arrays maybe?
-
-// return type --> [MPK, start, length, value?]
 const typ = (raw: Buffer, ix: number): any[] => {
   const m = raw[ix]
 
@@ -332,8 +323,6 @@ const toStr = (raw: any, start: number, length: number): ParseResult => {
 
 const toArr = (raw: any, start: number, length: number): ParseResult => {
   if (length === 0) return [start, emptyArr]
-  const isGridLine = raw.slice(start, start + GRID_LINE_SIZE).equals(GRID_LINE)
-  if (isGridLine) return goGridLine(raw, start, length)
 
   let it = 0
   let ix = start
@@ -357,22 +346,11 @@ const toArr = (raw: any, start: number, length: number): ParseResult => {
 //   return [ start + length, undefined ]
 // }
 
-const GRID_LINE = encode('grid_line')
-const GRID_LINE_SIZE = GRID_LINE.byteLength
-console.log('GRID_LINE', GRID_LINE, GRID_LINE_SIZE)
-
 const FIXEXT1 = Symbol('FIXEXT1')
 const FIXEXT2 = Symbol('FIXEXT2')
 const FIXEXT4 = Symbol('FIXEXT4')
 const FIXEXT8 = Symbol('FIXEXT8')
 const FIXEXT16 = Symbol('FIXEXT16')
-
-const goGridLine = (raw: Buffer, start: number, length: number): ParseResult => {
-  console.log('GRID_LINE LOL', start, length)
-  return [start + length, undefined]
-  // TODO: we need to return the end index to continue the decode chain...
-  // TODO: need to return end index..........fuck
-}
 
 // TODO: TACOS
 // first try to parse the top level of the msgpack rpc arr
@@ -426,6 +404,9 @@ export default (raw: any) => {
   const res = superparse(raw)
   console.timeEnd('my-little-ghetto')
 
+  console.log('msgpack-lite:', parsed)
+  console.log('my-little-ghetto:', res[1])
+
   // structure looks like
   // [2, 'redraw', [
   //   ['grid_clear', [], []],
@@ -450,8 +431,6 @@ export default (raw: any) => {
     else if (rawstr.equals(b_option_set)) doOptionSet(raw, s3 + l3)
   }
 
-  console.log('msgpack-lite:', parsed)
-  console.log('my-little-ghetto:', res[1])
 
   // // try {
   // //   require('assert').strict.deepEqual(parsed, res[1])
