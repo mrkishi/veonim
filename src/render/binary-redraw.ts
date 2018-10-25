@@ -300,7 +300,7 @@ const toMap = (raw: any, start: number, length: number): ParseResult => {
   while (it < length) {
     const [ valIx, key ] = superparse(raw, ix)
     const [ nextIx, val ] = superparse(raw, valIx)
-    Reflect.set(res, key, val)
+    res[key] = val
     ix = nextIx
     it++
   }
