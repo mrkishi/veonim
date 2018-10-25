@@ -333,11 +333,7 @@ const toStr = (raw: any, start: number, length: number): ParseResult => {
 const toArr = (raw: any, start: number, length: number): ParseResult => {
   if (length === 0) return [start, emptyArr]
   const isGridLine = raw.slice(start, start + GRID_LINE_SIZE).equals(GRID_LINE)
-  if (isGridLine) {
-    goGridLine(raw, start, length)
-    // TODO: we need to return the end index to continue the decode chain...
-    return [start, undefined]
-  }
+  if (isGridLine) return goGridLine(raw, start, length)
 
   let it = 0
   let ix = start
@@ -371,8 +367,10 @@ const FIXEXT4 = Symbol('FIXEXT4')
 const FIXEXT8 = Symbol('FIXEXT8')
 const FIXEXT16 = Symbol('FIXEXT16')
 
-const goGridLine = (raw: Buffer, start: number, length: number) => {
+const goGridLine = (raw: Buffer, start: number, length: number): ParseResult => {
   console.log('GRID_LINE LOL', start, length)
+  return [start + length, undefined]
+  // TODO: we need to return the end index to continue the decode chain...
   // TODO: need to return end index..........fuck
 }
 
