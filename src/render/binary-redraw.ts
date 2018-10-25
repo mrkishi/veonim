@@ -374,6 +374,40 @@ const goGridLine = (raw: Buffer, start: number, length: number): ParseResult => 
   // TODO: need to return end index..........fuck
 }
 
+// TODO: TACOS
+// first try to parse the top level of the msgpack rpc arr
+// [2, redraw, []]
+// if we match the above, jump into the args arr
+// extract out the first item (a string), but not parse it
+// use the binary part of the string to do a lookup into a map
+// of matching binary strings -> funcs
+// if func found, call it.
+// func needs to somehow parse thru the the binary slice and
+// return back the end index for the next segment
+
+const piece = encode([2, 'redraw', [1, 2, 3]])
+const hex = (zz: Buffer) => zz.reduce((res, m) => {
+  res.push(m.toString(16).padStart(2, '0'))
+  return res
+}, [] as string[])
+
+console.log('piece', hex(piece))
+
+const b_grid_clear = Buffer.from('grid_clear')
+const b_option_set = Buffer.from('option_set')
+
+const doGridClear = (buf, ix) => {
+  console.warn('grid_clear()')
+  return ix
+}
+
+const doOptionSet = (buf, ix) => {
+  console.warn('option_set()')
+  return ix
+}
+
+console.log(funcs)
+
 export default (raw: any) => {
   console.log('---------------')
   console.time('msgpack')
@@ -384,6 +418,38 @@ export default (raw: any) => {
   // const res = parse(raw, typ(raw, 0))
   const res = superparse(raw)
   console.timeEnd('my-little-ghetto')
+
+  console.time('hardcode')
+  // hardcode is faster than buffer.equals(buf)
+  const isMatch = raw[0] === 0x93
+    && raw[1] === 0x02
+    && raw[2] === 0xa6
+    && raw[3] === 0x72
+    && raw[4] === 0x65
+    && raw[5] === 0x64
+    && raw[6] === 0x72
+    && raw[7] === 0x61
+    && raw[8] === 0x77
+  console.timeEnd('hardcode')
+
+
+  const ass = Buffer.from([0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77])
+  console.time('dynamic')
+  const mm = raw.slice(0, 9).equals(ass)
+  console.timeEnd('dynamic')
+
+  if (isMatch) {
+    const [ , s1, l1 ] = typ(raw, 9)
+    const [ k2, s2, l2 ] = typ(raw, s1)
+    if (k2 === MPK.Arr) console.log('good, first item is an arr')
+    const [ k3, s3, l3 ] = typ(raw, s2)
+    if (k3 === MPK.Str) console.log('we have a string of length:', l3)
+    const rawstr = raw.slice(s3, s3 + l3)
+    if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
+    if (rawstr.equals(b_option_set)) doOptionSet(raw, s3 + l3)
+    // const str = rawstr.toString('utf8')
+    // console.log('rawstr', rawstr)
+  }
 
   console.log('msgpack-lite:', parsed)
   console.log('my-little-ghetto:', res[1])
