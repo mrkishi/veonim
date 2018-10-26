@@ -1,24 +1,58 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 // import { decode } from 'msgpack-lite'
 
+const NOT_SUPPORTED = Symbol('NOT_SUPPORTED')
+const FIXEXT1 = Symbol('FIXEXT1')
+const FIXEXT2 = Symbol('FIXEXT2')
+const FIXEXT4 = Symbol('FIXEXT4')
+const FIXEXT8 = Symbol('FIXEXT8')
+const FIXEXT16 = Symbol('FIXEXT16')
+
 const superparse = (raw: Buffer, ix = 0): ParseResult => {
   const m = raw[ix]
 
-  if (m === 0xc0) return [ix + 1, null]
-  else if (m === 0xc2) return [ix + 1, false]
-  else if (m === 0xc3) return [ix + 1, true]
+  // fixint
+  if (m >= 0x00 && m <= 0x7f) return [ix + 1, m - 0x00]
+
+  // fixarr
+  else if (m >= 0x90 && m <= 0x9f) return toArr(raw, ix + 1, m - 0x90)
 
   // uint8
   else if (m === 0xcc) return [ix + 2, raw[ix + 1]]
+
+  // fixstr
+  else if (m >= 0xa0 && m <= 0xbf) return toStr(raw, ix + 1, m - 0xa0)
+
+  // str8
+  else if (m === 0xd9) return toStr(raw, ix + 2, raw[ix + 1])
+
+  // fixmap
+  else if (m >= 0x80 && m <= 0x8f) return toMap(raw, ix + 1, m - 0x80)
+
+  // arr16
+  else if (m === 0xdc) return toArr(raw, ix + 3, raw[ix + 1] + raw[ix + 2])
+
+  // negative fixint
+  else if (m >= 0xe0 && m <= 0xff) return [ix + 1, m - 0x100]
+
+  else if (m === 0xc3) return [ix + 1, true]
+  else if (m === 0xc2) return [ix + 1, false]
+  else if (m === 0xc0) return [ix + 1, null]
+
+  // uint16
+  else if (m === 0xcd) return [ix + 3, (raw[ix + 1] << 8) + raw[ix + 2]]
+
+  // str16
+  else if (m === 0xda) return toStr(raw, ix + 3, raw[ix + 1] + raw[ix + 2])
+
+  // map16
+  else if (m === 0xde) return toMap(raw, ix + 3, raw[ix + 1] + raw[ix + 2])
 
   // int8
   else if (m === 0xd0) {
     const val = raw[ix + 1]
     return [ix + 2, (val & 0x80) ? val - 0x100 : val]
   }
-
-  // uint16
-  else if (m === 0xcd) return [ix + 3, (raw[ix + 1] << 8) + raw[ix + 2]]
 
   // int16
   else if (m === 0xd1) {
@@ -38,41 +72,14 @@ const superparse = (raw: Buffer, ix = 0): ParseResult => {
     (raw[ix + 1] << 24) | (raw[ix + 2] << 16) | (raw[ix + 3] << 8) | raw[ix + 4],
   ]
 
-  // arr16
-  else if (m === 0xdc) return toArr(raw, ix + 3, raw[ix + 1] + raw[ix + 2])
+  // str32
+  else if (m === 0xdb) return toStr(raw, ix + 5, raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4])
 
   // arr32
   else if (m === 0xdd) return toArr(raw, ix + 5, raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4])
 
-  // map16
-  else if (m === 0xde) return toMap(raw, ix + 3, raw[ix + 1] + raw[ix + 2])
-
   // map32
   else if (m === 0xdf) return toMap(raw, ix + 5, raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4])
-
-  // str8
-  else if (m === 0xd9) return toStr(raw, ix + 2, raw[ix + 1])
-
-  // str16
-  else if (m === 0xda) return toStr(raw, ix + 3, raw[ix + 1] + raw[ix + 2])
-
-  // str32
-  else if (m === 0xdb) return toStr(raw, ix + 5, raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4])
-
-  // fixarr
-  else if (m >= 0x90 && m <= 0x9f) return toArr(raw, ix + 1, m - 0x90)
-
-  // fixmap
-  else if (m >= 0x80 && m <= 0x8f) return toMap(raw, ix + 1, m - 0x80)
-
-  // fixstr
-  else if (m >= 0xa0 && m <= 0xbf) return toStr(raw, ix + 1, m - 0xa0)
-
-  // fixint
-  else if (m >= 0x00 && m <= 0x7f) return [ix + 1, m - 0x00]
-
-  // negative fixint
-  else if (m >= 0xe0 && m <= 0xff) return [ix + 1, m - 0x100]
 
   // fixext1
   else if (m === 0xd4) return [ix + 3, FIXEXT1]
@@ -90,20 +97,12 @@ const superparse = (raw: Buffer, ix = 0): ParseResult => {
   else if (m === 0xd8) return [ix + 18, FIXEXT16]
 
   // uint64
-  else if (m === 0xcf) {
-    // console.warn('uint64 not supported')
-    return [ix + 9, undefined]
-  }
+  else if (m === 0xcf) [ix + 9, NOT_SUPPORTED]
 
   // int64
-  else if (m === 0xd3) {
-    // console.warn('int64 not supported')
-    return [ix + 9, undefined]
-  }
+  else if (m === 0xd3) [ix + 9, NOT_SUPPORTED]
 
-  // const byte = m.toString(16).padStart(2, '0')
-  // console.warn('not sure how to parse:', byte, ix)
-  return [ix + 1, undefined]
+  else return [ix + 1, NOT_SUPPORTED]
 }
 
 type ParseResult = [ number, any ]
@@ -156,12 +155,6 @@ const toArr = (raw: any, start: number, length: number): ParseResult => {
 
   return [ ix, res ]
 }
-
-const FIXEXT1 = Symbol('FIXEXT1')
-const FIXEXT2 = Symbol('FIXEXT2')
-const FIXEXT4 = Symbol('FIXEXT4')
-const FIXEXT8 = Symbol('FIXEXT8')
-const FIXEXT16 = Symbol('FIXEXT16')
 
 // const hex = (zz: Buffer) => zz.reduce((res, m) => {
 //   res.push(m.toString(16).padStart(2, '0'))
