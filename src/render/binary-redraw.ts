@@ -184,6 +184,15 @@ const typ = (raw: Buffer, ix: number): any[] /* kind, start, length */ => {
   return [MPK.Unknown, ix, 0]
 }
 
+const numparse = (raw: Buffer, ix: number): ParseResult => {
+  const m = raw[ix]
+  if (m >= 0x00 && m <= 0x7f) return [ix + 1, m - 0x00]
+  if (m === 0xcc) return [ix + 2, raw[ix + 1]]
+  if (m === 0xcd) return [ix + 3, (raw[ix + 1] << 8) + raw[ix + 2]]
+  console.warn('failed to parse number', m)
+  return [ix, undefined]
+}
+
 const superparse = (raw: Buffer, ix = 0): ParseResult => {
   const m = raw[ix]
 
@@ -382,8 +391,18 @@ const doGridLine = (buf: Buffer, index: number) => {
   let ix = start
 
   for (let it = 0; it < length; it++) {
+    // grid_line events should always be arr of 4 items
+    // [ gridId, x, y, [chars] ]
+    const [ , s2 ] = typ(buf, ix)
+
+    const [ s3, gridId ] = numparse(buf, s2)
+    const [ s4, x ] = numparse(buf, s3)
+    const [ s5, y ] = numparse(buf, s4)
+    const [ s6, chars ] = superparse(buf, s5)
+
     const [ nextIx, out ] = superparse(buf, ix)
-    console.log('out:', out)
+    console.log('nextIndex', nextIx, s6)
+    console.log('out:', out, gridId, x, y, chars)
     ix = nextIx
   }
 
