@@ -3,7 +3,7 @@ import { decode } from 'msgpack-lite'
 
 enum MPK { Val, Arr, Map, Str, Unknown }
 
-const typ = (raw: Buffer, ix: number): any[] => {
+const typ = (raw: Buffer, ix: number): any[] /* kind, start, length */ => {
   const m = raw[ix]
 
   if (m === 0xc0) return [
@@ -377,10 +377,17 @@ const doGridClear = (buf: Buffer, ix: number) => {
   return nextIx
 }
 
-const doGridLine = (buf: Buffer, ix: number) => {
-  const [ nextIx, out ] = superparse(buf, ix)
-  console.warn('grid_line()', out)
-  return nextIx
+const doGridLine = (buf: Buffer, index: number) => {
+  const [ , start, length ] = typ(buf, index)
+  let ix = start
+
+  for (let it = 0; it < length; it++) {
+    const [ nextIx, out ] = superparse(buf, ix)
+    console.log('out:', out)
+    ix = nextIx
+  }
+
+  return ix
 }
 
 // this is just a tad bit faster than buf.slice().equals()
@@ -415,23 +422,42 @@ export default (raw: any) => {
   //   ['grid_line', [], [], [], [], [], []],
   // ]]
   console.time('binary-redraw')
+  const aaa = []
   if (isRedrawBuf(raw, 0, 8)) {
     // this is the redraw event list. we need this
     // to get the startIndex of where the first item
     // starts (after arr type + length)
-    const [,s1] = typ(raw, 9)
+    const [,s1, length] = typ(raw, 9)
+    let ix = s1
 
-    // get start index of the first item: str (event name)
-    const [,s2] = typ(raw, s1)
+    for (let it = 0; it < length; it++) {
+      // the event arr element - need this to determine
+      // start position of first string (the event name)
+      const [,s2] = typ(raw, ix)
 
-    // get first str in arr -> this is the event name
-    const [,s3,l3] = typ(raw, s2)
-    const rawstr = raw.slice(s3, s3 + l3)
+      // get first str in arr -> this is the event name
+      const [,s3,l3] = typ(raw, s2)
+      const rawstr = raw.slice(s3, s3 + l3)
 
-    // sorted in order of importance
-    if (rawstr.equals(b_grid_line)) doGridLine(raw, s3 + l3)
-    else if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
-    else superparse(raw, s3 + l3)
+      // we need to backup and send the buffer from the point where
+      // the array starts. otherwise we don't know how many items
+      // we need to parse out of the array
+
+      // sorted in order of importance
+      if (rawstr.equals(b_grid_line)) {
+        ix = doGridLine(raw, ix)
+      }
+
+      // else if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
+
+      else {
+        const [nextIx, eventItems] = superparse(raw, ix)
+        aaa.push(eventItems)
+        // console.log('do something with:', eventItems)
+        ix = nextIx
+      }
+    }
+    console.log('------->', aaa)
   }
   console.timeEnd('binary-redraw')
 
