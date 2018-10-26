@@ -6,166 +6,63 @@ enum MPK { Val, Arr, Map, Str, Unknown }
 const typ = (raw: Buffer, ix: number): any[] /* kind, start, length */ => {
   const m = raw[ix]
 
-  if (m === 0xc0) return [
-    MPK.Val,
-    ix,
-    1,
-    null,
-  ]
-
-  if (m === 0xc2) return [
-    MPK.Val,
-    ix,
-    1,
-    false,
-  ]
-
-  if (m === 0xc3) return [
-    MPK.Val,
-    ix,
-    1,
-    true,
-  ]
+  if (m === 0xc0) return [MPK.Val, ix + 1, 1]
+  if (m === 0xc2) return [MPK.Val, ix + 1, 1]
+  if (m === 0xc3) return [MPK.Val, ix + 1, 1]
 
   // fixint
-  if (m >= 0x00 && m <= 0x7f) return [
-    MPK.Val,
-    ix,
-    1,
-    m - 0x00,
-  ]
+  if (m >= 0x00 && m <= 0x7f) return [MPK.Val, ix + 1, 1]
 
   // negative fixint
-  if (m >= 0xe0 && m <= 0xff) return [
-    MPK.Val,
-    ix,
-    1,
-    m - 0x100,
-  ]
+  if (m >= 0xe0 && m <= 0xff) return [MPK.Val, ix + 1, 1]
 
   // uint8
-  if (m === 0xcc) return [
-    MPK.Val,
-    ix + 1,
-    1,
-    raw[ix + 1],
-  ]
+  if (m === 0xcc) return [MPK.Val, ix + 2, 1]
 
   // int8
-  if (m === 0xd0) {
-    const val = raw[ix + 1]
-    return [
-      MPK.Val,
-      ix + 1,
-      1,
-      (val & 0x80) ? val - 0x100 : val,
-    ]
-  }
+  if (m === 0xd0) [MPK.Val, ix + 2, 1]
 
   // uint16
-  if (m === 0xcd) return [
-    MPK.Val,
-    ix + 1,
-    2,
-    (raw[ix + 1] << 8) + raw[ix + 2],
-  ]
+  if (m === 0xcd) return [MPK.Val, ix + 3, 2]
 
   // int16
-  if (m === 0xd1) {
-    const val = (raw[ix + 1] << 8) + raw[ix + 2]
-    return [
-      MPK.Val,
-      ix + 1,
-      2,
-      (val & 0x8000) ? val - 0x10000 : val,
-    ]
-  }
+  if (m === 0xd1) [MPK.Val, ix + 3, 2]
 
   // uint32
-  if (m === 0xce) return [
-    MPK.Val,
-    ix + 1,
-    4,
-    (raw[ix + 1] * 16777216) + (raw[ix + 2] << 16) + (raw[ix + 3] << 8) + raw[ix + 4],
-  ]
+  if (m === 0xce) return [MPK.Val, ix + 5, 4]
 
   // int32
-  if (m === 0xd2) return [
-    MPK.Val,
-    ix + 1,
-    4,
-    (raw[ix + 1] << 24) | (raw[ix + 2] << 16) | (raw[ix + 3] << 8) | raw[ix + 4],
-  ]
+  if (m === 0xd2) return [MPK.Val, ix + 5, 4]
 
   // fixarr
-  if (m >= 0x90 && m <= 0x9f) return [
-    MPK.Arr,
-    ix + 1,
-    m - 0x90,
-  ]
+  if (m >= 0x90 && m <= 0x9f) return [MPK.Arr, ix + 1, m - 0x90]
 
   // fixmap
-  if (m >= 0x80 && m <= 0x8f) return [
-    MPK.Map,
-    ix + 1,
-    m - 0x80,
-  ]
+  if (m >= 0x80 && m <= 0x8f) return [MPK.Map, ix + 1, m - 0x80]
 
   // fixstr
-  if (m >= 0xa0 && m <= 0xbf) return [
-    MPK.Str,
-    ix + 1,
-    m - 0xa0,
-  ]
+  if (m >= 0xa0 && m <= 0xbf) return [MPK.Str, ix + 1, m - 0xa0]
 
   // arr16
-  if (m === 0xdc) return [
-    MPK.Arr,
-    ix + 3,
-    raw[ix + 1] + raw[ix + 2],
-  ]
+  if (m === 0xdc) return [MPK.Arr, ix + 3, raw[ix + 1] + raw[ix + 2]]
 
   // arr32
-  if (m === 0xdd) return [
-    MPK.Arr,
-    ix + 5,
-    raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
-  ]
+  if (m === 0xdd) return [MPK.Arr, ix + 5, raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4]]
 
   // map16
-  if (m === 0xde) return [
-    MPK.Map,
-    ix + 3,
-    raw[ix + 1] + raw[ix + 2],
-  ]
+  if (m === 0xde) return [MPK.Map, ix + 3, raw[ix + 1] + raw[ix + 2]]
 
   // map32
-  if (m === 0xdf) return [
-    MPK.Map,
-    ix + 5,
-    raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
-  ]
+  if (m === 0xdf) return [MPK.Map, ix + 5, raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4]]
 
   // str8
-  if (m === 0xd9) return [
-    MPK.Str,
-    ix + 2,
-    raw[ix + 1],
-  ]
+  if (m === 0xd9) return [MPK.Str, ix + 2, raw[ix + 1]]
 
   // str16
-  if (m === 0xda) return [
-    MPK.Str,
-    ix + 3,
-    raw[ix + 1] + raw[ix + 2],
-  ]
+  if (m === 0xda) return [MPK.Str, ix + 3, raw[ix + 1] + raw[ix + 2]]
 
   // str32
-  if (m === 0xdb) return [
-    MPK.Str,
-    ix + 5,
-    raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4],
-  ]
+  if (m === 0xdb) return [MPK.Str, ix + 5, raw[ix + 1] + raw[ix + 2] + raw[ix + 3] + raw[ix + 4]]
 
   // uint64
   if (m === 0xcf) {
@@ -186,8 +83,11 @@ const typ = (raw: Buffer, ix: number): any[] /* kind, start, length */ => {
 
 const numparse = (raw: Buffer, ix: number): ParseResult => {
   const m = raw[ix]
+  // fixint
   if (m >= 0x00 && m <= 0x7f) return [ix + 1, m - 0x00]
+  // uint8
   if (m === 0xcc) return [ix + 2, raw[ix + 1]]
+  // uint16
   if (m === 0xcd) return [ix + 3, (raw[ix + 1] << 8) + raw[ix + 2]]
   console.warn('failed to parse number', m)
   return [ix, undefined]
@@ -377,33 +277,55 @@ const FIXEXT16 = Symbol('FIXEXT16')
 //   return res
 // }, [] as string[])
 
-const b_grid_clear = Buffer.from('grid_clear')
 const b_grid_line = Buffer.from('grid_line')
 
-const doGridClear = (buf: Buffer, ix: number) => {
-  const [ nextIx, out ] = superparse(buf, ix)
-  console.warn('grid_clear()', out)
-  return nextIx
-}
-
+// ['grid_line', [gridId, x, y, charData], [gridId, x, y, charData]]
 const doGridLine = (buf: Buffer, index: number) => {
-  const [ , start, length ] = typ(buf, index)
-  let ix = start
+  // array
+  const [ , ix1, length ] = typ(buf, index)
+  // string - event name "grid_line"
+  const [ , strix, strlen ] = typ(buf, ix1)
 
-  for (let it = 0; it < length; it++) {
+  let ix = strix + strlen
+
+  for (let it = 1; it < length; it++) {
     // grid_line events should always be arr of 4 items
     // [ gridId, x, y, [chars] ]
-    const [ , s2 ] = typ(buf, ix)
 
-    const [ s3, gridId ] = numparse(buf, s2)
-    const [ s4, x ] = numparse(buf, s3)
-    const [ s5, y ] = numparse(buf, s4)
-    const [ s6, chars ] = superparse(buf, s5)
+    // array
+    const [ , s1, l1 ] = typ(buf, ix)
+    console.log('l1', l1)
 
-    const [ nextIx, out ] = superparse(buf, ix)
-    console.log('nextIndex', nextIx, s6)
-    console.log('out:', out, gridId, x, y, chars)
-    ix = nextIx
+    const [ s2, gridId ] = numparse(buf, s1)
+    const [ s3, x ] = numparse(buf, s2)
+    const [ s4, y ] = numparse(buf, s3)
+    console.log('gridid, x, y', gridId, x, y)
+
+    const [ k3, lineCharsStart, lineCharsLength ] = typ(buf, s4)
+    ix = lineCharsStart
+    console.log('k3', k3)
+    console.log('lineCharsLength', lineCharsLength)
+
+    // charData --> [ charString, hlid, repeat = 1 ] x lines
+    for (let lt = 0; lt < lineCharsLength; lt++) {
+      // const [ , charDataStart, charDataLength ] = typ(buf, ix)
+      // ix = charDataStart
+
+      // for (let ct = 0; ct < charDataLength; ct++) {
+      //   const [ nextCharIx, charData ] = superparse(buf, ix)
+      //   console.log('charData', charData)
+      //   ix = nextCharIx
+
+      // }
+      const [ nextCharIx, charArr ] = superparse(buf, ix)
+      // console.log('charArr:', charArr)
+      ix = nextCharIx
+    }
+
+    // const [ nextIx, out ] = superparse(buf, lineCharsStart)
+    // console.log('out:', out, gridId, x, y)
+    // console.log('nextIndex', nextIx, ix)
+    // ix = nextIx
   }
 
   return ix
