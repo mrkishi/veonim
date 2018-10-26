@@ -293,39 +293,47 @@ const doGridLine = (buf: Buffer, index: number) => {
     // [ gridId, x, y, [chars] ]
 
     // array
-    const [ , s1, l1 ] = typ(buf, ix)
-    console.log('l1', l1)
+    const [ , s1 ] = typ(buf, ix)
 
     const [ s2, gridId ] = numparse(buf, s1)
     const [ s3, x ] = numparse(buf, s2)
     const [ s4, y ] = numparse(buf, s3)
-    console.log('gridid, x, y', gridId, x, y)
+    // console.log('gridid, x, y', gridId, x, y)
 
     const [ k3, lineCharsStart, lineCharsLength ] = typ(buf, s4)
     ix = lineCharsStart
-    console.log('k3', k3)
-    console.log('lineCharsLength', lineCharsLength)
+    // console.log('lineCharsLength', lineCharsLength)
+
+    let currentHlid = 0
 
     // charData --> [ charString, hlid, repeat = 1 ] x lines
     for (let lt = 0; lt < lineCharsLength; lt++) {
-      // const [ , charDataStart, charDataLength ] = typ(buf, ix)
-      // ix = charDataStart
+      // array
+      const [ , cas, cal ] = typ(buf, ix)
 
-      // for (let ct = 0; ct < charDataLength; ct++) {
-      //   const [ nextCharIx, charData ] = superparse(buf, ix)
-      //   console.log('charData', charData)
-      //   ix = nextCharIx
+      // str
+      const [ , css, csl ] = typ(buf, cas)
 
-      // }
-      const [ nextCharIx, charArr ] = superparse(buf, ix)
-      // console.log('charArr:', charArr)
-      ix = nextCharIx
+      if (cal === 2) {
+        const [ c1, hlid ] = numparse(buf, css + csl)
+        currentHlid = hlid
+        // console.log('2-->', buf.toString('utf8', css, css + csl), hlid)
+        ix = c1
+      }
+
+      else if (cal === 3) {
+        const [ c1, hlid ] = numparse(buf, css + csl)
+        const [ c2, repeat ] = numparse(buf, c1)
+        currentHlid = hlid
+        // console.log('3-->', buf.toString('utf8', css, css + csl), hlid, repeat)
+        ix = c2
+      }
+
+      else {
+        // console.log('1-->', buf.toString('utf8', css, css + csl))
+        ix = css + csl
+      }
     }
-
-    // const [ nextIx, out ] = superparse(buf, lineCharsStart)
-    // console.log('out:', out, gridId, x, y)
-    // console.log('nextIndex', nextIx, ix)
-    // ix = nextIx
   }
 
   return ix
@@ -344,69 +352,87 @@ const bufEquals = (compareBuf: Buffer) => (buf: Buffer, start: number, end: numb
 const redrawMatchBuf = Buffer.from([0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77])
 const isRedrawBuf = bufEquals(redrawMatchBuf)
 
+// const fuck = []
+
+// TODO: when creating strings, what if the length is 1 we just return charcode int?
+// TODO: DO WE NEED THESE INDEX ARRAYS???? OR CAN WE JUST RETURN THE VAL!
+// TODO: WHAT IS CAUSING THE GC PAUSES???
+
+const doTheNeedful = (raw: Buffer) => superparse(raw)
+
 export default (raw: any) => {
-  console.log('---------------')
-  console.time('msgpack')
-  const parsed = decode(raw)
-  console.timeEnd('msgpack')
+  doTheNeedful(raw)
+  // console.log('---------------')
+  // console.time('msgpack')
+  // const parsed = decode(raw)
+  // console.timeEnd('msgpack')
 
-  console.time('my-little-ghetto')
-  const res = superparse(raw)
-  console.timeEnd('my-little-ghetto')
+  // const jsonstr = JSON.stringify(parsed)
+  // console.time('JSON-MASTERRACE')
+  // const jsonres = JSON.parse(jsonstr)
+  // console.timeEnd('JSON-MASTERRACE')
 
-  console.log('msgpack-lite:', parsed)
-  console.log('my-little-ghetto:', res[1])
+  // console.time('my-little-ghetto')
+  // const res = superparse(raw)
+  // console.timeEnd('my-little-ghetto')
+
+  // fuck.push(res)
+  // console.log('msgpack-lite:', parsed)
+  // console.log('my-little-ghetto:', res[1])
+  // console.log('JSON', jsonres)
 
   // structure looks like
   // [2, 'redraw', [
   //   ['grid_clear', [], []],
   //   ['grid_line', [], [], [], [], [], []],
   // ]]
-  console.time('binary-redraw')
-  const aaa = []
-  if (isRedrawBuf(raw, 0, 8)) {
-    // this is the redraw event list. we need this
-    // to get the startIndex of where the first item
-    // starts (after arr type + length)
-    const [,s1, length] = typ(raw, 9)
-    let ix = s1
+  // console.time('binary-redraw')
+  // // const aaa = []
+  // if (isRedrawBuf(raw, 0, 8)) {
+  //   // this is the redraw event list. we need this
+  //   // to get the startIndex of where the first item
+  //   // starts (after arr type + length)
+  //   const [,s1, length] = typ(raw, 9)
+  //   let ix = s1
 
-    for (let it = 0; it < length; it++) {
-      // the event arr element - need this to determine
-      // start position of first string (the event name)
-      const [,s2] = typ(raw, ix)
+  //   for (let it = 0; it < length; it++) {
+  //     // the event arr element - need this to determine
+  //     // start position of first string (the event name)
+  //     const [,s2] = typ(raw, ix)
 
-      // get first str in arr -> this is the event name
-      const [,s3,l3] = typ(raw, s2)
-      const rawstr = raw.slice(s3, s3 + l3)
+  //     // get first str in arr -> this is the event name
+  //     const [,s3,l3] = typ(raw, s2)
+  //     const rawstr = raw.slice(s3, s3 + l3)
 
-      // we need to backup and send the buffer from the point where
-      // the array starts. otherwise we don't know how many items
-      // we need to parse out of the array
+  //     // we need to backup and send the buffer from the point where
+  //     // the array starts. otherwise we don't know how many items
+  //     // we need to parse out of the array
 
-      // sorted in order of importance
-      if (rawstr.equals(b_grid_line)) {
-        ix = doGridLine(raw, ix)
-      }
+  //     // sorted in order of importance
+  //     if (rawstr.equals(b_grid_line)) {
+  //       console.time('grid_line')
+  //       ix = doGridLine(raw, ix)
+  //       console.timeEnd('grid_line')
+  //     }
 
-      // else if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
+  //     // else if (rawstr.equals(b_grid_clear)) doGridClear(raw, s3 + l3)
 
-      else {
-        const [nextIx, eventItems] = superparse(raw, ix)
-        aaa.push(eventItems)
-        // console.log('do something with:', eventItems)
-        ix = nextIx
-      }
-    }
-    console.log('------->', aaa)
-  }
-  console.timeEnd('binary-redraw')
+  //     else {
+  //       const [nextIx, eventItems] = superparse(raw, ix)
+  //       // aaa.push(eventItems)
+  //       // console.log('do something with:', eventItems)
+  //       ix = nextIx
+  //     }
+  //   }
+  //   // console.log('------->', aaa)
+  // }
+  // console.timeEnd('binary-redraw')
 
 
-  // // try {
-  // //   require('assert').strict.deepEqual(parsed, res[1])
-  // // } catch(e) {
-  //   // console.warn(e.message)
-  // // }
-  // console.log('---------------')
+  // // // try {
+  // // //   require('assert').strict.deepEqual(parsed, res[1])
+  // // // } catch(e) {
+  // //   // console.warn(e.message)
+  // // // }
+  // // console.log('---------------')
 }
