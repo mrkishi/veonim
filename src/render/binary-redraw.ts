@@ -183,18 +183,18 @@ const superparse = (raw: Buffer, ix = 0): ParseResult => {
 
   // uint64
   else if (m === 0xcf) {
-    console.warn('uint64 not supported')
+    // console.warn('uint64 not supported')
     return [ix + 9, undefined]
   }
 
   // int64
   else if (m === 0xd3) {
-    console.warn('int64 not supported')
+    // console.warn('int64 not supported')
     return [ix + 9, undefined]
   }
 
-  const byte = m.toString(16).padStart(2, '0')
-  console.warn('not sure how to parse:', byte, ix)
+  // const byte = m.toString(16).padStart(2, '0')
+  // console.warn('not sure how to parse:', byte, ix)
   return [ix + 1, undefined]
 }
 
@@ -224,9 +224,11 @@ const toMap = (raw: any, start: number, length: number): ParseResult => {
 
 const toStr = (raw: any, start: number, length: number): ParseResult => {
   if (length === 0) return [start, emptyStr]
+  if (length === 1) return [start + 1, raw[start]]
 
   const end = start + length
   const str = raw.toString('utf8', start, end)
+
   return [ end, str ]
 }
 
@@ -357,11 +359,18 @@ const isRedrawBuf = bufEquals(redrawMatchBuf)
 // TODO: when creating strings, what if the length is 1 we just return charcode int?
 // TODO: DO WE NEED THESE INDEX ARRAYS???? OR CAN WE JUST RETURN THE VAL!
 // TODO: WHAT IS CAUSING THE GC PAUSES???
+// TODO: how can we skip allocating strings?
+// TODO: if we figure out a way to skip creating strings, can we use a typedarray?
+// TODO: maybe we can give hints for "toArr". like, yo, we are inside grid_line
+// this next array you gotta create is a typedarray. then skip string alloc, just do buf
+
+// skip parse of 1 char strings has potential!
 
 const doTheNeedful = (raw: Buffer) => superparse(raw)
 
 export default (raw: any) => {
-  doTheNeedful(raw)
+  const [ , res ] = doTheNeedful(raw)
+  console.log('res', res)
   // console.log('---------------')
   // console.time('msgpack')
   // const parsed = decode(raw)
