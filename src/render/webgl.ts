@@ -9,6 +9,7 @@ export default () => {
   const textFGRenderer = TextFG(webgl)
   const textBGRenderer = TextBG(webgl2)
 
+  // TODO: when we resize, do we have to redraw the scene?
   const resize = (rows: number, cols: number) => {
     const width = cols * cc.cell.width
     const height = rows * cc.cell.height
