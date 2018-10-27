@@ -167,7 +167,66 @@ const toArr = (raw: Buffer, length: number): any[] => {
   return res
 }
 
+// TODO: this is just what i currently see 
+const windowWidth = 103
+const windowHeight = 45
+
+// TODO: what if we make the float32array to the max size of the window
+// new Float32Array(win.rows * win.cols * 4)
+// we can keep count of how many actual items were filled
+// when we send to the gpu, we can use the actual filled count for gl_drawArrays
+// TODO: is it really not possible to know the size of all the grid_line events?
+// that way we don't have to create an intermediary array and instead set
+// directly to typed array (assumes typed array setting is faster)
+const grid_line = (stuff: any) => {
+  let hlid = 0
+  const size = stuff.length
+  const res = new Float32Array(windowHeight * windowWidth * 4)
+  let rx = 0
+
+  // first item in the event arr is the event name.
+  // we skip that because it's cool to do that
+  for (let ix = 1; ix < size; ix++) {
+    const [ ,row, col, charData ] = stuff[ix]
+    let c = col
+    const charDataSize = charData.length
+
+    for (let cd = 0; cd < charDataSize; cd++) {
+      const data = charData[cd]
+      const char = data[0]
+      const repeats = data[2] || 1
+      hlid = data[1] || hlid
+
+      for (let r = 0; r < repeats; r++) {
+        res[rx] = char
+        res[rx + 1] = c
+        res[rx + 2] = row
+        res[rx + 3] = hlid
+        rx += 4
+      }
+
+      c++
+    }
+  }
+
+  // console.log('res:', res)
+  // console.log('count:', rx / 4)
+}
+
+type RedrawEvent = [string, any[]]
+const redraw = (redrawEvents: RedrawEvent[]) => {
+  const eventCount = redrawEvents.length
+
+  for (let ix = 0; ix < eventCount; ix++) {
+    const ev = redrawEvents[ix]
+    if (ev[0] === 'grid_line') grid_line(ev)
+  }
+}
+
 export default (raw: Buffer) => {
   ix = 0
-  return superparse(raw)
+  console.time('redraw')
+  const res = superparse(raw)
+  if (res[1] === 'redraw') redraw(res[2])
+  console.timeEnd('redraw')
 }
