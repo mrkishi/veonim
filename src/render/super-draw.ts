@@ -92,13 +92,6 @@ const grid_line = (stuff: any) => {
   }
 
   console.time('webgl')
-  // // TODO: 
-  // this gets uploaded to the gpu.
-  // not sure if it's faster to subarray and send a small piece of the temp
-  // buf to the gpu, or send the entire tempbuf to the gpu. either way, it
-  // still feels wrong to send the entire buf, especially for one char change
-  // const slice = fgData.subarray(0, fgx)
-  // console.log('slice', slice)
   webgl.render(fgx, bgx)
   console.timeEnd('webgl')
 }

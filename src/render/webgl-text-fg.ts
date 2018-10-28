@@ -64,7 +64,7 @@ export default (webgl: WebGL2) => {
   program.use()
 
   const fontAtlas = fontTextureAtlas.generateStandardSet()
-  const textureUnitId = webgl.loadCanvasTexture(fontAtlas.element)
+  const textureUnitId = webgl.loadCanvasTexture(fontAtlas.element, 0)
   const atlasWidth = Math.round(fontAtlas.element.width / window.devicePixelRatio)
   const atlasHeight = Math.round(fontAtlas.element.height / window.devicePixelRatio)
 
@@ -130,8 +130,10 @@ export default (webgl: WebGL2) => {
   }
 
   const render = (count = dataBuffer.length) => {
-    // TODO: set entire buffer or subarray the range?
-    wrenderBuffer.setData(dataBuffer)
+    const dataSlice = count
+      ? dataBuffer.subarray(0, count)
+      : dataBuffer
+    wrenderBuffer.setData(dataSlice)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / wrenderElements)
   }
 

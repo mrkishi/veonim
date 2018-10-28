@@ -81,7 +81,7 @@ const create = (options?: WebGLContextAttributes) => {
     gl.deleteProgram(program)
   }
 
-  const loadCanvasTexture = (canvas: HTMLCanvasElement, textureUnit = gl.TEXTURE0) => {
+  const loadCanvasTexture = (canvas: HTMLCanvasElement, textureUnit: number) => {
     gl.activeTexture(textureUnit)
     gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
@@ -90,6 +90,7 @@ const create = (options?: WebGLContextAttributes) => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
+    return textureUnit
   }
 
   const setupVertexArray = ({

@@ -100,8 +100,10 @@ export default (webgl: WebGL2) => {
   }
 
   const render = (count = dataBuffer.length) => {
-    // TODO: set entire buffer or subarray the range?
-    wrenderBuffer.setData(dataBuffer)
+    const dataSlice = count
+      ? dataBuffer.subarray(0, count)
+      : dataBuffer
+    wrenderBuffer.setData(dataSlice)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / wrenderElements)
   }
 
