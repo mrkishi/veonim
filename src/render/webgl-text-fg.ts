@@ -1,4 +1,5 @@
-import * as fontTextureAtlas from '../render/font-texture-atlas'
+import generateFontAtlas, { CHAR_START } from '../render/font-texture-atlas'
+import { generateColorLookupAtlas } from '../render/highlight-attributes'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
@@ -36,7 +37,7 @@ export default (webgl: WebGL2) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      float charIndex = ${v.charCode} - ${fontTextureAtlas.CHAR_START}.0;
+      float charIndex = ${v.charCode} - ${CHAR_START}.0;
       vec2 glyphPixelPosition = vec2(charIndex, 0) * ${v.cellSize};
       vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.textureResolution};
@@ -63,7 +64,7 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
-  const atlasCanvas = fontTextureAtlas.generateStandardSet()
+  const atlasCanvas = generateFontAtlas()
   const textureUnitId = webgl.loadCanvasTexture(atlasCanvas, 0)
   const atlasWidth = Math.round(atlasCanvas.width / window.devicePixelRatio)
   const atlasHeight = Math.round(atlasCanvas.height / window.devicePixelRatio)

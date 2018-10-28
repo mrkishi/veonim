@@ -3,7 +3,7 @@ import * as canvasContainer from '../core/canvas-container'
 export const CHAR_START = 33
 export const CHAR_END = 127
 
-export const generateStandardSet = () => {
+export default () => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 
