@@ -175,7 +175,6 @@ export const onRedraw = (fn: RedrawFunc) => redrawFn = fn
 export const decode = (raw: Buffer) => {
   ix = 0
   const res = superparse(raw)
-  console.log('res', res)
   if (res[1] === 'redraw') redrawFn(res[2])
-  console.log('redrawFn', redrawFn)
+  // TODO: if not redraw, send out to rpc processor
 }

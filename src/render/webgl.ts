@@ -3,11 +3,11 @@ import * as cc from '../core/canvas-container'
 import TextFG from '../render/webgl-text-fg'
 import TextBG from '../render/webgl-text-bg'
 
-export default () => {
-  const webgl = CreateWebGL()
-  const webgl2 = CreateWebGL()
-  const textFGRenderer = TextFG(webgl)
-  const textBGRenderer = TextBG(webgl2)
+const nutella = () => {
+  const foregroundGL = CreateWebGL()
+  const backgroundGL = CreateWebGL()
+  const textFGRenderer = TextFG(foregroundGL)
+  const textBGRenderer = TextBG(backgroundGL)
 
   // TODO: when we resize, do we have to redraw the scene?
   const resize = (rows: number, cols: number) => {
@@ -17,8 +17,8 @@ export default () => {
     textFGRenderer.resize(width, height)
     textBGRenderer.resize(width, height)
 
-    webgl.resize(width, height)
-    webgl2.resize(width, height)
+    foregroundGL.resize(width, height)
+    backgroundGL.resize(width, height)
   }
 
   let activated = false
@@ -32,6 +32,7 @@ export default () => {
       textBGRenderer.activate()
       textFGRenderer.activate()
     }
+    // TODO: 
     // i'm not seeing any tangible difference in browser compositing between 
     // alpha and disabled alpha. am i doing something wrong? (probably)
     // shouldn't alpha: false be faster somehow?
@@ -39,5 +40,13 @@ export default () => {
     textFGRenderer.render(fgData)
   }
 
-  return { render, resize, element: webgl.canvasElement, element2: webgl2.canvasElement }
+  return {
+    render,
+    resize,
+    foregroundElement: foregroundGL.canvasElement,
+    backgroundElement: backgroundGL.canvasElement,
+  }
 }
+
+export default nutella
+export type WebGLWrenderer = ReturnType<typeof nutella>

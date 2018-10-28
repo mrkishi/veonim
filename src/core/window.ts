@@ -1,7 +1,7 @@
 import CreateWindowNameplate, { NameplateState } from '../core/window-nameplate'
 import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
 import CreateWindowGrid, { WindowGrid } from '../core/window-grid'
-import { merge } from '../support/utils'
+import CreateWebGL, { WebGLWrenderer } from '../render/webgl'
 import { makel } from '../ui/vanilla'
 
 export interface WindowInfo {
@@ -20,6 +20,7 @@ interface GridStyle {
 
 export interface Window {
   grid: WindowGrid
+  webgl: WebGLWrenderer
   canvas: WindowCanvas
   element: HTMLElement
   getWindowInfo(): WindowInfo
@@ -56,20 +57,41 @@ export default () => {
 
   const nameplate = CreateWindowNameplate()
   const canvas = CreateWindowCanvas()
+  const webgl = CreateWebGL()
 
   overlay.setAttribute('wat', 'overlay')
   content.setAttribute('wat', 'content')
   canvas.element.setAttribute('wat', 'canvas')
   nameplate.element.setAttribute('wat', 'nameplate')
+  webgl.backgroundElement.setAttribute('wat', 'webgl-background')
+  webgl.foregroundElement.setAttribute('wat', 'webgl-foreground')
+
+  Object.assign(webgl.backgroundElement.style, {
+    position: 'absolute',
+    zIndex: 5,
+  })
+
+  Object.assign(canvas.element.style, {
+    position: 'absolute',
+    zIndex: 6,
+  })
+
+  Object.assign(webgl.foregroundElement.style, {
+    position: 'absolute',
+    zIndex: 7,
+  })
 
   content.appendChild(overlay)
+  content.appendChild(webgl.backgroundElement)
   content.appendChild(canvas.element)
+  content.appendChild(webgl.foregroundElement)
 
   container.appendChild(nameplate.element)
   container.appendChild(content)
 
   const api = {
     get grid() { return grid },
+    get webgl() { return webgl },
     get canvas() { return canvas.api },
     get element() { return container },
     get renderBuffer() { return renderBuffer },
@@ -83,12 +105,12 @@ export default () => {
 
   api.setWindowInfo = info => {
     container.id = `${info.id}`
-    merge(wininfo, info)
+    Object.assign(wininfo, info)
   }
 
   api.getWindowInfo = () => ({ ...wininfo })
 
-  api.applyGridStyle = ({ gridRow, gridColumn }) => merge(container.style, { gridColumn, gridRow })
+  api.applyGridStyle = ({ gridRow, gridColumn }) => Object.assign(container.style, { gridColumn, gridRow })
 
   api.addOverlayElement = element => {
     overlay.appendChild(element)

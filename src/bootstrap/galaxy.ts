@@ -16,7 +16,7 @@ import nvim from '../core/neovim'
 import '../ui/notifications'
 import '../core/render'
 import '../core/title'
-import '../render/webgl-playground'
+// import '../render/webgl-playground'
 
 const loadingConfig = CreateTask()
 

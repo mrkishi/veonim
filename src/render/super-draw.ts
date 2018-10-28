@@ -1,4 +1,5 @@
 import { onRedraw } from '../render/super-msgpack'
+import { WebGLWrenderer } from '../render/webgl'
 import { getWindow } from '../core/windows2'
 
 // TODO: yeha so i tihnkk we need to have two buffers.
@@ -12,12 +13,12 @@ import { getWindow } from '../core/windows2'
 // also i wonder if we can push the grid representation updates
 // to the next frame (after wrender). not important for screen update
 
-// idk, maybe it's faster to have this dummy placeholder buffer
-// instead of checking null/undefined on every pass. the reason
-// is that we should never ever run into a situation where the
-// proper render buffer was not retrieved (so this placeholder
-// should never get touch me and then just push me...)
-const placeholderRenderBuffer = new Float32Array(200 * 200 * 4)
+
+// these should never be used. if they are used something went horribly wrong
+let renderBuffer = new Float32Array(400 * 400 * 4)
+let webgl: WebGLWrenderer = {
+  render: () => console.warn('trying to wrender into a grid that has no window')
+} as any
 
 const grid_line = (stuff: any) => {
   let hlid = 0
@@ -26,7 +27,8 @@ const grid_line = (stuff: any) => {
   // while doing the render buffer sets
   let rx = 0
   let activeGrid = 0
-  let renderBuffer = placeholderRenderBuffer
+  // let activeWebgl: WebGLWrenderer
+  // let renderBuffer = placeholderRenderBuffer
 
   // first item in the event arr is the event name.
   // we skip that because it's cool to do that
@@ -39,7 +41,10 @@ const grid_line = (stuff: any) => {
     const [ gridId , row, col, charData ] = stuff[ix]
     if (gridId !== activeGrid) {
       // console.log('grid id changed: (before -> after)', activeGrid, gridId)
-      renderBuffer = getWindow(gridId).renderBuffer
+      // TODO: what if we have multiple active webgls... how to keep track of them
+      const w = getWindow(gridId)
+      renderBuffer = w.renderBuffer
+      webgl = w.webgl
       activeGrid = gridId
     }
     let c = col
@@ -70,17 +75,15 @@ const grid_line = (stuff: any) => {
     }
   }
 
-  console.time('slice')
+  console.time('webgl')
   // // TODO: 
   // this gets uploaded to the gpu.
   // not sure if it's faster to subarray and send a small piece of the temp
   // buf to the gpu, or send the entire tempbuf to the gpu. either way, it
   // still feels wrong to send the entire buf, especially for one char change
   const slice = renderBuffer.subarray(0, rx)
-  console.log('slice', slice)
-  console.timeEnd('slice')
-
-  // TODO: WRENDER WEBGL!!!
+  webgl.render(slice, new Float32Array())
+  console.timeEnd('webgl')
 }
 
 onRedraw(redrawEvents => {
