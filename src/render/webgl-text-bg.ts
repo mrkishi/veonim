@@ -91,9 +91,9 @@ export default (webgl: WebGL2) => {
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
-  const render = () => {
+  const render = (count = dataBuffer.length) => {
     wrenderBuffer.setData(dataBuffer)
-    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, dataBuffer.length / wrenderElements)
+    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / wrenderElements)
   }
 
   return { render, resize }

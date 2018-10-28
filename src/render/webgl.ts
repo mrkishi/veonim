@@ -17,9 +17,9 @@ const nutella = () => {
     textBGRenderer.resize(width, height)
   }
 
-  const render = () => {
-    textBGRenderer.render()
-    textFGRenderer.render()
+  const render = (foregroundElements?: number, backgroundElements?: number) => {
+    textBGRenderer.render(backgroundElements)
+    textFGRenderer.render(foregroundElements)
   }
 
   return {
