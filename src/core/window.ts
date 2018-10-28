@@ -98,6 +98,7 @@ export default () => {
   } as Window
 
   api.resizeWindow = (width, height) => {
+    webgl.resize(height, width)
     canvas.api.resize(height, width)
     grid.resize(height, width)
     renderBuffer = new Float32Array(width * height * 4)

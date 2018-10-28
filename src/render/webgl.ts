@@ -13,23 +13,20 @@ const nutella = () => {
   const resize = (rows: number, cols: number) => {
     const width = cols * cc.cell.width
     const height = rows * cc.cell.height
-
     textFGRenderer.resize(width, height)
     textBGRenderer.resize(width, height)
-
-    foregroundGL.resize(width, height)
-    backgroundGL.resize(width, height)
   }
 
-  /** Wrender data where each element is [ charCode, col, row, red, green, blue ] */
-  const render = (fgData: Float32Array, bgData: Float32Array) => {
-    textBGRenderer.render(bgData)
-    textFGRenderer.render(fgData)
+  const render = () => {
+    textBGRenderer.render()
+    textFGRenderer.render()
   }
 
   return {
     render,
     resize,
+    foregroundData: textFGRenderer.dataBuffer,
+    backgroundData: textBGRenderer.dataBuffer,
     foregroundElement: foregroundGL.canvasElement,
     backgroundElement: backgroundGL.canvasElement,
   }
