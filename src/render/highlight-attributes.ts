@@ -49,7 +49,7 @@ export const generateColorLookupAtlas = () => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 
-  canvas.height = 3
+  canvas.height = 2
   canvas.width = Math.max(...highlights.keys())
 
   ui.imageSmoothingEnabled = false

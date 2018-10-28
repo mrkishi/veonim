@@ -63,10 +63,10 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
-  const fontAtlas = fontTextureAtlas.generateStandardSet()
-  const textureUnitId = webgl.loadCanvasTexture(fontAtlas.element, 0)
-  const atlasWidth = Math.round(fontAtlas.element.width / window.devicePixelRatio)
-  const atlasHeight = Math.round(fontAtlas.element.height / window.devicePixelRatio)
+  const atlasCanvas = fontTextureAtlas.generateStandardSet()
+  const textureUnitId = webgl.loadCanvasTexture(atlasCanvas, 0)
+  const atlasWidth = Math.round(atlasCanvas.width / window.devicePixelRatio)
+  const atlasHeight = Math.round(atlasCanvas.height / window.devicePixelRatio)
 
   webgl.gl.uniform1i(program.vars.textureImage, textureUnitId)
   webgl.gl.uniform2f(program.vars.textureResolution, atlasWidth, atlasHeight)

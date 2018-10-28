@@ -1,20 +1,9 @@
 import * as canvasContainer from '../core/canvas-container'
 
-interface CharPosition {
-  x: number,
-  y: number,
-}
-
-interface FontAtlas {
-  getCharPosition(char: string, color: string): CharPosition | undefined
-  canvas: CanvasRenderingContext2D
-  element: HTMLCanvasElement
-}
-
 export const CHAR_START = 33
 export const CHAR_END = 127
 
-export const generateStandardSet = (): FontAtlas => {
+export const generateStandardSet = () => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 
@@ -47,13 +36,5 @@ export const generateStandardSet = (): FontAtlas => {
     column++
   }
 
-  const getCharPosition = (char: string) => {
-    const code = char.charCodeAt(0)
-    if (code < CHAR_START || code > CHAR_END) return
-    const x = (code - CHAR_START) * canvasContainer.cell.width * window.devicePixelRatio
-    const y = 0
-    return { x, y }
-  }
-
-  return { canvas: ui, element: canvas, getCharPosition }
+  return canvas
 }
