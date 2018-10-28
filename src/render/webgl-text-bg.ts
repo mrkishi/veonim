@@ -1,3 +1,4 @@
+import { generateColorLookupAtlas } from '../render/highlight-attributes'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
@@ -9,6 +10,8 @@ export default (webgl: WebGL2) => {
     cellPosition: VarKind.Attribute,
     cellColor: VarKind.Attribute,
     canvasResolution: VarKind.Uniform,
+    colorAtlasResolution: VarKind.Uniform,
+    colorAtlasTextureId: VarKind.Uniform,
     cellSize: VarKind.Uniform,
   })
 
@@ -46,6 +49,12 @@ export default (webgl: WebGL2) => {
 
   program.create()
   program.use()
+
+  const colorAtlas = generateColorLookupAtlas()
+  const colorAtlasTextureId = webgl.loadCanvasTexture(colorAtlas, 0)
+
+  webgl.gl.uniform1i(program.vars.colorAtlasTextureId, colorAtlasTextureId)
+  webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
 
   // total size of all pointers. chunk size that goes to shader
   const wrenderElements = 5
@@ -108,7 +117,8 @@ export default (webgl: WebGL2) => {
   }
 
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
-
+    webgl.loadCanvasTexture(colorAtlas, 0)
+    webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
   }
 
   return {
