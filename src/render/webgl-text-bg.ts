@@ -18,8 +18,9 @@ export default (webgl: WebGL2) => {
   program.setVertexShader(v => `
     in vec2 ${v.quadVertex};
     in vec2 ${v.cellPosition};
-    in vec3 ${v.hlid};
+    in float ${v.hlid};
     uniform vec2 ${v.canvasResolution};
+    uniform vec2 ${v.colorAtlasResolution};
     uniform vec2 ${v.cellSize};
 
     out vec2 o_colorPosition;
@@ -39,7 +40,7 @@ export default (webgl: WebGL2) => {
   program.setFragmentShader(v => `
     precision highp float;
 
-    in vec4 o_colorPosition;
+    in vec2 o_colorPosition;
     uniform sampler2D ${v.colorAtlasTextureId};
 
     out vec4 outColor;

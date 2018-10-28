@@ -94,11 +94,9 @@ const grid_line = (e: any) => {
 
         bgd[bgx] = c
         bgd[bgx + 1] = row
-        bgd[bgx + 2] = 0.8
-        bgd[bgx + 3] = 0.2
-        bgd[bgx + 4] = 0.3
+        bgd[bgx + 2] = hlid
 
-        bgx += 5
+        bgx += 3
       }
 
       c++
