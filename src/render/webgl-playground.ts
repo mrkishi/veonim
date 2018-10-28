@@ -5,20 +5,20 @@ const charCode = (char: string): number => char.codePointAt(0) || fontTextureAtl
 
 const main = () => {
   const webgl = WebGLWrenderer()
-  Object.assign(webgl.element2.style, {
+  Object.assign(webgl.backgroundElement.style, {
     position: 'absolute',
     top: '50px',
     border: '1px solid cyan',
     zIndex: 10,
   })
-  Object.assign(webgl.element.style, {
+  Object.assign(webgl.foregroundElement.style, {
     position: 'absolute',
     top: '50px',
     border: '1px solid yellow',
     zIndex: 20,
   })
-  document.body.appendChild(webgl.element2)
-  document.body.appendChild(webgl.element)
+  document.body.appendChild(webgl.backgroundElement)
+  document.body.appendChild(webgl.foregroundElement)
 
   const size = { x: 100, y: 45 }
   webgl.resize(size.y, size.x)

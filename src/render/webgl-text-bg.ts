@@ -76,24 +76,20 @@ export default (webgl: WebGL2) => {
     size: 2,
   })
 
+  quadBuffer.setData(new Float32Array([
+    0, 0,
+    cc.cell.width, cc.cell.height,
+    0, cc.cell.height,
+    cc.cell.width, 0,
+    cc.cell.width, cc.cell.height,
+    0, 0,
+  ]))
+
+  webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
+
   const resize = (width: number, height: number) => {
     Object.assign(rez.canvas, { width, height })
-  }
-
-  const activate = () => {
-    program.use()
-
-    quadBuffer.setData(new Float32Array([
-      0, 0,
-      cc.cell.width, cc.cell.height,
-      0, cc.cell.height,
-      cc.cell.width, 0,
-      cc.cell.width, cc.cell.height,
-      0, 0,
-    ]))
-
     webgl.gl.uniform2f(program.vars.canvasResolution, rez.canvas.width, rez.canvas.height)
-    webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
   }
 
   const render = (data: Float32Array) => {
@@ -101,5 +97,5 @@ export default (webgl: WebGL2) => {
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, data.length / wrenderElements)
   }
 
-  return { activate, render, resize }
+  return { render, resize }
 }
