@@ -1,48 +1,16 @@
 import { onRedraw } from '../render/super-msgpack'
 import { getWindow } from '../core/windows2'
 
-// TODO: this is just what i currently see 
-// const windowWidth = 103
-// const windowHeight = 45
-
-// TODO: what if we make the float32array to the max size of the window
-// new Float32Array(win.rows * win.cols * 4)
-// we can keep count of how many actual items were filled
-// when we send to the gpu, we can use the actual filled count for gl_drawArrays
-// TODO: is it really not possible to know the size of all the grid_line events?
-// that way we don't have to create an intermediary array and instead set
-// directly to typed array (assumes typed array setting is faster)
-
-// reusing this buffer array is much faster than recreating it.
-// the question is how do we reconcile this with the grid memory?
-// it seems inefficient to send the entire arraybuffer to the gpu,
-// even if only char changed.
+// TODO: yeha so i tihnkk we need to have two buffers.
+// - one for render
+// - one for grid representation
 //
-// perhaps we can use two arraybuffers -> one for what will be sent to the gpu
-// and another for the actual grid representation.
+// the reason for this is that when we update the grid representation
+// the updates might be non sequential in the buffer. this means
+// we can no longer send a piece of the buffer to the gpu.
 //
-// if we have to typearray buffers, one for temp and for the memgrid
-// is it faster to update both, or is there a way we can use just one
-// buf?
-// // TODO: 
-// like we could compute row/col -> buf index positions and then set
-// accordingly. but is it faster to do those calcs or simply set two
-// buffers
-//
-// and to solve the issue of copying the entire temp buffer to the gpu, perhaps
-// we can use TypedArray.subarray() to slice only part of the temp buffer
-//
-// how much time does the .subarray cost?
-//
-// is subarray() faster or sending the entire temp buffer to the GPU faster?
-// how do we benchmark the part that uploads the stuff to the GPU? .bufferData()
-// 
-// could use bufferSubData to update only part of the buffer on the GPU with a
-// slice of the temp Float32Array (with subarray())
-// - but do we need to do that? we will not need to reuse the buffer data for more
-// than one draw.
-//
-// const fb = new Float32Array(windowHeight * windowWidth * 4)
+// also i wonder if we can push the grid representation updates
+// to the next frame (after wrender). not important for screen update
 
 // idk, maybe it's faster to have this dummy placeholder buffer
 // instead of checking null/undefined on every pass. the reason
@@ -54,18 +22,6 @@ const placeholderRenderBuffer = new Float32Array(200 * 200 * 4)
 const grid_line = (stuff: any) => {
   let hlid = 0
   const size = stuff.length
-  // TODO: what if we never create this typed array here. instead we replace
-  // the grid memory buffer with a fixed float32array, and always just update
-  // that one instance.
-  //
-  // then when it comes to clearing/scroll/split windows, we just update the grid
-  // memory ONCE and send the entire thing to the GPU. the gpu is fast enough that
-  // redrawing the entire scene is cool. what about uploading the entire thing to
-  // the GPU?
-
-
-
-
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
   let rx = 0
