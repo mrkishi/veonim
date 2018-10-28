@@ -8,7 +8,7 @@ export default (webgl: WebGL2) => {
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
     cellPosition: VarKind.Attribute,
-    cellColor: VarKind.Attribute,
+    hlid: VarKind.Attribute,
     canvasResolution: VarKind.Uniform,
     colorAtlasResolution: VarKind.Uniform,
     colorAtlasTextureId: VarKind.Uniform,
@@ -18,11 +18,11 @@ export default (webgl: WebGL2) => {
   program.setVertexShader(v => `
     in vec2 ${v.quadVertex};
     in vec2 ${v.cellPosition};
-    in vec3 ${v.cellColor};
+    in vec3 ${v.hlid};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.cellSize};
 
-    out vec4 o_cellColor;
+    out vec2 o_colorPosition;
 
     void main() {
       vec2 absolutePixelPosition = ${v.cellPosition} * ${v.cellSize};
@@ -32,18 +32,20 @@ export default (webgl: WebGL2) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      o_cellColor = vec4(${v.cellColor}, 1);
+      o_colorPosition = vec2(${v.hlid}, 0) / ${v.colorAtlasResolution};
     }
   `)
 
-  program.setFragmentShader(() => `
+  program.setFragmentShader(v => `
     precision highp float;
 
-    in vec4 o_cellColor;
+    in vec4 o_colorPosition;
+    uniform sampler2D ${v.colorAtlasTextureId};
+
     out vec4 outColor;
 
     void main() {
-      outColor = o_cellColor;
+      outColor = texture(${v.colorAtlasTextureId}, o_colorPosition);
     }
   `)
 
@@ -57,9 +59,8 @@ export default (webgl: WebGL2) => {
   webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
 
   // total size of all pointers. chunk size that goes to shader
-  const wrenderElements = 5
+  const wrenderElements = 3
   const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
-  const colorOffset = 2 * Float32Array.BYTES_PER_ELEMENT
 
   const wrenderBuffer = program.setupData([{
     pointer: program.vars.cellPosition,
@@ -69,10 +70,10 @@ export default (webgl: WebGL2) => {
     stride: wrenderStride,
     divisor: 1,
   }, {
-    pointer: program.vars.cellColor,
+    pointer: program.vars.hlid,
     type: webgl.gl.FLOAT,
-    size: 3,
-    offset: colorOffset,
+    size: 1,
+    offset: 2 * Float32Array.BYTES_PER_ELEMENT,
     stride: wrenderStride,
     divisor: 1,
   }])
