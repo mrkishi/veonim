@@ -46,5 +46,25 @@ export const addHighlight = (id: number, attr: Attrs, info: any) => {
 }
 
 export const generateColorLookupAtlas = () => {
-  console.log('pls gen lookup color atlas')
+  const canvas = document.createElement('canvas')
+  const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+
+  canvas.height = 3
+  canvas.width = Math.max(...highlights.keys())
+
+  ui.imageSmoothingEnabled = false
+
+  ;[...highlights.entries()].forEach(([ id, hlgrp ]) => {
+    if (hlgrp.background) {
+      ui.fillStyle = hlgrp.background
+      ui.fillRect(id, 0, 1, 1)
+    }
+
+    if (hlgrp.foreground) {
+      ui.fillStyle = hlgrp.foreground
+      ui.fillRect(id, 1, 1, 1)
+    }
+  })
+
+  return canvas
 }
