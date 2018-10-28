@@ -19,9 +19,15 @@ const nutella = () => {
     textFGRenderer.render(foregroundElements)
   }
 
+  const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
+    textBGRenderer.updateColorAtlas(colorAtlas)
+    textFGRenderer.updateColorAtlas(colorAtlas)
+  }
+
   return {
     render,
     resize,
+    updateColorAtlas,
     getForegroundBuffer: textFGRenderer.getDataBuffer,
     getBackgroundBuffer: textBGRenderer.getDataBuffer,
     foregroundElement: foregroundGL.canvasElement,

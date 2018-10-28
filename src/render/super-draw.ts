@@ -1,7 +1,7 @@
 import { addHighlight, generateColorLookupAtlas } from '../render/highlight-attributes'
+import { getWindow, getAllWindows } from '../core/windows2'
 import { onRedraw } from '../render/super-msgpack'
 import { WebGLWrenderer } from '../render/webgl'
-import { getWindow } from '../core/windows2'
 
 // TODO: yeha so i tihnkk we need to have two buffers.
 // - one for render
@@ -29,8 +29,10 @@ const hlAttrDefine = (e: any) => {
     const [ id, attr, info ] = e[ix]
     addHighlight(id, attr, info)
   }
-  // TODO: generate attr atlas
-  generateColorLookupAtlas()
+  const colorAtlas = generateColorLookupAtlas()
+  const windows = getAllWindows()
+  windows.forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+  // TODO: load color atlas for all webgl instances (and future ones)
 }
 
 const grid_line = (e: any) => {

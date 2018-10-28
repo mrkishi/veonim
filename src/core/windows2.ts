@@ -46,6 +46,8 @@ export const getWindow = (gridId: number) => {
   return win
 }
 
+export const getAllWindows = () => [...windows.values()]
+
 export const hasWindow = (gridId: number) => windows.has(gridId)
 
 const getWindowById = (windowId: number) => {

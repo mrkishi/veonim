@@ -137,9 +137,14 @@ export default (webgl: WebGL2) => {
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / wrenderElements)
   }
 
+  const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
+
+  }
+
   return {
     render,
     resize,
+    updateColorAtlas,
     getDataBuffer: () => dataBuffer,
   }
 }
