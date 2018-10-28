@@ -3,6 +3,8 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
+  const size = { rows: 0, cols: 0 }
+
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
     charCode: VarKind.Attribute,
@@ -115,13 +117,23 @@ export default (webgl: WebGL2) => {
 
   webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
 
-  const resize = (width: number, height: number) => {
+  // TODO: we should probably check if existing width and height are the same
+  // and not recreate and resize with identical values
+  const resize = (rows: number, cols: number) => {
+    if (size.rows === rows && size.cols === cols) return
+
+    Object.assign(size, { rows, cols })
+    const width = cols * cc.cell.width
+    const height = rows * cc.cell.height
+
     webgl.resize(width, height)
-    dataBuffer = new Float32Array(width * height * wrenderElements)
+    dataBuffer = new Float32Array(rows * cols * wrenderElements)
+    console.log('resized dataBuffer', dataBuffer)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
   const render = (count = dataBuffer.length) => {
+    // TODO: set entire buffer or subarray the range?
     wrenderBuffer.setData(dataBuffer)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / wrenderElements)
   }
@@ -129,6 +141,6 @@ export default (webgl: WebGL2) => {
   return {
     render,
     resize,
-    get dataBuffer() { return dataBuffer },
+    getDataBuffer: () => dataBuffer,
   }
 }

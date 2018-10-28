@@ -24,7 +24,6 @@ export interface Window {
   canvas: WindowCanvas
   element: HTMLElement
   getWindowInfo(): WindowInfo
-  renderBuffer: Float32Array
   setWindowInfo(info: WindowInfo): void
   applyGridStyle(gridStyle: GridStyle): void
   updateNameplate(data: NameplateState): void
@@ -37,8 +36,6 @@ export interface Window {
 export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
   const grid = CreateWindowGrid()
-  // stores webgl buffer data: [ ascii char code, col, row, highlightId ]
-  let renderBuffer = new Float32Array(4)
 
   const container = makel({
     flexFlow: 'column',
@@ -94,14 +91,12 @@ export default () => {
     get webgl() { return webgl },
     get canvas() { return canvas.api },
     get element() { return container },
-    get renderBuffer() { return renderBuffer },
   } as Window
 
   api.resizeWindow = (width, height) => {
     webgl.resize(height, width)
     canvas.api.resize(height, width)
     grid.resize(height, width)
-    renderBuffer = new Float32Array(width * height * 4)
   }
 
   api.setWindowInfo = info => {

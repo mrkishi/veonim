@@ -17,9 +17,9 @@ import { getWindow } from '../core/windows2'
 // this default state should never be used. otherwise something went horribly wrong
 let webgl: WebGLWrenderer = {
   render: () => console.warn('trying to wrender into a grid that has no window'),
-  foregroundData: new Float32Array(),
-  backgroundData: new Float32Array(),
 } as any
+
+let dummyData = new Float32Array()
 
 const grid_line = (stuff: any) => {
   let hlid = 0
@@ -28,8 +28,8 @@ const grid_line = (stuff: any) => {
   // while doing the render buffer sets
   let rx = 0
   let activeGrid = 0
-  let fgData = webgl.foregroundData
-  let bgData = webgl.backgroundData
+  let fgData = dummyData
+  let bgData = dummyData
   // let activeWebgl: WebGLWrenderer
   // let renderBuffer = placeholderRenderBuffer
 
@@ -47,8 +47,8 @@ const grid_line = (stuff: any) => {
       // TODO: what if we have multiple active webgls... how to keep track of them
       webgl = getWindow(gridId).webgl
       // because we want to bypass the getter in the render loop
-      fgData = webgl.foregroundData
-      bgData = webgl.backgroundData
+      fgData = webgl.getForegroundBuffer()
+      // bgData = webgl.backgroundData
       activeGrid = gridId
     }
     let c = col
@@ -71,8 +71,12 @@ const grid_line = (stuff: any) => {
         fgData[rx] = char
         fgData[rx + 1] = c
         fgData[rx + 2] = row
-        fgData[rx + 3] = hlid
-        rx += 4
+        // TODO: this is just temp until we get hlid conversion in the shaders
+        fgData[rx + 3] = 0.1
+        fgData[rx + 4] = 0.2
+        fgData[rx + 5] = 1.0
+        // fgData[rx + 3] = hlid
+        rx += 6
       }
 
       c++
@@ -86,16 +90,18 @@ const grid_line = (stuff: any) => {
   // buf to the gpu, or send the entire tempbuf to the gpu. either way, it
   // still feels wrong to send the entire buf, especially for one char change
   // const slice = fgData.subarray(0, rx)
+  // console.log('slice', slice)
   webgl.render(rx, 0)
   console.timeEnd('webgl')
 }
 
 onRedraw(redrawEvents => {
-  console.log('redraw pls', redrawEvents)
+  console.time('redraw')
   const eventCount = redrawEvents.length
 
   for (let ix = 0; ix < eventCount; ix++) {
     const ev = redrawEvents[ix]
     if (ev[0] === 'grid_line') grid_line(ev)
   }
+  console.timeEnd('redraw')
 })
