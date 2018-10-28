@@ -9,7 +9,8 @@ import { ChildProcess } from 'child_process'
 import SetupRPC from '../messaging/rpc'
 import { Color } from '../neovim/types'
 import { homedir } from 'os'
-import BINARY_REDRAW_LOL from '../render/binary-redraw'
+import { decode } from '../render/super-msgpack'
+import '../render/super-draw'
 
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
@@ -94,7 +95,7 @@ export const switchTo = (id: number) => {
 
   encoder.pipe(proc.stdin)
   // don't kill decoder stream when this stdout stream ends (need for other stdouts)
-  proc.stdout.on('data', BINARY_REDRAW_LOL)
+  proc.stdout.on('data', decode)
   proc.stdout.pipe(decoder, { end: false })
   ids.activeVim = id
 
