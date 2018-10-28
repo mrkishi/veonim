@@ -1,3 +1,4 @@
+import { addHighlight, generateColorLookupAtlas } from '../render/highlight-attributes'
 import { onRedraw } from '../render/super-msgpack'
 import { WebGLWrenderer } from '../render/webgl'
 import { getWindow } from '../core/windows2'
@@ -21,9 +22,20 @@ let webgl: WebGLWrenderer = {
 
 let dummyData = new Float32Array()
 
-const grid_line = (stuff: any) => {
+const hlAttrDefine = (e: any) => {
+  const size = e.length
+  // first item in the event arr is the even name
+  for (let ix = 1; ix < size; ix++) {
+    const [ id, attr, info ] = e[ix]
+    addHighlight(id, attr, info)
+  }
+  // TODO: generate attr atlas
+  generateColorLookupAtlas()
+}
+
+const grid_line = (e: any) => {
   let hlid = 0
-  const size = stuff.length
+  const size = e.length
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
   let fgx = 0
@@ -42,7 +54,7 @@ const grid_line = (stuff: any) => {
     // like a horizontal split? nope. horizontal split just sends
     // win_resize events. i think it is up to us to redraw the
     // scene from the grid buffer
-    const [ gridId , row, col, charData ] = stuff[ix]
+    const [ gridId, row, col, charData ] = e[ix]
     if (gridId !== activeGrid) {
       // console.log('grid id changed: (before -> after)', activeGrid, gridId)
       // TODO: what if we have multiple active webgls... how to keep track of them
@@ -102,7 +114,9 @@ onRedraw(redrawEvents => {
 
   for (let ix = 0; ix < eventCount; ix++) {
     const ev = redrawEvents[ix]
+    console.log('redraw', ev)
     if (ev[0] === 'grid_line') grid_line(ev)
+    else if (ev[0] === 'hl_attr_define') hlAttrDefine(ev)
   }
   console.timeEnd('redraw')
 })
