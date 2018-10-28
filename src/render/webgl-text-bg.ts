@@ -2,6 +2,8 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
+  const size = { rows: 0, cols: 0 }
+
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
     cellPosition: VarKind.Attribute,
@@ -85,7 +87,13 @@ export default (webgl: WebGL2) => {
 
   webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
 
-  const resize = (width: number, height: number) => {
+  const resize = (rows: number, cols: number) => {
+    if (size.rows === rows && size.cols === cols) return
+
+    Object.assign(size, { rows, cols })
+    const width = cols * cc.cell.width
+    const height = rows * cc.cell.height
+
     webgl.resize(width, height)
     dataBuffer = new Float32Array(width * height * wrenderElements)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
@@ -97,5 +105,9 @@ export default (webgl: WebGL2) => {
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / wrenderElements)
   }
 
-  return { render, resize }
+  return {
+    render,
+    resize,
+    getDataBuffer: () => dataBuffer,
+  }
 }

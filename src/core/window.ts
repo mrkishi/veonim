@@ -63,12 +63,12 @@ export default () => {
   webgl.backgroundElement.setAttribute('wat', 'webgl-background')
   webgl.foregroundElement.setAttribute('wat', 'webgl-foreground')
 
-  Object.assign(webgl.backgroundElement.style, {
+  Object.assign(canvas.element.style, {
     position: 'absolute',
     zIndex: 5,
   })
 
-  Object.assign(canvas.element.style, {
+  Object.assign(webgl.backgroundElement.style, {
     position: 'absolute',
     zIndex: 6,
   })
@@ -79,8 +79,10 @@ export default () => {
   })
 
   content.appendChild(overlay)
-  content.appendChild(webgl.backgroundElement)
+  // TODO: canvas only for unicode glyphs
+  // no need for canvas background, just use alpha and let compositor blend!
   content.appendChild(canvas.element)
+  content.appendChild(webgl.backgroundElement)
   content.appendChild(webgl.foregroundElement)
 
   container.appendChild(nameplate.element)

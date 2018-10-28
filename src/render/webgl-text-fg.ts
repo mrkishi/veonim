@@ -117,8 +117,6 @@ export default (webgl: WebGL2) => {
 
   webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
 
-  // TODO: we should probably check if existing width and height are the same
-  // and not recreate and resize with identical values
   const resize = (rows: number, cols: number) => {
     if (size.rows === rows && size.cols === cols) return
 
@@ -128,7 +126,6 @@ export default (webgl: WebGL2) => {
 
     webgl.resize(width, height)
     dataBuffer = new Float32Array(rows * cols * wrenderElements)
-    console.log('resized dataBuffer', dataBuffer)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 

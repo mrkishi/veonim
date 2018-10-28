@@ -26,10 +26,11 @@ const grid_line = (stuff: any) => {
   const size = stuff.length
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
-  let rx = 0
+  let fgx = 0
+  let bgx = 0
   let activeGrid = 0
-  let fgData = dummyData
-  let bgData = dummyData
+  let fgd = dummyData
+  let bgd = dummyData
   // let activeWebgl: WebGLWrenderer
   // let renderBuffer = placeholderRenderBuffer
 
@@ -46,9 +47,8 @@ const grid_line = (stuff: any) => {
       // console.log('grid id changed: (before -> after)', activeGrid, gridId)
       // TODO: what if we have multiple active webgls... how to keep track of them
       webgl = getWindow(gridId).webgl
-      // because we want to bypass the getter in the render loop
-      fgData = webgl.getForegroundBuffer()
-      // bgData = webgl.backgroundData
+      fgd = webgl.getForegroundBuffer()
+      bgd = webgl.getBackgroundBuffer()
       activeGrid = gridId
     }
     let c = col
@@ -68,15 +68,23 @@ const grid_line = (stuff: any) => {
       hlid = data[1] || hlid
 
       for (let r = 0; r < repeats; r++) {
-        fgData[rx] = char
-        fgData[rx + 1] = c
-        fgData[rx + 2] = row
+        fgd[fgx] = char
+        fgd[fgx + 1] = c
+        fgd[fgx + 2] = row
         // TODO: this is just temp until we get hlid conversion in the shaders
-        fgData[rx + 3] = 0.1
-        fgData[rx + 4] = 0.2
-        fgData[rx + 5] = 1.0
-        // fgData[rx + 3] = hlid
-        rx += 6
+        fgd[fgx + 3] = 0.1
+        fgd[fgx + 4] = 0.2
+        fgd[fgx + 5] = 1.0
+        // fgd[fgx + 3] = hlid
+        fgx += 6
+
+        bgd[bgx] = c
+        bgd[bgx + 1] = row
+        bgd[bgx + 2] = 0.8
+        bgd[bgx + 3] = 0.2
+        bgd[bgx + 4] = 0.3
+
+        bgx += 5
       }
 
       c++
@@ -89,9 +97,9 @@ const grid_line = (stuff: any) => {
   // not sure if it's faster to subarray and send a small piece of the temp
   // buf to the gpu, or send the entire tempbuf to the gpu. either way, it
   // still feels wrong to send the entire buf, especially for one char change
-  // const slice = fgData.subarray(0, rx)
+  // const slice = fgData.subarray(0, fgx)
   // console.log('slice', slice)
-  webgl.render(rx, 0)
+  webgl.render(fgx, bgx)
   console.timeEnd('webgl')
 }
 
