@@ -1,4 +1,4 @@
-import { addHighlight, generateColorLookupAtlas } from '../render/highlight-attributes'
+import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getWindow, getAllWindows } from '../core/windows2'
 import { onRedraw } from '../render/super-msgpack'
 import { WebGLWrenderer } from '../render/webgl'
@@ -22,6 +22,15 @@ let webgl: WebGLWrenderer = {
 
 let dummyData = new Float32Array()
 
+// [ event_name, [ fg, bg, sp ] ]
+const defaultColorsSet = (e: any) => {
+  const colors = e[1]
+  const defaultColorsChanged = setDefaultColors(colors[0], colors[1], colors[2])
+  if (!defaultColorsChanged) return
+  const colorAtlas = generateColorLookupAtlas()
+  getAllWindows().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+}
+
 const hlAttrDefine = (e: any) => {
   const size = e.length
   // first item in the event arr is the even name
@@ -30,9 +39,7 @@ const hlAttrDefine = (e: any) => {
     addHighlight(id, attr, info)
   }
   const colorAtlas = generateColorLookupAtlas()
-  const windows = getAllWindows()
-  windows.forEach(win => win.webgl.updateColorAtlas(colorAtlas))
-  // TODO: load color atlas for all webgl instances (and future ones)
+  getAllWindows().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
 }
 
 const grid_line = (e: any) => {
@@ -112,6 +119,7 @@ onRedraw(redrawEvents => {
     const ev = redrawEvents[ix]
     if (ev[0] === 'grid_line') grid_line(ev)
     else if (ev[0] === 'hl_attr_define') hlAttrDefine(ev)
+    else if (ev[0] === 'default_colors_set') defaultColorsSet(ev)
   }
   console.timeEnd('redraw')
 })
