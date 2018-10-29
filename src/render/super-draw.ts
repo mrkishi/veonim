@@ -69,7 +69,7 @@ const grid_line = (e: any) => {
     // like a horizontal split? nope. horizontal split just sends
     // win_resize events. i think it is up to us to redraw the
     // scene from the grid buffer
-    const [ gridId, row, col, charData ] = e[ix]
+    const [ gridId, row, startCol, charData ] = e[ix]
     if (gridId !== activeGrid) {
       // console.log('grid id changed: (before -> after)', activeGrid, gridId)
       // TODO: what if we have multiple active webgls... how to keep track of them
@@ -78,7 +78,7 @@ const grid_line = (e: any) => {
       bgd = webgl.getBackgroundBuffer()
       activeGrid = gridId
     }
-    let c = col
+    let col = startCol
     const charDataSize = charData.length
 
     // TODO: if char is not a number, we need to use the old canvas
@@ -96,19 +96,18 @@ const grid_line = (e: any) => {
 
       for (let r = 0; r < repeats; r++) {
         fgd[fgx] = char
-        fgd[fgx + 1] = c
+        fgd[fgx + 1] = col
         fgd[fgx + 2] = row
         fgd[fgx + 3] = hlid
         fgx += 4
 
-        bgd[bgx] = c
+        bgd[bgx] = col
         bgd[bgx + 1] = row
         bgd[bgx + 2] = hlid
 
         bgx += 3
+        col++
       }
-
-      c++
     }
   }
 

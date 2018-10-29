@@ -1,6 +1,6 @@
 import * as canvasContainer from '../core/canvas-container'
 
-export const CHAR_START = 33
+export const CHAR_START = 32
 export const CHAR_END = 127
 
 export default () => {
