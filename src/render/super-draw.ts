@@ -23,7 +23,7 @@ let webgl: WebGLWrenderer = {
 let dummyData = new Float32Array()
 
 // [ event_name, [ fg, bg, sp ] ]
-const defaultColorsSet = (e: any) => {
+const default_colors_set = (e: any) => {
   const colors = e[1]
   const defaultColorsChanged = setDefaultColors(colors[0], colors[1], colors[2])
   if (!defaultColorsChanged) return
@@ -31,7 +31,7 @@ const defaultColorsSet = (e: any) => {
   getAllWindows().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
 }
 
-const hlAttrDefine = (e: any) => {
+const hl_attr_define = (e: any) => {
   const size = e.length
   // first item in the event arr is the even name
   for (let ix = 1; ix < size; ix++) {
@@ -40,6 +40,12 @@ const hlAttrDefine = (e: any) => {
   }
   const colorAtlas = generateColorLookupAtlas()
   getAllWindows().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+}
+
+const grid_clear = (e: any) => {
+  const gridId = e[1][0]
+  if (gridId === 1) return
+  getWindow(gridId).webgl.clear()
 }
 
 const grid_line = (e: any) => {
@@ -118,8 +124,9 @@ onRedraw(redrawEvents => {
   for (let ix = 0; ix < eventCount; ix++) {
     const ev = redrawEvents[ix]
     if (ev[0] === 'grid_line') grid_line(ev)
-    else if (ev[0] === 'hl_attr_define') hlAttrDefine(ev)
-    else if (ev[0] === 'default_colors_set') defaultColorsSet(ev)
+    else if (ev[0] === 'grid_clear') grid_clear(ev)
+    else if (ev[0] === 'hl_attr_define') hl_attr_define(ev)
+    else if (ev[0] === 'default_colors_set') default_colors_set(ev)
   }
   console.timeEnd('redraw')
 })

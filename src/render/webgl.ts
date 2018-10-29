@@ -25,7 +25,13 @@ const nutella = () => {
     textFGRenderer.updateColorAtlas(colorAtlas)
   }
 
+  const clear = () => {
+    textBGRenderer.clear()
+    textFGRenderer.clear()
+  }
+
   return {
+    clear,
     render,
     resize,
     updateColorAtlas,

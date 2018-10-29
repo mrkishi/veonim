@@ -153,7 +153,12 @@ export default (webgl: WebGL2) => {
     webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
   }
 
+  const clear = () => {
+    webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
+  }
+
   return {
+    clear,
     render,
     resize,
     updateColorAtlas,
