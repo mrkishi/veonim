@@ -54,9 +54,8 @@ export default (webgl: WebGL2) => {
   program.use()
 
   const colorAtlas = generateColorLookupAtlas()
-  const colorAtlasTextureId = webgl.loadCanvasTexture(colorAtlas, 0)
-
-  webgl.gl.uniform1i(program.vars.colorAtlasTextureId, colorAtlasTextureId)
+  webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE0)
+  webgl.gl.uniform1i(program.vars.colorAtlasTextureId, 0)
   webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
 
   // total size of all pointers. chunk size that goes to shader
@@ -119,7 +118,7 @@ export default (webgl: WebGL2) => {
   }
 
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
-    webgl.loadCanvasTexture(colorAtlas, 0)
+    webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE0)
     webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
   }
 

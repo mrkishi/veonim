@@ -85,12 +85,8 @@ const grid_line = (e: any) => {
         fgd[fgx] = char
         fgd[fgx + 1] = c
         fgd[fgx + 2] = row
-        // TODO: this is just temp until we get hlid conversion in the shaders
-        fgd[fgx + 3] = 0.1
-        fgd[fgx + 4] = 0.2
-        fgd[fgx + 5] = 1.0
-        // fgd[fgx + 3] = hlid
-        fgx += 6
+        fgd[fgx + 3] = hlid
+        fgx += 4
 
         bgd[bgx] = c
         bgd[bgx + 1] = row

@@ -10,7 +10,7 @@ export default (webgl: WebGL2) => {
     quadVertex: VarKind.Attribute,
     charCode: VarKind.Attribute,
     cellPosition: VarKind.Attribute,
-    charColor: VarKind.Attribute,
+    hlid: VarKind.Attribute,
     canvasResolution: VarKind.Uniform,
     fontAtlasResolution: VarKind.Uniform,
     colorAtlasResolution: VarKind.Uniform,
@@ -22,13 +22,14 @@ export default (webgl: WebGL2) => {
   program.setVertexShader(v => `
     in vec2 ${v.quadVertex};
     in vec2 ${v.cellPosition};
-    in vec3 ${v.charColor};
+    in float ${v.hlid};
     in float ${v.charCode};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.fontAtlasResolution};
+    uniform vec2 ${v.colorAtlasResolution};
     uniform vec2 ${v.cellSize};
 
-    out vec4 o_glyphColor;
+    out vec2 o_colorPosition;
     out vec2 o_glyphPosition;
 
     void main() {
@@ -44,7 +45,7 @@ export default (webgl: WebGL2) => {
       vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.fontAtlasResolution};
 
-      o_glyphColor = vec4(${v.charColor}, 1);
+      o_colorPosition = vec2(${v.hlid}, 1) / ${v.colorAtlasResolution};
     }
   `)
 
@@ -52,14 +53,16 @@ export default (webgl: WebGL2) => {
     precision highp float;
 
     in vec2 o_glyphPosition;
-    in vec4 o_glyphColor;
+    in vec2 o_colorPosition;
     uniform sampler2D ${v.fontAtlasTextureId};
+    uniform sampler2D ${v.colorAtlasTextureId};
 
     out vec4 outColor;
 
     void main() {
-      vec4 color = texture(${v.fontAtlasTextureId}, o_glyphPosition);
-      outColor = color * o_glyphColor;
+      vec4 glyphColor = texture(${v.fontAtlasTextureId}, o_glyphPosition);
+      vec4 highlightColor = texture(${v.colorAtlasTextureId}, o_colorPosition);
+      outColor = glyphColor * highlightColor;
     }
   `)
 
@@ -67,21 +70,20 @@ export default (webgl: WebGL2) => {
   program.use()
 
   const fontAtlas = generateFontAtlas()
-  const fontAtlasTextureId = webgl.loadCanvasTexture(fontAtlas, 0)
   const fontAtlasWidth = Math.round(fontAtlas.width / window.devicePixelRatio)
   const fontAtlasHeight = Math.round(fontAtlas.height / window.devicePixelRatio)
 
-  webgl.gl.uniform1i(program.vars.fontAtlasTextureId, fontAtlasTextureId)
+  webgl.loadCanvasTexture(fontAtlas, webgl.gl.TEXTURE0)
+  webgl.gl.uniform1i(program.vars.fontAtlasTextureId, 0)
   webgl.gl.uniform2f(program.vars.fontAtlasResolution, fontAtlasWidth, fontAtlasHeight)
 
   const colorAtlas = generateColorLookupAtlas()
-  const colorAtlasTextureId = webgl.loadCanvasTexture(colorAtlas, 1)
-
-  webgl.gl.uniform1i(program.vars.colorAtlasTextureId, colorAtlasTextureId)
+  webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE1)
+  webgl.gl.uniform1i(program.vars.colorAtlasTextureId, 1)
   webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
 
   // total size of all pointers. chunk size that goes to shader
-  const wrenderElements = 6
+  const wrenderElements = 4
   const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
 
   const wrenderBuffer = program.setupData([{
@@ -99,9 +101,9 @@ export default (webgl: WebGL2) => {
     stride: wrenderStride,
     divisor: 1,
   }, {
-    pointer: program.vars.charColor,
+    pointer: program.vars.hlid,
     type: webgl.gl.FLOAT,
-    size: 3,
+    size: 1,
     offset: 3 * Float32Array.BYTES_PER_ELEMENT,
     stride: wrenderStride,
     divisor: 1,
@@ -147,7 +149,7 @@ export default (webgl: WebGL2) => {
   }
 
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
-    webgl.loadCanvasTexture(colorAtlas, 1)
+    webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE1)
     webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
   }
 
