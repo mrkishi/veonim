@@ -110,7 +110,6 @@ onRedraw(redrawEvents => {
 
   for (let ix = 0; ix < eventCount; ix++) {
     const ev = redrawEvents[ix]
-    console.log('redraw', ev)
     if (ev[0] === 'grid_line') grid_line(ev)
     else if (ev[0] === 'hl_attr_define') hlAttrDefine(ev)
   }

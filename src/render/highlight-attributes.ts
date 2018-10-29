@@ -60,10 +60,9 @@ export const generateColorLookupAtlas = () => {
       ui.fillRect(id, 0, 1, 1)
     }
 
-    if (hlgrp.foreground) {
-      ui.fillStyle = hlgrp.foreground
-      ui.fillRect(id, 1, 1, 1)
-    }
+    // TODO: we need default color here thanks
+    ui.fillStyle = hlgrp.foreground || '#ff0000'
+    ui.fillRect(id, 1, 1, 1)
   })
 
   return canvas

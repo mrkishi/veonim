@@ -10,8 +10,8 @@ const nutella = () => {
 
   // TODO: when we resize, do we have to redraw the scene?
   const resize = (rows: number, cols: number) => {
-    textFGRenderer.resize(rows, cols)
     textBGRenderer.resize(rows, cols)
+    textFGRenderer.resize(rows, cols)
   }
 
   const render = (foregroundElements?: number, backgroundElements?: number) => {
