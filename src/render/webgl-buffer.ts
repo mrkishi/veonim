@@ -8,7 +8,7 @@ const finetti = () => {
   }
 
   const getCell = (row: number, col: number) => {
-    const ix = col + width * row
+    const ix = (col * 2) + width * row
     const char = buffer[ix]
     const hlid = buffer[ix + 1]
     return [ char, hlid ]
@@ -16,7 +16,7 @@ const finetti = () => {
 
   // TODO: will we call this from the grid_line func or raw arr access?
   const setCell = (row: number, col: number, char: number, hlid: number) => {
-    const ix = col + width * row
+    const ix = (col * 2) + width * row
     buffer[ix] = char
     buffer[ix + 1] = hlid
   }

@@ -118,7 +118,7 @@ const grid_line = (e: any) => {
 
         bgx += 3
 
-        const bufix = col + width * row
+        const bufix = (col * 2) + width * row
         buffer[bufix] = char
         buffer[bufix + 1] = hlid
 
