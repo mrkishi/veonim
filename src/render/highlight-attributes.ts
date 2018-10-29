@@ -53,7 +53,6 @@ export const setDefaultColors = (fg: number, bg: number, sp: number) => {
   })
 
   Object.assign(defaultColors, { foreground, background, special })
-  console.log('set_default_colors', defaultColors)
 
   return true
 }

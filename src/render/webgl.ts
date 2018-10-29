@@ -3,8 +3,9 @@ import TextFG from '../render/webgl-text-fg'
 import TextBG from '../render/webgl-text-bg'
 
 const nutella = () => {
-  const foregroundGL = CreateWebGL()
-  const backgroundGL = CreateWebGL()
+  const foregroundGL = CreateWebGL({ alpha: true, preserveDrawingBuffer: true })
+  const backgroundGL = CreateWebGL({ alpha: true, preserveDrawingBuffer: true })
+
   const textFGRenderer = TextFG(foregroundGL)
   const textBGRenderer = TextBG(backgroundGL)
 
