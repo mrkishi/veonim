@@ -49,6 +49,8 @@ const grid_clear = (e: any) => {
 
 const grid_scroll = (e: any) => {
   const [ gridId, top, bottom, left, right, amount ] = e[1]
+  // TODO: can we assume left and right will always be at grid bounds?
+  // i.e left == 0 and right == grid.width
   console.log(`grid_scroll(grid: ${gridId}, top: ${top}, bottom: ${bottom}, left: ${left}, right: ${right}, amount: ${amount})`)
 }
 
@@ -62,6 +64,8 @@ const grid_line = (e: any) => {
   let activeGrid = 0
   let fgd = dummyData
   let bgd = dummyData
+  let buffer = dummyData
+  let width = 1
   // let activeWebgl: WebGLWrenderer
   // let renderBuffer = placeholderRenderBuffer
 
@@ -77,7 +81,10 @@ const grid_line = (e: any) => {
     if (gridId !== activeGrid) {
       // console.log('grid id changed: (before -> after)', activeGrid, gridId)
       // TODO: what if we have multiple active webgls... how to keep track of them
-      webgl = getWindow(gridId).webgl
+      const win = getWindow(gridId)
+      webgl = win.webgl
+      buffer = win.webglBuffer.getBuffer()
+      width = win.getWindowInfo().width
       fgd = webgl.getForegroundBuffer()
       bgd = webgl.getBackgroundBuffer()
       activeGrid = gridId
@@ -110,6 +117,11 @@ const grid_line = (e: any) => {
         bgd[bgx + 2] = hlid
 
         bgx += 3
+
+        const bufix = col + width * row
+        buffer[bufix] = char
+        buffer[bufix + 1] = hlid
+
         col++
       }
     }
