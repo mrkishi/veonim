@@ -22,12 +22,36 @@ const finetti = () => {
     buffer[ix + 3] = char
   }
 
-  const moveRegionUp = (amount: number, top: number, bottom: number, left: number, right: number) => {
+  const moveRegionUp = (lines: number, top: number, bottom: number) => {
+    console.log('mrUP', lines, top, bottom)
+    const startIndex = width * top
+    const endIndex = width * bottom
+    const offset = lines * width * 4
 
+    for (let ix = startIndex; ix < endIndex; ix++) {
+      buffer[ix - offset] = buffer[ix]
+      buffer[ix + 1 - offset] = buffer[ix + 1]
+      buffer[ix + 2 - offset] = buffer[ix + 2]
+      buffer[ix + 3 - offset] = buffer[ix + 3]
+    }
+
+    return [ startIndex - offset, endIndex - offset ]
   }
 
-  const moveRegionDown = (amount: number, top: number, bottom: number, left: number, right: number) => {
+  const moveRegionDown = (lines: number, top: number, bottom: number) => {
+    console.log('mrDOWN', lines, top, bottom)
+    const startIndex = width * top
+    const endIndex = width * bottom
+    const offset = lines * width * 4
 
+    for (let ix = startIndex; ix < endIndex; ix++) {
+      buffer[ix + offset] = buffer[ix]
+      buffer[ix + 1 + offset] = buffer[ix + 1]
+      buffer[ix + 2 + offset] = buffer[ix + 2]
+      buffer[ix + 3 + offset] = buffer[ix + 3]
+    }
+
+    return [ startIndex + offset, endIndex + offset ]
   }
 
   return {

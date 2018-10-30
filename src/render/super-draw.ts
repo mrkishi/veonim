@@ -48,10 +48,14 @@ const grid_clear = (e: any) => {
 }
 
 const grid_scroll = (e: any) => {
-  const [ gridId, top, bottom, left, right, amount ] = e[1]
-  // TODO: can we assume left and right will always be at grid bounds?
-  // i.e left == 0 and right == grid.width
-  console.log(`grid_scroll(grid: ${gridId}, top: ${top}, bottom: ${bottom}, left: ${left}, right: ${right}, amount: ${amount})`)
+  const [ gridId, top, bottom, /*left*/, /*right*/, amount ] = e[1]
+  if (gridId === 1) return
+  // we make the assumption that left & right will always be
+  // at the window edges (left == 0 && right == window.width)
+  const win = getWindow(gridId)
+  amount > 0
+    ? win.webgl.moveRegionUp(amount, top, bottom)
+    : win.webgl.moveRegionDown(-amount, top, bottom)
 }
 
 const grid_line = (e: any) => {

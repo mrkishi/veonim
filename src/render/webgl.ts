@@ -42,12 +42,28 @@ const nutella = () => {
     textFGRenderer.clear()
   }
 
+  const moveRegionUp = (lines: number, top: number, bottom: number) => {
+    const [ start, end ] = gridBuffer.moveRegionUp(lines, top, bottom)
+    // const dataSlice = gridBuffer.getBuffer().subarray(start, end)
+    textBGRenderer.renderFromBuffer(gridBuffer.getBuffer())
+    textFGRenderer.renderFromBuffer(gridBuffer.getBuffer())
+  }
+
+  const moveRegionDown = (lines: number, top: number, bottom: number) => {
+    const [ start, end ] = gridBuffer.moveRegionDown(lines, top, bottom)
+    // const dataSlice = gridBuffer.getBuffer().subarray(start, end)
+    textBGRenderer.renderFromBuffer(gridBuffer.getBuffer())
+    textFGRenderer.renderFromBuffer(gridBuffer.getBuffer())
+  }
+
   return {
     clear,
     render,
     resize,
+    moveRegionUp,
+    moveRegionDown,
     updateColorAtlas,
-    getGridBuffer: () => gridBuffer.getBuffer(),
+    getGridBuffer: gridBuffer.getBuffer,
     getBuffer: () => sharedDataBuffer,
     foregroundElement: foregroundGL.canvasElement,
     backgroundElement: backgroundGL.canvasElement,

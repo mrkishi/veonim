@@ -114,6 +114,12 @@ export default (webgl: WebGL2) => {
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / 4)
   }
 
+  const renderFromBuffer = (buffer: Float32Array) => {
+    console.log('bg: wrenbuf', buffer)
+    wrenderBuffer.setData(buffer)
+    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
+  }
+
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
     webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE0)
     webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
@@ -122,5 +128,5 @@ export default (webgl: WebGL2) => {
   const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
   const share = (buffer: Float32Array) => dataBuffer = buffer
 
-  return { clear, share, render, resize, updateColorAtlas }
+  return { clear, share, render, renderFromBuffer, resize, updateColorAtlas }
 }
