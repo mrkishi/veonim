@@ -12,7 +12,8 @@ const finetti = () => {
     return buffer.slice(ix, ix + 3)
   }
 
-  // TODO: will we call this from the grid_line func or raw arr access?
+  // TODO: who gunna use this? decided that grid_line
+  // will not call this
   const setCell = (row: number, col: number, char: number, hlid: number) => {
     const ix = (col * 4) + width * row
     buffer[ix] = col
@@ -21,10 +22,21 @@ const finetti = () => {
     buffer[ix + 3] = char
   }
 
+  // TODO: rename this file to webgl-grid-buffer
+  const moveRegionUp = (amount: number, top: number, bottom: number, left: number, right: number) => {
+
+  }
+
+  const moveRegionDown = (amount: number, top: number, bottom: number, left: number, right: number) => {
+
+  }
+
   return {
     resize,
     getCell,
     setCell,
+    moveRegionUp,
+    moveRegionDown,
     getBuffer: () => buffer,
   }
 }
