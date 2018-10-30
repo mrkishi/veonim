@@ -1,4 +1,4 @@
-import CreateWebGLBuffer from '../render/webgl-buffer'
+import CreateWebGLBuffer from '../render/webgl-grid-buffer'
 import CreateWebGL from '../render/webgl-utils'
 import TextFG from '../render/webgl-text-fg'
 import TextBG from '../render/webgl-text-bg'

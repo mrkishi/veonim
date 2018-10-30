@@ -22,7 +22,6 @@ const finetti = () => {
     buffer[ix + 3] = char
   }
 
-  // TODO: rename this file to webgl-grid-buffer
   const moveRegionUp = (amount: number, top: number, bottom: number, left: number, right: number) => {
 
   }
