@@ -47,7 +47,7 @@ const nutella = () => {
     render,
     resize,
     updateColorAtlas,
-    getGridBuffer: () => gridBuffer,
+    getGridBuffer: () => gridBuffer.getBuffer(),
     getBuffer: () => sharedDataBuffer,
     foregroundElement: foregroundGL.canvasElement,
     backgroundElement: backgroundGL.canvasElement,

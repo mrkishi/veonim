@@ -1,6 +1,5 @@
 import CreateWindowNameplate, { NameplateState } from '../core/window-nameplate'
 import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
-import CreateWebGLBuffer, { WebGLBuffer } from '../render/webgl-buffer'
 import CreateWindowGrid, { WindowGrid } from '../core/window-grid'
 import CreateWebGL, { WebGLWrenderer } from '../render/webgl'
 import { makel } from '../ui/vanilla'

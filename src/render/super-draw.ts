@@ -81,9 +81,9 @@ const grid_line = (e: any) => {
       // TODO: what if we have multiple active webgls... how to keep track of them
       const win = getWindow(gridId)
       webgl = win.webgl
-      // gridBuffer = win.webglBuffer.getBuffer()
       width = win.getWindowInfo().width
-      buffer = webgl.getBuffer(),
+      buffer = webgl.getBuffer()
+      gridBuffer = webgl.getGridBuffer()
       activeGrid = gridId
     }
     let col = startCol
@@ -109,9 +109,12 @@ const grid_line = (e: any) => {
         buffer[rx + 3] = char
         rx += 4
 
-        // const bufix = (col * 2) + width * row
-        // gridBuffer[bufix] = char
-        // gridBuffer[bufix + 1] = hlid
+        // TODO: could maybe deffer this to next frame?
+        const bufix = (col * 4) + width * row
+        gridBuffer[bufix] = col
+        gridBuffer[bufix + 1] = row
+        gridBuffer[bufix + 2] = hlid
+        gridBuffer[bufix + 3] = char
 
         col++
       }
@@ -119,7 +122,7 @@ const grid_line = (e: any) => {
   }
 
   console.time('webgl')
-  webgl.render(fgx, bgx)
+  webgl.render(rx)
   console.timeEnd('webgl')
 }
 
