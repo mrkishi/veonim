@@ -25,17 +25,18 @@ const finetti = () => {
   const moveRegionUp = (lines: number, top: number, bottom: number) => {
     console.log('mrUP', lines, top, bottom)
     const startIndex = width * top
-    const endIndex = width * bottom
-    const offset = lines * width * 4
+    const offset = lines * width
+    const sourceIndex = startIndex + offset
+    const endIndex = (width * bottom + (width * 4) - sourceIndex)
 
     for (let ix = startIndex; ix < endIndex; ix++) {
-      buffer[ix - offset] = buffer[ix]
-      buffer[ix + 1 - offset] = buffer[ix + 1]
-      buffer[ix + 2 - offset] = buffer[ix + 2]
-      buffer[ix + 3 - offset] = buffer[ix + 3]
+      buffer[ix] = buffer[ix + offset]
+      buffer[ix + 1] = buffer[ix + 1 + offset]
+      buffer[ix + 2] = buffer[ix + 2 + offset]
+      buffer[ix + 3] = buffer[ix + 3 + offset]
     }
 
-    return [ startIndex - offset, endIndex - offset ]
+    return [ startIndex, endIndex ]
   }
 
   const moveRegionDown = (lines: number, top: number, bottom: number) => {
