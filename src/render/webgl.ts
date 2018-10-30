@@ -27,9 +27,9 @@ const nutella = () => {
     textFGRenderer.resize(rows, cols)
   }
 
-  const render = (foregroundElements?: number, backgroundElements?: number) => {
-    textBGRenderer.render(backgroundElements)
-    textFGRenderer.render(foregroundElements)
+  const render = (elements?: number) => {
+    textBGRenderer.render(elements)
+    textFGRenderer.render(elements)
   }
 
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {

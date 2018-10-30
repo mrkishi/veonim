@@ -1,13 +1,6 @@
 const finetti = () => {
   let buffer = new Float32Array()
   let width = 0
-  // TODO: need to include row + col in the array
-  // since we are gonna send to this to the GPU
-  // also this whole thing needs to be duplicated for
-  // the background/foreground webgls
-  //
-  // is there no way to share the same buffer data between
-  // webgl contexts?
 
   const resize = (rows: number, cols: number) => {
     width = cols
@@ -16,16 +9,16 @@ const finetti = () => {
 
   const getCell = (row: number, col: number) => {
     const ix = (col * 4) + width * row
-    const char = buffer[ix]
-    const hlid = buffer[ix + 3]
-    return [ char, hlid ]
+    return buffer.slice(ix, ix + 3)
   }
 
   // TODO: will we call this from the grid_line func or raw arr access?
   const setCell = (row: number, col: number, char: number, hlid: number) => {
     const ix = (col * 4) + width * row
-    buffer[ix] = char
-    buffer[ix + 3] = hlid
+    buffer[ix] = col
+    buffer[ix + 1] = row
+    buffer[ix + 2] = hlid
+    buffer[ix + 3] = char
   }
 
   return {

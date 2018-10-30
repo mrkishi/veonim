@@ -85,8 +85,7 @@ export default (webgl: WebGL2) => {
   webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
 
   // total size of all pointers. chunk size that goes to shader
-  const wrenderElements = 4
-  const wrenderStride = wrenderElements * Float32Array.BYTES_PER_ELEMENT
+  const wrenderStride = 4 * Float32Array.BYTES_PER_ELEMENT
 
   const wrenderBuffer = program.setupData([{
     pointer: program.vars.charCode,
@@ -144,7 +143,7 @@ export default (webgl: WebGL2) => {
       ? dataBuffer.subarray(0, count)
       : dataBuffer
     wrenderBuffer.setData(dataSlice)
-    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / wrenderElements)
+    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / 4)
   }
 
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
