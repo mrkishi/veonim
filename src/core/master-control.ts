@@ -4,6 +4,7 @@ import { NotifyKind, notify as notifyUI } from '../ui/notifications'
 import CreateTransport from '../messaging/transport'
 import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
+import getEnvVars from '../support/shell-env'
 import { Neovim } from '../support/binaries'
 import { ChildProcess } from 'child_process'
 import SetupRPC from '../messaging/rpc'
@@ -47,9 +48,10 @@ const clientSize = {
 let onExitFn: ExitFn = () => {}
 const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
+const envVarsRequest = getEnvVars()
 const { encoder, decoder } = CreateTransport()
 
-const spawnVimInstance = () => Neovim.run([
+const spawnVimInstance = async () => Neovim.run([
   '--cmd', `${startupFuncs()} | ${startupCmds}`,
   // noop commands. we parse plugins & extensions directly from the vimrc file text
   '--cmd', `com! -nargs=* Plug 1`,
@@ -59,14 +61,14 @@ const spawnVimInstance = () => Neovim.run([
 ], {
   cwd: homedir(),
   env: {
-    ...process.env,
+    ...await envVarsRequest,
     VIM: Neovim.path,
     VIMRUNTIME: Neovim.runtime,
   },
 })
 
-const createNewVimInstance = (): number => {
-  const proc = spawnVimInstance()
+const createNewVimInstance = async (): Promise<number> => {
+  const proc = await spawnVimInstance()
   const id = ids.vim.next()
 
   vimInstances.set(id, { id, proc, attached: false })
@@ -99,7 +101,7 @@ export const switchTo = (id: number) => {
 }
 
 export const create = async ({ dir } = {} as { dir?: string }): Promise<NewVimResponse> => {
-  const id = createNewVimInstance()
+  const id = await createNewVimInstance()
   switchTo(id)
   const errors = await unblock()
 
