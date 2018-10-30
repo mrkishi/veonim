@@ -59,12 +59,10 @@ const grid_line = (e: any) => {
   const size = e.length
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
-  let fgx = 0
-  let bgx = 0
+  let rx = 0
   let activeGrid = 0
-  let fgd = dummyData
-  let bgd = dummyData
   let buffer = dummyData
+  let gridBuffer = dummyData
   let width = 1
   // let activeWebgl: WebGLWrenderer
   // let renderBuffer = placeholderRenderBuffer
@@ -83,10 +81,9 @@ const grid_line = (e: any) => {
       // TODO: what if we have multiple active webgls... how to keep track of them
       const win = getWindow(gridId)
       webgl = win.webgl
-      buffer = win.webglBuffer.getBuffer()
+      // gridBuffer = win.webglBuffer.getBuffer()
       width = win.getWindowInfo().width
-      fgd = webgl.getForegroundBuffer()
-      bgd = webgl.getBackgroundBuffer()
+      buffer = webgl.getBuffer(),
       activeGrid = gridId
     }
     let col = startCol
@@ -106,21 +103,15 @@ const grid_line = (e: any) => {
       hlid = data[1] || hlid
 
       for (let r = 0; r < repeats; r++) {
-        fgd[fgx] = char
-        fgd[fgx + 1] = col
-        fgd[fgx + 2] = row
-        fgd[fgx + 3] = hlid
-        fgx += 4
+        buffer[rx] = col
+        buffer[rx + 1] = row
+        buffer[rx + 2] = hlid
+        buffer[rx + 3] = char
+        rx += 4
 
-        bgd[bgx] = col
-        bgd[bgx + 1] = row
-        bgd[bgx + 2] = hlid
-
-        bgx += 3
-
-        const bufix = (col * 2) + width * row
-        buffer[bufix] = char
-        buffer[bufix + 1] = hlid
+        // const bufix = (col * 2) + width * row
+        // gridBuffer[bufix] = char
+        // gridBuffer[bufix + 1] = hlid
 
         col++
       }
