@@ -13,7 +13,6 @@ if you are feeling brave, maybe checkout the [User Guide](docs/readme.md)
 ## coming soon
 - built-in debugger via debug adapter protocol & vscode extensions
 - advanced neovim-native window management
-- more language support + features
 - vscode extension api <-> neovim/veonim api bridge
 
 ## features
