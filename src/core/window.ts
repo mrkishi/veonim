@@ -22,7 +22,6 @@ interface GridStyle {
 export interface Window {
   grid: WindowGrid
   webgl: WebGLWrenderer
-  webglBuffer: WebGLBuffer
   canvas: WindowCanvas
   element: HTMLElement
   getWindowInfo(): WindowInfo
@@ -38,7 +37,6 @@ export interface Window {
 export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
   const grid = CreateWindowGrid()
-  const webglBuffer = CreateWebGLBuffer()
 
   const container = makel({
     flexFlow: 'column',
@@ -94,7 +92,6 @@ export default () => {
   const api = {
     get grid() { return grid },
     get webgl() { return webgl },
-    get webglBuffer() { return webglBuffer },
     get canvas() { return canvas.api },
     get element() { return container },
   } as Window
@@ -102,7 +99,6 @@ export default () => {
   api.resizeWindow = (width, height) => {
     webgl.resize(height, width)
     canvas.api.resize(height, width)
-    webglBuffer.resize(height, width)
     grid.resize(height, width)
   }
 
