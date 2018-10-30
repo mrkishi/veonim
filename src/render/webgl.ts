@@ -1,3 +1,4 @@
+import CreateWebGLBuffer from '../render/webgl-buffer'
 import CreateWebGL from '../render/webgl-utils'
 import TextFG from '../render/webgl-text-fg'
 import TextBG from '../render/webgl-text-bg'
@@ -8,9 +9,20 @@ const nutella = () => {
 
   const textFGRenderer = TextFG(foregroundGL)
   const textBGRenderer = TextBG(backgroundGL)
+  const sharedDataBuffer = new Float32Array()
+  const gridBuffer = CreateWebGLBuffer()
+
+  textBGRenderer.share(sharedDataBuffer)
+  textFGRenderer.share(sharedDataBuffer)
 
   // TODO: when we resize, do we have to redraw the scene?
+  // yes and no. it squishes all the pixels together as if you
+  // were to resize <-width-> in potatoshoppe
   const resize = (rows: number, cols: number) => {
+    const resizedBuffer = new Float32Array(rows * cols * 4)
+    textBGRenderer.share(resizedBuffer)
+    textFGRenderer.share(resizedBuffer)
+    gridBuffer.resize(rows, cols)
     textBGRenderer.resize(rows, cols)
     textFGRenderer.resize(rows, cols)
   }
@@ -35,8 +47,8 @@ const nutella = () => {
     render,
     resize,
     updateColorAtlas,
-    getForegroundBuffer: textFGRenderer.getDataBuffer,
-    getBackgroundBuffer: textBGRenderer.getDataBuffer,
+    getGridBuffer: () => gridBuffer,
+    getBuffer: () => sharedDataBuffer,
     foregroundElement: foregroundGL.canvasElement,
     backgroundElement: backgroundGL.canvasElement,
   }
