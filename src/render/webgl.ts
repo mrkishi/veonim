@@ -9,8 +9,8 @@ const nutella = () => {
 
   const textFGRenderer = TextFG(foregroundGL)
   const textBGRenderer = TextBG(backgroundGL)
-  const sharedDataBuffer = new Float32Array()
   const gridBuffer = CreateWebGLBuffer()
+  let sharedDataBuffer = new Float32Array()
 
   textBGRenderer.share(sharedDataBuffer)
   textFGRenderer.share(sharedDataBuffer)
@@ -19,9 +19,9 @@ const nutella = () => {
   // yes and no. it squishes all the pixels together as if you
   // were to resize <-width-> in potatoshoppe
   const resize = (rows: number, cols: number) => {
-    const resizedBuffer = new Float32Array(rows * cols * 4)
-    textBGRenderer.share(resizedBuffer)
-    textFGRenderer.share(resizedBuffer)
+    sharedDataBuffer = new Float32Array(rows * cols * 4)
+    textBGRenderer.share(sharedDataBuffer)
+    textFGRenderer.share(sharedDataBuffer)
     gridBuffer.resize(rows, cols)
     textBGRenderer.resize(rows, cols)
     textFGRenderer.resize(rows, cols)

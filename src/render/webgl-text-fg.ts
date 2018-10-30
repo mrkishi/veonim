@@ -88,21 +88,21 @@ export default (webgl: WebGL2) => {
   const wrenderStride = 4 * Float32Array.BYTES_PER_ELEMENT
 
   const wrenderBuffer = program.setupData([{
-    pointer: program.vars.charCode,
+    pointer: program.vars.cellPosition,
     type: webgl.gl.FLOAT,
-    size: 1,
+    size: 2,
     offset: 0,
     stride: wrenderStride,
     divisor: 1,
   }, {
-    pointer: program.vars.cellPosition,
+    pointer: program.vars.hlid,
     type: webgl.gl.FLOAT,
-    size: 2,
-    offset: Float32Array.BYTES_PER_ELEMENT,
+    size: 1,
+    offset: 2 * Float32Array.BYTES_PER_ELEMENT,
     stride: wrenderStride,
     divisor: 1,
   }, {
-    pointer: program.vars.hlid,
+    pointer: program.vars.charCode,
     type: webgl.gl.FLOAT,
     size: 1,
     offset: 3 * Float32Array.BYTES_PER_ELEMENT,
