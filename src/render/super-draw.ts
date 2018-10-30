@@ -117,7 +117,7 @@ const grid_line = (e: any) => {
         rx += 4
 
         // TODO: could maybe deffer this to next frame?
-        const bufix = (col * 4) + width * row
+        const bufix = (col * 4) + width * row * 4
         gridBuffer[bufix] = col
         gridBuffer[bufix + 1] = row
         gridBuffer[bufix + 2] = hlid

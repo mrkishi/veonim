@@ -8,14 +8,14 @@ const finetti = () => {
   }
 
   const getCell = (row: number, col: number) => {
-    const ix = (col * 4) + width * row
-    return buffer.slice(ix, ix + 3)
+    const ix = (col * 4) + width * row * 4
+    return buffer.slice(ix, ix + 4)
   }
 
   // TODO: who gunna use this? decided that grid_line
   // will not call this
   const setCell = (row: number, col: number, char: number, hlid: number) => {
-    const ix = (col * 4) + width * row
+    const ix = (col * 4) + width * row * 4
     buffer[ix] = col
     buffer[ix + 1] = row
     buffer[ix + 2] = hlid
@@ -24,14 +24,14 @@ const finetti = () => {
 
   const moveRegionUp = (lines: number, top: number, bottom: number) => {
     console.log('mrUP', lines, top, bottom)
-    const startIndex = width * top
-    const offset = lines * width
+    const startIndex = width * top * 4
+    const offset = lines * width * 4
     const sourceIndex = startIndex + offset
-    const endIndex = (width * bottom + (width * 4) - sourceIndex)
+    const endIndex = (width * bottom * 4 + (width * 4) - sourceIndex)
 
-    for (let ix = startIndex; ix < endIndex; ix++) {
+    for (let ix = startIndex; ix < endIndex; ix+=4) {
       buffer[ix] = buffer[ix + offset]
-      buffer[ix + 1] = buffer[ix + 1 + offset]
+      buffer[ix + 1] = buffer[ix + 1 + offset] - lines
       buffer[ix + 2] = buffer[ix + 2 + offset]
       buffer[ix + 3] = buffer[ix + 3 + offset]
     }
