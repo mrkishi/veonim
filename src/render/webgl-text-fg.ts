@@ -3,8 +3,10 @@ import { generateColorLookupAtlas } from '../render/highlight-attributes'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
+
 export default (webgl: WebGL2) => {
   const size = { rows: 0, cols: 0 }
+  let dataBuffer = new Float32Array()
 
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
@@ -124,8 +126,6 @@ export default (webgl: WebGL2) => {
     0, 0,
   ]))
 
-  let dataBuffer = new Float32Array()
-
   webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
 
   const resize = (rows: number, cols: number) => {
@@ -136,7 +136,6 @@ export default (webgl: WebGL2) => {
     const height = rows * cc.cell.height
 
     webgl.resize(width, height)
-    dataBuffer = new Float32Array(rows * cols * wrenderElements)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
@@ -154,12 +153,7 @@ export default (webgl: WebGL2) => {
   }
 
   const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
+  const share = (buffer: Float32Array) => dataBuffer = buffer
 
-  return {
-    clear,
-    render,
-    resize,
-    updateColorAtlas,
-    getDataBuffer: () => dataBuffer,
-  }
+  return { clear, share, render, resize, updateColorAtlas }
 }
