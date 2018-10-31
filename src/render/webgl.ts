@@ -43,10 +43,10 @@ const nutella = () => {
   }
 
   const moveRegionUp = (lines: number, top: number, bottom: number) => {
-    const [ start, end ] = gridBuffer.moveRegionUp(lines, top, bottom)
-    const dataSlice = gridBuffer.getBuffer().subarray(start, end)
-    textBGRenderer.renderFromBuffer(dataSlice)
-    textFGRenderer.renderFromBuffer(dataSlice)
+    gridBuffer.moveRegionUp(lines, top, bottom)
+    const buf = gridBuffer.getBuffer()
+    textBGRenderer.renderFromBuffer(buf)
+    textFGRenderer.renderFromBuffer(buf)
   }
 
   const moveRegionDown = (lines: number, top: number, bottom: number) => {

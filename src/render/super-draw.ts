@@ -53,6 +53,7 @@ const grid_scroll = (e: any) => {
   // we make the assumption that left & right will always be
   // at the window edges (left == 0 && right == window.width)
   const win = getWindow(gridId)
+  win.webgl.clear()
   amount > 0
     ? win.webgl.moveRegionUp(amount, top, bottom)
     : win.webgl.moveRegionDown(-amount, top, bottom)

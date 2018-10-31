@@ -147,7 +147,6 @@ export default (webgl: WebGL2) => {
   }
 
   const renderFromBuffer = (buffer: Float32Array) => {
-    console.log('fg: wrenbuf', buffer)
     wrenderBuffer.setData(buffer)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
   }
