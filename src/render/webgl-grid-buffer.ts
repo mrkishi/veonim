@@ -5,6 +5,24 @@ const finetti = () => {
   const resize = (rows: number, cols: number) => {
     width = cols
     buffer = new Float32Array(rows * cols * 4)
+    const size = buffer.length
+
+    // this approach of incrementing the col/row seems to be
+    // about 2x faster than doing interger & mod quick maffs
+    // just for ref:
+    // col = (ix / 4) % width
+    // row = ~~((ix / 4) / width)
+    let col = 0
+    let row = 0
+    for (let ix = 0; ix < size; ix += 4) {
+      buffer[ix] = col
+      buffer[ix + 1] = row
+      col++
+      if (col >= width) {
+        row++
+        col = 0
+      }
+    }
   }
 
   const getCell = (row: number, col: number) => {
@@ -44,7 +62,7 @@ const finetti = () => {
     const bottomIndex = width * bottom * 4 + (width * 4)
     const endIndex = bottomIndex - offset
 
-    for (let ix = endIndex; ix > startIndex; ix -= 4) {
+    for (let ix = endIndex; ix >= startIndex; ix -= 4) {
       buffer[ix + offset] = buffer[ix]
       buffer[ix + 1 + offset] = buffer[ix + 1] + lines
       buffer[ix + 2 + offset] = buffer[ix + 2]

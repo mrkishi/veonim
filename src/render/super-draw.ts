@@ -87,6 +87,7 @@ const grid_line = (e: any) => {
       if (activeGrid !== 0) console.warn('grid_line: switch grid more than once! lolwut', gridId)
       const win = getWindow(gridId)
       webgl = win.webgl
+      // TODO: getting width here is kinda expensive. improve.
       width = win.getWindowInfo().width
       buffer = webgl.getBuffer()
       gridBuffer = webgl.getGridBuffer()
