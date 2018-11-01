@@ -69,8 +69,7 @@ const grid_line = (e: any) => {
   let buffer = dummyData
   let gridBuffer = dummyData
   let width = 1
-  // let activeWebgl: WebGLWrenderer
-  // let renderBuffer = placeholderRenderBuffer
+  let col = 0
 
   // first item in the event arr is the event name.
   // we skip that because it's cool to do that
@@ -84,9 +83,8 @@ const grid_line = (e: any) => {
     if (gridId === 1) continue
 
     if (gridId !== activeGrid) {
-      if (activeGrid !== 0) console.warn('grid_line: switch grid more than once! lolwut')
-      // console.log('grid id changed: (before -> after)', activeGrid, gridId)
       // TODO: what if we have multiple active webgls... how to keep track of them
+      if (activeGrid !== 0) console.warn('grid_line: switch grid more than once! lolwut', gridId)
       const win = getWindow(gridId)
       webgl = win.webgl
       width = win.getWindowInfo().width
@@ -94,7 +92,8 @@ const grid_line = (e: any) => {
       gridBuffer = webgl.getGridBuffer()
       activeGrid = gridId
     }
-    let col = startCol
+    hlid = 0
+    col = startCol
     const charDataSize = charData.length
 
     // TODO: if char is not a number, we need to use the old canvas
