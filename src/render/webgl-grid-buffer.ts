@@ -27,7 +27,8 @@ const finetti = () => {
     const offset = lines * width * 4
     const endTargetIndex = width * bottom * 4 + (width * 4)
     const endIndex = endTargetIndex - startIndex + offset
-    const startTargetIndex = endIndex - (width * 4)
+    // const startTargetIndex = endIndex - (width * 4)
+    const startTargetIndex = endIndex + 5
 
     for (let ix = startIndex; ix < endIndex; ix += 4) {
       buffer[ix] = buffer[ix + offset]
@@ -36,26 +37,27 @@ const finetti = () => {
       buffer[ix + 3] = buffer[ix + 3 + offset]
     }
 
+    // TODO: yo can we combine this with the other for loop?
     for (let ix = startTargetIndex; ix < endTargetIndex; ix += 4) {
       buffer[ix + 2] = 0
       buffer[ix + 3] = 32
     }
   }
 
+  // TODO: this kinda works but not really
   const moveRegionDown = (lines: number, top: number, bottom: number) => {
-    console.log('mrDOWN', lines, top, bottom)
-    const startIndex = width * top
-    const endIndex = width * bottom
+    const startIndex = width * top * 4
     const offset = lines * width * 4
+    const endIndex = startIndex + offset
 
-    for (let ix = startIndex; ix < endIndex; ix++) {
+    for (let ix = startIndex; ix < endIndex; ix += 4) {
       buffer[ix + offset] = buffer[ix]
-      buffer[ix + 1 + offset] = buffer[ix + 1]
+      buffer[ix + 1 + offset] = buffer[ix + 1] + lines
       buffer[ix + 2 + offset] = buffer[ix + 2]
       buffer[ix + 3 + offset] = buffer[ix + 3]
+      buffer[ix + 2] = 0
+      buffer[ix + 3] = 32
     }
-
-    return [ startIndex + offset, endIndex + offset ]
   }
 
   return {
