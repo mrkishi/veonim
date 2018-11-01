@@ -25,22 +25,16 @@ const finetti = () => {
   const moveRegionUp = (lines: number, top: number, bottom: number) => {
     const startIndex = width * top * 4
     const offset = lines * width * 4
-    const endTargetIndex = width * bottom * 4 + (width * 4)
-    const endIndex = endTargetIndex - startIndex + offset
-    // const startTargetIndex = endIndex - (width * 4)
-    const startTargetIndex = endIndex + 5
+    const bottomIndex = width * bottom * 4 + (width * 4)
+    const endIndex = bottomIndex - startIndex + offset
 
     for (let ix = startIndex; ix < endIndex; ix += 4) {
       buffer[ix] = buffer[ix + offset]
       buffer[ix + 1] = buffer[ix + 1 + offset] - lines
       buffer[ix + 2] = buffer[ix + 2 + offset]
       buffer[ix + 3] = buffer[ix + 3 + offset]
-    }
-
-    // TODO: yo can we combine this with the other for loop?
-    for (let ix = startTargetIndex; ix < endTargetIndex; ix += 4) {
-      buffer[ix + 2] = 0
-      buffer[ix + 3] = 32
+      buffer[ix + 2 + offset] = 0
+      buffer[ix + 3 + offset] = 32
     }
   }
 
