@@ -28,7 +28,7 @@ const finetti = () => {
     const bottomIndex = width * bottom * 4 + (width * 4)
     const endIndex = bottomIndex - startIndex + offset
 
-    for (let ix = startIndex; ix < endIndex; ix += 4) {
+    for (let ix = startIndex; ix <= endIndex; ix += 4) {
       buffer[ix] = buffer[ix + offset]
       buffer[ix + 1] = buffer[ix + 1 + offset] - lines
       buffer[ix + 2] = buffer[ix + 2 + offset]
@@ -38,13 +38,13 @@ const finetti = () => {
     }
   }
 
-  // TODO: this kinda works but not really
   const moveRegionDown = (lines: number, top: number, bottom: number) => {
     const startIndex = width * top * 4
     const offset = lines * width * 4
-    const endIndex = startIndex + offset
+    const bottomIndex = width * bottom * 4 + (width * 4)
+    const endIndex = bottomIndex - offset
 
-    for (let ix = startIndex; ix < endIndex; ix += 4) {
+    for (let ix = endIndex; ix > startIndex; ix -= 4) {
       buffer[ix + offset] = buffer[ix]
       buffer[ix + 1 + offset] = buffer[ix + 1] + lines
       buffer[ix + 2 + offset] = buffer[ix + 2]
