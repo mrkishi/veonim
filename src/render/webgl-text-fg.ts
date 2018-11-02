@@ -3,7 +3,6 @@ import { generateColorLookupAtlas } from '../render/highlight-attributes'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
-
 export default (webgl: WebGL2) => {
   const size = { rows: 0, cols: 0 }
   let dataBuffer = new Float32Array()
