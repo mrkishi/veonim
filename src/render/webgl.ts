@@ -71,4 +71,4 @@ const nutella = () => {
 }
 
 export default nutella
-export type WebGLWrenderer = ReturnType<typeof nutella>
+export type WebGLRenderer = ReturnType<typeof nutella>

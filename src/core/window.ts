@@ -1,7 +1,6 @@
 import CreateWindowNameplate, { NameplateState } from '../core/window-nameplate'
-import CreateWindowCanvas, { WindowCanvas } from '../core/window-canvas'
-import CreateWindowGrid, { WindowGrid } from '../core/window-grid'
-import CreateWebGL, { WebGLWrenderer } from '../render/webgl'
+import CreateCanvasRenderer, { CanvasRenderer } from '../render/canvas'
+import CreateWebGLRenderer, { WebGLRenderer } from '../render/webgl'
 import { makel } from '../ui/vanilla'
 
 export interface WindowInfo {
@@ -19,9 +18,8 @@ interface GridStyle {
 }
 
 export interface Window {
-  grid: WindowGrid
-  webgl: WebGLWrenderer
-  canvas: WindowCanvas
+  webgl: WebGLRenderer
+  canvas: CanvasRenderer
   element: HTMLElement
   getWindowInfo(): WindowInfo
   setWindowInfo(info: WindowInfo): void
@@ -35,7 +33,6 @@ export interface Window {
 
 export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
-  const grid = CreateWindowGrid()
 
   const container = makel({
     flexFlow: 'column',
@@ -53,8 +50,8 @@ export default () => {
   })
 
   const nameplate = CreateWindowNameplate()
-  const canvas = CreateWindowCanvas()
-  const webgl = CreateWebGL()
+  const webgl = CreateWebGLRenderer()
+  const canvas = CreateCanvasRenderer()
 
   overlay.setAttribute('wat', 'overlay')
   content.setAttribute('wat', 'content')
@@ -79,8 +76,6 @@ export default () => {
   })
 
   content.appendChild(overlay)
-  // TODO: canvas only for unicode glyphs
-  // no need for canvas background, just use alpha and let compositor blend!
   content.appendChild(canvas.element)
   content.appendChild(webgl.backgroundElement)
   content.appendChild(webgl.foregroundElement)
@@ -89,16 +84,14 @@ export default () => {
   container.appendChild(content)
 
   const api = {
-    get grid() { return grid },
     get webgl() { return webgl },
-    get canvas() { return canvas.api },
+    get canvas() { return canvas },
     get element() { return container },
   } as Window
 
   api.resizeWindow = (width, height) => {
     webgl.resize(height, width)
-    canvas.api.resize(height, width)
-    grid.resize(height, width)
+    canvas.resize(height, width)
   }
 
   api.setWindowInfo = info => {
