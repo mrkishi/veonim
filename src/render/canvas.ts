@@ -1,3 +1,4 @@
+import { getHighlight } from '../render/highlight-attributes'
 import CreateCanvasBuffer from '../render/canvas-grid-buffer'
 import { cell, font, pad } from '../core/canvas-container'
 import nvim from '../core/neovim'

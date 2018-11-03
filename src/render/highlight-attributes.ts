@@ -77,6 +77,8 @@ export const addHighlight = (id: number, attr: Attrs, info: any) => {
   })
 }
 
+export const getHighlight = (id: number) => highlights.get(id)
+
 export const generateColorLookupAtlas = () => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
