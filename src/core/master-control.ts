@@ -9,7 +9,7 @@ import { ChildProcess } from 'child_process'
 import SetupRPC from '../messaging/rpc'
 import { Color } from '../neovim/types'
 import { homedir } from 'os'
-import { decode } from '../render/super-msgpack'
+import { decode } from '../render/msgpack-decode'
 import '../render/super-draw'
 
 type RedrawFn = (m: any[]) => void

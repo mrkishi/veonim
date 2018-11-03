@@ -1,6 +1,6 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getWindow, getAllWindows } from '../core/windows2'
-import { onRedraw } from '../render/super-msgpack'
+import { onRedraw } from '../render/msgpack-decode'
 import { WebGLWrenderer } from '../render/webgl'
 
 // TODO: yeha so i tihnkk we need to have two buffers.
