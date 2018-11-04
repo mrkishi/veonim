@@ -47,10 +47,9 @@ const lindt = () => {
     ui.fillRect(0, 0, canvas.width, canvas.height)
   }
 
-  const setColor = (color: string) => ui.fillStyle = color
   const clear = () => ui.fillRect(0, 0, canvas.width, canvas.height)
 
-  const fillText = (char: string, col: number, row: number) => {
+  const fillText = (col: number, row: number, char: string) => {
     const { height, width } = cell
 
     // ui.fillText(char, px.col.x(col), px.row.y(row) + cell.padding, /*maxCharWidth*/)
@@ -62,13 +61,41 @@ const lindt = () => {
     ui.restore()
   }
 
-  const fillRect = (col: number, row: number, width = 0, height = 0) => {
-    ui.fillRect(px.col.x(col), px.row.y(row), px.col.width(width), px.row.height(height))
+  const clearRect = (col: number, row: number, width = 1, height = 1) => {
+    ui.clearRect(px.col.x(col), px.row.y(row), px.col.width(width), px.row.height(height))
+  }
+
+  const render = (buffer: any[]) => {
+    const size = buffer.length
+
+    for (let ix = 0; ix < size; ix++) {
+      const [ col, row, hlid, char, repeat ] = buffer[ix]
+      const hlgrp = getHighlight(hlid)
+      const defaultColor = getHighlight(0)
+      if (!hlgrp || !defaultColor) throw new Error(`canvas render no highlight group found for hlid: ${hlid}`)
+
+      clearRect(col, row, repeat)
+      if (char === ' ') return
+
+      const defColor = hlgrp.reverse
+        ? defaultColor.background as string
+        : defaultColor.foreground as string
+
+      ui.fillStyle = hlgrp.foreground || defColor
+
+      for (let xx = 0; xx < repeat; xx++) {
+        fillText(col, row, char)
+      }
+    }
+
+    // TODO: RAF set grid buffer
+    // buffer.setCell
+
   }
 
   // TODO: move region
   // TODO: underline?
-  return { element: canvas, resize, setColor, clear, fillText, fillRect }
+  return { element: canvas, resize, clear, render }
 }
 
 export default lindt
