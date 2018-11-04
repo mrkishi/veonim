@@ -88,9 +88,19 @@ const lindt = () => {
       }
     }
 
-    // TODO: RAF set grid buffer
-    // buffer.setCell
+    requestAnimationFrame(() => {
+      const buf = gridBuffer.getBuffer()
+      let bufix = 0
 
+      for (let ix = 0; ix < size; ix++) {
+        buf[bufix] = buffer[ix]
+        buf[bufix + 1] = buffer[ix + 1]
+        buf[bufix + 2] = buffer[ix + 2]
+        buf[bufix + 3] = buffer[ix + 3]
+        buf[bufix + 4] = buffer[ix + 4]
+        bufix += 5
+      }
+    })
   }
 
   // TODO: move region
