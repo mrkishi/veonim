@@ -124,6 +124,7 @@ const grid_line = (e: any) => {
 
       // TODO: perf test if this is an expensive op
       if (typeof char === 'string') {
+        console.log('unicode!:', char)
         if (!canvasBuffer) canvasBuffer = []
 
         canvasBuffer[cx] = col

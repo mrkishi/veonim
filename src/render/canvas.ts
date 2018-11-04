@@ -47,7 +47,7 @@ const lindt = () => {
     ui.fillRect(0, 0, canvas.width, canvas.height)
   }
 
-  const clear = () => ui.fillRect(0, 0, canvas.width, canvas.height)
+  const clear = () => ui.clearRect(0, 0, canvas.width, canvas.height)
 
   const fillText = (col: number, row: number, char: string) => {
     const { height, width } = cell
@@ -59,6 +59,7 @@ const lindt = () => {
     ui.beginPath()
     ui.rect(x, y, width, height)
     ui.clip()
+    // TODO: maxWidth setting? for unicode to scale down? otherwise will be clipped
     ui.fillText(char, x, y)
     ui.restore()
   }
@@ -81,7 +82,7 @@ const lindt = () => {
       const defaultColor = getHighlight(0)
       if (!hlgrp || !defaultColor) throw new Error(`canvas render no highlight group found for hlid: ${hlid}`)
 
-      // clearRect(col, row, repeat)
+      clearRect(col, row, repeat)
       if (char === ' ') return
 
       const defColor = hlgrp.reverse
