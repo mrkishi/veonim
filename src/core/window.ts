@@ -41,7 +41,9 @@ export default () => {
   })
 
   const content = makel({
-    display: 'flex'
+    display: 'flex',
+    flex: 1,
+    background: 'var(--background)',
   })
 
   const overlay = makel({

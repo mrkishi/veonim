@@ -31,8 +31,8 @@ const lindt = () => {
   }
 
   const resize = (rows: number, cols: number) => {
-    const height = px.row.height(rows) + (pad.y * 2)
-    const width = px.col.width(cols) + (pad.x * 2)
+    const height = px.row.height(rows)
+    const width = px.col.width(cols)
 
     canvas.height = Math.round(height * window.devicePixelRatio)
     canvas.width = Math.round(width * window.devicePixelRatio)
@@ -51,9 +51,8 @@ const lindt = () => {
 
   const fillText = (col: number, row: number, char: string) => {
     const { height, width } = cell
-    // TODO: add padding?
-    const y = px.row.y(row)
-    const x = px.col.x(col)
+    const y = row * cell.height
+    const x = col * cell.width
 
     ui.save()
     ui.beginPath()
