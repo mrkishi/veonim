@@ -76,8 +76,8 @@ export default () => {
   })
 
   content.appendChild(overlay)
-  content.appendChild(canvas.element)
   content.appendChild(webgl.backgroundElement)
+  // content.appendChild(canvas.element)
   content.appendChild(webgl.foregroundElement)
 
   container.appendChild(nameplate.element)

@@ -81,7 +81,7 @@ const lindt = () => {
       const defaultColor = getHighlight(0)
       if (!hlgrp || !defaultColor) throw new Error(`canvas render no highlight group found for hlid: ${hlid}`)
 
-      clearRect(col, row, repeat)
+      // clearRect(col, row, repeat)
       if (char === ' ') return
 
       const defColor = hlgrp.reverse

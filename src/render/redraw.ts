@@ -62,6 +62,10 @@ const grid_scroll = (e: any) => {
   amount > 0
     ? win.webgl.moveRegionUp(amount, top, bottom)
     : win.webgl.moveRegionDown(-amount, top, bottom)
+
+  requestAnimationFrame(() => {
+    win.canvas.clear()
+  })
 }
 
 const grid_line = (e: any) => {
