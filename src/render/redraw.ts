@@ -1,7 +1,8 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getWindow, getAllWindows } from '../core/windows2'
 import { onRedraw } from '../render/msgpack-decode'
-import { WebGLWrenderer } from '../render/webgl'
+import { CanvasRenderer } from '../render/canvas'
+import { WebGLRenderer } from '../render/webgl'
 
 // TODO: yeha so i tihnkk we need to have two buffers.
 // - one for render
@@ -16,8 +17,12 @@ import { WebGLWrenderer } from '../render/webgl'
 
 
 // this default state should never be used. otherwise something went horribly wrong
-let webgl: WebGLWrenderer = {
-  render: () => console.warn('trying to wrender into a grid that has no window'),
+let webgl: WebGLRenderer = {
+  render: () => console.warn('trying to webgl wrender into a grid that has no window'),
+} as any
+
+let canvas: CanvasRenderer = {
+  render: () => console.warn('trying to canvas wrender into a grid that has no window'),
 } as any
 
 let dummyData = new Float32Array()
@@ -70,6 +75,7 @@ const grid_line = (e: any) => {
   let gridBuffer = dummyData
   let width = 1
   let col = 0
+  let canvasBuffer: any
 
   // first item in the event arr is the event name.
   // we skip that because it's cool to do that
@@ -87,6 +93,7 @@ const grid_line = (e: any) => {
       if (activeGrid !== 0) console.warn('grid_line: switch grid more than once! lolwut', gridId)
       const win = getWindow(gridId)
       webgl = win.webgl
+      canvas = win.canvas
       // TODO: getting width here is kinda expensive. improve.
       width = win.getWindowInfo().width
       buffer = webgl.getBuffer()
@@ -110,6 +117,19 @@ const grid_line = (e: any) => {
       const repeats = data[2] || 1
       hlid = data[1] || hlid
 
+      // TODO: perf test if this is an expensive op
+      if (typeof char === 'string') {
+        if (!canvasBuffer) canvasBuffer = []
+
+        const cix = (col * 5) + width * row * 5
+        canvasBuffer[cix] = col
+        canvasBuffer[cix + 1] = row
+        canvasBuffer[cix + 2] = hlid
+        canvasBuffer[cix + 3] = char
+        canvasBuffer[cix + 4] = repeats
+        continue
+      }
+
       for (let r = 0; r < repeats; r++) {
         buffer[rx] = col
         buffer[rx + 1] = row
@@ -132,6 +152,12 @@ const grid_line = (e: any) => {
   console.time('webgl')
   webgl.render(rx)
   console.timeEnd('webgl')
+
+  canvasBuffer.length && requestAnimationFrame(() => {
+    console.time('canvas')
+    canvas.render(canvasBuffer)
+    console.timeEnd('canvas')
+  })
 }
 
 onRedraw(redrawEvents => {

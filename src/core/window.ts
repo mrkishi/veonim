@@ -60,12 +60,12 @@ export default () => {
   webgl.backgroundElement.setAttribute('wat', 'webgl-background')
   webgl.foregroundElement.setAttribute('wat', 'webgl-foreground')
 
-  Object.assign(canvas.element.style, {
+  Object.assign(webgl.backgroundElement.style, {
     position: 'absolute',
     zIndex: 5,
   })
 
-  Object.assign(webgl.backgroundElement.style, {
+  Object.assign(canvas.element.style, {
     position: 'absolute',
     zIndex: 6,
   })
