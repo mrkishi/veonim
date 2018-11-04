@@ -51,13 +51,15 @@ const lindt = () => {
 
   const fillText = (col: number, row: number, char: string) => {
     const { height, width } = cell
+    // TODO: add padding?
+    const y = px.row.y(row)
+    const x = px.col.x(col)
 
-    // ui.fillText(char, px.col.x(col), px.row.y(row) + cell.padding, /*maxCharWidth*/)
     ui.save()
     ui.beginPath()
-    ui.rect(col * width, y, width, height)
+    ui.rect(x, y, width, height)
     ui.clip()
-    ui.fillText(char, col * width, y)
+    ui.fillText(char, x, y)
     ui.restore()
   }
 
@@ -68,8 +70,13 @@ const lindt = () => {
   const render = (buffer: any[]) => {
     const size = buffer.length
 
-    for (let ix = 0; ix < size; ix++) {
-      const [ col, row, hlid, char, repeat ] = buffer[ix]
+    for (let ix = 0; ix < size; ix += 5) {
+      const col = buffer[ix]
+      const row = buffer[ix + 1]
+      const hlid = buffer[ix + 2]
+      const char = buffer[ix + 3]
+      const repeat = buffer[ix + 4]
+
       const hlgrp = getHighlight(hlid)
       const defaultColor = getHighlight(0)
       if (!hlgrp || !defaultColor) throw new Error(`canvas render no highlight group found for hlid: ${hlid}`)
@@ -90,15 +97,13 @@ const lindt = () => {
 
     requestAnimationFrame(() => {
       const buf = gridBuffer.getBuffer()
-      let bufix = 0
 
-      for (let ix = 0; ix < size; ix++) {
-        buf[bufix] = buffer[ix]
-        buf[bufix + 1] = buffer[ix + 1]
-        buf[bufix + 2] = buffer[ix + 2]
-        buf[bufix + 3] = buffer[ix + 3]
-        buf[bufix + 4] = buffer[ix + 4]
-        bufix += 5
+      for (let ix = 0; ix < size; ix += 5) {
+        buf[ix] = buffer[ix]
+        buf[ix + 1] = buffer[ix + 1]
+        buf[ix + 2] = buffer[ix + 2]
+        buf[ix + 3] = buffer[ix + 3]
+        buf[ix + 4] = buffer[ix + 4]
       }
     })
   }
