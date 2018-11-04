@@ -1,12 +1,13 @@
 import { getHighlight } from '../render/highlight-attributes'
 import CreateCanvasBuffer from '../render/canvas-grid-buffer'
 import { cell, font, pad } from '../core/canvas-container'
-import nvim from '../core/neovim'
 
 const lindt = () => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
   const gridBuffer = CreateCanvasBuffer()
+  let canvasWidth = 0
+  let canvasWidthScaled = 0
 
   ui.imageSmoothingEnabled = false
   ui.font = `${font.size}px ${font.size}`
@@ -32,19 +33,18 @@ const lindt = () => {
 
   const resize = (rows: number, cols: number) => {
     const height = px.row.height(rows)
-    const width = px.col.width(cols)
+    canvasWidth = px.col.width(cols)
+    canvasWidthScaled = Math.floor(canvasWidth * window.devicePixelRatio)
 
     canvas.height = Math.round(height * window.devicePixelRatio)
-    canvas.width = Math.round(width * window.devicePixelRatio)
+    canvas.width = canvasWidthScaled
     canvas.style.height = `${height}px`
-    canvas.style.width = `${width}px`
+    canvas.style.width = `${canvasWidth}px`
 
     // setting canvas properties resets font. need to reset it here
     ui.font = `${font.size}px ${font.face}`
     ui.textBaseline = 'top'
     ui.scale(window.devicePixelRatio, window.devicePixelRatio)
-    ui.fillStyle = nvim.state.background
-    ui.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   const clear = () => ui.clearRect(0, 0, canvas.width, canvas.height)
@@ -59,7 +59,7 @@ const lindt = () => {
     ui.rect(x, y, width, height)
     ui.clip()
     // TODO: maxWidth setting? for unicode to scale down? otherwise will be clipped
-    ui.fillText(char, x, y)
+    ui.fillText(char, x, y, width)
     ui.restore()
   }
 
@@ -82,7 +82,7 @@ const lindt = () => {
       if (!hlgrp || !defaultColor) throw new Error(`canvas render no highlight group found for hlid: ${hlid}`)
 
       clearRect(col, row, repeat)
-      if (char === ' ') return
+      if (char === 32) return
 
       const defColor = hlgrp.reverse
         ? defaultColor.background as string
@@ -108,9 +108,37 @@ const lindt = () => {
     })
   }
 
-  // TODO: move region
+  const moveRegionUp = (lines: number, top: number, bottom: number) => {
+    const height = bottom - (top + lines) + 1
+
+    const srcY = px.row.y(top + lines, true)
+    const srcHeight = px.row.height(height, true)
+
+    const destY = px.row.y(top)
+    const destHeight = px.row.height(height)
+
+    ui.drawImage(ui.canvas, 0, srcY, canvasWidthScaled, srcHeight, 0, destY, canvasWidth, destHeight)
+    clearRect(0, top + lines, 103, lines)
+
+    // TODO: move the grid buffer contents
+  }
+
+  const moveRegionDown = (lines: number, top: number, bottom: number) => {
+    const height = bottom - (top + lines) + 1
+
+    const srcY = px.row.y(top, true)
+    const srcHeight = px.row.height(height, true)
+
+    const destY = px.row.y(top + lines)
+    const destHeight = px.row.height(height)
+
+    ui.drawImage(ui.canvas, 0, srcY, canvasWidthScaled, srcHeight, 0, destY, canvasWidth, destHeight)
+
+    // TODO: move the grid buffer contents
+  }
+
   // TODO: underline?
-  return { element: canvas, resize, clear, render }
+  return { element: canvas, resize, clear, render, moveRegionUp, moveRegionDown }
 }
 
 export default lindt

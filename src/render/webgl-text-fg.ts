@@ -50,6 +50,12 @@ export default (webgl: WebGL2) => {
     }
   `)
 
+  // TODO: move highlight color lookup to vertex shader?
+  // the hl color will be the same for the current vertex.
+  // as i understand it, fragment shaders will run multiple
+  // times per vertex to interpolate pixel values. skipping
+  // the hl color lookup might save a tiny bit of perf
+
   program.setFragmentShader(v => `
     precision highp float;
 

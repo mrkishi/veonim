@@ -59,13 +59,15 @@ const grid_scroll = (e: any) => {
   // at the window edges (left == 0 && right == window.width)
   const win = getWindow(gridId)
   win.webgl.clear()
+
   amount > 0
     ? win.webgl.moveRegionUp(amount, top, bottom)
     : win.webgl.moveRegionDown(-amount, top, bottom)
 
-  requestAnimationFrame(() => {
-    win.canvas.clear()
-  })
+  requestAnimationFrame(() => amount > 0
+    ? win.canvas.moveRegionUp(amount, top, bottom)
+    : win.canvas.moveRegionDown(-amount, top, bottom)
+  )
 }
 
 const grid_line = (e: any) => {
@@ -122,10 +124,17 @@ const grid_line = (e: any) => {
       const repeats = data[2] || 1
       hlid = data[1] || hlid
 
+      const stringChar = typeof char === 'string'
+
       // TODO: perf test if this is an expensive op
-      if (typeof char === 'string') {
+      if (stringChar) {
         console.log('unicode!:', char)
         if (!canvasBuffer) canvasBuffer = []
+
+        const nextChar = charData[cd + 1]
+        if (typeof nextChar[0] === 'string' && nextChar[0].codePointAt(0) === undefined) {
+          console.log('this char is double width:', char)
+        }
 
         canvasBuffer[cx] = col
         canvasBuffer[cx + 1] = row
@@ -134,7 +143,7 @@ const grid_line = (e: any) => {
         canvasBuffer[cx + 4] = repeats
         cx += 5
 
-        continue
+        if (stringChar) continue
       }
 
       for (let r = 0; r < repeats; r++) {
