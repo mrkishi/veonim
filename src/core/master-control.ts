@@ -4,13 +4,13 @@ import { NotifyKind, notify as notifyUI } from '../ui/notifications'
 import CreateTransport from '../messaging/transport'
 import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
+import { decode } from '../render/msgpack-decode'
 import { Neovim } from '../support/binaries'
 import { ChildProcess } from 'child_process'
 import SetupRPC from '../messaging/rpc'
 import { Color } from '../neovim/types'
 import { homedir } from 'os'
-import { decode } from '../render/msgpack-decode'
-import '../render/super-draw'
+import '../render/redraw'
 
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void

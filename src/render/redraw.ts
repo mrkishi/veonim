@@ -70,6 +70,7 @@ const grid_line = (e: any) => {
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
   let rx = 0
+  let cx = 0
   let activeGrid = 0
   let buffer = dummyData
   let gridBuffer = dummyData
@@ -121,12 +122,13 @@ const grid_line = (e: any) => {
       if (typeof char === 'string') {
         if (!canvasBuffer) canvasBuffer = []
 
-        const cix = (col * 5) + width * row * 5
-        canvasBuffer[cix] = col
-        canvasBuffer[cix + 1] = row
-        canvasBuffer[cix + 2] = hlid
-        canvasBuffer[cix + 3] = char
-        canvasBuffer[cix + 4] = repeats
+        canvasBuffer[cx] = col
+        canvasBuffer[cx + 1] = row
+        canvasBuffer[cx + 2] = hlid
+        canvasBuffer[cx + 3] = char
+        canvasBuffer[cx + 4] = repeats
+        cx += 5
+
         continue
       }
 
@@ -153,7 +155,7 @@ const grid_line = (e: any) => {
   webgl.render(rx)
   console.timeEnd('webgl')
 
-  canvasBuffer.length && requestAnimationFrame(() => {
+  canvasBuffer && requestAnimationFrame(() => {
     console.time('canvas')
     canvas.render(canvasBuffer)
     console.timeEnd('canvas')

@@ -5,7 +5,7 @@ import { onRedraw, getColor as getColorFromVim } from '../core/master-control'
 // import * as canvasContainer from '../core/canvas-container'
 // import { NotifyKind, notify } from '../ui/notifications'
 import { Events, ExtContainer } from '../neovim/protocol'
-import { EMPTY_CHAR } from '../support/constants'
+// import { EMPTY_CHAR } from '../support/constants'
 import * as dispatch from '../messaging/dispatch'
 // import fontAtlas from '../core/font-atlas'
 import { VimMode } from '../neovim/types'
@@ -27,12 +27,12 @@ interface Mode {
   color?: string,
 }
 
-interface ScrollRegion {
-  top: number,
-  bottom: number,
-  left: number,
-  right: number,
-}
+// interface ScrollRegion {
+//   top: number,
+//   bottom: number,
+//   left: number,
+//   right: number,
+// }
 
 interface Attrs {
   foreground?: number
@@ -154,73 +154,73 @@ const cursorShapeType = (shape?: string) => {
   else return CursorShape.block
 }
 
-const getHighlightGroup = (hlid: number) => {
-  const hlgrp = highlights.get(hlid)
-  if (!hlgrp) throw new Error(`could not get highlight group ${hlid}`)
-  return hlgrp
-}
+// const getHighlightGroup = (hlid: number) => {
+//   const hlgrp = highlights.get(hlid)
+//   if (!hlgrp) throw new Error(`could not get highlight group ${hlid}`)
+//   return hlgrp
+// }
 
-const getColor = {
-  bg: (hlgrp: HighlightGroup) => hlgrp.reverse
-    ? hlgrp.foreground || defaultColors.foreground
-    : hlgrp.background || defaultColors.background,
-  fg: (hlgrp: HighlightGroup) => hlgrp.reverse
-    ? hlgrp.background || defaultColors.background
-    : hlgrp.foreground || defaultColors.foreground,
-  sp: (hlgrp: HighlightGroup) => hlgrp.special || defaultColors.special,
-}
+// const getColor = {
+//   bg: (hlgrp: HighlightGroup) => hlgrp.reverse
+//     ? hlgrp.foreground || defaultColors.foreground
+//     : hlgrp.background || defaultColors.background,
+//   fg: (hlgrp: HighlightGroup) => hlgrp.reverse
+//     ? hlgrp.background || defaultColors.background
+//     : hlgrp.foreground || defaultColors.foreground,
+//   sp: (hlgrp: HighlightGroup) => hlgrp.special || defaultColors.special,
+// }
 
-const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const { grid, canvas } = getWindow(id)
-  const width = right - left + 1
-  const height = bottom - (top + amount) + 1
+// const moveRegionUp = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
+//   const { grid, canvas } = getWindow(id)
+//   const width = right - left + 1
+//   const height = bottom - (top + amount) + 1
 
-  const region = {
-    width,
-    height,
-    source: {
-      col: left,
-      row: top + amount,
-    },
-    destination: {
-      col: left,
-      row: top,
-    }
-  }
+//   const region = {
+//     width,
+//     height,
+//     source: {
+//       col: left,
+//       row: top + amount,
+//     },
+//     destination: {
+//       col: left,
+//       row: top,
+//     }
+//   }
 
-  canvas
-    .moveRegion(region)
-    .setColor(defaultColors.background)
-    .fillRect(left, bottom - amount, right - left + 1, amount)
+//   canvas
+//     .moveRegion(region)
+//     .setColor(defaultColors.background)
+//     .fillRect(left, bottom - amount, right - left + 1, amount)
 
-  grid.moveRegionUp(amount, top, bottom, left, right)
-}
+//   grid.moveRegionUp(amount, top, bottom, left, right)
+// }
 
-const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
-  const { grid, canvas } = getWindow(id)
-  const width = right - left + 1
-  const height = bottom - (top + amount)
+// const moveRegionDown = (id: number, amount: number, { top, bottom, left, right }: ScrollRegion) => {
+//   const { grid, canvas } = getWindow(id)
+//   const width = right - left + 1
+//   const height = bottom - (top + amount)
 
-  const region = {
-    width,
-    height,
-    source: {
-      col: left,
-      row: top,
-    },
-    destination: {
-      col: left,
-      row: top + amount,
-    }
-  }
+//   const region = {
+//     width,
+//     height,
+//     source: {
+//       col: left,
+//       row: top,
+//     },
+//     destination: {
+//       col: left,
+//       row: top + amount,
+//     }
+//   }
 
-  canvas
-    .moveRegion(region)
-    .setColor(defaultColors.background)
-    .fillRect(left, top, right - left + 1, amount)
+//   canvas
+//     .moveRegion(region)
+//     .setColor(defaultColors.background)
+//     .fillRect(left, top, right - left + 1, amount)
 
-  grid.moveRegionDown(amount, top, bottom, left, right)
-}
+//   grid.moveRegionDown(amount, top, bottom, left, right)
+// }
 
 // grid: 1 is the global grid - not used with ext_multigrid
 const checkSkipDefaultGrid = (id: number) => id === 1
@@ -303,8 +303,8 @@ r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
 r.grid_clear = id => {
   $$$&&console.log('clear', id)
   if (checkSkipDefaultGrid(id)) return
-  const { grid, canvas } = getWindow(id)
-  grid.clear()
+  const { webgl, canvas } = getWindow(id)
+  webgl.clear()
   canvas.clear()
 }
 
@@ -330,64 +330,64 @@ r.grid_cursor_goto = (id, row, col) => {
   merge(cursor, { row, col })
 }
 
-r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
-  ? moveRegionUp(id, amount, { top, bottom, left, right })
-  : moveRegionDown(id, -amount, { top, bottom, left, right })
+// r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
+//   ? moveRegionUp(id, amount, { top, bottom, left, right })
+//   : moveRegionDown(id, -amount, { top, bottom, left, right })
 
-r.grid_line = (id, row, startCol, charData: any[]) => {
-  // TODO: disable this for testing webgl wrender path
-  return
-  $$$&&console.log(`grid_line(id: ${id}, row: ${row}, startCol: ${startCol}, chars: ${charData.length})`)
-  if (checkSkipDefaultGrid(id)) return
+// r.grid_line = (id, row, startCol, charData: any[]) => {
+//   // TODO: disable this for testing webgl wrender path
+//   return
+//   $$$&&console.log(`grid_line(id: ${id}, row: ${row}, startCol: ${startCol}, chars: ${charData.length})`)
+//   if (checkSkipDefaultGrid(id)) return
 
-  const { canvas, grid } = getWindow(id)
-  const cellCount = charData.length
-  let col = startCol
-  let lastHlid = 0
+//   const { canvas, grid } = getWindow(id)
+//   const cellCount = charData.length
+//   let col = startCol
+//   let lastHlid = 0
 
-  for (let ix = 0; ix < cellCount; ix++) {
-    const [ char, hlid, repeat = 1 ] = charData[ix]
+//   for (let ix = 0; ix < cellCount; ix++) {
+//     const [ char, hlid, repeat = 1 ] = charData[ix]
 
-    const hlidExists = typeof hlid === 'number'
-    const validHlid = hlidExists ? hlid : lastHlid
-    const hlgrp = getHighlightGroup(validHlid)
-    if (hlidExists) lastHlid = hlid
+//     const hlidExists = typeof hlid === 'number'
+//     const validHlid = hlidExists ? hlid : lastHlid
+//     const hlgrp = getHighlightGroup(validHlid)
+//     if (hlidExists) lastHlid = hlid
 
-    if (char === EMPTY_CHAR) {
-      canvas
-        .setColor(getColor.bg(hlgrp))
-        .fillRect(col, row, repeat, 1)
+//     if (char === EMPTY_CHAR) {
+//       canvas
+//         .setColor(getColor.bg(hlgrp))
+//         .fillRect(col, row, repeat, 1)
 
-      grid.clearLine(row, col, col + repeat)
-    }
+//       grid.clearLine(row, col, col + repeat)
+//     }
 
-    else if (repeat > 1) {
-      canvas
-        .setColor(getColor.bg(hlgrp))
-        .fillRect(col, row, repeat, 1)
-        .setColor(getColor.fg(hlgrp))
+//     else if (repeat > 1) {
+//       canvas
+//         .setColor(getColor.bg(hlgrp))
+//         .fillRect(col, row, repeat, 1)
+//         .setColor(getColor.fg(hlgrp))
 
-      for (let ix = 0; ix < repeat; ix++) canvas.fillText(char, col + ix, row)
-      if (hlgrp.underline) canvas.underline(col, row, repeat, getColor.sp(hlgrp))
+//       for (let ix = 0; ix < repeat; ix++) canvas.fillText(char, col + ix, row)
+//       if (hlgrp.underline) canvas.underline(col, row, repeat, getColor.sp(hlgrp))
 
-      grid.setLine(row, col, col + repeat, char, validHlid)
-    }
+//       grid.setLine(row, col, col + repeat, char, validHlid)
+//     }
 
-    else {
-      canvas
-        .setColor(getColor.bg(hlgrp))
-        .fillRect(col, row, 1, 1)
-        .setColor(getColor.fg(hlgrp))
-        .fillText(char, col, row)
+//     else {
+//       canvas
+//         .setColor(getColor.bg(hlgrp))
+//         .fillRect(col, row, 1, 1)
+//         .setColor(getColor.fg(hlgrp))
+//         .fillText(char, col, row)
 
-      if (hlgrp.underline) canvas.underline(col, row, 1, getColor.sp(hlgrp))
+//       if (hlgrp.underline) canvas.underline(col, row, 1, getColor.sp(hlgrp))
 
-      grid.setCell(row, col, char, validHlid)
-    }
+//       grid.setCell(row, col, char, validHlid)
+//     }
 
-    col += repeat
-  }
-}
+//     col += repeat
+//   }
+// }
 
 r.win_position = (windowId, gridId, row, col, width, height) => {
   $$$&&console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
