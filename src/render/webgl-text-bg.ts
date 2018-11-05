@@ -1,4 +1,4 @@
-import { generateColorLookupAtlas } from '../render/highlight-attributes'
+import { getColorAtlas } from '../render/highlight-attributes'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
@@ -54,7 +54,7 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
-  const colorAtlas = generateColorLookupAtlas()
+  const colorAtlas = getColorAtlas()
   webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE0)
   webgl.gl.uniform1i(program.vars.colorAtlasTextureId, 0)
   webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)

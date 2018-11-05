@@ -26,6 +26,9 @@ interface HighlightGroup {
 // find all positions where a char(s) start with Search hlgrp
 const highlightInfo = new Map<number, any>()
 const highlights = new Map<number, HighlightGroup>()
+const canvas = document.createElement('canvas')
+const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+
 const defaultColors = {
   background: '#2d2d2d',
   foreground: '#dddddd',
@@ -79,12 +82,7 @@ export const addHighlight = (id: number, attr: Attrs, info: any) => {
 
 export const getHighlight = (id: number) => highlights.get(id)
 
-// TODO: do you think we can share this among all the window grids?
-// that way we don't have to keep re-creating the thing for the thing
 export const generateColorLookupAtlas = () => {
-  const canvas = document.createElement('canvas')
-  const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
-
   canvas.height = 2
   canvas.width = Math.max(...highlights.keys())
 
@@ -109,3 +107,5 @@ export const generateColorLookupAtlas = () => {
 
   return canvas
 }
+
+export const getColorAtlas = () => canvas

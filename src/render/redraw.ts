@@ -21,7 +21,7 @@ const default_colors_set = (e: any) => {
 
 const hl_attr_define = (e: any) => {
   const size = e.length
-  // first item in the event arr is the even name
+  // first item in the event arr is the event name
   for (let ix = 1; ix < size; ix++) {
     const [ id, attr, info ] = e[ix]
     addHighlight(id, attr, info)

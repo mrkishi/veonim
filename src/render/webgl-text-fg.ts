@@ -1,4 +1,4 @@
-import { generateColorLookupAtlas } from '../render/highlight-attributes'
+import { getColorAtlas } from '../render/highlight-attributes'
 import generateFontAtlas from '../render/font-texture-atlas'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
@@ -83,8 +83,7 @@ export default (webgl: WebGL2) => {
   webgl.gl.uniform1i(program.vars.fontAtlasTextureId, 0)
   webgl.gl.uniform2f(program.vars.fontAtlasResolution, fontAtlasWidth, fontAtlasHeight)
 
-  // TODO: like the font atlas, can this color lookup atlas be shared in any way?
-  const colorAtlas = generateColorLookupAtlas()
+  const colorAtlas = getColorAtlas()
   webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE1)
   webgl.gl.uniform1i(program.vars.colorAtlasTextureId, 1)
   webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
