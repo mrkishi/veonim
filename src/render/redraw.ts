@@ -111,9 +111,8 @@ const grid_line = (e: any) => {
         const doubleWidth = typeof nextCD[0] === 'string' && nextCD[0].codePointAt(0) === undefined
         charIndex = getCharIndex(char, doubleWidth ? 2 : 1)
       }
-      else {
-        charIndex = char - 32
-      }
+
+      else charIndex = char - 32
 
       for (let r = 0; r < repeats; r++) {
         buffer[rx] = col
