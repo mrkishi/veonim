@@ -1,5 +1,6 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getWindow, getAllWindows } from '../core/windows2'
+import { getCharIndex } from '../render/font-texture-atlas'
 import { onRedraw } from '../render/msgpack-decode'
 import { CanvasRenderer } from '../render/canvas'
 import { WebGLRenderer } from '../render/webgl'
@@ -19,10 +20,6 @@ import { WebGLRenderer } from '../render/webgl'
 // this default state should never be used. otherwise something went horribly wrong
 let webgl: WebGLRenderer = {
   render: () => console.warn('trying to webgl wrender into a grid that has no window'),
-} as any
-
-let canvas: CanvasRenderer = {
-  render: () => console.warn('trying to canvas wrender into a grid that has no window'),
 } as any
 
 let dummyData = new Float32Array()
@@ -76,13 +73,12 @@ const grid_line = (e: any) => {
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
   let rx = 0
-  let cx = 0
   let activeGrid = 0
   let buffer = dummyData
   let gridBuffer = dummyData
   let width = 1
   let col = 0
-  let canvasBuffer: any
+  let charIndex = 0
 
   // first item in the event arr is the event name.
   // we skip that because it's cool to do that
@@ -100,7 +96,6 @@ const grid_line = (e: any) => {
       if (activeGrid !== 0) console.warn('grid_line: switch grid more than once! lolwut', gridId)
       const win = getWindow(gridId)
       webgl = win.webgl
-      canvas = win.canvas
       // TODO: getting width here is kinda expensive. improve.
       width = win.getWindowInfo().width
       buffer = webgl.getBuffer()
@@ -124,33 +119,20 @@ const grid_line = (e: any) => {
       const repeats = data[2] || 1
       hlid = data[1] || hlid
 
-      const stringChar = typeof char === 'string'
-
-      // TODO: perf test if this is an expensive op
-      if (stringChar) {
-        console.log('unicode!:', char)
-        if (!canvasBuffer) canvasBuffer = []
-
-        const nextChar = charData[cd + 1]
-        if (typeof nextChar[0] === 'string' && nextChar[0].codePointAt(0) === undefined) {
-          console.log('this char is double width:', char, Buffer.from(nextChar[0]))
-        }
-
-        canvasBuffer[cx] = col
-        canvasBuffer[cx + 1] = row
-        canvasBuffer[cx + 2] = hlid
-        canvasBuffer[cx + 3] = char
-        canvasBuffer[cx + 4] = repeats
-        cx += 5
-
-        if (stringChar) continue
+      if (typeof char === 'string') {
+        const nextCD = charData[cd + 1]
+        const doubleWidth = typeof nextCD[0] === 'string' && nextCD[0].codePointAt(0) === undefined
+        charIndex = getCharIndex(char, doubleWidth ? 2 : 1)
+      }
+      else {
+        charIndex = char - 32
       }
 
       for (let r = 0; r < repeats; r++) {
         buffer[rx] = col
         buffer[rx + 1] = row
         buffer[rx + 2] = hlid
-        buffer[rx + 3] = char
+        buffer[rx + 3] = charIndex
         rx += 4
 
         // TODO: could maybe deffer this to next frame?
@@ -158,7 +140,7 @@ const grid_line = (e: any) => {
         gridBuffer[bufix] = col
         gridBuffer[bufix + 1] = row
         gridBuffer[bufix + 2] = hlid
-        gridBuffer[bufix + 3] = char
+        gridBuffer[bufix + 3] = charIndex
 
         col++
       }
@@ -168,12 +150,6 @@ const grid_line = (e: any) => {
   console.time('webgl')
   webgl.render(rx)
   console.timeEnd('webgl')
-
-  canvasBuffer && requestAnimationFrame(() => {
-    console.time('canvas')
-    canvas.render(canvasBuffer)
-    console.timeEnd('canvas')
-  })
 }
 
 onRedraw(redrawEvents => {
