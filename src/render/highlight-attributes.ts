@@ -79,6 +79,8 @@ export const addHighlight = (id: number, attr: Attrs, info: any) => {
 
 export const getHighlight = (id: number) => highlights.get(id)
 
+// TODO: do you think we can share this among all the window grids?
+// that way we don't have to keep re-creating the thing for the thing
 export const generateColorLookupAtlas = () => {
   const canvas = document.createElement('canvas')
   const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D

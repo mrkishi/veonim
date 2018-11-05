@@ -24,10 +24,6 @@ const getTableSize = (): number => {
 // slots for new characters. this remains to be seen if we use a LILO
 // or LRU cache eviction strategy. cache invalidation... fuuuu
 export const getCharIndex = (char: string, width = 1) => {
-  console.log('get CHAR INDEX:', char)
-  // TODO: need to handle extended ascii index
-  // if (typeof char === 'number') return char - 32
-
   const uChar = unicodeTable.get(char)
   if (uChar) return uChar.index
 

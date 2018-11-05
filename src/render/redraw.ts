@@ -1,6 +1,6 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
+import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
 import { getWindow, getAllWindows } from '../core/windows2'
-import { getCharIndex } from '../render/font-texture-atlas'
 import { onRedraw } from '../render/msgpack-decode'
 import { WebGLRenderer } from '../render/webgl'
 
@@ -93,13 +93,6 @@ const grid_line = (e: any) => {
     col = startCol
     const charDataSize = charData.length
 
-    // TODO: if char is not a number, we need to use the old canvas
-    // render strategy to render unicode chars
-    //
-    // TODO: are there any optimization route we can do if chars
-    // are empty/need to clear a larger section?
-    // depends on how we do the webgl wrender clear stuffffsss
-
     for (let cd = 0; cd < charDataSize; cd++) {
       const data = charData[cd]
       const char = data[0]
@@ -133,6 +126,8 @@ const grid_line = (e: any) => {
     }
   }
 
+  const atlas = getUpdatedFontAtlasMaybe()
+  if (atlas) getAllWindows().forEach(win => win.webgl.updateFontAtlas(atlas))
   console.time('webgl')
   webgl.render(rx)
   console.timeEnd('webgl')

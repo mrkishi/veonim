@@ -32,6 +32,10 @@ const nutella = () => {
     textFGRenderer.render(elements)
   }
 
+  const updateFontAtlas = (fontAtlas: HTMLCanvasElement) => {
+    textFGRenderer.updateFontAtlas(fontAtlas)
+  }
+
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
     textBGRenderer.updateColorAtlas(colorAtlas)
     textFGRenderer.updateColorAtlas(colorAtlas)
@@ -62,6 +66,7 @@ const nutella = () => {
     resize,
     moveRegionUp,
     moveRegionDown,
+    updateFontAtlas,
     updateColorAtlas,
     getGridBuffer: gridBuffer.getBuffer,
     getBuffer: () => sharedDataBuffer,

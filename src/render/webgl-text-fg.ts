@@ -75,12 +75,9 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
-  // TODO: is there any good reason to generate a font atlas per window grid?
-  // we will only need one ascii atlas, and we can then share and upload that
-  // single instance of the atlas to all the webgl thingies.
   const fontAtlas = generateFontAtlas()
-  const fontAtlasWidth = Math.round(fontAtlas.width / window.devicePixelRatio)
-  const fontAtlasHeight = Math.round(fontAtlas.height / window.devicePixelRatio)
+  const fontAtlasWidth = Math.floor(fontAtlas.width / window.devicePixelRatio)
+  const fontAtlasHeight = Math.floor(fontAtlas.height / window.devicePixelRatio)
 
   webgl.loadCanvasTexture(fontAtlas, webgl.gl.TEXTURE0)
   webgl.gl.uniform1i(program.vars.fontAtlasTextureId, 0)
@@ -159,6 +156,13 @@ export default (webgl: WebGL2) => {
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
   }
 
+  const updateFontAtlas = (fontAtlas: HTMLCanvasElement) => {
+    webgl.loadCanvasTexture(fontAtlas, webgl.gl.TEXTURE0)
+    const width = Math.floor(fontAtlas.width / window.devicePixelRatio)
+    const height = Math.floor(fontAtlas.height / window.devicePixelRatio)
+    webgl.gl.uniform2f(program.vars.fontAtlasResolution, width, height)
+  }
+
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
     webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE1)
     webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
@@ -167,5 +171,5 @@ export default (webgl: WebGL2) => {
   const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
   const share = (buffer: Float32Array) => dataBuffer = buffer
 
-  return { clear, share, render, renderFromBuffer, resize, updateColorAtlas }
+  return { clear, share, render, renderFromBuffer, resize, updateFontAtlas, updateColorAtlas }
 }
