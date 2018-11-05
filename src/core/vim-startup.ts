@@ -31,6 +31,7 @@ export const startupCmds = CmdGroup`
   set completefunc=VeonimComplete
   ino <expr> <tab> VeonimCompleteScroll(1)
   ino <expr> <s-tab> VeonimCompleteScroll(0)
+  map <silent> <c-z> <nop>
   call serverstart()
   call VeonimRegisterAutocmds()
 `
