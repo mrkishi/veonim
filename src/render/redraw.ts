@@ -133,7 +133,7 @@ const grid_line = (e: any) => {
 
         const nextChar = charData[cd + 1]
         if (typeof nextChar[0] === 'string' && nextChar[0].codePointAt(0) === undefined) {
-          console.log('this char is double width:', char)
+          console.log('this char is double width:', char, Buffer.from(nextChar[0]))
         }
 
         canvasBuffer[cx] = col

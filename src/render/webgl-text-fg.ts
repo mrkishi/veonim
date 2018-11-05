@@ -76,6 +76,9 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
+  // TODO: is there any good reason to generate a font atlas per window grid?
+  // we will only need one ascii atlas, and we can then share and upload that
+  // single instance of the atlas to all the webgl thingies.
   const fontAtlas = generateFontAtlas()
   const fontAtlasWidth = Math.round(fontAtlas.width / window.devicePixelRatio)
   const fontAtlasHeight = Math.round(fontAtlas.height / window.devicePixelRatio)
@@ -84,6 +87,7 @@ export default (webgl: WebGL2) => {
   webgl.gl.uniform1i(program.vars.fontAtlasTextureId, 0)
   webgl.gl.uniform2f(program.vars.fontAtlasResolution, fontAtlasWidth, fontAtlasHeight)
 
+  // TODO: like the font atlas, can this color lookup atlas be shared in any way?
   const colorAtlas = generateColorLookupAtlas()
   webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE1)
   webgl.gl.uniform1i(program.vars.colorAtlasTextureId, 1)
