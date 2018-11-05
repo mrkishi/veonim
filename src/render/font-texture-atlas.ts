@@ -9,9 +9,14 @@ const unicodeTable = new Map<string, UnicodeChar>()
 const canvas = document.createElement('canvas')
 const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 
-// ascii is up to 127, extended ascii up to 255, control chars from 0-32
-let nextIndex = 256 - 32
-let needToRegenAtlas = false
+// ASCII char ranges
+// 0 - 32 --> control chars
+// 32 - 127 --> THE ASCII
+// 127 - 160 --> invisible shit
+// 161 - 255 --> extended ascii
+const ASCIIRANGE = 256 - 65
+let nextIndex = ASCIIRANGE
+let needToRegenAtlas = true
 
 const getTableSize = (): number => {
   let totalol = 0
@@ -19,7 +24,12 @@ const getTableSize = (): number => {
   return totalol
 }
 
+// TODO: need to determine the max amount of characters we store in the
+// texture atlas. at some predetermined point we need to recycle texture
+// slots for new characters. this remains to be seen if we use a LILO
+// or LRU cache eviction strategy. cache invalidation... fuuuu
 export const getCharIndex = (char: number | string, width = 1) => {
+  // TODO: need to handle extended ascii index
   if (typeof char === 'number') return char - 32
 
   const uChar = unicodeTable.get(char)
@@ -31,17 +41,15 @@ export const getCharIndex = (char: number | string, width = 1) => {
   return index
 }
 
-export const renderPass = {
-  start: () => needToRegenAtlas = false,
-  end: () => {
-    if (!needToRegenAtlas) return
-    regenAtlas()
-    return canvas
-  },
+export const getUpdatedFontAtlasMaybe = () => {
+  if (!needToRegenAtlas) return
+  regenAtlas()
+  return canvas
 }
 
 const regenAtlas = () => {
-  const width = cell.width * getTableSize() + 255 - 32
+  needToRegenAtlas = false
+  const width = cell.width * (getTableSize() + ASCIIRANGE)
   canvas.height = Math.floor(cell.height * window.devicePixelRatio)
   canvas.width = Math.floor(width * window.devicePixelRatio)
 
@@ -51,7 +59,8 @@ const regenAtlas = () => {
   ui.textBaseline = 'top'
   ui.fillStyle = 'white'
 
-  for (let ix = 32; ix < 255; ix++) drawChar(String.fromCharCode(ix), ix - 32)
+  for (let ix = 32; ix < 128; ix++) drawChar(String.fromCharCode(ix), ix - 32)
+  for (let ix = 161; ix < 256; ix++) drawChar(String.fromCharCode(ix), ix - 65)
   unicodeTable.forEach(({ index, width }, char) => drawChar(char, index, width))
 }
 
@@ -66,5 +75,7 @@ const drawChar = (char: string, col: number, width = 1) => {
   ui.restore()
 }
 
-regenAtlas()
-export default () => canvas
+export default () => {
+  if (needToRegenAtlas) regenAtlas()
+  return canvas
+}

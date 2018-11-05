@@ -1,5 +1,5 @@
-import generateFontAtlas, { CHAR_START } from '../render/font-texture-atlas'
 import { generateColorLookupAtlas } from '../render/highlight-attributes'
+import generateFontAtlas from '../render/font-texture-atlas'
 import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
@@ -9,7 +9,7 @@ export default (webgl: WebGL2) => {
 
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
-    charCode: VarKind.Attribute,
+    charIndex: VarKind.Attribute,
     cellPosition: VarKind.Attribute,
     hlid: VarKind.Attribute,
     canvasResolution: VarKind.Uniform,
@@ -24,7 +24,7 @@ export default (webgl: WebGL2) => {
     in vec2 ${v.quadVertex};
     in vec2 ${v.cellPosition};
     in float ${v.hlid};
-    in float ${v.charCode};
+    in float ${v.charIndex};
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.fontAtlasResolution};
     uniform vec2 ${v.colorAtlasResolution};
@@ -41,8 +41,7 @@ export default (webgl: WebGL2) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      float charIndex = ${v.charCode} - ${CHAR_START}.0;
-      vec2 glyphPixelPosition = vec2(charIndex, 0) * ${v.cellSize};
+      vec2 glyphPixelPosition = vec2(${v.charIndex}, 0) * ${v.cellSize};
       vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.fontAtlasResolution};
 
@@ -111,7 +110,7 @@ export default (webgl: WebGL2) => {
     stride: wrenderStride,
     divisor: 1,
   }, {
-    pointer: program.vars.charCode,
+    pointer: program.vars.charIndex,
     type: webgl.gl.FLOAT,
     size: 1,
     offset: 3 * Float32Array.BYTES_PER_ELEMENT,

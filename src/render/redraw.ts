@@ -2,20 +2,7 @@ import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../ren
 import { getWindow, getAllWindows } from '../core/windows2'
 import { getCharIndex } from '../render/font-texture-atlas'
 import { onRedraw } from '../render/msgpack-decode'
-import { CanvasRenderer } from '../render/canvas'
 import { WebGLRenderer } from '../render/webgl'
-
-// TODO: yeha so i tihnkk we need to have two buffers.
-// - one for render
-// - one for grid representation
-//
-// the reason for this is that when we update the grid representation
-// the updates might be non sequential in the buffer. this means
-// we can no longer send a piece of the buffer to the gpu.
-//
-// also i wonder if we can push the grid representation updates
-// to the next frame (after wrender). not important for screen update
-
 
 // this default state should never be used. otherwise something went horribly wrong
 let webgl: WebGLRenderer = {
