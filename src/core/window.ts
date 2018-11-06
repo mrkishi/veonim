@@ -79,7 +79,8 @@ export default () => {
 
   content.appendChild(overlay)
   content.appendChild(webgl.backgroundElement)
-  content.appendChild(canvas.element)
+  // TODO; will we be using canvas for anything?
+  // content.appendChild(canvas.element)
   content.appendChild(webgl.foregroundElement)
 
   container.appendChild(nameplate.element)

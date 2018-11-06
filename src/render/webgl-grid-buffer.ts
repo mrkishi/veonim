@@ -30,16 +30,6 @@ const finetti = () => {
     return buffer.slice(ix, ix + 4)
   }
 
-  // TODO: who gunna use this? decided that grid_line
-  // will not call this
-  const setCell = (row: number, col: number, char: number, hlid: number) => {
-    const ix = (col * 4) + width * row * 4
-    buffer[ix] = col
-    buffer[ix + 1] = row
-    buffer[ix + 2] = hlid
-    buffer[ix + 3] = char
-  }
-
   const moveRegionUp = (lines: number, top: number, bottom: number) => {
     const startIndex = width * top * 4
     const offset = lines * width * 4
@@ -52,7 +42,7 @@ const finetti = () => {
       buffer[ix + 2] = buffer[ix + 2 + offset]
       buffer[ix + 3] = buffer[ix + 3 + offset]
       buffer[ix + 2 + offset] = 0
-      buffer[ix + 3 + offset] = 32
+      buffer[ix + 3 + offset] = 0
     }
   }
 
@@ -68,14 +58,13 @@ const finetti = () => {
       buffer[ix + 2 + offset] = buffer[ix + 2]
       buffer[ix + 3 + offset] = buffer[ix + 3]
       buffer[ix + 2] = 0
-      buffer[ix + 3] = 32
+      buffer[ix + 3] = 0
     }
   }
 
   return {
     resize,
     getCell,
-    setCell,
     moveRegionUp,
     moveRegionDown,
     getBuffer: () => buffer,
