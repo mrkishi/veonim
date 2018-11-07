@@ -1,4 +1,4 @@
-import { exists, getDirs, is, configPath, remove as removePath } from '../support/utils'
+import { exists, getDirs, is, configPath } from '../support/utils'
 import { NotifyKind, notify } from '../ui/notifications'
 import { url, download } from '../support/download'
 import nvim from '../core/neovim'
@@ -39,8 +39,12 @@ const removeExtraneous = async (plugins: Plugin[]) => {
   const dirs = await getDirs(packDir)
   const pluginInstalled = (path: string) => plugins.some(e => e.name === path)
   const toRemove = dirs.filter(d => !pluginInstalled(d.name))
+  console.log('the following nvim packages should be removed from pack/ folder', toRemove)
 
-  toRemove.forEach(dir => removePath(dir.path))
+  // TODO: we should only remove plugins veonim has installed. leave any
+  // other plugins that were installed by user manually or other plugin
+  // managers intact in the directory.
+  // toRemove.forEach(dir => removePath(dir.path))
 }
 
 export default async (configLines: string[]) => {
