@@ -1,6 +1,6 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
-import { getWindow, getAllWindows } from '../core/windows2'
+import { getWindow, getAllWindows, removeWindow } from '../core/windows2'
 import { onRedraw } from '../render/msgpack-decode'
 import { WebGLRenderer } from '../render/webgl'
 
@@ -34,6 +34,11 @@ const grid_clear = (e: any) => {
   const [ gridId ] = e[1]
   if (gridId === 1) return
   getWindow(gridId).webgl.clear()
+}
+
+const grid_destroy = ([ /*event-name*/, gridId ]: any) => {
+  if (gridId === 1) return
+  removeWindow(gridId)
 }
 
 const grid_scroll = (e: any) => {
@@ -137,6 +142,7 @@ onRedraw(redrawEvents => {
     if (ev[0] === 'grid_line') grid_line(ev)
     else if (ev[0] === 'grid_scroll') grid_scroll(ev)
     else if (ev[0] === 'grid_clear') grid_clear(ev)
+    else if (ev[0] === 'grid_destroy') grid_destroy(ev)
     else if (ev[0] === 'hl_attr_define') hl_attr_define(ev)
     else if (ev[0] === 'default_colors_set') default_colors_set(ev)
   }
