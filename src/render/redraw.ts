@@ -1,6 +1,7 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
 import { onRedraw } from '../render/msgpack-decode'
+import * as dispatch from '../messaging/dispatch'
 import { WebGLRenderer } from '../render/webgl'
 import * as windows from '../core/windows2'
 
@@ -157,6 +158,11 @@ const grid_line = (e: any) => {
   console.timeEnd('webgl')
 }
 
+const tabline_update = ([ , [ curtab, tabs ] ]: any) => {
+  // TODO: this does not work...
+  requestAnimationFrame(() => dispatch.pub('tabs', { curtab, tabs }))
+}
+
 onRedraw(redrawEvents => {
   console.time('redraw')
   const eventCount = redrawEvents.length
@@ -176,6 +182,7 @@ onRedraw(redrawEvents => {
     else if (ev[0] === 'grid_resize') grid_resize(ev)
     else if (ev[0] === 'grid_clear') grid_clear(ev)
     else if (ev[0] === 'grid_destroy') grid_destroy(ev)
+    else if (ev[0] === 'tabline_update') tabline_update(ev)
     else if (ev[0] === 'hl_attr_define') hl_attr_define(ev)
     else if (ev[0] === 'default_colors_set') default_colors_set(ev)
   }

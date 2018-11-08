@@ -164,13 +164,13 @@ const toArr = (raw: Buffer, length: number): any[] => {
 
 const parseExt = (raw: Buffer, size: number) => {
   const previx = ix
-  const ext = raw[ix + 1] - 0x00
+  const kind = raw[ix + 1] - 0x00
   const start = ix + 2
   const end = start + size
   ix = 0
-  const val: any = superparse(raw.slice(start, end))
+  const id: any = superparse(raw.slice(start, end))
   ix = previx + 2 + size
-  return { val, ext }
+  return { id, kind }
 }
 
 type RedrawEvent = [string, any[]]

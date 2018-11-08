@@ -397,9 +397,10 @@ r.popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
 r.popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
   dispatch.pub('pmenu.show', { items, ix, row, col })
 
-r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => (window as any).requestIdleCallback(() => {
-  dispatch.pub('tabs', { curtab, tabs })
-})
+// r.tabline_update = (curtab: ExtContainer, tabs: ExtContainer[]) => (window as any).requestIdleCallback(() => {
+//   console.log('tabs old update:', curtab, tabs)
+//   dispatch.pub('tabs', { curtab, tabs })
+// })
 
 r.wildmenu_show = items => dispatch.pub('wildmenu.show', items)
 r.wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
