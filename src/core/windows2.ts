@@ -20,9 +20,9 @@ const activeGrid = { id: 1, row: 0, col: 0 }
 
 export const setActiveGrid = (id: number, row: number, col: number) => merge(activeGrid, { id, row, col })
 
-export const getActiveWindow = () => getWindow(activeGrid.id)
+export const getActive = () => get(activeGrid.id)
 
-export const setWindow = (id: number, gridId: number, row: number, col: number, width: number, height: number) => {
+export const set = (id: number, gridId: number, row: number, col: number, width: number, height: number) => {
   const win = windows.get(gridId) || CreateWindow()
   win.setWindowInfo({ id, gridId, row, col, width, height })
   if (!windows.has(gridId)) windows.set(gridId, win)
@@ -30,7 +30,7 @@ export const setWindow = (id: number, gridId: number, row: number, col: number, 
   container.appendChild(win.element)
 }
 
-export const removeWindow = (gridId: number) => {
+export const remove = (gridId: number) => {
   const win = windows.get(gridId)
   if (!win) return console.warn(`trying to destroy a window that does not exist ${gridId}`)
 
@@ -40,15 +40,15 @@ export const removeWindow = (gridId: number) => {
   windows.delete(gridId)
 }
 
-export const getWindow = (gridId: number) => {
+export const get = (gridId: number) => {
   const win = windows.get(gridId)
   if (!win) throw new Error(`trying to get window that does not exist ${gridId}`)
   return win
 }
 
-export const getAllWindows = () => [...windows.values()]
+export const getAll = () => [...windows.values()]
 
-export const hasWindow = (gridId: number) => windows.has(gridId)
+export const has = (gridId: number) => windows.has(gridId)
 
 const getWindowById = (windowId: number) => {
   const win = windowsById.get(windowId)
@@ -56,14 +56,14 @@ const getWindowById = (windowId: number) => {
   return win
 }
 
-export const renderWindows = () => {
+export const render = () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
   const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)
 
   merge(container.style, { gridTemplateRows, gridTemplateColumns })
 
   windowGridInfo.forEach(({ gridId, gridRow, gridColumn }) => {
-    getWindow(gridId).applyGridStyle({ gridRow, gridColumn })
+    get(gridId).applyGridStyle({ gridRow, gridColumn })
   })
 }
 
@@ -83,4 +83,4 @@ const updateWindowNameplates = async () => {
   })
 }
 
-export const refreshWindows = throttle(updateWindowNameplates, 5)
+export const refresh = throttle(updateWindowNameplates, 5)
