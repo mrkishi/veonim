@@ -1,4 +1,5 @@
 import { asColor } from '../support/utils'
+import nvim from '../core/neovim'
 
 export interface Attrs {
   foreground?: number
@@ -45,6 +46,10 @@ export const setDefaultColors = (fg: number, bg: number, sp: number) => {
     && defaultColors.special === special
 
   if (same) return false
+
+  nvim.state.foreground = defaultColors.foreground
+  nvim.state.background = defaultColors.background
+  nvim.state.special = defaultColors.special
 
   // hlid 0 -> default highlight group
   highlights.set(0, {
