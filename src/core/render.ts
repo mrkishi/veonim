@@ -1,4 +1,3 @@
-import { setWindow, hasWindow, removeWindow, getWindow, renderWindows, setActiveGrid, refreshWindows } from '../core/windows2'
 import { moveCursor, cursor, CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
 import { asColor, merge, /*CreateTask, debounce,*/ is } from '../support/utils'
 import { onRedraw, getColor as getColorFromVim } from '../core/master-control'
@@ -10,8 +9,6 @@ import * as dispatch from '../messaging/dispatch'
 // import fontAtlas from '../core/font-atlas'
 import { VimMode } from '../neovim/types'
 import nvim from '../core/neovim'
-
-const $$$ = false
 
 // type NotificationKind = 'error' | 'warning' | 'info' | 'success' | 'hidden' | 'system'
 
@@ -223,7 +220,6 @@ const cursorShapeType = (shape?: string) => {
 // }
 
 // grid: 1 is the global grid - not used with ext_multigrid
-const checkSkipDefaultGrid = (id: number) => id === 1
 
 r.option_set = (key, value) => options.set(key, value)
 
@@ -300,35 +296,35 @@ r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
 })
 
 
-r.grid_clear = id => {
-  $$$&&console.log('clear', id)
-  if (checkSkipDefaultGrid(id)) return
-  const { webgl, canvas } = getWindow(id)
-  webgl.clear()
-  canvas.clear()
-}
+// r.grid_clear = id => {
+//   $$$&&console.log('clear', id)
+//   if (checkSkipDefaultGrid(id)) return
+//   const { webgl, canvas } = getWindow(id)
+//   webgl.clear()
+//   canvas.clear()
+// }
 
-r.grid_destroy = id => {
-  $$$&&console.log('destroy', id)
-  if (checkSkipDefaultGrid(id)) return
-  removeWindow(id)
-}
+// r.grid_destroy = id => {
+//   $$$&&console.log('destroy', id)
+//   if (checkSkipDefaultGrid(id)) return
+//   removeWindow(id)
+// }
 
 // TODO: do we need to reset cursor position after resizing?
-r.grid_resize = (id, width, height) => {
-  $$$&&console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
-  if (checkSkipDefaultGrid(id)) return
+// r.grid_resize = (id, width, height) => {
+//   $$$&&console.log(`resize(grid: ${id}, width: ${width}, height: ${height})`)
+//   if (checkSkipDefaultGrid(id)) return
 
-  // it seems we get grid_resize events before win_position. not sure why... but okay
-  if (!hasWindow(id)) setWindow(-1, id, 0, 0, width, height)
-  getWindow(id).resizeWindow(width, height)
-}
+//   // it seems we get grid_resize events before win_position. not sure why... but okay
+//   if (!hasWindow(id)) setWindow(-1, id, 0, 0, width, height)
+//   getWindow(id).resizeWindow(width, height)
+// }
 
-r.grid_cursor_goto = (id, row, col) => {
-  $$$&&console.log(`grid_cursor_goto(id: ${id}, row: ${row}, col: ${col})`)
-  setActiveGrid(id, row, col)
-  merge(cursor, { row, col })
-}
+// r.grid_cursor_goto = (id, row, col) => {
+//   $$$&&console.log(`grid_cursor_goto(id: ${id}, row: ${row}, col: ${col})`)
+//   setActiveGrid(id, row, col)
+//   merge(cursor, { row, col })
+// }
 
 // r.grid_scroll = (id, top, bottom, left, right, amount) => amount > 0
 //   ? moveRegionUp(id, amount, { top, bottom, left, right })
@@ -389,10 +385,10 @@ r.grid_cursor_goto = (id, row, col) => {
 //   }
 // }
 
-r.win_position = (windowId, gridId, row, col, width, height) => {
-  $$$&&console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
-  setWindow(windowId, gridId, row, col, width, height)
-}
+// r.win_position = (windowId, gridId, row, col, width, height) => {
+//   $$$&&console.log(`win_position(win: ${windowId}, grid: ${gridId}, top: ${row}, left: ${col}, width: ${width}, height: ${height})`)
+//   setWindow(windowId, gridId, row, col, width, height)
+// }
 
 r.set_title = title => dispatch.pub('vim:title', title)
 
@@ -571,11 +567,11 @@ onRedraw((m: any[]) => {
   }
 
   moveCursor(defaultColors.background)
-  if (winUpdates) requestAnimationFrame(() => renderWindows())
+  // if (winUpdates) requestAnimationFrame(() => renderWindows())
 
-  ;(window as any).requestIdleCallback(() => {
-    refreshWindows()
-  })
+  // ;(window as any).requestIdleCallback(() => {
+  //   refreshWindows()
+  // })
 })
 
 // TODO: we should hookup webgl to regen font atlas if monitor changes

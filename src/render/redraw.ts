@@ -1,8 +1,8 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
-import { getWindow, getAllWindows, removeWindow } from '../core/windows2'
 import { onRedraw } from '../render/msgpack-decode'
 import { WebGLRenderer } from '../render/webgl'
+import * as windows from '../core/windows2'
 
 // this default state should never be used. otherwise something went horribly wrong
 let webgl: WebGLRenderer = {
@@ -16,7 +16,7 @@ const default_colors_set = (e: any) => {
   const defaultColorsChanged = setDefaultColors(fg, bg, sp)
   if (!defaultColorsChanged) return
   const colorAtlas = generateColorLookupAtlas()
-  getAllWindows().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+  windows.getAll().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
 }
 
 const hl_attr_define = (e: any) => {
@@ -27,26 +27,50 @@ const hl_attr_define = (e: any) => {
     addHighlight(id, attr, info)
   }
   const colorAtlas = generateColorLookupAtlas()
-  getAllWindows().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+  windows.getAll().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
 }
 
-const grid_clear = (e: any) => {
-  const [ gridId ] = e[1]
+const win_position = (e: any) => {
+  const count = e.length
+
+  for (let ix = 1; ix < count; ix++) {
+    const [ windowId, gridId, row, col, width, height ] = e[ix]
+    windows.set(windowId, gridId, row, col, width, height)
+  }
+}
+
+const grid_clear = ([ , [ gridId ] ]: any) => {
   if (gridId === 1) return
-  getWindow(gridId).webgl.clear()
+  if (windows.has(gridId)) windows.get(gridId).webgl.clear()
 }
 
-const grid_destroy = ([ /*event-name*/, gridId ]: any) => {
+const grid_destroy = ([ , [ gridId ] ]: any) => {
   if (gridId === 1) return
-  removeWindow(gridId)
+  windows.remove(gridId)
 }
 
-const grid_scroll = (e: any) => {
-  const [ gridId, top, bottom, /*left*/, /*right*/, amount ] = e[1]
+const grid_resize = (e: any) => {
+  const count = e.length
+
+  for (let ix = 1; ix < count; ix++) {
+    const [ gridId, width, height ] = e[ix]
+    if (gridId === 1) continue
+    // it seems we get grid_resize events before win_position. not sure why... but okay
+    if (!windows.has(gridId)) windows.set(-1, gridId, 0, 0, width, height)
+    windows.get(gridId).resizeWindow(width, height)
+  }
+}
+
+const grid_cursor_goto = ([ , [ gridId, row, col ] ]: any) => {
+  windows.setActiveGrid(gridId, row, col)
+  // TODO: update cursor position
+}
+
+const grid_scroll = ([ , [ gridId, top, bottom, /*left*/, /*right*/, amount ] ]: any) => {
   if (gridId === 1) return
   // we make the assumption that left & right will always be
   // at the window edges (left == 0 && right == window.width)
-  const win = getWindow(gridId)
+  const win = windows.get(gridId)
   win.webgl.clear()
 
   amount > 0
@@ -81,7 +105,7 @@ const grid_line = (e: any) => {
     if (gridId !== activeGrid) {
       // TODO: what if we have multiple active webgls... how to keep track of them
       if (activeGrid !== 0) console.warn('grid_line: switch grid more than once! lolwut', gridId)
-      const win = getWindow(gridId)
+      const win = windows.get(gridId)
       webgl = win.webgl
       // TODO: getting width here is kinda expensive. improve.
       width = win.getWindowInfo().width
@@ -127,7 +151,7 @@ const grid_line = (e: any) => {
   }
 
   const atlas = getUpdatedFontAtlasMaybe()
-  if (atlas) getAllWindows().forEach(win => win.webgl.updateFontAtlas(atlas))
+  if (atlas) windows.getAll().forEach(win => win.webgl.updateFontAtlas(atlas))
   console.time('webgl')
   webgl.render(rx)
   console.timeEnd('webgl')
@@ -136,15 +160,29 @@ const grid_line = (e: any) => {
 onRedraw(redrawEvents => {
   console.time('redraw')
   const eventCount = redrawEvents.length
+  let winUpdates = false
 
   for (let ix = 0; ix < eventCount; ix++) {
     const ev = redrawEvents[ix]
+
+    // if statements ordered in wrender priority
     if (ev[0] === 'grid_line') grid_line(ev)
     else if (ev[0] === 'grid_scroll') grid_scroll(ev)
+    else if (ev[0] === 'grid_cursor_goto') grid_cursor_goto(ev)
+    else if (ev[0] === 'win_position') {
+      win_position(ev)
+      winUpdates = true
+    }
+    else if (ev[0] === 'grid_resize') grid_resize(ev)
     else if (ev[0] === 'grid_clear') grid_clear(ev)
     else if (ev[0] === 'grid_destroy') grid_destroy(ev)
     else if (ev[0] === 'hl_attr_define') hl_attr_define(ev)
     else if (ev[0] === 'default_colors_set') default_colors_set(ev)
   }
+
+  requestAnimationFrame(() => {
+    if (winUpdates) windows.render()
+    windows.refresh()
+  })
   console.timeEnd('redraw')
 })
