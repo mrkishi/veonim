@@ -1,11 +1,6 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
 const NOT_SUPPORTED = Symbol('NOT_SUPPORTED')
-const FIXEXT1 = Symbol('FIXEXT1')
-const FIXEXT2 = Symbol('FIXEXT2')
-const FIXEXT4 = Symbol('FIXEXT4')
-const FIXEXT8 = Symbol('FIXEXT8')
-const FIXEXT16 = Symbol('FIXEXT16')
 const EMPTY_OBJECT = Object.create(null)
 const EMPTY_ARR: any[] = []
 const EMPTY_STR = ''
@@ -102,19 +97,19 @@ const superparse = (raw: Buffer) => {
   }
 
   // fixext1
-  else if (m === 0xd4) return (ix += 3, FIXEXT1)
+  else if (m === 0xd4) return parseExt(raw, 1)
 
   // fixext2
-  else if (m === 0xd5) return (ix += 4, FIXEXT2)
+  else if (m === 0xd5) return parseExt(raw, 2)
 
   // fixext4
-  else if (m === 0xd6) return (ix += 6, FIXEXT4)
+  else if (m === 0xd6) return parseExt(raw, 4)
 
   // fixext8
-  else if (m === 0xd7) return (ix += 10, FIXEXT8)
+  else if (m === 0xd7) return parseExt(raw, 8)
 
   // fixext16
-  else if (m === 0xd8) return (ix += 18, FIXEXT16)
+  else if (m === 0xd8) return parseExt(raw, 16)
 
   // uint64
   else if (m === 0xcf) (ix += 9, NOT_SUPPORTED)
@@ -165,6 +160,17 @@ const toArr = (raw: Buffer, length: number): any[] => {
   const res = new Array(length)
   for (let it = 0; it < length; it++) res[it] = superparse(raw)
   return res
+}
+
+const parseExt = (raw: Buffer, size: number) => {
+  const previx = ix
+  const ext = raw[ix + 1] - 0x00
+  const start = ix + 2
+  const end = start + size
+  ix = 0
+  const val: any = superparse(raw.slice(start, end))
+  ix = previx + 2 + size
+  return { val, ext }
 }
 
 type RedrawEvent = [string, any[]]
