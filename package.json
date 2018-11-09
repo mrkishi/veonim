@@ -78,7 +78,6 @@
     "jscodeshift": "0.3.32",
     "mocha": "5.2.0",
     "proxyquire": "2.0.1",
-    "resemblejs": "2.10.3",
     "spectron": "4.0.0",
     "ts-unused-exports": "2.0.5",
     "typescript": "2.8.1"
