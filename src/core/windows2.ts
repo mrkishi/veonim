@@ -69,18 +69,7 @@ export const render = () => {
 
 const updateWindowNameplates = async () => {
   const windowsWithMetadata = await getWindowMetadata()
-  // windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
-
-  // TODO: for debug testing
-  windowsWithMetadata.forEach(w => {
-    const localWin = getWindowById(w.id)
-    const r = localWin.getWindowInfo()
-    const { id, filetype, ...winInfo } = w
-    localWin.updateNameplate({
-      ...winInfo,
-      name: `GRID:${r.gridId} T:${r.row} L:${r.col} W:${r.width} H:${r.height} - ${w.name}`,
-    })
-  })
+  windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
 }
 
 export const refresh = throttle(updateWindowNameplates, 5)
