@@ -106,8 +106,14 @@ export default (webgl: WebGL2) => {
 
     if (same) return
 
-    Object.assign(viewport, { x, y, width, height })
-    webgl.gl.viewport(x, y, width, height)
+    Object.assign(viewport, {
+      x: Math.round(x * window.devicePixelRatio),
+      y: Math.round(y * window.devicePixelRatio),
+      width: Math.round(width * window.devicePixelRatio),
+      height: Math.round(height * window.devicePixelRatio),
+    })
+
+    webgl.gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 

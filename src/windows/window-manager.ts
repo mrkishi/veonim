@@ -1,15 +1,22 @@
 import CreateWindow, { Window } from '../windows/window'
 import { specs as titleSpecs } from '../core/title'
 import getWindowMetadata from '../windows/metadata'
-import { merge, throttle } from '../support/utils'
 import CreateWebGLRenderer from '../render/webgl'
-import { onResizeElement } from '../ui/vanilla'
+import { onElementResize } from '../ui/vanilla'
+import { throttle } from '../support/utils'
 import windowSizer from '../windows/sizer'
 
+export const webgl = CreateWebGLRenderer()
+const windows = new Map<number, Window>()
+const windowsById = new Map<number, Window>()
+const activeGrid = { id: 1, row: 0, col: 0 }
 const container = document.getElementById('windows') as HTMLElement
 const webglContainer = document.getElementById('webgl') as HTMLElement
 
-merge(webglContainer.style, {
+webgl.backgroundElement.setAttribute('wat', 'webgl-background')
+webgl.foregroundElement.setAttribute('wat', 'webgl-foreground')
+
+Object.assign(webglContainer.style, {
   width: '100vw',
   // TODO: 24px for statusline. do it better
   // TODO: and title. bruv do i even know css?
@@ -20,7 +27,7 @@ merge(webglContainer.style, {
   background: 'var(--background-30)',
 })
 
-merge(container.style, {
+Object.assign(container.style, {
   width: '100vw',
   // TODO: 24px for statusline. do it better
   // TODO: and title. bruv do i even know css?
@@ -35,14 +42,6 @@ merge(container.style, {
   background: 'none',
 })
 
-export const webgl = CreateWebGLRenderer()
-const windows = new Map<number, Window>()
-const windowsById = new Map<number, Window>()
-const activeGrid = { id: 1, row: 0, col: 0 }
-
-webgl.backgroundElement.setAttribute('wat', 'webgl-background')
-webgl.foregroundElement.setAttribute('wat', 'webgl-foreground')
-
 Object.assign(webgl.backgroundElement.style, {
   position: 'absolute',
   zIndex: 3,
@@ -56,11 +55,11 @@ Object.assign(webgl.foregroundElement.style, {
 webglContainer.appendChild(webgl.backgroundElement)
 webglContainer.appendChild(webgl.foregroundElement)
 
-onResizeElement(webglContainer, (w, h) => webgl.resize(w, h))
+onElementResize(webglContainer, (w, h) => webgl.resize(w, h))
 
 export const createWebGLView = () => webgl.createView()
 
-export const setActiveGrid = (id: number, row: number, col: number) => merge(activeGrid, { id, row, col })
+export const setActiveGrid = (id: number, row: number, col: number) => Object.assign(activeGrid, { id, row, col })
 
 export const getActive = () => get(activeGrid.id)
 
@@ -102,7 +101,7 @@ export const render = () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
   const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)
 
-  merge(container.style, { gridTemplateRows, gridTemplateColumns })
+  Object.assign(container.style, { gridTemplateRows, gridTemplateColumns })
 
   windowGridInfo.forEach(({ gridId, gridRow, gridColumn }) => {
     get(gridId).applyGridStyle({ gridRow, gridColumn })
