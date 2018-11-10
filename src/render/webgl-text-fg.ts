@@ -150,6 +150,7 @@ export default (webgl: WebGL2) => {
     })
 
     webgl.gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height)
+    webgl.gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 

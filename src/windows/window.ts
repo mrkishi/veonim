@@ -57,6 +57,10 @@ export default () => {
   content.setAttribute('wat', 'content')
   nameplate.element.setAttribute('wat', 'nameplate')
 
+  Object.assign(nameplate.element.style, {
+    background: 'var(--background-30)',
+  })
+
   content.appendChild(overlay)
   container.appendChild(nameplate.element)
   container.appendChild(content)

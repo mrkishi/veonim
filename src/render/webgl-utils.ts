@@ -157,6 +157,7 @@ const create = (options?: WebGLContextAttributes) => {
     const use = () => {
       gl.useProgram(program)
       gl.bindVertexArray(vao)
+      gl.enable(gl.SCISSOR_TEST)
     }
 
     const setupData: SetupDataFunc = (pointers: any) => {

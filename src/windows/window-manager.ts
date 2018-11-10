@@ -24,7 +24,7 @@ Object.assign(webglContainer.style, {
   flex: 1,
   zIndex: 2,
   position: 'absolute',
-  background: 'var(--background-30)',
+  background: 'var(--background)',
 })
 
 Object.assign(container.style, {
