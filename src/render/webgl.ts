@@ -6,7 +6,7 @@ import TextBG from '../render/webgl-text-bg'
 
 export interface WebGLView {
   resize: (rows: number, cols: number) => void
-  render: (buffer: Float32Array) => void
+  render: (elements: number) => void
   clear: () => void
   moveRegionUp: (lines: number, top: number, bottom: number) => void
   moveRegionDown: (lines: number, top: number, bottom: number) => void
@@ -38,7 +38,7 @@ const nutella = () => {
   const createView = (): WebGLView => {
     const viewport = { width: 0, height: 0 }
     const gridBuffer = CreateWebGLBuffer()
-    let sharedDataBuffer = new Float32Array()
+    let dataBuffer = new Float32Array()
 
     const resize = (rows: number, cols: number) => {
       const width = cols * cell.width
@@ -47,11 +47,12 @@ const nutella = () => {
       if (viewport.width === width && viewport.height === height) return
 
       Object.assign(viewport, { width, height })
-      sharedDataBuffer = new Float32Array(rows * cols * 4)
+      dataBuffer = new Float32Array(rows * cols * 4)
       gridBuffer.resize(rows, cols)
     }
 
-    const render = (buffer: Float32Array) => {
+    const render = (elements: number) => {
+      const buffer = dataBuffer.subarray(0, elements)
       textBGRenderer.render(buffer, viewport.width, viewport.height)
       textFGRenderer.render(buffer, viewport.width, viewport.height)
     }
@@ -82,7 +83,7 @@ const nutella = () => {
       moveRegionUp,
       moveRegionDown,
       getGridBuffer: gridBuffer.getBuffer,
-      getBuffer: () => sharedDataBuffer,
+      getBuffer: () => dataBuffer,
     }
   }
 

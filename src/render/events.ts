@@ -4,15 +4,28 @@ import { VimMode } from '../neovim/types'
 import nvim from '../core/neovim'
 
 interface Mode {
-  shape: CursorShape,
-  size?: number,
-  color?: string,
+  shape: CursorShape
+  size?: number
+  color?: string
 }
 
 interface CommandLineCache {
-  cmd?: string,
-  active: boolean,
-  position: number,
+  cmd?: string
+  active: boolean
+  position: number
+}
+
+export enum CommandType {
+  Ex,
+  Prompt,
+  SearchForward,
+  SearchBackward,
+}
+
+export interface CommandUpdate {
+  cmd: string
+  kind: CommandType
+  position: number
 }
 
 const modes = new Map<string, Mode>()

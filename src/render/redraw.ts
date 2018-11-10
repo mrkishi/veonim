@@ -85,6 +85,10 @@ const grid_line = (e: any) => {
   const size = e.length
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
+
+  // TODO: could keep this index number inside the window webglview just like
+  // we keep with the dataBuffer typedarray. could return a "render data" object
+  // return { ..., renderData: { buffer, index }, ... }
   let rx = 0
   let activeGrid = 0
   let buffer = dummyData
