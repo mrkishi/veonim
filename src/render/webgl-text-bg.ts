@@ -22,7 +22,9 @@ export default (webgl: WebGL2) => {
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.colorAtlasResolution};
     uniform vec2 ${v.cellSize};
+    uniform sampler2D ${v.colorAtlasTextureId};
 
+    out vec4 o_color;
     out vec2 o_colorPosition;
 
     void main() {
@@ -33,20 +35,19 @@ export default (webgl: WebGL2) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      o_colorPosition = vec2(${v.hlid}, 0) / ${v.colorAtlasResolution};
+      vec2 colorPosition = vec2(${v.hlid}, 0) / ${v.colorAtlasResolution};
+      o_color = texture(${v.colorAtlasTextureId}, colorPosition);
     }
   `)
 
-  program.setFragmentShader(v => `
+  program.setFragmentShader(() => `
     precision highp float;
 
-    in vec2 o_colorPosition;
-    uniform sampler2D ${v.colorAtlasTextureId};
-
+    in vec4 o_color;
     out vec4 outColor;
 
     void main() {
-      outColor = texture(${v.colorAtlasTextureId}, o_colorPosition);
+      outColor = o_color;
     }
   `)
 

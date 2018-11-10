@@ -28,9 +28,10 @@ export default (webgl: WebGL2) => {
     uniform vec2 ${v.fontAtlasResolution};
     uniform vec2 ${v.colorAtlasResolution};
     uniform vec2 ${v.cellSize};
+    uniform sampler2D ${v.colorAtlasTextureId};
 
-    out vec2 o_colorPosition;
     out vec2 o_glyphPosition;
+    out vec4 o_color;
 
     void main() {
       vec2 absolutePixelPosition = ${v.cellPosition} * ${v.cellSize};
@@ -44,30 +45,23 @@ export default (webgl: WebGL2) => {
       vec2 glyphVertex = glyphPixelPosition + ${v.quadVertex};
       o_glyphPosition = glyphVertex / ${v.fontAtlasResolution};
 
-      o_colorPosition = vec2(${v.hlid}, 1) / ${v.colorAtlasResolution};
+      vec2 colorPosition = vec2(${v.hlid}, 1) / ${v.colorAtlasResolution};
+      o_color = texture(${v.colorAtlasTextureId}, colorPosition);
     }
   `)
-
-  // TODO: move highlight color lookup to vertex shader?
-  // the hl color will be the same for the current vertex.
-  // as i understand it, fragment shaders will run multiple
-  // times per vertex to interpolate pixel values. skipping
-  // the hl color lookup might save a tiny bit of perf
 
   program.setFragmentShader(v => `
     precision highp float;
 
     in vec2 o_glyphPosition;
-    in vec2 o_colorPosition;
+    in vec4 o_color;
     uniform sampler2D ${v.fontAtlasTextureId};
-    uniform sampler2D ${v.colorAtlasTextureId};
 
     out vec4 outColor;
 
     void main() {
       vec4 glyphColor = texture(${v.fontAtlasTextureId}, o_glyphPosition);
-      vec4 highlightColor = texture(${v.colorAtlasTextureId}, o_colorPosition);
-      outColor = glyphColor * highlightColor;
+      outColor = glyphColor * o_color;
     }
   `)
 
