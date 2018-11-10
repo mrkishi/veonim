@@ -3,8 +3,7 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
-  const size = { rows: 0, cols: 0 }
-  let dataBuffer = new Float32Array()
+  const viewport = { width: 0, height: 0 }
 
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
@@ -99,22 +98,15 @@ export default (webgl: WebGL2) => {
     webgl.resize(width, height)
   }
 
-  const oldResize = (rows: number, cols: number) => {
-    if (size.rows === rows && size.cols === cols) return
+  const readjustViewportMaybe = (width: number, height: number) => {
+    if (viewport.width === width && viewport.height === height) return
 
-    Object.assign(size, { rows, cols })
-    const width = cols * cc.cell.width
-    const height = rows * cc.cell.height
-
+    Object.assign(viewport, { width, height })
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
-  const render = (buffer: Float32Array) => {
-    wrenderBuffer.setData(buffer)
-    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
-  }
-
-  const renderFromBuffer = (buffer: Float32Array) => {
+  const render = (buffer: Float32Array, width: number, height: number) => {
+    readjustViewportMaybe(width, height)
     wrenderBuffer.setData(buffer)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
   }
@@ -126,5 +118,5 @@ export default (webgl: WebGL2) => {
 
   const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
 
-  return { clear, render, renderFromBuffer, resize, updateColorAtlas }
+  return { clear, render, resize, updateColorAtlas }
 }

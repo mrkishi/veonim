@@ -6,7 +6,7 @@ import TextBG from '../render/webgl-text-bg'
 
 export interface WebGLView {
   resize: (rows: number, cols: number) => void
-  render: (elements?: number) => void
+  render: (buffer: Float32Array) => void
   clear: () => void
   moveRegionUp: (lines: number, top: number, bottom: number) => void
   moveRegionDown: (lines: number, top: number, bottom: number) => void
@@ -52,8 +52,8 @@ const nutella = () => {
     }
 
     const render = (buffer: Float32Array) => {
-      textBGRenderer.render(buffer)
-      textFGRenderer.render(buffer)
+      textBGRenderer.render(buffer, viewport.width, viewport.height)
+      textFGRenderer.render(buffer, viewport.width, viewport.height)
     }
 
     const clear = () => {
@@ -63,16 +63,16 @@ const nutella = () => {
 
     const moveRegionUp = (lines: number, top: number, bottom: number) => {
       gridBuffer.moveRegionUp(lines, top, bottom)
-      const buf = gridBuffer.getBuffer()
-      textBGRenderer.renderFromBuffer(buf)
-      textFGRenderer.renderFromBuffer(buf)
+      const buffer = gridBuffer.getBuffer()
+      textBGRenderer.render(buffer, viewport.width, viewport.height)
+      textFGRenderer.render(buffer, viewport.width, viewport.height)
     }
 
     const moveRegionDown = (lines: number, top: number, bottom: number) => {
       gridBuffer.moveRegionDown(lines, top, bottom)
-      const buf = gridBuffer.getBuffer()
-      textBGRenderer.renderFromBuffer(buf)
-      textFGRenderer.renderFromBuffer(buf)
+      const buffer = gridBuffer.getBuffer()
+      textBGRenderer.render(buffer, viewport.width, viewport.height)
+      textFGRenderer.render(buffer, viewport.width, viewport.height)
     }
 
     return {
