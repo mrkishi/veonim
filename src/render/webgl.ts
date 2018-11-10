@@ -3,6 +3,16 @@ import CreateWebGL from '../render/webgl-utils'
 import TextFG from '../render/webgl-text-fg'
 import TextBG from '../render/webgl-text-bg'
 
+export interface WebGLView {
+  resize: (rows: number, cols: number) => void
+  render: (elements?: number) => void
+  clear: () => void
+  moveRegionUp: (lines: number, top: number, bottom: number) => void
+  moveRegionDown: (lines: number, top: number, bottom: number) => void
+  getGridBuffer: () => Float32Array
+  getBuffer: () => Float32Array
+}
+
 const nutella = () => {
   const foregroundGL = CreateWebGL({ alpha: true, preserveDrawingBuffer: true })
   const backgroundGL = CreateWebGL({ alpha: true, preserveDrawingBuffer: true })
@@ -38,7 +48,7 @@ const nutella = () => {
     textFGRenderer.updateColorAtlas(colorAtlas)
   }
 
-  const createView = () => {
+  const createView = (): WebGLView => {
     const resize = (rows: number, cols: number) => {
       sharedDataBuffer = new Float32Array(rows * cols * 4)
       textBGRenderer.share(sharedDataBuffer)

@@ -3,10 +3,10 @@ import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-a
 import * as windows from '../windows/window-manager'
 import { onRedraw } from '../render/msgpack-decode'
 import * as dispatch from '../messaging/dispatch'
-import { WebGLRenderer } from '../render/webgl'
+import { WebGLView } from '../render/webgl'
 
 // this default state should never be used. otherwise something went horribly wrong
-let webgl: WebGLRenderer = {
+let webgl: WebGLView = {
   render: () => console.warn('trying to webgl wrender into a grid that has no window'),
 } as any
 
@@ -17,7 +17,7 @@ const default_colors_set = (e: any) => {
   const defaultColorsChanged = setDefaultColors(fg, bg, sp)
   if (!defaultColorsChanged) return
   const colorAtlas = generateColorLookupAtlas()
-  windows.getAll().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+  windows.webgl.updateColorAtlas(colorAtlas)
 }
 
 const hl_attr_define = (e: any) => {
@@ -28,7 +28,7 @@ const hl_attr_define = (e: any) => {
     addHighlight(id, attr, info)
   }
   const colorAtlas = generateColorLookupAtlas()
-  windows.getAll().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+  windows.webgl.updateColorAtlas(colorAtlas)
 }
 
 const win_position = (e: any) => {
@@ -152,7 +152,7 @@ const grid_line = (e: any) => {
   }
 
   const atlas = getUpdatedFontAtlasMaybe()
-  if (atlas) windows.getAll().forEach(win => win.webgl.updateFontAtlas(atlas))
+  if (atlas) windows.webgl.updateFontAtlas(atlas)
   console.time('webgl')
   webgl.render(rx)
   console.timeEnd('webgl')

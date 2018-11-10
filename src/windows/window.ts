@@ -1,4 +1,6 @@
 import CreateWindowNameplate, { NameplateState } from '../windows/nameplate'
+import { createWebGLView } from '../windows/window-manager'
+import { WebGLView } from '../render/webgl'
 import { makel } from '../ui/vanilla'
 
 export interface WindowInfo {
@@ -16,6 +18,7 @@ interface GridStyle {
 }
 
 export interface Window {
+  webgl: WebGLView
   element: HTMLElement
   getWindowInfo(): WindowInfo
   setWindowInfo(info: WindowInfo): void
@@ -29,6 +32,7 @@ export interface Window {
 
 export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
+  const webgl = createWebGLView()
 
   const container = makel({
     flexFlow: 'column',
@@ -58,10 +62,12 @@ export default () => {
   container.appendChild(content)
 
   const api = {
+    get webgl() { return webgl },
     get element() { return container },
   } as Window
 
   api.resizeWindow = (width, height) => {
+    webgl.resize(height, width)
   }
 
   api.setWindowInfo = info => {

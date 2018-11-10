@@ -49,11 +49,13 @@ Object.assign(webgl.foregroundElement.style, {
 webglContainer.appendChild(webgl.backgroundElement)
 webglContainer.appendChild(webgl.foregroundElement)
 
-const ro = new ResizeObserver(([ e ]) => {
+// ResizeObserver only exists in Chrome
+const ro = new (window as any).ResizeObserver(([ e ]: any) => {
   webgl.resize(e.width, e.height)
 })
-
 ro.observe(webglContainer)
+
+export const createWebGLView = () => webgl.createView()
 
 export const setActiveGrid = (id: number, row: number, col: number) => merge(activeGrid, { id, row, col })
 
