@@ -22,7 +22,7 @@ const nutella = () => {
   const textFGRenderer = TextFG(foregroundGL)
   const textBGRenderer = TextBG(backgroundGL)
 
-  const resize = (width: number, height: number) => {
+  const resizeCanvas = (width: number, height: number) => {
     textBGRenderer.resize(width, height)
     textFGRenderer.resize(width, height)
   }
@@ -52,7 +52,7 @@ const nutella = () => {
 
       if (viewport.width === width && viewport.height === height) return
 
-      Object.assign(viewport, { width, height })
+      // Object.assign(viewport, { width, height })
       dataBuffer = new Float32Array(rows * cols * 4)
       gridBuffer.resize(rows, cols)
     }
@@ -76,8 +76,9 @@ const nutella = () => {
     }
 
     const clear = () => {
-      textBGRenderer.clear()
-      textFGRenderer.clear()
+      const { x, y, width, height } = viewport
+      textBGRenderer.clear(x, y, width, height)
+      textFGRenderer.clear(x, y, width, height)
     }
 
     const moveRegionUp = (lines: number, top: number, bottom: number) => {
@@ -109,8 +110,8 @@ const nutella = () => {
   }
 
   return {
-    resize,
     createView,
+    resizeCanvas,
     updateFontAtlas,
     updateColorAtlas,
     foregroundElement: foregroundGL.canvasElement,

@@ -56,7 +56,7 @@ webglContainer.appendChild(webgl.backgroundElement)
 webglContainer.appendChild(webgl.foregroundElement)
 
 onElementResize(webglContainer, (w, h) => {
-  webgl.resize(w, h)
+  webgl.resizeCanvas(w, h)
   // TODO: refresh layout here?
   // getAll().forEach(w => w.refreshLayout())
 })

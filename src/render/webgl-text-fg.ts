@@ -135,20 +135,20 @@ export default (webgl: WebGL2) => {
   }
 
   const readjustViewportMaybe = (x: number, y: number, width: number, height: number) => {
-    const same = viewport.width === width
-      && viewport.height === height
-      && viewport.x === x
-      && viewport.y === y
+    const bottom = (y + height) * window.devicePixelRatio
+    const yy = Math.round(webgl.canvasElement.height - bottom)
+    const xx = Math.round(x * window.devicePixelRatio)
+    const ww = Math.round(width * window.devicePixelRatio)
+    const hh = Math.round(height * window.devicePixelRatio)
+
+    const same = viewport.width === ww
+      && viewport.height === hh
+      && viewport.x === xx
+      && viewport.y === yy
 
     if (same) return
 
-    Object.assign(viewport, {
-      x: Math.round(x * window.devicePixelRatio),
-      y: Math.round(y * window.devicePixelRatio),
-      width: Math.round(width * window.devicePixelRatio),
-      height: Math.round(height * window.devicePixelRatio),
-    })
-
+    Object.assign(viewport, { x: xx, y: yy, width: ww, height: hh })
     webgl.gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height)
     webgl.gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
@@ -172,7 +172,10 @@ export default (webgl: WebGL2) => {
     webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
   }
 
-  const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
+  const clear = (x: number, y: number, width: number, height: number) => {
+    readjustViewportMaybe(x, y, width, height)
+    webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
+  }
 
   return { clear, render, resize, updateFontAtlas, updateColorAtlas }
 }
