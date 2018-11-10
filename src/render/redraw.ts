@@ -1,5 +1,6 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
+import { mode_change, option_set, mode_info_set } from '../render/events'
 import * as windows from '../windows/window-manager'
 import { onRedraw } from '../render/msgpack-decode'
 import * as dispatch from '../messaging/dispatch'
@@ -183,8 +184,11 @@ onRedraw(redrawEvents => {
     else if (ev[0] === 'grid_clear') grid_clear(ev)
     else if (ev[0] === 'grid_destroy') grid_destroy(ev)
     else if (ev[0] === 'tabline_update') tabline_update(ev)
+    else if (ev[0] === 'mode_change') mode_change(ev)
     else if (ev[0] === 'hl_attr_define') hl_attr_define(ev)
     else if (ev[0] === 'default_colors_set') default_colors_set(ev)
+    else if (ev[0] === 'option_set') option_set(ev)
+    else if (ev[0] === 'mode_info_set') mode_info_set(ev)
   }
 
   requestAnimationFrame(() => {
