@@ -57,8 +57,7 @@ webglContainer.appendChild(webgl.foregroundElement)
 
 onElementResize(webglContainer, (w, h) => {
   webgl.resizeCanvas(w, h)
-  // TODO: refresh layout here?
-  // getAll().forEach(w => w.refreshLayout())
+  getAll().forEach(w => w.refreshLayout())
 })
 
 export const createWebGLView = () => webgl.createView()
