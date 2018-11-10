@@ -19,25 +19,11 @@ const nutella = () => {
 
   const textFGRenderer = TextFG(foregroundGL)
   const textBGRenderer = TextBG(backgroundGL)
-  const gridBuffer = CreateWebGLBuffer()
-  let sharedDataBuffer = new Float32Array()
-
-  textBGRenderer.share(sharedDataBuffer)
-  textFGRenderer.share(sharedDataBuffer)
-
-  // TODO: when we resize, do we have to redraw the scene?
-  // yes and no. it squishes all the pixels together as if you
-  // were to resize <-width-> in potatoshoppe
-
-  // TODO: move this to webgl view
 
   const resize = (width: number, height: number) => {
     textBGRenderer.resize(width, height)
     textFGRenderer.resize(width, height)
-    // TODO: change fg and bg to accept width/height
-    // although we will neeeeeeeed to do something with cols/rows?
   }
-
 
   const updateFontAtlas = (fontAtlas: HTMLCanvasElement) => {
     textFGRenderer.updateFontAtlas(fontAtlas)
@@ -49,6 +35,9 @@ const nutella = () => {
   }
 
   const createView = (): WebGLView => {
+    const gridBuffer = CreateWebGLBuffer()
+    let sharedDataBuffer = new Float32Array()
+
     const resize = (rows: number, cols: number) => {
       sharedDataBuffer = new Float32Array(rows * cols * 4)
       textBGRenderer.share(sharedDataBuffer)
@@ -58,9 +47,9 @@ const nutella = () => {
       textFGRenderer.resize(rows, cols)
     }
 
-    const render = (elements?: number) => {
-      textBGRenderer.render(elements)
-      textFGRenderer.render(elements)
+    const render = (buffer: Float32Array) => {
+      textBGRenderer.render(buffer)
+      textFGRenderer.render(buffer)
     }
 
     const clear = () => {

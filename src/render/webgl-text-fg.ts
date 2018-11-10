@@ -5,7 +5,6 @@ import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
   const size = { rows: 0, cols: 0 }
-  let dataBuffer = new Float32Array()
 
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
@@ -145,12 +144,9 @@ export default (webgl: WebGL2) => {
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
-  const render = (count = dataBuffer.length) => {
-    const dataSlice = count
-      ? dataBuffer.subarray(0, count)
-      : dataBuffer
-    wrenderBuffer.setData(dataSlice)
-    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / 4)
+  const render = (buffer: Float32Array) => {
+    wrenderBuffer.setData(buffer)
+    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
   }
 
   const renderFromBuffer = (buffer: Float32Array) => {
@@ -171,7 +167,6 @@ export default (webgl: WebGL2) => {
   }
 
   const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
-  const share = (buffer: Float32Array) => dataBuffer = buffer
 
-  return { clear, share, render, renderFromBuffer, resize, updateFontAtlas, updateColorAtlas }
+  return { clear, render, renderFromBuffer, resize, updateFontAtlas, updateColorAtlas }
 }

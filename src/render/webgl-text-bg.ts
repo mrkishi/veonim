@@ -109,12 +109,9 @@ export default (webgl: WebGL2) => {
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
-  const render = (count = dataBuffer.length) => {
-    const dataSlice = count
-      ? dataBuffer.subarray(0, count)
-      : dataBuffer
-    wrenderBuffer.setData(dataSlice)
-    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / 4)
+  const render = (buffer: Float32Array) => {
+    wrenderBuffer.setData(buffer)
+    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
   }
 
   const renderFromBuffer = (buffer: Float32Array) => {
@@ -128,7 +125,6 @@ export default (webgl: WebGL2) => {
   }
 
   const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
-  const share = (buffer: Float32Array) => dataBuffer = buffer
 
-  return { clear, share, render, renderFromBuffer, resize, updateColorAtlas }
+  return { clear, render, renderFromBuffer, resize, updateColorAtlas }
 }
