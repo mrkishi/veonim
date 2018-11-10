@@ -1,7 +1,6 @@
 import { hexToRGBA, partialFill, translate } from '../ui/css'
 import * as canvasContainer from '../core/canvas-container'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
-import { getWindow, RenderWindow } from '../core/windows'
 import { CanvasWindow } from '../core/canvas-window'
 import { merge } from '../support/utils'
 import { get } from '../core/grid'
@@ -133,23 +132,24 @@ const updateCursorPosition = (canvas: CanvasWindow) => {
 }
 
 export const moveCursor = (backgroundColor: string) => {
-  const res = getWindow(cursor.row, cursor.col, { getStuff: true })
-  if (!res || !res.canvas) return
-  const { canvas, win } = res
+  console.warn('NYI: move cursor')
+  // const res = getWindow(cursor.row, cursor.col, { getStuff: true })
+  // if (!res || !res.canvas) return
+  // const { canvas, win } = res
 
-  // even if cursor(line) is hidden, we still need to update the positions.
-  // once the cursor elements are re-activated, the position updated while
-  // hidden must be accurate. (e.g. using jumpTo() in grep/references/etc)
+  // // even if cursor(line) is hidden, we still need to update the positions.
+  // // once the cursor elements are re-activated, the position updated while
+  // // hidden must be accurate. (e.g. using jumpTo() in grep/references/etc)
 
-  updateCursorPosition(canvas)
-  updateCursorlinePosition(canvas, backgroundColor)
+  // updateCursorPosition(canvas)
+  // updateCursorlinePosition(canvas, backgroundColor)
 
-  if (!cursorEnabled) return
-  if (cursorRequestedToBeHidden) return
+  // if (!cursorEnabled) return
+  // if (cursorRequestedToBeHidden) return
 
-  controlCursorIfShadowBuffer(win)
-  updateCursorChar(cursor.type)
-  showCursorline()
+  // controlCursorIfShadowBuffer(win)
+  // updateCursorChar(cursor.type)
+  // showCursorline()
 }
 
 setCursorShape(CursorShape.block)

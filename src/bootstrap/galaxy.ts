@@ -10,11 +10,9 @@ import { resize, attachTo, create } from '../core/master-control'
 import * as canvasContainer from '../core/canvas-container'
 import configReader from '../config/config-reader'
 import setDefaultSession from '../core/sessions'
-// import * as windows from '../core/windows'
 import * as uiInput from '../core/input'
 import nvim from '../core/neovim'
 import '../ui/notifications'
-import '../core/render'
 import '../core/title'
 
 const loadingConfig = CreateTask()
@@ -46,20 +44,20 @@ const main = async () => {
   attachTo(id)
   setDefaultSession(id, path)
 
-  setTimeout(() => {
-    // TODO: can we load copmonents on demand?
-    // aka, either load when user requests, or after 10 sec of app startup shit
-    // in the inventory PR, layer actions are now setup to require the componet.
-    // this could be a way to lazy load components (or maybe some of the
-    // non-important ones - color-picker, etc.)
-    requireDir(`${__dirname}/../services`)
-    requireDir(`${__dirname}/../components`)
-    setTimeout(() => require('../core/ai'))
-  }, 1)
+  // setTimeout(() => {
+  //   // TODO: can we load copmonents on demand?
+  //   // aka, either load when user requests, or after 10 sec of app startup shit
+  //   // in the inventory PR, layer actions are now setup to require the componet.
+  //   // this could be a way to lazy load components (or maybe some of the
+  //   // non-important ones - color-picker, etc.)
+  //   requireDir(`${__dirname}/../services`)
+  //   requireDir(`${__dirname}/../components`)
+  //   setTimeout(() => require('../core/ai'))
+  // }, 1)
 
   // TODO: THIS SHOULD BE LOADED IN A WEB WORKER. WTF IS THIS SHIT DOING IN THE MAIN THREAD LOL
   // TODO: clearly we are not ready for this greatness
-  setTimeout(() => require('../support/dependency-manager').default(), 100)
+  // setTimeout(() => require('../support/dependency-manager').default(), 100)
 }
 
 main().catch(log)

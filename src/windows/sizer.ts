@@ -1,5 +1,5 @@
 import { size } from '../core/canvas-container'
-import { WindowInfo } from '../core/window'
+import { WindowInfo } from '../windows/window'
 import { within } from '../support/utils'
 
 const getSplits = (wins: WindowInfo[]) => {

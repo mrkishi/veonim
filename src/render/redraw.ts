@@ -1,12 +1,13 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
+import { mode_change, option_set, mode_info_set } from '../render/events'
+import * as windows from '../windows/window-manager'
 import { onRedraw } from '../render/msgpack-decode'
 import * as dispatch from '../messaging/dispatch'
-import { WebGLRenderer } from '../render/webgl'
-import * as windows from '../core/windows2'
+import { WebGLView } from '../render/webgl'
 
 // this default state should never be used. otherwise something went horribly wrong
-let webgl: WebGLRenderer = {
+let webgl: WebGLView = {
   render: () => console.warn('trying to webgl wrender into a grid that has no window'),
 } as any
 
@@ -17,7 +18,7 @@ const default_colors_set = (e: any) => {
   const defaultColorsChanged = setDefaultColors(fg, bg, sp)
   if (!defaultColorsChanged) return
   const colorAtlas = generateColorLookupAtlas()
-  windows.getAll().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+  windows.webgl.updateColorAtlas(colorAtlas)
 }
 
 const hl_attr_define = (e: any) => {
@@ -28,7 +29,7 @@ const hl_attr_define = (e: any) => {
     addHighlight(id, attr, info)
   }
   const colorAtlas = generateColorLookupAtlas()
-  windows.getAll().forEach(win => win.webgl.updateColorAtlas(colorAtlas))
+  windows.webgl.updateColorAtlas(colorAtlas)
 }
 
 const win_position = (e: any) => {
@@ -84,6 +85,10 @@ const grid_line = (e: any) => {
   const size = e.length
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
+
+  // TODO: could keep this index number inside the window webglview just like
+  // we keep with the dataBuffer typedarray. could return a "render data" object
+  // return { ..., renderData: { buffer, index }, ... }
   let rx = 0
   let activeGrid = 0
   let buffer = dummyData
@@ -152,7 +157,7 @@ const grid_line = (e: any) => {
   }
 
   const atlas = getUpdatedFontAtlasMaybe()
-  if (atlas) windows.getAll().forEach(win => win.webgl.updateFontAtlas(atlas))
+  if (atlas) windows.webgl.updateFontAtlas(atlas)
   console.time('webgl')
   webgl.render(rx)
   console.timeEnd('webgl')
@@ -183,8 +188,11 @@ onRedraw(redrawEvents => {
     else if (ev[0] === 'grid_clear') grid_clear(ev)
     else if (ev[0] === 'grid_destroy') grid_destroy(ev)
     else if (ev[0] === 'tabline_update') tabline_update(ev)
+    else if (ev[0] === 'mode_change') mode_change(ev)
     else if (ev[0] === 'hl_attr_define') hl_attr_define(ev)
     else if (ev[0] === 'default_colors_set') default_colors_set(ev)
+    else if (ev[0] === 'option_set') option_set(ev)
+    else if (ev[0] === 'mode_info_set') mode_info_set(ev)
   }
 
   requestAnimationFrame(() => {

@@ -1,6 +1,8 @@
 import { hideCursor, showCursor, disableCursor, enableCursor, cursor } from '../core/cursor'
-import { currentWindowElement, getWindow } from '../core/windows'
-import { CommandType, CommandUpdate } from '../core/render'
+// import { currentWindowElement, getWindow } from '../core/windows'
+const currentWindowElement = () => ({ remove: () => {}, add: () => {} })
+const getWindow = () => {}
+import { CommandType, CommandUpdate } from '../render/events'
 import { CanvasWindow } from '../core/canvas-window'
 import Input from '../components/text-input'
 import { sub } from '../messaging/dispatch'

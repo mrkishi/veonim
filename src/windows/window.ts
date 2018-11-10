@@ -1,6 +1,7 @@
-import CreateWindowNameplate, { NameplateState } from '../core/window-nameplate'
-import CreateCanvasRenderer, { CanvasRenderer } from '../render/canvas'
-import CreateWebGLRenderer, { WebGLRenderer } from '../render/webgl'
+import CreateWindowNameplate, { NameplateState } from '../windows/nameplate'
+import { createWebGLView } from '../windows/window-manager'
+import { specs as titleSpecs } from '../core/title'
+import { WebGLView } from '../render/webgl'
 import { makel } from '../ui/vanilla'
 
 export interface WindowInfo {
@@ -18,12 +19,12 @@ interface GridStyle {
 }
 
 export interface Window {
-  webgl: WebGLRenderer
-  canvas: CanvasRenderer
+  webgl: WebGLView
   element: HTMLElement
   getWindowInfo(): WindowInfo
   setWindowInfo(info: WindowInfo): void
   applyGridStyle(gridStyle: GridStyle): void
+  refreshLayout(): void
   updateNameplate(data: NameplateState): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
@@ -33,6 +34,8 @@ export interface Window {
 
 export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
+  const layout = { x: 0, y: 0, width: 0, height: 0 }
+  const webgl = createWebGLView()
 
   const container = makel({
     flexFlow: 'column',
@@ -43,7 +46,7 @@ export default () => {
   const content = makel({
     display: 'flex',
     flex: 1,
-    background: 'var(--background)',
+    background: 'none',
   })
 
   const overlay = makel({
@@ -52,49 +55,26 @@ export default () => {
   })
 
   const nameplate = CreateWindowNameplate()
-  const webgl = CreateWebGLRenderer()
-  const canvas = CreateCanvasRenderer()
 
   overlay.setAttribute('wat', 'overlay')
   content.setAttribute('wat', 'content')
-  canvas.element.setAttribute('wat', 'canvas')
   nameplate.element.setAttribute('wat', 'nameplate')
-  webgl.backgroundElement.setAttribute('wat', 'webgl-background')
-  webgl.foregroundElement.setAttribute('wat', 'webgl-foreground')
 
-  Object.assign(webgl.backgroundElement.style, {
-    position: 'absolute',
-    zIndex: 5,
-  })
-
-  Object.assign(canvas.element.style, {
-    position: 'absolute',
-    zIndex: 6,
-  })
-
-  Object.assign(webgl.foregroundElement.style, {
-    position: 'absolute',
-    zIndex: 7,
+  Object.assign(nameplate.element.style, {
+    background: 'var(--background-30)',
   })
 
   content.appendChild(overlay)
-  content.appendChild(webgl.backgroundElement)
-  // TODO; will we be using canvas for anything?
-  // content.appendChild(canvas.element)
-  content.appendChild(webgl.foregroundElement)
-
   container.appendChild(nameplate.element)
   container.appendChild(content)
 
   const api = {
     get webgl() { return webgl },
-    get canvas() { return canvas },
     get element() { return container },
   } as Window
 
   api.resizeWindow = (width, height) => {
     webgl.resize(height, width)
-    canvas.resize(height, width)
   }
 
   api.setWindowInfo = info => {
@@ -104,7 +84,26 @@ export default () => {
 
   api.getWindowInfo = () => ({ ...wininfo })
 
-  api.applyGridStyle = ({ gridRow, gridColumn }) => Object.assign(container.style, { gridColumn, gridRow })
+  api.applyGridStyle = ({ gridRow, gridColumn }) => {
+    Object.assign(container.style, { gridColumn, gridRow })
+  }
+
+  api.refreshLayout = () => {
+    const { top, left, width, height } = content.getBoundingClientRect()
+
+    const x = left
+    const y = top - titleSpecs.height
+
+    const same = layout.x === x
+      && layout.y === y
+      && layout.width === width
+      && layout.height === height
+
+    if (same) return
+
+    Object.assign(layout, { x, y, width, height })
+    webgl.layout(x, y, width, height)
+  }
 
   api.addOverlayElement = element => {
     overlay.appendChild(element)

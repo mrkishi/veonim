@@ -37,15 +37,17 @@ const defaultColors = {
 }
 
 export const setDefaultColors = (fg: number, bg: number, sp: number) => {
-  const foreground = asColor(fg)
-  const background = asColor(bg)
-  const special = asColor(sp)
+  const foreground = fg >= 0 ? asColor(fg) : defaultColors.foreground
+  const background = bg >= 0 ? asColor(bg) : defaultColors.background
+  const special = sp >= 0 ? asColor(sp) : defaultColors.special
 
   const same = defaultColors.foreground === foreground
     && defaultColors.background === background
     && defaultColors.special === special
 
   if (same) return false
+
+  Object.assign(defaultColors, { foreground, background, special })
 
   nvim.state.foreground = defaultColors.foreground
   nvim.state.background = defaultColors.background
@@ -59,8 +61,6 @@ export const setDefaultColors = (fg: number, bg: number, sp: number) => {
     underline: false,
     reverse: false,
   })
-
-  Object.assign(defaultColors, { foreground, background, special })
 
   return true
 }

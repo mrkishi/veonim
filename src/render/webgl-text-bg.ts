@@ -3,8 +3,7 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
-  const size = { rows: 0, cols: 0 }
-  let dataBuffer = new Float32Array()
+  const viewport = { x: 0, y: 0, width: 0, height: 0 }
 
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
@@ -23,7 +22,9 @@ export default (webgl: WebGL2) => {
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.colorAtlasResolution};
     uniform vec2 ${v.cellSize};
+    uniform sampler2D ${v.colorAtlasTextureId};
 
+    out vec4 o_color;
     out vec2 o_colorPosition;
 
     void main() {
@@ -34,20 +35,19 @@ export default (webgl: WebGL2) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      o_colorPosition = vec2(${v.hlid}, 0) / ${v.colorAtlasResolution};
+      vec2 colorPosition = vec2(${v.hlid}, 0) / ${v.colorAtlasResolution};
+      o_color = texture(${v.colorAtlasTextureId}, colorPosition);
     }
   `)
 
-  program.setFragmentShader(v => `
+  program.setFragmentShader(() => `
     precision highp float;
 
-    in vec2 o_colorPosition;
-    uniform sampler2D ${v.colorAtlasTextureId};
-
+    in vec4 o_color;
     out vec4 outColor;
 
     void main() {
-      outColor = texture(${v.colorAtlasTextureId}, o_colorPosition);
+      outColor = o_color;
     }
   `)
 
@@ -95,26 +95,32 @@ export default (webgl: WebGL2) => {
 
   webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
 
-  const resize = (rows: number, cols: number) => {
-    if (size.rows === rows && size.cols === cols) return
-
-    Object.assign(size, { rows, cols })
-    const width = cols * cc.cell.width
-    const height = rows * cc.cell.height
-
+  const resize = (width: number, height: number) => {
     webgl.resize(width, height)
+  }
+
+  const readjustViewportMaybe = (x: number, y: number, width: number, height: number) => {
+    const bottom = (y + height) * window.devicePixelRatio
+    const yy = Math.round(webgl.canvasElement.height - bottom)
+    const xx = Math.round(x * window.devicePixelRatio)
+    const ww = Math.round(width * window.devicePixelRatio)
+    const hh = Math.round(height * window.devicePixelRatio)
+
+    const same = viewport.width === ww
+      && viewport.height === hh
+      && viewport.x === xx
+      && viewport.y === yy
+
+    if (same) return
+
+    Object.assign(viewport, { x: xx, y: yy, width: ww, height: hh })
+    webgl.gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height)
+    webgl.gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
-  const render = (count = dataBuffer.length) => {
-    const dataSlice = count
-      ? dataBuffer.subarray(0, count)
-      : dataBuffer
-    wrenderBuffer.setData(dataSlice)
-    webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, count / 4)
-  }
-
-  const renderFromBuffer = (buffer: Float32Array) => {
+  const render = (buffer: Float32Array, x: number, y: number, width: number, height: number) => {
+    readjustViewportMaybe(x, y, width, height)
     wrenderBuffer.setData(buffer)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
   }
@@ -124,8 +130,10 @@ export default (webgl: WebGL2) => {
     webgl.gl.uniform2f(program.vars.colorAtlasResolution, colorAtlas.width, colorAtlas.height)
   }
 
-  const clear = () => webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
-  const share = (buffer: Float32Array) => dataBuffer = buffer
+  const clear = (x: number, y: number, width: number, height: number) => {
+    readjustViewportMaybe(x, y, width, height)
+    webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
+  }
 
-  return { clear, share, render, renderFromBuffer, resize, updateColorAtlas }
+  return { clear, render, resize, updateColorAtlas }
 }
