@@ -22,6 +22,8 @@ const nutella = () => {
   // TODO: move this to webgl view
 
   const resize = (width: number, height: number) => {
+    textBGRenderer.resize(width, height)
+    textFGRenderer.resize(width, height)
     // TODO: change fg and bg to accept width/height
     // although we will neeeeeeeed to do something with cols/rows?
   }

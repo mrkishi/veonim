@@ -131,14 +131,17 @@ export default (webgl: WebGL2) => {
 
   webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
 
-  const resize = (rows: number, cols: number) => {
+  const resize = (width: number, height: number) => {
+    webgl.resize(width, height)
+  }
+
+  const oldResize = (rows: number, cols: number) => {
     if (size.rows === rows && size.cols === cols) return
 
     Object.assign(size, { rows, cols })
     const width = cols * cc.cell.width
     const height = rows * cc.cell.height
 
-    webgl.resize(width, height)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 

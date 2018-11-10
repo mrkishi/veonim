@@ -28,7 +28,7 @@ merge(container.style, {
   background: 'none',
 })
 
-const webgl = CreateWebGLRenderer()
+export const webgl = CreateWebGLRenderer()
 const windows = new Map<number, Window>()
 const windowsById = new Map<number, Window>()
 const activeGrid = { id: 1, row: 0, col: 0 }
