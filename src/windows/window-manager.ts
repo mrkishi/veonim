@@ -1,8 +1,8 @@
-import CreateWebGLRenderer, { WebGLRenderer } from '../render/webgl'
-import getWindowMetadata from '../core/window-metadata'
-import CreateWindow, { Window } from '../core/window'
+import CreateWindow, { Window } from '../windows/window'
+import getWindowMetadata from '../windows/metadata'
 import { merge, throttle } from '../support/utils'
-import windowSizer from '../core/window-sizer'
+import CreateWebGLRenderer from '../render/webgl'
+import windowSizer from '../windows/sizer'
 
 const container = document.getElementById('windows') as HTMLElement
 const webglContainer = document.getElementById('webgl') as HTMLElement

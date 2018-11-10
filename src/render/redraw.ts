@@ -1,9 +1,9 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
+import * as windows from '../windows/window-manager'
 import { onRedraw } from '../render/msgpack-decode'
 import * as dispatch from '../messaging/dispatch'
 import { WebGLRenderer } from '../render/webgl'
-import * as windows from '../core/windows2'
 
 // this default state should never be used. otherwise something went horribly wrong
 let webgl: WebGLRenderer = {

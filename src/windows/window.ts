@@ -1,4 +1,4 @@
-import CreateWindowNameplate, { NameplateState } from '../core/window-nameplate'
+import CreateWindowNameplate, { NameplateState } from '../windows/nameplate'
 import { makel } from '../ui/vanilla'
 
 export interface WindowInfo {
