@@ -55,7 +55,11 @@ Object.assign(webgl.foregroundElement.style, {
 webglContainer.appendChild(webgl.backgroundElement)
 webglContainer.appendChild(webgl.foregroundElement)
 
-onElementResize(webglContainer, (w, h) => webgl.resize(w, h))
+onElementResize(webglContainer, (w, h) => {
+  webgl.resize(w, h)
+  // TODO: refresh layout here?
+  // getAll().forEach(w => w.refreshLayout())
+})
 
 export const createWebGLView = () => webgl.createView()
 
@@ -105,6 +109,12 @@ export const render = () => {
 
   windowGridInfo.forEach(({ gridId, gridRow, gridColumn }) => {
     get(gridId).applyGridStyle({ gridRow, gridColumn })
+  })
+
+  // wait for flex grid styles to be applied to all windows and trigger dom layout
+  // TODO: need RAF? querying layout info will trigger layout anyways...
+  windowGridInfo.forEach(({ gridId }) => {
+    get(gridId).refreshLayout()
   })
 }
 

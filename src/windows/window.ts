@@ -1,5 +1,6 @@
 import CreateWindowNameplate, { NameplateState } from '../windows/nameplate'
 import { createWebGLView } from '../windows/window-manager'
+import { specs as titleSpecs } from '../core/title'
 import { WebGLView } from '../render/webgl'
 import { makel } from '../ui/vanilla'
 
@@ -23,6 +24,7 @@ export interface Window {
   getWindowInfo(): WindowInfo
   setWindowInfo(info: WindowInfo): void
   applyGridStyle(gridStyle: GridStyle): void
+  refreshLayout(): void
   updateNameplate(data: NameplateState): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
@@ -32,6 +34,7 @@ export interface Window {
 
 export default () => {
   const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
+  const layout = { x: 0, y: 0, width: 0, height: 0 }
   const webgl = createWebGLView()
 
   const container = makel({
@@ -81,7 +84,26 @@ export default () => {
 
   api.getWindowInfo = () => ({ ...wininfo })
 
-  api.applyGridStyle = ({ gridRow, gridColumn }) => Object.assign(container.style, { gridColumn, gridRow })
+  api.applyGridStyle = ({ gridRow, gridColumn }) => {
+    Object.assign(container.style, { gridColumn, gridRow })
+  }
+
+  api.refreshLayout = () => {
+    const { top, left, width, height } = content.getBoundingClientRect()
+
+    const x = left
+    const y = top - titleSpecs.height
+
+    const same = layout.x === x
+      && layout.y === y
+      && layout.width === width
+      && layout.height === height
+
+    if (same) return
+
+    Object.assign(layout, { x, y, width, height })
+    webgl.layout(x, y, width, height)
+  }
 
   api.addOverlayElement = element => {
     overlay.appendChild(element)

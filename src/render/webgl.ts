@@ -6,7 +6,7 @@ import TextBG from '../render/webgl-text-bg'
 
 export interface WebGLView {
   resize: (rows: number, cols: number) => void
-  position: (x: number, y: number) => void
+  layout: (x: number, y: number, width: number, height: number) => void
   render: (elements: number) => void
   clear: () => void
   moveRegionUp: (lines: number, top: number, bottom: number) => void
@@ -41,6 +41,11 @@ const nutella = () => {
     const gridBuffer = CreateWebGLBuffer()
     let dataBuffer = new Float32Array()
 
+    // TODO: so confused about the usage of this resize...
+    // when we get a redraw resize event, how does that row/col
+    // number change the size of the grid layout?
+    // obv we still need this rows/cols to resize the data buffers
+    // but otherwise we don't care about rows and cols
     const resize = (rows: number, cols: number) => {
       const width = cols * cell.width
       const height = rows * cell.height
@@ -52,9 +57,15 @@ const nutella = () => {
       gridBuffer.resize(rows, cols)
     }
 
-    const position = (x: number, y: number) => {
-      if (viewport.x === x && viewport.y === y) return
-      Object.assign(viewport, { x, y })
+    const layout = (x: number, y: number, width: number, height: number) => {
+      const same = viewport.x === x
+        && viewport.y === y
+        && viewport.width === width
+        && viewport.height === height
+
+      if (same) return
+
+      Object.assign(viewport, { x, y, width, height })
     }
 
     const render = (elements: number) => {
@@ -89,7 +100,7 @@ const nutella = () => {
       clear,
       render,
       resize,
-      position,
+      layout,
       moveRegionUp,
       moveRegionDown,
       getGridBuffer: gridBuffer.getBuffer,
