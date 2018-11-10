@@ -3,7 +3,7 @@ import { WebGL2, VarKind } from '../render/webgl-utils'
 import * as cc from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
-  const viewport = { width: 0, height: 0 }
+  const viewport = { x: 0, y: 0, width: 0, height: 0 }
 
   const program = webgl.setupProgram({
     quadVertex: VarKind.Attribute,
@@ -98,15 +98,21 @@ export default (webgl: WebGL2) => {
     webgl.resize(width, height)
   }
 
-  const readjustViewportMaybe = (width: number, height: number) => {
-    if (viewport.width === width && viewport.height === height) return
+  const readjustViewportMaybe = (x: number, y: number, width: number, height: number) => {
+    const same = viewport.width === width
+      && viewport.height === height
+      && viewport.x === x
+      && viewport.y === y
 
-    Object.assign(viewport, { width, height })
+    if (same) return
+
+    Object.assign(viewport, { x, y, width, height })
+    webgl.gl.viewport(x, y, width, height)
     webgl.gl.uniform2f(program.vars.canvasResolution, width, height)
   }
 
-  const render = (buffer: Float32Array, width: number, height: number) => {
-    readjustViewportMaybe(width, height)
+  const render = (buffer: Float32Array, x: number, y: number, width: number, height: number) => {
+    readjustViewportMaybe(x, y, width, height)
     wrenderBuffer.setData(buffer)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
   }

@@ -6,6 +6,7 @@ import TextBG from '../render/webgl-text-bg'
 
 export interface WebGLView {
   resize: (rows: number, cols: number) => void
+  position: (x: number, y: number) => void
   render: (elements: number) => void
   clear: () => void
   moveRegionUp: (lines: number, top: number, bottom: number) => void
@@ -36,7 +37,7 @@ const nutella = () => {
   }
 
   const createView = (): WebGLView => {
-    const viewport = { width: 0, height: 0 }
+    const viewport = { x: 0, y: 0, width: 0, height: 0 }
     const gridBuffer = CreateWebGLBuffer()
     let dataBuffer = new Float32Array()
 
@@ -51,10 +52,16 @@ const nutella = () => {
       gridBuffer.resize(rows, cols)
     }
 
+    const position = (x: number, y: number) => {
+      if (viewport.x === x && viewport.y === y) return
+      Object.assign(viewport, { x, y })
+    }
+
     const render = (elements: number) => {
       const buffer = dataBuffer.subarray(0, elements)
-      textBGRenderer.render(buffer, viewport.width, viewport.height)
-      textFGRenderer.render(buffer, viewport.width, viewport.height)
+      const { x, y, width, height } = viewport
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
     }
 
     const clear = () => {
@@ -65,21 +72,24 @@ const nutella = () => {
     const moveRegionUp = (lines: number, top: number, bottom: number) => {
       gridBuffer.moveRegionUp(lines, top, bottom)
       const buffer = gridBuffer.getBuffer()
-      textBGRenderer.render(buffer, viewport.width, viewport.height)
-      textFGRenderer.render(buffer, viewport.width, viewport.height)
+      const { x, y, width, height } = viewport
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
     }
 
     const moveRegionDown = (lines: number, top: number, bottom: number) => {
       gridBuffer.moveRegionDown(lines, top, bottom)
       const buffer = gridBuffer.getBuffer()
-      textBGRenderer.render(buffer, viewport.width, viewport.height)
-      textFGRenderer.render(buffer, viewport.width, viewport.height)
+      const { x, y, width, height } = viewport
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
     }
 
     return {
       clear,
       render,
       resize,
+      position,
       moveRegionUp,
       moveRegionDown,
       getGridBuffer: gridBuffer.getBuffer,

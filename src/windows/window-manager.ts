@@ -1,15 +1,19 @@
 import CreateWindow, { Window } from '../windows/window'
+import { specs as titleSpecs } from '../core/title'
 import getWindowMetadata from '../windows/metadata'
 import { merge, throttle } from '../support/utils'
 import CreateWebGLRenderer from '../render/webgl'
+import { onResizeElement } from '../ui/vanilla'
 import windowSizer from '../windows/sizer'
 
 const container = document.getElementById('windows') as HTMLElement
 const webglContainer = document.getElementById('webgl') as HTMLElement
 
 merge(webglContainer.style, {
-  width: '100%',
-  height: '100%',
+  width: '100vw',
+  // TODO: 24px for statusline. do it better
+  // TODO: and title. bruv do i even know css?
+  height: `calc(100vh - 24px - ${titleSpecs.height}px)`,
   flex: 1,
   zIndex: 2,
   position: 'absolute',
@@ -17,10 +21,13 @@ merge(webglContainer.style, {
 })
 
 merge(container.style, {
+  width: '100vw',
+  // TODO: 24px for statusline. do it better
+  // TODO: and title. bruv do i even know css?
+  height: `calc(100vh - 24px - ${titleSpecs.height}px)`,
   position: 'absolute',
   flex: 1,
   zIndex: 5,
-  maxWidth: '100%',
   display: 'grid',
   gridGap: '2px',
   justifyItems: 'stretch',
@@ -49,11 +56,7 @@ Object.assign(webgl.foregroundElement.style, {
 webglContainer.appendChild(webgl.backgroundElement)
 webglContainer.appendChild(webgl.foregroundElement)
 
-// ResizeObserver only exists in Chrome
-const ro = new (window as any).ResizeObserver(([ e ]: any) => {
-  webgl.resize(e.width, e.height)
-})
-ro.observe(webglContainer)
+onResizeElement(webglContainer, (w, h) => webgl.resize(w, h))
 
 export const createWebGLView = () => webgl.createView()
 
