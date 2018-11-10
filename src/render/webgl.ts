@@ -18,19 +18,14 @@ const nutella = () => {
   // TODO: when we resize, do we have to redraw the scene?
   // yes and no. it squishes all the pixels together as if you
   // were to resize <-width-> in potatoshoppe
-  const resize = (rows: number, cols: number) => {
-    sharedDataBuffer = new Float32Array(rows * cols * 4)
-    textBGRenderer.share(sharedDataBuffer)
-    textFGRenderer.share(sharedDataBuffer)
-    gridBuffer.resize(rows, cols)
-    textBGRenderer.resize(rows, cols)
-    textFGRenderer.resize(rows, cols)
+
+  // TODO: move this to webgl view
+
+  const resize = (width: number, height: number) => {
+    // TODO: change fg and bg to accept width/height
+    // although we will neeeeeeeed to do something with cols/rows?
   }
 
-  const render = (elements?: number) => {
-    textBGRenderer.render(elements)
-    textFGRenderer.render(elements)
-  }
 
   const updateFontAtlas = (fontAtlas: HTMLCanvasElement) => {
     textFGRenderer.updateFontAtlas(fontAtlas)
@@ -41,35 +36,56 @@ const nutella = () => {
     textFGRenderer.updateColorAtlas(colorAtlas)
   }
 
-  const clear = () => {
-    textBGRenderer.clear()
-    textFGRenderer.clear()
-  }
+  const createView = () => {
+    const resize = (rows: number, cols: number) => {
+      sharedDataBuffer = new Float32Array(rows * cols * 4)
+      textBGRenderer.share(sharedDataBuffer)
+      textFGRenderer.share(sharedDataBuffer)
+      gridBuffer.resize(rows, cols)
+      textBGRenderer.resize(rows, cols)
+      textFGRenderer.resize(rows, cols)
+    }
 
-  const moveRegionUp = (lines: number, top: number, bottom: number) => {
-    gridBuffer.moveRegionUp(lines, top, bottom)
-    const buf = gridBuffer.getBuffer()
-    textBGRenderer.renderFromBuffer(buf)
-    textFGRenderer.renderFromBuffer(buf)
-  }
+    const render = (elements?: number) => {
+      textBGRenderer.render(elements)
+      textFGRenderer.render(elements)
+    }
 
-  const moveRegionDown = (lines: number, top: number, bottom: number) => {
-    gridBuffer.moveRegionDown(lines, top, bottom)
-    const buf = gridBuffer.getBuffer()
-    textBGRenderer.renderFromBuffer(buf)
-    textFGRenderer.renderFromBuffer(buf)
+    const clear = () => {
+      textBGRenderer.clear()
+      textFGRenderer.clear()
+    }
+
+    const moveRegionUp = (lines: number, top: number, bottom: number) => {
+      gridBuffer.moveRegionUp(lines, top, bottom)
+      const buf = gridBuffer.getBuffer()
+      textBGRenderer.renderFromBuffer(buf)
+      textFGRenderer.renderFromBuffer(buf)
+    }
+
+    const moveRegionDown = (lines: number, top: number, bottom: number) => {
+      gridBuffer.moveRegionDown(lines, top, bottom)
+      const buf = gridBuffer.getBuffer()
+      textBGRenderer.renderFromBuffer(buf)
+      textFGRenderer.renderFromBuffer(buf)
+    }
+
+    return {
+      clear,
+      render,
+      resize,
+      moveRegionUp,
+      moveRegionDown,
+      getGridBuffer: gridBuffer.getBuffer,
+      getBuffer: () => sharedDataBuffer,
+    }
   }
 
   return {
-    clear,
-    render,
     resize,
-    moveRegionUp,
-    moveRegionDown,
+    createView,
     updateFontAtlas,
     updateColorAtlas,
-    getGridBuffer: gridBuffer.getBuffer,
-    getBuffer: () => sharedDataBuffer,
     foregroundElement: foregroundGL.canvasElement,
     backgroundElement: backgroundGL.canvasElement,
   }

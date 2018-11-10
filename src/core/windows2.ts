@@ -1,22 +1,59 @@
+import CreateWebGLRenderer, { WebGLRenderer } from '../render/webgl'
 import getWindowMetadata from '../core/window-metadata'
 import CreateWindow, { Window } from '../core/window'
 import { merge, throttle } from '../support/utils'
 import windowSizer from '../core/window-sizer'
 
 const container = document.getElementById('windows') as HTMLElement
+const webglContainer = document.getElementById('webgl') as HTMLElement
+
+merge(webglContainer.style, {
+  width: '100%',
+  height: '100%',
+  flex: 1,
+  zIndex: 2,
+  position: 'absolute',
+  background: 'var(--background-30)',
+})
 
 merge(container.style, {
+  position: 'absolute',
   flex: 1,
+  zIndex: 5,
   maxWidth: '100%',
   display: 'grid',
   gridGap: '2px',
   justifyItems: 'stretch',
   alignItems: 'stretch',
+  background: 'none',
 })
 
+const webgl = CreateWebGLRenderer()
 const windows = new Map<number, Window>()
 const windowsById = new Map<number, Window>()
 const activeGrid = { id: 1, row: 0, col: 0 }
+
+webgl.backgroundElement.setAttribute('wat', 'webgl-background')
+webgl.foregroundElement.setAttribute('wat', 'webgl-foreground')
+
+Object.assign(webgl.backgroundElement.style, {
+  position: 'absolute',
+  zIndex: 3,
+})
+
+Object.assign(webgl.foregroundElement.style, {
+  position: 'absolute',
+  zIndex: 4,
+})
+
+webglContainer.appendChild(webgl.backgroundElement)
+webglContainer.appendChild(webgl.foregroundElement)
+
+const ro = new ResizeObserver(([ e ]) => {
+  webgl.resize(e.width, e.height)
+})
+
+ro.observe(webglContainer)
 
 export const setActiveGrid = (id: number, row: number, col: number) => merge(activeGrid, { id, row, col })
 

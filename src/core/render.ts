@@ -227,33 +227,33 @@ r.option_set = (key, value) => options.set(key, value)
 // default_colors_set(rgb_fg: number, rgb_bg: number, rgb_sp: number, cterm_fg: number, cterm_bg: number): void,
 // TODO: WHY THE FUCK ARE THESE ARGUMENTS TYPES NOT BEING INFERRED?! FUCK YOU.
 // r.default_colors_set = (fg, bg, sp) => {
-type FUCKYOUTYPESCRIPT = any
-r.default_colors_set = (fg: FUCKYOUTYPESCRIPT, bg: FUCKYOUTYPESCRIPT, sp: FUCKYOUTYPESCRIPT) => {
-  merge(defaultColors, {
-    foreground: asColor(fg),
-    background: asColor(bg),
-    special: asColor(sp),
-  })
+// type FUCKYOUTYPESCRIPT = any
+// r.default_colors_set = (fg: FUCKYOUTYPESCRIPT, bg: FUCKYOUTYPESCRIPT, sp: FUCKYOUTYPESCRIPT) => {
+//   merge(defaultColors, {
+//     foreground: asColor(fg),
+//     background: asColor(bg),
+//     special: asColor(sp),
+//   })
 
-  dispatch.pub('colors.vim.fg', defaultColors.foreground)
-  dispatch.pub('colors.vim.bg', defaultColors.background)
-  dispatch.pub('colors.vim.sp', defaultColors.special)
+//   dispatch.pub('colors.vim.fg', defaultColors.foreground)
+//   dispatch.pub('colors.vim.bg', defaultColors.background)
+//   dispatch.pub('colors.vim.sp', defaultColors.special)
 
-  nvim.state.foreground = defaultColors.foreground
-  nvim.state.background = defaultColors.background
-  nvim.state.special = defaultColors.special
+//   nvim.state.foreground = defaultColors.foreground
+//   nvim.state.background = defaultColors.background
+//   nvim.state.special = defaultColors.special
 
-  // hlid 0 -> default highlight group
-  highlights.set(0, {
-    foreground: defaultColors.foreground,
-    background: defaultColors.background,
-    special: defaultColors.special,
-    underline: false,
-    reverse: false,
-    italic: false,
-    bold: false,
-  })
-}
+//   // hlid 0 -> default highlight group
+//   highlights.set(0, {
+//     foreground: defaultColors.foreground,
+//     background: defaultColors.background,
+//     special: defaultColors.special,
+//     underline: false,
+//     reverse: false,
+//     italic: false,
+//     bold: false,
+//   })
+// }
 
 r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
   const info = {
@@ -285,15 +285,15 @@ r.mode_change = async mode => {
 // TODO: info - store the HighlightGroup name somewhere
 // this can be used to lookup items in the grid, for example:
 // find all positions where a char(s) start with Search hlgrp
-r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
-  foreground: asColor(attrs.foreground),
-  background: asColor(attrs.background),
-  special: asColor(attrs.special),
-  underline: !!(attrs.underline || attrs.undercurl),
-  reverse: !!attrs.reverse,
-  italic: !!attrs.italic,
-  bold: !!attrs.bold,
-})
+// r.hl_attr_define = (id, attrs: Attrs, /*info*/) => highlights.set(id, {
+//   foreground: asColor(attrs.foreground),
+//   background: asColor(attrs.background),
+//   special: asColor(attrs.special),
+//   underline: !!(attrs.underline || attrs.undercurl),
+//   reverse: !!attrs.reverse,
+//   italic: !!attrs.italic,
+//   bold: !!attrs.bold,
+// })
 
 
 // r.grid_clear = id => {
