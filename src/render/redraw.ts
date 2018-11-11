@@ -15,7 +15,6 @@ let webgl: WebGLView = {
 let dummyData = new Float32Array()
 
 const default_colors_set = (e: any) => {
-  console.log('default_colors_set')
   const [ fg, bg, sp ] = e[1]
   const defaultColorsChanged = setDefaultColors(fg, bg, sp)
   if (!defaultColorsChanged) return
@@ -24,7 +23,6 @@ const default_colors_set = (e: any) => {
 }
 
 const hl_attr_define = (e: any) => {
-  console.log('hl_attr_define')
   const size = e.length
   // first item in the event arr is the event name
   for (let ix = 1; ix < size; ix++) {
@@ -168,9 +166,7 @@ const grid_line = (e: any) => {
 
   const atlas = getUpdatedFontAtlasMaybe()
   if (atlas) windows.webgl.updateFontAtlas(atlas)
-  console.time('webgl')
   webgl.render(rx)
-  console.timeEnd('webgl')
 }
 
 const tabline_update = ([ , [ curtab, tabs ] ]: any) => {

@@ -158,7 +158,13 @@ export default () => {
 
   api.getCharAt = (row, col) => {
     const buf = webgl.getGridCell(row, col)
-    return String.fromCodePoint(buf[3] + 32)
+    const charIndex = buf[3]
+    console.log('charIndex', charIndex)
+    if (!Number.isInteger(charIndex)) {
+      console.error('lol wut no charindex bruh:', charIndex)
+      return ''
+    }
+    return String.fromCodePoint(charIndex + 32)
   }
 
   api.updateNameplate = data => nameplate.update(data)

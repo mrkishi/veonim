@@ -93,7 +93,7 @@ export const mode_info_set = ([ , [ , infos ] ]: any) => infos.forEach((m: ModeI
   modes.set(m.name, info)
 })
 
-export const set_title = title => dispatch.pub('vim:title', title)
+export const set_title = (title: string) => dispatch.pub('vim:title', title)
 
 export const popupmenu_hide = () => dispatch.pub('pmenu.hide')
 export const popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)

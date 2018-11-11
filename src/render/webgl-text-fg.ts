@@ -70,13 +70,16 @@ export default (webgl: WebGL2) => {
   program.create()
   program.use()
 
-  const fontAtlas = generateFontAtlas()
-  const fontAtlasWidth = Math.floor(fontAtlas.width / window.devicePixelRatio)
-  const fontAtlasHeight = Math.floor(fontAtlas.height / window.devicePixelRatio)
+  // wait for roboto-mono to be loaded before we generate the initial font atlas
+  ;(document as any).fonts.ready.then(() => {
+    const fontAtlas = generateFontAtlas()
+    const fontAtlasWidth = Math.floor(fontAtlas.width / window.devicePixelRatio)
+    const fontAtlasHeight = Math.floor(fontAtlas.height / window.devicePixelRatio)
 
-  webgl.loadCanvasTexture(fontAtlas, webgl.gl.TEXTURE0)
-  webgl.gl.uniform1i(program.vars.fontAtlasTextureId, 0)
-  webgl.gl.uniform2f(program.vars.fontAtlasResolution, fontAtlasWidth, fontAtlasHeight)
+    webgl.loadCanvasTexture(fontAtlas, webgl.gl.TEXTURE0)
+    webgl.gl.uniform1i(program.vars.fontAtlasTextureId, 0)
+    webgl.gl.uniform2f(program.vars.fontAtlasResolution, fontAtlasWidth, fontAtlasHeight)
+  })
 
   const colorAtlas = getColorAtlas()
   webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE1)
