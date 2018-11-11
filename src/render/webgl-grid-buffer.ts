@@ -4,6 +4,7 @@ const finetti = () => {
 
   const resize = (rows: number, cols: number) => {
     width = cols
+    const oldBuffer = buffer
     buffer = new Float32Array(rows * cols * 4)
     const size = buffer.length
 
@@ -15,8 +16,17 @@ const finetti = () => {
     let col = 0
     let row = 0
     for (let ix = 0; ix < size; ix += 4) {
-      buffer[ix] = col
-      buffer[ix + 1] = row
+      const oldCol = oldBuffer[ix] || col
+      const oldRow = oldBuffer[ix + 1] || row
+
+      buffer[ix] = oldCol
+      buffer[ix + 1] = oldRow
+      buffer[ix + 2] = oldBuffer[ix + 2] || 0
+      buffer[ix + 3] = oldBuffer[ix + 3] || 0
+
+      col = oldCol
+      row = oldRow
+
       col++
       if (col >= width) {
         row++

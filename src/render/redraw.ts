@@ -131,7 +131,9 @@ const grid_line = (e: any) => {
 
       if (typeof char === 'string') {
         const nextCD = charData[cd + 1]
-        const doubleWidth = typeof nextCD[0] === 'string' && nextCD[0].codePointAt(0) === undefined
+        const doubleWidth = nextCD
+          && typeof nextCD[0] === 'string'
+          && nextCD[0].codePointAt(0) === undefined
         charIndex = getCharIndex(char, doubleWidth ? 2 : 1)
       }
 

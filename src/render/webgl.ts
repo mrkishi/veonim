@@ -47,18 +47,12 @@ const nutella = () => {
     const gridBuffer = CreateWebGLBuffer()
     let dataBuffer = new Float32Array()
 
-    // TODO: so confused about the usage of this resize...
-    // when we get a redraw resize event, how does that row/col
-    // number change the size of the grid layout?
-    // obv we still need this rows/cols to resize the data buffers
-    // but otherwise we don't care about rows and cols
     const resize = (rows: number, cols: number) => {
       const width = cols * cell.width
       const height = rows * cell.height
 
       if (viewport.width === width && viewport.height === height) return
 
-      // Object.assign(viewport, { width, height })
       dataBuffer = new Float32Array(rows * cols * 4)
       gridBuffer.resize(rows, cols)
     }
