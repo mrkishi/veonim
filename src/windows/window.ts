@@ -1,6 +1,7 @@
 import { createWebGLView, size as windowsGridSize } from '../windows/window-manager'
 import CreateWindowNameplate, { NameplateState } from '../windows/nameplate'
 import { specs as titleSpecs } from '../core/title'
+import { cell } from '../core/canvas-container'
 import { WebGLView } from '../render/webgl'
 import { makel } from '../ui/vanilla'
 
@@ -18,6 +19,11 @@ interface GridStyle {
   gridColumn: string
 }
 
+interface Position {
+  x: number
+  y: number
+}
+
 export interface Window {
   webgl: WebGLView
   element: HTMLElement
@@ -29,6 +35,7 @@ export interface Window {
   updateNameplate(data: NameplateState): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
+  gridToPixelPosition(row: number, col: number): Position
   resizeWindow(width: number, height: number): void
   destroy(): void
 }
@@ -95,6 +102,16 @@ export default () => {
 
   api.getWindowInfo = () => ({ ...wininfo })
 
+  // TODO: should we consider titlebar height?
+  api.gridToPixelPosition = (row, col) => {
+    const winX = Math.floor(col * cell.width)
+    const winY = Math.floor(row * cell.height)
+    return {
+      x: layout.x + winX,
+      y: layout.y + winY,
+    }
+  }
+
   api.applyGridStyle = ({ gridRow, gridColumn }) => {
     Object.assign(container.style, { gridColumn, gridRow })
   }
@@ -120,14 +137,13 @@ export default () => {
     }, edgeDetection(container))
   }
 
+  // TODO: add api to control row/col position of this overlay element?
   api.addOverlayElement = element => {
     overlay.appendChild(element)
     return () => overlay.removeChild(element)
   }
 
   api.redrawFromGridBuffer = () => webgl.renderGridBuffer()
-
-  api.removeOverlayElement = el => overlay.contains(el) && overlay.removeChild(el)
 
   api.updateNameplate = data => nameplate.update(data)
 
