@@ -1,5 +1,6 @@
 import { createWebGLView, size as windowsGridSize } from '../windows/window-manager'
 import CreateWindowNameplate, { NameplateState } from '../windows/nameplate'
+import { getCharFromIndex } from '../render/font-texture-atlas'
 import { specs as titleSpecs } from '../core/title'
 import { cell } from '../core/canvas-container'
 import { WebGLView } from '../render/webgl'
@@ -158,13 +159,7 @@ export default () => {
 
   api.getCharAt = (row, col) => {
     const buf = webgl.getGridCell(row, col)
-    const charIndex = buf[3]
-    console.log('charIndex', charIndex)
-    if (!Number.isInteger(charIndex)) {
-      console.error('lol wut no charindex bruh:', charIndex)
-      return ''
-    }
-    return String.fromCodePoint(charIndex + 32)
+    return getCharFromIndex(buf[3] || 0)
   }
 
   api.updateNameplate = data => nameplate.update(data)

@@ -6,11 +6,13 @@ interface UnicodeChar {
 }
 
 const unicodeTable = new Map<string, UnicodeChar>()
+const reverseUnicodeTable = new Map<number, string>()
 const canvas = document.createElement('canvas')
 const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
 
 // 0 - 32 are invisible control chars
-let nextIndex = 127 - 32
+const START_CHAR_INDEX = 127 - 32
+let nextIndex = START_CHAR_INDEX
 let needToRegenAtlas = true
 
 const getTableSize = (): number => {
@@ -29,6 +31,7 @@ export const getCharIndex = (char: string, width = 1) => {
 
   const index = nextIndex++
   unicodeTable.set(char, { index, width })
+  reverseUnicodeTable.set(index, char)
   needToRegenAtlas = true
   return index
 }
@@ -37,6 +40,13 @@ export const getUpdatedFontAtlasMaybe = () => {
   if (!needToRegenAtlas) return
   regenAtlas()
   return canvas
+}
+
+export const getCharFromIndex = (charIndex: number) => {
+  if (charIndex <= START_CHAR_INDEX) return String.fromCodePoint(charIndex + 32)
+  const char = reverseUnicodeTable.get(charIndex)
+  if (char) return char
+  return ' '
 }
 
 const regenAtlas = () => {
