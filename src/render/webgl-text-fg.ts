@@ -172,7 +172,7 @@ export default (webgl: WebGL2) => {
   }
 
   const clearAll = () => {
-    readjustViewportMaybe(0, 0, webgl.canvasElement.width, webgl.canvasElement.height)
+    readjustViewportMaybe(0, 0, webgl.canvasElement.clientWidth, webgl.canvasElement.clientHeight)
     webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
   }
 
