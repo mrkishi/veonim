@@ -113,7 +113,6 @@ export const getAll = () => [...windows.values()]
 
 export const has = (gridId: number) => windows.has(gridId)
 
-
 export const render = () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
   const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)

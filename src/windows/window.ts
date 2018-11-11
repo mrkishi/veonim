@@ -118,6 +118,8 @@ export default () => {
   api.updateNameplate = data => nameplate.update(data)
 
   api.destroy = () => {
+    webgl.clear()
+    webgl.clearGridBuffer()
     console.warn('NYI: window.destroy()')
     // TODO: destroy elements, cleanup, destroy canvas, components, anything else thanks etc.
   }

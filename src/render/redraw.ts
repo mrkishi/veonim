@@ -43,7 +43,11 @@ const win_position = (e: any) => {
 
 const grid_clear = ([ , [ gridId ] ]: any) => {
   if (gridId === 1) return
-  if (windows.has(gridId)) windows.get(gridId).webgl.clear()
+  if (windows.has(gridId)) {
+    const win = windows.get(gridId)
+    win.webgl.clear()
+    win.webgl.clearGridBuffer()
+  }
 }
 
 const grid_destroy = ([ , [ gridId ] ]: any) => {

@@ -39,6 +39,25 @@ const finetti = () => {
     }
   }
 
+  const clear = () => {
+    const size = buffer.length
+    let col = 0
+    let row = 0
+
+    for (let ix = 0; ix < size; ix++) {
+      buffer[ix] = col
+      buffer[ix + 1] = row
+      buffer[ix + 2] = 0
+      buffer[ix + 3] = 0
+
+      col++
+      if (col >= width) {
+        row++
+        col = 0
+      }
+    }
+  }
+
   const getCell = (row: number, col: number) => {
     const ix = (col * 4) + width * row * 4
     return buffer.slice(ix, ix + 4)
@@ -77,6 +96,7 @@ const finetti = () => {
   }
 
   return {
+    clear,
     resize,
     getCell,
     moveRegionUp,

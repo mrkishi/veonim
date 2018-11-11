@@ -10,6 +10,7 @@ export interface WebGLView {
   render: (elements: number) => void
   renderGridBuffer: () => void
   clear: () => void
+  clearGridBuffer: () => void
   moveRegionUp: (lines: number, top: number, bottom: number) => void
   moveRegionDown: (lines: number, top: number, bottom: number) => void
   getGridBuffer: () => Float32Array
@@ -88,6 +89,8 @@ const nutella = () => {
       textFGRenderer.clear(x, y, width, height)
     }
 
+    const clearGridBuffer = () => gridBuffer.clear()
+
     const moveRegionUp = (lines: number, top: number, bottom: number) => {
       gridBuffer.moveRegionUp(lines, top, bottom)
       const buffer = gridBuffer.getBuffer()
@@ -111,6 +114,7 @@ const nutella = () => {
       layout,
       moveRegionUp,
       moveRegionDown,
+      clearGridBuffer,
       renderGridBuffer,
       getGridBuffer: gridBuffer.getBuffer,
       getBuffer: () => dataBuffer,
