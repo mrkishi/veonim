@@ -17,6 +17,7 @@ export default (webgl: WebGL2) => {
     fontAtlasTextureId: VarKind.Uniform,
     colorAtlasTextureId: VarKind.Uniform,
     cellSize: VarKind.Uniform,
+    cellPadding: VarKind.Uniform,
   })
 
   program.setVertexShader(v => `
@@ -28,6 +29,7 @@ export default (webgl: WebGL2) => {
     uniform vec2 ${v.fontAtlasResolution};
     uniform vec2 ${v.colorAtlasResolution};
     uniform vec2 ${v.cellSize};
+    uniform vec2 ${v.cellPadding};
     uniform sampler2D ${v.colorAtlasTextureId};
 
     out vec2 o_glyphPosition;
@@ -35,7 +37,7 @@ export default (webgl: WebGL2) => {
 
     void main() {
       vec2 absolutePixelPosition = ${v.cellPosition} * ${v.cellSize};
-      vec2 vertexPosition = absolutePixelPosition + ${v.quadVertex};
+      vec2 vertexPosition = absolutePixelPosition + ${v.quadVertex} + ${v.cellPadding};
       vec2 posFloat = vertexPosition / ${v.canvasResolution};
       float posx = posFloat.x * 2.0 - 1.0;
       float posy = posFloat.y * -2.0 + 1.0;
@@ -123,6 +125,7 @@ export default (webgl: WebGL2) => {
   ]))
 
   webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
+  webgl.gl.uniform2f(program.vars.cellPadding, 0, cc.cell.padding)
 
   const resize = (width: number, height: number) => {
     webgl.resize(width, height)
