@@ -1,11 +1,11 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
 import { mode_change, option_set, mode_info_set } from '../render/events'
+import { moveCursor, hideCursor } from '../core/cursor'
 import * as windows from '../windows/window-manager'
 import { onRedraw } from '../render/msgpack-decode'
 import * as dispatch from '../messaging/dispatch'
 import { WebGLView } from '../render/webgl'
-import { moveCursor } from '../core/cursor'
 
 // this default state should never be used. otherwise something went horribly wrong
 let webgl: WebGLView = {
@@ -69,7 +69,7 @@ const grid_resize = (e: any) => {
 }
 
 const grid_cursor_goto = ([ , [ gridId, row, col ] ]: any) => {
-  if (gridId === 1) return console.warn('NYI: HIDE CURSOR!!!')
+  if (gridId === 1) return hideCursor()
   windows.setActiveGrid(gridId)
   moveCursor(gridId, row, col)
 }
