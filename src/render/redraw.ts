@@ -133,7 +133,9 @@ const grid_line = (e: any) => {
       const data = charData[cd]
       const char = data[0]
       const repeats = data[2] || 1
-      hlid = data[1] || hlid
+      const hlidExists = typeof data[1] === 'number'
+      const validHlid = hlidExists ? data[1] : hlid
+      if (hlidExists) hlid = data[1]
 
       if (typeof char === 'string') {
         const nextCD = charData[cd + 1]
@@ -148,7 +150,7 @@ const grid_line = (e: any) => {
       for (let r = 0; r < repeats; r++) {
         buffer[rx] = col
         buffer[rx + 1] = row
-        buffer[rx + 2] = hlid
+        buffer[rx + 2] = validHlid
         buffer[rx + 3] = charIndex
         rx += 4
 
@@ -156,7 +158,7 @@ const grid_line = (e: any) => {
         const bufix = (col * 4) + width * row * 4
         gridBuffer[bufix] = col
         gridBuffer[bufix + 1] = row
-        gridBuffer[bufix + 2] = hlid
+        gridBuffer[bufix + 2] = validHlid
         gridBuffer[bufix + 3] = charIndex
 
         col++
