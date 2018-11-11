@@ -15,6 +15,7 @@ let webgl: WebGLView = {
 let dummyData = new Float32Array()
 
 const default_colors_set = (e: any) => {
+  console.log('default_colors_set')
   const [ fg, bg, sp ] = e[1]
   const defaultColorsChanged = setDefaultColors(fg, bg, sp)
   if (!defaultColorsChanged) return
@@ -23,6 +24,7 @@ const default_colors_set = (e: any) => {
 }
 
 const hl_attr_define = (e: any) => {
+  console.log('hl_attr_define')
   const size = e.length
   // first item in the event arr is the event name
   for (let ix = 1; ix < size; ix++) {

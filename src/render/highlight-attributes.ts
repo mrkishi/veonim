@@ -22,19 +22,27 @@ interface HighlightGroup {
   reverse: boolean
 }
 
+const defaultColors = {
+  background: '#2d2d2d',
+  foreground: '#dddddd',
+  special: '#ef5188',
+}
+
 // TODO: info - store the HighlightGroup name somewhere
 // this can be used to lookup items in the grid, for example:
 // find all positions where a char(s) start with Search hlgrp
 const highlightInfo = new Map<number, any>()
-const highlights = new Map<number, HighlightGroup>()
 const canvas = document.createElement('canvas')
 const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
-
-const defaultColors = {
-  background: '#2d2d2d',
-  foreground: '#dddddd',
-  special: '#ef5188'
-}
+const highlights = new Map<number, HighlightGroup>([
+  [0, {
+    background: defaultColors.background,
+    foreground: defaultColors.foreground,
+    special: defaultColors.special,
+    underline: false,
+    reverse: false,
+  }]
+])
 
 export const setDefaultColors = (fg: number, bg: number, sp: number) => {
   const foreground = fg >= 0 ? asColor(fg) : defaultColors.foreground
@@ -86,6 +94,10 @@ export const addHighlight = (id: number, attr: Attrs, info: any) => {
 }
 
 export const getHighlight = (id: number) => highlights.get(id)
+export const getBackground = (id: number) => {
+  const { background } = highlights.get(id) || {} as HighlightGroup
+  return background || highlights.get(0)!.background
+}
 
 export const generateColorLookupAtlas = () => {
   canvas.height = 2

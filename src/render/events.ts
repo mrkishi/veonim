@@ -1,12 +1,28 @@
+import { CursorShape, setCursorColor, setCursorShape } from '../core/cursor'
+import { getBackground } from '../render/highlight-attributes'
 import * as dispatch from '../messaging/dispatch'
-import { CursorShape } from '../core/cursor'
 import { VimMode } from '../neovim/types'
 import nvim from '../core/neovim'
 
 interface Mode {
   shape: CursorShape
+  hlid?: number
   size?: number
-  color?: string
+}
+
+interface ModeInfo {
+  blinkoff?: number
+  blinkon?: number
+  blinkwait?: number
+  cell_percentage?: number
+  cursor_shape?: string
+  attr_id?: number
+  attr_id_lm?: number
+  hl_id?: number
+  id_lm?: number
+  mouse_shape?: number
+  name: string
+  short_name: string
 }
 
 interface CommandLineCache {
@@ -30,7 +46,6 @@ export interface CommandUpdate {
 
 const modes = new Map<string, Mode>()
 const options = new Map<string, any>()
-let currentMode: string
 
 const normalizeVimMode = (mode: string): VimMode => {
   if (mode === 't') return VimMode.Terminal
@@ -46,45 +61,37 @@ const normalizeVimMode = (mode: string): VimMode => {
   else return VimMode.SomeModeThatIProbablyDontCareAbout
 }
 
-export const mode_change = ([ , [ mode ] ]: any) => {
-  nvim.state.mode = normalizeVimMode(mode)
-  currentMode = mode
-  const info = modes.get(mode)
-  if (!info) return
-  info.color && setCursorColor(info.color)
-  setCursorShape(info.shape, info.size)
-}
-
-export const option_set = ([ , [ key, value ] ]: any) => options.set(key, value)
-
-// TODO: do the needful
-export const mode_info_set = (e: any) => {
-  console.warn('NYI: mode info set', e)
-}
-
 const cursorShapeType = (shape?: string) => {
   if (shape === 'block') return CursorShape.block
   if (shape === 'horizontal') return CursorShape.underline
   if (shape === 'vertical') return CursorShape.line
   else return CursorShape.block
 }
-// r.mode_info_set = (_, infos: ModeInfo[]) => infos.forEach(async mi => {
-//   const info = {
-//     shape: cursorShapeType(mi.cursor_shape),
-//     size: mi.cell_percentage
-//   }
 
-//   if (mi.hl_id) {
-//     const { bg } = await getColorFromVim(mi.hl_id)
-//     merge(info, { color: bg || defaultColors.foreground })
-//     if (mi.name === currentMode && bg) {
-//       setCursorColor(bg)
-//       setCursorShape(info.shape, info.size)
-//     }
-//   }
+export const mode_change = ([ , [ mode ] ]: any) => {
+  nvim.state.mode = normalizeVimMode(mode)
+  const info = modes.get(mode)
+  if (!info) return
 
-//   modes.set(mi.name, info)
-// })
+  if (info.hlid) {
+    const bg = getBackground(info.hlid)
+    if (bg) setCursorColor(bg)
+  }
+
+  setCursorShape(info.shape, info.size)
+}
+
+export const option_set = ([ , [ key, value ] ]: any) => options.set(key, value)
+
+export const mode_info_set = ([ , [ , infos ] ]: any) => infos.forEach((m: ModeInfo) => {
+  const info = {
+    shape: cursorShapeType(m.cursor_shape),
+    size: m.cell_percentage,
+    hlid: m.attr_id,
+  }
+
+  modes.set(m.name, info)
+})
 
 export const set_title = title => dispatch.pub('vim:title', title)
 

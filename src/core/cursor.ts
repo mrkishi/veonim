@@ -1,5 +1,5 @@
-import { hexToRGBA, partialFill, translate } from '../ui/css'
 import * as windows from '../windows/window-manager'
+import { partialFill, translate } from '../ui/css'
 import { cell } from '../core/canvas-container'
 
 export enum CursorShape {
@@ -105,16 +105,6 @@ export const showCursor = () => {
 
 export const showCursorline = () => cursorline.style.display = ''
 
-// const updateCursorlinePosition = (canvas: CanvasWindow, backgroundColor: string) => {
-//   const { x, y, width } = canvas.whereLine(cursor.row)
-
-//   Object.assign(cursorline.style, {
-//     background: hexToRGBA(backgroundColor, 0.2),
-//     transform: translate(x, y),
-//     width: `${width}px`,
-//   })
-// }
-
 const updateCursorChar = (shape: CursorShape) => {
   if (shape === CursorShape.block) {
     const [ char ] = get(cursor.row, cursor.col)
@@ -130,6 +120,9 @@ const updateCursorChar = (shape: CursorShape) => {
 export const moveCursor = (gridId: number, row: number, col: number) => {
   Object.assign(position, { row, col })
 
+  // even if cursor(line) is hidden, we still need to update the positions.
+  // once the cursor elements are re-activated, the position updated while
+  // hidden must be accurate. (e.g. using jumpTo() in grep/references/etc)
   const win = windows.get(gridId)
   const cursorPos = win.gridToPixelPosition(row, col)
   const linePos = win.gridToPixelPosition(row, 0)
@@ -139,28 +132,10 @@ export const moveCursor = (gridId: number, row: number, col: number) => {
   cursorline.style.transform = translate(linePos.x, linePos.y)
   cursorline.style.width = `${width}px`
 
+  // updateCursorChar()
+
+  if (cursorRequestedToBeHidden) return
   showCursor()
 }
-
-// export const moveCursor = (backgroundColor: string) => {
-//   console.warn('NYI: move cursor')
-//   // const res = getWindow(cursor.row, cursor.col, { getStuff: true })
-//   // if (!res || !res.canvas) return
-//   // const { canvas, win } = res
-
-//   // // even if cursor(line) is hidden, we still need to update the positions.
-//   // // once the cursor elements are re-activated, the position updated while
-//   // // hidden must be accurate. (e.g. using jumpTo() in grep/references/etc)
-
-//   // updateCursorPosition(canvas)
-//   // updateCursorlinePosition(canvas, backgroundColor)
-
-//   // if (!cursorEnabled) return
-//   // if (cursorRequestedToBeHidden) return
-
-//   // controlCursorIfShadowBuffer(win)
-//   // updateCursorChar(cursor.type)
-//   // showCursorline()
-// }
 
 setCursorShape(CursorShape.block)
