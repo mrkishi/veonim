@@ -6,6 +6,7 @@ import { onElementResize } from '../ui/vanilla'
 import { throttle } from '../support/utils'
 import windowSizer from '../windows/sizer'
 
+export const size = { width: 0, height: 0 }
 export const webgl = CreateWebGLRenderer()
 const windows = new Map<number, Window>()
 const windowsById = new Map<number, Window>()
@@ -36,7 +37,6 @@ Object.assign(container.style, {
   flex: 1,
   zIndex: 5,
   display: 'grid',
-  gridGap: '2px',
   justifyItems: 'stretch',
   alignItems: 'stretch',
   background: 'none',
@@ -56,6 +56,7 @@ webglContainer.appendChild(webgl.backgroundElement)
 webglContainer.appendChild(webgl.foregroundElement)
 
 onElementResize(webglContainer, (w, h) => {
+  Object.assign(size, { width: w, height: h })
   webgl.resizeCanvas(w, h)
   getAll().forEach(w => {
     w.refreshLayout()

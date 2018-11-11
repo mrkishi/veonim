@@ -1,5 +1,5 @@
+import { createWebGLView, size as windowsGridSize } from '../windows/window-manager'
 import CreateWindowNameplate, { NameplateState } from '../windows/nameplate'
-import { createWebGLView } from '../windows/window-manager'
 import { specs as titleSpecs } from '../core/title'
 import { WebGLView } from '../render/webgl'
 import { makel } from '../ui/vanilla'
@@ -31,6 +31,16 @@ export interface Window {
   removeOverlayElement(element: HTMLElement): void
   resizeWindow(width: number, height: number): void
   destroy(): void
+}
+
+const edgeDetection = (el: HTMLElement) => {
+  const { top, left, bottom, right } = el.getBoundingClientRect()
+  const edges = Object.create(null)
+  if (left === 0) edges.borderLeft = 'none'
+  if (top === titleSpecs.height) edges.borderTop = 'none'
+  if (bottom - titleSpecs.height === windowsGridSize.height) edges.borderBottom = 'none'
+  if (right === windowsGridSize.width) edges.borderRight = 'none'
+  return edges
 }
 
 export default () => {
@@ -104,6 +114,10 @@ export default () => {
 
     Object.assign(layout, { x, y, width, height })
     webgl.layout(x, y, width, height)
+
+    Object.assign(container.style, {
+      border: '1px solid var(--background-30)',
+    }, edgeDetection(container))
   }
 
   api.addOverlayElement = element => {
