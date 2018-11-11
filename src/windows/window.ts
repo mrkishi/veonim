@@ -25,6 +25,7 @@ export interface Window {
   setWindowInfo(info: WindowInfo): void
   applyGridStyle(gridStyle: GridStyle): void
   refreshLayout(): void
+  redrawFromGridBuffer(): void
   updateNameplate(data: NameplateState): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
@@ -109,6 +110,8 @@ export default () => {
     overlay.appendChild(element)
     return () => overlay.removeChild(element)
   }
+
+  api.redrawFromGridBuffer = () => webgl.renderGridBuffer()
 
   api.removeOverlayElement = el => overlay.contains(el) && overlay.removeChild(el)
 

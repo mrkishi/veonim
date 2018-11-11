@@ -135,5 +135,10 @@ export default (webgl: WebGL2) => {
     webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
   }
 
-  return { clear, render, resize, updateColorAtlas }
+  const clearAll = () => {
+    readjustViewportMaybe(0, 0, webgl.canvasElement.width, webgl.canvasElement.height)
+    webgl.gl.clear(webgl.gl.COLOR_BUFFER_BIT)
+  }
+
+  return { clear, clearAll, render, resize, updateColorAtlas }
 }

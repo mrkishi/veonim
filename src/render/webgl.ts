@@ -8,6 +8,7 @@ export interface WebGLView {
   resize: (rows: number, cols: number) => void
   layout: (x: number, y: number, width: number, height: number) => void
   render: (elements: number) => void
+  renderGridBuffer: () => void
   clear: () => void
   moveRegionUp: (lines: number, top: number, bottom: number) => void
   moveRegionDown: (lines: number, top: number, bottom: number) => void
@@ -34,6 +35,11 @@ const nutella = () => {
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
     textBGRenderer.updateColorAtlas(colorAtlas)
     textFGRenderer.updateColorAtlas(colorAtlas)
+  }
+
+  const clearAll = () => {
+    textBGRenderer.clearAll()
+    textFGRenderer.clearAll()
   }
 
   const createView = (): WebGLView => {
@@ -75,6 +81,13 @@ const nutella = () => {
       textFGRenderer.render(buffer, x, y, width, height)
     }
 
+    const renderGridBuffer = () => {
+      const { x, y, width, height } = viewport
+      const buffer = gridBuffer.getBuffer()
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
+    }
+
     const clear = () => {
       const { x, y, width, height } = viewport
       textBGRenderer.clear(x, y, width, height)
@@ -104,12 +117,14 @@ const nutella = () => {
       layout,
       moveRegionUp,
       moveRegionDown,
+      renderGridBuffer,
       getGridBuffer: gridBuffer.getBuffer,
       getBuffer: () => dataBuffer,
     }
   }
 
   return {
+    clearAll,
     createView,
     resizeCanvas,
     updateFontAtlas,

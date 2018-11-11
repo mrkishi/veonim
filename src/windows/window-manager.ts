@@ -57,8 +57,27 @@ webglContainer.appendChild(webgl.foregroundElement)
 
 onElementResize(webglContainer, (w, h) => {
   webgl.resizeCanvas(w, h)
-  getAll().forEach(w => w.refreshLayout())
+  getAll().forEach(w => {
+    w.refreshLayout()
+    w.redrawFromGridBuffer()
+  })
 })
+
+const getWindowById = (windowId: number) => {
+  const win = windowsById.get(windowId)
+  if (!win) throw new Error(`trying to get window that does not exist ${windowId}`)
+  return win
+}
+
+const refreshWebGLGrid = () => {
+  webgl.clearAll()
+  getAll().forEach(w => w.redrawFromGridBuffer())
+}
+
+const updateWindowNameplates = async () => {
+  const windowsWithMetadata = await getWindowMetadata()
+  windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
+}
 
 export const createWebGLView = () => webgl.createView()
 
@@ -94,11 +113,6 @@ export const getAll = () => [...windows.values()]
 
 export const has = (gridId: number) => windows.has(gridId)
 
-const getWindowById = (windowId: number) => {
-  const win = windowsById.get(windowId)
-  if (!win) throw new Error(`trying to get window that does not exist ${windowId}`)
-  return win
-}
 
 export const render = () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
@@ -111,15 +125,11 @@ export const render = () => {
   })
 
   // wait for flex grid styles to be applied to all windows and trigger dom layout
-  // TODO: need RAF? querying layout info will trigger layout anyways...
   windowGridInfo.forEach(({ gridId }) => {
     get(gridId).refreshLayout()
   })
-}
 
-const updateWindowNameplates = async () => {
-  const windowsWithMetadata = await getWindowMetadata()
-  windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
+  refreshWebGLGrid()
 }
 
 export const refresh = throttle(updateWindowNameplates, 5)
