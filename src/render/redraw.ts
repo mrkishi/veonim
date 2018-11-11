@@ -5,6 +5,7 @@ import * as windows from '../windows/window-manager'
 import { onRedraw } from '../render/msgpack-decode'
 import * as dispatch from '../messaging/dispatch'
 import { WebGLView } from '../render/webgl'
+import { moveCursor } from '../core/cursor'
 
 // this default state should never be used. otherwise something went horribly wrong
 let webgl: WebGLView = {
@@ -68,8 +69,11 @@ const grid_resize = (e: any) => {
 }
 
 const grid_cursor_goto = ([ , [ gridId, row, col ] ]: any) => {
+  if (gridId === 1) return console.warn('NYI: HIDE CURSOR!!!')
+  console.log('grid_cursor_goto', gridId, row, col)
+  // TODO: do we need to store row/col in the wm?
   windows.setActiveGrid(gridId, row, col)
-  // TODO: update cursor position
+  moveCursor(gridId, row, col)
 }
 
 const grid_scroll = ([ , [ gridId, top, bottom, /*left*/, /*right*/, amount ] ]: any) => {

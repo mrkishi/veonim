@@ -102,13 +102,12 @@ export default () => {
 
   api.getWindowInfo = () => ({ ...wininfo })
 
-  // TODO: should we consider titlebar height?
   api.gridToPixelPosition = (row, col) => {
     const winX = Math.floor(col * cell.width)
     const winY = Math.floor(row * cell.height)
     return {
       x: layout.x + winX,
-      y: layout.y + winY,
+      y: layout.y + winY + titleSpecs.height,
     }
   }
 

@@ -82,7 +82,9 @@ const updateWindowNameplates = async () => {
 
 export const createWebGLView = () => webgl.createView()
 
-export const setActiveGrid = (id: number, row: number, col: number) => Object.assign(activeGrid, { id, row, col })
+export const setActiveGrid = (id: number, row: number, col: number) => {
+  Object.assign(activeGrid, { id, row, col })
+}
 
 export const getActive = () => get(activeGrid.id)
 
