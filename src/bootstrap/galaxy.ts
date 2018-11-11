@@ -31,10 +31,7 @@ nvim.watchState.background(color => {
   if (document.body.style.background !== color) document.body.style.background = color
 })
 
-// canvasContainer.on('resize', ({ rows, cols }) => {
-//   // resize(cols, rows)
-//   // setImmediate(() => windows.render())
-// })
+canvasContainer.on('resize', ({ rows, cols }) => resize(cols, rows))
 
 const main = async () => {
   const { id, path } = await create()

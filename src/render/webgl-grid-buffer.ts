@@ -2,6 +2,10 @@ const finetti = () => {
   let buffer = new Float32Array()
   let width = 0
 
+  // TODO: i dont think this is good enough.
+  // we need to match up the old col/row with new col/row
+  // otherwise we get a mismatch since indexes no longer
+  // match to the same col/row positions
   const resize = (rows: number, cols: number) => {
     width = cols
     const oldBuffer = buffer

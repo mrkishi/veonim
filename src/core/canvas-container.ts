@@ -1,4 +1,4 @@
-import { Watchers, merge, debounce } from '../support/utils'
+import { Watchers, merge, throttle } from '../support/utils'
 const robotoSizes = require('../assets/roboto-sizes.json')
 import * as electron from 'electron'
 import { setVar } from '../ui/css'
@@ -119,7 +119,7 @@ export const on = (event: string, handler: (data: any) => void) => watchers.add(
 setFont({})
 setImmediate(() => resize())
 
-window.addEventListener('resize', debounce(() => resize(), 150))
+window.addEventListener('resize', throttle(() => resize(), 150))
 window.matchMedia('screen and (min-resolution: 2dppx)').addListener(() => {
   resize()
   watchers.notify('device-pixel-ratio-changed')
