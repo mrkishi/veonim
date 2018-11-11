@@ -1,9 +1,6 @@
 import { hexToRGBA, partialFill, translate } from '../ui/css'
-import { SHADOW_BUFFER_TYPE } from '../support/constants'
-import { CanvasWindow } from '../core/canvas-window'
 import * as windows from '../windows/window-manager'
 import { cell } from '../core/canvas-container'
-import { get } from '../core/grid'
 
 export enum CursorShape {
   block,
@@ -31,6 +28,7 @@ let cursorRequestedToBeHidden = false
 let cursorEnabled = true
 
 Object.assign(cursorline.style, {
+  background: 'rgba(var(--background-alpha), 0.2)',
   position: 'absolute',
   mixBlendMode: 'screen',
   height: `${cell.height}px`,
@@ -107,15 +105,15 @@ export const showCursor = () => {
 
 export const showCursorline = () => cursorline.style.display = ''
 
-const updateCursorlinePosition = (canvas: CanvasWindow, backgroundColor: string) => {
-  const { x, y, width } = canvas.whereLine(cursor.row)
+// const updateCursorlinePosition = (canvas: CanvasWindow, backgroundColor: string) => {
+//   const { x, y, width } = canvas.whereLine(cursor.row)
 
-  Object.assign(cursorline.style, {
-    background: hexToRGBA(backgroundColor, 0.2),
-    transform: translate(x, y),
-    width: `${width}px`,
-  })
-}
+//   Object.assign(cursorline.style, {
+//     background: hexToRGBA(backgroundColor, 0.2),
+//     transform: translate(x, y),
+//     width: `${width}px`,
+//   })
+// }
 
 const updateCursorChar = (shape: CursorShape) => {
   if (shape === CursorShape.block) {
@@ -129,28 +127,19 @@ const updateCursorChar = (shape: CursorShape) => {
   }
 }
 
-const controlCursorIfShadowBuffer = (win: RenderWindow) => {
-  const isShadowBuffer = win.filetype === SHADOW_BUFFER_TYPE
-
-  if (isShadowBuffer) return cursorEl.style.display = 'none'
-  else cursorEl.style.display = 'flex'
-}
-
-// const updateCursorPosition = (canvas: CanvasWindow) => {
-//   const { x, y } = canvas.getCursorPosition(cursor.row, cursor.col)
-//   cursorEl.style.transform = translate(x, y)
-// }
-
 export const moveCursor = (gridId: number, row: number, col: number) => {
   Object.assign(position, { row, col })
-  const win = windows.get(gridId)
-  const { x, y } = win.gridToPixelPosition(row, col)
-  console.log('move cursor to:', x, y)
 
-  Object.assign(cursorEl.style, {
-    display: 'flex',
-    transform: translate(x, y),
-  })
+  const win = windows.get(gridId)
+  const cursorPos = win.gridToPixelPosition(row, col)
+  const linePos = win.gridToPixelPosition(row, 0)
+  const { width } = win.getWindowSize()
+
+  cursorEl.style.transform = translate(cursorPos.x, cursorPos.y)
+  cursorline.style.transform = translate(linePos.x, linePos.y)
+  cursorline.style.width = `${width}px`
+
+  showCursor()
 }
 
 // export const moveCursor = (backgroundColor: string) => {

@@ -24,6 +24,11 @@ interface Position {
   y: number
 }
 
+interface Size {
+  width: number
+  height: number
+}
+
 export interface Window {
   webgl: WebGLView
   element: HTMLElement
@@ -36,6 +41,7 @@ export interface Window {
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
   gridToPixelPosition(row: number, col: number): Position
+  getWindowSize(): Size
   resizeWindow(width: number, height: number): void
   destroy(): void
 }
@@ -110,6 +116,11 @@ export default () => {
       y: layout.y + winY + titleSpecs.height,
     }
   }
+
+  api.getWindowSize = () => ({
+    width: layout.width,
+    height: layout.height,
+  })
 
   api.applyGridStyle = ({ gridRow, gridColumn }) => {
     Object.assign(container.style, { gridColumn, gridRow })

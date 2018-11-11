@@ -10,7 +10,7 @@ export const size = { width: 0, height: 0 }
 export const webgl = CreateWebGLRenderer()
 const windows = new Map<number, Window>()
 const windowsById = new Map<number, Window>()
-const activeGrid = { id: 1, row: 0, col: 0 }
+const activeGrid = { id: 1 }
 const container = document.getElementById('windows') as HTMLElement
 const webglContainer = document.getElementById('webgl') as HTMLElement
 
@@ -82,9 +82,7 @@ const updateWindowNameplates = async () => {
 
 export const createWebGLView = () => webgl.createView()
 
-export const setActiveGrid = (id: number, row: number, col: number) => {
-  Object.assign(activeGrid, { id, row, col })
-}
+export const setActiveGrid = (id: number) => Object.assign(activeGrid, { id })
 
 export const getActive = () => get(activeGrid.id)
 
