@@ -8,16 +8,11 @@ export enum CursorShape {
   underline,
 }
 
-const position = {
+export const cursor = {
   row: 0,
   col: 0,
-}
-
-export const cursor = {
-  get row() { return position.row },
-  get col() { return position.col },
   color: '#fff',
-  type: CursorShape.block,
+  shape: CursorShape.block,
 }
 
 const cursorEl = document.getElementById('cursor') as HTMLElement
@@ -56,22 +51,22 @@ cursorEl.appendChild(cursorChar)
 
 export const getCursorBoundingClientRect = () => cursorline.getBoundingClientRect()
 
-export const setCursorShape = (type: CursorShape, size = 20) => {
-  cursor.type = type
+export const setCursorShape = (shape: CursorShape, size = 20) => {
+  cursor.shape = shape
 
-  if (type === CursorShape.block) Object.assign(cursorEl.style, {
+  if (shape === CursorShape.block) Object.assign(cursorEl.style, {
     background: cursor.color,
     height: `${cell.height}px`,
     width: `${cell.width}px`,
   })
 
-  if (type === CursorShape.line) Object.assign(cursorEl.style, {
+  if (shape === CursorShape.line) Object.assign(cursorEl.style, {
     background: cursor.color,
     height: `${cell.height}px`,
     width: `${(cell.width * (size / 100)).toFixed(2)}px`
   })
 
-  if (type === CursorShape.underline) Object.assign(cursorEl.style, {
+  if (shape === CursorShape.underline) Object.assign(cursorEl.style, {
     background: partialFill('horizontal', cursor.color, size),
     height: `${cell.height}px`,
     width: `${cell.width}px`,
@@ -105,20 +100,20 @@ export const showCursor = () => {
 
 export const showCursorline = () => cursorline.style.display = ''
 
-const updateCursorChar = (shape: CursorShape) => {
-  if (shape === CursorShape.block) {
-    const [ char ] = get(cursor.row, cursor.col)
-    cursorChar.innerText = char
-    cursorChar.style.display = ''
-  }
-  else {
+const updateCursorChar = (gridId: number, row: number, col: number) => {
+  if (cursor.shape !== CursorShape.block) {
     cursorChar.style.display = 'none'
     cursorChar.innerText = ''
+    return
   }
+
+  const char = windows.get(gridId).getCharAt(row, col)
+  cursorChar.innerText = char
+  cursorChar.style.display = ''
 }
 
 export const moveCursor = (gridId: number, row: number, col: number) => {
-  Object.assign(position, { row, col })
+  Object.assign(cursor, { row, col })
 
   // even if cursor(line) is hidden, we still need to update the positions.
   // once the cursor elements are re-activated, the position updated while
@@ -132,9 +127,11 @@ export const moveCursor = (gridId: number, row: number, col: number) => {
   cursorline.style.transform = translate(linePos.x, linePos.y)
   cursorline.style.width = `${width}px`
 
-  // updateCursorChar()
+  updateCursorChar(gridId, row, col)
 
-  if (cursorRequestedToBeHidden) return
+  // TODO: revisit this logic, cuz we need to hide cursor on grid 1
+  // other times we need to hide cursor from components
+  // if (cursorRequestedToBeHidden) return
   showCursor()
 }
 

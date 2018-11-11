@@ -37,6 +37,7 @@ export interface Window {
   applyGridStyle(gridStyle: GridStyle): void
   refreshLayout(): void
   redrawFromGridBuffer(): void
+  getCharAt(row: number, col: number): string
   updateNameplate(data: NameplateState): void
   addOverlayElement(element: HTMLElement): void
   removeOverlayElement(element: HTMLElement): void
@@ -154,6 +155,11 @@ export default () => {
   }
 
   api.redrawFromGridBuffer = () => webgl.renderGridBuffer()
+
+  api.getCharAt = (row, col) => {
+    const buf = webgl.getGridCell(row, col)
+    return String.fromCodePoint(buf[3] + 32)
+  }
 
   api.updateNameplate = data => nameplate.update(data)
 
