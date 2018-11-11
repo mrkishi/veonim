@@ -2,10 +2,6 @@ const finetti = () => {
   let buffer = new Float32Array()
   let width = 0
 
-  // TODO: i dont think this is good enough.
-  // we need to match up the old col/row with new col/row
-  // otherwise we get a mismatch since indexes no longer
-  // match to the same col/row positions
   const resize = (rows: number, cols: number) => {
     const prevBuffer = buffer
     const prevWidth = width
@@ -20,16 +16,24 @@ const finetti = () => {
     // row = ~~((ix / 4) / width)
     let col = 0
     let row = 0
+
     for (let ix = 0; ix < size; ix += 4) {
       const oldix = (col * 4) + prevWidth * row * 4
+      const prevCol = prevBuffer[oldix]
+      const prevRow = prevBuffer[oldix + 1]
       const prevHlid = prevBuffer[oldix + 2]
       const prevChar = prevBuffer[oldix + 3]
+      // TODO: im so tired right now, i don't understand
+      // why the col/row -> index lookup above is returning
+      // back the wrong col/row. i'm sure it's obvious but
+      // i'm too dumb right now
+      const samePos = prevCol === col && prevRow === row
 
       buffer[ix] = col
       buffer[ix + 1] = row
 
-      if (prevHlid) buffer[ix + 2] = prevHlid
-      if (prevChar) buffer[ix + 3] = prevChar
+      if (prevHlid && samePos) buffer[ix + 2] = prevHlid
+      if (prevChar && samePos) buffer[ix + 3] = prevChar
 
       col++
       if (col >= width) {

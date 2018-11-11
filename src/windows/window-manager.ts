@@ -113,7 +113,7 @@ export const getAll = () => [...windows.values()]
 
 export const has = (gridId: number) => windows.has(gridId)
 
-export const render = () => {
+export const layout = () => {
   const wininfos = [...windows.values()].map(win => ({ ...win.getWindowInfo() }))
   const { gridTemplateRows, gridTemplateColumns, windowGridInfo } = windowSizer(wininfos)
 
@@ -124,10 +124,7 @@ export const render = () => {
   })
 
   // wait for flex grid styles to be applied to all windows and trigger dom layout
-  windowGridInfo.forEach(({ gridId }) => {
-    get(gridId).refreshLayout()
-  })
-
+  windowGridInfo.forEach(({ gridId }) => get(gridId).refreshLayout())
   refreshWebGLGrid()
 }
 

@@ -175,12 +175,22 @@ const parseExt = (raw: Buffer, size: number) => {
 
 type RedrawEvent = [string, any[]]
 type RedrawFunc = (redrawEvents: RedrawEvent[]) => void
+type APIFunc = (event: any) => void
+
 let redrawFn: RedrawFunc = () => {}
+let apiFn: APIFunc = () => {}
+
 export const onRedraw = (fn: RedrawFunc) => redrawFn = fn
+// TODO: butttttt yeah, we may need to register multiple api funcs here
+export const onApi = (fn: APIFunc) => apiFn = fn
 
 export const decode = (raw: Buffer) => {
+  const bufsize = raw.length
   ix = 0
-  const res = superparse(raw)
-  if (res[1] === 'redraw') redrawFn(res[2])
-  // TODO: if not redraw, send out to rpc processor
+
+  while (ix < bufsize) {
+    const res = superparse(raw)
+    if (res[1] === 'redraw') redrawFn(res[2])
+    else apiFn(res)
+  }
 }

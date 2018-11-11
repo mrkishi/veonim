@@ -202,7 +202,7 @@ onRedraw(redrawEvents => {
   }
 
   requestAnimationFrame(() => {
-    if (winUpdates) windows.render()
+    if (winUpdates) windows.layout()
     windows.refresh()
   })
   console.timeEnd('redraw')
