@@ -25,6 +25,15 @@ interface ModeInfo {
   short_name: string
 }
 
+type CmdContent = [any, string]
+
+interface PMenuItem {
+  word: string,
+  kind: string,
+  menu: string,
+  info: string,
+}
+
 interface CommandLineCache {
   cmd?: string
   active: boolean
@@ -100,8 +109,8 @@ export const popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
 export const popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
   dispatch.pub('pmenu.show', { items, ix, row, col })
 
-export const wildmenu_show = items => dispatch.pub('wildmenu.show', items)
-export const wildmenu_select = selected => dispatch.pub('wildmenu.select', selected)
+export const wildmenu_show = (items: any[]) => dispatch.pub('wildmenu.show', items)
+export const wildmenu_select = (selected: number) => dispatch.pub('wildmenu.select', selected)
 export const wildmenu_hide = () => dispatch.pub('wildmenu.hide')
 
 const cmdlineIsSame = (...args: any[]) => cmdcache.active && cmdcache.position === args[1]
@@ -119,7 +128,7 @@ const cmdcache: CommandLineCache = {
   position: -999,
 }
 
-export const cmdline_show = (content: CmdContent[], position, opChar, prompt, indent, level) => {
+export const cmdline_show = (content: CmdContent[], position: number, opChar: string, prompt: string, indent: number, level: number) => {
   cmdcache.active = true
   cmdcache.position = position
 
@@ -162,7 +171,7 @@ export const cmdline_hide = () => {
   dispatch.pub('search.hide')
 }
 
-export const cmdline_pos = position => {
+export const cmdline_pos = (position: number) => {
   if (currentCommandMode === CommandType.Ex) dispatch.pub('cmd.update', { position })
   else dispatch.pub('search.update', { position })
 }
