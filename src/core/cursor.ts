@@ -41,7 +41,7 @@ Object.assign(debugline.style, {
 Object.assign(cursorEl.style, {
   zIndex: 70,
   position: 'absolute',
-  display: 'flex',
+  display: 'none',
   justifyContent: 'center',
   alignItems: 'center',
 })

@@ -100,25 +100,23 @@ export const getBackground = (id: number) => {
 }
 
 export const generateColorLookupAtlas = () => {
+  // hlid are 0 indexed, but width starts at 1
+  canvas.width = Math.max(...highlights.keys()) + 1
   canvas.height = 2
-  canvas.width = Math.max(...highlights.keys())
 
   ui.imageSmoothingEnabled = false
 
   ;[...highlights.entries()].forEach(([ id, hlgrp ]) => {
-    // we are not going draw the default background color because we will just
-    // let it alpha blend with the background which should be the default
-    // background color anyways
-    if (hlgrp.background) {
-      ui.fillStyle = hlgrp.background
-      ui.fillRect(id, 0, 1, 1)
-    }
+    const defbg = hlgrp.reverse
+      ? defaultColors.foreground
+      : defaultColors.background
+    ui.fillStyle = hlgrp.background || defbg
+    ui.fillRect(id, 0, 1, 1)
 
-    const defColor = hlgrp.reverse
+    const deffg = hlgrp.reverse
       ? defaultColors.background
       : defaultColors.foreground
-
-    ui.fillStyle = hlgrp.foreground || defColor
+    ui.fillStyle = hlgrp.foreground || deffg
     ui.fillRect(id, 1, 1, 1)
   })
 
