@@ -5,6 +5,8 @@ const EMPTY_OBJECT = Object.create(null)
 const EMPTY_ARR: any[] = []
 const EMPTY_STR = ''
 
+let partialBuffer: Buffer
+let incomplete = false
 let ix = 0
 
 const superparse = (raw: Buffer) => {
@@ -117,6 +119,12 @@ const superparse = (raw: Buffer) => {
   // int64
   else if (m === 0xd3) (ix += 9, NOT_SUPPORTED)
 
+  else if (m === undefined) {
+    incomplete = true
+    partialBuffer = raw
+    return
+  }
+
   else return (ix += 1, NOT_SUPPORTED)
 }
 
@@ -185,11 +193,17 @@ export const onRedraw = (fn: RedrawFunc) => redrawFn = fn
 export const onApi = (fn: APIFunc) => apiFn = fn
 
 export const decode = (raw: Buffer) => {
-  const bufsize = raw.length
+  const workingBuffer = incomplete
+    ? Buffer.concat([ partialBuffer, raw ])
+    : raw
+
+  const bufsize = workingBuffer.length
+  if (incomplete) incomplete = false
   ix = 0
 
   while (ix < bufsize) {
-    const res = superparse(raw)
+    const res = superparse(workingBuffer)
+    if (incomplete) return
     if (res[1] === 'redraw') redrawFn(res[2])
     else apiFn(res)
   }
