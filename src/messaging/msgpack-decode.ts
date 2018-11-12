@@ -5,6 +5,7 @@ const EMPTY_OBJECT = Object.create(null)
 const EMPTY_ARR: any[] = []
 const EMPTY_STR = ''
 
+let skipStringAllocationBecauseMsgpackIsFuckingSlow = false
 let partialBuffer: Buffer
 let incomplete = false
 let ix = 0
@@ -159,7 +160,7 @@ const toStr = (raw: Buffer, length: number) => {
   // ascii char code (and maybe convert the char code to string).  we can do
   // this based on the nvim api protocol types, so anywhere where we expect
   // strings we can check for a number and convert it to str.
-  if (length === 1) return raw[ix - 1]
+  if (length === 1 && skipStringAllocationBecauseMsgpackIsFuckingSlow) return raw[ix - 1]
   return raw.toString('utf8', ix - length, ix)
 }
 
@@ -192,10 +193,22 @@ export const onRedraw = (fn: RedrawFunc) => redrawFn = fn
 // TODO: butttttt yeah, we may need to register multiple api funcs here
 export const onApi = (fn: APIFunc) => apiFn = fn
 
+// msgpack encoded form of ---> [2, 'redraw'
+const redrawEventKey = Buffer.from([ 0x93, 0x02, 0xa6, 0x72, 0x65, 0x64, 0x72, 0x61, 0x77 ])
+
 export const decode = (raw: Buffer) => {
   const workingBuffer = incomplete
     ? Buffer.concat([ partialBuffer, raw ])
     : raw
+
+  // if we have a "redraw" event we will skip allocation of strings that are
+  // only 1 byte long.  strings that are 1 byte long happen to be ascii chars.
+  // we can handle these ascii code points as raw numbers in the rendering
+  // redraw logic. this greaty improves performance as allocating strings
+  // is too damn slow in v8. would have been much better if neovim used JSON
+  // or if i wasn't a noob and picked a statically compiled language like rust
+  const part = workingBuffer.slice(0, redrawEventKey.length)
+  skipStringAllocationBecauseMsgpackIsFuckingSlow = redrawEventKey.equals(part)
 
   const bufsize = workingBuffer.length
   if (incomplete) incomplete = false
