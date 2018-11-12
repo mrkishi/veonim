@@ -2,8 +2,8 @@ import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../ren
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
 import { mode_change, option_set, mode_info_set } from '../render/events'
 import { moveCursor, hideCursor } from '../core/cursor'
+import { onRedraw } from '../messaging/msgpack-decode'
 import * as windows from '../windows/window-manager'
-import { onRedraw } from '../render/msgpack-decode'
 import * as dispatch from '../messaging/dispatch'
 import { WebGLView } from '../render/webgl'
 
