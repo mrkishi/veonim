@@ -1,7 +1,7 @@
 import { getColorAtlas } from '../render/highlight-attributes'
 import generateFontAtlas from '../render/font-texture-atlas'
 import { WebGL2, VarKind } from '../render/webgl-utils'
-import * as cc from '../core/canvas-container'
+import { cell } from '../core/canvas-container'
 
 export default (webgl: WebGL2) => {
   const viewport = { x: 0, y: 0, width: 0, height: 0 }
@@ -120,15 +120,15 @@ export default (webgl: WebGL2) => {
 
   quadBuffer.setData(new Float32Array([
     0, 0,
-    cc.cell.width, cc.cell.height,
-    0, cc.cell.height,
-    cc.cell.width, 0,
-    cc.cell.width, cc.cell.height,
+    cell.width, cell.height,
+    0, cell.height,
+    cell.width, 0,
+    cell.width, cell.height,
     0, 0,
   ]))
 
-  webgl.gl.uniform2f(program.vars.cellSize, cc.cell.width, cc.cell.height)
-  webgl.gl.uniform2f(program.vars.cellPadding, 0, cc.cell.padding)
+  webgl.gl.uniform2f(program.vars.cellSize, cell.width, cell.height)
+  webgl.gl.uniform2f(program.vars.cellPadding, 0, cell.padding)
 
   const resize = (width: number, height: number) => {
     webgl.resize(width, height)

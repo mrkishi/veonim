@@ -18,17 +18,19 @@ const default_colors_set = (e: any) => {
   const [ fg, bg, sp ] = e[1]
   const defaultColorsChanged = setDefaultColors(fg, bg, sp)
   if (!defaultColorsChanged) return
+
   const colorAtlas = generateColorLookupAtlas()
   windows.webgl.updateColorAtlas(colorAtlas)
 }
 
 const hl_attr_define = (e: any) => {
-  const size = e.length
-  // first item in the event arr is the event name
-  for (let ix = 1; ix < size; ix++) {
+  const count = e.length
+
+  for (let ix = 1; ix < count; ix++) {
     const [ id, attr, info ] = e[ix]
     addHighlight(id, attr, info)
   }
+
   const colorAtlas = generateColorLookupAtlas()
   windows.webgl.updateColorAtlas(colorAtlas)
 }
@@ -44,11 +46,11 @@ const win_position = (e: any) => {
 
 const grid_clear = ([ , [ gridId ] ]: any) => {
   if (gridId === 1) return
-  if (windows.has(gridId)) {
-    const win = windows.get(gridId)
-    win.webgl.clear()
-    win.webgl.clearGridBuffer()
-  }
+  if (!windows.has(gridId)) return
+
+  const win = windows.get(gridId)
+  win.webgl.clear()
+  win.webgl.clearGridBuffer()
 }
 
 const grid_destroy = ([ , [ gridId ] ]: any) => {
@@ -88,7 +90,7 @@ const grid_scroll = ([ , [ gridId, top, bottom, /*left*/, /*right*/, amount ] ]:
 
 const grid_line = (e: any) => {
   let hlid = 0
-  const size = e.length
+  const count = e.length
   // TODO: this render buffer index is gonna be wrong if we switch window grids
   // while doing the render buffer sets
 
@@ -105,7 +107,7 @@ const grid_line = (e: any) => {
 
   // first item in the event arr is the event name.
   // we skip that because it's cool to do that
-  for (let ix = 1; ix < size; ix++) {
+  for (let ix = 1; ix < count; ix++) {
     // TODO: wat do with grid id?
     // when do we have 'grid_line' events for multiple grids?
     // like a horizontal split? nope. horizontal split just sends
@@ -180,24 +182,22 @@ onRedraw(redrawEvents => {
 
   for (let ix = 0; ix < eventCount; ix++) {
     const ev = redrawEvents[ix]
+    const e = ev[0]
 
     // if statements ordered in wrender priority
-    if (ev[0] === 'grid_line') grid_line(ev)
-    else if (ev[0] === 'grid_scroll') grid_scroll(ev)
-    else if (ev[0] === 'grid_cursor_goto') grid_cursor_goto(ev)
-    else if (ev[0] === 'win_position') {
-      win_position(ev)
-      winUpdates = true
-    }
-    else if (ev[0] === 'grid_resize') grid_resize(ev)
-    else if (ev[0] === 'grid_clear') grid_clear(ev)
-    else if (ev[0] === 'grid_destroy') grid_destroy(ev)
-    else if (ev[0] === 'tabline_update') tabline_update(ev)
-    else if (ev[0] === 'mode_change') mode_change(ev)
-    else if (ev[0] === 'hl_attr_define') hl_attr_define(ev)
-    else if (ev[0] === 'default_colors_set') default_colors_set(ev)
-    else if (ev[0] === 'option_set') option_set(ev)
-    else if (ev[0] === 'mode_info_set') mode_info_set(ev)
+    if (e === 'grid_line') grid_line(ev)
+    else if (e === 'grid_scroll') grid_scroll(ev)
+    else if (e === 'grid_cursor_goto') grid_cursor_goto(ev)
+    else if (e === 'win_position') (winUpdates = true, win_position(ev))
+    else if (e === 'grid_resize') grid_resize(ev)
+    else if (e === 'grid_clear') grid_clear(ev)
+    else if (e === 'grid_destroy') grid_destroy(ev)
+    else if (e === 'tabline_update') tabline_update(ev)
+    else if (e === 'mode_change') mode_change(ev)
+    else if (e === 'hl_attr_define') hl_attr_define(ev)
+    else if (e === 'default_colors_set') default_colors_set(ev)
+    else if (e === 'option_set') option_set(ev)
+    else if (e === 'mode_info_set') mode_info_set(ev)
   }
 
   setTimeout(() => {

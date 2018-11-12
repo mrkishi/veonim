@@ -66,7 +66,6 @@ const regenAtlas = () => {
 }
 
 const drawChar = (char: string, col: number, width = 1) => {
-  // TODO: instead of y being 0, should we account for cell padding?
   const charWidth = cell.width * width
   ui.save()
   ui.beginPath()
