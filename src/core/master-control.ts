@@ -1,8 +1,8 @@
 import { startupFuncs, startupCmds, postStartupCommands } from '../core/vim-startup'
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
+import MsgpackStreamDecoder from '../messaging/msgpack-decoder'
 import CreateTransport from '../messaging/transport'
-import { decode } from '../messaging/msgpack-decode'
 import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
 import { Neovim } from '../support/binaries'
@@ -10,7 +10,6 @@ import { ChildProcess } from 'child_process'
 import SetupRPC from '../messaging/rpc'
 import { Color } from '../neovim/types'
 import { homedir } from 'os'
-import '../render/redraw'
 
 type RedrawFn = (m: any[]) => void
 type ExitFn = (id: number, code: number) => void
@@ -52,7 +51,9 @@ const clientSize = {
 let onExitFn: ExitFn = () => {}
 const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
-const { encoder, decoder } = CreateTransport()
+// const { encoder, decoder } = CreateTransport()
+const { encoder } = CreateTransport()
+const decoder = new MsgpackStreamDecoder()
 
 const spawnVimInstance = () => Neovim.run([
   '--cmd', `${startupFuncs()} | ${startupCmds}`,
@@ -95,7 +96,6 @@ export const switchTo = (id: number) => {
 
   encoder.pipe(proc.stdin)
   // don't kill decoder stream when this stdout stream ends (need for other stdouts)
-  proc.stdout.on('data', decode)
   proc.stdout.pipe(decoder, { end: false })
   ids.activeVim = id
 
@@ -171,3 +171,6 @@ export const getColor = async (id: number) => {
     bg: asColor(background),
   }
 }
+
+// at the end, because when redraw inits, master control will not have been init
+import '../render/redraw'

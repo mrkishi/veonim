@@ -2,9 +2,9 @@ import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../ren
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
 import { mode_change, option_set, mode_info_set } from '../render/events'
 import { moveCursor, hideCursor } from '../core/cursor'
-import { onRedraw } from '../messaging/msgpack-decode'
 import * as windows from '../windows/window-manager'
 import * as dispatch from '../messaging/dispatch'
+import { onRedraw } from '../core/master-control'
 import { WebGLView } from '../render/webgl'
 
 // this default state should never be used. otherwise something went horribly wrong
@@ -200,8 +200,8 @@ onRedraw(redrawEvents => {
     else if (ev[0] === 'mode_info_set') mode_info_set(ev)
   }
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     if (winUpdates) windows.layout()
     windows.refresh()
-  })
+  }, 15)
 })

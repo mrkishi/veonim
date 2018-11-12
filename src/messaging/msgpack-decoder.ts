@@ -16,7 +16,7 @@ export default class extends Transform {
   private ix: number
 
   constructor() {
-    super()
+    super({ readableObjectMode: true })
     this.skipStringAllocationBecauseMsgpackIsFuckingSlow = false
     this.partialBuffer = Buffer.from([])
     this.incomplete = false
@@ -193,7 +193,7 @@ export default class extends Transform {
     }
 
     else return (this.ix += 1, NOT_SUPPORTED)
-}
+  }
 
   _transform(chunk: Buffer, _: any, done: Function) {
     const workingBuffer = this.incomplete
