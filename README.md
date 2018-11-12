@@ -6,9 +6,14 @@ veonim is a simple modal IDE built on neovim. the goal is to create my ideal pro
 
 ## project status
 
-veonim is still very early alpha and experimental. nothing is guaranteed.
+veonim is still very early alpha and experimental. nothing is guaranteed. UX is lacking.
 
 if you are feeling brave, maybe checkout the [User Guide](docs/readme.md)
+
+## currently in progress
+- WebGL renderer (~30-60ms canvas render -> under 1ms webgl render lolololololol)
+- super fast custom msgpack decoder (faster render, less GC/memory pressure)
+- implement neovim `ext_multigrid` API (much faster render/more accurate than previous window splits logic) - https://github.com/neovim/neovim/pull/8455
 
 ## coming soon
 - built-in debugger via debug adapter protocol & vscode extensions
