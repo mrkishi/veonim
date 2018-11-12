@@ -79,28 +79,28 @@ export default class extends Transform {
   superparse(raw: Buffer) {
     const m = raw[this.ix]
 
-    // fthis.ixint
+    // fixint
     if (m >= 0x00 && m <= 0x7f) return (this.ix++, m - 0x00)
 
-    // fthis.ixarr
+    // fixarr
     else if (m >= 0x90 && m <= 0x9f) return (this.ix++, this.toArr(raw, m - 0x90))
 
     // uint8
     else if (m === 0xcc) return (this.ix+=2, raw[this.ix - 1])
 
-    // fthis.ixstr
+    // fixstr
     else if (m >= 0xa0 && m <= 0xbf) return (this.ix++, this.toStr(raw, m - 0xa0))
 
     // str8
     else if (m === 0xd9) return (this.ix+=2, this.toStr(raw, raw[this.ix - 1]))
 
-    // fthis.ixmap
+    // fixmap
     else if (m >= 0x80 && m <= 0x8f) return (this.ix++, this.toMap(raw, m - 0x80))
 
     // arr16
     else if (m === 0xdc) return (this.ix+=3, this.toArr(raw, raw[this.ix - 2] + raw[this.ix - 1]))
 
-    // negative fthis.ixint
+    // negative fixint
     else if (m >= 0xe0 && m <= 0xff) return (this.ix++, m - 0x100)
 
     else if (m === 0xc3) return (this.ix++, true)
@@ -165,19 +165,19 @@ export default class extends Transform {
       return val
     }
 
-    // fthis.ixext1
+    // fixext1
     else if (m === 0xd4) return this.parseExt(raw, 1)
 
-    // fthis.ixext2
+    // fixext2
     else if (m === 0xd5) return this.parseExt(raw, 2)
 
-    // fthis.ixext4
+    // fixext4
     else if (m === 0xd6) return this.parseExt(raw, 4)
 
-    // fthis.ixext8
+    // fixext8
     else if (m === 0xd7) return this.parseExt(raw, 8)
 
-    // fthis.ixext16
+    // fixext16
     else if (m === 0xd8) return this.parseExt(raw, 16)
 
     // uint64
