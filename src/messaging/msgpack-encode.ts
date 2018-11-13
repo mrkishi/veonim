@@ -1,6 +1,7 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
 import { encode } from 'msgpack-lite'
+import { is } from '../support/utils'
 
 const i8_max = 2**8 - 1
 const i16_max = 2**16 - 1
@@ -12,17 +13,18 @@ const negativeFixInt_min = -(2**5)
 const u8_max = 2**(8 - 1) - 1
 
 const tests = [
-  u16_min+20,
-  u16_min-3,
-  u8_min-3,
-  -100,
-  -32,
-  127-3,
-  127,
-  128,
-  i8_max-3,
-  i16_max-3,
-  i16_max+20,
+  's'
+  // u16_min+20,
+  // u16_min-3,
+  // u8_min-3,
+  // -100,
+  // -32,
+  // 127-3,
+  // 127,
+  // 128,
+  // i8_max-3,
+  // i16_max-3,
+  // i16_max+20,
 ]
 
 const sizeof = {
@@ -38,6 +40,12 @@ const sizeof = {
     if (length <= i16_max) return [0xdc, length]
     if (length <= i32_max) return [0xdd, length]
     return [0x90 + length]
+  },
+  obj: ({ length }: { length: number }) => {
+    if (length < 16) return [0x80 + length]
+    if (length <= i16_max) return [0xde, ...fromNum(length)]
+    if (length <= i32_max) return [0xdf, ...fromNum(length)]
+    return [0x80 + length]
   },
 }
 
@@ -110,7 +118,7 @@ const fromArr = (arr: any[]): Buffer => {
     if (typeof item === 'string') return [...m, ...fromStr(item)]
     if (Array.isArray(item)) return [...m, ...fromArr(item)]
     if (typeof item === 'number') return [...m, ...fromNum(item)]
-    // TODO: maps/objects
+    if (is.object(item)) return [...m, fromObj(item)]
 
     console.warn('dunno how to encode this', item, typeof item)
     return m
@@ -119,19 +127,41 @@ const fromArr = (arr: any[]): Buffer => {
   return Buffer.from([...sizeof.arr(arr), ...raw])
 }
 
-// TODO: maps/objects
+const fromObj = (obj: any): Buffer => {
+  const kv = Object.entries(obj)
+
+  const raw = kv.reduce((res, [ key, val ]) => {
+    return [...res, ...fromStr(key), ...encode(val)]
+  }, [] as any[])
+
+  return Buffer.from([...sizeof.obj(kv), ...raw])
+}
+
 const rawenc = (stuff: any): Buffer => {
   if (typeof stuff === 'string') return fromStr(stuff)
   if (Array.isArray(stuff)) return fromArr(stuff)
   if (typeof stuff === 'number') return fromNum(stuff)
+  if (is.object(stuff)) return fromObj(stuff)
   return Buffer.from(stuff)
 }
 
 const hex = ff => ff.reduce((m, s) => (m.push(s.toString(16).padStart(2, '0')), m), [])
 
+// TODO: test str,map,arr greater than fix size
+// TODO: null/undefined
+// TODO: false
+// TODO: true
+// TODO: ext
+
 tests.forEach(test => {
   // const val = [2, 'ok', test]
-  const val = test
+  const val = {}
+  let ix = 0
+  while (ix < 17) {
+    Reflect.set(val, `a${ix}`, test)
+    ix++
+  }
+  // const val = { ok: test }
   console.log('val', val)
   const enc = rawenc(val)
   console.log('raw-enc:', hex(enc))
