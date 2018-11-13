@@ -1,7 +1,7 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
+import { is, type } from '../support/utils'
 import { encode } from 'msgpack-lite'
-import { is } from '../support/utils'
 
 const i8_max = 2**8 - 1
 const i16_max = 2**16 - 1
@@ -13,10 +13,7 @@ const negativeFixInt_min = -(2**5)
 const u8_max = 2**(8 - 1) - 1
 
 const tests = [
-  null,
-  undefined,
-  true,
-  false,
+  8
   // u16_min+20,
   // u16_min-3,
   // u8_min-3,
@@ -34,23 +31,37 @@ const sizeof = {
   str: ({ length }: { length: number }) => {
     if (length < 32) return [0xa0 + length]
     if (length <= i8_max) return [0xd9, length]
-    if (length <= i16_max) return [0xda, length]
-    if (length <= i32_max) return [0xdb, length]
+    if (length <= i16_max) return length2(0xda, length)
+    if (length <= i32_max) return length4(0xdb, length)
     return [0xa0 + length]
   },
   arr: ({ length }: { length: number }) => {
     if (length < 16) return [0x90 + length]
-    if (length <= i16_max) return [0xdc, length]
-    if (length <= i32_max) return [0xdd, length]
+    if (length <= i16_max) return length2(0xdc, length)
+    if (length <= i32_max) return length4(0xdd, length)
     return [0x90 + length]
   },
   obj: ({ length }: { length: number }) => {
     if (length < 16) return [0x80 + length]
-    if (length <= i16_max) return [0xde, ...fromNum(length)]
-    if (length <= i32_max) return [0xdf, ...fromNum(length)]
+    if (length <= i16_max) return length2(0xde, length)
+    if (length <= i32_max) return length4(0xdf, length)
     return [0x80 + length]
   },
 }
+
+const length2 = (code: number, length: number): Buffer => Buffer.from([
+  code,
+  length >>> 8,
+  length,
+])
+
+const length4 = (code: number, length: number): Buffer => Buffer.from([
+  code,
+  length >>> 24,
+  length >>> 16,
+  length >>> 8,
+  length,
+])
 
 const fromNum = (m: number): Buffer => {
   // fixint
@@ -125,7 +136,7 @@ const fromArr = (arr: any[]): Buffer => {
     if (item == null) return [...m, 0xc0]
     if (item === false) return [...m, 0xc2]
     if (item === true) return [...m, 0xc3]
-    console.warn('dunno how to encode this', item, Object.prototype.toString.call(item))
+    console.warn('msgpack: dunno how to encode this', item, type(item))
     return m
   }, [])
 
@@ -142,32 +153,24 @@ const fromObj = (obj: any): Buffer => {
   return Buffer.from([...sizeof.obj(kv), ...raw])
 }
 
-const rawenc = (stuff: any): Buffer => {
-  if (stuff == null) return Buffer.from([0xc0])
-  if (stuff === false) return Buffer.from([0xc2])
-  if (stuff === true) return Buffer.from([0xc3])
-  if (typeof stuff === 'string') return fromStr(stuff)
-  if (Array.isArray(stuff)) return fromArr(stuff)
-  if (typeof stuff === 'number') return fromNum(stuff)
-  if (is.object(stuff)) return fromObj(stuff)
-  console.warn('dunno how to encode this', stuff, Object.prototype.toString.call(stuff))
-  return Buffer.from(stuff)
+const rawenc = (m: any): Buffer => {
+  if (m == null) return Buffer.from([0xc0])
+  if (m === false) return Buffer.from([0xc2])
+  if (m === true) return Buffer.from([0xc3])
+  if (typeof m === 'string') return fromStr(m)
+  if (Array.isArray(m)) return fromArr(m)
+  if (typeof m === 'number') return fromNum(m)
+  if (is.object(m)) return fromObj(m)
+  console.warn('msgpack: dunno how to encode this', m, type(m))
+  return Buffer.from(m)
 }
 
 const hex = (ff: any) => ff.reduce((m: any, s: any) => (m.push(s.toString(16).padStart(2, '0')), m), [])
 
-// TODO: test str,map,arr greater than fix size
 // TODO: ext
 
 tests.forEach(test => {
-  // const val = [2, 'ok', test]
-  const val = { ok: test }
-  // let ix = 0
-  // while (ix < 17) {
-  //   Reflect.set(val, `a${ix}`, test)
-  //   ix++
-  // }
-  // const val = { ok: test }
+  const val = ''.padStart(333, 's')
   console.log('val', val)
   const enc = rawenc(val)
   console.log('raw-enc:', hex(enc))
