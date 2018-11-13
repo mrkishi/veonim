@@ -2,13 +2,16 @@
 
 import { encode } from 'msgpack-lite'
 
-const msg = 'lol'
-const test = [1, 2, msg, [ 129 ]]
-
 const BIT8 = 2**8
 const BIT16 = 2**16
 const BIT32 = 2**32
-const BIT64 = 2**64
+
+const tests = [
+  127-3,
+  BIT8-3,
+  BIT16-3,
+  BIT16+20,
+]
 
 const sizeof = {
   str: ({ length }: { length: number }) => {
@@ -26,56 +29,75 @@ const sizeof = {
   },
 }
 
-const fromNum = (m: number) => {
-  console.log('NUM:', m)
-  if (m >= 0 && m < 127) return [m]
+const fromNum = (m: number): Buffer => {
+  // fixint
+  if (m >= 0 && m < 127) return Buffer.from([m])
+
+  // uint8
   if (m >= 0 && m < BIT8) {
-    console.log('wuuut')
     const raw = Buffer.alloc(2)
     raw[0] = 0xcc
     raw.writeUInt8(m, 1)
     return raw
   }
+
+  // uint16
   if (m >= 0 && m < BIT16) {
     const raw = Buffer.alloc(3)
     raw[0] = 0xcd
-    // TODO: where does this val come from?
-    //raw[2] = 1
     raw.writeUInt16BE(m, 1)
     return raw
   }
+
+  // uint32
   if (m >= 0 && m < BIT32) {
-    const raw = Buffer.alloc(9)
+    const raw = Buffer.alloc(5)
     raw[0] = 0xce
-    raw[2] = 1
-    raw.writeUInt32BE(m, 3)
+    raw.writeUInt32BE(m, 1)
     return raw
   }
-  if (m >= 0 && m < BIT64) return [0xcf, Buffer.alloc(4).writeUInt32BE(m, 4)]
+
   // TODO: signed ints
-  return [m]
+
+
+  return Buffer.from([m])
 }
 
-const fromStr = (str: string) => {
+const fromStr = (str: string): Buffer => {
   const raw = Buffer.from(str)
-  return [...sizeof.str(raw), ...raw]
+  return Buffer.from([...sizeof.str(raw), ...raw])
 }
 
-const fromArr = (arr: any[]): number[] => {
+const fromArr = (arr: any[]): Buffer => {
   const raw = arr.reduce((m, item) => {
     if (typeof item === 'string') return [...m, ...fromStr(item)]
     if (Array.isArray(item)) return [...m, ...fromArr(item)]
     if (typeof item === 'number') return [...m, ...fromNum(item)]
+    // TODO: maps/objects
 
     console.warn('dunno how to encode this', item, typeof item)
     return m
   }, [])
 
-  return [...sizeof.arr(arr), ...raw]
+  return Buffer.from([...sizeof.arr(arr), ...raw])
 }
 
-const enc = Buffer.from(fromArr(test))
-console.log('raw-enc:', enc)
+// TODO: maps/objects
+const rawenc = (stuff: any): Buffer => {
+  if (typeof stuff === 'string') return fromStr(stuff)
+  if (Array.isArray(stuff)) return fromArr(stuff)
+  if (typeof stuff === 'number') return fromNum(stuff)
+  return Buffer.from(stuff)
+}
 
-const res2 = encode(test)
-console.log('mpk-enc:', res2)
+const hex = ff => ff.reduce((m, s) => (m.push(s.toString(16).padStart(2, '0')), m), [])
+
+tests.forEach(test => {
+  const val = [2, 'ok', test]
+  const enc = rawenc(val)
+  console.log('raw-enc:', hex(enc))
+
+  const res2 = encode(val)
+  console.log('mpk-enc:', hex(res2))
+})
+

@@ -15,6 +15,10 @@ import nvim from '../core/neovim'
 import '../ui/notifications'
 import '../core/title'
 
+// TODO: TEST
+import '../messaging/msgpack-encode'
+// TODO: TEST
+
 const loadingConfig = CreateTask()
 
 configReader('nvim/init.vim', c => {
