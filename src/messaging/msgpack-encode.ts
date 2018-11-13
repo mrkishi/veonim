@@ -13,7 +13,10 @@ const negativeFixInt_min = -(2**5)
 const u8_max = 2**(8 - 1) - 1
 
 const tests = [
-  's'
+  null,
+  undefined,
+  true,
+  false,
   // u16_min+20,
   // u16_min-3,
   // u8_min-3,
@@ -119,8 +122,10 @@ const fromArr = (arr: any[]): Buffer => {
     if (Array.isArray(item)) return [...m, ...fromArr(item)]
     if (typeof item === 'number') return [...m, ...fromNum(item)]
     if (is.object(item)) return [...m, fromObj(item)]
-
-    console.warn('dunno how to encode this', item, typeof item)
+    if (item == null) return [...m, 0xc0]
+    if (item === false) return [...m, 0xc2]
+    if (item === true) return [...m, 0xc3]
+    console.warn('dunno how to encode this', item, Object.prototype.toString.call(item))
     return m
   }, [])
 
@@ -138,29 +143,30 @@ const fromObj = (obj: any): Buffer => {
 }
 
 const rawenc = (stuff: any): Buffer => {
+  if (stuff == null) return Buffer.from([0xc0])
+  if (stuff === false) return Buffer.from([0xc2])
+  if (stuff === true) return Buffer.from([0xc3])
   if (typeof stuff === 'string') return fromStr(stuff)
   if (Array.isArray(stuff)) return fromArr(stuff)
   if (typeof stuff === 'number') return fromNum(stuff)
   if (is.object(stuff)) return fromObj(stuff)
+  console.warn('dunno how to encode this', stuff, Object.prototype.toString.call(stuff))
   return Buffer.from(stuff)
 }
 
-const hex = ff => ff.reduce((m, s) => (m.push(s.toString(16).padStart(2, '0')), m), [])
+const hex = (ff: any) => ff.reduce((m: any, s: any) => (m.push(s.toString(16).padStart(2, '0')), m), [])
 
 // TODO: test str,map,arr greater than fix size
-// TODO: null/undefined
-// TODO: false
-// TODO: true
 // TODO: ext
 
 tests.forEach(test => {
   // const val = [2, 'ok', test]
-  const val = {}
-  let ix = 0
-  while (ix < 17) {
-    Reflect.set(val, `a${ix}`, test)
-    ix++
-  }
+  const val = { ok: test }
+  // let ix = 0
+  // while (ix < 17) {
+  //   Reflect.set(val, `a${ix}`, test)
+  //   ix++
+  // }
   // const val = { ok: test }
   console.log('val', val)
   const enc = rawenc(val)
