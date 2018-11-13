@@ -436,7 +436,23 @@ r.msg_start_kind = kind => {
 // TODO: join or call foreach?
 r.msg_showcmd = (content = []) => notify(content.join(''))
 
-r.msg_chunk = data => message.buffer += data
+let spellCheckMsg = [] as string[]
+let capturingSpellCheckMsg = false
+
+r.msg_chunk = data => {
+  const startSpellCheckMsg = /Change "\w+" to:/.test(data)
+  const endSpellCheckMsg = /Type number and <Enter>/.test(data)
+
+  if (startSpellCheckMsg) capturingSpellCheckMsg = true
+  if (capturingSpellCheckMsg) spellCheckMsg.push(data)
+  if (endSpellCheckMsg) {
+    capturingSpellCheckMsg = false
+    dispatch.pub('msg:spell-check', spellCheckMsg.join(''))
+    spellCheckMsg = []
+  }
+
+  message.buffer += data
+}
 
 r.msg_end = () => {
   // TODO: this only happens at startup, so maybe run this condition for a limitied period of time

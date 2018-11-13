@@ -3,6 +3,7 @@ import * as canvasContainer from '../core/canvas-container'
 import { SHADOW_BUFFER_TYPE } from '../support/constants'
 import { getWindow, RenderWindow } from '../core/windows'
 import { CanvasWindow } from '../core/canvas-window'
+import * as dispatch from '../messaging/dispatch'
 import { merge } from '../support/utils'
 import { get } from '../core/grid'
 
@@ -130,6 +131,9 @@ const controlCursorIfShadowBuffer = (win: RenderWindow) => {
 const updateCursorPosition = (canvas: CanvasWindow) => {
   const { x, y } = canvas.getCursorPosition(cursor.row, cursor.col)
   cursorEl.style.transform = translate(x, y)
+  // hack: needed for spell-check window to determine when
+  // the spell-check needs to close
+  dispatch.pub('cursor-moved')
 }
 
 export const moveCursor = (backgroundColor: string) => {
