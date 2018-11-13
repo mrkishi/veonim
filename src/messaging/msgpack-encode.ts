@@ -1,7 +1,6 @@
 // SPEC: https://github.com/msgpack/msgpack/blob/master/spec.md
 
 import { is, type } from '../support/utils'
-import { encode } from 'msgpack-lite'
 
 const i8_max = 2**8 - 1
 const i16_max = 2**16 - 1
@@ -12,20 +11,19 @@ const u32_min = -1 * 2**(32 - 1)
 const negativeFixInt_min = -(2**5)
 const u8_max = 2**(8 - 1) - 1
 
-const tests = [
-  8
-  // u16_min+20,
-  // u16_min-3,
-  // u8_min-3,
-  // -100,
-  // -32,
-  // 127-3,
-  // 127,
-  // 128,
-  // i8_max-3,
-  // i16_max-3,
-  // i16_max+20,
-]
+const length2 = (code: number, length: number): Buffer => Buffer.from([
+  code,
+  length >>> 8,
+  length,
+])
+
+const length4 = (code: number, length: number): Buffer => Buffer.from([
+  code,
+  length >>> 24,
+  length >>> 16,
+  length >>> 8,
+  length,
+])
 
 const sizeof = {
   str: ({ length }: { length: number }) => {
@@ -48,20 +46,6 @@ const sizeof = {
     return [0x80 + length]
   },
 }
-
-const length2 = (code: number, length: number): Buffer => Buffer.from([
-  code,
-  length >>> 8,
-  length,
-])
-
-const length4 = (code: number, length: number): Buffer => Buffer.from([
-  code,
-  length >>> 24,
-  length >>> 16,
-  length >>> 8,
-  length,
-])
 
 const fromNum = (m: number): Buffer => {
   // fixint
@@ -153,7 +137,7 @@ const fromObj = (obj: any): Buffer => {
   return Buffer.from([...sizeof.obj(kv), ...raw])
 }
 
-const rawenc = (m: any): Buffer => {
+export const encode = (m: any): Buffer => {
   if (m == null) return Buffer.from([0xc0])
   if (m === false) return Buffer.from([0xc2])
   if (m === true) return Buffer.from([0xc3])
@@ -164,17 +148,3 @@ const rawenc = (m: any): Buffer => {
   console.warn('msgpack: dunno how to encode this', m, type(m))
   return Buffer.from(m)
 }
-
-const hex = (ff: any) => ff.reduce((m: any, s: any) => (m.push(s.toString(16).padStart(2, '0')), m), [])
-
-// TODO: ext
-
-tests.forEach(test => {
-  const val = ''.padStart(333, 's')
-  console.log('val', val)
-  const enc = rawenc(val)
-  console.log('raw-enc:', hex(enc))
-
-  const res2 = encode(val)
-  console.log('mpk-enc:', hex(res2))
-})
