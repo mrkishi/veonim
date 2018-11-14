@@ -16,7 +16,7 @@ export default class extends Transform {
   private ix: number
 
   constructor() {
-    super({ readableObjectMode: true })
+    super({ objectMode: true })
     this.skipStringAllocationBecauseMsgpackIsFuckingSlow = false
     this.partialBuffer = Buffer.from([])
     this.incomplete = false

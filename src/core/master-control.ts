@@ -2,7 +2,7 @@ import { startupFuncs, startupCmds, postStartupCommands } from '../core/vim-star
 import { asColor, ID, log, onFnCall, merge, prefixWith } from '../support/utils'
 import { NotifyKind, notify as notifyUI } from '../ui/notifications'
 import MsgpackStreamDecoder from '../messaging/msgpack-decoder'
-import CreateTransport from '../messaging/transport'
+import MsgpackStreamEncoder from '../messaging/msgpack-encoder'
 import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
 import { Neovim } from '../support/binaries'
@@ -51,9 +51,8 @@ const clientSize = {
 let onExitFn: ExitFn = () => {}
 const prefix = prefixWith(Prefixes.Core)
 const vimInstances = new Map<number, VimInstance>()
-// const { encoder, decoder } = CreateTransport()
-const { encoder } = CreateTransport()
-const decoder = new MsgpackStreamDecoder()
+const msgpackDecoder = new MsgpackStreamDecoder()
+const msgpackEncoder = new MsgpackStreamEncoder()
 
 const spawnVimInstance = () => Neovim.run([
   '--cmd', `${startupFuncs()} | ${startupCmds}`,
@@ -90,13 +89,13 @@ export const switchTo = (id: number) => {
   const { proc, attached } = vimInstances.get(id)!
 
   if (ids.activeVim > -1) {
-    encoder.unpipe()
+    msgpackEncoder.unpipe()
     vimInstances.get(ids.activeVim)!.proc.stdout.unpipe()
   }
 
-  encoder.pipe(proc.stdin)
+  msgpackEncoder.pipe(proc.stdin)
   // don't kill decoder stream when this stdout stream ends (need for other stdouts)
-  proc.stdout.pipe(decoder, { end: false })
+  proc.stdout.pipe(msgpackDecoder, { end: false })
   ids.activeVim = id
 
   // sending resize (even of the same size) makes vim instance clear/redraw screen
@@ -146,8 +145,8 @@ export const attachTo = (id: number) => {
   vim.attached = true
 }
 
-const { notify, request, onEvent, onData } = SetupRPC(encoder.write)
-decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
+const { notify, request, onEvent, onData } = SetupRPC(m => msgpackEncoder.write(m))
+msgpackDecoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix(name), args))
 const api: Api = onFnCall((name: string, args: any[]) => notify(prefix(name), args))
