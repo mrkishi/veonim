@@ -1,7 +1,8 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-protocol'
+import MsgpackStreamDecoder from '../messaging/msgpack-decoder'
+import MsgpackStreamEncoder from '../messaging/msgpack-encoder'
 import { prefixWith, onFnCall, is } from '../support/utils'
 import { QuickFixList } from '../core/vim-functions'
-import CreateTransport from '../messaging/transport'
 import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
 import { on } from '../messaging/worker-client'
@@ -17,7 +18,9 @@ const vimOptions = {
   ext_cmdline: false
 }
 
-const { encoder, decoder } = CreateTransport()
+const encoder = new MsgpackStreamEncoder()
+const decoder = new MsgpackStreamDecoder()
+
 const proc = Neovim.run([
   '--cmd', `let $VIM = '${Neovim.path}'`,
   '--cmd', `let $VIMRUNTIME = '${Neovim.runtime}'`,

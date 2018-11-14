@@ -1,6 +1,7 @@
 import { prefixWith, onFnCall, pascalCase } from '../support/utils'
+import MsgpackStreamDecoder from '../messaging/msgpack-decoder'
+import MsgpackStreamEncoder from '../messaging/msgpack-encoder'
 import { colorscheme } from '../config/default-configs'
-import CreateTransport from '../messaging/transport'
 import { Api, Prefixes } from '../neovim/protocol'
 import NeovimUtils from '../support/neovim-utils'
 import { on } from '../messaging/worker-client'
@@ -34,7 +35,9 @@ const asVimFunc = (name: string, fn: string) => {
 }
 
 const runtimeDir = resolve(__dirname, '..', 'runtime')
-const { encoder, decoder } = CreateTransport()
+const encoder = new MsgpackStreamEncoder()
+const decoder = new MsgpackStreamDecoder()
+
 const proc = Neovim.run([
   '--cmd', `let $VIM = '${Neovim.path}'`,
   '--cmd', `let $VIMRUNTIME = '${Neovim.runtime}'`,

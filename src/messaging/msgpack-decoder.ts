@@ -2,7 +2,7 @@
 
 import { Transform } from 'stream'
 
-const NOT_SUPPORTED = Symbol('NOT_SUPPORTED')
+const NOT_SUPPORTED = 'NOT_SUPPORTED'
 const EMPTY_OBJECT = Object.create(null)
 const EMPTY_ARR: any[] = []
 const EMPTY_STR = ''
@@ -180,6 +180,21 @@ export default class extends Transform {
     // fixext16
     else if (m === 0xd8) return this.parseExt(raw, 16)
 
+    // ext8
+    else if (m === 0xc7) {
+
+    }
+
+    // ext16
+    else if (m === 0xc8) {
+
+    }
+
+    // ext32
+    else if (m === 0xc9) {
+
+    }
+
     // uint64
     else if (m === 0xcf) (this.ix += 9, NOT_SUPPORTED)
 
@@ -192,7 +207,8 @@ export default class extends Transform {
       return
     }
 
-    else return (this.ix += 1, NOT_SUPPORTED)
+    console.warn('msgpack: dunno how to decode:', raw[this.ix].toString(16).padStart(2, '0'))
+    return (this.ix += 1, NOT_SUPPORTED)
   }
 
   _transform(chunk: Buffer, _: any, done: Function) {
@@ -214,7 +230,16 @@ export default class extends Transform {
     this.ix = 0
 
     while (this.ix < bufsize) {
+      console.log('this.ix', this.ix)
+      const part = workingBuffer.reduce((res, m ) => {
+        res.push(m.toString(16).padStart(2, '0'))
+        return res
+      }, [])
+      console.log('part', part)
+      const or = require('msgpack-lite').decode(workingBuffer)
+      console.log('or', or)
       const res = this.superparse(workingBuffer)
+      console.log('res', res)
       if (this.incomplete) return done()
       this.push(res)
     }
