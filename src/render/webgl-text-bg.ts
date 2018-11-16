@@ -9,6 +9,7 @@ export default (webgl: WebGL2) => {
     quadVertex: VarKind.Attribute,
     cellPosition: VarKind.Attribute,
     hlid: VarKind.Attribute,
+    hlidType: VarKind.Uniform,
     canvasResolution: VarKind.Uniform,
     colorAtlasResolution: VarKind.Uniform,
     colorAtlasTextureId: VarKind.Uniform,
@@ -22,6 +23,7 @@ export default (webgl: WebGL2) => {
     uniform vec2 ${v.canvasResolution};
     uniform vec2 ${v.colorAtlasResolution};
     uniform vec2 ${v.cellSize};
+    uniform float ${v.hlidType};
     uniform sampler2D ${v.colorAtlasTextureId};
 
     out vec4 o_color;
@@ -35,7 +37,7 @@ export default (webgl: WebGL2) => {
       float posy = posFloat.y * -2.0 + 1.0;
       gl_Position = vec4(posx, posy, 0, 1);
 
-      vec2 colorPosition = vec2(${v.hlid}, 0) / ${v.colorAtlasResolution};
+      vec2 colorPosition = vec2(${v.hlid}, ${v.hlidType}) / ${v.colorAtlasResolution};
       o_color = texture(${v.colorAtlasTextureId}, colorPosition);
     }
   `)
@@ -84,14 +86,20 @@ export default (webgl: WebGL2) => {
     size: 2,
   })
 
-  quadBuffer.setData(new Float32Array([
-    0, 0,
-    cell.width, cell.height,
-    0, cell.height,
-    cell.width, 0,
-    cell.width, cell.height,
-    0, 0,
-  ]))
+  const quads = {
+    triangles: new Float32Array([
+      0, 0,
+      cell.width, cell.height,
+      0, cell.height,
+      cell.width, 0,
+      cell.width, cell.height,
+      0, 0,
+    ]),
+    lines: new Float32Array([
+      0, cell.height - cell.padding + 1,
+      cell.width, cell.height - cell.padding + 1,
+    ]),
+  }
 
   webgl.gl.uniform2f(program.vars.cellSize, cell.width, cell.height)
 
@@ -122,7 +130,16 @@ export default (webgl: WebGL2) => {
   const render = (buffer: Float32Array, x: number, y: number, width: number, height: number) => {
     readjustViewportMaybe(x, y, width, height)
     wrenderBuffer.setData(buffer)
+
+    // background
+    quadBuffer.setData(quads.triangles)
+    webgl.gl.uniform1f(program.vars.hlidType, 0)
     webgl.gl.drawArraysInstanced(webgl.gl.TRIANGLES, 0, 6, buffer.length / 4)
+
+    // underlines
+    quadBuffer.setData(quads.lines)
+    webgl.gl.uniform1f(program.vars.hlidType, 2)
+    webgl.gl.drawArraysInstanced(webgl.gl.LINES, 0, 2, buffer.length / 4)
   }
 
   const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {

@@ -102,7 +102,7 @@ export const getBackground = (id: number) => {
 export const generateColorLookupAtlas = () => {
   // hlid are 0 indexed, but width starts at 1
   canvas.width = Math.max(...highlights.keys()) + 1
-  canvas.height = 2
+  canvas.height = 3
 
   ui.imageSmoothingEnabled = false
 
@@ -118,6 +118,11 @@ export const generateColorLookupAtlas = () => {
       : defaultColors.foreground
     ui.fillStyle = hlgrp.foreground || deffg
     ui.fillRect(id, 1, 1, 1)
+
+    if (!hlgrp.underline || !hlgrp.special) return
+
+    ui.fillStyle = hlgrp.special
+    ui.fillRect(id, 2, 1, 1)
   })
 
   return canvas

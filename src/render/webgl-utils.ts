@@ -165,7 +165,7 @@ const create = (options?: WebGLContextAttributes) => {
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
 
       pointers.length
-        ?  pointers.forEach((pointer: AttribPointer) => setupVertexArray(pointer))
+        ? pointers.forEach((pointer: AttribPointer) => setupVertexArray(pointer))
         : setupVertexArray(pointers)
 
       return {
