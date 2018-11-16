@@ -59,17 +59,7 @@ export default (onDataSender?: (...args: any[]) => void) => {
   }
 
   const onRecvData = (fn: (...args: any[]) => void) => sendRecvDataFn = fn
-  // decoder.on('data', ([type, ...d]: [number, any]) => {
-  decoder.on('data', (stuff: any) => {
-    // TODO: the thing that breaks here is stuff = 3
-    // TODO: compare with original decoder
-    console.log('stuff', stuff)
-    const [ type, ...d ] = stuff
-    console.log('type', type)
-    console.log('d', d)
-    console.log('sendRecvDataFn', sendRecvDataFn)
-    sendRecvDataFn([ type, d ])
-  })
+  decoder.on('data', ([type, ...d]: [number, any]) => sendRecvDataFn([ type, d ]))
 
   return { send, connectTo, switchTo, onRecvData }
 }
