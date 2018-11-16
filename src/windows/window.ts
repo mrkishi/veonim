@@ -30,6 +30,11 @@ interface Size {
   height: number
 }
 
+export interface WindowOverlay {
+  remove(): void
+  move(row: number, col: number): void
+}
+
 export interface Window {
   webgl: WebGLView
   element: HTMLElement
@@ -40,7 +45,7 @@ export interface Window {
   redrawFromGridBuffer(): void
   getCharAt(row: number, col: number): string
   updateNameplate(data: NameplateState): void
-  addOverlayElement(element: HTMLElement): void
+  addOverlayElement(element: HTMLElement): WindowOverlay
   removeOverlayElement(element: HTMLElement): void
   gridToPixelPosition(row: number, col: number): Position
   getWindowSize(): Size
@@ -152,7 +157,13 @@ export default () => {
   // TODO: add api to control row/col position of this overlay element?
   api.addOverlayElement = element => {
     overlay.appendChild(element)
-    return () => overlay.removeChild(element)
+    return {
+      remove: () => overlay.removeChild(element),
+      move: (row: number, col: number) => {
+        // TODO: i like to move it move it
+        console.warn('NYI: overlay element move', row, col)
+      }
+    }
   }
 
   api.redrawFromGridBuffer = () => webgl.renderGridBuffer()

@@ -1,8 +1,7 @@
 import { hideCursor, showCursor, disableCursor, enableCursor } from '../core/cursor'
-// import { currentWindowElement, getWindow } from '../core/windows'
-const currentWindowElement = () => ({ remove: () => {}, add: () => {} })
-const getWindow = () => {}
 import { CommandType, CommandUpdate } from '../render/events'
+import * as windows from '../windows/window-manager'
+import { WindowOverlay } from '../windows/window'
 import Input from '../components/text-input'
 import { sub } from '../messaging/dispatch'
 import { rgba, paddingV } from '../ui/css'
@@ -19,12 +18,13 @@ const state = {
 }
 
 type S = typeof state
+let winOverlay: WindowOverlay
 
 const actions = {
   hide: () => {
     enableCursor()
     showCursor()
-    currentWindowElement.remove(containerEl)
+    if (winOverlay) winOverlay.remove()
     return { value: '', visible: false }
   },
   updateQuery: ({ cmd, kind, position }: CommandUpdate) => (s: S) => {
@@ -33,7 +33,7 @@ const actions = {
     disableCursor()
 
     !s.visible && setImmediate(() => {
-      currentWindowElement.add(containerEl)
+      winOverlay = windows.getActive().addOverlayElement(containerEl)
     })
 
     return {

@@ -84,7 +84,7 @@ export const createWebGLView = () => webgl.createView()
 
 export const setActiveGrid = (id: number) => Object.assign(activeGrid, { id })
 
-export const getActive = () => activeGrid.id > 1 && get(activeGrid.id)
+export const getActive = () => get(activeGrid.id)
 
 export const set = (id: number, gridId: number, row: number, col: number, width: number, height: number) => {
   const win = windows.get(gridId) || CreateWindow()
