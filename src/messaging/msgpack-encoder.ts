@@ -156,9 +156,7 @@ export default class extends Transform {
   }
 
   _transform(data: any, _: any, done: Function) {
-    // TODO: split encoded buffer into smaller pieces if too big
-    const encoded = encode(data)
-    this.push(encoded)
+    this.push(encode(data))
     done()
   }
 }
