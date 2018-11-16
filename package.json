@@ -60,11 +60,10 @@
     "hyperapp-feather": "0.4.0",
     "hyperapp-seti": "0.2.0",
     "marked": "0.5.0",
-    "msgpack-lite": "0.1.26",
-    "vscode-debugprotocol": "1.29.0",
     "vscode-languageserver-protocol": "3.9.0"
   },
   "devDependencies": {
+    "vscode-debugprotocol": "1.29.0",
     "@deomitrus/hyperapp-redux-devtools": "1.2.0",
     "@medv/finder": "1.1.0",
     "@types/fuzzaldrin-plus": "0.0.1",
