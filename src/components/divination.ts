@@ -1,7 +1,6 @@
 import { currentWindowElement, activeWindow } from '../core/windows'
 import { cursor, hideCursor, showCursor } from '../core/cursor'
 import { genList, merge } from '../support/utils'
-import { Specs } from '../core/canvas-window'
 import { stealInput } from '../core/input'
 import { makel } from '../ui/vanilla'
 import { paddingV } from '../ui/css'
@@ -13,7 +12,13 @@ interface CellPosition {
   col: number
 }
 
-interface FindPosOpts extends Specs {
+interface FindPosOpts {
+  row: number
+  col: number
+  height: number
+  width: number
+  paddingX: number
+  paddingY: number
   fg?: string
   bg?: string
 }
