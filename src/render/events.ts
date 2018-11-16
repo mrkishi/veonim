@@ -53,6 +53,11 @@ export interface CommandUpdate {
   position: number
 }
 
+// because we skip allocating 1-char strings in msgpack decode. so if we have a 1-char
+// string it might be a code point number - need to turn it back into a string. see
+// msgpack-decoder for more info on how this works.
+const sillyString = (s: any): string => typeof s === 'number' ? String.fromCodePoint(s) : s
+
 const modes = new Map<string, Mode>()
 const options = new Map<string, any>()
 
@@ -77,7 +82,8 @@ const cursorShapeType = (shape?: string) => {
   else return CursorShape.block
 }
 
-export const mode_change = ([ , [ mode ] ]: any) => {
+export const mode_change = ([ , [ m ] ]: [any, [string]]) => {
+  const mode = sillyString(m)
   nvim.state.mode = normalizeVimMode(mode)
   const info = modes.get(mode)
   if (!info) return
@@ -90,11 +96,14 @@ export const mode_change = ([ , [ mode ] ]: any) => {
   setCursorShape(info.shape, info.size)
 }
 
-export const option_set = ([ , [ key, value ] ]: any) => options.set(key, value)
+export const option_set = ([ , [ k, value ] ]: [any, [string, any]]) => {
+  const key = sillyString(k)
+  options.set(key, value)
+}
 
 export const mode_info_set = ([ , [ , infos ] ]: any) => infos.forEach((m: ModeInfo) => {
   const info = {
-    shape: cursorShapeType(m.cursor_shape),
+    shape: cursorShapeType(sillyString(m.cursor_shape)),
     size: m.cell_percentage,
     hlid: m.attr_id,
   }
@@ -102,7 +111,7 @@ export const mode_info_set = ([ , [ , infos ] ]: any) => infos.forEach((m: ModeI
   modes.set(m.name, info)
 })
 
-export const set_title = ([ , [ title ] ]: [any, [string]]) => dispatch.pub('vim:title', title)
+export const set_title = ([ , [ title ] ]: [any, [string]]) => dispatch.pub('vim:title', sillyString(title))
 
 export const popupmenu_hide = () => dispatch.pub('pmenu.hide')
 export const popupmenu_select = ([ , [ ix ] ]: [any, [number]]) => dispatch.pub('pmenu.select', ix)
@@ -132,12 +141,14 @@ const cmdcache: CommandLineCache = {
 }
 
 type CmdlineShow = [ CmdContent[], number, string, string, number, number ]
-export const cmdline_show = ([ , [content, position, opChar, prompt, indent, level] ]: [any, CmdlineShow]) => {
+export const cmdline_show = ([ , [content, position, str1, str2, indent, level] ]: [any, CmdlineShow]) => {
+  const opChar = sillyString(str1)
+  const prompt = sillyString(str2)
   cmdcache.active = true
   cmdcache.position = position
 
   // TODO: process attributes!
-  const cmd = content.reduce((str, [ _, item ]) => str + item, '')
+  const cmd = content.reduce((str, [ _, item ]) => str + sillyString(item), '')
   if (cmdcache.cmd === cmd) return
   cmdcache.cmd = cmd
 
