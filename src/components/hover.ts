@@ -1,5 +1,5 @@
+import * as windows from '../windows/window-manager'
 import { ColorData } from '../services/colorizer'
-import { activeWindow } from '../core/windows'
 import { sub } from '../messaging/dispatch'
 import { debounce } from '../support/utils'
 import Overlay from '../components/overlay'
@@ -16,8 +16,10 @@ interface ShowParams {
 const docs = (data: string) => h('div', { style: docStyle }, [ h('div', data) ])
 
 const getPosition = (row: number, col: number) => ({
-  x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
+  ...windows.pixelPosition(
+    row > 2 ? row : row + 1,
+    col - 1,
+  ),
   anchorBottom: cursor.row > 2,
 })
 

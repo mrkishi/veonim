@@ -1,8 +1,8 @@
 import { Command } from 'vscode-languageserver-protocol'
 import { RowNormal } from '../components/row-container'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
+import * as windows from '../windows/window-manager'
 import { runCodeAction } from '../ai/diagnostics'
-import { activeWindow } from '../core/windows'
 import Input from '../components/text-input'
 import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
@@ -86,7 +86,6 @@ const ui = app({ name: 'code-actions', state, actions, view })
 
 export const show = (row: number, col: number, actions: Command[]) => {
   if (!actions.length) return
-  const x = activeWindow() ? activeWindow()!.colToX(col) : 0
-  const y = activeWindow() ? activeWindow()!.rowToTransformY(row + 1) : 0
+  const { x, y } = windows.pixelPosition(row + 1, col)
   ui.show({ x, y, actions })
 }

@@ -2,14 +2,14 @@ import { DebugAdapterConnection } from '../messaging/debug-protocol'
 import { objToMap, uuid, merge, ID } from '../support/utils'
 import { DebugProtocol as DP } from 'vscode-debugprotocol'
 import userSelectOption from '../components/generic-menu'
+// import * as windows from '../windows/window-manager'
 import getDebugConfig from '../ai/get-debug-config'
-import { debugline, cursor } from '../core/cursor'
 import * as extensions from '../core/extensions'
 import * as breakpoints from '../ai/breakpoints'
-import { getWindow } from '../core/windows'
+import { debugline } from '../core/cursor'
 import debugUI from '../components/debug'
 import * as Icon from 'hyperapp-feather'
-import { translate } from '../ui/css'
+// import { translate } from '../ui/css'
 import nvim from '../core/neovim'
 
 // TODO: move to shared place
@@ -71,27 +71,28 @@ let activeDebugger = 'lolnope'
 const debuggers = new Map<string, Debugger>()
 
 const moveDebugLine = async ({ path, line, column }: Position) => {
-  // TODO: need a way to show inline breakpoints. we can get multiple calls
-  // for the same path/line, but with different columns. without showing that
-  // the column changed in the UI, the user does not know if their actions
-  // actually worked
-  console.warn('NYI: move debugline ++ show COLUMN location', column)
-  if (path !== nvim.state.absoluteFilepath) await nvim.buffers.open(path)
+  console.warn('NYI: moveDebugLine:', path, line, column)
+  // // TODO: need a way to show inline breakpoints. we can get multiple calls
+  // // for the same path/line, but with different columns. without showing that
+  // // the column changed in the UI, the user does not know if their actions
+  // // actually worked
+  // console.warn('NYI: move debugline ++ show COLUMN location', column)
+  // if (path !== nvim.state.absoluteFilepath) await nvim.buffers.open(path)
 
-  const canvasWindow = getWindow(cursor.row, cursor.col)
-  if (!canvasWindow) return console.error('there is no current window. lolwut?')
-  const specs = canvasWindow.getSpecs()
-  const distanceFromTop = line - nvim.state.editorTopLine + 1
-  const relativeLine = specs.row + distanceFromTop
+  // const win = windows.getActive()
+  // if (!canvasWindow) return console.error('there is no current window. lolwut?')
+  // const specs = canvasWindow.getSpecs()
+  // const distanceFromTop = line - nvim.state.editorTopLine + 1
+  // const relativeLine = specs.row + distanceFromTop
 
-  const { x, y, width } = canvasWindow.whereLine(relativeLine)
+  // const { x, y, width } = canvasWindow.whereLine(relativeLine)
 
-  merge(debugline.style, {
-    background: 'rgba(118, 0, 57, 0.6)',
-    display: 'block',
-    transform: translate(x, y),
-    width: `${width}px`,
-  })
+  // merge(debugline.style, {
+  //   background: 'rgba(118, 0, 57, 0.6)',
+  //   display: 'block',
+  //   transform: translate(x, y),
+  //   width: `${width}px`,
+  // })
 }
 
 const Refresher = (dbg: DebugAdapterConnection) => ({

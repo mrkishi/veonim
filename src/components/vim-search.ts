@@ -1,9 +1,8 @@
-import { hideCursor, showCursor, disableCursor, enableCursor, cursor } from '../core/cursor'
+import { hideCursor, showCursor, disableCursor, enableCursor } from '../core/cursor'
 // import { currentWindowElement, getWindow } from '../core/windows'
 const currentWindowElement = () => ({ remove: () => {}, add: () => {} })
 const getWindow = () => {}
 import { CommandType, CommandUpdate } from '../render/events'
-import { CanvasWindow } from '../core/canvas-window'
 import Input from '../components/text-input'
 import { sub } from '../messaging/dispatch'
 import { rgba, paddingV } from '../ui/css'
@@ -21,14 +20,11 @@ const state = {
 
 type S = typeof state
 
-let targetCanvasWin: CanvasWindow
-
 const actions = {
   hide: () => {
     enableCursor()
     showCursor()
     currentWindowElement.remove(containerEl)
-    if (targetCanvasWin) targetCanvasWin.setOverflowScrollState(true)
     return { value: '', visible: false }
   },
   updateQuery: ({ cmd, kind, position }: CommandUpdate) => (s: S) => {
@@ -38,10 +34,6 @@ const actions = {
 
     !s.visible && setImmediate(() => {
       currentWindowElement.add(containerEl)
-      const w = getWindow(cursor.row, cursor.col, { getStuff: true })
-      if (!w) return console.warn('current window not found when trying to render vim-search. this means that canvas window overflow scrolling was not disabled. vim-search can be scrolled outta bounds!')
-      targetCanvasWin = w.canvas
-      w.canvas.setOverflowScrollState(false)
     })
 
     return {

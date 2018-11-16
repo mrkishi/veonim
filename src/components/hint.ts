@@ -1,5 +1,5 @@
 import { docStyle, resetMarkdownHTMLStyle } from '../ui/styles'
-import { activeWindow } from '../core/windows'
+import * as windows from '../windows/window-manager'
 import Overlay from '../components/overlay'
 import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
@@ -101,8 +101,10 @@ const actions = {
 type A = typeof actions
 
 const view = ($: S) => Overlay({
-  x: activeWindow() ? activeWindow()!.colToX($.col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToTransformY($.row > 2 ? $.row : $.row + 1) : 0,
+  ...windows.pixelPosition(
+    $.row > 2 ? $.row : $.row + 1,
+    $.col - 1,
+  ),
   zIndex: 200,
   maxWidth: 600,
   visible: $.visible,

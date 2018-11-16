@@ -1,4 +1,4 @@
-import { activeWindow } from '../core/windows'
+import * as windows from '../windows/window-manager'
 import Overlay from '../components/overlay'
 import { sub } from '../messaging/dispatch'
 import { debounce } from '../support/utils'
@@ -8,8 +8,10 @@ import { h, app } from '../ui/uikit'
 import { cvar } from '../ui/css'
 
 const getPosition = (row: number, col: number) => ({
-  x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 2 ? row : row + 1) : 0,
+  ...windows.pixelPosition(
+    row > 2 ? row : row + 1,
+    col - 1,
+  ),
   anchorBottom: cursor.row > 2,
 })
 

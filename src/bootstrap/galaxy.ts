@@ -49,12 +49,12 @@ const main = async () => {
     // non-important ones - color-picker, etc.)
     // requireDir(`${__dirname}/../services`)
     // requireDir(`${__dirname}/../components`)
-    // setTimeout(() => require('../core/ai'))
+    setTimeout(() => require('../core/ai'))
   }, 1)
 
   // TODO: THIS SHOULD BE LOADED IN A WEB WORKER. WTF IS THIS SHIT DOING IN THE MAIN THREAD LOL
   // TODO: clearly we are not ready for this greatness
-  // setTimeout(() => require('../support/dependency-manager').default(), 100)
+  setTimeout(() => require('../support/dependency-manager').default(), 100)
 }
 
 main().catch(log)
