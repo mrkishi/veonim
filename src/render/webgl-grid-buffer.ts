@@ -68,7 +68,7 @@ const finetti = () => {
   }
 
   const moveRegionUp = (lines: number, top: number, bottom: number) => {
-    const startIndex = width * top * 4
+    const startIndex = width * (top + 1) * 4
     const offset = lines * width * 4
     const bottomIndex = width * bottom * 4 + (width * 4)
 

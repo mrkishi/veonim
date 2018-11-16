@@ -114,7 +114,10 @@ const grid_line = (e: any) => {
     // win_resize events. i think it is up to us to redraw the
     // scene from the grid buffer
     const [ gridId, row, startCol, charData ] = e[ix]
-    if (gridId === 1) continue
+    if (gridId === 1) {
+      console.log('GRID1', charData)
+      continue
+    }
 
     if (gridId !== activeGrid) {
       // TODO: what if we have multiple active webgls... how to keep track of them
