@@ -55,6 +55,8 @@ export default (webgl: WebGL2) => {
 
   program.create()
   program.use()
+  webgl.gl.enable(webgl.gl.BLEND)
+  webgl.gl.blendFunc(webgl.gl.SRC_ALPHA, webgl.gl.ONE_MINUS_SRC_ALPHA)
 
   const colorAtlas = getColorAtlas()
   webgl.loadCanvasTexture(colorAtlas, webgl.gl.TEXTURE0)
