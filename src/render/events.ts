@@ -102,16 +102,19 @@ export const mode_info_set = ([ , [ , infos ] ]: any) => infos.forEach((m: ModeI
   modes.set(m.name, info)
 })
 
-export const set_title = (title: string) => dispatch.pub('vim:title', title)
+export const set_title = ([ , [ title ] ]: [any, [string]]) => dispatch.pub('vim:title', title)
 
 export const popupmenu_hide = () => dispatch.pub('pmenu.hide')
-export const popupmenu_select = (ix: number) => dispatch.pub('pmenu.select', ix)
-export const popupmenu_show = (items: PMenuItem[], ix: number, row: number, col: number) =>
+export const popupmenu_select = ([ , [ ix ] ]: [any, [number]]) => dispatch.pub('pmenu.select', ix)
+export const popupmenu_show = ([ , [ items, ix, row, col ] ]: [any, [PMenuItem[], number, number, number]]) => {
   dispatch.pub('pmenu.show', { items, ix, row, col })
+}
 
-export const wildmenu_show = (items: any[]) => dispatch.pub('wildmenu.show', items)
-export const wildmenu_select = (selected: number) => dispatch.pub('wildmenu.select', selected)
+export const wildmenu_show = ([ , [ items ] ]: any) => dispatch.pub('wildmenu.show', items)
 export const wildmenu_hide = () => dispatch.pub('wildmenu.hide')
+export const wildmenu_select = ([ , [ selected ] ]: [any, [number]]) => {
+  dispatch.pub('wildmenu.select', selected)
+}
 
 const cmdlineIsSame = (...args: any[]) => cmdcache.active && cmdcache.position === args[1]
 
@@ -128,7 +131,8 @@ const cmdcache: CommandLineCache = {
   position: -999,
 }
 
-export const cmdline_show = (content: CmdContent[], position: number, opChar: string, prompt: string, indent: number, level: number) => {
+type CmdlineShow = [ CmdContent[], number, string, string, number, number ]
+export const cmdline_show = ([ , [content, position, opChar, prompt, indent, level] ]: [any, CmdlineShow]) => {
   cmdcache.active = true
   cmdcache.position = position
 
@@ -171,7 +175,7 @@ export const cmdline_hide = () => {
   dispatch.pub('search.hide')
 }
 
-export const cmdline_pos = (position: number) => {
+export const cmdline_pos = ([ , [ position ] ]: [any, [number]]) => {
   if (currentCommandMode === CommandType.Ex) dispatch.pub('cmd.update', { position })
   else dispatch.pub('search.update', { position })
 }

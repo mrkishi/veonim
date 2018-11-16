@@ -1,10 +1,10 @@
 import { addHighlight, generateColorLookupAtlas, setDefaultColors } from '../render/highlight-attributes'
 import { getCharIndex, getUpdatedFontAtlasMaybe } from '../render/font-texture-atlas'
-import { mode_change, option_set, mode_info_set } from '../render/events'
 import { moveCursor, hideCursor } from '../core/cursor'
 import * as windows from '../windows/window-manager'
 import * as dispatch from '../messaging/dispatch'
 import { onRedraw } from '../core/master-control'
+import * as renderEvents from '../render/events'
 import { WebGLView } from '../render/webgl'
 
 // this default state should never be used. otherwise something went horribly wrong
@@ -196,11 +196,21 @@ onRedraw(redrawEvents => {
     else if (e === 'grid_clear') grid_clear(ev)
     else if (e === 'grid_destroy') grid_destroy(ev)
     else if (e === 'tabline_update') tabline_update(ev)
-    else if (e === 'mode_change') mode_change(ev)
+    else if (e === 'mode_change') renderEvents.mode_change(ev)
+    else if (e === 'popupmenu_hide') renderEvents.popupmenu_hide()
+    else if (e === 'popupmenu_select') renderEvents.popupmenu_select(ev)
+    else if (e === 'popupmenu_show') renderEvents.popupmenu_show(ev)
+    else if (e === 'cmdline_show') renderEvents.cmdline_show(ev)
+    else if (e === 'cmdline_pos') renderEvents.cmdline_pos(ev)
+    else if (e === 'cmdline_hide') renderEvents.cmdline_hide()
     else if (e === 'hl_attr_define') hl_attr_define(ev)
     else if (e === 'default_colors_set') default_colors_set(ev)
-    else if (e === 'option_set') option_set(ev)
-    else if (e === 'mode_info_set') mode_info_set(ev)
+    else if (e === 'option_set') renderEvents.option_set(ev)
+    else if (e === 'mode_info_set') renderEvents.mode_info_set(ev)
+    else if (e === 'wildmenu_show') renderEvents.wildmenu_show(ev)
+    else if (e === 'wildmenu_select') renderEvents.wildmenu_select(ev)
+    else if (e === 'wildmenu_hide') renderEvents.wildmenu_hide()
+    else if (e === 'set_title') renderEvents.set_title(ev)
   }
 
   setTimeout(() => {
