@@ -225,6 +225,7 @@ export default class extends Transform {
 
     while (this.ix < bufsize) {
       const res = this.superparse(workingBuffer)
+      console.log('res', res)
       if (this.incomplete) return done()
       this.push(res)
     }

@@ -41,7 +41,7 @@ proc.on('exit', () => console.error('vim error-reader exit'))
 encoder.pipe(proc.stdin)
 proc.stdout.pipe(decoder)
 
-const { notify, request, onData } = SetupRPC(encoder.write)
+const { notify, request, onData } = SetupRPC(m => encoder.write(m))
 decoder.on('data', ([type, ...d]: [number, any]) => onData(type, d))
 
 const req: Api = onFnCall((name: string, args: any[] = []) => request(prefix.core(name), args))
