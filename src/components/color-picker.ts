@@ -1,5 +1,5 @@
+import * as windows from '../windows/window-manager'
 import * as dispatch from '../messaging/dispatch'
-import { activeWindow } from '../core/windows'
 import ColorPicker from '../ui/color-picker'
 import Overlay from '../components/overlay'
 import { debounce } from '../support/utils'
@@ -13,8 +13,10 @@ import nvim from '../core/neovim'
 let liveMode = false
 
 const getPosition = (row: number, col: number) => ({
-  x: activeWindow() ? activeWindow()!.colToX(col - 1) : 0,
-  y: activeWindow() ? activeWindow()!.rowToTransformY(row > 12 ? row : row + 1) : 0,
+  ...windows.pixelPosition(
+    row > 12 ? row : row + 1,
+    col - 1,
+  ),
   anchorBottom: row > 12,
 })
 

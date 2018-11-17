@@ -1,7 +1,8 @@
 import { divinationSearch } from '../components/divination'
 import { app, h, vimBlur, vimFocus } from '../ui/uikit'
-import { currentWindowElement } from '../core/windows'
 import { finder } from '../components/buffer-search'
+import * as windows from '../windows/window-manager'
+import { WindowOverlay } from '../windows/window'
 import Input from '../components/text-input'
 import { rgba, paddingV } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
@@ -40,16 +41,17 @@ const searchInBuffer = async (results = [] as FilterResult[]) => {
   nvim.cmd(`/\\%>${nvim.state.editorTopLine - 1}l\\%<${nvim.state.editorBottomLine + 1}l${pattern}`)
 }
 
+let winOverlay: WindowOverlay
 
 const actions = {
   show: () => {
     vimBlur()
-    currentWindowElement.add(containerEl)
+    winOverlay = windows.getActive().addOverlayElement(containerEl)
     return { focus: true }
   },
   hide: () => {
     vimFocus()
-    currentWindowElement.remove(containerEl)
+    if (winOverlay) winOverlay.remove()
     return { value: '', focus: false }
   },
   change: (value: string) => {
@@ -62,7 +64,7 @@ const actions = {
   },
   select: () => {
     vimFocus()
-    currentWindowElement.remove(containerEl)
+    if (winOverlay) winOverlay.remove()
     if (displayTargetJumps) divinationSearch()
     else nvim.feedkeys('n', 'n')
     return { value: '', focus: false }
