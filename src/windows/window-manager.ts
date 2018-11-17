@@ -1,6 +1,7 @@
 import CreateWindow, { Window } from '../windows/window'
 import { specs as titleSpecs } from '../core/title'
 import getWindowMetadata from '../windows/metadata'
+import { cursor, moveCursor } from '../core/cursor'
 import CreateWebGLRenderer from '../render/webgl'
 import { onElementResize } from '../ui/vanilla'
 import { throttle } from '../support/utils'
@@ -127,6 +128,14 @@ export const layout = () => {
   // wait for flex grid styles to be applied to all windows and trigger dom layout
   windowGridInfo.forEach(({ gridId }) => get(gridId).refreshLayout())
   refreshWebGLGrid()
+
+  // cursorline width does not always get resized correctly after window
+  // layout changes, so we will force an update of the cursor to make sure
+  // it is correct. test case: two vert splits, move to left and :bo
+  activeGrid.id > 1 && requestAnimationFrame(() => {
+    if (!windows.has(activeGrid.id)) return
+    moveCursor(activeGrid.id, cursor.row, cursor.col)
+  })
 }
 
 export const refresh = throttle(updateWindowNameplates, 5)
