@@ -213,8 +213,8 @@ onRedraw(redrawEvents => {
     else if (e === 'set_title') renderEvents.set_title(ev)
   }
 
-  setTimeout(() => {
+  requestAnimationFrame(() => {
     if (winUpdates) windows.layout()
     windows.refresh()
-  }, 15)
+  })
 })
