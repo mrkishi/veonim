@@ -5,12 +5,6 @@ import * as windows from '../windows/window-manager'
 import * as dispatch from '../messaging/dispatch'
 import { onRedraw } from '../core/master-control'
 import * as renderEvents from '../render/events'
-import { WebGLView } from '../render/webgl'
-
-// this default state should never be used. otherwise something went horribly wrong
-let webgl: WebGLView = {
-  render: () => console.warn('trying to webgl wrender into a grid that has no window'),
-} as any
 
 let dummyData = new Float32Array()
 
@@ -88,16 +82,12 @@ const grid_scroll = ([ , [ gridId, top, bottom, /*left*/, /*right*/, amount ] ]:
     : win.webgl.moveRegionDown(-amount, top, bottom)
 }
 
-const grid_line = (e: any) => {
-  let hlid = 0
-  const count = e.length
-  // TODO: this render buffer index is gonna be wrong if we switch window grids
-  // while doing the render buffer sets
 
-  // TODO: could keep this index number inside the window webglview just like
-  // we keep with the dataBuffer typedarray. could return a "render data" object
-  // return { ..., renderData: { buffer, index }, ... }
-  let rx = 0
+const grid_line = (e: any) => {
+  const count = e.length
+  const gridRenderIndexes = []
+  const grids = []
+  let hlid = 0
   let activeGrid = 0
   let buffer = dummyData
   let gridBuffer = dummyData
@@ -108,28 +98,24 @@ const grid_line = (e: any) => {
   // first item in the event arr is the event name.
   // we skip that because it's cool to do that
   for (let ix = 1; ix < count; ix++) {
-    // TODO: wat do with grid id?
-    // when do we have 'grid_line' events for multiple grids?
-    // like a horizontal split? nope. horizontal split just sends
-    // win_resize events. i think it is up to us to redraw the
-    // scene from the grid buffer
     const [ gridId, row, startCol, charData ] = e[ix]
     if (gridId === 1) {
+      // TODO: messages, multi-line messages, etc.
       console.log('GRID1', charData)
       continue
     }
 
     if (gridId !== activeGrid) {
-      // TODO: what if we have multiple active webgls... how to keep track of them
-      if (activeGrid !== 0) console.warn('grid_line: switch grid more than once! lolwut', gridId)
+      activeGrid = gridId
       const win = windows.get(gridId)
-      webgl = win.webgl
       // TODO: getting width here is kinda expensive. improve.
       width = win.getWindowInfo().width
-      buffer = webgl.getBuffer()
-      gridBuffer = webgl.getGridBuffer()
-      activeGrid = gridId
+      buffer = win.webgl.getBuffer()
+      gridBuffer = win.webgl.getGridBuffer()
+      if (!gridRenderIndexes[gridId]) gridRenderIndexes[gridId] = 0
+      grids.push(activeGrid)
     }
+
     hlid = 0
     col = startCol
     const charDataSize = charData.length
@@ -151,11 +137,11 @@ const grid_line = (e: any) => {
       else charIndex = char - 32
 
       for (let r = 0; r < repeats; r++) {
-        buffer[rx] = col
-        buffer[rx + 1] = row
-        buffer[rx + 2] = hlid
-        buffer[rx + 3] = charIndex
-        rx += 4
+        buffer[gridRenderIndexes[gridId]] = col
+        buffer[gridRenderIndexes[gridId] + 1] = row
+        buffer[gridRenderIndexes[gridId] + 2] = hlid
+        buffer[gridRenderIndexes[gridId] + 3] = charIndex
+        gridRenderIndexes[gridId] += 4
 
         // TODO: could maybe deffer this to next frame?
         const bufix = (col * 4) + width * row * 4
@@ -171,7 +157,14 @@ const grid_line = (e: any) => {
 
   const atlas = getUpdatedFontAtlasMaybe()
   if (atlas) windows.webgl.updateFontAtlas(atlas)
-  webgl.render(rx)
+
+  const gridCount = grids.length
+  for (let ix = 0; ix < gridCount; ix++) {
+    const gridId = grids[ix]
+    const win = windows.get(gridId)
+    const renderCount = gridRenderIndexes[gridId]
+    win.webgl.render(renderCount)
+  }
 }
 
 const tabline_update = ([ , [ curtab, tabs ] ]: any) => {
