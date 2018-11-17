@@ -98,7 +98,7 @@ export default class extends Transform {
     else if (m >= 0x80 && m <= 0x8f) return (this.ix++, this.toMap(raw, m - 0x80))
 
     // arr16
-    else if (m === 0xdc) return (this.ix+=3, this.toArr(raw, raw[this.ix - 2] + raw[this.ix - 1]))
+    else if (m === 0xdc) return (this.ix+=3, this.toArr(raw, raw[this.ix - 2] << 8 | raw[this.ix - 1]))
 
     // negative fixint
     else if (m >= 0xe0 && m <= 0xff) return (this.ix++, m - 0x100)
@@ -108,13 +108,13 @@ export default class extends Transform {
     else if (m === 0xc0) return (this.ix++, null)
 
     // uint16
-    else if (m === 0xcd) return (this.ix+=3, (raw[this.ix - 2] << 8) + raw[this.ix - 1] )
+    else if (m === 0xcd) return (this.ix+=3, (raw[this.ix - 2] << 8) | raw[this.ix - 1])
 
     // str16
-    else if (m === 0xda) return (this.ix+=3, this.toStr(raw, raw[this.ix - 2] + raw[this.ix - 1]))
+    else if (m === 0xda) return (this.ix+=3, this.toStr(raw, raw[this.ix - 2] << 8 | raw[this.ix - 1]))
 
     // map16
-    else if (m === 0xde) return (this.ix+=3, this.toMap(raw, raw[this.ix - 2] + raw[this.ix - 1]))
+    else if (m === 0xde) return (this.ix+=3, this.toMap(raw, raw[this.ix - 2] << 8 | raw[this.ix - 1]))
 
     // int8
     else if (m === 0xd0) {
@@ -146,21 +146,24 @@ export default class extends Transform {
 
     // str32
     else if (m === 0xdb) {
-      const val = this.toStr(raw, raw[this.ix + 1] + raw[this.ix + 2] + raw[this.ix + 3] + raw[this.ix + 4])
+      const length = (raw[this.ix + 1] * 16777216) + (raw[this.ix + 2] << 16) + (raw[this.ix + 3] << 8) + raw[this.ix + 4]
+      const val = this.toStr(raw, length)
       this.ix += 5
       return val
     }
 
     // arr32
     else if (m === 0xdd) {
-      const val = this.toArr(raw, raw[this.ix + 1] + raw[this.ix + 2] + raw[this.ix + 3] + raw[this.ix + 4])
+      const length = (raw[this.ix + 1] * 16777216) + (raw[this.ix + 2] << 16) + (raw[this.ix + 3] << 8) + raw[this.ix + 4]
+      const val = this.toArr(raw, length)
       this.ix += 5
       return val
     }
 
     // map32
     else if (m === 0xdf) {
-      const val = this.toMap(raw, raw[this.ix + 1] + raw[this.ix + 2] + raw[this.ix + 3] + raw[this.ix + 4])
+      const length = (raw[this.ix + 1] * 16777216) + (raw[this.ix + 2] << 16) + (raw[this.ix + 3] << 8) + raw[this.ix + 4]
+      const val = this.toMap(raw, length)
       this.ix += 5
       return val
     }
@@ -184,10 +187,13 @@ export default class extends Transform {
     else if (m === 0xc7) return (this.ix++, this.parseExt(raw, raw[this.ix]))
 
     // ext16
-    else if (m === 0xc8) return (this.ix+=2, this.parseExt(raw, raw[this.ix] + raw[this.ix - 1]))
+    else if (m === 0xc8) return (this.ix+=2, this.parseExt(raw, raw[this.ix] << 8 | raw[this.ix - 1]))
 
     // ext32
-    else if (m === 0xc9) return (this.ix+=4, this.parseExt(raw, raw[this.ix] + raw[this.ix - 1] + raw[this.ix - 2] + raw[this.ix - 3]))
+    else if (m === 0xc9) {
+      const length = (raw[this.ix] * 16777216) + (raw[this.ix + 1] << 16) + (raw[this.ix + 2] << 8) + raw[this.ix + 3]
+      return (this.ix+=4, this.parseExt(raw, length))
+    }
 
     // uint64
     else if (m === 0xcf) (this.ix += 9, NOT_SUPPORTED)
@@ -225,7 +231,6 @@ export default class extends Transform {
 
     while (this.ix < bufsize) {
       const res = this.superparse(workingBuffer)
-      console.log('res', res)
       if (this.incomplete) return done()
       this.push(res)
     }
