@@ -23,6 +23,7 @@ const refreshColors = ({ fg = nvim.state.foreground, bg = nvim.state.background 
   setVar('background-45', darken(bg, 45))
   setVar('background-50', darken(bg, 50))
 
+  setVar('background-alpha', rgb(bg))
   setVar('background-b20-alpha', rgb(brighten(bg, 20)))
   setVar('background-30-alpha', rgb(darken(bg, 30)))
   setVar('background-40-alpha', rgb(darken(bg, 40)))

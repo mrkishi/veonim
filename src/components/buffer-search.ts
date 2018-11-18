@@ -2,7 +2,8 @@ import colorizer, { ColorData } from '../services/colorizer'
 import { getCursorBoundingClientRect } from '../core/cursor'
 import { RowNormal } from '../components/row-container'
 import { app, h, vimBlur, vimFocus } from '../ui/uikit'
-import { currentWindowElement } from '../core/windows'
+import * as windows from '../windows/window-manager'
+import { WindowOverlay } from '../windows/window'
 import { showCursorline } from '../core/cursor'
 import Input from '../components/text-input'
 import { merge } from '../support/utils'
@@ -84,16 +85,18 @@ const jumpToResult = (state: S, index: number, { readjustViewport = false } = {}
   if (readjustViewport) checkReadjustViewport()
 }
 
+let winOverlay: WindowOverlay
+
 const actions = {
   hide: () => (s: S) => {
     cursor.restore()
-    currentWindowElement.remove(containerEl)
+    if (winOverlay) winOverlay.remove()
     merge(previousSearchCache, s)
     vimFocus()
     return resetState
   },
   show: (resumeState?: S) => {
-    currentWindowElement.add(containerEl)
+    winOverlay = windows.getActive().addOverlayElement(containerEl)
     cursor.save()
     captureOverlayPosition()
     vimBlur()
@@ -101,7 +104,7 @@ const actions = {
   },
   select: () => (s: S) => {
     jumpToResult(s, s.index)
-    currentWindowElement.remove(containerEl)
+    if (winOverlay) winOverlay.remove()
     merge(previousSearchCache, s)
     vimFocus()
     return resetState

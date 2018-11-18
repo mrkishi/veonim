@@ -1,6 +1,6 @@
 import { RowNormal } from '../components/row-container'
 import { h, app, vimBlur, vimFocus } from '../ui/uikit'
-import { activeWindow } from '../core/windows'
+import * as windows from '../windows/window-manager'
 import Input from '../components/text-input'
 import Overlay from '../components/overlay'
 import { filter } from 'fuzzaldrin-plus'
@@ -88,8 +88,6 @@ const ui = app({ name: 'user-overlay-menu', state, actions, view })
 
 nvim.onAction('user-overlay-menu', (id: number, desc: string, items = []) => {
   if (!items.length) return
-  const x = activeWindow() ? activeWindow()!.colToX(cursor.col) : 0
-  // TODO: anchorBottom maybe?
-  const y = activeWindow() ? activeWindow()!.rowToTransformY(cursor.row + 1) : 0
+  const { x, y } = windows.pixelPosition(cursor.col, cursor.row + 1)
   ui.show({ x, y, id, items, desc })
 })

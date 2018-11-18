@@ -1,5 +1,5 @@
 import { size } from '../core/canvas-container'
-import { WindowInfo } from '../core/window'
+import { WindowInfo } from '../windows/window'
 import { within } from '../support/utils'
 
 const getSplits = (wins: WindowInfo[]) => {
@@ -30,8 +30,6 @@ export default (wins: WindowInfo[]) => {
 
   const yrows = [...horizontal].sort((a, b) => a - b)
   const xcols = [...vertical].sort((a, b) => a - b)
-  console.log('yrows', yrows)
-  console.log('xcols', xcols)
 
   const rr = yrows.reduce((res, curr, ix, arr) => {
     if (ix === arr.length - 1) return res
@@ -66,7 +64,6 @@ export default (wins: WindowInfo[]) => {
     }
   })).map(w => {
     const { srow, scol } = w
-    console.log('w', w)
     const rowStart = yrows.findIndex(within(srow.start, 2)) + 1
     const rowEnd = yrows.findIndex(within(srow.end, 2)) + 1
     const colStart = xcols.findIndex(within(scol.start, 2)) + 1

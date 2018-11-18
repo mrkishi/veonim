@@ -43,7 +43,6 @@ const create = (options?: WebGLContextAttributes) => {
       canvas.height = h
       canvas.style.width = `${width}px`
       canvas.style.height = `${height}px`
-      gl.viewport(0, 0, w, h)
     }
   }
 
@@ -158,6 +157,7 @@ const create = (options?: WebGLContextAttributes) => {
     const use = () => {
       gl.useProgram(program)
       gl.bindVertexArray(vao)
+      gl.enable(gl.SCISSOR_TEST)
     }
 
     const setupData: SetupDataFunc = (pointers: any) => {
@@ -165,7 +165,7 @@ const create = (options?: WebGLContextAttributes) => {
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
 
       pointers.length
-        ?  pointers.forEach((pointer: AttribPointer) => setupVertexArray(pointer))
+        ? pointers.forEach((pointer: AttribPointer) => setupVertexArray(pointer))
         : setupVertexArray(pointers)
 
       return {

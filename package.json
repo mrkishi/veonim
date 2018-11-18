@@ -60,15 +60,13 @@
     "hyperapp-feather": "0.4.0",
     "hyperapp-seti": "0.2.0",
     "marked": "0.5.0",
-    "msgpack-lite": "0.1.26",
-    "vscode-debugprotocol": "1.29.0",
     "vscode-languageserver-protocol": "3.9.0"
   },
   "devDependencies": {
+    "vscode-debugprotocol": "1.29.0",
     "@deomitrus/hyperapp-redux-devtools": "1.2.0",
     "@medv/finder": "1.1.0",
     "@types/fuzzaldrin-plus": "0.0.1",
-    "@types/msgpack-lite": "0.1.4",
     "@types/node": "9.4.0",
     "@types/webgl2": "0.0.4",
     "electron": "3.0.2",
@@ -78,7 +76,6 @@
     "jscodeshift": "0.3.32",
     "mocha": "5.2.0",
     "proxyquire": "2.0.1",
-    "resemblejs": "2.10.3",
     "spectron": "4.0.0",
     "ts-unused-exports": "2.0.5",
     "typescript": "2.8.1"

@@ -1,59 +1,81 @@
-import * as canvasContainer from '../core/canvas-container'
+import { cell, font } from '../core/canvas-container'
 
-interface CharPosition {
-  x: number,
-  y: number,
+interface UnicodeChar {
+  index: number
+  width: number
 }
 
-interface FontAtlas {
-  getCharPosition(char: string, color: string): CharPosition | undefined
-  canvas: CanvasRenderingContext2D
-  element: HTMLCanvasElement
+const unicodeTable = new Map<string, UnicodeChar>()
+const reverseUnicodeTable = new Map<number, string>()
+const canvas = document.createElement('canvas')
+const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+
+// 0 - 32 are invisible control chars
+const START_CHAR_INDEX = 127 - 32
+let nextIndex = START_CHAR_INDEX
+let needToRegenAtlas = true
+
+const getTableSize = (): number => {
+  let totalol = 0
+  unicodeTable.forEach(char => totalol += char.width)
+  return totalol
 }
 
-export const CHAR_START = 33
-export const CHAR_END = 127
+// TODO: need to determine the max amount of characters we store in the
+// texture atlas. at some predetermined point we need to recycle texture
+// slots for new characters. this remains to be seen if we use a LILO
+// or LRU cache eviction strategy. cache invalidation... fuuuu
+export const getCharIndex = (char: string, width = 1) => {
+  const uChar = unicodeTable.get(char)
+  if (uChar) return uChar.index
 
-export const generateStandardSet = (): FontAtlas => {
-  const canvas = document.createElement('canvas')
-  const ui = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+  const index = nextIndex++
+  unicodeTable.set(char, { index, width })
+  reverseUnicodeTable.set(index, char)
+  needToRegenAtlas = true
+  return index
+}
 
-  const drawChar = (col: number, y: number, char: string) => {
-    const { height, width } = canvasContainer.cell
+export const getUpdatedFontAtlasMaybe = () => {
+  if (!needToRegenAtlas) return
+  regenAtlas()
+  return canvas
+}
 
-    ui.save()
-    ui.beginPath()
-    ui.rect(col * width, y, width, height)
-    ui.clip()
-    ui.fillText(char, col * width, y)
-    ui.restore()
-  }
+export const getCharFromIndex = (charIndex: number) => {
+  if (charIndex <= START_CHAR_INDEX) return String.fromCodePoint(charIndex + 32)
+  const char = reverseUnicodeTable.get(charIndex)
+  if (char) return char
+  return ' '
+}
 
-  const height = canvasContainer.cell.height
-  const width = (CHAR_END - CHAR_START) * canvasContainer.cell.width
-
-  canvas.height = Math.round(height * window.devicePixelRatio)
-  canvas.width = Math.round(width * window.devicePixelRatio)
+const regenAtlas = () => {
+  needToRegenAtlas = false
+  const width = cell.width * (getTableSize() + 127 - 32)
+  canvas.height = Math.floor(cell.height * window.devicePixelRatio)
+  canvas.width = Math.floor(width * window.devicePixelRatio)
 
   ui.imageSmoothingEnabled = false
-  ui.font = `${canvasContainer.font.size}px ${canvasContainer.font.face}`
+  ui.font = `${font.size}px ${font.face}`
   ui.scale(window.devicePixelRatio, window.devicePixelRatio)
   ui.textBaseline = 'top'
   ui.fillStyle = 'white'
 
-  let column = 0
-  for (let ix = CHAR_START; ix < CHAR_END; ix++) {
-    drawChar(column, 0, String.fromCharCode(ix))
-    column++
-  }
+  for (let ix = 32; ix < 127; ix++) drawChar(String.fromCharCode(ix), ix - 32)
+  unicodeTable.forEach(({ index, width }, char) => drawChar(char, index, width))
+}
 
-  const getCharPosition = (char: string) => {
-    const code = char.charCodeAt(0)
-    if (code < CHAR_START || code > CHAR_END) return
-    const x = (code - CHAR_START) * canvasContainer.cell.width * window.devicePixelRatio
-    const y = 0
-    return { x, y }
-  }
+const drawChar = (char: string, col: number, width = 1) => {
+  const charWidth = cell.width * width
+  ui.save()
+  ui.beginPath()
+  ui.rect(col * cell.width, 0, charWidth, cell.height)
+  ui.clip()
+  ui.fillText(char, col * cell.width, 0, charWidth)
+  ui.restore()
+}
 
-  return { canvas: ui, element: canvas, getCharPosition }
+export default () => {
+  if (needToRegenAtlas) regenAtlas()
+  return canvas
 }

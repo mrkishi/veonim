@@ -4,7 +4,7 @@ import { RowNormal, RowComplete } from '../components/row-container'
 import * as canvasContainer from '../core/canvas-container'
 import { resetMarkdownHTMLStyle } from '../ui/styles'
 import { markdownToHTML } from '../support/markdown'
-import { activeWindow } from '../core/windows'
+import * as windows from '../windows/window-manager'
 import Overlay from '../components/overlay'
 import { paddingVH, cvar } from '../ui/css'
 import * as Icon from 'hyperapp-feather'
@@ -183,7 +183,6 @@ export const show = ({ row, col, options }: ShowParams) => {
     anchorAbove,
     visibleOptions,
     options: options.slice(0, visibleOptions),
-    x: activeWindow() ? activeWindow()!.colToX(col) : 0,
-    y: activeWindow() ? activeWindow()!.rowToTransformY(anchorAbove ? row : row + 1) : 0,
+    ...windows.pixelPosition(anchorAbove ? row : row + 1, col),
   })
 }

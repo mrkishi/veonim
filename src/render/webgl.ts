@@ -1,42 +1,138 @@
+import CreateWebGLBuffer from '../render/webgl-grid-buffer'
 import CreateWebGL from '../render/webgl-utils'
-import * as cc from '../core/canvas-container'
+import { cell } from '../core/canvas-container'
 import TextFG from '../render/webgl-text-fg'
 import TextBG from '../render/webgl-text-bg'
 
-export default () => {
-  const webgl = CreateWebGL()
-  const webgl2 = CreateWebGL()
-  const textFGRenderer = TextFG(webgl)
-  const textBGRenderer = TextBG(webgl2)
-
-  const resize = (rows: number, cols: number) => {
-    const width = cols * cc.cell.width
-    const height = rows * cc.cell.height
-
-    textFGRenderer.resize(width, height)
-    textBGRenderer.resize(width, height)
-
-    webgl.resize(width, height)
-    webgl2.resize(width, height)
-  }
-
-  let activated = false
-
-  /** Wrender data where each element is [ charCode, col, row, red, green, blue ] */
-  const render = (fgData: Float32Array, bgData: Float32Array) => {
-    if (!activated) {
-      activated = true
-      // TODO: since webgl canvases are single purpose use, we can get rid of
-      // the activate methods and just have them bound to init
-      textBGRenderer.activate()
-      textFGRenderer.activate()
-    }
-    // i'm not seeing any tangible difference in browser compositing between 
-    // alpha and disabled alpha. am i doing something wrong? (probably)
-    // shouldn't alpha: false be faster somehow?
-    textBGRenderer.render(bgData)
-    textFGRenderer.render(fgData)
-  }
-
-  return { render, resize, element: webgl.canvasElement, element2: webgl2.canvasElement }
+export interface WebGLView {
+  resize: (rows: number, cols: number) => void
+  layout: (x: number, y: number, width: number, height: number) => void
+  render: (elements: number) => void
+  renderGridBuffer: () => void
+  clear: () => void
+  clearGridBuffer: () => void
+  moveRegionUp: (lines: number, top: number, bottom: number) => void
+  moveRegionDown: (lines: number, top: number, bottom: number) => void
+  getGridCell: (row: number, col: number) => Float32Array
+  getGridBuffer: () => Float32Array
+  getBuffer: () => Float32Array
 }
+
+const nutella = () => {
+  const foregroundGL = CreateWebGL({ alpha: true, preserveDrawingBuffer: true })
+  const backgroundGL = CreateWebGL({ alpha: false, preserveDrawingBuffer: true })
+
+  const textFGRenderer = TextFG(foregroundGL)
+  const textBGRenderer = TextBG(backgroundGL)
+
+  const resizeCanvas = (width: number, height: number) => {
+    textBGRenderer.resize(width, height)
+    textFGRenderer.resize(width, height)
+  }
+
+  const updateFontAtlas = (fontAtlas: HTMLCanvasElement) => {
+    textFGRenderer.updateFontAtlas(fontAtlas)
+  }
+
+  const updateColorAtlas = (colorAtlas: HTMLCanvasElement) => {
+    textBGRenderer.updateColorAtlas(colorAtlas)
+    textFGRenderer.updateColorAtlas(colorAtlas)
+  }
+
+  const clearAll = () => {
+    textBGRenderer.clearAll()
+    textFGRenderer.clearAll()
+  }
+
+  const createView = (): WebGLView => {
+    const viewport = { x: 0, y: 0, width: 0, height: 0 }
+    const gridBuffer = CreateWebGLBuffer()
+    let dataBuffer = new Float32Array()
+
+    const resize = (rows: number, cols: number) => {
+      const width = cols * cell.width
+      const height = rows * cell.height
+
+      if (viewport.width === width && viewport.height === height) return
+
+      dataBuffer = new Float32Array(rows * cols * 4)
+      gridBuffer.resize(rows, cols)
+    }
+
+    const layout = (x: number, y: number, width: number, height: number) => {
+      const same = viewport.x === x
+        && viewport.y === y
+        && viewport.width === width
+        && viewport.height === height
+
+      if (same) return
+
+      Object.assign(viewport, { x, y, width, height })
+    }
+
+    const render = (elements: number) => {
+      const buffer = dataBuffer.subarray(0, elements)
+      const { x, y, width, height } = viewport
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
+    }
+
+    const renderGridBuffer = () => {
+      const { x, y, width, height } = viewport
+      const buffer = gridBuffer.getBuffer()
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
+    }
+
+    const clear = () => {
+      const { x, y, width, height } = viewport
+      textBGRenderer.clear(x, y, width, height)
+      textFGRenderer.clear(x, y, width, height)
+    }
+
+    const clearGridBuffer = () => gridBuffer.clear()
+
+    const moveRegionUp = (lines: number, top: number, bottom: number) => {
+      gridBuffer.moveRegionUp(lines, top, bottom)
+      const buffer = gridBuffer.getBuffer()
+      const { x, y, width, height } = viewport
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
+    }
+
+    const moveRegionDown = (lines: number, top: number, bottom: number) => {
+      gridBuffer.moveRegionDown(lines, top, bottom)
+      const buffer = gridBuffer.getBuffer()
+      const { x, y, width, height } = viewport
+      textBGRenderer.render(buffer, x, y, width, height)
+      textFGRenderer.render(buffer, x, y, width, height)
+    }
+
+    return {
+      clear,
+      render,
+      resize,
+      layout,
+      moveRegionUp,
+      moveRegionDown,
+      clearGridBuffer,
+      renderGridBuffer,
+      getGridCell: gridBuffer.getCell,
+      getGridBuffer: gridBuffer.getBuffer,
+      getBuffer: () => dataBuffer,
+    }
+  }
+
+  return {
+    clearAll,
+    createView,
+    resizeCanvas,
+    updateFontAtlas,
+    updateColorAtlas,
+    foregroundElement: foregroundGL.canvasElement,
+    backgroundElement: backgroundGL.canvasElement,
+  }
+}
+
+export default nutella
+export type WebGLRenderer = ReturnType<typeof nutella>
