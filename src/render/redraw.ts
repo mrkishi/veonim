@@ -215,6 +215,7 @@ onRedraw(redrawEvents => {
     else if (e === 'wildmenu_select') renderEvents.wildmenu_select(ev)
     else if (e === 'wildmenu_hide') renderEvents.wildmenu_hide()
     else if (e === 'msg_show') renderEvents.msg_show(ev)
+    else if (e === 'msg_showmode') renderEvents.msg_showmode(ev)
     else if (e === 'set_title') renderEvents.set_title(ev)
   }
 

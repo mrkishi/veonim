@@ -88,6 +88,10 @@ export const msg_show = ([ , [ kind, msgs, flag ] ]: [any, [string, MessageEvent
   msgs.forEach(([ hlid, text ]) => console.log(hlid, text))
 }
 
+export const msg_showmode = ([, [ msgs ]]: any) => {
+  msgs.forEach((m: [number, string]) => console.log('MSG_SHOWMODE:', m[0], m[1]))
+}
+
 export const mode_change = ([ , [ m ] ]: [any, [string]]) => {
   const mode = sillyString(m)
   nvim.state.mode = normalizeVimMode(mode)
