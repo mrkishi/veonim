@@ -87,7 +87,6 @@ const grid_scroll = ([ , [ gridId, top, bottom, /*left*/, /*right*/, amount ] ]:
   // we make the assumption that left & right will always be
   // at the window edges (left == 0 && right == window.width)
   const win = windows.get(gridId)
-  win.webgl.clear()
 
   amount > 0
     ? win.webgl.moveRegionUp(amount, top, bottom)

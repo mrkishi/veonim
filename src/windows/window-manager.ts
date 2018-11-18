@@ -71,10 +71,10 @@ const getWindowById = (windowId: number) => {
   return win
 }
 
-const refreshWebGLGrid = () => requestAnimationFrame(() => {
+const refreshWebGLGrid = () => {
   webgl.clearAll()
   getAll().forEach(w => w.redrawFromGridBuffer())
-})
+}
 
 const updateWindowNameplates = async () => {
   const windowsWithMetadata = await getWindowMetadata()
