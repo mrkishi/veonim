@@ -29,11 +29,11 @@ const hl_attr_define = (e: any) => {
   windows.webgl.updateColorAtlas(colorAtlas)
 }
 
-const win_position = (e: any) => {
+const win_pos = (e: any) => {
   const count = e.length
 
   for (let ix = 1; ix < count; ix++) {
-    const [ windowId, gridId, row, col, width, height ] = e[ix]
+    const [ gridId, windowId, row, col, width, height ] = e[ix]
     windows.set(windowId, gridId, row, col, width, height)
   }
 }
@@ -55,10 +55,20 @@ const grid_destroy = ([ , [ gridId ] ]: any) => {
 const grid_resize = (e: any) => {
   const count = e.length
 
+  // TODO: dedup resize events for the same grid.
+  // we get dups per grid, like
+  // [1, 40, 100]
+  // [1, 100, 40]
+  // [2, 40, 100]
+  // [2, 100, 40]
+  // [2, 100, 30]
+  // [2, 100, 100]
+  // only take the last resize value. resizing is kinda expensive anyhoo
+
   for (let ix = 1; ix < count; ix++) {
     const [ gridId, width, height ] = e[ix]
     if (gridId === 1) continue
-    // it seems we get grid_resize events before win_position. not sure why... but okay
+    // grid events show up before win events
     if (!windows.has(gridId)) windows.set(-1, gridId, 0, 0, width, height)
     windows.get(gridId).resizeWindow(width, height)
   }
@@ -188,7 +198,7 @@ onRedraw(redrawEvents => {
     if (e === 'grid_line') grid_line(ev)
     else if (e === 'grid_scroll') grid_scroll(ev)
     else if (e === 'grid_cursor_goto') grid_cursor_goto(ev)
-    else if (e === 'win_position') (winUpdates = true, win_position(ev))
+    else if (e === 'win_pos') (winUpdates = true, win_pos(ev))
     else if (e === 'grid_resize') grid_resize(ev)
     else if (e === 'grid_clear') grid_clear(ev)
     else if (e === 'grid_destroy') grid_destroy(ev)
