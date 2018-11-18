@@ -27,14 +27,14 @@ interface NewVimResponse {
 }
 
 const vimOptions = {
-  // rgb: true,
   ext_popupmenu: true,
   ext_tabline: true,
   ext_wildmenu: true,
   ext_cmdline: true,
-  // TODO: ext_message support not available with multigrid. need to merge and test.
-  // ext_messages: true,
+  ext_messages: true,
   ext_multigrid: true,
+  // TODO: we need this for getting highlight info? or is it already
+  // implied as true by using new grid protocol?
   // ext_hlstate: true,
 }
 

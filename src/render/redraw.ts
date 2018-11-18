@@ -92,7 +92,6 @@ const grid_scroll = ([ , [ gridId, top, bottom, /*left*/, /*right*/, amount ] ]:
     : win.webgl.moveRegionDown(-amount, top, bottom)
 }
 
-
 const grid_line = (e: any) => {
   const count = e.length
   const gridRenderIndexes = []
@@ -109,11 +108,9 @@ const grid_line = (e: any) => {
   // we skip that because it's cool to do that
   for (let ix = 1; ix < count; ix++) {
     const [ gridId, row, startCol, charData ] = e[ix]
-    if (gridId === 1) {
-      // TODO: messages, multi-line messages, etc.
-      console.log('GRID1', charData)
-      continue
-    }
+
+    // TODO: anything of interest on grid 1? messages are supported by ext_messages
+    if (gridId === 1) continue
 
     if (gridId !== activeGrid) {
       activeGrid = gridId
@@ -217,6 +214,7 @@ onRedraw(redrawEvents => {
     else if (e === 'wildmenu_show') renderEvents.wildmenu_show(ev)
     else if (e === 'wildmenu_select') renderEvents.wildmenu_select(ev)
     else if (e === 'wildmenu_hide') renderEvents.wildmenu_hide()
+    else if (e === 'msg_show') renderEvents.msg_show(ev)
     else if (e === 'set_title') renderEvents.set_title(ev)
   }
 

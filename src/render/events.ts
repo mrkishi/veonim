@@ -82,6 +82,12 @@ const cursorShapeType = (shape?: string) => {
   else return CursorShape.block
 }
 
+type MessageEvent = [number, string]
+export const msg_show = ([ , [ kind, msgs, flag ] ]: [any, [string, MessageEvent[], boolean]]) => {
+  console.log('MSG OF:', kind, flag)
+  msgs.forEach(([ hlid, text ]) => console.log(hlid, text))
+}
+
 export const mode_change = ([ , [ m ] ]: [any, [string]]) => {
   const mode = sillyString(m)
   nvim.state.mode = normalizeVimMode(mode)
