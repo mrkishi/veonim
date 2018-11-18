@@ -52,7 +52,6 @@ export interface Window {
   gridToPixelPosition(row: number, col: number): Position
   getWindowSize(): Size
   resizeWindow(width: number, height: number): void
-  destroy(): void
 }
 
 const edgeDetection = (el: HTMLElement) => {
@@ -187,10 +186,6 @@ export default () => {
   }
 
   api.updateNameplate = data => nameplate.update(data)
-
-  api.destroy = () => {
-    webgl.clear()
-  }
 
   return api
 }

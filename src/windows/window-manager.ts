@@ -76,11 +76,6 @@ const refreshWebGLGrid = () => {
   getAll().forEach(w => w.redrawFromGridBuffer())
 }
 
-const updateWindowNameplates = async () => {
-  const windowsWithMetadata = await getWindowMetadata()
-  windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
-}
-
 export const createWebGLView = () => webgl.createView()
 
 export const setActiveGrid = (id: number) => Object.assign(activeGrid, { id })
@@ -99,10 +94,13 @@ export const remove = (gridId: number) => {
   const win = windows.get(gridId)
   if (!win) return console.warn(`trying to destroy a window that does not exist ${gridId}`)
 
-  win.destroy()
-  if (container.contains(win.element)) container.removeChild(win.element)
-  windowsById.delete(win.getWindowInfo().id)
-  windows.delete(gridId)
+  // redraw webgl first before removing DOM element
+  // this helps a bit with flickering
+  requestAnimationFrame(() => {
+    if (container.contains(win.element)) container.removeChild(win.element)
+    windowsById.delete(win.getWindowInfo().id)
+    windows.delete(gridId)
+  })
 }
 
 export const get = (gridId: number) => {
@@ -137,6 +135,11 @@ export const layout = () => {
     moveCursor(activeGrid.id, cursor.row, cursor.col)
   })
 }
+
+const updateWindowNameplates = () => requestAnimationFrame(async () => {
+  const windowsWithMetadata = await getWindowMetadata()
+  windowsWithMetadata.forEach(w => getWindowById(w.id).updateNameplate(w))
+})
 
 export const refresh = throttle(updateWindowNameplates, 5)
 

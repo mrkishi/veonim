@@ -176,7 +176,6 @@ const grid_line = (e: any) => {
 }
 
 const tabline_update = ([ , [ curtab, tabs ] ]: any) => {
-  // TODO: this does not work...
   requestAnimationFrame(() => dispatch.pub('tabs', { curtab, tabs }))
 }
 
@@ -221,8 +220,8 @@ onRedraw(redrawEvents => {
     else if (e === 'set_title') renderEvents.set_title(ev)
   }
 
-  requestAnimationFrame(() => {
-    if (winUpdates) windows.layout()
-    windows.refresh()
-  })
+  winUpdates && requestAnimationFrame(windows.layout)
+  // TODO: we really should never have to call this outside of windows.layout
+  // we should hook into autocmd events and update the title according to that
+  setTimeout(windows.refresh, 50)
 })
