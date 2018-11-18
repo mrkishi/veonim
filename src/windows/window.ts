@@ -177,9 +177,6 @@ export default () => {
 
   api.destroy = () => {
     webgl.clear()
-    webgl.clearGridBuffer()
-    console.warn('NYI: window.destroy()')
-    // TODO: destroy elements, cleanup, destroy canvas, components, anything else thanks etc.
   }
 
   return api

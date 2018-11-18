@@ -20,7 +20,7 @@ export interface WebGLView {
 
 const nutella = () => {
   const foregroundGL = CreateWebGL({ alpha: true, preserveDrawingBuffer: true })
-  const backgroundGL = CreateWebGL({ alpha: true, preserveDrawingBuffer: true })
+  const backgroundGL = CreateWebGL({ alpha: false, preserveDrawingBuffer: true })
 
   const textFGRenderer = TextFG(foregroundGL)
   const textBGRenderer = TextBG(backgroundGL)

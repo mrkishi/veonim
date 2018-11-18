@@ -33,6 +33,8 @@ type SetupDataFunc = SD1 & SD2
 const create = (options?: WebGLContextAttributes) => {
   const canvas = document.createElement('canvas')
   const gl = canvas.getContext('webgl2', options) as WebGL2RenderingContext
+  if (!options.alpha) {
+  }
 
   const resize = (width: number, height: number) => {
     const w = Math.round(width * window.devicePixelRatio)
