@@ -13,6 +13,7 @@ export interface WindowInfo {
   col: number
   width: number
   height: number
+  visible: boolean
 }
 
 interface GridStyle {
@@ -42,6 +43,7 @@ export interface Window {
   setWindowInfo(info: WindowInfo): void
   applyGridStyle(gridStyle: GridStyle): void
   refreshLayout(): void
+  hide(): void
   redrawFromGridBuffer(): void
   getCharAt(row: number, col: number): string
   updateNameplate(data: NameplateState): void
@@ -64,7 +66,7 @@ const edgeDetection = (el: HTMLElement) => {
 }
 
 export default () => {
-  const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0 }
+  const wininfo: WindowInfo = { id: 0, gridId: 0, row: 0, col: 0, width: 0, height: 0, visible: true }
   const layout = { x: 0, y: 0, width: 0, height: 0 }
   const webgl = createWebGLView()
 
@@ -109,6 +111,11 @@ export default () => {
   }
 
   api.setWindowInfo = info => {
+    if (!wininfo.visible) {
+      container.style.display = 'flex'
+      webgl.renderGridBuffer()
+    }
+
     container.id = `${info.id}`
     Object.assign(wininfo, info)
   }
@@ -131,6 +138,12 @@ export default () => {
 
   api.applyGridStyle = ({ gridRow, gridColumn }) => {
     Object.assign(container.style, { gridColumn, gridRow })
+  }
+
+  api.hide = () => {
+    wininfo.visible = false
+    container.style.display = 'none'
+    webgl.clear()
   }
 
   api.refreshLayout = () => {

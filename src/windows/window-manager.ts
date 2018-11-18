@@ -89,7 +89,7 @@ export const getActive = () => get(activeGrid.id)
 
 export const set = (id: number, gridId: number, row: number, col: number, width: number, height: number) => {
   const win = windows.get(gridId) || CreateWindow()
-  win.setWindowInfo({ id, gridId, row, col, width, height })
+  win.setWindowInfo({ id, gridId, row, col, width, height, visible: true })
   if (!windows.has(gridId)) windows.set(gridId, win)
   if (!windowsById.has(id)) windowsById.set(id, win)
   container.appendChild(win.element)
@@ -139,6 +139,8 @@ export const layout = () => {
 }
 
 export const refresh = throttle(updateWindowNameplates, 5)
+
+export const hide = (gridIds: number[][]) => gridIds.forEach(([gridId]) => get(gridId).hide())
 
 export const pixelPosition = (row: number, col: number) => {
   const win = windows.get(activeGrid.id)
