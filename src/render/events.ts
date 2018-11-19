@@ -106,10 +106,11 @@ export const mode_change = ([ , [ m ] ]: [any, [string]]) => {
   setCursorShape(info.shape, info.size)
 }
 
-export const option_set = ([ , [ k, value ] ]: [any, [string, any]]) => {
+export const option_set = (e: any) => e.slice(1).forEach(([ k, value ]: any) => {
   const key = sillyString(k)
+  console.log(key, value)
   options.set(key, value)
-}
+})
 
 export const mode_info_set = ([ , [ , infos ] ]: any) => infos.forEach((m: ModeInfo) => {
   const info = {
