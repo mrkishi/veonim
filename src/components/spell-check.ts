@@ -1,5 +1,4 @@
 import { sub } from '../messaging/dispatch'
-import { cursor } from '../core/cursor'
 import { h, app } from '../ui/uikit'
 
 const state = {
@@ -18,7 +17,9 @@ const actions = {
   },
 }
 
+let elref: HTMLElement
 const view = ($: S) => h('div', {
+  oncreate: (e: any) => elref = e,
   style: {
     display: $.visible ? 'flex' : 'none',
     justifyContent: 'center',
@@ -39,14 +40,9 @@ const view = ($: S) => h('div', {
 
 const ui = app<S, typeof actions>({ name: 'spell-check', state, actions, view })
 
-const cursorAt = { row: 0, col: 0 }
+sub('msg:spell-check', msg => ui.show(msg))
 
-sub('msg:spell-check', msg => {
-  Object.assign(cursorAt, cursor)
-  ui.show(msg)
-})
-
-sub('cursor-moved', () => {
-  const moveWhenOpen = cursor.row === cursorAt.row && cursor.col === cursorAt.col
-  if (moveWhenOpen) ui.hide()
+sub('hack:input-keys', inputKeys => {
+  const cancel = inputKeys === '<Esc>' || inputKeys === '<Enter>'
+  if (elref.style.display === 'flex' && cancel) ui.hide()
 })

@@ -1,4 +1,5 @@
 import { $, is, fromJSON } from '../support/utils'
+import * as dispatch from '../messaging/dispatch'
 import { input } from '../core/master-control'
 import { touched } from '../bootstrap/galaxy'
 import { VimMode } from '../neovim/types'
@@ -150,6 +151,9 @@ const sendKeys = async (e: KeyboardEvent, inputType: InputType) => {
   const key = bypassEmptyMod(e.key)
   if (!key) return
   const inputKeys = formatInput(mapMods(e), mapKey(e.key))
+
+  // TODO: temp: spell check window send key events
+  dispatch.pub('hack:input-keys', inputKeys)
 
   if (sendInputToVim) return sendToVim(inputKeys)
   keyListener(inputKeys, inputType)
